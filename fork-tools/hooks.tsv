@@ -12,3 +12,5 @@ app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	// Fork hook: echo-
 app/src/main/java/com/nuvio/tv/ui/navigation/Screen.kt	// Fork hook: echo-calendar	data object	echo	Screen.Calendar
 app/src/main/java/com/nuvio/tv/MainActivity.kt	calendarMenuItem) {	val rootRoutes	echo	klucz remember (rootRoutes)	val rootRoutes = remember(discoverLocation, liveTvMenuItem) {
 app/src/main/java/com/nuvio/tv/MainActivity.kt	calendarMenuItem	liveTvMenuItem	echo	klucz remember (drawerItems)	liveTvMenuItem
+app/src/main/java/com/nuvio/tv/ui/screens/home/HomeScreen.kt	Fork hook: skin	NetflixHomeRoute	skin	skin: ekran Home	if (com.nuvio.tv.ui.reshaped.netflix.rememberNetflixUiEnabled()) {
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	Fork hook: skin	// Controls overlay	skin	skin: nakładka odtwarzacza	PlayerControlsOverlay(

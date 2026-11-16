@@ -1650,7 +1650,7 @@ fun PlayerScreen(
             modifier = playerControlsDim
         ) {
             val context = LocalContext.current
-            PlayerControlsOverlay(
+            if (com.nuvio.tv.fork.ForkHooks.skinPlayerChrome(uiState) { viewModel.onEvent(it) }) { /* Fork hook: skin */ } else PlayerControlsOverlay(
                 uiState = uiState,
                 playerBadges = playerBadges,
                 viewModel = viewModel,

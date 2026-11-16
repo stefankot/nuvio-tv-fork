@@ -86,3 +86,9 @@ APK: `app/build/outputs/apk/full/debug/app-full-arm64-v8a-debug.apk`. Gradle ma 
 ## Kroki 6–7 (16.11.2026)
 - B: wiersz „Test łącza i raport sprzętu" w kategorii forka (`DeviceTestSettingsItems.kt`); sam test i raport są w bazie (Ustawienia → Advanced). Kompiluje się.
 - E: wyszukiwarka ustawień z Nuvio One (`SettingsSearch.kt`, `SettingsSearchOverlay.kt`) + 3 hooki w `SettingsScreen.kt` (pasek, szyna, overlay). Wynik „Playback → sekcja" otwiera tylko kategorię (fork nie ma `initialPlaybackSection`). Kompiluje się (build47), niezweryfikowane na urządzeniu. Zmiany w kopii: `UPSTREAM_SOURCES.md`.
+
+## Kroki 8–10 (16.11.2026)
+- Krok 8, kalendarz Echo: 6 plików 1:1 + `echo_calendar_strings.xml` + ikona; shimy w `fork/echo/shims/` (ApiKeys, glassSurface, underSidebar, NewLookNotifications [nic nie pokazuje], AmbientPageWash, selectionSurface, BrowsePill/scrollFade, BetaPerformanceSettings); `TmdbApi.kt` +getTvSchedule i klasy; trasa `calendar`, pozycja menu (`fork_calendar`). Kompiluje się; bez klucza TMDB kalendarz może być pusty (D5). Niezweryfikowane na urządzeniu.
+- Krok 9: przełączniki (Kalendarz, wyszukiwarka ustawień, pilot Arc) w kategorii forka; wyszukiwarka respektuje przełącznik.
+- Krok 10: moduł skin: `skin/api` (SkinId, SkinPreferences, Skin, SkinRegistry), pusty `KitSkin`, hooki 2–4 (Home, nakładka odtwarzacza przez `ForkHooks`), wiersz „Wygląd: Nuvio/Netflix/Mój projekt". NETFLIX włącza istniejący przełącznik Reshaped. Hook 1 (opakowanie motywu w `MainActivity`) i hook powłoki nawigacji NIE dodane (wymagają opakowania bloku; do zrobienia przy pierwszym ekranie kit). Generator tokenów w makiecie: pakiet zmieniony na `com.nuvio.tv.skin.kit.tokens` (`npm run build:tokens` OK; `check:kotlin` nie ruszył: brak bibliotek w cache Gradle). Tokeny NIE skopiowane do aplikacji.
+- check.sh OK; hand-maintained: 10 (limit 35).

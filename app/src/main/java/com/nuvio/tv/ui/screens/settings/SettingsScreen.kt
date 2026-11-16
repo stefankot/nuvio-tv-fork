@@ -575,7 +575,7 @@ fun SettingsScreen(
                             contentPadding = PaddingValues(horizontal = NuvioTheme.spacing.md, vertical = NuvioTheme.spacing.xs)
                         ) {
                             item(key = "settings_search_tab") { // Fork hook: settings-search
-                                SettingsTopBarTab(title = "Search", icon = Icons.Default.Search, isSelected = false, onClick = { showSettingsSearch = true })
+                                if (ForkFeatures.enabled(androidx.compose.ui.platform.LocalContext.current, "fork_settings_search", true)) SettingsTopBarTab(title = "Search", icon = Icons.Default.Search, isSelected = false, onClick = { showSettingsSearch = true })
                             }
                             itemsIndexed(
                                 items = visibleSections,
@@ -754,7 +754,7 @@ fun SettingsScreen(
                         verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically)
                     ) {
                         item(key = "settings_search_row") { // Fork hook: settings-search
-                            SettingsRailButton(title = "Search settings", icon = Icons.Default.Search, isSelected = false, onClick = { showSettingsSearch = true })
+                            if (ForkFeatures.enabled(androidx.compose.ui.platform.LocalContext.current, "fork_settings_search", true)) SettingsRailButton(title = "Search settings", icon = Icons.Default.Search, isSelected = false, onClick = { showSettingsSearch = true })
                         }
                         itemsIndexed(
                             items = visibleSections,
