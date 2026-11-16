@@ -44,6 +44,9 @@ import kotlin.math.max
 @OptIn(UnstableApi::class)
 internal object EmbeddedSubtitleTimelineLoader {
     private const val TOTAL_TIMEOUT_MS = 7_000L
+    // Range requests stop on their own at TOTAL_TIMEOUT_MS. This outer cap only guards a hang:
+    // parsing that has already downloaded everything must not be thrown away on a busy device.
+    private const val HARD_TIMEOUT_MS = 20_000L
     private const val INITIAL_PROBE_BYTES = 512 * 1024
     private const val HEADER_PROBE_BYTES = 64
     private const val TAIL_PROBE_BYTES = 4 * 1024 * 1024
@@ -145,6 +148,12 @@ internal object EmbeddedSubtitleTimelineLoader {
     suspend fun load(
         sourceUrl: String,
         sourceHeaders: Map<String, String> = emptyMap(),
+    ): IndexedEmbeddedTimeline? = load(sourceUrl, sourceHeaders, retryAfterJoinedFailure = true)
+
+    private suspend fun load(
+        sourceUrl: String,
+        sourceHeaders: Map<String, String>,
+        retryAfterJoinedFailure: Boolean,
     ): IndexedEmbeddedTimeline? {
         if (!sourceUrl.startsWith("http://", ignoreCase = true) &&
             !sourceUrl.startsWith("https://", ignoreCase = true)
@@ -160,14 +169,20 @@ internal object EmbeddedSubtitleTimelineLoader {
             if (cached != null) {
                 if (cached.timeline != null) return cached.timeline
                 val ageMs = (nowNs - cached.createdAtNs).coerceAtLeast(0L) / 1_000_000L
-                if (ageMs < NEGATIVE_CACHE_TTL_MS) return null
+                if (ageMs < NEGATIVE_CACHE_TTL_MS) {
+                    AutoSyncDebugLog.info {
+                        "index skipped: it failed ${ageMs / 1_000L}s ago for this stream " +
+                            "(tried again after ${NEGATIVE_CACHE_TTL_MS / 1_000L}s)"
+                    }
+                    return null
+                }
                 cache.remove(cacheKey)
             }
             inFlight.getOrPut(cacheKey) { ownedLoad }
         }
 
         if (activeLoad !== ownedLoad) {
-            return try {
+            val joined = try {
                 activeLoad.await()
             } catch (cancel: CancellationException) {
                 // The owning load was cancelled (e.g. its player closed). Load for this caller
@@ -176,8 +191,15 @@ internal object EmbeddedSubtitleTimelineLoader {
                 synchronized(cacheLock) {
                     if (inFlight[cacheKey] === activeLoad) inFlight.remove(cacheKey)
                 }
-                load(sourceUrl, sourceHeaders)
+                return load(sourceUrl, sourceHeaders, retryAfterJoinedFailure)
             }
+            if (joined != null || !retryAfterJoinedFailure) return joined
+            // The load this caller joined (usually the prefetch that runs while the stream opens)
+            // failed for a network reason and left nothing cached: try once more on its own.
+            val failureCached = synchronized(cacheLock) { cache.containsKey(cacheKey) }
+            if (failureCached) return null
+            AutoSyncDebugLog.info { "index retry after a network failure while the stream opened" }
+            return load(sourceUrl, sourceHeaders, retryAfterJoinedFailure = false)
         }
 
         try {
@@ -196,16 +218,33 @@ internal object EmbeddedSubtitleTimelineLoader {
         sourceUrl: String,
         sourceHeaders: Map<String, String>,
     ): IndexedEmbeddedTimeline? {
+        val stats = RangeStats(
+            deadlineNs = System.nanoTime() + TOTAL_TIMEOUT_MS * 1_000_000L,
+            maxBytes = MAX_TOTAL_DOWNLOAD_BYTES,
+            maxRequests = MAX_RANGE_REQUESTS,
+        )
         return try {
             val loaded = try {
-                withTimeout(TOTAL_TIMEOUT_MS) {
+                withTimeout(HARD_TIMEOUT_MS) {
                     withContext(Dispatchers.IO) {
-                        loadMatroskaCueIndex(sourceUrl, sourceHeaders)
+                        loadMatroskaCueIndex(sourceUrl, sourceHeaders, stats)
                     }
                 }
             } catch (_: TimeoutCancellationException) {
                 // A transient deadline is not evidence that the container is unsupported.
                 // Do not publish a negative cache entry for timed-out work.
+                AutoSyncDebugLog.warn {
+                    "index reject reason=timeout requests=${stats.requests} bytes=${stats.bytesDownloaded}"
+                }
+                return null
+            }
+            if (loaded == null && stats.transientFailure != null) {
+                // A network hiccup (often the stream itself still opening) says nothing about
+                // the file, so the next load may try again instead of reusing this failure.
+                AutoSyncDebugLog.warn {
+                    "index reject reason=network detail=${stats.transientFailure} " +
+                        "requests=${stats.requests} bytes=${stats.bytesDownloaded}"
+                }
                 return null
             }
 
@@ -219,7 +258,18 @@ internal object EmbeddedSubtitleTimelineLoader {
         } catch (cancel: CancellationException) {
             // External cancellation must remain observable and must never publish cache state.
             throw cancel
-        } catch (_: Exception) {
+        } catch (error: java.io.IOException) {
+            // Connection failures are transient too: leave nothing cached.
+            AutoSyncDebugLog.warn {
+                "index reject reason=network " +
+                    "detail=${error::class.simpleName}: ${error.message.orEmpty().take(120)} " +
+                    "requests=${stats.requests} bytes=${stats.bytesDownloaded}"
+            }
+            null
+        } catch (error: Exception) {
+            AutoSyncDebugLog.warn {
+                "index reject reason=${error::class.simpleName}: ${error.message.orEmpty()}"
+            }
             synchronized(cacheLock) {
                 cache[cacheKey] = CachedLoadResult(
                     timeline = null,
@@ -233,13 +283,9 @@ internal object EmbeddedSubtitleTimelineLoader {
     private suspend fun loadMatroskaCueIndex(
         sourceUrl: String,
         sourceHeaders: Map<String, String>,
+        stats: RangeStats,
     ): IndexedEmbeddedTimeline? {
         val startedAtNs = System.nanoTime()
-        val stats = RangeStats(
-            deadlineNs = System.nanoTime() + TOTAL_TIMEOUT_MS * 1_000_000L,
-            maxBytes = MAX_TOTAL_DOWNLOAD_BYTES,
-            maxRequests = MAX_RANGE_REQUESTS,
-        )
         val initial = fetchRange(
             sourceUrl = sourceUrl,
             sourceHeaders = sourceHeaders,
@@ -331,7 +377,13 @@ internal object EmbeddedSubtitleTimelineLoader {
             ?: DEFAULT_TIMESTAMP_SCALE_NS
 
         val tracksPosition = resolvedPositions[ID_TRACKS] ?: directPositions[ID_TRACKS]
-            ?: return null
+            ?: run {
+                AutoSyncDebugLog.warn {
+                    "MKV index reject reason=tracks-position-not-found " +
+                        "requests=${stats.requests} bytes=${stats.bytesDownloaded}"
+                }
+                return null
+            }
         val subtitleTracks = (
             extractElementFromInitialProbe(
                 initialBytes = initialMetadata.initialBytes,
@@ -348,6 +400,10 @@ internal object EmbeddedSubtitleTimelineLoader {
             )
             )?.let(::parseSubtitleTracks).orEmpty()
         if (subtitleTracks.isEmpty()) {
+            AutoSyncDebugLog.warn {
+                "MKV index reject reason=no-subtitle-tracks tracksPosition=$tracksPosition " +
+                    "requests=${stats.requests} bytes=${stats.bytesDownloaded}"
+            }
             return IndexedEmbeddedTimeline(
                 tracks = emptyList(),
                 source = "matroska-no-subtitle-tracks",
@@ -359,7 +415,17 @@ internal object EmbeddedSubtitleTimelineLoader {
             )
         }
 
+        AutoSyncDebugLog.info {
+            "MKV index subtitleTracks=${subtitleTracks.size} " +
+                "numbers=${subtitleTracks.joinToString(",") { it.number.toString() }}"
+        }
+
         val cuesPosition = resolvedPositions[ID_CUES] ?: directPositions[ID_CUES]
+        if (cuesPosition == null) {
+            AutoSyncDebugLog.warn {
+                "MKV index cues position unavailable; trying tail fallback"
+            }
+        }
         val parsedCues = if (cuesPosition != null) {
             (
                 extractElementFromInitialProbe(
@@ -391,9 +457,26 @@ internal object EmbeddedSubtitleTimelineLoader {
             subtitleTracks = subtitleTracks,
             timestampScaleNs = timestampScaleNs,
             stats = stats,
-        ) ?: return null
+        ) ?: run {
+            AutoSyncDebugLog.warn {
+                "MKV index reject reason=cues-unavailable " +
+                    "cuesPosition=${cuesPosition ?: -1L} requests=${stats.requests} " +
+                    "bytes=${stats.bytesDownloaded}"
+            }
+            return null
+        }
+
+        val subtitleCueCounts = subtitleTracks.joinToString(",") { track ->
+            "${track.number}:${parsedCues[track.number]?.cues.orEmpty().size}"
+        }
+        AutoSyncDebugLog.info {
+            "MKV index subtitleCueCounts=$subtitleCueCounts"
+        }
 
         if (subtitleTracks.all { track -> parsedCues[track.number]?.cues.orEmpty().isEmpty() }) {
+            AutoSyncDebugLog.warn {
+                "MKV index no subtitle Cue entries; using sparse Media3 fallback"
+            }
             return IndexedEmbeddedTimeline(
                 tracks = emptyList(),
                 source = "matroska-cues-no-subtitle-entries",
@@ -449,6 +532,10 @@ internal object EmbeddedSubtitleTimelineLoader {
         }
 
         if (referenceTracks.isEmpty()) {
+            AutoSyncDebugLog.warn {
+                "MKV index reject reason=no-usable-subtitle-cues counts=$subtitleCueCounts " +
+                    "minCues=$MIN_INDEXED_CUES minSpanMs=$MIN_INDEXED_SPAN_MS"
+            }
             return null
         }
 
@@ -477,16 +564,37 @@ internal object EmbeddedSubtitleTimelineLoader {
             sourceHeaders = sourceHeaders,
             initial = initial,
             stats = stats,
-        ) ?: return null
+        ) ?: run {
+            AutoSyncDebugLog.warn {
+                "MP4 index reject reason=moov-not-found requests=${stats.requests} " +
+                    "bytes=${stats.bytesDownloaded}"
+            }
+            return null
+        }
 
         if (moovLocation.size <= 0L || moovLocation.size > MAX_MP4_MOOV_BYTES.toLong()) {
+            AutoSyncDebugLog.warn {
+                "MP4 index reject reason=moov-size size=${moovLocation.size} " +
+                    "limit=$MAX_MP4_MOOV_BYTES position=${moovLocation.position}"
+            }
             return null
         }
         if (moovLocation.size > Int.MAX_VALUE.toLong()) {
+            AutoSyncDebugLog.warn {
+                "MP4 index reject reason=moov-size-int-overflow size=${moovLocation.size}"
+            }
             return null
         }
         if (moovLocation.position > Long.MAX_VALUE - moovLocation.size) {
+            AutoSyncDebugLog.warn {
+                "MP4 index reject reason=moov-position-overflow " +
+                    "position=${moovLocation.position} size=${moovLocation.size}"
+            }
             return null
+        }
+
+        AutoSyncDebugLog.info {
+            "MP4 index moov position=${moovLocation.position} size=${moovLocation.size}"
         }
 
         val moovEnd = moovLocation.position + moovLocation.size
@@ -502,11 +610,26 @@ internal object EmbeddedSubtitleTimelineLoader {
                     requirePartialContent = moovLocation.position > 0L,
                     stats = stats,
                     requireExactLength = true,
-                )?.bytes ?: return null
+                )?.bytes ?: run {
+                    AutoSyncDebugLog.warn {
+                        "MP4 index reject reason=moov-fetch-failed " +
+                            "position=${moovLocation.position} size=${moovLocation.size} " +
+                            "requests=${stats.requests} bytes=${stats.bytesDownloaded}"
+                    }
+                    return null
+                }
             }
 
-        val moov = parseMp4MoovTextTracks(moovBytes) ?: return null
+        val moov = parseMp4MoovTextTracks(moovBytes) ?: run {
+            AutoSyncDebugLog.warn {
+                "MP4 index reject reason=moov-parse-failed size=${moovBytes.size}"
+            }
+            return null
+        }
         if (moov.containerChildren.isEmpty()) {
+            AutoSyncDebugLog.warn {
+                "MP4 index reject reason=no-text-tracks-in-moov"
+            }
             return IndexedEmbeddedTimeline(
                 tracks = emptyList(),
                 source = "mp4-no-text-tracks",
@@ -533,11 +656,22 @@ internal object EmbeddedSubtitleTimelineLoader {
                 }
             }
         } catch (error: Exception) {
+            AutoSyncDebugLog.error(error) {
+                "MP4 index reject reason=boxparser-failed"
+            }
             return null
+        }
+
+        AutoSyncDebugLog.info {
+            "MP4 index sampleTables=${sampleTables.size}"
         }
 
         val referenceTracks = sampleTables.mapNotNull(::buildMp4ReferenceTrack)
         if (referenceTracks.isEmpty()) {
+            AutoSyncDebugLog.warn {
+                "MP4 index reject reason=no-supported-reference-tracks " +
+                    "sampleTables=${sampleTables.size}"
+            }
             return null
         }
 
@@ -619,13 +753,23 @@ internal object EmbeddedSubtitleTimelineLoader {
             offset = 0,
             limit = bytes.size,
             extendsToEndSize = bytes.size.toLong(),
-        ) ?: return null
+        ) ?: run {
+            AutoSyncDebugLog.warn { "MP4 moov parse reason=invalid-root-header" }
+            return null
+        }
         if (root.type != Mp4Box.TYPE_moov || root.size != bytes.size.toLong()) {
+            AutoSyncDebugLog.warn {
+                "MP4 moov parse reason=root-mismatch type=${root.type} " +
+                    "declared=${root.size} actual=${bytes.size}"
+            }
             return null
         }
 
         val rootEnd = root.size.toInt()
         if (hasDirectMp4Child(bytes, root.headerSize, rootEnd, Mp4Box.TYPE_mvex)) {
+            AutoSyncDebugLog.warn {
+                "MP4 moov parse reason=fragmented-mp4-mvex"
+            }
             // Fragmented MP4 needs moof/trun parsing; leave it to the existing live fallback.
             return null
         }
@@ -638,15 +782,32 @@ internal object EmbeddedSubtitleTimelineLoader {
                 offset = position,
                 limit = rootEnd,
                 extendsToEndSize = (rootEnd - position).toLong(),
-            ) ?: return null
-            val childEnd = mp4BoxEnd(position, child, rootEnd) ?: return null
+            ) ?: run {
+                AutoSyncDebugLog.warn {
+                    "MP4 moov parse reason=invalid-child-header position=$position"
+                }
+                return null
+            }
+            val childEnd = mp4BoxEnd(position, child, rootEnd) ?: run {
+                AutoSyncDebugLog.warn {
+                    "MP4 moov parse reason=invalid-child-size position=$position " +
+                        "type=${child.type} size=${child.size}"
+                }
+                return null
+            }
 
             when (child.type) {
                 Mp4Box.TYPE_mvhd -> addMp4Leaf(moov, bytes, position, childEnd, child.type)
                 Mp4Box.TYPE_trak -> {
                     if (isMp4TextTrack(bytes, child.dataStart(position), childEnd)) {
                         val parsed = parseMp4Container(bytes, position, childEnd, child)
-                            ?: return null
+                            ?: run {
+                                AutoSyncDebugLog.warn {
+                                    "MP4 moov parse reason=text-trak-parse-failed " +
+                                        "position=$position size=${child.size}"
+                                }
+                                return null
+                            }
                         moov.add(parsed)
                     }
                 }
@@ -1222,6 +1383,11 @@ internal object EmbeddedSubtitleTimelineLoader {
         }
 
         if (!shouldPair) {
+            AutoSyncDebugLog.verbose {
+                "PGS index kept raw=" + sorted.size +
+                    " peer=" + (peerDialogueCueCount ?: -1) +
+                    " explicitDurations=" + explicitDurationCount
+            }
             return buildDefaultIndexedTimeline(sorted)
         }
 
@@ -1249,6 +1415,10 @@ internal object EmbeddedSubtitleTimelineLoader {
                 }
             }
             index += 2
+        }
+
+        AutoSyncDebugLog.verbose {
+            "PGS index normalized raw=" + sorted.size + " visible=" + cues.size
         }
 
         return IndexedSubtitleTimeline(
@@ -1361,9 +1531,27 @@ internal object EmbeddedSubtitleTimelineLoader {
         val totalSize = header.headerSize.toLong() + header.size
         if (totalSize <= 0L) return null
         if (totalSize > maxElementBytes.toLong()) {
+            if (expectedId == ID_CUES) {
+                AutoSyncDebugLog.warn {
+                    "MKV index metadata reject reason=cues-size size=$totalSize " +
+                        "limit=$maxElementBytes position=$absolutePosition"
+                }
+            } else if (expectedId == ID_TRACKS) {
+                AutoSyncDebugLog.warn {
+                    "MKV index metadata reject reason=tracks-size size=$totalSize " +
+                        "limit=$maxElementBytes position=$absolutePosition"
+                }
+            }
             return null
         }
         if (totalSize > stats.remainingByteBudget()) {
+            if (expectedId == ID_CUES || expectedId == ID_TRACKS) {
+                AutoSyncDebugLog.warn {
+                    "MKV index metadata reject reason=byte-budget element=$expectedId " +
+                        "size=$totalSize remaining=${stats.remainingByteBudget()} " +
+                        "position=$absolutePosition"
+                }
+            }
             return null
         }
         if (totalSize <= headerProbe.bytes.size) {
@@ -1398,7 +1586,10 @@ internal object EmbeddedSubtitleTimelineLoader {
         requireExactLength: Boolean = false,
     ): RangeResponse? {
         if (length <= 0 || start < 0L) return null
-        if (!stats.canRequest(length)) return null
+        if (!stats.canRequest(length)) {
+            if (stats.remainingBudgetMs() <= 0L) stats.transientFailure = "time budget spent"
+            return null
+        }
         val end = start + length - 1L
         if (end < start) return null
 
@@ -1418,7 +1609,10 @@ internal object EmbeddedSubtitleTimelineLoader {
         }
 
         val remainingBudgetMs = stats.remainingBudgetMs()
-        if (remainingBudgetMs <= 0L) return null
+        if (remainingBudgetMs <= 0L) {
+            stats.transientFailure = "time budget spent"
+            return null
+        }
 
         stats.requests++
         val call = httpClient.newCall(requestBuilder.build())
@@ -1459,7 +1653,12 @@ internal object EmbeddedSubtitleTimelineLoader {
 
                         try {
                             val result = response.use { current ->
-                                if (!current.isSuccessful) return@use null
+                                if (!current.isSuccessful) {
+                                    if (isTransientHttpStatus(current.code)) {
+                                        stats.transientFailure = "HTTP ${current.code}"
+                                    }
+                                    return@use null
+                                }
                                 if (requirePartialContent && current.code != 206) return@use null
                                 if (start > 0L && current.code != 206) return@use null
 
@@ -1476,12 +1675,11 @@ internal object EmbeddedSubtitleTimelineLoader {
                                 val bytes = ByteArray(length)
                                 var offset = 0
                                 while (offset < length) {
-                                    if (
-                                        stats.remainingBudgetMs() <= 0L ||
-                                        stats.remainingByteBudget() <= 0L
-                                    ) {
+                                    if (stats.remainingBudgetMs() <= 0L) {
+                                        stats.transientFailure = "time budget spent"
                                         return@use null
                                     }
+                                    if (stats.remainingByteBudget() <= 0L) return@use null
                                     val allowedRead = minOf(
                                         length - offset,
                                         stats.remainingByteBudget()
@@ -1534,6 +1732,10 @@ internal object EmbeddedSubtitleTimelineLoader {
             )
         }
     }
+
+    /** Statuses that describe the server's current state rather than the file. */
+    private fun isTransientHttpStatus(code: Int): Boolean =
+        code == 408 || code == 425 || code == 429 || code >= 500
 
     private fun parseContentRange(value: String?): ContentRange? {
         if (value.isNullOrBlank()) return null
@@ -1701,6 +1903,10 @@ internal object EmbeddedSubtitleTimelineLoader {
         val maxBytes: Long,
         val maxRequests: Int,
     ) {
+        /** Set when a request failed for a reason that says nothing about the file itself. */
+        @Volatile
+        var transientFailure: String? = null
+
         fun remainingBudgetMs(): Long =
             ((deadlineNs - System.nanoTime()) / 1_000_000L).coerceAtLeast(0L)
 
@@ -1713,6 +1919,7 @@ internal object EmbeddedSubtitleTimelineLoader {
                 length.toLong() <= remainingByteBudget() &&
                 remainingBudgetMs() > 0L
     }
+
 
     private data class ContentRange(
         val start: Long?,

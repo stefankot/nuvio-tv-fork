@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.key
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -57,10 +59,16 @@ internal fun styledSubtitlePaddingXPx(textSizePx: Float): Float =
 internal fun rememberSubtitleTypeface(fontId: String): Typeface? {
     val context = LocalContext.current
     val store = remember(context) { SubtitleFontStore.get(context) }
+    val reshapedFont = com.nuvio.tv.reshaped.subtitlefont.SubtitleFontStore.font.collectAsState().value
+    LaunchedEffect(context) { com.nuvio.tv.reshaped.subtitlefont.SubtitleFontStore.warmUp(context) }
     return key(fontId) {
-        produceState(store.cachedTypeface(fontId), store) {
-            value = withContext(Dispatchers.IO) { store.typeface(fontId) }
-        }.value
+        // Keep the already-imported Reshaped font as the default; explicit new
+        // font choices take precedence without moving or deleting the old file.
+        if (fontId == SubtitleFonts.DEFAULT) reshapedFont?.typeface else {
+            produceState(store.cachedTypeface(fontId), store) {
+                value = withContext(Dispatchers.IO) { store.typeface(fontId) }
+            }.value
+        }
     }
 }
 
@@ -69,8 +77,10 @@ internal fun rememberSubtitleFontFamily(fontId: String): FontFamily {
     val context = LocalContext.current
     val store = remember(context) { SubtitleFontStore.get(context) }
     val typeface = rememberSubtitleTypeface(fontId)
-    return remember(fontId, typeface) {
-        typeface?.let { store.fontFile(fontId) }?.let { FontFamily(Font(it)) } ?: builtInSubtitleFontFamily(fontId)
+    val reshapedFont = com.nuvio.tv.reshaped.subtitlefont.SubtitleFontStore.font.collectAsState().value
+    val file = if (fontId == SubtitleFonts.DEFAULT) reshapedFont?.file else store.fontFile(fontId)
+    return remember(fontId, typeface, file) {
+        if (typeface != null && file != null) FontFamily(Font(file)) else builtInSubtitleFontFamily(fontId)
     }
 }
 
@@ -122,7 +132,7 @@ internal fun StyledSubtitleText(
         val blockHeight = layout.size.height + paddingY * 2
         val textColor = Color(style.textColor)
         val outlineColor = Color(style.outlineColor)
-        val outline = style.outlineWidth * unit / 2f
+        val outline = style.outlineWidth * unit
         val shadowSize = style.shadowSize * unit
         Canvas(
             Modifier

@@ -33,7 +33,7 @@ internal suspend fun <T : Any, F : Any> resolveWithSourceFallback(
     first: Stream,
     maxSources: Int,
     resolve: suspend (Stream) -> AutoPlayResolveAttempt<T, F>,
-    nextCandidate: (failed: Stream, triedKeys: Set<String>) -> Stream?
+    nextCandidate: suspend (failed: Stream, triedKeys: Set<String>) -> Stream?
 ): AutoPlayFallbackRun<T, F> {
     val triedKeys = mutableSetOf<String>()
     var attempts = 0

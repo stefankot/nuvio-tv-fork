@@ -10,6 +10,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 
 private const val SOURCE_FALLBACK_POLL_COUNT = 30
 private const val SOURCE_FALLBACK_POLL_INTERVAL_MS = 500L
@@ -47,6 +48,7 @@ internal fun PlayerRuntimeController.restartSourceFallback(
     autoSelection: SourceFallbackHandoff.TriedSources?
 ) {
     sourceFallbackJob?.cancel()
+    sourceFallbackExhaustedUrl = null
     autoSelectedSourceUrl = playbackUrl.takeIf { url ->
         autoSelection != null && url.isNotBlank() && !url.startsWith("torrent://")
     }
@@ -58,6 +60,7 @@ internal fun PlayerRuntimeController.restartSourceFallback(
 /** Shows [errorMessage] as the playback error unless the next matching source is tried instead. */
 internal fun PlayerRuntimeController.showErrorUnlessSourceFallback(errorMessage: String) {
     if (tryFallbackToNextSourceAfterError(errorMessage)) return
+    if (autoSourceRecovery?.failDefinitively(errorMessage) == true) return
     _uiState.update {
         it.copy(
             error = errorMessage,
@@ -75,18 +78,23 @@ internal fun PlayerRuntimeController.showErrorUnlessSourceFallback(errorMessage:
  *
  * Returns `true` when a fallback was started and the error must not be shown yet.
  */
-internal fun PlayerRuntimeController.tryFallbackToNextSourceAfterError(errorMessage: String): Boolean {
-    if (sourceFallbackJob?.isActive == true) return true
+internal fun PlayerRuntimeController.tryFallbackToNextSourceAfterError(
+    errorMessage: String,
+    onFallbackFailure: (() -> Unit)? = null
+): Boolean {
+    if (currentStreamUrl == sourceFallbackExhaustedUrl) return false
     if (!streamAutoPlayFallbackActive || autoSwitchInternalPlayerOnErrorEnabled) return false
     if (hasRenderedFirstFrame) return false
     val failedUrl = currentStreamUrl
     if (failedUrl.isBlank() || failedUrl != autoSelectedSourceUrl) return false
+    if (sourceFallbackJob?.isActive == true) return true
     if (sourceFallbackAttempts >= streamAutoPlayFallbackMaxSources) {
         // The last source tried was saved for reuse when it started playing, but it failed.
         streamCacheKey?.let { key -> scope.launch { streamLinkCacheDataStore.remove(key) } }
         return false
     }
-    val videoId = currentVideoId ?: contentId ?: return false
+    val expectedVideoId = currentVideoId
+    val videoId = expectedVideoId ?: contentId ?: return false
 
     val state = _uiState.value
     val failedAddonName = currentAddonName
@@ -105,14 +113,21 @@ internal fun PlayerRuntimeController.tryFallbackToNextSourceAfterError(errorMess
         var polls = 0
         while (sourceFallbackAttempts < streamAutoPlayFallbackMaxSources) {
             val sources = _uiState.value
-            val next = nextSourceFallbackCandidate(
-                streams = sources.sourceAllStreams,
-                settings = settings,
-                installedAddonNames = installedAddonNames,
-                triedKeys = sourceFallbackTriedKeys,
-                failedAddonName = failedAddonName,
-                failedInfoHash = failedInfoHash
-            )
+            if (currentStreamUrl != failedUrl || currentVideoId != expectedVideoId || hasRenderedFirstFrame) return@launch
+            val next = com.nuvio.tv.core.streams.ranking.RankedRegexWork.run(
+                enabled = settings.streamAutoPlayRankedRegex.isNotEmpty()
+            ) { checkpoint ->
+                nextSourceFallbackCandidate(
+                    streams = sources.sourceAllStreams,
+                    settings = settings,
+                    installedAddonNames = installedAddonNames,
+                    triedKeys = sourceFallbackTriedKeys,
+                    failedAddonName = failedAddonName,
+                    failedInfoHash = failedInfoHash,
+                    rankedRegexCheckCancelled = checkpoint
+                )
+            }
+
             if (next == null) {
                 val searchDone = !sources.isLoadingSourceStreams &&
                     (sources.sourceAllStreams.isNotEmpty() || sources.sourceStreamsError != null)
@@ -135,14 +150,26 @@ internal fun PlayerRuntimeController.tryFallbackToNextSourceAfterError(errorMess
                 PlayerRuntimeController.TAG,
                 "Source failed to start, falling back to ${playable.name ?: playable.addonName} from ${playable.addonName}"
             )
+            if (currentStreamUrl != failedUrl || currentVideoId != expectedVideoId || hasRenderedFirstFrame) return@launch
             switchToSourceStream(playable)
             autoSelectedSourceUrl = currentStreamUrl
             sourceFallbackTriedKeys += "url:$currentStreamUrl"
             return@launch
         }
 
-        // The last source that failed may have been saved for reuse.
+        if (currentStreamUrl != failedUrl || currentVideoId != expectedVideoId || hasRenderedFirstFrame) return@launch
+        // Resume the original engine/audio/server recovery once, without restarting this search.
+        sourceFallbackExhaustedUrl = failedUrl
+        // A failed last source must not remain the saved link when legacy recovery resumes.
         streamCacheKey?.let { streamLinkCacheDataStore.remove(it) }
+        if (currentStreamUrl != failedUrl || currentVideoId != expectedVideoId || hasRenderedFirstFrame) return@launch
+        if (onFallbackFailure != null) {
+            yield() // Release the initiating handler's re-entry guard before continuing it.
+            if (currentStreamUrl != failedUrl || currentVideoId != expectedVideoId || hasRenderedFirstFrame) return@launch
+            onFallbackFailure()
+            return@launch
+        }
+        if (autoSourceRecovery?.failDefinitively(errorMessage) == true) return@launch
         _uiState.update {
             it.copy(
                 error = errorMessage,
@@ -165,7 +192,8 @@ internal fun nextSourceFallbackCandidate(
     installedAddonNames: Set<String>,
     triedKeys: Set<String>,
     failedAddonName: String?,
-    failedInfoHash: String?
+    failedInfoHash: String?,
+    rankedRegexCheckCancelled: () -> Unit = {}
 ): Stream? {
     val untried = streams.filterNot { stream ->
         stream.sourceFallbackKey() in triedKeys ||
@@ -179,7 +207,10 @@ internal fun nextSourceFallbackCandidate(
         source = settings.streamAutoPlaySource,
         installedAddonNames = installedAddonNames,
         selectedAddons = settings.streamAutoPlaySelectedAddons,
-        selectedPlugins = settings.streamAutoPlaySelectedPlugins
+        selectedPlugins = settings.streamAutoPlaySelectedPlugins,
+        rankedRegexPatterns = settings.streamAutoPlayRankedRegex,
+        rankedRegexCheckCancelled = rankedRegexCheckCancelled,
+        bingeKeepsFilters = true
     )
 }
 

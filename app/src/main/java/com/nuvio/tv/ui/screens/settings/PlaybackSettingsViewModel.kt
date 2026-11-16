@@ -461,6 +461,10 @@ class PlaybackSettingsViewModel @Inject constructor(
         playerSettingsDataStore.setParallelNetworkEnabled(enabled)
     }
 
+    suspend fun setEnableHttp2(enabled: Boolean) {
+        playerSettingsDataStore.setEnableHttp2(enabled)
+    }
+
     suspend fun setAllowLargeTargetBuffer(enabled: Boolean) {
         playerSettingsDataStore.setAllowLargeTargetBuffer(enabled)
     }
@@ -547,6 +551,10 @@ class PlaybackSettingsViewModel @Inject constructor(
 
     suspend fun setStreamAutoPlaySelectedPlugins(plugins: Set<String>) {
         playerSettingsDataStore.setStreamAutoPlaySelectedPlugins(plugins)
+    }
+
+    suspend fun setStreamAutoPlayRankedRegex(patterns: List<String>) {
+        playerSettingsDataStore.setStreamAutoPlayRankedRegex(patterns)
     }
 
     suspend fun setStreamAutoPlayRegex(regex: String) {

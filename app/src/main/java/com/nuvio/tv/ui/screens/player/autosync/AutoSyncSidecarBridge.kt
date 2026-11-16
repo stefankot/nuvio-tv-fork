@@ -1,5 +1,6 @@
 package com.nuvio.tv.ui.screens.player.autosync
 
+import android.os.SystemClock
 import android.util.Log
 import androidx.media3.common.C
 import androidx.media3.extractor.text.CuesWithTiming
@@ -28,6 +29,8 @@ internal suspend fun applyAutoSyncSidecarTimeline(
     if (!timeline.confident || sidecar.activeSidecarSubtitleKey != url) return false
     val expectedGeneration = sidecar.currentSidecarGenerationFor(url) ?: return false
 
+    val totalStarted = SystemClock.elapsedRealtime()
+    val waitStarted = SystemClock.elapsedRealtime()
     val current = sidecar.sidecarTimedCues.takeIf { it.isNotEmpty() } ?: withTimeoutOrNull(
         SIDECAR_WAIT_MS,
     ) {
@@ -44,17 +47,28 @@ internal suspend fun applyAutoSyncSidecarTimeline(
                 it.isNotEmpty()
         }
     } ?: return false
+    val waitMs = SystemClock.elapsedRealtime() - waitStarted
 
+    val retimeStarted = SystemClock.elapsedRealtime()
     val retimed = withContext(AutomaticSubtitleSync.autoSyncDispatcher) {
         retimeSidecarTimedCues(current, timeline)
     }
+    val retimeMs = SystemClock.elapsedRealtime() - retimeStarted
 
-    return sidecar.commitPreparedSidecarSubtitle(
+    val commitStarted = SystemClock.elapsedRealtime()
+    val committed = sidecar.commitPreparedSidecarSubtitle(
         expectedCurrentUrl = url,
         newUrl = url,
         cues = retimed,
         expectedGeneration = expectedGeneration,
     )
+    val commitMs = SystemClock.elapsedRealtime() - commitStarted
+    AutoSyncDebugLog.info {
+        "APPLY_TIMING mode=same-url wait=${waitMs}ms parse=0ms " +
+            "retime=${retimeMs}ms commit=${commitMs}ms " +
+            "total=${SystemClock.elapsedRealtime() - totalStarted}ms"
+    }
+    return committed
 }
 
 internal suspend fun replaceAutoSyncSidecarSubtitle(
@@ -72,25 +86,37 @@ internal suspend fun replaceAutoSyncSidecarSubtitle(
     val expectedGeneration =
         sidecar.currentSidecarGenerationFor(expectedCurrentUrl) ?: return false
 
+    val totalStarted = SystemClock.elapsedRealtime()
+    var bodyMs = 0L
+    var parseMs = 0L
+    var retimeMs = 0L
+    var parsedCueCount = 0
     val retimed = try {
+        val bodyStarted = SystemClock.elapsedRealtime()
         val body = rawBody ?: withContext(Dispatchers.IO) {
             sidecar.downloadSubtitleBody(url = url, headers = headers)
         }
+        bodyMs = SystemClock.elapsedRealtime() - bodyStarted
         if (rawBody != null) {
             Log.d(TAG, "replacement using AutoSync cached body url=$url")
         }
 
+        val parseStarted = SystemClock.elapsedRealtime()
         val parsed = withContext(AutomaticSubtitleSync.autoSyncDispatcher) {
             parseSidecarTimedCuesRobust(body, url).cues
         }
+        parseMs = SystemClock.elapsedRealtime() - parseStarted
+        parsedCueCount = parsed.size
         if (parsed.isEmpty()) {
             Log.w(TAG, "replacement parse empty url=$url; keeping $expectedCurrentUrl")
             return false
         }
 
+        val retimeStarted = SystemClock.elapsedRealtime()
         val prepared = withContext(AutomaticSubtitleSync.autoSyncDispatcher) {
             retimeSidecarTimedCues(parsed, timeline)
         }
+        retimeMs = SystemClock.elapsedRealtime() - retimeStarted
         prepared
     } catch (cancel: CancellationException) {
         throw cancel
@@ -110,13 +136,23 @@ internal suspend fun replaceAutoSyncSidecarSubtitle(
         return false
     }
 
-    return sidecar.commitPreparedSidecarSubtitle(
+    val commitStarted = SystemClock.elapsedRealtime()
+    val committed = sidecar.commitPreparedSidecarSubtitle(
         expectedCurrentUrl = expectedCurrentUrl,
         newUrl = url,
         cues = retimed,
         expectedGeneration = expectedGeneration,
     )
+    val commitMs = SystemClock.elapsedRealtime() - commitStarted
+    AutoSyncDebugLog.info {
+        "APPLY_TIMING mode=replacement bodySource=${if (rawBody != null) "cached" else "network"} " +
+            "body=${bodyMs}ms parse=${parseMs}ms parsedCues=$parsedCueCount " +
+            "retime=${retimeMs}ms commit=${commitMs}ms " +
+            "total=${SystemClock.elapsedRealtime() - totalStarted}ms"
+    }
+    return committed
 }
+
 
 private fun retimeSidecarTimedCuesByIndexIfCompatible(
     source: List<CuesWithTiming>,

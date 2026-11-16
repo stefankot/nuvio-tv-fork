@@ -59,6 +59,11 @@ internal object AutoSyncSampledReferenceAligner {
         if (best.matches < MIN_MATCHED_CUES || best.score < MIN_COVERAGE ||
             best.segments < REQUIRED_SEGMENTS || margin < MIN_MARGIN
         ) {
+            AutoSyncDebugLog.warn {
+                "sampled reference reject matches=${best.matches}/${referenceStarts.size} " +
+                    "score=${"%.4f".format(best.score)} margin=${"%.4f".format(margin)} " +
+                    "segments=${best.segments} offset=${best.offsetMs}ms"
+            }
             return null
         }
 

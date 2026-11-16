@@ -77,6 +77,7 @@ internal fun PlayerRuntimeController.attachMpvView(view: NuvioMpvSurfaceView?) {
             return@onFailure
         }
         cancelNextEpisodeAutoPlayOnFatalError()
+        if (autoSourceRecovery?.failDefinitively(detailedError) == true) return@onFailure
         _uiState.update { state ->
             state.copy(
                 error = detailedError,
@@ -203,6 +204,7 @@ internal fun PlayerRuntimeController.initializeMpvPlayer(
             return@onFailure
         }
         cancelNextEpisodeAutoPlayOnFatalError()
+        if (autoSourceRecovery?.failDefinitively(detailedError) == true) return@onFailure
         _uiState.update {
             it.copy(
                 error = detailedError,
@@ -228,6 +230,7 @@ private fun String.safeMpvTraceHost(): String {
 
 internal fun PlayerRuntimeController.pauseForLifecycle() {
     // Mark we're in background so onPlayerError can defer recovery to onResume.
+    autoSourceRecovery?.cancel()
     isInBackground = true
 
     // Release the session while backgrounded so Bluetooth controls cannot resume playback.
