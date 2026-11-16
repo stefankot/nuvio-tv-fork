@@ -189,3 +189,6 @@ Zasady i preferencje użytkownika: `ROOT/CLAUDE.md`. Pochodzenie plików: `Nuvio
 4. KE: wydzielić tylko-do-odczytu testy łącza i sprzętu (problem B).
 5. Arc: kalendarz (problem D) z własnymi źródłami danych; wyszukiwarka ustawień (problem E).
 6. Ograniczyć liczbę zmodyfikowanych plików rdzenia (problem G), zastępując całe pliki Reshaped punktami wpięcia, jeśli to możliwe.
+
+## Aktualizacja końca wątku 1
+- Po naprawie 4 błędów pilota (teksty `player_pill_*`, ikona w `PlaybackRemoteButtons.kt`) kompilacja `arc-remote` była w toku; wynik nieznany. Sprawdź `/tmp/build39.log` lub skompiluj od nowa.

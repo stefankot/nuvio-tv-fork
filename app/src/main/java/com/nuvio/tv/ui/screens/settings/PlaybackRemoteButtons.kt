@@ -85,7 +85,6 @@ internal fun PlaybackRemoteButtonsSection(
     SettingsActionRow(
         title = stringResource(R.string.remote_buttons_reset),
         subtitle = null,
-        trailingIcon = null,
         enabled = map != RemoteButtonMap.DEFAULT,
         onClick = { onChange(RemoteButtonMap.DEFAULT) }
     )

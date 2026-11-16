@@ -56,3 +56,6 @@ export JAVA_HOME=/opt/homebrew/opt/openjdk@17
 ./gradlew :app:assembleFullDebug -PforgeArm64Only=true --console=rich
 ```
 APK: `app/build/outputs/apk/full/debug/app-full-arm64-v8a-debug.apk`. Gradle ma `-Xmx3072m` (Mac 8 GB RAM).
+
+## Koniec wątku 1
+- `arc-remote`: pilot Arc + wybór modelu mowy (Whisper) zacommitowane jako WIP; ostatnia kompilacja (build39) w toku, wynik nieznany. Szczegóły i procedura: `../CLAUDE.md`.
