@@ -1099,9 +1099,11 @@ open class MainActivity : ComponentActivity() {
                     }
 
                     val liveTvMenuItem = com.nuvio.tv.ui.reshaped.livetv.rememberLiveTvMenuItem(currentRoute, navController) // Nuvio RS hook: Live TV menu entry
-                    val rootRoutes = remember(discoverLocation, liveTvMenuItem) {
+                    val calendarMenuItem = com.nuvio.tv.fork.echo.rememberCalendarMenuItem() // Fork hook: echo-calendar
+                    val rootRoutes = remember(discoverLocation, liveTvMenuItem, calendarMenuItem) {
                         buildSet {
                             liveTvMenuItem?.let { add(it.route) } // Nuvio RS hook: Live TV menu entry
+                            calendarMenuItem?.let { add(it.route) } // Fork hook: echo-calendar
                             add(Screen.Home.route)
                             add(Screen.Search.route)
                             add(Screen.Library.route)
@@ -1124,7 +1126,8 @@ open class MainActivity : ComponentActivity() {
                         strNavLibrary,
                         strNavSettings,
                         discoverLocation,
-                        liveTvMenuItem
+                        liveTvMenuItem,
+                        calendarMenuItem
                     ) {
                         buildList {
                             add(
@@ -1158,6 +1161,7 @@ open class MainActivity : ComponentActivity() {
                                 )
                             )
                             liveTvMenuItem?.let(::add) // Nuvio RS hook: Live TV menu entry
+                            calendarMenuItem?.let(::add) // Fork hook: echo-calendar
                             add(
                                 DrawerItem(
                                     route = Screen.Settings.route,

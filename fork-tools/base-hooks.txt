@@ -1,3 +1,4 @@
 app/build.gradle.kts
 app/src/full/AndroidManifest.xml
 settings.gradle.kts
+app/src/main/java/com/nuvio/tv/data/remote/api/TmdbApi.kt

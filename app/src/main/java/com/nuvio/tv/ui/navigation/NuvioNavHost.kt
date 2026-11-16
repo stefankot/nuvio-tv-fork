@@ -1240,6 +1240,22 @@ private fun PlaybackNavHost(
             )
         }
 
+        composable(Screen.Calendar.route) { // Fork hook: echo-calendar
+            com.nuvio.tv.ui.screens.calendar.CalendarScreen(
+                onOpenShow = { showId, addonBaseUrl, season, episode ->
+                    navController.navigate(
+                        Screen.Detail.createRoute(
+                            itemId = showId,
+                            itemType = "series",
+                            addonBaseUrl = addonBaseUrl,
+                            returnFocusSeason = season,
+                            returnFocusEpisode = episode
+                        )
+                    )
+                }
+            )
+        }
+
         composable(Screen.YouTube.route) { // Nuvio One hook: YouTube
             com.nuvio.tv.youtube.YouTubeScreen(
                 onOpenSettings = { navController.navigate(Screen.Settings.route) { launchSingleTop = true } },

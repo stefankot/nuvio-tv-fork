@@ -9,7 +9,12 @@ bad(){ echo "BŁĄD: $*"; fail=1; }
 while read -r f; do [ -n "$f" ] && { cmp -s "$f" "$UP/$f" || bad "override różni się od Reshaped: $f"; }; done < fork-tools/overrides.txt
 # (b) pliki z hookami: wolno tylko DODAWAĆ linie względem Reshaped
 while read -r f; do [ -n "$f" ] || continue
-  diff "$UP/$f" "$f" | grep -q '^<' && bad "hook-plik usuwa/zmienia kod Reshaped: $f"; done < fork-tools/hooked-overrides.txt
+  diff "$UP/$f" "$f" | grep '^<' | sed 's/^< //' | while IFS= read -r l; do
+    t=$(echo "$l" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    awk -F'\t' -v f="$f" -v t="$t" 'NR>1 && $1==f { o=$6; gsub(/^[ \t]+|[ \t]+$/,"",o); if (o==t) found=1 } END{exit found?0:1}' fork-tools/hooks.tsv \
+      || { echo "BŁĄD: hook-plik zmienia kod Reshaped ($f): $t"; exit 1; }
+  done || fail=1
+done < fork-tools/hooked-overrides.txt
 # (c) markery z hooks.tsv obecne
 tail -n +2 fork-tools/hooks.tsv | while IFS=$'\t' read -r f m a mod p; do grep -qF -- "$m" "$f" || { echo "BŁĄD: brak markera '$m' w $f"; exit 1; }; done || fail=1
 # (d) limit plików utrzymywanych ręcznie

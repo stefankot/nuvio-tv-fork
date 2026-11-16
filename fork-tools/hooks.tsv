@@ -1,4 +1,4 @@
-file	marker	anchor	module	purpose
+file	marker	anchor	module	purpose	original
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	// Arc hook: remote buttons (player and Live TV)	onPreviewKeyEvent	arc	pilot w odtwarzaczu
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	RemotePlayerHook(	val containerFocusRequester	arc	stan pilota
 app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	// Nuvio One hook: YouTube	composable(Screen	one	trasa YouTube
@@ -6,3 +6,9 @@ app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	ForkFeatures.open =
 app/src/main/java/com/nuvio/tv/ui/navigation/Screen.kt	// Nuvio One hook	data object	one	Screen.YouTube
 app/src/main/java/com/nuvio/tv/MainActivity.kt	// Fork hook: arc-remote	override fun dispatchKeyEvent	arc	pilot poza odtwarzaczem
 app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.kt	// Fork hook: settings-search	var allowDetailAutofocus	one	wyszukiwarka ustawień (stan, overlay, 2 wiersze)
+app/src/main/java/com/nuvio/tv/data/remote/api/TmdbApi.kt	// Fork hook: echo-calendar	fun getTvShowDetails	echo	getTvSchedule + klasy dla kalendarza
+app/src/main/java/com/nuvio/tv/MainActivity.kt	// Fork hook: echo-calendar	val rootRoutes	echo	menu Kalendarz
+app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	// Fork hook: echo-calendar	composable(Screen	echo	trasa Kalendarz
+app/src/main/java/com/nuvio/tv/ui/navigation/Screen.kt	// Fork hook: echo-calendar	data object	echo	Screen.Calendar
+app/src/main/java/com/nuvio/tv/MainActivity.kt	calendarMenuItem) {	val rootRoutes	echo	klucz remember (rootRoutes)	val rootRoutes = remember(discoverLocation, liveTvMenuItem) {
+app/src/main/java/com/nuvio/tv/MainActivity.kt	calendarMenuItem	liveTvMenuItem	echo	klucz remember (drawerItems)	liveTvMenuItem
