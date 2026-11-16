@@ -93,6 +93,41 @@ object StreamAutoPlaySelector {
         return selectBingeGroupMatch(visible, targetBingeGroup)
     }
 
+    suspend fun selectAutoPlayStreamAsync(
+        streams: List<Stream>,
+        mode: StreamAutoPlayMode,
+        regexPattern: String,
+        source: StreamAutoPlaySource,
+        installedAddonNames: Set<String>,
+        selectedAddons: Set<String>,
+        selectedPlugins: Set<String>,
+        preferredBingeGroup: String? = null,
+        preferBingeGroupInSelection: Boolean = false,
+        bingeGroupOnly: Boolean = false,
+        rankedRegexPatterns: List<String> = emptyList(),
+        bingeKeepsFilters: Boolean = false // Nuvio RS: source recovery retries stay inside the user's filters
+    ): Stream? {
+        return com.nuvio.tv.core.streams.ranking.RankedRegexWork.run(
+            enabled = mode == StreamAutoPlayMode.REGEX_MATCH && rankedRegexPatterns.isNotEmpty() && !bingeGroupOnly
+        ) { checkpoint ->
+            selectAutoPlayStream(
+                streams = streams,
+                mode = mode,
+                regexPattern = regexPattern,
+                source = source,
+                installedAddonNames = installedAddonNames,
+                selectedAddons = selectedAddons,
+                selectedPlugins = selectedPlugins,
+                preferredBingeGroup = preferredBingeGroup,
+                preferBingeGroupInSelection = preferBingeGroupInSelection,
+                bingeGroupOnly = bingeGroupOnly,
+                rankedRegexPatterns = rankedRegexPatterns,
+                rankedRegexCheckCancelled = checkpoint,
+                bingeKeepsFilters = bingeKeepsFilters
+            )
+        }
+    }
+
     fun selectAutoPlayStream(
         streams: List<Stream>,
         mode: StreamAutoPlayMode,
@@ -103,7 +138,10 @@ object StreamAutoPlaySelector {
         selectedPlugins: Set<String>,
         preferredBingeGroup: String? = null,
         preferBingeGroupInSelection: Boolean = false,
-        bingeGroupOnly: Boolean = false
+        bingeGroupOnly: Boolean = false,
+        rankedRegexPatterns: List<String> = emptyList(),
+        rankedRegexCheckCancelled: () -> Unit = {},
+        bingeKeepsFilters: Boolean = false // Nuvio RS: source recovery retries stay inside the user's filters
     ): Stream? {
         if (streams.isEmpty()) return null
 

@@ -18,7 +18,20 @@ import androidx.media3.exoplayer.audio.ForwardingAudioSink
 internal class PlaybackSpeedAwareAudioSink(
     sink: AudioSink,
     initialForcePcm: Boolean = false,
-    forcePcmForBluetooth: Boolean = false
+    forcePcmForBluetooth: Boolean = false,
+    passthroughPolicy: AudioPassthroughPolicy = AudioPassthroughPolicy.ALLOW_ALL,
+    private val onDiagnosticEvent: ((String) -> Unit)? = null,
+    // Claims AC-3 up to 5.1 whatever the platform reports, for Force AC-3 and for
+    // denied formats that are transcoded.
+    private val forceAc3Support: Boolean = false,
+    // Test harness: refuses the first passthrough buffer of this MIME as a failed open.
+    private val faultInjectRejectMime: String? = null,
+    reducedStartThresholdFrames: Int = 0,
+    platformSink: DefaultAudioSink? = null,
+    // Encodings the platform sink was pinned to when built; null when it follows the output live.
+    val pinnedOutputEncodings: Set<Int>? = null,
+    // Nuvio RS: false with Settings > Nuvio Reshaped > formats off, so passthrough timing stays NuvioTV's own.
+    private val arcPacing: Boolean = true
 ) : ForwardingAudioSink(sink) {
 
     // Set when the sink is built with forcePcm (error recovery). Don't clear on speed reset.

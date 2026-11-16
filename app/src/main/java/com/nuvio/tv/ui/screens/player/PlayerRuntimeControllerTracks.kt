@@ -23,6 +23,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
 import com.nuvio.tv.ui.util.languageCodeToName
+import com.nuvio.tv.ui.reshaped.livetv.measureLiveTvFrameRate // Nuvio RS hook
 
 @UnstableApi
 internal fun PlayerRuntimeController.updateAvailableTracks(tracks: Tracks) {
@@ -92,6 +93,8 @@ internal fun PlayerRuntimeController.updateAvailableTracks(tracks: Tracks) {
                                 )
                             }
                         }
+                    } else {
+                        measureLiveTvFrameRate() // Nuvio RS hook: TS channels carry no frame rate
                     }
                     // Extract video codec, resolution, and bitrate for stream info
                     currentVideoCodec = CustomDefaultTrackNameProvider.resolveCodecName(format.sampleMimeType, format.codecs)
@@ -317,10 +320,13 @@ internal fun PlayerRuntimeController.updateAvailableTracks(tracks: Tracks) {
         audioTracks = audioTracks,
         subtitleTracks = subtitleTracks
     )
+    applyLosslessAudioDefaultIfUnset(audioTracks) // Nuvio RS hook: Arc formats
     if (currentStreamHasVideoTrack) {
         maybeScheduleFirstFrameWatchdog()
+        maybeScheduleTunnelAvSyncWatchdog() // Nuvio RS hook: Arc formats
     } else {
         cancelFirstFrameWatchdog()
+        cancelTunnelAvSyncWatchdog() // Nuvio RS hook: Arc formats
     }
     tryAutoSelectPreferredSubtitleFromAvailableTracks()
     maybeAdjustLibassPipelineForTracks(tracks)
@@ -1019,6 +1025,7 @@ internal fun PlayerRuntimeController.applyPersistedTrackPreference(
     var updatedAddonSubtitle: com.nuvio.tv.domain.model.Subtitle? = null
 
     pending.audio?.let { audioSelection ->
+        persistedAudioPreferenceSeenForStream = true // Nuvio RS hook: the lossless default never runs over a saved pick
         if (audioTracks.isEmpty()) {
             logSwitchTrace(
                 stage = "restore-audio",

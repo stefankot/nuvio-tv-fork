@@ -1098,8 +1098,10 @@ open class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    val rootRoutes = remember(discoverLocation) {
+                    val liveTvMenuItem = com.nuvio.tv.ui.reshaped.livetv.rememberLiveTvMenuItem(currentRoute, navController) // Nuvio RS hook: Live TV menu entry
+                    val rootRoutes = remember(discoverLocation, liveTvMenuItem) {
                         buildSet {
+                            liveTvMenuItem?.let { add(it.route) } // Nuvio RS hook: Live TV menu entry
                             add(Screen.Home.route)
                             add(Screen.Search.route)
                             add(Screen.Library.route)
@@ -1154,6 +1156,7 @@ open class MainActivity : ComponentActivity() {
                                     iconRes = R.raw.sidebar_library
                                 )
                             )
+                            liveTvMenuItem?.let(::add) // Nuvio RS hook: Live TV menu entry
                             add(
                                 DrawerItem(
                                     route = Screen.Settings.route,
@@ -1217,7 +1220,17 @@ open class MainActivity : ComponentActivity() {
                         }
                         Box(modifier = Modifier.fillMaxSize()) {
                             CompositionLocalProvider(LocalNavViewModelStoreOwner provides navViewModelStoreOwner) {
-                                if (modernSidebarEnabled) {
+                                // Nuvio RS hook: optional top pill menu replaces the sidebar
+                                if (com.nuvio.tv.ui.reshaped.pillnav.rememberPillNavEnabled()) {
+                                    com.nuvio.tv.ui.reshaped.pillnav.PillNavScaffold(
+                                        longPressBackHeld = longPressBackHeld, navController = navController, startDestination = startDestination,
+                                        currentRoute = currentRoute, rootRoutes = rootRoutes, drawerItems = drawerItems, selectedDrawerRoute = selectedDrawerRoute,
+                                        blurEnabled = modernSidebarBlurEnabled, activeProfileName = activeProfile?.name ?: "",
+                                        activeProfileColorHex = activeProfile?.avatarColorHex ?: "#1E88E5", activeProfileAvatarImageUrl = activeProfileAvatarImageUrl,
+                                        showProfileSelector = profiles.size > 1, onSwitchProfile = handleSwitchProfile, onNavigate = { optimisticRoute = it }, onExitApp = handleExitApp,
+                                        topBannerVisible = updateBannerState.showBanner && updateBannerState.update != null
+                                    )
+                                } else if (modernSidebarEnabled) {
                                     ModernSidebarScaffold(
                                         longPressBackHeld = longPressBackHeld,
                                         navController = navController,

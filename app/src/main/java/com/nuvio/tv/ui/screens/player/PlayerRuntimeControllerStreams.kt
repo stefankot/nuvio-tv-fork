@@ -1,11 +1,20 @@
 package com.nuvio.tv.ui.screens.player
 
+import com.nuvio.tv.ui.screens.player.seekpreview.seekPreviewNextEpisode
+import com.nuvio.tv.core.player.recovery.AutoSourceRecoveryPlan
+import com.nuvio.tv.core.player.recovery.AutoSourceRecoverySettings
+import com.nuvio.tv.core.player.recovery.prepareAutoSource
+
+import com.nuvio.tv.ui.reshaped.livetv.keepPlayerForLiveTvZap // Nuvio RS hook
+import com.nuvio.tv.reshaped.livetv.LiveTvPlaybackRegistry
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import androidx.media3.common.util.UnstableApi
+import com.nuvio.tv.core.connection.StreamConnectionFit
 import com.nuvio.tv.core.debrid.DirectDebridPlayableResult
 import com.nuvio.tv.core.network.NetworkResult
+import kotlinx.coroutines.sync.withLock
 import com.nuvio.tv.core.player.StreamAutoPlaySelector
 import com.nuvio.tv.data.local.PlayerSettings
 import com.nuvio.tv.data.local.StreamAutoPlayMode
@@ -234,6 +243,10 @@ internal fun PlayerRuntimeController.loadSourceStreams(forceRefresh: Boolean) {
         if (!isResume) {
             updateSourceChipsForFetchStart(type, vid, installedAddons)
         }
+
+        // Nuvio RS: one connection snapshot per load, taken once the duration is known.
+        var connectionFit: StreamConnectionFit? = null
+        var connectionFitCaptured = false
 
         streamRepository.getStreamsFromAllAddons(
             type = type,
@@ -992,7 +1005,7 @@ internal fun PlayerRuntimeController.switchToSourceStream(
     )
 
     resetLoadingOverlayForNewStream()
-    releasePlayer(flushPlaybackState = false)
+    if (!keepPlayerForLiveTvZap(url)) releasePlayer(flushPlaybackState = false) // Nuvio RS hook: Live TV zaps keep the player
 
     applySelectedStreamState(
         stream = stream,
@@ -1732,6 +1745,8 @@ internal fun PlayerRuntimeController.switchToEpisodeStream(
         persistSelectedStreamForReuse(stream = stream, url = playbackUrl, headers = playbackHeaders)
     }
     persistedTrackPreference = null
+    losslessAudioDefaultAppliedForStream = false // Nuvio RS hook: Arc formats
+    persistedAudioPreferenceSeenForStream = false
     subtitleDisabledByPersistedPreference = false
     subtitleAddonRestoredByPersistedPreference = false
     pendingRestoredAddonSubtitle = null
@@ -1857,6 +1872,8 @@ private fun PlayerRuntimeController.switchToEpisodeStreamCommon(
     currentFilename = stream.behaviorHints?.filename
 
     persistedTrackPreference = null
+    losslessAudioDefaultAppliedForStream = false // Nuvio RS hook: Arc formats
+    persistedAudioPreferenceSeenForStream = false
     subtitleDisabledByPersistedPreference = false
     subtitleAddonRestoredByPersistedPreference = false
     pendingRestoredAddonSubtitle = null

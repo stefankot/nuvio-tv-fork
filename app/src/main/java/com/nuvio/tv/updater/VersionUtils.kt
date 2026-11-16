@@ -49,14 +49,37 @@ internal object VersionUtils {
             "(?:-([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?" +
             "(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"
     )
+    // Nuvio RS tester builds (`-tester.N`) count their revisions the same way.
+    private val autoSyncSuffixPattern = Regex(
+        "^(.*)-(?:autosync|tester)(?:\\.(\\d+))?$",
+        RegexOption.IGNORE_CASE
+    )
+    private val canonicalAutoSyncPattern = Regex(
+        "^v?\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?-autosync\\.\\d+(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$",
+        RegexOption.IGNORE_CASE
+    )
 
     fun normalize(raw: String?): String {
         if (raw.isNullOrBlank()) return ""
-        return raw.trim().removePrefix("v").removePrefix("V")
+        return raw.trim()
+            .removePrefix("v")
+            .removePrefix("V")
     }
 
     fun parse(raw: String?): SemanticVersion? {
-        val match = versionPattern.matchEntire(normalize(raw)) ?: return null
+        val normalized = normalize(raw)
+        if (normalized.isEmpty()) return null
+
+        val autoSyncMatch = autoSyncSuffixPattern.matchEntire(normalized)
+        val baseVersion = autoSyncMatch?.groupValues?.get(1) ?: normalized
+        val autoSyncRevision = autoSyncMatch
+            ?.groupValues
+            ?.get(2)
+            ?.takeIf(String::isNotEmpty)
+            ?.toLongOrNull()
+            ?: if (autoSyncMatch != null) 0L else null
+
+        val match = versionPattern.matchEntire(baseVersion) ?: return null
         return SemanticVersion(
             major = match.groupValues[1].toLongOrNull() ?: return null,
             minor = match.groupValues[2].toLongOrNull() ?: return null,

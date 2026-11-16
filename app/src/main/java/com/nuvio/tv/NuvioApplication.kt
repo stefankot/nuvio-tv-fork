@@ -81,6 +81,11 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
         }
     }
 
+    override fun attachBaseContext(base: Context) {
+        super.attachBaseContext(base)
+        ReshapedMigration.importIfNeeded(base) // Nuvio RS hook: runs before providers read storage
+    }
+
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     override fun onCreate() {
         // Before super.onCreate(): Hilt creates injected services there, and the budget is read once.
@@ -88,6 +93,8 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
         super.onCreate()
         SentryInitializer.start(this, sentrySettingsDataStore)
         PluginRuntimeHooks.onApplicationCreate(this)
+        com.nuvio.tv.reshaped.subtitlefont.SubtitleFontStore.warmUp(this) // Nuvio RS hook: custom subtitle font, loaded off the main thread
+        com.nuvio.tv.reshaped.sync.ReshapedSync.onAppStart(this) // Nuvio RS hook: sync through the viewer's Google account
         androidTvChannelSyncService.start()
         serverUserStateProjection.start()
         // Load locale synchronously so it's available before Activity.attachBaseContext.

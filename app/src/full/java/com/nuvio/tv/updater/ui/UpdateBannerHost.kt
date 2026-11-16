@@ -112,5 +112,7 @@ fun UpdateBannerHost(
             onOpenSettings = onOpenUnknownSources,
             onDismiss = onDismissUnknownSources
         )
+    } else {
+        ReshapedMigrationHost(state = state, onDownload = onDownload) // Nuvio RS hook
     }
 }

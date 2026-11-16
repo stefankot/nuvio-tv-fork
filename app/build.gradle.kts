@@ -79,13 +79,13 @@ val devProperties = Properties().apply {
 }
 
 val enableDoviNative = parseBooleanProperty(
-    resolveProperty(devProperties, localProperties, "DOVI_NATIVE_ENABLED")
+    resolveProperty(devProperties, localProperties, "DOVI_NATIVE_ENABLED", "true") // Nuvio RS: Arc builds the DV bridge with libdovi by default
 )
 val doviExtractorHookReady = parseBooleanProperty(
-    resolveProperty(devProperties, localProperties, "DOVI_EXTRACTOR_HOOK_READY")
+    resolveProperty(devProperties, localProperties, "DOVI_EXTRACTOR_HOOK_READY", "true") // Nuvio RS: Arc builds the DV bridge with libdovi by default
 )
 val doviEnableRealLink = parseBooleanProperty(
-    resolveProperty(devProperties, localProperties, "DOVI_ENABLE_REAL_LINK")
+    resolveProperty(devProperties, localProperties, "DOVI_ENABLE_REAL_LINK", "true") // Nuvio RS: Arc builds the DV bridge with libdovi by default
 )
 val doviStaticLibPath = resolveProperty(devProperties, localProperties, "DOVI_LIBDOVI_STATIC_LIB")
 val doviIncludeDirPath = resolveProperty(devProperties, localProperties, "DOVI_LIBDOVI_INCLUDE_DIR")
@@ -601,9 +601,26 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.runner)
     testImplementation("junit:junit:4.13.2")
+    testImplementation("net.sf.kxml:kxml2:2.3.0")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
     testImplementation("io.mockk:mockk:1.13.12")
     testImplementation("com.squareup.okhttp3:mockwebserver:5.3.2")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
+
+apply(from = "reshaped.gradle") // Nuvio RS hook: fork build settings
+
+// FFmpeg 6.0 fallback ABI pin. Updating this AAR requires reviewing the preview backend headers too.
+val verifyPreviewFfmpegAbi by tasks.registering {
+    val aar = layout.projectDirectory.file("libs/nextlib-mediainfo-local.aar")
+    inputs.file(aar)
+    doLast {
+        val digest = MessageDigest.getInstance("SHA-256")
+            .digest(aar.asFile.readBytes()).joinToString("") { "%02x".format(it) }
+        check(digest == "509e645e0f4232bdd3c6e1b2e4b82c3686140a0355f13656890f3641d8b7fb53") {
+            "Preview FFmpeg ABI changed: review seekpreview native backend and headers before updating the pin."
+        }
+    }
+}
+tasks.named("preBuild").configure { dependsOn(verifyPreviewFfmpegAbi) }

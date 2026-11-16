@@ -10,10 +10,18 @@ internal object ReleaseSelector {
 
     fun eligibleReleases(
         releases: List<GitHubReleaseDto>,
-        channel: UpdateChannel
+        channel: UpdateChannel,
+        canonicalAutoSyncOnly: Boolean = false
     ): List<GitHubReleaseDto> = releases
         .asSequence()
         .filterNot(GitHubReleaseDto::draft)
+        .filter { release -> TesterChannel.belongsTo(release, channel) } // Nuvio RS hook
+        .filter { release ->
+            !canonicalAutoSyncOnly ||
+                VersionUtils.isCanonicalAutoSync(release.tagName) ||
+                VersionUtils.isCanonicalAutoSync(release.name) ||
+                TesterChannel.isTesterRelease(release) // Nuvio RS hook
+        }
         .mapNotNull { release ->
             val version = releaseVersion(release) ?: return@mapNotNull null
             ReleaseCandidate(
