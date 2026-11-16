@@ -80,7 +80,7 @@ class UpdateViewModel @Inject constructor(
             downloadStore.clearIfInstalled()
             consumeAutoInstalledUpdate()
             syncBackgroundJobs()
-            if (enabled && (!BuildConfig.IS_DEBUG_BUILD || BuildConfig.AUTOSYNC_FORK)) {
+            if (enabled && !BuildConfig.IS_DEBUG_BUILD) {
                 checkForUpdates(force = false, showNoUpdateFeedback = false)
             }
         }
@@ -108,17 +108,13 @@ class UpdateViewModel @Inject constructor(
 
             result
                 .onSuccess { update ->
-                    val remoteNewer = TesterChannel.isRemoteNewer( // Nuvio RS hook: tester channel
-                        update.tag, update.publishedAt, update.prerelease,
-                        BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE.toLong()
-                    ) ||
-                        ReshapedBridge.offersReshaped(context, update) // Nuvio RS hook
+                    val remoteNewer = VersionUtils.isRemoteNewer(update.tag, BuildConfig.VERSION_NAME)
                     val downloadedFile = if (remoteNewer) downloadStore.downloadedFileFor(update) else null
                     // The release just installed carries the notes the "updated" banner can show.
                     val installedUpdate = _uiState.value.installedUpdate?.let { installed ->
                         if (installed.tag == update.tag) update else installed
                     }
-                    if (remoteNewer && downloadedFile == null && update.tag != dismissedTag && (!BuildConfig.IS_DEBUG_BUILD || BuildConfig.AUTOSYNC_FORK)) {
+                    if (remoteNewer && downloadedFile == null && update.tag != dismissedTag && !BuildConfig.IS_DEBUG_BUILD) {
                         UpdateJobService.scheduleCheckNow(context)
                     }
                     val shouldShow = UpdateBannerPolicy.shouldShow(
@@ -178,9 +174,7 @@ class UpdateViewModel @Inject constructor(
     }
 
     private fun noUpdateFeedback(channel: UpdateChannel): String =
-        if (TesterChannel.isSwitching(channel, BuildConfig.VERSION_NAME)) { // Nuvio RS hook
-            context.getString(R.string.reshaped_update_waiting_for_channel)
-        } else if (channel == UpdateChannel.STABLE && VersionUtils.isPrerelease(BuildConfig.VERSION_NAME)) {
+        if (channel == UpdateChannel.STABLE && VersionUtils.isPrerelease(BuildConfig.VERSION_NAME)) {
             context.getString(R.string.update_waiting_for_stable)
         } else {
             context.getString(R.string.update_latest_version)
@@ -224,7 +218,7 @@ class UpdateViewModel @Inject constructor(
         viewModelScope.launch {
             updatePreferences.setUpdateBannerEnabled(enabled)
             syncBackgroundJobs()
-            if (enabled && changed && (!BuildConfig.IS_DEBUG_BUILD || BuildConfig.AUTOSYNC_FORK)) {
+            if (enabled && changed && !BuildConfig.IS_DEBUG_BUILD) {
                 checkForUpdates(force = false, showNoUpdateFeedback = false)
             }
         }
@@ -254,7 +248,7 @@ class UpdateViewModel @Inject constructor(
         viewModelScope.launch {
             downloadStore.clear()
             updatePreferences.setUpdateChannel(channel)
-            if (!BuildConfig.IS_DEBUG_BUILD || BuildConfig.AUTOSYNC_FORK) {
+            if (!BuildConfig.IS_DEBUG_BUILD) {
                 checkForUpdates(force = true, showNoUpdateFeedback = false)
             }
         }
@@ -349,11 +343,10 @@ class UpdateViewModel @Inject constructor(
     // Shows the "updated" banner once after the idle job installed a release, then forgets it.
     private suspend fun consumeAutoInstalledUpdate() {
         val tag = updatePreferences.autoInstalledTag.first() ?: return
-        // Tags from Beta and Tester do not have a meaningful semantic order across channels.
-        // Only the exact installed release can produce the successful-install notice.
-        if (tag != BuildConfig.VERSION_NAME && downloadStore.pendingInstall()?.first == tag) return
+        // Still older than the installed version means the install has not happened yet.
+        if (VersionUtils.isRemoteNewer(tag, BuildConfig.VERSION_NAME)) return
         updatePreferences.setAutoInstalledTag(null)
-        if (tag != BuildConfig.VERSION_NAME) return
+        if (VersionUtils.isRemoteNewer(BuildConfig.VERSION_NAME, tag)) return
         if (!_uiState.value.autoInstallNoticeEnabled) return
         val installed = AppUpdate(
             tag = tag,
@@ -390,7 +383,7 @@ class UpdateViewModel @Inject constructor(
 
     // Background checks run while the banner or automatic installs are on; the idle install job only with the latter.
     private fun syncBackgroundJobs() {
-        if (BuildConfig.IS_DEBUG_BUILD && !BuildConfig.AUTOSYNC_FORK) return
+        if (BuildConfig.IS_DEBUG_BUILD) return
         val state = _uiState.value
         if (state.updateBannerEnabled || state.autoInstallEnabled) {
             UpdateJobService.schedulePeriodicCheck(context)

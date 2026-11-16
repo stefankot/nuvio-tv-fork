@@ -19,40 +19,24 @@ class UpdateRepository @Inject constructor(
             val owner = BuildConfig.GITHUB_OWNER
             val repo = BuildConfig.GITHUB_REPO
 
-            val releases = if (BuildConfig.AUTOSYNC_FORK) {
-                // AutoSync uses upstream-version + an independent revision
-                // (for example 1.0.0-autosync.2), so inspect the release list
-                // rather than relying on GitHub's single "latest" pointer.
-                val response = gitHubReleaseApi.getReleases(owner = owner, repo = repo)
-                if (!response.isSuccessful) {
-                    error("GitHub API error: ${response.code()}")
+            val releases = when (channel) {
+                UpdateChannel.STABLE -> {
+                    val response = gitHubReleaseApi.getLatestRelease(owner = owner, repo = repo)
+                    if (!response.isSuccessful) {
+                        error("GitHub API error: ${response.code()}")
+                    }
+                    listOf(response.body() ?: error("Empty GitHub release response"))
                 }
-                response.body() ?: error("Empty GitHub release response")
-            } else {
-                when (channel) {
-                    UpdateChannel.STABLE -> {
-                        val response = gitHubReleaseApi.getLatestRelease(owner = owner, repo = repo)
-                        if (!response.isSuccessful) {
-                            error("GitHub API error: ${response.code()}")
-                        }
-                        listOf(response.body() ?: error("Empty GitHub release response"))
+                UpdateChannel.BETA -> {
+                    val response = gitHubReleaseApi.getReleases(owner = owner, repo = repo)
+                    if (!response.isSuccessful) {
+                        error("GitHub API error: ${response.code()}")
                     }
-                    UpdateChannel.BETA, UpdateChannel.TESTER -> {
-                        val response = gitHubReleaseApi.getReleases(owner = owner, repo = repo)
-                        if (!response.isSuccessful) {
-                            error("GitHub API error: ${response.code()}")
-                        }
-                        response.body() ?: error("Empty GitHub release response")
-                    }
+                    response.body() ?: error("Empty GitHub release response")
                 }
             }
-
             val releaseWithAsset = ReleaseSelector
-                .eligibleReleases(
-                    releases = releases,
-                    channel = channel,
-                    canonicalAutoSyncOnly = BuildConfig.AUTOSYNC_FORK
-                )
+                .eligibleReleases(releases, channel)
                 .firstNotNullOfOrNull { release ->
                     AbiSelector.chooseBestApkAsset(release.assets)?.let { asset ->
                         release to asset
@@ -72,9 +56,7 @@ class UpdateRepository @Inject constructor(
                 releaseUrl = dto.htmlUrl,
                 assetName = asset.name,
                 assetUrl = asset.browserDownloadUrl,
-                assetSizeBytes = asset.size,
-                publishedAt = dto.publishedAt,
-                prerelease = dto.prerelease
+                assetSizeBytes = asset.size
             )
         }
     }
