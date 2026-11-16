@@ -56,6 +56,7 @@ internal fun NuvioReshapedSettingsContent(
         liveTvSettingsItems()
         reshapedSyncSettingsItems()
         keCatalogSettingsItems() // fork hook: KE catalog
+        deviceTestSettingsItems() // fork hook: link and hardware test
         youtubeSettingsItems() // fork hook: Nuvio One YouTube
         remoteButtonsSettingsItems() // fork hook: Arc remote buttons
         asrModelSettingsItems() // fork hook: multilingual speech model

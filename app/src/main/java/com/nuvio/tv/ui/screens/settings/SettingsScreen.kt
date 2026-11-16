@@ -88,6 +88,7 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.material.icons.filled.Search // Fork hook: settings-search
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -257,6 +258,7 @@ fun SettingsScreen(
     // focus back to the rail whenever it gains focus while this is false, so a plain remember made
     // every return from those screens land on the rail rather than where the user had been.
     var allowDetailAutofocus by rememberSaveable { mutableStateOf(false) }
+    var showSettingsSearch by rememberSaveable { mutableStateOf(false) } // Fork hook: settings-search
     var detailHasFocus by remember { mutableStateOf(false) }
     // The rail item that last had focus. Not the same as the selected category: an external
     // category such as tracking never becomes the selected one, and moving along the rail without
@@ -409,6 +411,20 @@ fun SettingsScreen(
         pendingContentFocusCategory = null
     }
 
+    if (showSettingsSearch) SettingsSearchOverlay( // Fork hook: settings-search
+        sections = visibleSections,
+        isEssentialMode = isEssentialMode,
+        onDismiss = { showSettingsSearch = false },
+        onOpen = { result ->
+            showSettingsSearch = false
+            if (result.route == SettingsSearchRoute.Addons) onNavigateToAddons() else {
+                allowDetailAutofocus = true
+                selectedCategory = result.category
+                pendingContentFocusCategory = result.category
+                pendingContentFocusRequestId += 1L
+            }
+        }
+    )
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -558,6 +574,9 @@ fun SettingsScreen(
                             horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.sm, Alignment.CenterHorizontally),
                             contentPadding = PaddingValues(horizontal = NuvioTheme.spacing.md, vertical = NuvioTheme.spacing.xs)
                         ) {
+                            item(key = "settings_search_tab") { // Fork hook: settings-search
+                                SettingsTopBarTab(title = "Search", icon = Icons.Default.Search, isSelected = false, onClick = { showSettingsSearch = true })
+                            }
                             itemsIndexed(
                                 items = visibleSections,
                                 key = { _, section -> section.category }
@@ -734,6 +753,9 @@ fun SettingsScreen(
                             },
                         verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically)
                     ) {
+                        item(key = "settings_search_row") { // Fork hook: settings-search
+                            SettingsRailButton(title = "Search settings", icon = Icons.Default.Search, isSelected = false, onClick = { showSettingsSearch = true })
+                        }
                         itemsIndexed(
                             items = visibleSections,
                             key = { _, section -> section.category }

@@ -62,6 +62,5 @@ app/src/main/java/com/nuvio/tv/ui/screens/settings/PlaybackSettingsModel.kt
 app/src/main/java/com/nuvio/tv/ui/screens/settings/PlaybackSettingsViewModel.kt
 app/src/main/java/com/nuvio/tv/ui/screens/settings/PlaybackSubtitleSettings.kt
 app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsCatalog.kt
-app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.kt
 app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreen.kt
 app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt

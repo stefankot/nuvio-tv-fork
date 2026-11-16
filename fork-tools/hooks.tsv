@@ -5,3 +5,4 @@ app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	// Nuvio One hook: 
 app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	ForkFeatures.open = 	fun NuvioNavHost	fork	otwieranie tras z ustawień
 app/src/main/java/com/nuvio/tv/ui/navigation/Screen.kt	// Nuvio One hook	data object	one	Screen.YouTube
 app/src/main/java/com/nuvio/tv/MainActivity.kt	// Fork hook: arc-remote	override fun dispatchKeyEvent	arc	pilot poza odtwarzaczem
+app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.kt	// Fork hook: settings-search	var allowDetailAutofocus	one	wyszukiwarka ustawień (stan, overlay, 2 wiersze)

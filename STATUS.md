@@ -82,3 +82,7 @@ APK: `app/build/outputs/apk/full/debug/app-full-arm64-v8a-debug.apk`. Gradle ma 
 - `fork/ForkHooks.kt`, `fork/arc/RemoteGlobalHook.kt`; hook w `MainActivity.dispatchKeyEvent` (1 linia). `ForkFeatures.enabled(c,key,default)`.
 - Poza odtwarzaczem pilot wycisza tylko przyciski przypisane do „Nic"; reszta zadań nie ma odpowiednika poza odtwarzaczem. W odtwarzaczu i Live TV działa hook w PlayerScreen.
 - Kompiluje się (build45), check.sh OK (ręcznie utrzymywane: 8). Niezweryfikowane na urządzeniu.
+
+## Kroki 6–7 (16.11.2026)
+- B: wiersz „Test łącza i raport sprzętu" w kategorii forka (`DeviceTestSettingsItems.kt`); sam test i raport są w bazie (Ustawienia → Advanced). Kompiluje się.
+- E: wyszukiwarka ustawień z Nuvio One (`SettingsSearch.kt`, `SettingsSearchOverlay.kt`) + 3 hooki w `SettingsScreen.kt` (pasek, szyna, overlay). Wynik „Playback → sekcja" otwiera tylko kategorię (fork nie ma `initialPlaybackSection`). Kompiluje się (build47), niezweryfikowane na urządzeniu. Zmiany w kopii: `UPSTREAM_SOURCES.md`.

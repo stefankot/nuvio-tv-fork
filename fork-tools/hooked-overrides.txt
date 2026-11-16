@@ -3,3 +3,4 @@ app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt
 app/src/main/java/com/nuvio/tv/ui/screens/home/HomeScreen.kt
 app/src/main/java/com/nuvio/tv/ui/navigation/Screen.kt
 app/src/main/java/com/nuvio/tv/MainActivity.kt
+app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.kt
