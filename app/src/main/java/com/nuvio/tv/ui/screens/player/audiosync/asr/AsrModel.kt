@@ -18,13 +18,15 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 internal object AsrModel {
     const val TOKENS = "tokens.txt"
-    const val DOWNLOAD_MB = 74
+    /** Model picked in Settings (Whisper models are multilingual); the English zipformer is the default. */
+    val DOWNLOAD_MB: Int get() = AsrModelChoice.current(appContext).sizeMb
 
     private const val LEGACY_VERSION = "gigaspeech-2023-12-12"
     private const val VERSION = "$LEGACY_VERSION-ort-v1"
-    private const val DOWNLOAD = "https://github.com/DavidVamaiotu/NuvioTV-Reshaped/releases/download/asr-models-ort-v1/"
-    private val FILES = AsrModelFiles.optimized
-    private val TOTAL_BYTES = FILES.sumOf { it.size }
+    private val choice: AsrModelChoice get() = AsrModelChoice.current(appContext)
+    private val DOWNLOAD: String get() = choice.downloadBase
+    private val FILES: List<AsrModelFiles.Asset> get() = choice.files
+    private val TOTAL_BYTES: Long get() = FILES.sumOf { it.size }
 
     private val downloading = AtomicBoolean(false)
 
@@ -51,13 +53,21 @@ internal object AsrModel {
         publish(context)
     }
 
-    fun directory(context: Context): File = File(context.filesDir, "audiosync/asr/$VERSION")
+    fun directory(context: Context): File =
+        if (AsrModelChoice.current(context) == AsrModelChoice.ENGLISH) File(context.filesDir, "audiosync/asr/$VERSION")
+        else File(context.filesDir, "audiosync/asr/${AsrModelChoice.current(context).id}")
+
+    /** Called after the Settings choice changed: shows the new model's state. */
+    fun onChoiceChanged(context: Context) {
+        appContext = context.applicationContext
+        publish(context)
+    }
 
     fun isReady(context: Context): Boolean = AsrModelFiles.isComplete(directory(context), FILES)
 
     /** Keep the old download usable offline or if the one-time ORT upgrade cannot complete. */
     fun legacyDirectory(context: Context): File? =
-        File(context.filesDir, "audiosync/asr/$LEGACY_VERSION")
+        if (AsrModelChoice.current(context) != AsrModelChoice.ENGLISH) null else File(context.filesDir, "audiosync/asr/$LEGACY_VERSION")
             .takeIf { AsrModelFiles.isComplete(it, AsrModelFiles.legacy) }
 
     fun isUnmetered(context: Context): Boolean {

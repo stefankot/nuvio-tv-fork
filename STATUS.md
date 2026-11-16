@@ -29,6 +29,15 @@ Pochodzenie plików: `UPSTREAM_SOURCES.md`. Zasady i preferencje: `../CLAUDE.md`
 - Arc: pilot (`RemoteButtons`) w całej aplikacji, także w IPTV (w toku: analiza przeniesienia zadań przycisków na zdarzenia odtwarzacza).
 - YouTube: miniatury podglądu (storyboard) i raport diagnostyczny zastąpione pustymi adapterami.
 
+## Decyzje użytkownika (16.11, wieczór)
+- KE: reszta ZAPARKOWANA (powłoka/Home/Layout/TV Home, testowanie sprzętu). W zakresie KE zostają tylko katalog IPTV, filtry kanałów i skan łączy.
+- Arc miniatury: bierzemy implementację z Reshaped (`seekpreview/engine`, `ArcPreviewAdapter`, `local`, `cpp/seekpreview`), nie kopiujemy `core/player/thumbnail` z Arc (60 plików). Mniej ingerencji w rdzeń. Przełącznik: sekcja Reshaped, `seekPreviewSettingsItems`.
+- Arc pilot: w toku na gałęzi `arc-remote` (mapa przycisków + hook obok Live TV w PlayerScreen).
+
+- Arc: Home Catalog Order: JUŻ W BAZIE (`ui/screens/addon/CatalogOrder*`, wersja dev jest nowsza od Arc). Nic do dodania.
+- Arc: cache przewijania (= cache podglądu przy przewijaniu/seek): pokrywa go silnik podglądu z Reshaped (ta sama decyzja co miniatury).
+- Arc: diagnostyka (panel statystyk): fork ma już `PlayerDebugStatsOverlay` (bogatszy niż Arc); przycisk pilota STATS przełącza go (`OnTogglePlayerStatsHud`).
+
 ## Zredukowane względem Reshaped
 - Aktualizator Reshaped usunięty (polecenie użytkownika), wraca natywny.
 - Pominięte ~125 zmian Reshaped poza odtwarzaczem (debrid, Trakt, biblioteka, serwer addonów itp.).

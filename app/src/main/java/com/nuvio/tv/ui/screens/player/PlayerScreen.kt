@@ -224,6 +224,7 @@ fun PlayerScreen(
     onOpenPartyMedia: (PartyMedia) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val arcRemote = androidx.compose.runtime.remember { com.nuvio.tv.ui.screens.player.RemotePlayerHook(android.view.ViewConfiguration.getLongPressTimeout().toLong()) } // Arc hook
     val playerBadges = rememberPlayerBadges(viewModel, uiState)
     val partyState by viewModel.party.state.collectAsState()
     val partyPlayback by viewModel.party.playback.collectAsState()
@@ -681,6 +682,19 @@ fun PlayerScreen(
             .focusable(enabled = uiState.error == null)
             .onPreviewKeyEvent { keyEvent ->
                 if (liveTvPlayer.onPreviewKey(keyEvent.nativeKeyEvent, uiState)) return@onPreviewKeyEvent true // Nuvio RS hook: Live TV
+                run { // Arc hook: remote buttons (player and Live TV)
+                    com.nuvio.tv.data.local.RemoteButtonStore.ensureLoaded(context)
+                    if (arcRemote.onKey(
+                            keyEvent.nativeKeyEvent,
+                            com.nuvio.tv.data.local.RemoteButtonStore.map.value,
+                            controlsHidden = !uiState.showControls,
+                            ready = uiState.error == null &&
+                                !uiState.showEpisodesPanel && !uiState.showSourcesPanel &&
+                                !uiState.showAudioOverlay && !uiState.showSubtitleOverlay && !uiState.showSpeedDialog,
+                            send = viewModel::onEvent
+                        )
+                    ) return@onPreviewKeyEvent true
+                }
                 // Consume the confirm KEY_UP that opened the subtitle timing dialog before
                 // the newly focused "Sync" button can treat it as a second click. Preview
                 // is required: after open, focus moves into the dialog so onKeyEvent on

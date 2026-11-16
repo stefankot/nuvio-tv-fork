@@ -57,5 +57,7 @@ internal fun NuvioReshapedSettingsContent(
         reshapedSyncSettingsItems()
         keCatalogSettingsItems() // fork hook: KE catalog
         youtubeSettingsItems() // fork hook: Nuvio One YouTube
+        remoteButtonsSettingsItems() // fork hook: Arc remote buttons
+        asrModelSettingsItems() // fork hook: multilingual speech model
     }
 }

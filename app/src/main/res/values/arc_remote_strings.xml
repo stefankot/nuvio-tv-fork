@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="remote_buttons_job_report_mark">Report a problem / mark</string>
+    <string name="remote_buttons_job_report_mark_desc">Opens the report panel. While recording, adds a mark.</string>
+    <string name="audio_night_mode_label">Night mode</string>
+    <string name="audio_night_mode_unavailable">Off during passthrough, because the sound goes to your amplifier untouched.</string>
+</resources>
