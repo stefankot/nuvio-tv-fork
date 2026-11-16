@@ -1,5 +1,6 @@
 package com.nuvio.tv.core.player
 
+import com.nuvio.tv.core.streams.ranking.StreamRegexRanking
 import com.nuvio.tv.core.build.AppFeaturePolicy
 import com.nuvio.tv.data.local.StreamAutoPlayMode
 import com.nuvio.tv.data.local.StreamAutoPlaySource
@@ -93,6 +94,41 @@ object StreamAutoPlaySelector {
         return selectBingeGroupMatch(visible, targetBingeGroup)
     }
 
+    suspend fun selectAutoPlayStreamAsync(
+        streams: List<Stream>,
+        mode: StreamAutoPlayMode,
+        regexPattern: String,
+        source: StreamAutoPlaySource,
+        installedAddonNames: Set<String>,
+        selectedAddons: Set<String>,
+        selectedPlugins: Set<String>,
+        preferredBingeGroup: String? = null,
+        preferBingeGroupInSelection: Boolean = false,
+        bingeGroupOnly: Boolean = false,
+        rankedRegexPatterns: List<String> = emptyList(),
+        bingeKeepsFilters: Boolean = false // Nuvio RS: source recovery retries stay inside the user's filters
+    ): Stream? {
+        return com.nuvio.tv.core.streams.ranking.RankedRegexWork.run(
+            enabled = mode == StreamAutoPlayMode.REGEX_MATCH && rankedRegexPatterns.isNotEmpty() && !bingeGroupOnly
+        ) { checkpoint ->
+            selectAutoPlayStream(
+                streams = streams,
+                mode = mode,
+                regexPattern = regexPattern,
+                source = source,
+                installedAddonNames = installedAddonNames,
+                selectedAddons = selectedAddons,
+                selectedPlugins = selectedPlugins,
+                preferredBingeGroup = preferredBingeGroup,
+                preferBingeGroupInSelection = preferBingeGroupInSelection,
+                bingeGroupOnly = bingeGroupOnly,
+                rankedRegexPatterns = rankedRegexPatterns,
+                rankedRegexCheckCancelled = checkpoint,
+                bingeKeepsFilters = bingeKeepsFilters
+            )
+        }
+    }
+
     fun selectAutoPlayStream(
         streams: List<Stream>,
         mode: StreamAutoPlayMode,
@@ -103,7 +139,10 @@ object StreamAutoPlaySelector {
         selectedPlugins: Set<String>,
         preferredBingeGroup: String? = null,
         preferBingeGroupInSelection: Boolean = false,
-        bingeGroupOnly: Boolean = false
+        bingeGroupOnly: Boolean = false,
+        rankedRegexPatterns: List<String> = emptyList(),
+        rankedRegexCheckCancelled: () -> Unit = {},
+        bingeKeepsFilters: Boolean = false // Nuvio RS: source recovery retries stay inside the user's filters
     ): Stream? {
         if (streams.isEmpty()) return null
 
@@ -135,7 +174,7 @@ object StreamAutoPlaySelector {
         // filter would otherwise drop a plugin result set and open the sidebar.
         val targetBingeGroup = preferredBingeGroup?.trim().orEmpty()
         if (preferBingeGroupInSelection && targetBingeGroup.isNotEmpty()) {
-            val bingeGroupMatch = selectBingeGroupMatch(streams, targetBingeGroup)
+            val bingeGroupMatch = selectBingeGroupMatch(if (bingeKeepsFilters) candidateStreams else streams, targetBingeGroup)
             if (bingeGroupMatch != null) return bingeGroupMatch
             // When bingeGroupOnly is set (MANUAL mode with only binge-group
             // preference enabled), don't fall back to a non-matching stream —
@@ -153,6 +192,11 @@ object StreamAutoPlaySelector {
             StreamAutoPlayMode.MANUAL -> null
             StreamAutoPlayMode.FIRST_STREAM -> candidateStreams.firstOrNull { isPlayable(it) }
             StreamAutoPlayMode.REGEX_MATCH -> {
+                if (rankedRegexPatterns.isNotEmpty()) {
+                    return StreamRegexRanking.rank(
+                        candidateStreams.filter { isPlayable(it) }, rankedRegexPatterns, rankedRegexCheckCancelled
+                    )?.firstOrNull()
+                }
                 val pattern = regexPattern.trim()
 
                 // Try to compile the user regex

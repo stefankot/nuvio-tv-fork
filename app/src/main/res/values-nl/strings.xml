@@ -3403,4 +3403,17 @@
     <string name="stream_resume_from_time">Hervatten vanaf %1$s</string>
     <string name="stream_resume_from_percent">Hervatten vanaf %1$d%%</string>
 
+
+    <string name="playback_net_http2">HTTP/2 inschakelen</string>
+    <string name="playback_net_http2_sub">Schakel het HTTP/2-protocol in voor netwerkverbindingen, met multiplexing van verzoeken en snellere handshakes.</string>
+    <string name="playback_chapters_label">Hoofdstukken</string>
+
+    <!-- Retained Reshaped resource keys for existing controls and integrations. -->
+    <string name="library_type_items">items</string>
+    <string name="library_empty_local_title">Nog geen %1$s</string>
+    <string name="library_empty_trakt_title">Geen %1$s in deze lijst</string>
+    <string name="library_empty_local_subtitle">Begin met het opslaan van je favorieten om ze hier te zien</string>
+    <string name="library_empty_trakt_subtitle">Gebruik + in details om items aan je kijklijst of lijsten toe te voegen</string>
+    <string name="library_empty_simkl_title">Geen %1$s met deze status</string>
+    <string name="library_empty_simkl_subtitle">Gebruik + in de details om items aan een Simkl-status toe te voegen</string>
 </resources>

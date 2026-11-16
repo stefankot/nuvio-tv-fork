@@ -2,6 +2,8 @@
 
 package com.nuvio.tv.ui.screens.stream
 
+import com.nuvio.tv.core.player.recovery.AutoSourceRecoveryHandoff
+
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -298,7 +300,7 @@ fun StreamScreen(
             viewModel.onEvent(StreamScreenEvent.OnAutoPlayConsumed)
             return@LaunchedEffect
         }
-        val playbackInfo = viewModel.resolveAutoPlayStreamForPlayback(stream)
+        val playbackInfo = viewModel.resolveAutoPlayForPlayback(stream)
         if (playbackInfo == null) {
             viewModel.onEvent(StreamScreenEvent.OnAutoPlayConsumed)
             return@LaunchedEffect
@@ -307,7 +309,7 @@ fun StreamScreen(
         // builds a torrent:// sentinel URL downstream.
         if (playbackInfo.url != null || (playbackInfo.isTorrent && playbackInfo.infoHash != null)) {
             viewModel.awaitStreamLinkCacheSave()
-            routeAutoPlay(playbackInfo)
+            routeAutoPlay(viewModel.attachAutoSourceRecovery(playbackInfo))
         }
     }
 
@@ -329,7 +331,7 @@ fun StreamScreen(
     }
 
     LaunchedEffect(uiState.autoPlayPlaybackInfo) {
-        val playbackInfo = uiState.autoPlayPlaybackInfo ?: return@LaunchedEffect
+        val playbackInfo = uiState.autoPlayPlaybackInfo?.let { viewModel.attachAutoSourceRecovery(it) } ?: return@LaunchedEffect
         // User aborted the auto-next chain that navigated here — don't auto-launch; show the list.
         if (viewModel.isAutoNextContinuationAborted()) {
             viewModel.consumeAbortedAutoNextContinuation()
@@ -545,6 +547,7 @@ fun StreamScreen(
                 },
                 onDismiss = {
                     showPlayerChoiceDialog = false
+                    AutoSourceRecoveryHandoff.discard(pendingPlaybackInfo?.autoSourceRecoveryToken)
                     pendingPlaybackInfo = null
                 }
             )

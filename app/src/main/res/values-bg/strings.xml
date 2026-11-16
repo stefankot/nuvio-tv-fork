@@ -3396,3 +3396,257 @@
     <string name="stream_resume_from_time">Възобновяване от %1$s</string>
     <string name="stream_resume_from_percent">Възобновяване от %1$d%%</string>
 </resources>
+<resources>
+
+
+
+        <plurals name="cw_airs_in_days">
+            <item quantity="one">Ще се излъчи след %d ден</item>
+            <item quantity="other">Ще се излъчи след %d дни</item>
+        </plurals>
+    <!-- Short versions for compact card styles (wide/poster) -->
+        <plurals name="cw_airs_in_days_short">
+            <item quantity="one">След %d ден</item>
+            <item quantity="other">След %d дни</item>
+        </plurals>
+
+
+
+
+
+<!-- Status labels for series (some languages need gendered forms) -->
+<!-- Status labels for movies (allows gendered translations in languages that need it) -->
+
+
+
+        <plurals name="ambient_mode_timeout_minutes">
+            <item quantity="one">%1$d минута</item>
+            <item quantity="other">%1$d минути</item>
+        </plurals>
+
+
+<!-- SettingsScreen categories -->
+    <!-- Account / sign-in error messages -->
+
+
+
+
+<!-- DV7 Handling Mode -->
+
+
+
+
+
+<!-- Custom Poster URL -->
+
+<!-- Custom Poster URL - Screen Toggles -->
+
+<!-- Custom Poster Web Page -->
+
+
+
+
+
+    <!-- Debrid stream filter dialogs (per-resolution / quality / size / multi-choice pickers) -->
+
+
+<!-- Anime-Skip -->
+
+
+
+
+
+
+
+<!-- Essential addon setup wizard -->
+<!-- Collection editor fallbacks -->
+<!-- AddonManagerScreen -->
+
+
+
+
+
+<!-- ParentalGuideOverlay -->
+<!-- Season/episode code shown in player UI (e.g. S01E02). %1$d = season, %2$d = episode. -->
+        <plurals name="player_report_loading_issue_prompt">
+            <item quantity="one">Все още се зарежда след %1$d секунда</item>
+            <item quantity="other">Все още се зарежда след %1$d секунди</item>
+        </plurals>
+
+
+
+
+
+
+
+
+<!-- PostPlayOverlay -->
+
+
+
+
+<!-- Cloud library repository errors -->
+
+<!-- AccountSettingsContent -->
+
+
+
+
+
+
+
+
+
+
+<!-- AccountScreen -->
+
+<!-- EpisodeRatingsSection -->
+
+<!-- SearchDiscoverSection -->
+
+    <!-- AddonManagerScreen -->
+
+    <!-- PluginScreen -->
+
+    <!-- ProfileSettingsContent -->
+
+<!-- PlaybackAudioSettings -->
+
+<!-- SidebarNavigation / MainActivity -->
+
+
+<!-- Update flow errors -->
+
+<!-- Profile PIN errors -->
+
+    <!-- Account Screen -->
+
+    <!-- Sync screens -->
+
+    <!-- Search -->
+
+    <!-- Library -->
+
+    <!-- Error messages (shared) -->
+
+<!-- Plugin errors -->
+
+<!-- Trakt errors -->
+
+
+<!-- General errors -->
+
+    <!-- Account errors -->
+
+    <!-- Search errors -->
+
+    <!-- Home errors -->
+
+<!-- Player errors -->
+
+<!-- Playback subtitle settings -->
+
+
+
+
+<!-- Collection Management -->
+
+<!-- Collection Editor -->
+
+<!-- Catalog see-all fallback -->
+
+<!-- Collection editor: emoji categories -->
+<!-- Collection editor: TMDB picker placeholders + genres -->
+<!-- Auto-play regex presets -->
+
+<!-- Playback settings sections -->
+
+<!-- Player runtime: torrent overlay + tracks -->
+
+<!-- Player runtime: error recovery -->
+<!-- Subtitle timing recovery -->
+
+<!-- Collection import errors -->
+
+<!-- Library messages -->
+<!-- Library privacy display labels (mapped from API value, not used as a key) -->
+
+<!-- Trakt errors -->
+
+
+<!-- Detail / poster options errors -->
+
+<!-- Search errors -->
+
+<!-- Stream / TMDB / addons fallbacks -->
+
+<!-- Subtitle preferred language fallback -->
+
+<!-- Supporters / contributors / sponsors errors -->
+
+<!-- Contributor role badges -->
+
+<!-- Network / safe API errors -->
+
+<!-- Network settings: fast.com errors -->
+
+<!-- Torrent service errors -->
+
+<!-- Player runtime: stream / external link errors -->
+
+<!-- Meta repository: addon detail error fragments -->
+
+<!-- Stream repository: addon detail error fragments + fetch -->
+
+<!-- Trakt: paginated fetch + comments -->
+
+<!-- Home: poster long-press list picker errors -->
+
+<!-- Profile selection: PIN overlay messages -->
+
+<!-- Trakt: Related / comments / list items error fallbacks -->
+
+
+<!-- Debrid: filter rule rows (title + subtitle pairs) -->
+
+<!-- Debrid: selection count + size range labels -->
+        <plurals name="debrid_selection_count_value">
+            <item quantity="one">%d избрани</item>
+            <item quantity="other">%d избрани</item>
+        </plurals>
+
+<!-- Subtitle selection: unknown language fallback -->
+
+<!-- External playback keep-alive service -->
+
+<!-- Web config page: Direct Debrid formatter -->
+
+<!-- Web config pages: shared save status -->
+
+<!-- Web config page: stream badge import status -->
+
+<!-- Playback — Buffer & Network settings -->
+
+<!-- Playback diagnostics card -->
+
+<!-- Player errors -->
+
+<!-- Size and speed units -->
+
+<!-- Misc fallbacks -->
+
+<!-- Stream Throughput Speed & Chunk Diagnostic Test -->
+
+
+<!-- Subtitle AutoSync -->
+
+    <!-- Retained Reshaped resource keys for existing controls and integrations. -->
+    <string name="playback_chapters_label">Глави</string>
+    <string name="library_type_items">елементи</string>
+    <string name="library_empty_local_title">Все още няма %1$s</string>
+    <string name="library_empty_trakt_title">Няма %1$s в този списък</string>
+    <string name="library_empty_local_subtitle">Започнете да запазвате любимите си, за да ги видите тук</string>
+    <string name="library_empty_trakt_subtitle">Използвайте + в подробностите, за да добавите елементи към списъка за наблюдение или списъците</string>
+    <string name="library_empty_simkl_title">Няма %1$s в този статус</string>
+    <string name="library_empty_simkl_subtitle">Използвайте + в детайлите, за да добавите елементи към Simkl статус</string>
+</resources>

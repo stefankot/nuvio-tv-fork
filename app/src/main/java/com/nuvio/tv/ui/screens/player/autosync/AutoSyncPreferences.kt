@@ -17,6 +17,7 @@ internal object AutoSyncPreferences {
     private const val PREFS_NAME = "nuvio_tv_autosync"
     private const val KEY_ENABLED = "automatic_subtitle_sync_enabled"
     private const val KEY_AGGRESSIVE_MODE = "automatic_subtitle_sync_aggressive_mode"
+    private const val KEY_DEBUG_LOGS = "automatic_subtitle_sync_debug_logs"
     private const val KEY_SYNC_TOLERANCE_MS = "automatic_subtitle_sync_tolerance_ms"
 
     private val lock = Any()
@@ -24,11 +25,13 @@ internal object AutoSyncPreferences {
     private var lastStartupSessionKey: Int? = null
     private var lastStartupPlaybackKey: String? = null
 
-    private val _enabled = MutableStateFlow(true)
+    private val _enabled = MutableStateFlow(false)
     val enabled: StateFlow<Boolean> = _enabled.asStateFlow()
 
+    private val _debugLogsEnabled = MutableStateFlow(false)
+    val debugLogsEnabled: StateFlow<Boolean> = _debugLogsEnabled.asStateFlow()
     /** [enabled] as Compose state, so the settings list can show the dependent rows only when on. */
-    private val _enabledState = mutableStateOf(true)
+    private val _enabledState = mutableStateOf(false)
     val enabledState: State<Boolean> get() = _enabledState
 
     /** Thorough search: stop only on a stronger match; the applied match is gated the same. */
@@ -45,9 +48,10 @@ internal object AutoSyncPreferences {
         synchronized(lock) {
             if (initialized) return
             val prefs = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            _enabled.value = prefs.getBoolean(KEY_ENABLED, true)
+            _enabled.value = prefs.getBoolean(KEY_ENABLED, false)
             _enabledState.value = _enabled.value
             _aggressiveMode.value = prefs.getBoolean(KEY_AGGRESSIVE_MODE, true)
+            _debugLogsEnabled.value = prefs.getBoolean(KEY_DEBUG_LOGS, false)
             _syncToleranceMs.value = prefs.getInt(KEY_SYNC_TOLERANCE_MS, 0)
                 .takeIf { it in syncToleranceOptionsMs } ?: 0
             initialized = true
@@ -57,6 +61,11 @@ internal object AutoSyncPreferences {
     fun isEnabled(context: Context): Boolean {
         ensureLoaded(context)
         return _enabled.value
+    }
+
+    fun isDebugLogsEnabled(context: Context): Boolean {
+        ensureLoaded(context)
+        return _debugLogsEnabled.value
     }
 
     fun setAggressiveMode(context: Context, enabled: Boolean) {
@@ -74,11 +83,21 @@ internal object AutoSyncPreferences {
         ensureLoaded(context)
         if (_enabled.value == enabled) return
         _enabled.value = enabled
-        _enabledState.value = enabled
         context.applicationContext
             .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit()
             .putBoolean(KEY_ENABLED, enabled)
+            .apply()
+    }
+
+    fun setDebugLogsEnabled(context: Context, enabled: Boolean) {
+        ensureLoaded(context)
+        if (_debugLogsEnabled.value == enabled) return
+        _debugLogsEnabled.value = enabled
+        context.applicationContext
+            .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_DEBUG_LOGS, enabled)
             .apply()
     }
 

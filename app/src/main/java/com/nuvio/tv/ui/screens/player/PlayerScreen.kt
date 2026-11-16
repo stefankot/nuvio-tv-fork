@@ -5,6 +5,8 @@
 
 package com.nuvio.tv.ui.screens.player
 
+import com.nuvio.tv.ui.screens.player.audiosync.SubtitleSyncStatusPanel
+import com.nuvio.tv.ui.screens.player.autosync.bubble.AutoSyncBubbleToastHost
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.layout.boundsInWindow
 import android.graphics.RectF
@@ -39,6 +41,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -73,6 +76,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -163,6 +167,12 @@ import com.nuvio.tv.domain.model.StreamBadge
 import com.nuvio.tv.domain.model.Subtitle
 import com.nuvio.tv.domain.model.WatchProgress
 import com.nuvio.tv.ui.components.LoadingIndicator
+import com.nuvio.tv.ui.screens.player.seekpreview.SeekPreviewAboveProgressBar
+import com.nuvio.tv.ui.screens.player.seekpreview.SeekPreviewCueTicks
+import com.nuvio.tv.ui.screens.player.seekpreview.SeekPreviewSyncLayer
+import com.nuvio.tv.ui.screens.player.seekpreview.SeekPreviewThumbnailHost
+import com.nuvio.tv.ui.screens.player.seekpreview.handleBack
+import com.nuvio.tv.ui.screens.player.seekpreview.seekPreviewSyncAction
 import android.text.format.DateFormat
 import com.nuvio.tv.ui.util.rememberRawSvgPainter
 import java.util.Date
@@ -234,6 +244,7 @@ fun PlayerScreen(
     val context = LocalContext.current
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val containerFocusRequester = remember { FocusRequester() }
+    val liveTvPlayer = com.nuvio.tv.ui.reshaped.livetv.rememberLiveTvPlayer(viewModel.controller, containerFocusRequester) // Nuvio RS hook: Live TV
     val playPauseFocusRequester = remember { FocusRequester() }
     val progressBarFocusRequester = remember { FocusRequester() }
     val episodesFocusRequester = remember { FocusRequester() }
@@ -353,6 +364,7 @@ fun PlayerScreen(
 
     val handleBackPress = handleBackPress@{
         if (externalHandoffInProgress) return@handleBackPress
+        if (viewModel.seekPreview.handleBack(uiState)) return@handleBackPress
         if (postPlayRecommendationState.canReturnToPlayer && !uiState.playbackEnded) {
             returnToPlayerFromPostPlay()
             viewModel.hideControls()
@@ -583,6 +595,7 @@ fun PlayerScreen(
     ) {
         if (shouldConfirmNextEpisodeOnEnd || postPlayRecommendationState.isVisible) return@LaunchedEffect
         if (uiState.error != null) return@LaunchedEffect
+        if (viewModel.seekPreview.isSyncOverlayOpen) return@LaunchedEffect
         if (uiState.showPartyPanel) return@LaunchedEffect
         if (uiState.showControls && !uiState.showEpisodesPanel && !uiState.showSourcesPanel && !uiState.showChaptersPanel &&
             !uiState.showAudioOverlay && !uiState.showSubtitleOverlay &&
@@ -667,6 +680,7 @@ fun PlayerScreen(
             .focusRequester(containerFocusRequester)
             .focusable(enabled = uiState.error == null)
             .onPreviewKeyEvent { keyEvent ->
+                if (liveTvPlayer.onPreviewKey(keyEvent.nativeKeyEvent, uiState)) return@onPreviewKeyEvent true // Nuvio RS hook: Live TV
                 // Consume the confirm KEY_UP that opened the subtitle timing dialog before
                 // the newly focused "Sync" button can treat it as a second click. Preview
                 // is required: after open, focus moves into the dialog so onKeyEvent on
@@ -842,7 +856,8 @@ fun PlayerScreen(
                         shouldConfirmNextEpisodeOnEnd ||
                         uiState.postPlayMode is PostPlayMode.StillWatching ||
                         postPlayRecommendationState.isVisible ||
-                        uiState.error != null
+                        uiState.error != null ||
+                        liveTvPlayer.panelOpen // Nuvio RS hook: Live TV channel list
                 if (panelOrDialogOpen) return@onKeyEvent false
 
                 if (keyEvent.nativeKeyEvent.action == KeyEvent.ACTION_UP) {
@@ -1427,6 +1442,9 @@ fun PlayerScreen(
             )
         }
 
+        SubtitleSyncStatusPanel(NuvioTheme.spacing.xl) // AutoSync hook: audio sync fallback status
+        AutoSyncBubbleToastHost(controlsVisible = uiState.showControls) // Nuvio RS hook: AutoSync bubble
+
         // Torrent stats overlay (top-right corner)
         TorrentOverlay(
             visible = uiState.isTorrentStream && uiState.showTorrentStats &&
@@ -1823,6 +1841,8 @@ fun PlayerScreen(
             )
         }
 
+        SeekPreviewSyncLayer(viewModel, uiState, onDismissed = { runCatching { containerFocusRequester.requestFocus() } })
+
         AnimatedVisibility(
             visible = seekOverlayVisible,
             enter = fadeIn(animationSpec = tween(150)),
@@ -2183,6 +2203,8 @@ fun PlayerScreen(
             )
         }
 
+        com.nuvio.tv.ui.reshaped.livetv.LiveTvPlayerOverlay(liveTvPlayer, uiState) // Nuvio RS hook: Live TV
+
         if (uiState.showSpeedDialog) {
             SpeedSelectionDialog(
                 currentSpeed = uiState.playbackSpeed,
@@ -2442,6 +2464,8 @@ private fun ExoPlayerSurface(
     LaunchedEffect(playerView, subtitleStyle, subtitleLiftPx) {
         playerView.applySubtitleStyleIfNeeded(subtitleStyle, subtitleLiftPx)
     }
+    // Nuvio RS hook: custom subtitle font, re-applied when it finishes loading or changes
+    LaunchedEffect(playerView) { com.nuvio.tv.reshaped.subtitlefont.SubtitleFontStore.font.collect { playerView.applySubtitleStyleIfNeeded(latestSubtitleStyle, latestSubtitleLiftPx, force = true) } }
 }
 
 private fun PlayerView.enableComposeSurfaceSyncWorkaroundIfAvailable() {
@@ -2591,7 +2615,9 @@ private fun PlayerView.applySubtitleStyleIfNeeded(
         setFixedTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, scaledFontSize)
         setApplyEmbeddedFontSizes(false)
 
-        val typeface = if (subtitleStyle.bold) {
+        // Nuvio RS hook: custom subtitle font (null = default system font)
+        val typeface = com.nuvio.tv.reshaped.subtitlefont.SubtitleFontStore.exoTypeface(context, subtitleStyle.bold)
+            ?: if (subtitleStyle.bold) {
             android.graphics.Typeface.DEFAULT_BOLD
         } else {
             android.graphics.Typeface.DEFAULT
@@ -2964,6 +2990,7 @@ private fun PlayerControlsOverlay(
                                 }
                             }
                     ) {
+                        SeekPreviewAboveProgressBar(viewModel)
                         PlayerControlsProgressBarHost(
                             viewModel = viewModel,
                             chapters = uiState.chapters,
@@ -3158,6 +3185,16 @@ private fun PlayerControlsOverlay(
                                 onDownKey = onHideControls,
                                 onFocused = onResetHideTimer
                             )
+                            seekPreviewSyncAction(viewModel)?.let { openSync ->
+                                ControlButton(
+                                    icon = Icons.Default.Tune,
+                                    contentDescription = stringResource(R.string.cd_seek_preview_sync),
+                                    onClick = openSync,
+                                    upFocusRequester = progressUpTarget,
+                                    onDownKey = onHideControls,
+                                    onFocused = onResetHideTimer
+                                )
+                            }
                             if (uiState.playbackIssueReportsEnabled) {
                                 ReportControlButton(
                                     reportId = uiState.playbackIssueReportId,
@@ -3246,7 +3283,8 @@ private fun PlayerControlsProgressBarHost(
         onUpKey = onUpKey,
         onFocused = onFocused,
         onClick = onClick,
-        bufferedPosition = playbackTimeline.bufferedPosition
+        bufferedPosition = playbackTimeline.bufferedPosition,
+        overlay = { SeekPreviewCueTicks(viewModel, playbackTimeline.duration, Modifier.matchParentSize()) }
     )
 }
 
@@ -3401,6 +3439,8 @@ private fun ProgressBar(
     onClick: (() -> Unit)? = null,
     /** Position (ms) up to which content is buffered. Pass 0 to skip the overlay. */
     bufferedPosition: Long = 0L,
+    /** Drawn over the track, e.g. seek-preview cue ticks. */
+    overlay: @Composable BoxScope.() -> Unit = {},
     /** Each chapter after the first gets a mark where it starts. */
     chapters: List<PlayerChapter> = emptyList()
 ) {
@@ -3566,6 +3606,7 @@ private fun ProgressBar(
                     }
                 }
         )
+        overlay()
     }
 }
 
@@ -3589,6 +3630,8 @@ private fun SeekOverlay(
     currentPosition: Long,
     duration: Long,
     bufferedPosition: Long = 0L,
+    preview: @Composable () -> Unit = {},
+    progressOverlay: @Composable BoxScope.() -> Unit = {},
     chapters: List<PlayerChapter> = emptyList(),
     showChapterTitle: Boolean = true
 ) {
@@ -3598,6 +3641,7 @@ private fun SeekOverlay(
             .padding(horizontal = NuvioTheme.spacing.xxl, vertical = NuvioTheme.spacing.xl)
     ) {
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+            preview()
             if (showChapterTitle) {
                 ChapterTitle(chapters = chapters, positionMs = currentPosition)
             }
@@ -3607,6 +3651,7 @@ private fun SeekOverlay(
                 onSeekPreview = {},
                 onSeekCommit = {},
                 bufferedPosition = bufferedPosition,
+                overlay = progressOverlay,
                 chapters = chapters
             )
 
@@ -3639,6 +3684,8 @@ private fun SeekOverlayHost(
         currentPosition = playbackTimeline.currentPosition,
         duration = playbackTimeline.duration,
         bufferedPosition = playbackTimeline.bufferedPosition,
+        preview = { SeekPreviewThumbnailHost(viewModel = viewModel) },
+        progressOverlay = { SeekPreviewCueTicks(viewModel, playbackTimeline.duration, Modifier.matchParentSize()) },
         chapters = chapters,
         showChapterTitle = showChapterTitle
     )

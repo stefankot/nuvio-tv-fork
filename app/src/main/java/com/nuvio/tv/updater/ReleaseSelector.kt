@@ -10,10 +10,18 @@ internal object ReleaseSelector {
 
     fun eligibleReleases(
         releases: List<GitHubReleaseDto>,
-        channel: UpdateChannel
+        channel: UpdateChannel,
+        canonicalAutoSyncOnly: Boolean = false
     ): List<GitHubReleaseDto> = releases
         .asSequence()
         .filterNot(GitHubReleaseDto::draft)
+        .filter { release -> TesterChannel.belongsTo(release, channel) } // Nuvio RS hook
+        .filter { release ->
+            !canonicalAutoSyncOnly ||
+                VersionUtils.isCanonicalAutoSync(release.tagName) ||
+                VersionUtils.isCanonicalAutoSync(release.name) ||
+                TesterChannel.isTesterRelease(release) // Nuvio RS hook
+        }
         .mapNotNull { release ->
             val version = releaseVersion(release) ?: return@mapNotNull null
             ReleaseCandidate(
@@ -22,7 +30,7 @@ internal object ReleaseSelector {
                 prerelease = isPrerelease(release, version)
             )
         }
-        .filter { candidate -> channel == UpdateChannel.BETA || !candidate.prerelease }
+        .filter { candidate -> channel != UpdateChannel.STABLE || !candidate.prerelease }
         .sortedByDescending(ReleaseCandidate::version)
         .map(ReleaseCandidate::release)
         .toList()
@@ -35,7 +43,9 @@ internal object ReleaseSelector {
         version: SemanticVersion
     ): Boolean = release.prerelease ||
         version.prerelease.isNotEmpty() ||
-        prereleaseNamePattern.containsMatchIn(release.name.orEmpty())
+        prereleaseNamePattern.containsMatchIn(
+            release.name.orEmpty().replace(Regex("-autosync\\.\\d+$", RegexOption.IGNORE_CASE), "")
+        )
 
     private data class ReleaseCandidate(
         val release: GitHubReleaseDto,

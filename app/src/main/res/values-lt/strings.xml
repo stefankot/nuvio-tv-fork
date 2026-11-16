@@ -3341,4 +3341,14 @@
     <string name="autosync_label_synced">Sinchronizuota automatiškai</string>
     <string name="stream_resume_from_time">Tęsti nuo %1$s</string>
     <string name="stream_resume_from_percent">Tęsti nuo %1$d%%</string>
+    <string name="playback_chapters_label">Skyriai</string>
+
+    <!-- Retained Reshaped resource keys for existing controls and integrations. -->
+    <string name="library_type_items">elementai</string>
+    <string name="library_empty_local_title">Dar nepridėta: %1$s</string>
+    <string name="library_empty_trakt_title">Šiame sąraše nerasta: %1$s</string>
+    <string name="library_empty_local_subtitle">Išsaugokite mėgstamiausius, kad pamatytumėte juos čia</string>
+    <string name="library_empty_trakt_subtitle">Naudokite „+“ informacijos lange turiniui pridėti į žiūrėjimo ar kitus sąrašus</string>
+    <string name="library_empty_simkl_title">Šioje būsenoje nerasta: %1$s</string>
+    <string name="library_empty_simkl_subtitle">Informacijos puslapyje naudokite +, kad pridėtumėte elementų prie Simkl būsenos</string>
 </resources>

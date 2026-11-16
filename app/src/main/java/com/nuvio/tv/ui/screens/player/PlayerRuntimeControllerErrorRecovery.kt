@@ -324,10 +324,12 @@ internal fun PlayerRuntimeController.resetErrorRetryState() {
 internal fun PlayerRuntimeController.scheduleStableProgressReset() {
     stableProgressResetJob?.cancel()
     stableProgressResetJob = scope.launch {
+        val playingSinceMs = android.os.SystemClock.elapsedRealtime()
         delay(STABLE_PROGRESS_RESET_DELAY_MS)
         val player = _exoPlayer ?: return@launch
         if (player.playbackState == Player.STATE_READY && player.isPlaying) {
             resetErrorRetryState()
+            noteFormatsStablePlayback(player, playingSinceMs) // Nuvio RS hook: Arc formats
         }
     }
 }
@@ -476,7 +478,8 @@ internal fun PlayerRuntimeController.tryParsingErrorProbeFallback(
     detailedError: String,
     allowEngineFailover: Boolean,
     savedPosition: Long = 0L,
-    paused: Boolean = userPausedManually
+    paused: Boolean = userPausedManually,
+    onRefreshFailure: (() -> Unit)? = null
 ): Boolean {
     if (currentVideoTrackIsLikelyVc1 ||
         Vc1VideoFormatHeuristics.isLikelyVc1(streamName = _uiState.value.currentStreamName ?: streamName)
@@ -532,10 +535,10 @@ internal fun PlayerRuntimeController.tryParsingErrorProbeFallback(
             }
             reinitializeCurrentStream(startPaused = paused)
         } else {
-            if (tryRefreshExpiredLinkAfterError(detailedError)) {
+            if (tryRefreshExpiredLinkAfterError(detailedError, onRefreshFailure)) {
                 return@launch
             }
-            if (tryFallbackToNextSourceAfterError(detailedError)) {
+            if (tryFallbackToNextSourceAfterError(detailedError, onRefreshFailure)) {
                 return@launch
             }
             if (maybeAutoSwitchInternalPlayerOnStartupError(detailedError = detailedError, allowEngineFailover = allowEngineFailover)) {
@@ -548,6 +551,7 @@ internal fun PlayerRuntimeController.tryParsingErrorProbeFallback(
                 return@launch
             }
             val userFacingError = error.toDisplayMessage(context)
+            if (autoSourceRecovery?.failDefinitively(userFacingError) == true) return@launch
             _uiState.update {
                 it.copy(
                     error = userFacingError,

@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.SeekParameters
 import com.nuvio.tv.R
+import com.nuvio.tv.core.connection.PlaybackThroughput
 import com.nuvio.tv.core.player.LastPlaybackDiagnostics
 import com.nuvio.tv.core.tracking.TRACKING_SCROBBLE_DIAGNOSTIC_TAG
 import com.nuvio.tv.core.tracking.TrackingMediaKind
@@ -23,6 +24,7 @@ import com.nuvio.tv.data.repository.PlaybackIssuePlaybackSettingsInput
 import com.nuvio.tv.data.repository.PlaybackIssueReportInput
 import com.nuvio.tv.data.repository.SkipInterval
 import com.nuvio.tv.domain.model.WatchProgress
+import com.nuvio.tv.ui.screens.player.seekpreview.seekPreviewCommitSeekParameters
 import java.io.IOException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
@@ -229,7 +231,7 @@ internal fun PlayerRuntimeController.skipInterval(interval: SkipInterval): Boole
 
 internal fun PlayerRuntimeController.applyAudioAmplification(db: Int) {
     val clampedDb = db.coerceIn(AUDIO_AMPLIFICATION_MIN_DB, AUDIO_AMPLIFICATION_MAX_DB)
-    val isAudioAmplificationAvailable = isUsingMpvEngine() || _exoPlayer != null
+    val isAudioAmplificationAvailable = isUsingMpvEngine() || (_exoPlayer != null && !isAudioOutputBypassing) // Nuvio RS hook: no gain on a bitstream
     val wasActive = gainAudioProcessor.isGainEnabled()
     gainAudioProcessor.setGainDb(if (isAudioAmplificationAvailable) clampedDb else AUDIO_AMPLIFICATION_MIN_DB)
     val isActiveNow = gainAudioProcessor.isGainEnabled()
@@ -279,7 +281,7 @@ internal fun PlayerRuntimeController.updateAudioControlAvailability(
     selectedAudioIndex: Int = _uiState.value.selectedAudioTrackIndex
 ) {
     val selectedTrack = audioTracks.getOrNull(selectedAudioIndex)
-    val isAudioAmplificationAvailable = isUsingMpvEngine() || _exoPlayer != null
+    val isAudioAmplificationAvailable = isUsingMpvEngine() || (_exoPlayer != null && !isAudioOutputBypassing) // Nuvio RS hook: no gain on a bitstream
     val isCenterMixAvailable =
         ffmpegAudioRenderer?.isCenterMixActive() == true && (selectedTrack?.channelCount ?: 0) > 2
     val clampedDb = _uiState.value.audioAmplificationDb
@@ -443,6 +445,7 @@ internal fun PlayerRuntimeController.startProgressUpdates() {
                     // session in sync with the state sampled by this existing progress tick.
                     refreshMpvMediaSession()
                     updateMpvTracksOnTick()
+                    view.sampleThroughput(context, currentStreamUrl)
                     recomputeChapterSkipIntervalsIfNeeded()
                     updateActiveSkipInterval(pos)
                     if (!_playbackTimeline.value.isLive) {
@@ -476,6 +479,8 @@ internal fun PlayerRuntimeController.startProgressUpdates() {
                     playerReportsLive = player.isCurrentMediaItemLive,
                     isPlaying = player.isPlaying
                 )
+                // Nuvio RS hook: read-ahead's connection; a live stream only arrives at its own bitrate, so it says nothing about the network.
+                PlaybackThroughput.onExoTick(context, currentStreamUrl, !player.isCurrentMediaItemLive && playerDuration != androidx.media3.common.C.TIME_UNSET && player.isLoading)
                 playbackAnalyticsDiagnostics.recordProgressSnapshot(
                     player = player,
                     hasRenderedFirstFrame = hasRenderedFirstFrame,
@@ -804,7 +809,7 @@ private fun PlayerRuntimeController.buildPlaybackIssuePlaybackSettingsInput(): P
         useParallelConnections = settings.useParallelConnections,
         parallelConnectionCount = settings.parallelConnectionCount,
         parallelChunkSizeKb = settings.parallelChunkSizeKb,
-        enableHttp2 = false,
+        enableHttp2 = settings.enableHttp2,
         nuvioPerformanceModeEnabled = settings.nuvioPerformanceModeEnabled,
         streamAutoPlayMode = settings.streamAutoPlayMode.name,
         streamAutoPlaySource = settings.streamAutoPlaySource.name,
@@ -1462,6 +1467,13 @@ fun PlayerRuntimeController.onEvent(
         onUserInteraction()
     }
     when (event) {
+        PlayerEvent.OnPlayPause, PlayerEvent.OnSeekForward, PlayerEvent.OnSeekBackward,
+        is PlayerEvent.OnSeekBy, is PlayerEvent.OnSeekTo, is PlayerEvent.OnPreviewSeekBy,
+        PlayerEvent.OnCommitPreviewSeek, is PlayerEvent.OnSourceStreamSelected,
+        PlayerEvent.OnRetry -> autoSourceRecovery?.cancel()
+        else -> Unit
+    }
+    when (event) {
         PlayerEvent.OnPlayPause -> {
             if (isPartyControlLocked) {
                 toggleOwnPlayback()
@@ -1561,7 +1573,7 @@ fun PlayerRuntimeController.onEvent(
                     updatePlaybackTimeline(currentPosition = currentPlaybackPositionMs() ?: 0L)
                     return
                 }
-                seekPlaybackTo(target, SeekParameters.CLOSEST_SYNC)
+                seekPlaybackTo(target, seekPreviewCommitSeekParameters())
                 updatePlaybackTimeline(currentPosition = target)
                 pendingPreviewSeekPosition = null
                 scheduleProgressSyncAfterSeek()
@@ -1675,7 +1687,7 @@ fun PlayerRuntimeController.onEvent(
             pendingAddonSubtitleTrackId = null
             pendingAudioSelectionAfterSubtitleRefresh = null
             resetSubtitleAutoSyncState()
-            cancelAutomaticSubtitleSync() // AutoSync hook
+            stopAutomaticSubtitleSync() // AutoSync hook
             if (_uiState.value.serverSubtitleTracks.isNotEmpty()) {
                 selectServerSubtitle(event.index)
             } else {
@@ -1703,7 +1715,7 @@ fun PlayerRuntimeController.onEvent(
             pendingAddonSubtitleTrackId = null
             pendingAudioSelectionAfterSubtitleRefresh = null
             resetSubtitleAutoSyncState()
-            cancelAutomaticSubtitleSync() // AutoSync hook
+            stopAutomaticSubtitleSync() // AutoSync hook
             rememberSubtitleDisabled()
             disableSubtitles()
             if (hasBurnedInServerSubtitle) clearServerSubtitle()

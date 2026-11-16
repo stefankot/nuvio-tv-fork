@@ -59,14 +59,16 @@ internal object AutoSyncTimelineRetimer {
     private const val ACTIVITY_FINE_BIN_MS = 100L
     private const val ACTIVITY_MAX_OFFSET_MS = 180_000L
     private const val ACTIVITY_FINE_RADIUS_MS = 750L
-
-    // Dense dialogue leaves almost no gaps, so a run of neighbouring delays can overlap equally
-    // well. Scores this close count as a tie: the fine search covers the whole run (up to
-    // ACTIVITY_TIE_MAX_SPREAD_MS either side of the coarse winner) and a tie goes to the delay
-    // where the subtitle's lines start when the reference's lines start.
-    private const val ACTIVITY_TIE_SCORE_EPSILON = 0.002
-    private const val ACTIVITY_TIE_MAX_SPREAD_MS = 3_000L
-    private const val START_AGREEMENT_TOLERANCE_MS = 200L
+    // Dense dialogue saturates 500 ms coarse bins, so neighbouring offsets can score within a
+    // hair of each other and the coarse argmax lands on a plateau edge. Fine refinement then
+    // spans the whole contiguous plateau (capped) instead of only the argmax's own radius.
+    private const val ACTIVITY_COARSE_PLATEAU_SCORE_EPSILON = 0.01
+    private const val ACTIVITY_COARSE_PLATEAU_MAX_EXTENT_MS = 3_000L
+    // Coverage scoring stays flat across such a plateau even at 100 ms bins. Fine offsets within
+    // this score of the fine best are separated by how closely target cue starts land on
+    // reference cue starts, which is sharp to a single bin.
+    private const val ACTIVITY_FINE_TIE_SCORE_EPSILON = 0.005
+    private const val ACTIVITY_ONSET_MATCH_TOLERANCE_MS = 250L
     private const val ACTIVITY_MAX_CUE_DURATION_MS = 20_000L
     private const val ACTIVITY_MAX_TIMELINE_MS = 8L * 60L * 60L * 1_000L
     private const val ACTIVITY_MIN_SCORE = 0.55
@@ -160,11 +162,9 @@ internal object AutoSyncTimelineRetimer {
         if (cues.size < MIN_CUES) return null
         val coarse = buildActivityTimeline(cues, 1.0, ACTIVITY_COARSE_BIN_MS) ?: return null
         val fine = buildActivityTimeline(cues, 1.0, ACTIVITY_FINE_BIN_MS) ?: return null
-        return PreparedActivity(
-            coarse = coarse,
-            fine = fine,
-            starts = cues.map { it.startTimeMs.coerceAtLeast(0L) }.sorted().toLongArray(),
-        )
+        val starts = LongArray(cues.size) { index -> cues[index].startTimeMs.coerceAtLeast(0L) }
+        starts.sort()
+        return PreparedActivity(coarse = coarse, fine = fine, starts = starts)
     }
 
     fun retime(
@@ -821,18 +821,18 @@ internal object AutoSyncTimelineRetimer {
         cancellationCheck: (() -> Unit)? = null,
     ): DelayOnlySearchSeed {
         if (seed.fine != null) return seed
-        val fineBest = fineActivitySearch(
-            referenceFine = referenceActivity.fine,
-            targetFine = targetActivity.fine,
-            scale = 1.0,
-            coarseInterceptMs = seed.coarse.interceptMs,
-            tieStartMs = seed.tieStartMs,
-            tieEndMs = seed.tieEndMs,
-            referenceStarts = referenceActivity.starts,
-            targetStarts = targetActivity.starts,
-            cancellationCheck = cancellationCheck,
+        return seed.copy(
+            fine = fineActivityBest(
+                referenceFine = referenceActivity.fine,
+                targetFine = targetActivity.fine,
+                referenceStarts = referenceActivity.starts,
+                targetStarts = targetActivity.starts,
+                scale = 1.0,
+                plateauStartMs = seed.plateauStartMs,
+                plateauEndMs = seed.plateauEndMs,
+                cancellationCheck = cancellationCheck,
+            ),
         )
-        return seed.copy(fine = fineBest)
     }
 
     internal fun findDelayOnlyAlignmentPrepared(
@@ -881,15 +881,14 @@ internal object AutoSyncTimelineRetimer {
         val referenceFine = referenceActivity.fine
         val targetFine = targetActivity.fine
         val best = coarseSeed.fine
-            ?: fineActivitySearch(
+            ?: fineActivityBest(
                 referenceFine = referenceFine,
                 targetFine = targetFine,
-                scale = 1.0,
-                coarseInterceptMs = coarse.interceptMs,
-                tieStartMs = coarseSeed.tieStartMs,
-                tieEndMs = coarseSeed.tieEndMs,
                 referenceStarts = referenceActivity.starts,
                 targetStarts = targetActivity.starts,
+                scale = 1.0,
+                plateauStartMs = coarseSeed.plateauStartMs,
+                plateauEndMs = coarseSeed.plateauEndMs,
                 cancellationCheck = cancellationCheck,
             )
             ?: coarse
@@ -919,36 +918,30 @@ internal object AutoSyncTimelineRetimer {
                 continue
             }
 
-            val segmentScores = DoubleArray(2 * localRadiusBins + 1) { Double.NaN }
+            // The segment agrees when an offset within maxDelta of the global one scores as
+            // well as the segment's best, up to the coverage tie epsilon: on a flat coverage
+            // plateau the segment argmax is an arbitrary edge, not evidence of drift.
             var segmentBestScore = Double.NEGATIVE_INFINITY
+            var segmentNearScore = Double.NEGATIVE_INFINITY
+            var hasScore = false
             for (delta in -localRadiusBins..localRadiusBins) {
+                val candidateOffsetBins = globalOffsetBins + delta
                 val score = scoreActivityOffsetSegment(
                     reference = referenceFine,
                     target = targetFine,
-                    offsetBins = globalOffsetBins + delta,
+                    offsetBins = candidateOffsetBins,
                     segment = segment,
                 ) ?: continue
-                segmentScores[delta + localRadiusBins] = score
-                if (score > segmentBestScore) segmentBestScore = score
+                hasScore = true
+                segmentBestScore = max(segmentBestScore, score)
+                if (abs(delta) <= maxDeltaBins) segmentNearScore = max(segmentNearScore, score)
             }
-            if (segmentBestScore == Double.NEGATIVE_INFINITY) continue
 
-            // Among delays that tie with this section's best, the one closest to the global
-            // delay decides: a tie is agreement, not drift.
-            var segmentBestOffsetBins = globalOffsetBins
-            var closestDistance = Int.MAX_VALUE
-            for (delta in -localRadiusBins..localRadiusBins) {
-                val score = segmentScores[delta + localRadiusBins]
-                if (score.isNaN() || score < segmentBestScore - ACTIVITY_TIE_SCORE_EPSILON) continue
-                if (abs(delta) < closestDistance) {
-                    closestDistance = abs(delta)
-                    segmentBestOffsetBins = globalOffsetBins + delta
-                }
-            }
+            if (!hasScore) continue
             availableSegments++
             if (
                 segmentBestScore >= DELAY_ONLY_MIN_SEGMENT_SCORE &&
-                abs(segmentBestOffsetBins - globalOffsetBins) <= maxDeltaBins
+                segmentNearScore >= segmentBestScore - ACTIVITY_FINE_TIE_SCORE_EPSILON
             ) {
                 passedSegments++
             }
@@ -1174,16 +1167,15 @@ internal object AutoSyncTimelineRetimer {
                 ?: return null
         }
 
-        val coarseTie = coarseTieRun(coarseCandidates, coarseBest)
-        val fineBest = fineActivitySearch(
+        val plateau = coarsePlateauMs(coarseCandidates, coarseBest)
+        val fineBest = fineActivityBest(
             referenceFine = referenceFine,
             targetFine = targetFine,
-            scale = coarseBest.scale,
-            coarseInterceptMs = coarseBest.interceptMs,
-            tieStartMs = coarseTie.first,
-            tieEndMs = coarseTie.last,
             referenceStarts = referenceActivity.starts,
             targetStarts = targetActivity.starts,
+            scale = coarseBest.scale,
+            plateauStartMs = plateau.first,
+            plateauEndMs = plateau.last,
             cancellationCheck = cancellationCheck,
         )
 
@@ -1205,6 +1197,135 @@ internal object AutoSyncTimelineRetimer {
         )
     }
 
+    /**
+     * Contiguous coarse offsets around [best] (same scale) scoring within
+     * [ACTIVITY_COARSE_PLATEAU_SCORE_EPSILON] of it, capped at
+     * [ACTIVITY_COARSE_PLATEAU_MAX_EXTENT_MS] on each side. [candidates] of one scale are in
+     * ascending offset order, as every coarse sweep produces them.
+     */
+    private fun coarsePlateauMs(
+        candidates: List<ActivityCandidate>,
+        best: ActivityCandidate,
+    ): LongRange {
+        val bestIndex = candidates.indexOfFirst { it === best }
+        if (bestIndex < 0) return best.interceptMs..best.interceptMs
+        val floor = best.score - ACTIVITY_COARSE_PLATEAU_SCORE_EPSILON
+
+        fun extent(step: Int): Long {
+            var edge = best.interceptMs
+            var index = bestIndex + step
+            while (index in candidates.indices) {
+                val candidate = candidates[index]
+                if (
+                    candidate.scale != best.scale ||
+                    candidate.interceptMs != edge + step * ACTIVITY_COARSE_BIN_MS ||
+                    candidate.score < floor ||
+                    abs(candidate.interceptMs - best.interceptMs) >
+                    ACTIVITY_COARSE_PLATEAU_MAX_EXTENT_MS
+                ) {
+                    break
+                }
+                edge = candidate.interceptMs
+                index += step
+            }
+            return edge
+        }
+
+        return extent(-1)..extent(1)
+    }
+
+    /**
+     * Best fine-bin offset from the plateau start minus the fine radius to its end plus it.
+     * Offsets whose coverage score ties the best within [ACTIVITY_FINE_TIE_SCORE_EPSILON] are
+     * ranked by cue-start agreement, then by score.
+     */
+    private fun fineActivityBest(
+        referenceFine: ActivityTimeline,
+        targetFine: ActivityTimeline,
+        referenceStarts: LongArray,
+        targetStarts: LongArray,
+        scale: Double,
+        plateauStartMs: Long,
+        plateauEndMs: Long,
+        cancellationCheck: (() -> Unit)?,
+    ): ActivityCandidate? {
+        val candidates = ArrayList<ActivityCandidate>()
+        var fineBest: ActivityCandidate? = null
+        var offsetMs = plateauStartMs - ACTIVITY_FINE_RADIUS_MS
+        while (offsetMs <= plateauEndMs + ACTIVITY_FINE_RADIUS_MS) {
+            cancellationCheck?.invoke()
+            val offsetBins = (offsetMs.toDouble() / ACTIVITY_FINE_BIN_MS.toDouble()).roundToInt()
+            val score = scoreActivityOffset(referenceFine, targetFine, offsetBins)
+            if (score != null) {
+                val candidate = ActivityCandidate(
+                    scale = scale,
+                    interceptMs = offsetBins * ACTIVITY_FINE_BIN_MS,
+                    score = score,
+                )
+                candidates += candidate
+                val current = fineBest
+                if (current == null || candidate.score > current.score) fineBest = candidate
+            }
+            offsetMs += ACTIVITY_FINE_BIN_MS
+        }
+        val best = fineBest ?: return null
+
+        var chosen = best
+        var chosenOnsets = -1.0
+        for (candidate in candidates) {
+            if (candidate.score < best.score - ACTIVITY_FINE_TIE_SCORE_EPSILON) continue
+            cancellationCheck?.invoke()
+            val onsets = onsetAgreement(
+                referenceStarts = referenceStarts,
+                targetStarts = targetStarts,
+                scale = scale,
+                interceptMs = candidate.interceptMs,
+            )
+            if (
+                onsets > chosenOnsets ||
+                (onsets == chosenOnsets && candidate.score > chosen.score)
+            ) {
+                chosen = candidate
+                chosenOnsets = onsets
+            }
+        }
+        return chosen
+    }
+
+    /**
+     * How well target cue starts, mapped by [scale] and [interceptMs], land on reference starts:
+     * each contributes 1 at an exact hit, falling linearly to 0 at
+     * [ACTIVITY_ONSET_MATCH_TOLERANCE_MS] from the nearest reference start.
+     */
+    private fun onsetAgreement(
+        referenceStarts: LongArray,
+        targetStarts: LongArray,
+        scale: Double,
+        interceptMs: Long,
+    ): Double {
+        if (referenceStarts.isEmpty()) return 0.0
+        val tolerance = ACTIVITY_ONSET_MATCH_TOLERANCE_MS
+        var agreement = 0.0
+        var cursor = 0
+        for (start in targetStarts) {
+            val mapped = (start * scale).roundToLong() + interceptMs
+            while (cursor < referenceStarts.size && referenceStarts[cursor] < mapped - tolerance) {
+                cursor++
+            }
+            if (cursor == referenceStarts.size) break
+            var nearest = Long.MAX_VALUE
+            var index = cursor
+            while (index < referenceStarts.size && referenceStarts[index] <= mapped + tolerance) {
+                nearest = min(nearest, abs(referenceStarts[index] - mapped))
+                index++
+            }
+            if (nearest <= tolerance) {
+                agreement += (tolerance - nearest).toDouble() / tolerance.toDouble()
+            }
+        }
+        return agreement
+    }
+
     private fun buildDelayOnlySearchSeed(
         candidates: List<ActivityCandidate>,
     ): DelayOnlySearchSeed? {
@@ -1215,129 +1336,14 @@ internal object AutoSyncTimelineRetimer {
                     DELAY_ONLY_DISTINCT_OFFSET_MS
             }
             .maxByOrNull { it.score }
-        val tie = coarseTieRun(candidates, coarse)
+        val plateau = coarsePlateauMs(candidates, coarse)
         return DelayOnlySearchSeed(
             coarse = coarse,
             margin = coarse.score - (secondDistinct?.score ?: 0.0),
             fine = null,
-            tieStartMs = tie.first,
-            tieEndMs = tie.last,
+            plateauStartMs = plateau.first,
+            plateauEndMs = plateau.last,
         )
-    }
-
-    /**
-     * The contiguous run of same-scale coarse delays around [best] whose scores tie with it,
-     * capped at [ACTIVITY_TIE_MAX_SPREAD_MS] either side.
-     */
-    private fun coarseTieRun(
-        candidates: List<ActivityCandidate>,
-        best: ActivityCandidate,
-    ): LongRange {
-        val scoreByIntercept = HashMap<Long, Double>()
-        for (candidate in candidates) {
-            if (candidate.scale == best.scale) scoreByIntercept[candidate.interceptMs] = candidate.score
-        }
-        fun ties(interceptMs: Long): Boolean =
-            abs(interceptMs - best.interceptMs) <= ACTIVITY_TIE_MAX_SPREAD_MS &&
-                (scoreByIntercept[interceptMs] ?: return false) >=
-                best.score - ACTIVITY_TIE_SCORE_EPSILON
-        var start = best.interceptMs
-        while (ties(start - ACTIVITY_COARSE_BIN_MS)) start -= ACTIVITY_COARSE_BIN_MS
-        var end = best.interceptMs
-        while (ties(end + ACTIVITY_COARSE_BIN_MS)) end += ACTIVITY_COARSE_BIN_MS
-        return start..end
-    }
-
-    /**
-     * Fine search over the coarse tie run widened by [ACTIVITY_FINE_RADIUS_MS] (capped at
-     * [ACTIVITY_TIE_MAX_SPREAD_MS] from [coarseInterceptMs]). The best overlap wins; delays that
-     * tie on overlap are separated by how many subtitle lines start with a reference line.
-     */
-    private fun fineActivitySearch(
-        referenceFine: ActivityTimeline,
-        targetFine: ActivityTimeline,
-        scale: Double,
-        coarseInterceptMs: Long,
-        tieStartMs: Long,
-        tieEndMs: Long,
-        referenceStarts: LongArray,
-        targetStarts: LongArray,
-        cancellationCheck: (() -> Unit)?,
-    ): ActivityCandidate? {
-        val fromMs = max(
-            tieStartMs - ACTIVITY_FINE_RADIUS_MS,
-            coarseInterceptMs - ACTIVITY_TIE_MAX_SPREAD_MS,
-        )
-        val toMs = min(
-            tieEndMs + ACTIVITY_FINE_RADIUS_MS,
-            coarseInterceptMs + ACTIVITY_TIE_MAX_SPREAD_MS,
-        )
-        val scored = ArrayList<ActivityCandidate>()
-        var offsetMs = fromMs
-        while (offsetMs <= toMs) {
-            cancellationCheck?.invoke()
-            val offsetBins = (offsetMs.toDouble() / ACTIVITY_FINE_BIN_MS.toDouble()).roundToInt()
-            val score = scoreActivityOffset(referenceFine, targetFine, offsetBins)
-            if (score != null) {
-                scored += ActivityCandidate(
-                    scale = scale,
-                    interceptMs = offsetBins * ACTIVITY_FINE_BIN_MS,
-                    score = score,
-                )
-            }
-            offsetMs += ACTIVITY_FINE_BIN_MS
-        }
-        // First highest score, as before, unless other delays tie with it.
-        var best: ActivityCandidate? = null
-        for (candidate in scored) {
-            if (best == null || candidate.score > best.score) best = candidate
-        }
-        best ?: return null
-        if (referenceStarts.isEmpty() || targetStarts.isEmpty()) return best
-        val tied = scored.filter { it.score >= best.score - ACTIVITY_TIE_SCORE_EPSILON }
-        if (tied.size < 2) return best
-        var chosen = best
-        var chosenAgreement = startAgreement(referenceStarts, targetStarts, scale, best.interceptMs)
-        for (candidate in tied) {
-            if (candidate === best) continue
-            val agreement =
-                startAgreement(referenceStarts, targetStarts, scale, candidate.interceptMs)
-            if (agreement > chosenAgreement) {
-                chosen = candidate
-                chosenAgreement = agreement
-            }
-        }
-        return chosen
-    }
-
-    /**
-     * How well [targetStarts] land on reference starts: each start within
-     * [START_AGREEMENT_TOLERANCE_MS] of one counts, closer ones more, averaged over all starts.
-     */
-    private fun startAgreement(
-        referenceStarts: LongArray,
-        targetStarts: LongArray,
-        scale: Double,
-        interceptMs: Long,
-    ): Double {
-        var agreement = 0.0
-        for (targetStart in targetStarts) {
-            val mapped = (targetStart * scale).roundToLong() + interceptMs
-            var low = 0
-            var high = referenceStarts.size
-            while (low < high) {
-                val middle = (low + high) ushr 1
-                if (referenceStarts[middle] < mapped) low = middle + 1 else high = middle
-            }
-            val nearest = min(
-                if (low < referenceStarts.size) abs(referenceStarts[low] - mapped) else Long.MAX_VALUE,
-                if (low > 0) abs(referenceStarts[low - 1] - mapped) else Long.MAX_VALUE,
-            )
-            if (nearest <= START_AGREEMENT_TOLERANCE_MS) {
-                agreement += 1.0 - nearest.toDouble() / (START_AGREEMENT_TOLERANCE_MS + 1).toDouble()
-            }
-        }
-        return agreement / targetStarts.size.toDouble()
     }
 
     private fun buildActivityTimeline(
@@ -1632,11 +1638,11 @@ internal object AutoSyncTimelineRetimer {
         val lastActive: Int,
     )
 
-    internal data class PreparedActivity(
+    internal class PreparedActivity(
         val coarse: ActivityTimeline,
         val fine: ActivityTimeline,
-        /** Sorted cue start times, for breaking ties between equally overlapping delays. */
-        val starts: LongArray = LongArray(0),
+        /** Sorted cue start times, for onset tie-breaks between equally covering offsets. */
+        val starts: LongArray,
     )
 
     internal data class ActivityCandidate(
@@ -1649,9 +1655,9 @@ internal object AutoSyncTimelineRetimer {
         val coarse: ActivityCandidate,
         val margin: Double,
         val fine: ActivityCandidate?,
-        /** Ends of the run of coarse delays that tie with [coarse]. */
-        val tieStartMs: Long = coarse.interceptMs,
-        val tieEndMs: Long = coarse.interceptMs,
+        /** Coarse score plateau around [coarse]; fine refinement covers all of it. */
+        val plateauStartMs: Long = coarse.interceptMs,
+        val plateauEndMs: Long = coarse.interceptMs,
     )
 
     internal data class DelayOnlySearchEvidence(
@@ -2324,7 +2330,7 @@ internal data class AutoSyncTimelineRetimeResult(
     val localizedMismatchIgnored: Boolean = false,
     /** Median |offset| matched groups still needed after the alignment transform. */
     val medianGroupResidualMs: Double = 0.0,
-    /** Failed confidence gates; null when confident. */
+    /** Failed confidence gates, for debug logs; null when confident. */
     val rejectReason: String? = null,
 )
 

@@ -90,6 +90,17 @@ class SourceFallbackTest {
         assertEquals(candidates[2], next(candidates, settings = regexSettings))
     }
 
+    @Test
+    fun rankedRegexFallbackKeepsTheReshapedPriorityOrder() {
+        val ranked = settings.copy(
+            streamAutoPlayMode = StreamAutoPlayMode.REGEX_MATCH,
+            streamAutoPlayRegex = "no legacy match",
+            streamAutoPlayRankedRegex = listOf("Source 3", "Source 2")
+        )
+        assertEquals(candidates[2], next(candidates, settings = ranked))
+        assertEquals(candidates[1], next(candidates, settings = ranked, triedKeys = setOf(candidates[2].sourceFallbackKey())))
+    }
+
     private fun next(
         streams: List<Stream>,
         settings: PlayerSettings = this.settings,

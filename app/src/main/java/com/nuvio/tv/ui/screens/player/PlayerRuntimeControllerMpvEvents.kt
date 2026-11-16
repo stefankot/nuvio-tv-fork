@@ -275,8 +275,14 @@ internal fun PlayerRuntimeController.handleMpvPlaybackError(
             lastPlaybackDiagnosticsForReport.copy(result = "Error: $detailedError")
 
         // A link that has likely expired is fetched again before anything else is tried on it.
-        if (tryRefreshExpiredLinkAfterError(detailedError)) return
-        if (tryFallbackToNextSourceAfterError(detailedError)) return
+        if (tryRefreshExpiredLinkAfterError(detailedError) {
+                mpvErrorRecoveryArmed = false
+                handleMpvPlaybackError(source, mpvErrorCode, detailedErrorOverride, allowEngineFailover)
+            }) return
+        if (tryFallbackToNextSourceAfterError(detailedError) {
+                mpvErrorRecoveryArmed = false
+                handleMpvPlaybackError(source, mpvErrorCode, detailedErrorOverride, allowEngineFailover)
+            }) return
 
         val startupFailed = !hasRenderedFirstFrame
         if (startupFailed &&
@@ -298,6 +304,7 @@ internal fun PlayerRuntimeController.handleMpvPlaybackError(
 
         finishLoadingDiagnostics("mpv_error")
         cancelNextEpisodeAutoPlayOnFatalError()
+        if (autoSourceRecovery?.failDefinitively(detailedError) == true) return
         _uiState.update {
             it.copy(
                 error = detailedError,

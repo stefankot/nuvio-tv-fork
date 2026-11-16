@@ -2,6 +2,12 @@ package com.nuvio.tv.ui.screens.player
 
 import com.nuvio.tv.domain.model.Stream
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
+import kotlinx.coroutines.cancelAndJoin
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -58,6 +64,33 @@ class AutoPlaySourceFallbackTest {
         assertNull(run.resolved)
         assertNull(run.failure)
         assertEquals(0, run.attempts)
+    }
+
+    @Test
+    fun `cancelling suspended candidate selection does not resolve another stream`() = runBlocking {
+        val selecting = CompletableDeferred<Unit>()
+        val resumeSelection = CompletableDeferred<Stream>()
+        val resolved = mutableListOf<Stream>()
+        var completed = false
+        val job = launch {
+            resolveWithSourceFallback<String, String>(
+                first = sources[0],
+                maxSources = 3,
+                resolve = { resolved += it; expired },
+                nextCandidate = { _, _ ->
+                    selecting.complete(Unit)
+                    resumeSelection.await()
+                }
+            )
+            completed = true
+        }
+        selecting.await()
+        job.cancelAndJoin()
+        resumeSelection.complete(sources[1])
+        yield()
+        assertTrue(job.isCancelled)
+        assertFalse(completed)
+        assertEquals(listOf(sources[0]), resolved)
     }
 
     private val expired = AutoPlayResolveAttempt.Failed("expired")

@@ -3344,15 +3344,24 @@
     <string name="shuffle_save_failed">Impossibile aggiornare la riproduzione casuale. Riprova.</string>
     <string name="shuffle_change_selection">Scegli gli episodi</string>
     <string name="shuffle_badge">Riproduzione casuale degli episodi attiva</string>
-    <string name="autosync_setting_title">Sincronizzazione automatica dei sottotitoli</string>
-    <string name="autosync_setting_description">Abbina la temporizzazione del sottotitolo selezionato da un addon a quella dei sottotitoli incorporati nel video.</string>
-    <string name="autosync_tolerance_title">Tolleranza di sincronizzazione automatica</string>
-    <string name="autosync_tolerance_description">Mantieni la temporizzazione originale quando la correzione necessaria è pari o inferiore a questo valore.</string>
-    <string name="autosync_tolerance_off">Disattivata</string>
+
+
+
+
+
     <string name="autosync_tolerance_value">%1$d ms</string>
-    <string name="autosync_thorough_title">Ricerca approfondita con sincronizzazione automatica</string>
-    <string name="autosync_thorough_description">Continua a confrontare gli altri sottotitoli e le tracce incorporate per trovare una corrispondenza più precisa prima della sincronizzazione. Se disattivata, viene usata prima la prima corrispondenza affidabile. Vengono applicate solo corrispondenze sicure.</string>
-    <string name="autosync_label_synced">Sincronizzato automaticamente</string>
+
+
+
     <string name="stream_resume_from_time">Riprendi da %1$s</string>
     <string name="stream_resume_from_percent">Riprendi dal %1$d%%</string>
+    <string name="playback_net_http2">Abilita HTTP/2</string>
+    <string name="playback_net_http2_sub">Abilita il protocollo HTTP/2 per le connessioni di rete, consentendo il multiplexing delle richieste e tempi di handshake più rapidi.</string>
+    <string name="library_type_items">elementi</string>
+    <string name="library_empty_local_title">Ancora nessun %1$s</string>
+    <string name="library_empty_trakt_title">Nessun %1$s in questa lista</string>
+    <string name="library_empty_local_subtitle">Inizia a salvare i tuoi preferiti per vederli qui</string>
+    <string name="library_empty_trakt_subtitle">Usa il tasto + nei dettagli per aggiungere elementi alla lista da guardare o alle tue liste</string>
+    <string name="library_empty_simkl_title">Nessun elemento in %1$s</string>
+    <string name="library_empty_simkl_subtitle">Usa + nei dettagli per aggiungere elementi a uno stato Simkl</string>
 </resources>

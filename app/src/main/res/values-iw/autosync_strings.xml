@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Subtitle AutoSync. Keep keys in sync with values/autosync_strings.xml; Nuvio's own AutoSync strings live in strings.xml. -->
+<resources>
+    <string name="autosync_debug_logs_title">יומני ניפוי באגים של Auto Sync</string>
+    <string name="autosync_debug_logs_description">שמירת דוח תזמון מפורט של Auto Sync והעתקתו ללוח, לדיווח על מקרי כתוביות קשים.</string>
+    <string name="autosync_toast_analyzing">Auto Sync • מנתח…</string>
+    <string name="autosync_toast_synced">Auto Sync • הכתוביות סונכרנו</string>
+    <string name="autosync_toast_synced_replaced">Auto Sync • עבר לכתובית שמתאימה יותר</string>
+    <string name="autosync_toast_in_sync">Auto Sync • הכתוביות כבר מסונכרנות</string>
+    <string name="reshaped_autosync_toast_failed">Auto Sync • הסנכרון נכשל • תזמון הכתוביות לא השתנה</string>
+    <string name="reshaped_autosync_toast_failed_no_reference">Auto Sync • אין כתוביות מוטמעות להשוואה • תזמון הכתוביות לא השתנה</string>
+    <string name="reshaped_autosync_toast_failed_unsupported">Auto Sync • פורמט הכתוביות אינו נתמך • תזמון הכתוביות לא השתנה</string>
+    <string name="autosync_toast_failed_audio_fallback">Auto Sync • לא נמצאה התאמה • מסנכרן לפי השמע…</string>
+</resources>

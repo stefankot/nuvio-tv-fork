@@ -672,6 +672,7 @@ private fun PlaybackNavHost(
                                 fileIdx = playbackInfo.fileIdx,
                                 sources = playbackInfo.sources,
                                 contentLanguage = playbackInfo.contentLanguage,
+                                autoSourceRecoveryToken = playbackInfo.autoSourceRecoveryToken,
                                 profileId = playbackInfo.profileId,
                                 audioDelayMs = playbackInfo.audioDelayMs,
                                 audioDelayLanguage = playbackInfo.audioDelayLanguage
@@ -715,6 +716,7 @@ private fun PlaybackNavHost(
                                 fileIdx = playbackInfo.fileIdx,
                                 sources = playbackInfo.sources,
                                 contentLanguage = playbackInfo.contentLanguage,
+                                autoSourceRecoveryToken = playbackInfo.autoSourceRecoveryToken,
                                 profileId = playbackInfo.profileId,
                                 audioDelayMs = playbackInfo.audioDelayMs,
                                 audioDelayLanguage = playbackInfo.audioDelayLanguage,
@@ -867,6 +869,11 @@ private fun PlaybackNavHost(
                     defaultValue = null
                 },
                 navArgument("cloudSessionToken") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("autoSourceRecoveryToken") {
                     type = NavType.StringType
                     nullable = true
                     defaultValue = null
@@ -1292,6 +1299,10 @@ private fun PlaybackNavHost(
                     )
                 }
             )
+        }
+
+        rootComposable(com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE) { // Nuvio RS hook: Live TV
+            com.nuvio.tv.ui.reshaped.livetv.LiveTvScreen(onPlay = { navController.navigate(it) }, showBuiltInHeader = !hideBuiltInHeaders)
         }
 
         rootComposable(Screen.Settings.route) {

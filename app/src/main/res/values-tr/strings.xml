@@ -3441,4 +3441,16 @@
     <string name="autosync_label_synced">Otomatik eşitlendi</string>
     <string name="stream_resume_from_time">%1$s konumundan devam et</string>
     <string name="stream_resume_from_percent">%1$d%% konumundan devam et</string>
+    <string name="playback_net_http2">HTTP/2 Protokolünü Etkinleştir</string>
+    <string name="playback_net_http2_sub">İstek çoğullama (multiplexing) ve daha hızlı el sıkışma süreleri için ağ bağlantılarında HTTP/2 protokolünü etkinleştirir.</string>
+    <string name="playback_chapters_label">Sahneler</string>
+
+    <!-- Retained Reshaped resource keys for existing controls and integrations. -->
+    <string name="library_type_items">içerik bulundu</string>
+    <string name="library_empty_local_title">Henüz %1$s yok</string>
+    <string name="library_empty_trakt_title">Bu listede %1$s yok</string>
+    <string name="library_empty_local_subtitle">İçerik eklemek için içerik detaylarındaki + tuşunu kullanın</string>
+    <string name="library_empty_trakt_subtitle">İçerikleri izleme listenize eklemek için içerik detaylarındaki + tuşunu kullanın</string>
+    <string name="library_empty_simkl_title">Bu durumda %1$s yok</string>
+    <string name="library_empty_simkl_subtitle">Bir Simkl durumuna eklemek için detaylarda + tuşunu kullan</string>
 </resources>

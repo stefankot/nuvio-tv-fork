@@ -3491,4 +3491,16 @@
     <string name="autosync_label_synced">Đã tự động đồng bộ</string>
     <string name="stream_resume_from_time">Xem tiếp từ %1$s</string>
     <string name="stream_resume_from_percent">Xem tiếp từ %1$d%%</string>
+    <string name="playback_net_http2">Bật HTTP/2</string>
+    <string name="playback_net_http2_sub">Bật giao thức HTTP/2 cho các kết nối mạng, cho phép dồn nhiều yêu cầu và rút ngắn thời gian bắt tay.</string>
+    <string name="playback_chapters_label">Chương</string>
+
+    <!-- Retained Reshaped resource keys for existing controls and integrations. -->
+    <string name="library_type_items">mục</string>
+    <string name="library_empty_local_title">Chưa có %1$s</string>
+    <string name="library_empty_trakt_title">Chưa có %1$s trong danh sách này</string>
+    <string name="library_empty_local_subtitle">Bắt đầu lưu mục yêu thích để xem ở đây</string>
+    <string name="library_empty_trakt_subtitle">Sử dụng + trong chi tiết để thêm vào danh sách theo dõi hoặc danh sách</string>
+    <string name="library_empty_simkl_title">Không có %1$s trong trạng thái này</string>
+    <string name="library_empty_simkl_subtitle">Sử dụng + trong chi tiết để thêm mục vào trạng thái Simkl</string>
 </resources>

@@ -151,3 +151,5 @@
 
 -dontwarn java.beans.ConstructorProperties
 -dontwarn java.beans.Transient
+# JNI entry points belong to the detached seek-preview decoder.
+-keep class com.nuvio.tv.ui.screens.player.seekpreview.engine.ThumbNative { *; }

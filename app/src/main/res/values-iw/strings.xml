@@ -1274,6 +1274,7 @@
     <string name="web_custom_poster_none">לא הוגדרה תבנית</string>
     <string name="web_custom_poster_loading">טוען…</string>
     <string name="web_custom_poster_placeholders_info">מציינים: {id} מעביר את כל מזהי התוכן. {imdb_id}, {tmdb_id}, {tvdb_id}, {kitsu_id} מיועדים לסוג מזהה בודד - אם הוא לא זמין, הפוסטר המקורי נשמר. {imdb_id|tmdb_id|kitsu_id} מציין סוגי מזהים נתמכים - נעשה שימוש בסוג המתאים, או שהפוסטר המקורי נשמר. הוספת ? הופכת מציין לאופציונלי, כך שיוחלף בערך ריק במקום לדלג: {imdb_id?}. מציינים נוספים: {id_type}, {typed_id}, {type}, {shape}.</string>
+
     <string name="web_subtitle_font_title">גופני כתוביות</string>
     <string name="web_subtitle_font_subtitle">.יש לבחור קובץ TTF או OTF לשימוש ככתוביות בטלוויזיה</string>
     <string name="web_subtitle_font_choose">בחירת קובץ גופן</string>
@@ -1282,6 +1283,7 @@
     <string name="web_subtitle_font_error">.לא ניתן היה לייבא את הגופן הזה. יש לבחור קובץ TTF או OTF תקין בגודל של עד 10 MB</string>
     <string name="web_subtitle_font_connection_error">שגיאת חיבור</string>
     
+
 
     <string name="mdblist_name">MDBList</string>
     <string name="mdblist_tracking_description">סנכרון היסטוריית צפייה והתקדמות הפעלה בין מכשירים</string>
@@ -3481,4 +3483,16 @@
     <string name="autosync_label_synced">מסונכרן אוטומטית</string>
     <string name="stream_resume_from_time">המשך מ-%1$s</string>
     <string name="stream_resume_from_percent">המשך מ-%1$d%%</string>
+    <string name="playback_net_http2">הפעלת HTTP/2</string>
+    <string name="playback_net_http2_sub">הפעלת פרוטוקול HTTP/2 עבור חיבורי רשת, המאפשר ריבוב בקשות וזמני handshake מהירים יותר.</string>
+    <string name="playback_chapters_label">מקטעים</string>
+
+    <!-- Retained Reshaped resource keys for existing controls and integrations. -->
+    <string name="library_type_items">פריטים</string>
+    <string name="library_empty_local_title">אין עדיין פריטים ב\"%1$s\"</string>
+    <string name="library_empty_trakt_title">אין %1$s ברשימה זו</string>
+    <string name="library_empty_local_subtitle">אפשר להתחיל לשמור מועדפים כדי לראותם כאן</string>
+    <string name="library_empty_trakt_subtitle">שימוש ב-+ בפרטים להוספת פריטים לרשימת צפייה</string>
+    <string name="library_empty_simkl_title">אין %1$s בסטטוס זה</string>
+    <string name="library_empty_simkl_subtitle">יש ללחוץ על + בפרטים כדי להוסיף פריטים לסטטוס Simkl</string>
 </resources>

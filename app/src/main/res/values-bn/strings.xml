@@ -3217,4 +3217,16 @@
         <item quantity="one">%1$d মিনিট</item>
         <item quantity="other">%1$d মিনিট</item>
     </plurals>
-    </resources>
+        <string name="playback_net_http2">HTTP/2 এনাবল করুন</string>
+    <string name="playback_net_http2_sub">নেটওয়ার্ক কানেকশনের জন্য HTTP/2 প্রোটোকল এনাবল করুন, যা রিকোয়েস্ট মাল্টিপ্লেক্সিং এবং দ্রুত হ্যান্ডশেক টাইম অ্যালাও করে।</string>
+    <string name="playback_chapters_label">চ্যাপ্টার</string>
+
+    <!-- Retained Reshaped resource keys for existing controls and integrations. -->
+    <string name="library_type_items">আইটেম</string>
+    <string name="library_empty_local_title">এখনও কোনো %1$s নেই</string>
+    <string name="library_empty_trakt_title">এই লিস্টে কোনো %1$s নেই</string>
+    <string name="library_empty_local_subtitle">এখানে দেখতে আপনার পছন্দেরগুলো সেভ করা শুরু করুন</string>
+    <string name="library_empty_trakt_subtitle">ওয়াচলিস্ট বা লিস্টে আইটেম যোগ করতে বিস্তারিততে + ব্যবহার করুন</string>
+    <string name="library_empty_simkl_title">এই স্ট্যাটাসে কোনো %1$s নেই</string>
+    <string name="library_empty_simkl_subtitle">Simkl স্ট্যাটাসে আইটেম যোগ করতে বিস্তারিততে + ব্যবহার করুন</string>
+</resources>

@@ -3398,17 +3398,27 @@ Próbálj meg egy másik forrást. [%1$s]</string>
     <string name="shuffle_save_failed">Nem sikerült menteni a véletlenszerű lejátszás beállításait. Próbáld újra.</string>
     <string name="shuffle_change_selection">Epizódok kiválasztása</string>
     <string name="shuffle_badge">Véletlenszerű lejátszás bekapcsolva</string>
-    <string name="autosync_setting_title">Feliratok automatikus időzítése</string>
-    <string name="autosync_setting_description">A bővítményből kiválasztott feliratot a videó beágyazott feliratához időzíti.</string>
-    <string name="autosync_tolerance_title">Automatikus időzítés tűréshatára</string>
-    <string name="autosync_tolerance_description">Az eredeti időzítés megmarad, ha a szükséges korrekció nem nagyobb ennél.</string>
-    <string name="autosync_tolerance_off">Ki</string>
+
+
+
+
+
     <string name="autosync_tolerance_value">%1$d ms</string>
-    <string name="autosync_thorough_title">Alaposabb feliratszinkronizálás</string>
-    <string name="autosync_thorough_description">A pontosabb egyezésért további feliratokat és beágyazott sávokat is összehasonlít. Kikapcsolva hamarabb alkalmazza az első megbízható egyezést. Csak biztos egyezés esetén módosítja az időzítést.</string>
+
+
     <string name="autosync_toast_no_fit">Sikertelen szinkronizálás: ezek a feliratok nem illeszkednek a videó ezen változatához.</string>
-    <string name="autosync_label_synced">Automatikusan időzítve</string>
+
     <string name="stream_resume_from_time">Folytatás innen: %1$s</string>
     <string name="stream_resume_from_percent">Folytatás innen: %1$d%%</string>
 
+    <string name="playback_chapters_label">Fejezetek</string>
+
+    <!-- Retained Reshaped resource keys for existing controls and integrations. -->
+    <string name="library_type_items">elem</string>
+    <string name="library_empty_local_title">Még nincs %1$s</string>
+    <string name="library_empty_trakt_title">Nincs %1$s ebben a listában</string>
+    <string name="library_empty_local_subtitle">Mentsd el a kedvenc tartalmaidat, hogy itt láthasd őket</string>
+    <string name="library_empty_trakt_subtitle">Használd a + gombot a részletek oldalon, hogy elemeket adj a várólistádhoz vagy más listákhoz</string>
+    <string name="library_empty_simkl_title">Nincs %1$s ebben az állapotban</string>
+    <string name="library_empty_simkl_subtitle">A részletek oldalon a + gombbal állíthatod be a tartalom megtekintési állapotát a Simklben</string>
 </resources>

@@ -1,11 +1,17 @@
 package com.nuvio.tv.ui.screens.stream
 
+import com.nuvio.tv.core.player.recovery.AutoSourceRecoveryPlan
+import com.nuvio.tv.core.player.recovery.AutoSourceRecoverySettings
+import com.nuvio.tv.core.player.recovery.AutoSourceRecoveryHandoff
+import com.nuvio.tv.core.player.recovery.prepareAutoSource
+
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nuvio.tv.R
+import com.nuvio.tv.core.connection.StreamConnectionFit
 import com.nuvio.tv.core.debrid.DebridStreamPresentation
 import com.nuvio.tv.core.debrid.DirectDebridResolveResult
 import com.nuvio.tv.core.debrid.DirectDebridResolver
@@ -16,6 +22,7 @@ import com.nuvio.tv.core.torrent.TorrentSettings
 import com.nuvio.tv.core.torrent.TorrentService
 import com.nuvio.tv.core.torrent.TorrentState
 import com.nuvio.tv.core.player.StreamAutoPlayPolicy
+import kotlinx.coroutines.sync.withLock
 import com.nuvio.tv.core.player.StreamAutoPlaySelector
 import com.nuvio.tv.core.tracking.TrackingMediaKind
 import com.nuvio.tv.core.tracking.TrackingMediaReference
@@ -112,6 +119,7 @@ class StreamScreenViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private var autoPlayHandledForSession = false
+    private var autoRecoverySettings: PlayerSettings? = null
     private var directAutoPlayModeInitializedForSession = false
     private var directAutoPlayFlowEnabledForSession = false
 
@@ -414,6 +422,7 @@ class StreamScreenViewModel @Inject constructor(
         streamLoadJob = newScope.launch {
             streamLoadCompleted = false
             val playerSettings = playerSettingsDataStore.playerSettings.first()
+            autoRecoverySettings = playerSettings
             if (manualSelection) {
                 directAutoPlayModeInitializedForSession = true
                 directAutoPlayFlowEnabledForSession = false
@@ -439,7 +448,7 @@ class StreamScreenViewModel @Inject constructor(
 
             if (
                 playerSettings.streamAutoPlayMode == StreamAutoPlayMode.REGEX_MATCH &&
-                !StreamAutoPlayPolicy.isRegexSelectionConfigured(playerSettings.streamAutoPlayRegex)
+                !StreamAutoPlayPolicy.isRegexSelectionConfigured(playerSettings.streamAutoPlayRegex, playerSettings.streamAutoPlayRankedRegex)
             ) {
                 directAutoPlayFlowEnabledForSession = false
                 autoPlayHandledForSession = true
@@ -552,12 +561,20 @@ class StreamScreenViewModel @Inject constructor(
                 contentId?.let { bingeGroupCacheDataStore.getInfoHash(it) }
             } else null
 
-            fun applySuccess(addonStreamGroups: List<AddonStreams>, isAllLoaded: Boolean) {
-                val orderedAddonStreams = StreamAutoPlaySelector.orderAddonStreams(
-                    addonStreamGroups,
-                    installedAddonOrder,
-                    preferredServerNames
-                )
+            // Nuvio RS: one connection snapshot per load, taken once the runtime is known.
+            var connectionFit: StreamConnectionFit? = null
+            var connectionFitCaptured = false
+
+            val successMutex = kotlinx.coroutines.sync.Mutex()
+            suspend fun applySuccess(addonStreamGroups: List<AddonStreams>, isAllLoaded: Boolean) = successMutex.withLock {
+                if (!connectionFitCaptured) {
+                    _uiState.value.runtime?.let { runtimeMinutes ->
+                        connectionFit = StreamConnectionFit.capture(context, runtimeMinutes)
+                        connectionFitCaptured = true
+                    }
+                }
+                val addonOrderedStreams = StreamAutoPlaySelector.orderAddonStreams(addonStreamGroups, installedAddonOrder, preferredServerNames)
+                val orderedAddonStreams = connectionFit?.applyToGroups(addonOrderedStreams) ?: addonOrderedStreams
 
                 // Preserve badges already computed by prior badge jobs so they
                 // don't vanish when repository emits fresh (badge-less) streams.
@@ -627,10 +644,11 @@ class StreamScreenViewModel @Inject constructor(
                         )
                     } else null
                     // Fall back to binge group alone
-                    bingeAndFilename ?: bingeAndInfoHash ?: StreamAutoPlaySelector.selectAutoPlayStream(
+                    bingeAndFilename ?: bingeAndInfoHash ?: StreamAutoPlaySelector.selectAutoPlayStreamAsync(
                         streams = allStreams,
                         mode = playerSettings.streamAutoPlayMode,
                         regexPattern = playerSettings.streamAutoPlayRegex,
+                        rankedRegexPatterns = playerSettings.streamAutoPlayRankedRegex,
                         source = playerSettings.streamAutoPlaySource,
                         installedAddonNames = installedAddonOrder.toSet(),
                         selectedAddons = playerSettings.streamAutoPlaySelectedAddons,
@@ -646,15 +664,16 @@ class StreamScreenViewModel @Inject constructor(
                 // chance to return higher-quality streams before the selector
                 // picks from whatever is available.
                 val shouldAutoSelect = !autoPlayHandledForSession && !resolvedAutoPlayTarget && isAllLoaded
-                val selectedAutoPlayStream = if (earlyBingeGroupMatch != null) {
+                var selectedAutoPlayStream = if (earlyBingeGroupMatch != null) {
                     earlyBingeGroupMatch
                 } else if (!shouldAutoSelect) {
                     null
                 } else {
-                    StreamAutoPlaySelector.selectAutoPlayStream(
+                    StreamAutoPlaySelector.selectAutoPlayStreamAsync(
                         streams = allStreams,
                         mode = playerSettings.streamAutoPlayMode,
                         regexPattern = playerSettings.streamAutoPlayRegex,
+                        rankedRegexPatterns = playerSettings.streamAutoPlayRankedRegex,
                         source = playerSettings.streamAutoPlaySource,
                         installedAddonNames = installedAddonOrder.toSet(),
                         selectedAddons = playerSettings.streamAutoPlaySelectedAddons,
@@ -663,6 +682,8 @@ class StreamScreenViewModel @Inject constructor(
                         preferBingeGroupInSelection = persistedBingeGroup != null
                     )
                 }
+                // A manual selection can complete while matching is on the worker.
+                if (autoPlayHandledForSession || resolvedAutoPlayTarget) selectedAutoPlayStream = null
                 if (selectedAutoPlayStream != null) {
                     resolvedAutoPlayTarget = true
                 }
@@ -855,10 +876,11 @@ class StreamScreenViewModel @Inject constructor(
                                     result.data, installedAddonOrder, preferredServerNames
                                 )
                                 val allStreams = orderedStreams.flatMap { it.streams }
-                                val earlyMatch = StreamAutoPlaySelector.selectAutoPlayStream(
+                                val earlyMatch = StreamAutoPlaySelector.selectAutoPlayStreamAsync(
                                     streams = allStreams,
                                     mode = playerSettings.streamAutoPlayMode,
                                     regexPattern = playerSettings.streamAutoPlayRegex,
+                                    rankedRegexPatterns = playerSettings.streamAutoPlayRankedRegex,
                                     source = playerSettings.streamAutoPlaySource,
                                     installedAddonNames = installedAddonOrder.toSet(),
                                     selectedAddons = playerSettings.streamAutoPlaySelectedAddons,
@@ -1311,9 +1333,13 @@ class StreamScreenViewModel @Inject constructor(
         }
     }
 
-    suspend fun resolveStreamForPlayback(stream: Stream, saveLastLink: Boolean = true): StreamPlaybackInfo? =
+    suspend fun resolveStreamForPlayback(
+        stream: Stream,
+        saveLastLink: Boolean = true,
+        reportErrors: Boolean = true
+    ): StreamPlaybackInfo? =
         resolveForPlayback(stream, saveLastLink) { failure ->
-            showDirectDebridPlaybackError(failure.message, failure.refreshStreams)
+            if (reportErrors) showDirectDebridPlaybackError(failure.message, failure.refreshStreams)
         }
 
     /**
@@ -1437,14 +1463,20 @@ class StreamScreenViewModel @Inject constructor(
                 }
             },
             nextCandidate = { failed, triedKeys ->
-                nextSourceFallbackCandidate(
-                    streams = _uiState.value.allStreams,
-                    settings = settings,
-                    installedAddonNames = autoPlayInstalledAddonNames,
-                    triedKeys = triedKeys,
-                    failedAddonName = failed.addonName,
-                    failedInfoHash = failed.getEffectiveInfoHash()
-                )?.also { next ->
+                com.nuvio.tv.core.streams.ranking.RankedRegexWork.run(
+                    enabled = settings.streamAutoPlayRankedRegex.isNotEmpty()
+                ) { checkpoint ->
+                    nextSourceFallbackCandidate(
+                        streams = _uiState.value.allStreams,
+                        settings = settings,
+                        installedAddonNames = autoPlayInstalledAddonNames,
+                        triedKeys = triedKeys,
+                        failedAddonName = failed.addonName,
+
+                        failedInfoHash = failed.getEffectiveInfoHash(),
+                        rankedRegexCheckCancelled = checkpoint
+                    )
+                }?.also { next ->
                     Log.i(
                         TAG,
                         "Auto-selected source from ${failed.addonName} could not be resolved, " +
@@ -1712,6 +1744,47 @@ class StreamScreenViewModel @Inject constructor(
         return playbackInfo
     }
 
+    private suspend fun autoSourceRecoveryPlan(initialSource: Stream?): AutoSourceRecoveryPlan? {
+        if (contentType in listOf("tv", "channel", "cloud")) return null
+        val settings = autoRecoverySettings ?: return null
+        if (!AutoSourceRecoverySettings.applies(context, settings)) return null
+        val preferred = if (settings.streamAutoPlayPreferBingeGroupForNextEpisode && settings.streamAutoPlayReuseBingeGroup) {
+            contentId?.let { bingeGroupCacheDataStore.get(it) }
+        } else null
+        return AutoSourceRecoveryPlan.create(
+            streams = _uiState.value.allStreams,
+            settings = settings,
+            installedAddonNames = addonRepository.getInstalledAddons().first().enabledAddons().map { it.displayName }.toSet(),
+            preferredBingeGroup = preferred, initialSource = initialSource,
+            profileId = playbackProfileId, videoId = videoId
+        )
+    }
+
+    suspend fun resolveAutoPlayForPlayback(stream: Stream): StreamPlaybackInfo? {
+        if (autoRecoverySettings?.playerPreference == PlayerPreference.EXTERNAL) return resolveStreamForPlayback(stream)
+        val plan = autoSourceRecoveryPlan(stream) ?: return resolveAutoPlayStreamForPlayback(stream)
+        val prepared = prepareAutoSource(plan, android.os.SystemClock::elapsedRealtime) {
+            resolveStreamForPlayback(it, reportErrors = false)
+        }
+        if (prepared == null) {
+            showDirectDebridPlaybackError(context.getString(R.string.player_auto_source_recovery_exhausted), refreshStreams = false)
+            return null
+        }
+        return prepared.value.copy(autoSourceRecoveryToken = AutoSourceRecoveryHandoff.put(prepared.plan))
+    }
+
+    suspend fun attachAutoSourceRecovery(info: StreamPlaybackInfo): StreamPlaybackInfo {
+        if (info.isExternal || info.autoSourceRecoveryToken != null) return info
+        val initial = _uiState.value.autoPlayStream ?: Stream(
+            name = info.streamName, title = null, description = info.streamDescription, url = info.url,
+            ytId = info.ytId, infoHash = info.infoHash, fileIdx = info.fileIdx, externalUrl = null,
+            behaviorHints = com.nuvio.tv.domain.model.StreamBehaviorHints(null, null, null, null, filename = info.filename),
+            addonName = info.addonName.orEmpty(), addonLogo = info.addonLogo
+        )
+        val plan = autoSourceRecoveryPlan(initial) ?: return info
+        return info.copy(autoSourceRecoveryToken = AutoSourceRecoveryHandoff.put(plan))
+    }
+
     suspend fun awaitStreamLinkCacheSave() {
         pendingCacheSaveJob?.join()
     }
@@ -1782,6 +1855,7 @@ class StreamScreenViewModel @Inject constructor(
         autoLaunch: Boolean = false,
         context: android.content.Context
     ) {
+        AutoSourceRecoveryHandoff.discard(playbackInfo.autoSourceRecoveryToken)
         streamRepository.setLocalPluginSearchPaused(true)
         externalOverlayHideJob?.cancel()
         // Preserve the current message; blanking it made the card's Crossfade flash
@@ -1807,7 +1881,7 @@ class StreamScreenViewModel @Inject constructor(
                     directAutoPlayProgress = null
                 )
             }
-            
+
             val fileLimit = playbackInfo.videoSize ?: Long.MAX_VALUE
             val preloadTarget = minOf(5_242_880L, fileLimit)
 
@@ -2238,6 +2312,7 @@ data class StreamPlaybackInfo(
     val fileIdx: Int? = null,
     val sources: List<String>? = null,
     val contentLanguage: String? = null,
+    val autoSourceRecoveryToken: String? = null,
     val audioDelayMs: Int? = null,
     val audioDelayLanguage: String? = null,
     val isServerStream: Boolean = false,

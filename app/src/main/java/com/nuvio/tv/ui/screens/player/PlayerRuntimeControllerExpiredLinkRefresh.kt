@@ -6,6 +6,7 @@ import com.nuvio.tv.domain.model.Stream
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 
 private const val CACHED_LINK_REFRESH_POLL_COUNT = 30
 private const val CACHED_LINK_REFRESH_POLL_INTERVAL_MS = 500L
@@ -29,7 +30,10 @@ internal data class CachedSourceIdentity(
  *
  * Returns `true` when a refresh was started and the error must not be shown yet.
  */
-internal fun PlayerRuntimeController.tryRefreshExpiredLinkAfterError(errorMessage: String): Boolean {
+internal fun PlayerRuntimeController.tryRefreshExpiredLinkAfterError(
+    errorMessage: String,
+    onRefreshFailure: (() -> Unit)? = null
+): Boolean {
     val failedUrl = currentStreamUrl
     if (failedUrl.isBlank() || failedUrl.startsWith("torrent://")) return false
     val fromLinkCache = failedUrl == linkCacheSourceUrl
@@ -46,6 +50,7 @@ internal fun PlayerRuntimeController.tryRefreshExpiredLinkAfterError(errorMessag
         filename = currentFilename,
         bingeGroup = currentStreamBingeGroup
     )
+    val videoId = currentVideoId
     val season = currentSeason
     val episode = currentEpisode
     Log.i(PlayerRuntimeController.TAG, "Link likely expired, fetching the source again from ${expected.addonName}")
@@ -85,8 +90,17 @@ internal fun PlayerRuntimeController.tryRefreshExpiredLinkAfterError(errorMessag
             !url.isNullOrBlank() && url != failedUrl
         }
 
+        if (currentStreamUrl != failedUrl || currentVideoId != videoId) return@launch
         if (refreshed == null) {
             Log.w(PlayerRuntimeController.TAG, "No fresh link was found for the failed source")
+            // The URL has already been marked attempted. Re-enter the original error
+            // path so engine retries, server fallback and Reshaped source recovery remain available.
+            if (onRefreshFailure != null) {
+                yield() // Let the initiating handler release its re-entry guard first.
+                if (currentStreamUrl != failedUrl || currentVideoId != videoId) return@launch
+                onRefreshFailure()
+                return@launch
+            }
             showErrorUnlessSourceFallback(errorMessage)
             return@launch
         }

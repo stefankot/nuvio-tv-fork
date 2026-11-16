@@ -3492,4 +3492,16 @@
     <string name="autosync_label_synced">Auto synced</string>
     <string name="stream_resume_from_time">Resume from %1$s</string>
     <string name="stream_resume_from_percent">Resume from %1$d%%</string>
+    <string name="playback_net_http2">Enable HTTP/2</string>
+    <string name="playback_net_http2_sub">Enable HTTP/2 protocol for network connections, allowing request multiplexing and faster handshake times.</string>
+    <string name="playback_chapters_label">Chapters</string>
+
+    <!-- Retained Reshaped resource keys for existing controls and integrations. -->
+    <string name="library_type_items">items</string>
+    <string name="library_empty_local_title">No %1$s yet</string>
+    <string name="library_empty_trakt_title">No %1$s in this list</string>
+    <string name="library_empty_local_subtitle">Start saving your favorites to see them here</string>
+    <string name="library_empty_trakt_subtitle">Use + in details to add items to watchlist or lists</string>
+    <string name="library_empty_simkl_title">No %1$s in this status</string>
+    <string name="library_empty_simkl_subtitle">Use + in details to add items to a Simkl status</string>
 </resources>

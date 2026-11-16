@@ -3334,4 +3334,14 @@
   <string name="autosync_label_synced">Αυτόματα συγχρονισμένος</string>
   <string name="stream_resume_from_time">Συνέχεια από %1$s</string>
   <string name="stream_resume_from_percent">Συνέχεια από %1$d%%</string>
+    <string name="playback_net_http2">Ενεργοποίηση HTTP/2</string>
+    <string name="playback_net_http2_sub">Ενεργοποίηση του πρωτοκόλλου HTTP/2 για τις συνδέσεις δικτύου, επιτρέποντας πολύπλεξη αιτημάτων και ταχύτερους χρόνους χειραψίας.</string>
+    <string name="playback_chapters_label">Κεφάλαια</string>
+    <string name="library_empty_simkl_title">Δεν υπάρχουν %1$s σε αυτή την κατάσταση</string>
+    <string name="library_empty_simkl_subtitle">Χρησιμοποιήστε το + στις λεπτομέρειες για προσθήκη στοιχείων σε κατάσταση Simkl</string>
+    <string name="library_type_items">στοιχεία</string>
+    <string name="library_empty_local_title">Δεν υπάρχουν ακόμα %1$s</string>
+    <string name="library_empty_trakt_title">Δεν υπάρχουν %1$s σε αυτή τη λίστα</string>
+    <string name="library_empty_local_subtitle">Αποθηκεύστε τα αγαπημένα σας για να τα δείτε εδώ</string>
+    <string name="library_empty_trakt_subtitle">Χρησιμοποιήστε το + στις λεπτομέρειες για προσθήκη στη watchlist ή σε λίστες</string>
 </resources>

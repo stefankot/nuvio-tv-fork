@@ -33,6 +33,7 @@ internal object AutomaticSubtitleSync {
     internal val autoSyncDispatcher = Dispatchers.Default.limitedParallelism(2)
 
     private const val MIN_SELECTED_CUES = 1
+    private const val MAX_LOGGED_CUE_SAMPLES = 20
     private const val MAX_PARALLEL_ALTERNATIVE_DOWNLOADS = 6
     private const val MAX_PARALLEL_ALTERNATIVE_PARSES = 2
     private const val MAX_PARALLEL_ALTERNATIVE_MATCHES = 2
@@ -96,6 +97,70 @@ internal object AutomaticSubtitleSync {
             ): Boolean = size > MAX_PARSED_SUBTITLE_CACHE_ENTRIES
         }
 
+    private val subtitleLoadTraceLock = Any()
+    private val subtitleLoadTraces = mutableMapOf<String, SubtitleLoadTrace>()
+
+    private fun beginSubtitleLoadTrace(url: String) {
+        if (!AutoSyncDebugLog.ENABLED) return
+        synchronized(subtitleLoadTraceLock) {
+            subtitleLoadTraces[url] = SubtitleLoadTrace(phase = "CACHE_LOOKUP")
+        }
+    }
+
+    private fun markSubtitleLoadPhase(
+        url: String,
+        phase: String,
+    ) {
+        if (!AutoSyncDebugLog.ENABLED) return
+        synchronized(subtitleLoadTraceLock) {
+            subtitleLoadTraces[url]?.phase = phase
+        }
+    }
+
+    private fun markSubtitleLoadCancellation(
+        url: String,
+        source: String,
+    ) {
+        if (!AutoSyncDebugLog.ENABLED) return
+
+        val now = SystemClock.elapsedRealtime()
+        val phase = synchronized(subtitleLoadTraceLock) {
+            val trace = subtitleLoadTraces[url]
+            if (trace != null && trace.cancelRequestedAtMs == null) {
+                trace.cancelRequestedAtMs = now
+                trace.cancelSource = source
+            }
+            trace?.phase ?: "WAITING_OR_NOT_STARTED"
+        }
+
+        AutoSyncDebugLog.info {
+            "LOAD_CANCEL source=$source phase=$phase url=$url"
+        }
+    }
+
+    private fun finishSubtitleLoadTrace(
+        url: String,
+        outcome: String,
+        startedAtMs: Long,
+    ) {
+        if (!AutoSyncDebugLog.ENABLED) return
+
+        val now = SystemClock.elapsedRealtime()
+        val trace = synchronized(subtitleLoadTraceLock) {
+            subtitleLoadTraces.remove(url)
+        } ?: return
+
+        val cancelRequestedAtMs = trace.cancelRequestedAtMs
+        if (cancelRequestedAtMs != null || outcome == "canceled") {
+            AutoSyncDebugLog.info {
+                "LOAD_EXIT outcome=$outcome phase=${trace.phase} " +
+                    "source=${trace.cancelSource ?: "<untracked>"} " +
+                    "cancelToExit=${cancelRequestedAtMs?.let { "${now - it}ms" } ?: "<unknown>"} " +
+                    "total=${now - startedAtMs}ms url=$url"
+            }
+        }
+    }
+
     /**
      * The last results AutoSync applied, by stream and subtitle. Checking only the selected
      * subtitle again on the same stream (the player rebuilt after the app was in the background,
@@ -125,6 +190,20 @@ internal object AutomaticSubtitleSync {
         onNoSubtitleTracks: () -> Unit = {},
         onAnalysisOutcome: ((AutoSyncAnalysisOutcome) -> Unit)? = null,
         sourceHeaders: Map<String, String> = emptyMap(),
+        /** A follow-up search in another language: log into the current debug session. */
+        continueDebugSession: Boolean = false,
+        /**
+         * Whether the playing stream has any text track: false once the player has read the
+         * stream's track list and found none, null while it is not known yet. False ends the wait
+         * for embedded cues at once, since none can arrive.
+         */
+        streamHasTextTracks: (suspend () -> Boolean?)? = null,
+        /**
+         * Whether an MKV whose index lists no subtitle cues may wait for embedded cues to play and
+         * sync to that sample (delay only). False skips that wait, as on the phone, so the audio
+         * sync takes over at once.
+         */
+        sparseLiveReferenceAllowed: Boolean = true,
         /** False when the player does not feed [EmbeddedSubtitleCueStore] (mpv): indexed references only. */
         allowLiveReference: Boolean = true,
     ): AutoSyncResolvedTimeline? {
@@ -133,6 +212,26 @@ internal object AutomaticSubtitleSync {
                 ?.let { return it.copy(reused = true) }
         }
         val aggressiveMode = AutoSyncPreferences.aggressiveMode.value
+
+        if (continueDebugSession) {
+            AutoSyncDebugLog.section { "SECONDARY LANGUAGE SEARCH" }
+            AutoSyncDebugLog.info {
+                "language=${preferredLanguage ?: "<none>"} seed=$selectedSubtitleUrl"
+            }
+        } else {
+            AutoSyncDebugLog.start(
+                sourceKey = sourceKey,
+                subtitleUrl = selectedSubtitleUrl,
+            )
+        }
+        AutoSyncDebugLog.info {
+            "mode=${if (aggressiveMode) "AGGRESSIVE" else "PASSIVE"}"
+        }
+
+        var cleanupStartedAtMs: Long? = null
+        var cleanupCanceledLoads = 0
+        var cleanupCanceledPairs = 0
+        var cleanupSelectedPending = false
 
         val result = supervisorScope {
             val indexedTimelineDeferred = async {
@@ -260,6 +359,13 @@ internal object AutomaticSubtitleSync {
                 }
             }
 
+            AutoSyncDebugLog.info {
+                val completed = prefetchedAlternativeLoads.values.count { it.isCompleted }
+                "PRE_INDEX_PREFETCH started=${prefetchedAlternativeLoads.size} " +
+                    "completed=$completed " +
+                    "active=${prefetchedAlternativeLoads.size - completed}"
+            }
+
             val indexedTimeline = indexedTimelineDeferred.await()
             var selectedResolved = selectedSubtitleDeferred.isCompleted
             var selected =
@@ -268,15 +374,45 @@ internal object AutomaticSubtitleSync {
                 } else {
                     null
                 }
+            var selectedLogged = false
+
+            fun logSelectedOnce() {
+                val loaded = selected ?: return
+                if (selectedLogged) return
+                selectedLogged = true
+                logLoadedExternalSubtitle(
+                    label = "SELECTED",
+                    url = selectedSubtitleUrl,
+                    loaded = loaded,
+                    sampleLimit = MAX_LOGGED_CUE_SAMPLES,
+                )
+            }
+
             suspend fun consumeSelectedIfCompleted(): Boolean {
                 if (selectedResolved) {
+                    logSelectedOnce()
                     return true
                 }
                 if (!selectedSubtitleDeferred.isCompleted) return false
 
                 selected = selectedSubtitleDeferred.await()
                 selectedResolved = true
+                logSelectedOnce()
                 return true
+            }
+
+            AutoSyncDebugLog.section { "SELECTED SUBTITLE" }
+            if (selected != null) {
+                logSelectedOnce()
+            } else if (!selectedResolved) {
+                AutoSyncDebugLog.info {
+                    "selected subtitle still loading when embedded indexing became ready; " +
+                        "using already-prefetched same-language candidates without blocking"
+                }
+            } else {
+                AutoSyncDebugLog.warn {
+                    "selected subtitle could not be downloaded or parsed; searching alternatives"
+                }
             }
 
             fun currentExternalCandidates(): List<AutoSyncSubtitleCandidate> =
@@ -347,6 +483,12 @@ internal object AutomaticSubtitleSync {
                     }
                 }
 
+                AutoSyncDebugLog.info {
+                    "fallback candidate refresh total=${availableCandidates.size} " +
+                        "sameLanguage=${alternatives.size} " +
+                        "selectedReady=${selected != null} " +
+                        "waited=${SystemClock.elapsedRealtime() - waitStartedMs}ms"
+                }
             }
 
             if (selected == null) {
@@ -399,6 +541,7 @@ internal object AutomaticSubtitleSync {
                     if (completed.first == selectedSubtitleUrl) {
                         selectedResolved = true
                         selected = completed.second
+                        logSelectedOnce()
                     }
 
                     completed.second?.let { loaded ->
@@ -412,21 +555,52 @@ internal object AutomaticSubtitleSync {
             if (seedTarget.isNullOrEmpty() && !selectedResolved) {
                 selected = selectedSubtitleDeferred.await()
                 selectedResolved = true
+                logSelectedOnce()
                 seedTarget = selected?.cues
             }
 
             if (seedTarget.isNullOrEmpty()) {
-                prefetchedAlternativeLoads.values.forEach { it.cancel() }
+                prefetchedAlternativeLoads.forEach { (url, job) ->
+                    if (!job.isCompleted) {
+                        markSubtitleLoadCancellation(url, source = "seed-reject")
+                    }
+                    job.cancel()
+                }
+                if (!selectedResolved) {
+                    markSubtitleLoadCancellation(selectedSubtitleUrl, source = "selected")
+                }
                 selectedSubtitleDeferred.cancel()
                 onAnalysisOutcome?.invoke(AutoSyncAnalysisOutcome.SUBTITLE_UNAVAILABLE)
+                AutoSyncDebugLog.section { "FINAL RECOMMENDATION" }
+                AutoSyncDebugLog.warn {
+                    "REJECT no usable external subtitle candidate could be parsed"
+                }
                 return@supervisorScope null
             }
 
             var referenceTracks: List<ReferenceTrack> = emptyList()
             var forcedFallbackTracks: List<ReferenceTrack> = emptyList()
 
+            AutoSyncDebugLog.section { "INDEXED EMBEDDED REFERENCE" }
             if (indexedTimeline != null) {
+                AutoSyncDebugLog.info {
+                    "source=${indexedTimeline.source} tracks=${indexedTimeline.tracks.size} " +
+                        "requests=${indexedTimeline.rangeRequests} bytes=${indexedTimeline.bytesDownloaded} " +
+                        "load=${indexedTimeline.loadMs}ms"
+                }
                 val profiles = indexedTimeline.tracks.map(::buildReferenceProfile)
+                if (AutoSyncDebugLog.ENABLED) {
+                    profiles.forEachIndexed { index, profile ->
+                        val track = profile.track
+                        AutoSyncDebugLog.info {
+                            "indexed[$index] track=${track.key} lang=${track.language ?: "<unknown>"} " +
+                                "label=${track.label ?: "<none>"} selectionFlags=${track.selectionFlags} " +
+                                "roleFlags=${track.roleFlags} cues=${profile.cueCount} " +
+                                "span=${profile.spanMs}ms density=${fmt(profile.densityPerMinute)}/min " +
+                                "fullDialogue=${profile.fullDialogue}"
+                        }
+                    }
+                }
                 val eligibleProfiles = profiles.filter { profile ->
                     profile.fullDialogueCandidate &&
                         profile.cueCount >= MIN_FULL_DIALOGUE_CUES &&
@@ -444,11 +618,20 @@ internal object AutomaticSubtitleSync {
                 } else {
                     referenceTracks = orderReferenceProfiles(forcedProfiles)
                         .map { it.track.copy(cues = it.track.cues.toList()) }
+                    if (referenceTracks.isNotEmpty()) {
+                        AutoSyncDebugLog.info {
+                            "using forced-only indexed reference fallback tracks=${referenceTracks.size}"
+                        }
+                    }
+                }
+            } else {
+                AutoSyncDebugLog.info {
+                    "indexed timeline unavailable; checking Media3 for a near-complete embedded timeline"
                 }
             }
 
             if (referenceTracks.isEmpty() && allowLiveReference) {
-                val useSparseLiveReference =
+                val useSparseLiveReference = sparseLiveReferenceAllowed &&
                     indexedTimeline?.source == "matroska-cues-no-subtitle-entries"
                 val liveSelection = awaitNearCompleteLiveReferences(
                     sourceKey = sourceKey,
@@ -460,6 +643,7 @@ internal object AutomaticSubtitleSync {
                         else -> LIVE_REFERENCE_WAIT_MS
                     },
                     allowSparseLiveReference = useSparseLiveReference,
+                    streamHasTextTracks = streamHasTextTracks,
                 )
                 referenceTracks = liveSelection.primary
                 forcedFallbackTracks = liveSelection.forcedFallback
@@ -473,8 +657,24 @@ internal object AutomaticSubtitleSync {
                 } else {
                     onAnalysisOutcome?.invoke(AutoSyncAnalysisOutcome.NO_USABLE_REFERENCE)
                 }
-                prefetchedAlternativeLoads.values.forEach { it.cancel() }
+                prefetchedAlternativeLoads.forEach { (url, job) ->
+                    if (!job.isCompleted) {
+                        markSubtitleLoadCancellation(url, source = "reference-reject")
+                    }
+                    job.cancel()
+                }
+                if (!selectedResolved) {
+                    markSubtitleLoadCancellation(selectedSubtitleUrl, source = "selected")
+                }
                 selectedSubtitleDeferred.cancel()
+                AutoSyncDebugLog.section { "FINAL RECOMMENDATION" }
+                AutoSyncDebugLog.warn {
+                    if (noSubtitleTracks) {
+                        "REJECT no subtitles in tracks"
+                    } else {
+                        "REJECT no complete embedded subtitle timeline is available for V2"
+                    }
+                }
                 return@supervisorScope null
             }
 
@@ -484,6 +684,7 @@ internal object AutomaticSubtitleSync {
                 mutableMapOf<String, AutoSyncTimelineRetimer.PreparedActivity?>()
 
             if (referenceTracks.size >= 3) {
+                val consistencyStarted = SystemClock.elapsedRealtime()
                 val consistencyContext = currentCoroutineContext()
                 val outliers = withContext(autoSyncDispatcher) {
                     AutoSyncReferenceConsistency.findOutliers(
@@ -498,6 +699,11 @@ internal object AutomaticSubtitleSync {
                         },
                         cancellationCheck = { consistencyContext.ensureActive() },
                     )
+                }
+                AutoSyncDebugLog.info {
+                    "REFERENCE_CONSISTENCY references=${referenceTracks.size} " +
+                        "dropped=${outliers.sorted().joinToString(",").ifEmpty { "<none>" }} " +
+                        "time=${SystemClock.elapsedRealtime() - consistencyStarted}ms"
                 }
                 if (outliers.isNotEmpty()) {
                     referenceTracks = referenceTracks.filterNot { it.key in outliers }
@@ -563,6 +769,7 @@ internal object AutomaticSubtitleSync {
                     activeLoads[url] = job
                     scheduledUrls += url
                 } else {
+                    markSubtitleLoadCancellation(url, source = "prefetch-discard")
                     job.cancel()
                 }
             }
@@ -635,6 +842,7 @@ internal object AutomaticSubtitleSync {
             ) {
                 loadedByUrl[candidate.url] = loaded
                 val index = candidateOrder[candidate.url] ?: return
+                AutoSyncDebugLog.timing(label = "target:$index", cues = loaded.cues)
                 val alternative = LoadedAlternative(
                     index = index,
                     candidate = candidate,
@@ -649,13 +857,20 @@ internal object AutomaticSubtitleSync {
                 }
                 if (equivalent != null) {
                     equivalent.members += alternative
+                    AutoSyncDebugLog.info {
+                        "GLOBAL scheduler reused exact shift-equivalent timing family " +
+                            "candidate=$index representative=${equivalent.representative.index}"
+                    }
                     return
                 }
 
+                val activityPrepStarted = SystemClock.elapsedRealtime()
                 val targetActivity = withContext(autoSyncDispatcher) {
                     AutoSyncTimelineRetimer.prepareUnitActivity(loaded.cues)
                 }
+                val activityPrepMs = SystemClock.elapsedRealtime() - activityPrepStarted
 
+                val preflightStarted = SystemClock.elapsedRealtime()
                 val preflightResult = if (targetActivity != null) {
                     withContext(autoSyncDispatcher) {
                         AutoSyncDelayPreflight.evaluate(
@@ -673,13 +888,23 @@ internal object AutomaticSubtitleSync {
                     )
                 }
                 val preflight = preflightResult.best
+                val preflightMs = SystemClock.elapsedRealtime() - preflightStarted
 
+                val rankingStarted = SystemClock.elapsedRealtime()
                 val rankedReferences = withContext(autoSyncDispatcher) {
                     rankReferenceCandidates(
                         target = loaded.cues,
                         referenceTracks = referenceTracks,
                         preferredReferenceKey = preflight?.referenceKey,
                     )
+                }
+                val rankingMs = SystemClock.elapsedRealtime() - rankingStarted
+
+                if (AutoSyncDebugLog.ENABLED) {
+                    AutoSyncDebugLog.info {
+                        "SCHED_TIMING candidate=$index activityPrep=${activityPrepMs}ms " +
+                            "preflight=${preflightMs}ms ranking=${rankingMs}ms"
+                    }
                 }
 
                 val family = CandidateTimingFamilyState(
@@ -718,6 +943,11 @@ internal object AutomaticSubtitleSync {
                     )
                 }
 
+                AutoSyncDebugLog.info {
+                    "GLOBAL scheduler admitted candidate=$index cues=${loaded.cues.size} " +
+                        "family=${timingFamilies.lastIndex} references=${rankedReferences.size} " +
+                        "preflight=${preflight?.let { "${it.referenceKey}:${fmt(it.score)}" } ?: "<none>"}"
+                }
             }
 
             fun startPairJobs() {
@@ -768,6 +998,13 @@ internal object AutomaticSubtitleSync {
                 if (sameTarget) {
                     preferTighterFitOnDisagreement(candidate.timeline, current.timeline)
                         ?.let { preferCandidate ->
+                            AutoSyncDebugLog.info {
+                                "references disagree; tighter fit wins " +
+                                    "${candidate.track.key}:" +
+                                    "${fmt(candidate.timeline.medianGroupResidualMs)}ms vs " +
+                                    "${current.track.key}:" +
+                                    "${fmt(current.timeline.medianGroupResidualMs)}ms"
+                            }
                             return preferCandidate
                         }
                 }
@@ -782,6 +1019,12 @@ internal object AutomaticSubtitleSync {
             suspend fun evaluateForcedReferenceFallback():
                 Pair<CandidateTimingFamilyState, TimelineRetimeMatch>? {
                 if (forcedFallbackTracks.isEmpty() || timingFamilies.isEmpty()) return null
+
+                AutoSyncDebugLog.section { "FORCED REFERENCE FALLBACK" }
+                AutoSyncDebugLog.info {
+                    "normal references produced no confident match; " +
+                        "trying forced references tracks=${forcedFallbackTracks.size}"
+                }
 
                 var fallbackBestFamily: CandidateTimingFamilyState? = null
                 var fallbackBestMatch: TimelineRetimeMatch? = null
@@ -854,6 +1097,12 @@ internal object AutomaticSubtitleSync {
                             fallbackBestFamily = family
                         }
                     }
+                }
+
+                AutoSyncDebugLog.info {
+                    "forced fallback summary references=${forcedFallbackTracks.size} " +
+                        "families=${timingFamilies.size} evaluatedPairs=$fallbackPairs " +
+                        "confident=${fallbackBestMatch != null}"
                 }
 
                 val family = fallbackBestFamily ?: return null
@@ -936,7 +1185,12 @@ internal object AutomaticSubtitleSync {
                     )
                     if (referenceActivity != null && family.noFit.recordNoFit(referenceActivity)) {
                         family.abandoned = true
+                        val skippedPairs = queuedPairs.count { it.family === family }
                         queuedPairs.removeAll { it.family === family }
+                        AutoSyncDebugLog.info {
+                            "GLOBAL scheduler abandoned candidate=${family.representative.index} " +
+                                "noFitSources=${family.noFit.sourceCount} skippedPairs=$skippedPairs"
+                        }
                     }
                 }
             }
@@ -974,8 +1228,26 @@ internal object AutomaticSubtitleSync {
             scheduleMoreLoads()
             startPairJobs()
 
+            AutoSyncDebugLog.section { "GLOBAL V2 PAIR SCHEDULER" }
+            AutoSyncDebugLog.info {
+                "downloads=$MAX_PARALLEL_ALTERNATIVE_DOWNLOADS " +
+                    "parses=$MAX_PARALLEL_ALTERNATIVE_PARSES " +
+                    "pairWorkers=$MAX_PARALLEL_ALTERNATIVE_MATCHES " +
+                    "hardSearchCap=none"
+            }
+
             fun authoritativeStopFamily(): CandidateTimingFamilyState? =
                 findStopFamily()
+
+            fun logAuthoritativeStop(family: CandidateTimingFamilyState) {
+                val match = family.best ?: return
+                AutoSyncDebugLog.info {
+                    "GLOBAL scheduler authoritative stop candidate=" +
+                        "${family.representative.index} reference=${match.track.key} " +
+                        "quality=${fmt(directTimelineQualityScore(match))} " +
+                        "familyAttempts=${family.completedUsableAttempts}"
+                }
+            }
 
             var strongStop = false
             try {
@@ -983,7 +1255,10 @@ internal object AutomaticSubtitleSync {
                     // Pair workers may finish while candidate preparation is running. Always
                     // consume those results before launching or admitting more speculative work.
                     drainCompletedPairs()
-                    if (authoritativeStopFamily() != null) strongStop = true
+                    authoritativeStopFamily()?.let { family ->
+                        logAuthoritativeStop(family)
+                        strongStop = true
+                    }
                     if (strongStop) break
 
                     startPairJobs()
@@ -991,7 +1266,10 @@ internal object AutomaticSubtitleSync {
 
                     // Starting/refilling is cheap, but a worker may already have completed.
                     drainCompletedPairs()
-                    if (authoritativeStopFamily() != null) strongStop = true
+                    authoritativeStopFamily()?.let { family ->
+                        logAuthoritativeStop(family)
+                        strongStop = true
+                    }
                     if (strongStop) break
 
                     if (
@@ -1026,11 +1304,18 @@ internal object AutomaticSubtitleSync {
                             // Do not let synchronous activity/preflight/ranking preparation hide
                             // a matcher result that already completed.
                             drainCompletedPairs()
-                            if (authoritativeStopFamily() != null) strongStop = true
+                            authoritativeStopFamily()?.let { family ->
+                                logAuthoritativeStop(family)
+                                strongStop = true
+                            }
                             if (strongStop) continue
 
                             if (candidate != null && event.loaded != null) {
                                 admitLoadedCandidate(candidate, event.loaded)
+                            } else {
+                                AutoSyncDebugLog.warn {
+                                    "GLOBAL scheduler candidate load unavailable url=${event.url}"
+                                }
                             }
 
                             drainCompletedPairs()
@@ -1044,7 +1329,10 @@ internal object AutomaticSubtitleSync {
                         }
                     }
 
-                    if (authoritativeStopFamily() != null) strongStop = true
+                    authoritativeStopFamily()?.let { family ->
+                        logAuthoritativeStop(family)
+                        strongStop = true
+                    }
                 }
             } finally {
                 val pendingLoads =
@@ -1052,8 +1340,29 @@ internal object AutomaticSubtitleSync {
                 val pendingPairs =
                     activePairJobs.values.filterNot { it.isCompleted }
 
-                pendingLoads.values.forEach { it.cancel() }
+                if (strongStop) {
+                    cleanupStartedAtMs = SystemClock.elapsedRealtime()
+                    cleanupCanceledLoads = pendingLoads.size
+                    cleanupCanceledPairs = pendingPairs.size
+                    cleanupSelectedPending = !selectedResolved
+                }
+
+                pendingLoads.forEach { (url, job) ->
+                    if (url != selectedSubtitleUrl) {
+                        markSubtitleLoadCancellation(
+                            url = url,
+                            source = "candidate:${candidateOrder[url] ?: -1}",
+                        )
+                    }
+                    job.cancel()
+                }
                 pendingPairs.forEach { it.cancel() }
+            }
+
+            AutoSyncDebugLog.info {
+                "GLOBAL scheduler summary families=${timingFamilies.size} " +
+                    "evaluatedPairs=$evaluatedPairs peakPairWorkers=$peakPairWorkers " +
+                    "loaded=${loadedByUrl.size}/${candidateByUrl.size}"
             }
 
             var winningFamily = bestFamily
@@ -1088,7 +1397,12 @@ internal object AutomaticSubtitleSync {
                     },
                 )
                 if (!selectedResolved) {
+                    markSubtitleLoadCancellation(selectedSubtitleUrl, source = "selected")
                     selectedSubtitleDeferred.cancel()
+                }
+                AutoSyncDebugLog.section { "FINAL RECOMMENDATION" }
+                AutoSyncDebugLog.warn {
+                    "REJECT no confident match found; original subtitle timing should be kept"
                 }
                 return@supervisorScope null
             }
@@ -1111,7 +1425,18 @@ internal object AutomaticSubtitleSync {
                 }
 
             if (!selectedResolved) {
+                markSubtitleLoadCancellation(selectedSubtitleUrl, source = "selected")
                 selectedSubtitleDeferred.cancel()
+            }
+
+            AutoSyncDebugLog.section { "FINAL RECOMMENDATION" }
+            AutoSyncDebugLog.info {
+                "V2 global best-first candidate index=${winningMember.index} " +
+                    "url=${winningMember.candidate.url} " +
+                    "name=${winningMember.candidate.name ?: "<none>"} " +
+                    "reference=${memberMatch.track.key} " +
+                    "quality=${fmt(directTimelineQualityScore(memberMatch))} " +
+                    "alignment=${memberMatch.timeline.alignmentSource}"
             }
 
             return@supervisorScope AutoSyncResolvedTimeline(
@@ -1120,6 +1445,15 @@ internal object AutomaticSubtitleSync {
                 subtitleBody = winningMember.loaded.rawBody,
                 timeline = memberMatch.timeline,
             )
+        }
+
+        cleanupStartedAtMs?.let { startedAtMs ->
+            AutoSyncDebugLog.info {
+                "CLEANUP_TIMING canceledLoads=$cleanupCanceledLoads " +
+                    "canceledPairs=$cleanupCanceledPairs " +
+                    "selectedPending=$cleanupSelectedPending " +
+                    "waited=${SystemClock.elapsedRealtime() - startedAtMs}ms"
+            }
         }
         if (result != null) {
             synchronized(resolvedCacheLock) { resolvedCache[sourceKey to result.subtitleUrl] = result }
@@ -1142,8 +1476,28 @@ internal object AutomaticSubtitleSync {
         val targetActivity =
             preparedTargetActivity ?: AutoSyncTimelineRetimer.prepareUnitActivity(target)
         val track = rankedReference.track
+        AutoSyncDebugLog.timing(
+            label = "ref:${track.key}",
+            cues = track.cues,
+            estimatedEndStartsMs = track.estimatedEndStartsMs,
+            sdh = isSdhReferenceTrack(track),
+        )
 
         preflightHint?.let { hint ->
+            AutoSyncDebugLog.info {
+                "$label preflight hint reference=${hint.referenceKey} " +
+                    "offset=${"%.1f".format(hint.offsetMs)}ms score=${fmt(hint.score)} " +
+                    "margin=${fmt(hint.margin)} segments=${hint.segmentsPassed}"
+            }
+        }
+
+        AutoSyncDebugLog.section { "$label EMBEDDED REFERENCE ORDER" }
+        AutoSyncDebugLog.info {
+            "[0] reference=${track.key} label=${track.label ?: "<none>"} " +
+                "sdh=${isSdhReferenceTrack(track)} cues=${track.cues.size} " +
+                "cueRatio=${fmt(referenceCueRatio(track, target))} " +
+                "suitability=${fmt(rankedReference.suitability)} " +
+                "cheapAffinity=${fmt(rankedReference.cheapAffinity)}"
         }
 
         val preparedReference = if (track.sampled) {
@@ -1152,6 +1506,7 @@ internal object AutomaticSubtitleSync {
             preparedReferenceActivity(track, referenceActivityCache)
         }
 
+        val pairStarted = SystemClock.elapsedRealtime()
         val timeline = buildTimelineRetimeResult(
             track = track,
             target = target,
@@ -1164,12 +1519,63 @@ internal object AutomaticSubtitleSync {
             delayOnlyEvidence = preflightEvidence,
             allowPrecomputedDelayFastPath = allowPrecomputedDelayFastPath,
             cancellationCheck = { evaluationContext.ensureActive() },
+            timingObserver =
+                if (AutoSyncDebugLog.ENABLED) {
+                    { timing ->
+                        AutoSyncDebugLog.info {
+                            "$label MATCH_TIMING reference=${track.key} path=${timing.path} " +
+                                "prepare=${timing.prepareActivityMs}ms " +
+                                "delay=${timing.delayValidationMs}ms " +
+                                "activity=${timing.activitySearchMs}ms " +
+                                "dp=${timing.dpMs}ms validate=${timing.validationMs}ms " +
+                                "total=${timing.totalMs}ms"
+                        }
+                    }
+                } else {
+                    null
+                },
         )
+        val pairTotalMs = SystemClock.elapsedRealtime() - pairStarted
         if (timeline == null) {
+            if (AutoSyncDebugLog.ENABLED) {
+                AutoSyncDebugLog.info {
+                    "$label MATCH_TIMING reference=${track.key} result=none total=${pairTotalMs}ms"
+                }
+            }
+            AutoSyncDebugLog.section { "$label RESULT" }
+            AutoSyncDebugLog.warn { "no usable whole-timeline alignment url=$url reference=${track.key}" }
             return@withContext PairEvaluation(match = null)
         }
 
         val match = TimelineRetimeMatch(track, timeline)
+        AutoSyncDebugLog.info {
+            "$label reference=${track.key} quality=${fmt(directTimelineQualityScore(match))} " +
+                "decision=${if (timeline.confident) "ACCEPT" else "REJECT"} " +
+                "alignment=${timeline.alignmentSource} scale=${"%.6f".format(timeline.alignmentScale)} " +
+                "intercept=${"%.1f".format(timeline.alignmentInterceptMs)}ms " +
+                "activityScore=${fmt(timeline.activityScore)} activityMargin=${fmt(timeline.activityMargin)} " +
+                "targetCoverage=${fmt(timeline.targetCoverage)} referenceCoverage=${fmt(timeline.referenceCoverage)} " +
+                "avgGroupCost=${fmt(timeline.averageGroupCost)} simpleRatio=${fmt(timeline.simpleGroupRatio)} " +
+                "skipRun=${timeline.longestTargetSkipRun} " +
+                "localizedMismatchIgnored=${timeline.localizedMismatchIgnored} " +
+                "residual=${fmt(timeline.medianGroupResidualMs)}ms" +
+                (timeline.rejectReason?.let { " rejectReason=$it" } ?: "")
+        }
+
+        if (timeline.confident && isExceptionalMatch(match)) {
+            AutoSyncDebugLog.info {
+                "$label exceptional reference accepted early reference=${track.key} " +
+                    "quality=${fmt(directTimelineQualityScore(match))}"
+            }
+        }
+
+        AutoSyncDebugLog.section { "$label RESULT" }
+        AutoSyncDebugLog.info {
+            "url=$url reference=${track.key} groups=${timeline.groups.size} " +
+                "quality=${fmt(directTimelineQualityScore(match))} " +
+                "alignment=${timeline.alignmentSource} scale=${"%.6f".format(timeline.alignmentScale)} " +
+                "decision=${if (timeline.confident) "ACCEPT" else "REJECT"}"
+        }
 
         PairEvaluation(match = match)
     }
@@ -1183,6 +1589,29 @@ internal object AutomaticSubtitleSync {
             cache[track.key]
         } else {
             AutoSyncTimelineRetimer.prepareUnitActivity(track.cues).also { cache[track.key] = it }
+        }
+    }
+
+    private fun logLoadedExternalSubtitle(
+        label: String,
+        url: String,
+        loaded: LoadedSubtitle,
+        sampleLimit: Int,
+    ) {
+        AutoSyncDebugLog.info {
+            "$label url=$url cues=${loaded.cues.size} " +
+                "download=${loaded.downloadMs}ms parse=${loaded.parseMs}ms cached=${loaded.cacheHit}"
+        }
+        if (AutoSyncDebugLog.ENABLED) {
+            loaded.cues.take(sampleLimit).forEachIndexed { index, cue ->
+                AutoSyncDebugLog.cue(
+                    prefix = label,
+                    index = index,
+                    startMs = cue.startTimeMs,
+                    endMs = cue.endTimeMs,
+                    text = cue.text,
+                )
+            }
         }
     }
 
@@ -1408,80 +1837,122 @@ internal object AutomaticSubtitleSync {
         downloadSemaphore: Semaphore? = null,
         parseSemaphore: Semaphore? = null,
     ): LoadedSubtitle? {
-        val cacheKey = ParsedSubtitleCacheKey(url, stableHeaderIdentity(headers))
-        if (rawBodyOverride == null) {
-            synchronized(parsedSubtitleCacheLock) {
-                parsedSubtitleCache[cacheKey]
-            }?.let { cached ->
-                return LoadedSubtitle(
-                    cues = cached.cues,
-                    rawBody = cached.rawBody,
-                )
-            }
-        }
+        val traceStartedAtMs = SystemClock.elapsedRealtime()
+        beginSubtitleLoadTrace(url)
+        var traceOutcome = "complete"
 
-        val text = if (rawBodyOverride != null) {
-            rawBodyOverride
-        } else {
-            try {
-                if (downloadSemaphore != null) {
-                    downloadSemaphore.withPermit {
+        try {
+            val cacheKey = ParsedSubtitleCacheKey(url, stableHeaderIdentity(headers))
+            if (rawBodyOverride == null) {
+                synchronized(parsedSubtitleCacheLock) {
+                    parsedSubtitleCache[cacheKey]
+                }?.let { cached ->
+                    markSubtitleLoadPhase(url, "COMPLETE")
+                    return LoadedSubtitle(
+                        cues = cached.cues,
+                        rawBody = cached.rawBody,
+                        downloadMs = 0L,
+                        parseMs = 0L,
+                        cacheHit = true,
+                    )
+                }
+            }
+
+            markSubtitleLoadPhase(url, if (rawBodyOverride == null) "DOWNLOAD" else "SHARED_BODY")
+            val downloadStarted = SystemClock.elapsedRealtime()
+            val text = if (rawBodyOverride != null) {
+                rawBodyOverride
+            } else {
+                try {
+                    if (downloadSemaphore != null) {
+                        downloadSemaphore.withPermit {
+                            downloadSubtitleTextWithSingle429Retry(url, headers, languageHint)
+                        }
+                    } else {
                         downloadSubtitleTextWithSingle429Retry(url, headers, languageHint)
                     }
+                } catch (cancel: CancellationException) {
+                    throw cancel
+                } catch (error: Exception) {
+                    traceOutcome = "unavailable"
+                    AutoSyncDebugLog.error(error) { "selected subtitle download failed" }
+                    return null
+                }
+            }
+            val downloadMs =
+                if (rawBodyOverride != null) 0L
+                else SystemClock.elapsedRealtime() - downloadStarted
+
+            markSubtitleLoadPhase(url, "PARSE")
+            val parseStarted = SystemClock.elapsedRealtime()
+            val cues = try {
+                val parseAndNormalize: suspend () -> List<SubtitleSyncCue> = {
+                    withContext(autoSyncDispatcher) {
+                        val parseContext = currentCoroutineContext()
+                        val parsed = AutoSyncSubtitleCueParser.parse(
+                            text = text,
+                            sourceUrl = url,
+                            cancellationCheck = { parseContext.ensureActive() },
+                        )
+                        parseContext.ensureActive()
+                        markSubtitleLoadPhase(url, "NORMALIZE")
+                        AutoSyncTimelineRetimer.normalizeExternalTimeline(parsed)
+                    }
+                }
+                if (parseSemaphore != null) {
+                    parseSemaphore.withPermit {
+                        parseAndNormalize()
+                    }
                 } else {
-                    downloadSubtitleTextWithSingle429Retry(url, headers, languageHint)
+                    parseAndNormalize()
                 }
             } catch (cancel: CancellationException) {
                 throw cancel
             } catch (error: Exception) {
+                traceOutcome = "unavailable"
+                AutoSyncDebugLog.error(error) { "selected subtitle parse failed" }
                 return null
             }
-        }
-        val cues = try {
-            val parseAndNormalize: suspend () -> List<SubtitleSyncCue> = {
-                withContext(autoSyncDispatcher) {
-                    val parseContext = currentCoroutineContext()
-                    val parsed = AutoSyncSubtitleCueParser.parse(
-                        text = text,
-                        sourceUrl = url,
-                        cancellationCheck = { parseContext.ensureActive() },
+            val parseMs = SystemClock.elapsedRealtime() - parseStarted
+
+            if (cues.size < MIN_SELECTED_CUES) {
+                traceOutcome = "unavailable"
+                AutoSyncDebugLog.warn {
+                    "selected subtitle rejected before V2 cues=${cues.size} required=$MIN_SELECTED_CUES"
+                }
+                return null
+            }
+
+            markSubtitleLoadPhase(url, "CACHE")
+            val immutable = cues.toList()
+            // A body supplied by the active sidecar is selection-owned and exact. Do not let a
+            // URL/header-only cache substitute bytes from a mutable same-URL resource later.
+            if (rawBodyOverride == null) {
+                synchronized(parsedSubtitleCacheLock) {
+                    parsedSubtitleCache[cacheKey] = CachedParsedSubtitle(
+                        cues = immutable,
+                        rawBody = text,
                     )
-                    parseContext.ensureActive()
-                    AutoSyncTimelineRetimer.normalizeExternalTimeline(parsed)
                 }
             }
-            if (parseSemaphore != null) {
-                parseSemaphore.withPermit {
-                    parseAndNormalize()
-                }
-            } else {
-                parseAndNormalize()
-            }
+            markSubtitleLoadPhase(url, "COMPLETE")
+            return LoadedSubtitle(
+                cues = immutable,
+                rawBody = text,
+                downloadMs = downloadMs,
+                parseMs = parseMs,
+                cacheHit = false,
+            )
         } catch (cancel: CancellationException) {
+            traceOutcome = "canceled"
             throw cancel
-        } catch (error: Exception) {
-            return null
+        } finally {
+            finishSubtitleLoadTrace(
+                url = url,
+                outcome = traceOutcome,
+                startedAtMs = traceStartedAtMs,
+            )
         }
-
-        if (cues.size < MIN_SELECTED_CUES) {
-            return null
-        }
-
-        val immutable = cues.toList()
-        // A body supplied by the active sidecar is selection-owned and exact. Do not let a
-        // URL/header-only cache substitute bytes from a mutable same-URL resource later.
-        if (rawBodyOverride == null) {
-            synchronized(parsedSubtitleCacheLock) {
-                parsedSubtitleCache[cacheKey] = CachedParsedSubtitle(
-                    cues = immutable,
-                    rawBody = text,
-                )
-            }
-        }
-        return LoadedSubtitle(
-            cues = immutable,
-            rawBody = text,
-        )
     }
 
     internal suspend fun downloadSubtitleBody(
@@ -1502,6 +1973,9 @@ internal object AutomaticSubtitleSync {
     ): String {
         val first = requestSubtitle(url, headers, languageHint)
         if (first.status == 429) {
+            AutoSyncDebugLog.warn {
+                "selected subtitle HTTP 429; retrying once after ${HTTP_429_RETRY_DELAY_MS}ms"
+            }
             delay(HTTP_429_RETRY_DELAY_MS)
             return validatedSubtitleBody(requestSubtitle(url, headers, languageHint))
         }
@@ -1539,6 +2013,7 @@ internal object AutomaticSubtitleSync {
         target: List<SubtitleSyncCue>,
         waitMs: Long = LIVE_REFERENCE_WAIT_MS,
         allowSparseLiveReference: Boolean = false,
+        streamHasTextTracks: (suspend () -> Boolean?)? = null,
     ): ReferenceSelection {
         val targetSpan = referenceSpanMs(target).coerceAtLeast(1L)
         val started = SystemClock.elapsedRealtime()
@@ -1584,6 +2059,12 @@ internal object AutomaticSubtitleSync {
             }
             if (signature != lastSignature) {
                 lastSignature = signature
+                AutoSyncDebugLog.section { "LIVE MEDIA3 REFERENCE" }
+                AutoSyncDebugLog.info {
+                    "tracks=${prepared.size} nearComplete=${ready.size} sparse=${sparseReady.size} " +
+                        "forcedFallback=${forcedFallback.size} " +
+                        "waited=${SystemClock.elapsedRealtime() - started}ms"
+                }
             }
 
             if (ready.isNotEmpty()) {
@@ -1596,6 +2077,11 @@ internal object AutomaticSubtitleSync {
             }
 
             if (sparseReady.isNotEmpty()) {
+                AutoSyncDebugLog.info {
+                    "using Media3 live cue sample tracks=${sparseReady.size} " +
+                        "counts=${sparseReady.joinToString(",") { "${it.track.key}:${it.cueCount}" }} " +
+                        "waited=${SystemClock.elapsedRealtime() - started}ms"
+                }
                 return ReferenceSelection(
                     primary = sparseReady.map { it.track.copy(cues = it.track.cues.toList()) },
                 )
@@ -1603,15 +2089,39 @@ internal object AutomaticSubtitleSync {
 
             val elapsedMs = SystemClock.elapsedRealtime() - started
             if (elapsedMs >= waitMs) break
+            if (prepared.isEmpty() && streamHasTextTracks?.let { runCatching { it() }.getOrNull() } == false) {
+                AutoSyncDebugLog.info {
+                    "stream has no text tracks; live wait ended after ${elapsedMs}ms"
+                }
+                break
+            }
             delay(minOf(LIVE_REFERENCE_POLL_MS, waitMs - elapsedMs))
         }
 
         if (forcedFallback.isNotEmpty()) {
+            AutoSyncDebugLog.info {
+                "using forced-only Media3 reference fallback tracks=${forcedFallback.size}"
+            }
             return ReferenceSelection(
                 primary = forcedFallback.map { it.track.copy(cues = it.track.cues.toList()) },
             )
         }
 
+        if (allowSparseLiveReference) {
+            AutoSyncDebugLog.warn {
+                "Media3 live sample unavailable after ${waitMs}ms; " +
+                    "need at least $MIN_SPARSE_LIVE_REFERENCE_CUES dialogue cues " +
+                    "spanning ${MIN_SPARSE_LIVE_REFERENCE_SPAN_MS}ms"
+            }
+        } else if (waitMs == 0L) {
+            AutoSyncDebugLog.info {
+                "Media3 live wait skipped because Matroska Cues has no subtitle entries"
+            }
+        } else {
+            AutoSyncDebugLog.info {
+                "Media3 did not expose a near-complete reference within ${waitMs}ms"
+            }
+        }
         return ReferenceSelection()
     }
 
@@ -1863,12 +2373,19 @@ internal object AutomaticSubtitleSync {
         delayOnlyEvidence: AutoSyncTimelineRetimer.DelayOnlySearchEvidence? = null,
         allowPrecomputedDelayFastPath: Boolean = true,
         cancellationCheck: (() -> Unit)? = null,
+        timingObserver: ((AutoSyncRetimePhaseTimings) -> Unit)? = null,
     ): AutoSyncTimelineRetimeResult? {
         if (track.sampled) {
             val alignment = AutoSyncSampledReferenceAligner.findDelay(
                 reference = track.cues,
                 target = target,
             ) ?: return null
+            AutoSyncDebugLog.info {
+                "sampled reference alignment track=${track.key} " +
+                    "offset=${"%.1f".format(alignment.offsetMs)}ms " +
+                    "score=${fmt(alignment.score)} margin=${fmt(alignment.margin)} " +
+                    "segments=${alignment.segmentsPassed}"
+            }
             return AutoSyncTimelineRetimer.buildDelayOnlyTimeline(target, alignment).copy(
                 alignmentSource = "sampled-delay",
                 referenceCoverage = alignment.score,
@@ -1880,6 +2397,14 @@ internal object AutomaticSubtitleSync {
             referenceSize = track.cues.size,
             targetSize = target.size,
         )
+
+        if (relaxDelayMargin) {
+            AutoSyncDebugLog.info {
+                "delay-only margin relaxation reference=${track.key} " +
+                    "sdh=${isSdhReferenceTrack(track)} " +
+                    "referenceCues=${track.cues.size} targetCues=${target.size}"
+            }
+        }
 
         return AutoSyncTimelineRetimer.retime(
             reference = track.cues,
@@ -1895,6 +2420,7 @@ internal object AutomaticSubtitleSync {
             precomputedDelayOnlyEvidence = delayOnlyEvidence,
             allowPrecomputedDelayFastPath = allowPrecomputedDelayFastPath,
             cancellationCheck = cancellationCheck,
+            timingObserver = timingObserver,
         )
     }
 
@@ -1911,9 +2437,18 @@ internal object AutomaticSubtitleSync {
         val url: String,
         val headers: List<Pair<String, String>>,
     )
+    private data class SubtitleLoadTrace(
+        var phase: String,
+        var cancelRequestedAtMs: Long? = null,
+        var cancelSource: String? = null,
+    )
+
     private data class LoadedSubtitle(
         val cues: List<SubtitleSyncCue>,
         val rawBody: String?,
+        val downloadMs: Long,
+        val parseMs: Long,
+        val cacheHit: Boolean,
     )
     private data class ReferenceTimingFingerprint(
         val cueCount: Int,
@@ -2064,6 +2599,13 @@ internal object EmbeddedSubtitleCueStore {
         var generation = 0L
         synchronized(lock) {
             generation = (generations[sourceKey] ?: 0L) + 1L
+            // Only the player's current stream is ever read again (a return to an earlier one
+            // resets it anyway), so cues of earlier streams are dropped rather than kept for the
+            // whole app session. Generation counters are kept so they never repeat.
+            sources.keys.retainAll { it == sourceKey }
+            retainedGenerations.keys.retainAll { it == sourceKey }
+            lastSeekTargetMs.keys.retainAll { it == sourceKey }
+            lastSeekWallMs.keys.retainAll { it == sourceKey }
             sources[sourceKey] = linkedMapOf()
             retainedGenerations.remove(sourceKey)
             generations[sourceKey] = generation
@@ -2071,6 +2613,7 @@ internal object EmbeddedSubtitleCueStore {
             lastSeekWallMs.remove(sourceKey)
         }
 
+        AutoSyncDebugLog.verbose { "embedded store reset generation=$generation" }
     }
 
     fun beginNewGeneration(sourceKey: String, targetTimeMs: Long?) {
@@ -2109,6 +2652,10 @@ internal object EmbeddedSubtitleCueStore {
             lastSeekTargetMs[sourceKey] = targetTimeMs
             lastSeekWallMs[sourceKey] = now
         }
+
+        generation?.let {
+            AutoSyncDebugLog.verbose { "embedded store seek generation=$it target=${targetTimeMs ?: -1L}ms" }
+        }
     }
 
     fun record(
@@ -2121,6 +2668,9 @@ internal object EmbeddedSubtitleCueStore {
         cue: SubtitleSyncCue,
     ) {
         if (sourceKey.isBlank() || trackKey.isBlank()) return
+
+        var newCue = false
+        var cueCount = 0
 
         synchronized(lock) {
             val track = sources
@@ -2140,9 +2690,16 @@ internal object EmbeddedSubtitleCueStore {
             track.roleFlags = track.roleFlags or roleFlags
 
             val cueKey = "${cue.startTimeMs}:${cue.endTimeMs}:${cue.text}"
+            newCue = !track.cues.containsKey(cueKey)
             track.cues[cueKey] = cue
+            cueCount = track.cues.size
         }
 
+        if (newCue && AutoSyncDebugLog.VERBOSE) {
+            AutoSyncDebugLog.verbose { "CAPTURE track=$trackKey lang=${language ?: "<unknown>"} " +
+                    "count=$cueCount ${AutoSyncDebugLog.formatTimestamp(cue.startTimeMs)} " +
+                    "| \"${cue.text.replace('\n', ' ').take(500).ifBlank { "<text unavailable>" }}\"" }
+        }
     }
 
     fun candidateTracks(
