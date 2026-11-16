@@ -64,6 +64,8 @@ import com.nuvio.tv.R
 import com.nuvio.tv.data.local.NightMode
 import com.nuvio.tv.ui.screens.detail.requestFocusAfterFrames
 import com.nuvio.tv.ui.util.languageCodeToName
+import com.nuvio.tv.ui.reshaped.volumeboost.VolumeBoostBar
+import com.nuvio.tv.ui.reshaped.volumeboost.volumeBoostPercent
 import java.util.Locale
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive

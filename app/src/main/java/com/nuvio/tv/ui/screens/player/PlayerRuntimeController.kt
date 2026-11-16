@@ -179,6 +179,9 @@ class PlayerRuntimeController(
     )
 
     internal val navigationArgs = PlayerNavigationArgs.from(savedStateHandle)
+    internal var autoSourceRecovery: PlayerAutoSourceRecovery? = null
+    internal var sourceRecoveryPickerError: String? = null
+    internal var playerInitializationJob: Job? = null
     internal val initialStreamUrl: String = navigationArgs.streamUrl
     internal val title: String = navigationArgs.title
     internal val streamName: String? = navigationArgs.streamName
@@ -270,6 +273,7 @@ class PlayerRuntimeController(
     internal var autoSelectedSourceUrl: String? = currentStreamUrl.takeIf {
         navigationArgs.autoPlayNav && it.isNotBlank() && !it.startsWith("torrent://")
     }
+    internal var sourceFallbackExhaustedUrl: String? = null
 
     /** The sources the stream screen tried before this one, so the fallback goes on from them. */
     private val sourcesTriedBeforePlayback = SourceFallbackHandoff.take(initialStreamUrl, currentStreamUrl)
@@ -898,6 +902,8 @@ class PlayerRuntimeController(
     }
 
     fun onCleared() {
+        autoSourceRecovery?.cancel()
+        playerInitializationJob?.cancel()
         playerSession.close()
         stopServerPlayback()
         releasePlayer()

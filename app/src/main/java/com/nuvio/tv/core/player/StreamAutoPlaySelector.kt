@@ -1,5 +1,6 @@
 package com.nuvio.tv.core.player
 
+import com.nuvio.tv.core.streams.ranking.StreamRegexRanking
 import com.nuvio.tv.core.build.AppFeaturePolicy
 import com.nuvio.tv.data.local.StreamAutoPlayMode
 import com.nuvio.tv.data.local.StreamAutoPlaySource
@@ -173,7 +174,7 @@ object StreamAutoPlaySelector {
         // filter would otherwise drop a plugin result set and open the sidebar.
         val targetBingeGroup = preferredBingeGroup?.trim().orEmpty()
         if (preferBingeGroupInSelection && targetBingeGroup.isNotEmpty()) {
-            val bingeGroupMatch = selectBingeGroupMatch(streams, targetBingeGroup)
+            val bingeGroupMatch = selectBingeGroupMatch(if (bingeKeepsFilters) candidateStreams else streams, targetBingeGroup)
             if (bingeGroupMatch != null) return bingeGroupMatch
             // When bingeGroupOnly is set (MANUAL mode with only binge-group
             // preference enabled), don't fall back to a non-matching stream —
@@ -191,6 +192,11 @@ object StreamAutoPlaySelector {
             StreamAutoPlayMode.MANUAL -> null
             StreamAutoPlayMode.FIRST_STREAM -> candidateStreams.firstOrNull { isPlayable(it) }
             StreamAutoPlayMode.REGEX_MATCH -> {
+                if (rankedRegexPatterns.isNotEmpty()) {
+                    return StreamRegexRanking.rank(
+                        candidateStreams.filter { isPlayable(it) }, rankedRegexPatterns, rankedRegexCheckCancelled
+                    )?.firstOrNull()
+                }
                 val pattern = regexPattern.trim()
 
                 // Try to compile the user regex

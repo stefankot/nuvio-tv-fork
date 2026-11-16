@@ -1123,7 +1123,8 @@ open class MainActivity : ComponentActivity() {
                         strNavSearch,
                         strNavLibrary,
                         strNavSettings,
-                        discoverLocation
+                        discoverLocation,
+                        liveTvMenuItem
                     ) {
                         buildList {
                             add(

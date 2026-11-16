@@ -80,7 +80,7 @@ class UpdateViewModel @Inject constructor(
             downloadStore.clearIfInstalled()
             consumeAutoInstalledUpdate()
             syncBackgroundJobs()
-            if (enabled && !BuildConfig.IS_DEBUG_BUILD) {
+            if (enabled && (!BuildConfig.IS_DEBUG_BUILD || BuildConfig.AUTOSYNC_FORK)) {
                 checkForUpdates(force = false, showNoUpdateFeedback = false)
             }
         }
@@ -224,7 +224,7 @@ class UpdateViewModel @Inject constructor(
         viewModelScope.launch {
             updatePreferences.setUpdateBannerEnabled(enabled)
             syncBackgroundJobs()
-            if (enabled && changed && !BuildConfig.IS_DEBUG_BUILD) {
+            if (enabled && changed && (!BuildConfig.IS_DEBUG_BUILD || BuildConfig.AUTOSYNC_FORK)) {
                 checkForUpdates(force = false, showNoUpdateFeedback = false)
             }
         }
@@ -254,7 +254,7 @@ class UpdateViewModel @Inject constructor(
         viewModelScope.launch {
             downloadStore.clear()
             updatePreferences.setUpdateChannel(channel)
-            if (!BuildConfig.IS_DEBUG_BUILD) {
+            if (!BuildConfig.IS_DEBUG_BUILD || BuildConfig.AUTOSYNC_FORK) {
                 checkForUpdates(force = true, showNoUpdateFeedback = false)
             }
         }
@@ -349,10 +349,11 @@ class UpdateViewModel @Inject constructor(
     // Shows the "updated" banner once after the idle job installed a release, then forgets it.
     private suspend fun consumeAutoInstalledUpdate() {
         val tag = updatePreferences.autoInstalledTag.first() ?: return
-        // Still older than the installed version means the install has not happened yet.
-        if (VersionUtils.isRemoteNewer(tag, BuildConfig.VERSION_NAME)) return
+        // Tags from Beta and Tester do not have a meaningful semantic order across channels.
+        // Only the exact installed release can produce the successful-install notice.
+        if (tag != BuildConfig.VERSION_NAME && downloadStore.pendingInstall()?.first == tag) return
         updatePreferences.setAutoInstalledTag(null)
-        if (VersionUtils.isRemoteNewer(BuildConfig.VERSION_NAME, tag)) return
+        if (tag != BuildConfig.VERSION_NAME) return
         if (!_uiState.value.autoInstallNoticeEnabled) return
         val installed = AppUpdate(
             tag = tag,
@@ -389,7 +390,7 @@ class UpdateViewModel @Inject constructor(
 
     // Background checks run while the banner or automatic installs are on; the idle install job only with the latter.
     private fun syncBackgroundJobs() {
-        if (BuildConfig.IS_DEBUG_BUILD) return
+        if (BuildConfig.IS_DEBUG_BUILD && !BuildConfig.AUTOSYNC_FORK) return
         val state = _uiState.value
         if (state.updateBannerEnabled || state.autoInstallEnabled) {
             UpdateJobService.schedulePeriodicCheck(context)

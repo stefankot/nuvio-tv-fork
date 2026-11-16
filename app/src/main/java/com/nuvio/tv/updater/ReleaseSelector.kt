@@ -30,7 +30,7 @@ internal object ReleaseSelector {
                 prerelease = isPrerelease(release, version)
             )
         }
-        .filter { candidate -> channel == UpdateChannel.BETA || !candidate.prerelease }
+        .filter { candidate -> channel != UpdateChannel.STABLE || !candidate.prerelease }
         .sortedByDescending(ReleaseCandidate::version)
         .map(ReleaseCandidate::release)
         .toList()
@@ -43,7 +43,9 @@ internal object ReleaseSelector {
         version: SemanticVersion
     ): Boolean = release.prerelease ||
         version.prerelease.isNotEmpty() ||
-        prereleaseNamePattern.containsMatchIn(release.name.orEmpty())
+        prereleaseNamePattern.containsMatchIn(
+            release.name.orEmpty().replace(Regex("-autosync\\.\\d+$", RegexOption.IGNORE_CASE), "")
+        )
 
     private data class ReleaseCandidate(
         val release: GitHubReleaseDto,

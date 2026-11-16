@@ -124,7 +124,7 @@ internal fun UpdateChannelSettings(
             },
             onDismiss = { showChannelDialog = false },
             width = 500.dp,
-            maxHeight = 320.dp
+            maxHeight = 420.dp
         )
     }
 }

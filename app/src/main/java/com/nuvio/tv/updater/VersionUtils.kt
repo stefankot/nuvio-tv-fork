@@ -4,25 +4,35 @@ internal data class SemanticVersion(
     val major: Long,
     val minor: Long,
     val patch: Long,
-    val prerelease: List<String>
+    val prerelease: List<String>,
+    val autoSyncRevision: Long? = null
 ) : Comparable<SemanticVersion> {
     override fun compareTo(other: SemanticVersion): Int {
         compareValues(major, other.major).takeIf { it != 0 }?.let { return it }
         compareValues(minor, other.minor).takeIf { it != 0 }?.let { return it }
         compareValues(patch, other.patch).takeIf { it != 0 }?.let { return it }
 
-        if (prerelease.isEmpty() && other.prerelease.isEmpty()) return 0
-        if (prerelease.isEmpty()) return 1
-        if (other.prerelease.isEmpty()) return -1
+        comparePrerelease(prerelease, other.prerelease)
+            .takeIf { it != 0 }
+            ?.let { return it }
 
-        val sharedSize = minOf(prerelease.size, other.prerelease.size)
+        // AutoSync revisions are ordered after the exact upstream version they extend.
+        // Example: 1.0.0 < 1.0.0-autosync.1 < 1.0.0-autosync.2.
+        return compareValues(autoSyncRevision ?: 0L, other.autoSyncRevision ?: 0L)
+    }
+
+    private fun comparePrerelease(left: List<String>, right: List<String>): Int {
+        if (left.isEmpty() && right.isEmpty()) return 0
+        if (left.isEmpty()) return 1
+        if (right.isEmpty()) return -1
+
+        val sharedSize = minOf(left.size, right.size)
         for (index in 0 until sharedSize) {
-            comparePrereleaseIdentifier(
-                prerelease[index],
-                other.prerelease[index]
-            ).takeIf { it != 0 }?.let { return it }
+            comparePrereleaseIdentifier(left[index], right[index])
+                .takeIf { it != 0 }
+                ?.let { return it }
         }
-        return compareValues(prerelease.size, other.prerelease.size)
+        return compareValues(left.size, right.size)
     }
 
     private fun comparePrereleaseIdentifier(left: String, right: String): Int {
@@ -87,8 +97,14 @@ internal object VersionUtils {
             prerelease = match.groupValues[4]
                 .takeIf(String::isNotEmpty)
                 ?.split('.')
-                .orEmpty()
+                .orEmpty(),
+            autoSyncRevision = autoSyncRevision
         )
+    }
+
+    fun isCanonicalAutoSync(raw: String?): Boolean {
+        if (raw.isNullOrBlank()) return false
+        return canonicalAutoSyncPattern.matches(raw.trim())
     }
 
     fun isPrerelease(raw: String?): Boolean = parse(raw)?.prerelease?.isNotEmpty() == true

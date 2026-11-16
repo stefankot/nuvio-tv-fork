@@ -967,6 +967,7 @@ internal fun PlayerRuntimeController.handleVc1PlaybackFailure(errorMessage: Stri
     val displayMessage = errorMessage?.takeIf { it.isNotBlank() }
         ?: _exoPlayer?.playerError?.toDisplayMessage(context)
         ?: return
+    if (autoSourceRecovery?.failDefinitively(displayMessage) == true) return
     cancelFirstFrameWatchdog()
     cancelStallWatchdog()
     cancelStableProgressReset()
@@ -1014,9 +1015,11 @@ internal fun PlayerRuntimeController.scheduleDeferredPlayerReinitialize(
             releasePlayer(flushPlaybackState = true, keepTorrentStream = true)
             reinitializeCurrentStream()
         }.onFailure { e ->
+            val message = e.toDisplayMessage(context)
+            if (autoSourceRecovery?.failDefinitively(message) == true) return@onFailure
             _uiState.update {
                 it.copy(
-                    error = e.toDisplayMessage(context),
+                    error = message,
                     showLoadingOverlay = false,
                     showPauseOverlay = false
                 )

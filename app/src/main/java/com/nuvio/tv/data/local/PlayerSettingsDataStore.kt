@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.nuvio.tv.core.profile.ProfileManager
 import com.nuvio.tv.core.player.LastPlaybackDiagnostics
+import com.nuvio.tv.core.streams.ranking.RankedRegexSettingsCodec
 import com.nuvio.tv.core.player.SubtitleFonts
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -372,6 +373,7 @@ data class PlayerSettings(
     val streamAutoPlaySelectedAddons: Set<String> = emptySet(),
     val streamAutoPlaySelectedPlugins: Set<String> = emptySet(),
     val streamAutoPlayRegex: String = "",
+    val streamAutoPlayRankedRegex: List<String> = emptyList(),
     val postPlayRecommendationsEnabled: Boolean = true,
     val postPlayMovieThresholdPercent: Int = DEFAULT_POST_PLAY_MOVIE_THRESHOLD_PERCENT,
     val streamAutoPlayNextEpisodeEnabled: Boolean = false,
@@ -719,6 +721,7 @@ class PlayerSettingsDataStore @Inject constructor(
     private val streamAutoPlaySourceKey = stringPreferencesKey("stream_auto_play_source")
     private val streamAutoPlaySelectedAddonsKey = stringSetPreferencesKey("stream_auto_play_selected_addons")
     private val streamAutoPlaySelectedPluginsKey = stringSetPreferencesKey("stream_auto_play_selected_plugins")
+    private val streamAutoPlayRankedRegexKey = stringPreferencesKey("stream_auto_play_ranked_regex")
     private val streamAutoPlayRegexKey = stringPreferencesKey("stream_auto_play_regex")
     private val postPlayRecommendationsEnabledKey = booleanPreferencesKey("post_play_recommendations_enabled")
     private val postPlayMovieThresholdPercentKey = intPreferencesKey("post_play_movie_threshold_percent")
@@ -1131,6 +1134,7 @@ class PlayerSettingsDataStore @Inject constructor(
                 streamAutoPlaySelectedAddons = prefs[streamAutoPlaySelectedAddonsKey] ?: emptySet(),
                 streamAutoPlaySelectedPlugins = prefs[streamAutoPlaySelectedPluginsKey] ?: emptySet(),
                 streamAutoPlayRegex = prefs[streamAutoPlayRegexKey] ?: "",
+                streamAutoPlayRankedRegex = RankedRegexSettingsCodec.decode(prefs[streamAutoPlayRankedRegexKey]),
                 postPlayRecommendationsEnabled = prefs[postPlayRecommendationsEnabledKey] ?: true,
                 postPlayMovieThresholdPercent = (prefs[postPlayMovieThresholdPercentKey]
                     ?: PlayerSettings.DEFAULT_POST_PLAY_MOVIE_THRESHOLD_PERCENT).coerceIn(
@@ -1531,6 +1535,11 @@ class PlayerSettingsDataStore @Inject constructor(
         store().edit { prefs ->
             prefs[streamAutoPlaySelectedPluginsKey] = plugins
         }
+    }
+
+    suspend fun setStreamAutoPlayRankedRegex(patterns: List<String>) {
+        val stored = RankedRegexSettingsCodec.encode(patterns)
+        store().edit { prefs -> prefs[streamAutoPlayRankedRegexKey] = stored }
     }
 
     suspend fun setStreamAutoPlayRegex(regex: String) {
@@ -2003,6 +2012,10 @@ class PlayerSettingsDataStore @Inject constructor(
             prefs.remove(parallelChunkSizeMbKey)
             prefs[enableHttp2Key] = PlayerSettings.DEFAULT_ENABLE_HTTP2
         }
+    }
+
+    suspend fun setEnableHttp2(enabled: Boolean) {
+        store().edit { it[enableHttp2Key] = enabled }
     }
 
     suspend fun setVodCacheEnabled(enabled: Boolean) {
