@@ -1416,6 +1416,7 @@ open class MainActivity : ComponentActivity() {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (com.nuvio.tv.fork.ForkHooks.onGlobalKey(this, event)) return true // Fork hook: arc-remote
         if (ambientIdleController.consumeKeyEvent(event)) return true
         if (event.keyCode == KeyEvent.KEYCODE_BACK) {
             if (longPressBackHeld.value) {

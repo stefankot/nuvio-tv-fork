@@ -77,3 +77,8 @@ APK: `app/build/outputs/apk/full/debug/app-full-arm64-v8a-debug.apk`. Gradle ma 
 ## Krok 3 planu (16.11.2026): gałąź `final`, `vendor/nuvio`, `fork-tools/`
 - `vendor/nuvio` = 85f9010aa (czysta baza). `final` = praca od teraz.
 - `fork-tools/`: pins.env, overrides.txt (68 plików identycznych z Reshaped), hooked-overrides.txt (4), base-hooks.txt (3), hooks.tsv, check.sh. `bash fork-tools/check.sh` → OK (ręcznie utrzymywane: 7, limit 35).
+
+## Kroki 4–5 (16.11.2026): ForkHooks + pilot w całej aplikacji
+- `fork/ForkHooks.kt`, `fork/arc/RemoteGlobalHook.kt`; hook w `MainActivity.dispatchKeyEvent` (1 linia). `ForkFeatures.enabled(c,key,default)`.
+- Poza odtwarzaczem pilot wycisza tylko przyciski przypisane do „Nic"; reszta zadań nie ma odpowiednika poza odtwarzaczem. W odtwarzaczu i Live TV działa hook w PlayerScreen.
+- Kompiluje się (build45), check.sh OK (ręcznie utrzymywane: 8). Niezweryfikowane na urządzeniu.
