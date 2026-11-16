@@ -3384,31 +3384,13 @@
     <string name="shuffle_badge">Разбърканото възпроизвеждане на епизоди е активирано</string>
 
 <!-- Subtitle AutoSync --> 
-    <string name="autosync_setting_title">Автоматично синхронизиране на субтитри</string>
-    <string name="autosync_setting_description">Съпоставяне на избраните допълнителни субтитри с времето на вградените във видеото субтитри.</string>
-    <string name="autosync_tolerance_title">Толеранс на автоматична синхронизация</string>
-    <string name="autosync_tolerance_description">Запазете оригиналното време, когато необходимата корекция е толкова малка или по-малка.</string>
-    <string name="autosync_tolerance_off">Изключено</string>
     <string name="autosync_tolerance_value">%1$d мс</string>
-    <string name="autosync_thorough_title">Пълно търсене с автоматична синхронизация</string>
-    <string name="autosync_thorough_description">Продължете да сравнявате други субтитри и вградени записи за по-точно съвпадение преди синхронизиране. Когато е изключено, първото силно съвпадение се използва по-рано. Прилагат се само уверени съвпадения.</string>
-    <string name="autosync_label_synced">Автоматично синхронизирано</string>
     <string name="stream_resume_from_time">Възобновяване от %1$s</string>
     <string name="stream_resume_from_percent">Възобновяване от %1$d%%</string>
-</resources>
-<resources>
 
 
 
-        <plurals name="cw_airs_in_days">
-            <item quantity="one">Ще се излъчи след %d ден</item>
-            <item quantity="other">Ще се излъчи след %d дни</item>
-        </plurals>
     <!-- Short versions for compact card styles (wide/poster) -->
-        <plurals name="cw_airs_in_days_short">
-            <item quantity="one">След %d ден</item>
-            <item quantity="other">След %d дни</item>
-        </plurals>
 
 
 
@@ -3419,10 +3401,6 @@
 
 
 
-        <plurals name="ambient_mode_timeout_minutes">
-            <item quantity="one">%1$d минута</item>
-            <item quantity="other">%1$d минути</item>
-        </plurals>
 
 
 <!-- SettingsScreen categories -->
@@ -3468,10 +3446,6 @@
 
 <!-- ParentalGuideOverlay -->
 <!-- Season/episode code shown in player UI (e.g. S01E02). %1$d = season, %2$d = episode. -->
-        <plurals name="player_report_loading_issue_prompt">
-            <item quantity="one">Все още се зарежда след %1$d секунда</item>
-            <item quantity="other">Все още се зарежда след %1$d секунди</item>
-        </plurals>
 
 
 
@@ -3610,10 +3584,6 @@
 <!-- Debrid: filter rule rows (title + subtitle pairs) -->
 
 <!-- Debrid: selection count + size range labels -->
-        <plurals name="debrid_selection_count_value">
-            <item quantity="one">%d избрани</item>
-            <item quantity="other">%d избрани</item>
-        </plurals>
 
 <!-- Subtitle selection: unknown language fallback -->
 

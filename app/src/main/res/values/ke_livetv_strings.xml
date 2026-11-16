@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_live_tv">Live TV</string>
+    <string name="live_tv_filter_favorites">Favorites</string>
+    <string name="live_tv_empty_filter">No channels in %1$s</string>
+    <string name="live_tv_empty_favorites_hint">Hold OK on a channel in another filter and choose Add to Favorites.</string>
+    <string name="live_tv_empty_recents_hint">Channels you watch for 10 seconds show up here.</string>
+    <string name="live_tv_filter_recents">Recents</string>
+    <string name="live_tv_filter_all">All channels</string>
+    <string name="live_tv_filter_all_countries">All countries</string>
+    <string name="live_tv_no_country">No country</string>
+    <string name="live_tv_category_other">Other</string>
+    <string name="live_tv_picker_country">Country</string>
+    <string name="live_tv_picker_category">Category</string>
+    <string name="live_tv_picker_language">Language</string>
+    <string name="live_tv_picker_all">All</string>
+    <string name="live_tv_all_categories">All categories</string>
+    <string name="live_tv_all_languages">All languages</string>
+    <string name="live_tv_picker_yours">YOUR CHANNELS</string>
+    <string name="live_tv_picker_all_section">ALL</string>
+    <string name="live_tv_view">View</string>
+    <string name="live_tv_view_list">List</string>
+    <string name="live_tv_view_guide">Guide</string>
+    <string name="live_tv_view_compact">Compact</string>
+    <string name="live_tv_view_list_detail">Channels + preview</string>
+    <string name="live_tv_view_guide_detail">Channels down, time across</string>
+    <string name="live_tv_view_compact_detail">Guide with smaller rows</string>
+    <string name="live_tv_hint_watch">Watch</string>
+    <string name="live_tv_guide_ends_cell">%1$s\'s guide ends at %2$s</string>
+    <string name="live_tv_guide_starts_in">starts in %1$s</string>
+    <string name="live_tv_guide_hours_minutes">%1$d h %2$d min</string>
+    <string name="live_tv_guide_hours">%1$d h</string>
+    <string name="live_tv_guide_midnight">%1$s %2$s</string>
+    <string name="live_tv_live">LIVE</string>
+    <string name="live_tv_tag_unavailable">UNAVAILABLE</string>
+    <string name="live_tv_tag_source_lost">SOURCE LOST</string>
+    <string name="live_tv_row_lost">%1$s no longer lists it</string>
+    <string name="live_tv_lost_gone">Source lost: gone from %1$s at its last refresh, %2$s.</string>
+    <string name="live_tv_lost_kept">Kept in Favorites and Recents until %1$s, then removed.</string>
+    <string name="live_tv_lost_source_unknown">its source</string>
+    <string name="live_tv_lost_returns">If %1$s lists it again, it returns with its guide pick.</string>
+    <string name="live_tv_ago_just_now">just now</string>
+    <string name="live_tv_ago_minutes">%1$d min ago</string>
+    <string name="live_tv_ago_today">today %1$s</string>
+    <string name="live_tv_ago_yesterday">yesterday</string>
+    <string name="live_tv_ago_days">%1$d days ago</string>
+    <string name="live_tv_channel_number">CH %1$s</string>
+    <string name="live_tv_row_next">Next %1$s</string>
+    <string name="live_tv_next_label">NEXT</string>
+    <plurals name="live_tv_min_left">
+        <item quantity="one">%d min left</item>
+        <item quantity="other">%d min left</item>
+    </plurals>
+    <string name="live_tv_no_guide">No guide for this channel</string>
+    <string name="live_tv_no_guide_hint">Hold OK › Choose guide to pick one from your guides</string>
+    <string name="live_tv_hint_ok">OK</string>
+    <string name="live_tv_hint_full_screen">Full screen</string>
+    <string name="live_tv_hint_hold_ok">HOLD OK</string>
+    <string name="live_tv_hint_options">Options</string>
+    <string name="live_tv_hint_ch">CH ±</string>
+    <string name="live_tv_hint_zap">Zap</string>
+    <string name="live_tv_hint_or">or</string>
+    <string name="live_tv_hint_up_down">▲ ▼</string>
+    <string name="live_tv_hint_change_channel">Change channel</string>
+    <string name="live_tv_hint_channel_list">Channel list</string>
+    <string name="live_tv_hint_back">BACK</string>
+    <string name="live_tv_hint_hold_back">HOLD BACK</string>
+    <string name="live_tv_hint_right">►</string>
+    <string name="live_tv_hint_schedule">Schedule</string>
+    <string name="live_tv_schedule">Schedule</string>
+    <string name="live_tv_schedule_today">Today</string>
+    <plurals name="live_tv_schedule_minutes">
+        <item quantity="one">%d min</item>
+        <item quantity="other">%d min</item>
+    </plurals>
+    <string name="live_tv_schedule_guide_ends">The %1$s guide ends at %2$s. It refreshes when you open Live TV.</string>
+    <string name="live_tv_last_channel">Last channel: %1$s</string>
+    <string name="live_tv_list_hides">Hides after 8 s</string>
+    <string name="live_tv_tuning">Tuning %1$s</string>
+    <string name="live_tv_stream_of">stream %1$d of %2$d</string>
+    <string name="live_tv_unavailable_title">Channel unavailable</string>
+    <plurals name="live_tv_all_streams_failed">
+        <item quantity="one">its stream failed</item>
+        <item quantity="other">all %d streams failed</item>
+    </plurals>
+    <string name="live_tv_streams_tried">%1$d of %2$d streams failed</string>
+    <string name="live_tv_no_streams">no streams found</string>
+    <string name="live_tv_lookup_failed">stream lookup failed</string>
+    <plurals name="live_tv_all_streams_need_licence">
+        <item quantity="one">its stream needs a DRM licence</item>
+        <item quantity="other">all %d streams need a DRM licence</item>
+    </plurals>
+    <plurals name="live_tv_streams_need_licence">
+        <item quantity="one">%d needs a licence</item>
+        <item quantity="other">%d need a licence</item>
+    </plurals>
+    <string name="live_tv_last_error">Last error: %1$s · tried %2$s</string>
+    <string name="live_tv_error_network">network error</string>
+    <string name="live_tv_error_stall">stream stalled</string>
+    <string name="live_tv_error_parse">unreadable stream</string>
+    <string name="live_tv_error_licence_refused">licence refused (%1$s)</string>
+    <string name="live_tv_error_no_drm">this TV has no %1$s DRM</string>
+    <string name="live_tv_error_no_drm_unknown">this TV has no DRM for this stream</string>
+    <string name="live_tv_error_licence_not_accepted">licence not accepted by this TV</string>
+    <string name="live_tv_error_no_licence">needs a DRM licence the playlist does not give</string>
+    <string name="live_tv_error_http">HTTP %1$d</string>
+    <string name="live_tv_unavailable_note">Skipped for 24 h when you zap past it; Retry tries again now</string>
+    <string name="live_tv_retry">Retry</string>
+    <string name="live_tv_next_channel">Next channel</string>
+    <string name="live_tv_add_broadcasters">Add broadcasters · 7 channels</string>
+    <string name="live_tv_add_source_url">Add source URL</string>
+    <string name="live_tv_add_pack">Add channel pack</string>
+    <string name="live_tv_empty_body_pack">The channel pack lists %1$s free channels from %2$s countries, checked twice a day. Nuvio then tries them from this TV and keeps the ones that play here. You can also add the broadcasters\' own streams, or playlists, guides and Stremio TV addons by URL.</string>
+    <string name="live_tv_empty_body_pack_unknown">The channel pack lists free channels from many countries, checked twice a day. Nuvio then tries them from this TV and keeps the ones that play here. You can also add the broadcasters\' own streams, or playlists, guides and Stremio TV addons by URL.</string>
+    <string name="live_tv_pack_facts">Channel pack: %1$s channels · %2$s download · refreshed daily from GitHub</string>
+    <string name="live_tv_pack_name">Channel pack</string>
+    <string name="live_tv_pack_offer">%1$s free channels from %2$s countries, checked twice a day</string>
+    <string name="live_tv_pack_offer_unknown">Free channels from many countries, checked twice a day</string>
+    <string name="live_tv_pack_home">Nuvio-KE-channels on GitHub</string>
+    <string name="live_tv_pack_add">Add pack</string>
+    <string name="live_tv_pack_add_failed">Could not add the channel pack: %1$s</string>
+    <string name="live_tv_scan_eyebrow">Scan the channel pack</string>
+    <string name="live_tv_scan_note">Nuvio tries each channel from this TV and hides the ones that don\'t play here. Tick the countries you watch.</string>
+    <string name="live_tv_scan_this_tv">THIS TV</string>
+    <string name="live_tv_scan_all_countries">ALL COUNTRIES</string>
+    <string name="live_tv_scan_no_country">No country listed</string>
+    <plurals name="live_tv_scan_channels">
+        <item quantity="one">%1$s channel</item>
+        <item quantity="other">%1$s channels</item>
+    </plurals>
+    <string name="live_tv_scan_estimate">%1$s · about %2$d min</string>
+    <string name="live_tv_scan_whole_world">Whole world</string>
+    <string name="live_tv_scan_go_one">Scan %1$s</string>
+    <string name="live_tv_scan_go_none">Scan</string>
+    <plurals name="live_tv_scan_go_several">
+        <item quantity="one">Scan %1$d country</item>
+        <item quantity="other">Scan %1$d countries</item>
+    </plurals>
+    <plurals name="live_tv_scan_name_several">
+        <item quantity="one">%1$d country</item>
+        <item quantity="other">%1$d countries</item>
+    </plurals>
+    <string name="live_tv_scan_name_world">the whole world</string>
+    <string name="live_tv_scan_name_no_country">channels with no country</string>
+    <string name="live_tv_scan_world_eyebrow">Scan the whole world?</string>
+    <string name="live_tv_scan_world_big">%1$s channels in %2$s countries</string>
+    <string name="live_tv_scan_world_body">That takes about %1$d minutes on this TV and uses about %2$d MB of data. Playing a channel pauses the scan. You can cancel any time and keep what was checked.</string>
+    <string name="live_tv_scan_world_go">Scan whole world</string>
+    <string name="live_tv_scan_progress_eyebrow">Scanning %1$s</string>
+    <string name="live_tv_scan_percent">%1$d%%</string>
+    <string name="live_tv_scan_checked">%1$s of %2$s checked</string>
+    <string name="live_tv_scan_play_here">%1$s play here</string>
+    <string name="live_tv_scan_dont">%1$s don\'t</string>
+    <string name="live_tv_scan_minutes_left">about %1$d min left</string>
+    <string name="live_tv_scan_under_minute">less than a minute left</string>
+    <string name="live_tv_scan_paused_line">Paused while a channel plays</string>
+    <string name="live_tv_scan_progress_note">Hide keeps the scan going while you use the app; Sources shows how far it got. Playing a channel pauses it.</string>
+    <string name="live_tv_scan_hide">Hide</string>
+    <string name="live_tv_scan_cancel">Cancel scan</string>
+    <string name="live_tv_scan_done_eyebrow">Scan done · %1$s</string>
+    <string name="live_tv_scan_done_big">%1$s of %2$s channels play on this TV</string>
+    <plurals name="live_tv_scan_done_hidden">
+        <item quantity="one">%1$s doesn\'t play from here. It stays hidden until the next scan.</item>
+        <item quantity="other">%1$s don\'t play from here. They stay hidden until the next scan.</item>
+    </plurals>
+    <string name="live_tv_scan_done_more">%1$s more</string>
+    <string name="live_tv_scan_done_added">\u0020now in Live TV: the monitor can\'t reach them from the US, but they play here.</string>
+    <string name="live_tv_scan_done_among">Among them %1$s.</string>
+    <string name="live_tv_scan_done_among_two">%1$s and %2$s</string>
+    <string name="live_tv_scan_open_live">Open Live TV</string>
+    <string name="live_tv_scan_close">Done</string>
+    <string name="live_tv_scan_cancelled_eyebrow">Scan cancelled · %1$s</string>
+    <string name="live_tv_scan_cancelled_big">%1$s of %2$s channels checked</string>
+    <string name="live_tv_scan_cancelled_hidden">. %1$s don\'t and stay hidden until the next scan.</string>
+    <plurals name="live_tv_scan_cancelled_rest">
+        <item quantity="one">The other %1$s keeps the monitor\'s result: shown if it reached it, waiting if not. Scan again in Sources to finish.</item>
+        <item quantity="other">The other %1$s keep the monitor\'s result: shown if it reached them, waiting if not. Scan again in Sources to finish.</item>
+    </plurals>
+    <string name="live_tv_scan_cancelled_hidden_only">%1$s don\'t play here and stay hidden until the next scan.</string>
+    <string name="live_tv_scan_again">Scan again</string>
+    <string name="live_tv_scan_row_never">not scanned yet</string>
+    <string name="live_tv_scan_row_running">scanning %1$s, %2$s of %3$s checked</string>
+    <string name="live_tv_scan_row_done">scanned %1$s %2$s</string>
+    <string name="live_tv_scan_row_cancelled">scan of %1$s cancelled %2$s</string>
+    <string name="live_tv_scan_status">SCANNING %1$d%%</string>
+    <string name="live_tv_scan_paused">PAUSED</string>
+    <string name="live_tv_scan_summary">%1$s: %2$s play here, %3$s hidden until the next scan</string>
+    <plurals name="live_tv_scan_waiting_elsewhere">
+        <item quantity="one">%1$s channel elsewhere waits for a scan of its country</item>
+        <item quantity="other">%1$s channels elsewhere wait for a scan of their country</item>
+    </plurals>
+    <plurals name="live_tv_scan_waiting">
+        <item quantity="one">%1$s channel waits for a scan of its country</item>
+        <item quantity="other">%1$s channels wait for a scan of their country</item>
+    </plurals>
+    <string name="live_tv_empty_note">Sources and channels stay on this TV and are not synced.</string>
+    <string name="live_tv_choose_guide">Choose guide</string>
+    <plurals name="live_tv_guide_none_yet">
+        <item quantity="one">No guide yet · %d guide to search</item>
+        <item quantity="other">No guide yet · %d guides to search</item>
+    </plurals>
+    <plurals name="live_tv_guide_none_picked">
+        <item quantity="one">No guide · %d guide to search</item>
+        <item quantity="other">No guide · %d guides to search</item>
+    </plurals>
+    <string name="live_tv_guide_now">now %1$s</string>
+    <string name="live_tv_stream_n_of_m">Stream %1$d of %2$d</string>
+    <string name="live_tv_stream">Stream</string>
+    <string name="live_tv_stream_tune_first">Tune this channel to pick a stream</string>
+    <string name="live_tv_stream_finding">Finding streams</string>
+    <string name="live_tv_stream_none">No stream to pick</string>
+    <string name="live_tv_stream_worked_at">worked at %1$s</string>
+    <string name="live_tv_stream_failed_at">failed at %1$s</string>
+    <string name="live_tv_hide_channel">Hide channel</string>
+    <string name="live_tv_hide_channel_sub">Hidden channels are listed in Sources</string>
+    <string name="live_tv_panel_note">Changes stay on this TV.</string>
+    <string name="live_tv_choose_guide_title">Choose guide · %1$s</string>
+    <string name="live_tv_guide_off">No guide</string>
+    <string name="live_tv_guide_current">Current</string>
+    <string name="live_tv_choose_guide_note">Names close to the channel\'s come first, from every guide you added. Your pick wins over automatic matching and survives refreshes.</string>
+    <plurals name="live_tv_channel_sources">
+        <item quantity="one">%d channel source</item>
+        <item quantity="other">%d channel sources</item>
+    </plurals>
+    <plurals name="live_tv_guides">
+        <item quantity="one">%d guide</item>
+        <item quantity="other">%d guides</item>
+    </plurals>
+    <string name="live_tv_on_this_tv">on this TV</string>
+    <string name="live_tv_refresh_all">Refresh all</string>
+    <string name="live_tv_hidden_channels">Hidden channels</string>
+    <string name="live_tv_hidden_channels_count">Hidden channels · %1$d</string>
+    <string name="live_tv_type_playlist">PLAYLIST</string>
+    <string name="live_tv_type_addon">ADDON</string>
+    <string name="live_tv_type_guide">GUIDE</string>
+    <string name="live_tv_type_data">DATA</string>
+    <string name="live_tv_type_pack">PACK</string>
+    <string name="live_tv_src_built_in">Built in</string>
+    <string name="live_tv_src_m3u" translatable="false">M3U</string>
+    <string name="live_tv_src_xmltv" translatable="false">XMLTV</string>
+    <string name="live_tv_src_addon">Stremio TV addon</string>
+    <string name="live_tv_src_channels">%1$s channels</string>
+    <string name="live_tv_src_matched">%1$s matched</string>
+    <string name="live_tv_src_metadata_name">iptv-org channel data</string>
+    <string name="live_tv_src_metadata_line">Names, countries, languages, categories</string>
+    <string name="live_tv_src_last_error">Last refresh: %1$s</string>
+    <string name="live_tv_refreshed">refreshed %1$s</string>
+    <string name="live_tv_refreshed_never">not refreshed yet</string>
+    <string name="live_tv_health_ok">OK</string>
+    <string name="live_tv_health_lost">%1$d LOST</string>
+    <string name="live_tv_health_partial">PARTIAL</string>
+    <string name="live_tv_health_failed">FAILED</string>
+    <string name="live_tv_health_waiting">WAITING</string>
+    <string name="live_tv_health_refreshing">REFRESHING</string>
+    <string name="live_tv_src_refresh">Refresh</string>
+    <string name="live_tv_src_rename">Rename</string>
+    <string name="live_tv_src_remove">Remove</string>
+    <string name="live_tv_src_rename_eyebrow">Rename source</string>
+    <string name="live_tv_src_rename_note">Only the name changes; the address stays the same.</string>
+    <string name="live_tv_src_remove_eyebrow">Remove %1$s?</string>
+    <string name="live_tv_src_remove_channels_body">Its channels leave Live TV, with their guide choices.</string>
+    <string name="live_tv_src_remove_guide_body">Channels that use this guide go back to automatic matching.</string>
+    <string name="live_tv_add_eyebrow">Add source</string>
+    <string name="live_tv_add_body">Paste or type a playlist (M3U), guide (XMLTV) or Stremio addon URL. The type is found from what the URL returns.</string>
+    <string name="live_tv_add_placeholder" translatable="false">https://</string>
+    <string name="live_tv_add_checking">Checking…</string>
+    <string name="live_tv_add_ready_m3u">M3U playlist · %1$s channels</string>
+    <string name="live_tv_add_ready_xmltv">XMLTV guide · %1$s channels · %2$s matched</string>
+    <string name="live_tv_add_ready_addon">Stremio TV addon · %1$s channels</string>
+    <string name="live_tv_add">Add</string>
+    <string name="live_tv_adding">Adding…</string>
+    <string name="live_tv_added">Added %1$s</string>
+    <string name="live_tv_hidden_empty">No hidden channels</string>
+    <string name="live_tv_hidden_note">OK shows a channel in Live TV again.</string>
+    <string name="live_tv_rename_failed">Could not rename the source</string>
+    <string name="live_tv_type_suggested">SUGGESTED</string>
+    <string name="live_tv_preset_service_title">%1$s guide</string>
+    <plurals name="live_tv_preset_country_title">
+        <item quantity="one">%1$s TV guide</item>
+        <item quantity="other">%1$s TV guides</item>
+    </plurals>
+    <string name="live_tv_service_pluto" translatable="false">Pluto TV</string>
+    <string name="live_tv_service_plex" translatable="false">Plex TV</string>
+    <string name="live_tv_service_samsung" translatable="false">Samsung TV Plus</string>
+    <string name="live_tv_service_plex_channels" translatable="false">Plex</string>
+    <string name="live_tv_preset_place_uk">the United Kingdom</string>
+    <plurals name="live_tv_preset_service_in_source">
+        <item quantity="one">%2$s has %1$s %3$s channel</item>
+        <item quantity="other">%2$s has %1$s %3$s channels</item>
+    </plurals>
+    <plurals name="live_tv_preset_service_in_sources">
+        <item quantity="one">Your playlists have %1$s %2$s channel</item>
+        <item quantity="other">Your playlists have %1$s %2$s channels</item>
+    </plurals>
+    <plurals name="live_tv_preset_country_in_source">
+        <item quantity="one">%2$s has %1$s channel from %3$s</item>
+        <item quantity="other">%2$s has %1$s channels from %3$s</item>
+    </plurals>
+    <plurals name="live_tv_preset_country_in_sources">
+        <item quantity="one">Your playlists have %1$s channel from %2$s</item>
+        <item quantity="other">Your playlists have %1$s channels from %2$s</item>
+    </plurals>
+    <plurals name="live_tv_preset_covers">
+        <item quantity="one">this guide covers it</item>
+        <item quantity="other">this guide covers all of them</item>
+    </plurals>
+    <plurals name="live_tv_preset_add">
+        <item quantity="one">Add guide</item>
+        <item quantity="other">Add guides</item>
+    </plurals>
+    <string name="live_tv_presets_title">Guides for your channels</string>
+    <plurals name="live_tv_presets_fit">
+        <item quantity="one">%1$s guide fits your channels</item>
+        <item quantity="other">%1$s guides fit your channels</item>
+    </plurals>
+    <plurals name="live_tv_presets_more">
+        <item quantity="one">%1$s and %2$s more</item>
+        <item quantity="other">%1$s and %2$s more</item>
+    </plurals>
+    <plurals name="live_tv_presets_more_countries">
+        <item quantity="one">%1$s and %2$s more country</item>
+        <item quantity="other">%1$s and %2$s more countries</item>
+    </plurals>
+    <string name="live_tv_presets_pick_note">Most channels first. Tick the ones you watch.</string>
+    <string name="live_tv_header_title">Guides from %1$s</string>
+    <string name="live_tv_header_few">%1$s names %2$s for its %3$s</string>
+    <plurals name="live_tv_header_guides">
+        <item quantity="one">%1$s guide</item>
+        <item quantity="other">%1$s guides</item>
+    </plurals>
+    <plurals name="live_tv_header_channels">
+        <item quantity="one">%1$s channel</item>
+        <item quantity="other">%1$s channels</item>
+    </plurals>
+    <string name="live_tv_header_by_country">%1$s names guides for %2$s of its %3$s</string>
+    <plurals name="live_tv_header_countries">
+        <item quantity="one">%1$s country</item>
+        <item quantity="other">%1$s countries</item>
+    </plurals>
+    <string name="live_tv_header_per_country">one guide per country</string>
+    <string name="live_tv_header_add">Add guides</string>
+    <string name="live_tv_header_choose">Choose guides</string>
+    <string name="live_tv_header_pick_note_country">One guide per country, largest first. Tick the countries you watch.</string>
+    <string name="live_tv_header_pick_note">Tick the guides you want.</string>
+    <string name="live_tv_header_ticked">%1$d ticked</string>
+    <plurals name="live_tv_header_add_n">
+        <item quantity="one">Add %1$d guide</item>
+        <item quantity="other">Add %1$d guides</item>
+    </plurals>
+    <string name="live_tv_header_add_failed">Could not add the guides</string>
+    <string name="live_tv_remove_failed">Could not remove the source</string>
+    <string name="live_tv_unhide_failed">Could not show the channel again</string>
+</resources>

@@ -442,6 +442,8 @@ sentry {
 }
 
 dependencies {
+    implementation(project(":mediaservicecore:youtubeapi")) // Nuvio One hook
+    implementation(project(":mediaservicecore:sharedutils"))
     // Isolated ranked-regex matcher: preserves lookarounds while enforcing a read budget on Android.
     implementation("com.github.florianingerl.util:regex:1.1.11")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")

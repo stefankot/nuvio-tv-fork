@@ -1,5 +1,6 @@
 package com.nuvio.tv.ui.navigation
 
+import com.nuvio.tv.ui.screens.calendar.openCalendarWatchTarget
 import com.nuvio.tv.ui.theme.NuvioMotion
 import com.nuvio.tv.ui.components.PlaybackAvailabilityProvider
 import com.nuvio.tv.ui.components.LocalPlaybackAvailability
@@ -69,6 +70,19 @@ import com.nuvio.tv.ui.screens.profile.ProfileSelectionScreen
 import com.nuvio.tv.ui.screens.tmdb.TmdbEntityBrowseScreen
 import com.nuvio.tv.ui.screens.home.HeroBackdropState
 
+/** Nuvio One hook: player route for a YouTube video (official player). */
+private fun youtubePlayerRoute(v: com.nuvio.tv.youtube.YtPlayable): String =
+    Screen.Player.createRoute(
+        streamUrl = v.url,
+        title = v.title,
+        headers = v.headers.takeIf { it.isNotEmpty() },
+        contentId = com.nuvio.tv.youtube.YouTubeProgress.ID_PREFIX + v.videoId,
+        contentType = "youtube",
+        contentName = v.title,
+        poster = v.poster,
+        addonName = "OneTube"
+    )
+
 @Composable
 fun NuvioNavHost(
     navController: NavHostController,
@@ -109,6 +123,7 @@ private fun PlaybackNavHost(
     hideBuiltInHeaders: Boolean,
     discoverIsRoot: Boolean
 ) {
+    androidx.compose.runtime.SideEffect { com.nuvio.tv.ui.screens.settings.ForkFeatures.open = { r -> navController.navigate(r) } } // fork hook
     val playbackAvailability = LocalPlaybackAvailability.current
     val context = LocalContext.current
     fun isStreamToPlayer(from: String, to: String): Boolean {
@@ -1223,6 +1238,53 @@ private fun PlaybackNavHost(
                         }
                     }
                 }
+            )
+        }
+
+        composable(Screen.KeLiveTv.route) { // KE hook: Live TV
+            val openCountry by it.savedStateHandle
+                .getStateFlow<String?>("ke_live_tv_open_country", null)
+                .collectAsState()
+            com.nuvio.tv.livetv.ui.LiveTvScreen(
+                onOpenSources = { add, scan -> navController.navigate(Screen.KeLiveTvSources.createRoute(add, scan)) },
+                openCountry = openCountry,
+                onCountryOpened = { it.savedStateHandle["ke_live_tv_open_country"] = null }
+            )
+        }
+
+        composable(
+            route = Screen.KeLiveTvSources.route,
+            arguments = listOf(
+                androidx.navigation.navArgument(Screen.KeLiveTvSources.ADD_ARG) { type = androidx.navigation.NavType.BoolType; defaultValue = false },
+                androidx.navigation.navArgument(Screen.KeLiveTvSources.SCAN_ARG) { type = androidx.navigation.NavType.BoolType; defaultValue = false }
+            )
+        ) { backStackEntry ->
+            com.nuvio.tv.livetv.ui.LiveTvSourcesScreen(
+                openAdd = backStackEntry.arguments?.getBoolean(Screen.KeLiveTvSources.ADD_ARG) == true,
+                onBackPress = { navController.popBackStack() },
+                openScan = backStackEntry.arguments?.getBoolean(Screen.KeLiveTvSources.SCAN_ARG) == true,
+                onOpenLiveTv = { country ->
+                    navController.previousBackStackEntry?.savedStateHandle?.set("ke_live_tv_open_country", country.orEmpty())
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(Screen.YouTube.route) { // Nuvio One hook: YouTube
+            com.nuvio.tv.youtube.YouTubeScreen(
+                onOpenSettings = { navController.navigate(Screen.Settings.route) { launchSingleTop = true } },
+                onPlay = { v -> navController.navigate(youtubePlayerRoute(v)) }
+            )
+        }
+
+        rootComposable(Screen.Calendar.route) { // Arc hook: Calendar
+            com.nuvio.tv.ui.screens.calendar.CalendarScreen(
+                showBuiltInHeader = !hideBuiltInHeaders,
+                onOpenTitle = { row ->
+                    val itemId = row.contentId ?: return@CalendarScreen
+                    navController.navigate(Screen.Detail.createRoute(itemId, row.apiType))
+                },
+                onWatch = { target -> navController.openCalendarWatchTarget(target) }
             )
         }
 

@@ -3329,16 +3329,8 @@
     <string name="shuffle_badge">Atsitiktinis serijų parinkimas įjungtas</string>
 
     <!-- Subtitle AutoSync -->
-    <string name="autosync_setting_title">Automatiškai sinchronizuoti subtitrus</string>
-    <string name="autosync_setting_description">Suderinti pasirinkto priedo subtitrų laiką su vaizdo įraše įterptais subtitrais.</string>
-    <string name="autosync_tolerance_title">Automatinio sinchronizavimo paklaida</string>
-    <string name="autosync_tolerance_description">Palikti pradinį laiką, kai reikalinga korekcija neviršija šios ribos.</string>
-    <string name="autosync_tolerance_off">Išjungta</string>
     <string name="autosync_tolerance_value">%1$d ms</string>
-    <string name="autosync_thorough_title">Kruopšti automatinio sinchronizavimo paieška</string>
-    <string name="autosync_thorough_description">Prieš sinchronizuojant toliau lyginti kitus subtitrus ir įterptus takelius, ieškant tikslesnės atitikties. Išjungus greičiau naudojama pirma gera atitiktis. Taikomos tik patikimos atitiktys.</string>
     <string name="autosync_toast_no_fit">Nepavyko sinchronizuoti: šie subtitrai neatitinka šios vaizdo įrašo versijos.</string>
-    <string name="autosync_label_synced">Sinchronizuota automatiškai</string>
     <string name="stream_resume_from_time">Tęsti nuo %1$s</string>
     <string name="stream_resume_from_percent">Tęsti nuo %1$d%%</string>
     <string name="playback_chapters_label">Skyriai</string>
