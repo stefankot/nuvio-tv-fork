@@ -2,7 +2,9 @@
 
 package com.nuvio.tv.ui.screens.settings
 
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.runtime.getValue
@@ -30,7 +32,10 @@ internal fun LazyListScope.youtubeSettingsItems() {
                 onCheckedChange = { on = it; ForkFeatures.set(context, "fork_youtube", it) },
             )
             if (on) NavigationSettingsItem(Icons.Default.Language, "Otwórz YouTube", "", onClick = { ForkFeatures.open?.invoke("youtube") })
-            if (on) YouTubeSettingsContent()
+            // Zagnieżdżone przewijanie w LazyColumn wymaga ograniczonej wysokości (inaczej crash).
+            if (on) androidx.compose.foundation.layout.Box(
+                modifier = androidx.compose.ui.Modifier.height(900.dp)
+            ) { YouTubeSettingsContent() }
         }
     }
 }
