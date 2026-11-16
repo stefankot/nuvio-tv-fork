@@ -73,3 +73,7 @@ APK: `app/build/outputs/apk/full/debug/app-full-arm64-v8a-debug.apk`. Gradle ma 
 - 7 Model mowy: wybór działa (cykl modeli, Whisper tiny); trwałość po restarcie i pobieranie NIEZWERYFIKOWANE.
 - Logowanie QR nie działa: build łączy się z Supabase pod localhost:443 (brak konfiguracji kluczy).
 - Następny krok: 3 (gałąź `final`, `fork-tools/`), potem 4–11.
+
+## Krok 3 planu (16.11.2026): gałąź `final`, `vendor/nuvio`, `fork-tools/`
+- `vendor/nuvio` = 85f9010aa (czysta baza). `final` = praca od teraz.
+- `fork-tools/`: pins.env, overrides.txt (68 plików identycznych z Reshaped), hooked-overrides.txt (4), base-hooks.txt (3), hooks.tsv, check.sh. `bash fork-tools/check.sh` → OK (ręcznie utrzymywane: 7, limit 35).

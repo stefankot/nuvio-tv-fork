@@ -1,0 +1,6 @@
+file	marker	anchor	module	purpose
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	// Arc hook: remote buttons (player and Live TV)	onPreviewKeyEvent	arc	pilot w odtwarzaczu
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	RemotePlayerHook(	val containerFocusRequester	arc	stan pilota
+app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	// Nuvio One hook: YouTube	composable(Screen	one	trasa YouTube
+app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	ForkFeatures.open = 	fun NuvioNavHost	fork	otwieranie tras z ustawień
+app/src/main/java/com/nuvio/tv/ui/navigation/Screen.kt	// Nuvio One hook	data object	one	Screen.YouTube
