@@ -59,3 +59,7 @@ APK: `app/build/outputs/apk/full/debug/app-full-arm64-v8a-debug.apk`. Gradle ma 
 
 ## Koniec wątku 1
 - `arc-remote`: pilot Arc + wybór modelu mowy (Whisper) zacommitowane jako WIP; ostatnia kompilacja (build39) w toku, wynik nieznany. Szczegóły i procedura: `../CLAUDE.md`.
+
+## 16.11.2026 – wątek 2
+- Krok 1 planu architekta wykonany: `arc-remote` kompiluje się (build40), APK zbudowany (arm64, 105 MB). Pakowanie za pierwszym razem padło bez winy kodu, powtórka przeszła.
+- Nic nie uruchomiono na emulatorze. Następny: krok 2 (pierwsze uruchomienie, checks 1–5, 7), potem krok 3 (gałąź `final`, `fork-tools/`).
