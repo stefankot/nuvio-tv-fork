@@ -141,6 +141,7 @@ sealed class Screen(val route: String) {
         }
     }
     data object Search : Screen("search")
+    data object YouTube : Screen("youtube") // Nuvio One hook
     data object Discover : Screen("discover")
     data object Library : Screen("library")
     data object Settings : Screen("settings")

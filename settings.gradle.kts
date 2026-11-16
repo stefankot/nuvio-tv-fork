@@ -27,3 +27,10 @@ rootProject.name = "My Application"
 include(":app")
 include(":baselineprofile")
 include(":ffmpeg-decoder-downmix")
+
+// Nuvio One hook: SmartTube MediaServiceCore (YouTube)
+include(":mediaservicecore:mediaserviceinterfaces")
+include(":mediaservicecore:youtubeapi")
+include(":mediaservicecore:sharedutils")
+include(":mediaservicecore:commons-io-2.8.0")
+include(":mediaservicecore:j2v8")

@@ -69,6 +69,19 @@ import com.nuvio.tv.ui.screens.profile.ProfileSelectionScreen
 import com.nuvio.tv.ui.screens.tmdb.TmdbEntityBrowseScreen
 import com.nuvio.tv.ui.screens.home.HeroBackdropState
 
+/** Nuvio One hook: player route for a YouTube video (official player). */
+private fun youtubePlayerRoute(v: com.nuvio.tv.youtube.YtPlayable): String =
+    Screen.Player.createRoute(
+        streamUrl = v.url,
+        title = v.title,
+        headers = v.headers.takeIf { it.isNotEmpty() },
+        contentId = com.nuvio.tv.youtube.YouTubeProgress.ID_PREFIX + v.videoId,
+        contentType = "youtube",
+        contentName = v.title,
+        poster = v.poster,
+        addonName = "OneTube"
+    )
+
 @Composable
 fun NuvioNavHost(
     navController: NavHostController,
@@ -1223,6 +1236,13 @@ private fun PlaybackNavHost(
                         }
                     }
                 }
+            )
+        }
+
+        composable(Screen.YouTube.route) { // Nuvio One hook: YouTube
+            com.nuvio.tv.youtube.YouTubeScreen(
+                onOpenSettings = { navController.navigate(Screen.Settings.route) { launchSingleTop = true } },
+                onPlay = { v -> navController.navigate(youtubePlayerRoute(v)) }
             )
         }
 
