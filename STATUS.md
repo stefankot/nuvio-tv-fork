@@ -63,3 +63,13 @@ APK: `app/build/outputs/apk/full/debug/app-full-arm64-v8a-debug.apk`. Gradle ma 
 ## 16.11.2026 – wątek 2
 - Krok 1 planu architekta wykonany: `arc-remote` kompiluje się (build40), APK zbudowany (arm64, 105 MB). Pakowanie za pierwszym razem padło bez winy kodu, powtórka przeszła.
 - Nic nie uruchomiono na emulatorze. Następny: krok 2 (pierwsze uruchomienie, checks 1–5, 7), potem krok 3 (gałąź `final`, `fork-tools/`).
+
+## Krok 2 planu: pierwszy test na emulatorze (16.11.2026, fork `com.nuviodebug.com`, skrót APK sprawdzony)
+- 1 Start: OK (onboarding, Home z katalogami, 0 crashy).
+- 2 Kategoria „Nuvio Reshaped": OK (AutoSync, Arc, Live TV, KE, YouTube, pilot, model mowy).
+- 3 Live TV: OK (M3U iptv-org PL załadowane, lista kanałów, kanał przechodzi w PLAYING).
+- 4 KE: przełącznik działa, bez crasha; zawartość katalogu NIEZWERYFIKOWANA.
+- 5 YouTube: crash po włączeniu przełącznika (zagnieżdżone przewijanie w `KeCatalogSettingsItems.kt`), NAPRAWIONY (Box height 900.dp), OneTube się otwiera; zawartość wymaga logowania.
+- 7 Model mowy: wybór działa (cykl modeli, Whisper tiny); trwałość po restarcie i pobieranie NIEZWERYFIKOWANE.
+- Logowanie QR nie działa: build łączy się z Supabase pod localhost:443 (brak konfiguracji kluczy).
+- Następny krok: 3 (gałąź `final`, `fork-tools/`), potem 4–11.
