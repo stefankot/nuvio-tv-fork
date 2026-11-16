@@ -13,6 +13,7 @@ import com.android.build.gradle.internal.tasks.CompileArtProfileTask
 import com.android.build.gradle.internal.tasks.L8DexDesugarLibTask
 import java.io.File
 import java.util.Properties
+import java.security.MessageDigest
 
 // Copies the per-API dex metadata (.dm) files AGP builds next to the binary ART profile into the APK's assets, so the
 // in-app updater can install the next version together with its profile and have it compiled at install time.
@@ -155,6 +156,9 @@ android {
         buildConfigField("String", "DEVICE_LOGIN_WEB_BASE_URL", "\"${localProperties.getProperty("DEVICE_LOGIN_WEB_BASE_URL", "https://nuvio.tv/link")}\"")
         buildConfigField("boolean", "DOVI_NATIVE_ENABLED", enableDoviNative.toString())
         buildConfigField("boolean", "DOVI_EXTRACTOR_HOOK_READY", doviExtractorHookReady.toString())
+        externalNativeBuild {
+            cmake { arguments("-DDOVI_BUILD_BRIDGE=${if (enableDoviNative) "ON" else "OFF"}") }
+        }
         if (enableDoviNative) {
             externalNativeBuild {
                 cmake {
@@ -204,12 +208,9 @@ android {
         }
     }
 
-    if (enableDoviNative) {
-        externalNativeBuild {
-            cmake {
-                path = file("src/main/cpp/CMakeLists.txt")
-            }
-        }
+    // Preview decoder builds independently of the Dolby Vision playback bridge.
+    externalNativeBuild {
+        cmake { path = file("src/main/cpp/CMakeLists.txt") }
     }
 
     signingConfigs {
@@ -441,6 +442,8 @@ sentry {
 }
 
 dependencies {
+    // Isolated ranked-regex matcher: preserves lookarounds while enforcing a read budget on Android.
+    implementation("com.github.florianingerl.util:regex:1.1.11")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     val composeBom = platform("androidx.compose:compose-bom:2026.05.01")
 
