@@ -39,10 +39,8 @@ app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerLifecycl
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerMpv.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerMpvEvents.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerObservers.kt
-app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerPlaybackEvents.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerSourceFallback.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerStartup.kt
-app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerStreams.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerTorrent.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerTracks.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerViewModel.kt

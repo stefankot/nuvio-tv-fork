@@ -14,3 +14,7 @@ app/src/main/java/com/nuvio/tv/MainActivity.kt	calendarMenuItem) {	val rootRoute
 app/src/main/java/com/nuvio/tv/MainActivity.kt	calendarMenuItem	liveTvMenuItem	echo	klucz remember (drawerItems)	liveTvMenuItem
 app/src/main/java/com/nuvio/tv/ui/screens/home/HomeScreen.kt	Fork hook: skin	NetflixHomeRoute	skin	skin: ekran Home	if (com.nuvio.tv.ui.reshaped.netflix.rememberNetflixUiEnabled()) {
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	Fork hook: skin	// Controls overlay	skin	skin: nakładka odtwarzacza	PlayerControlsOverlay(
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerUiState.kt	// Fork hook: echo	val pendingSeekPosition	echo	pola UiState, zdarzenia, SourceAudioFilter	
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerStreams.kt	internal fun PlayerRuntimeController.applySelectedStreamState( // Fork hook: echo (was private)	private fun PlayerRuntimeController.applySelectedStreamState	echo	widoczność dla hot swap	private fun PlayerRuntimeController.applySelectedStreamState(
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerStreams.kt	internal fun PlayerRuntimeController.persistSelectedStreamForReuse( // Fork hook: echo (was private)	private fun PlayerRuntimeController.persistSelectedStreamForReuse	echo	widoczność dla hot swap	private fun PlayerRuntimeController.persistSelectedStreamForReuse(
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerPlaybackEvents.kt	// Fork hook: echo	PlayerEvent.OnShowSourcesPanel	echo	zdarzenia jakości/audio	

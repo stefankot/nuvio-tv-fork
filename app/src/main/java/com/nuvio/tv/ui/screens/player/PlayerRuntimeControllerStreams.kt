@@ -656,7 +656,7 @@ internal fun streamFilenameFromUrl(url: String): String? =
     url.substringBefore('?').substringAfterLast('/', "")
         .takeIf { it.isNotBlank() && it.contains('.') }
 
-private fun PlayerRuntimeController.applySelectedStreamState(
+internal fun PlayerRuntimeController.applySelectedStreamState( // Fork hook: echo (was private)
     stream: Stream,
     url: String,
     headers: Map<String, String>
@@ -783,7 +783,7 @@ internal fun PlayerRuntimeController.handleStreamRedirect(requestedUrl: String, 
     }
 }
 
-private fun PlayerRuntimeController.persistSelectedStreamForReuse(
+internal fun PlayerRuntimeController.persistSelectedStreamForReuse( // Fork hook: echo (was private)
     stream: Stream,
     url: String,
     headers: Map<String, String>

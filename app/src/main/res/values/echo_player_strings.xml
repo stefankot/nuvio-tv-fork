@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="quality_cancel_hint">Press OK to cancel</string>
+    <string name="quality_menu_title">Quality</string>
+    <string name="quality_auto">Auto</string>
+    <string name="quality_auto_desc">Follows your connection</string>
+    <string name="quality_playing">Playing</string>
+    <string name="quality_menu_subtitle">Switches to a source with that resolution and keeps your place.</string>
+    <string name="quality_menu_loading">Finding sources…</string>
+    <string name="quality_desc_2160">Ultra HD</string>
+    <string name="quality_desc_1440">Quad HD</string>
+    <string name="quality_desc_1080">Full HD</string>
+    <string name="quality_desc_720">HD</string>
+    <string name="quality_desc_sd">SD</string>
+    <string name="quality_desc_low">Low</string>
+    <plurals name="quality_source_count">
+        <item quantity="one">%d source</item>
+        <item quantity="other">%d sources</item>
+    </plurals>
+    <string name="player_source_fallback_searching">That source didn\'t play. Trying the next one…</string>
+    <string name="audio_menu_original">Original</string>
+    <string name="audio_menu_original_named">Original · %1$s</string>
+    <string name="audio_menu_unknown">Unknown</string>
+    <string name="audio_menu_in_file">In this file</string>
+    <string name="audio_menu_hint">Hold OK on a language to pick its source</string>
+    <string name="audio_menu_loading">Looking for other sources…</string>
+    <string name="audio_menu_no_sources">No sources</string>
+    <string name="audio_menu_no_match">Couldn\'t find a working source with %1$s audio for this video, so it\'s back on the original.</string>
+    <string name="notif_quality_up">Upgrading to %1$s</string>
+    <string name="notif_quality_down">Downgrading to %1$s</string>
+    <string name="notif_source_failed_title">Source failed to play</string>
+    <string name="notif_source_failed_back">Back to what you were watching</string>
+    <string name="notif_source_failed_quality">No working %1$s source</string>
+    <string name="notif_source_failed_audio">No working source with %1$s audio</string>
+    <string name="player_link_no_video">This source isn\'t starting</string>
+</resources>

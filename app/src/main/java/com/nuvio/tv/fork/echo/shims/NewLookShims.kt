@@ -17,4 +17,6 @@ object NewLookNotifications {
     enum class Kind { CALENDAR, REMINDER, UPDATE, SAMPLE, PLAYER, QUALITY_UP, QUALITY_DOWN }
 
     fun post(kind: Kind, title: String, text: String): Long = 0L
+    fun postCountdown(kind: Kind, title: String, durationMs: Long, hint: String?): Long = 0L
+    fun cancel(id: Long) {}
 }

@@ -1945,6 +1945,12 @@ fun PlayerRuntimeController.onEvent(
         is PlayerEvent.OnEpisodeStreamSelected -> {
             switchToEpisodeStream(event.stream)
         }
+        PlayerEvent.OnShowQualityOverlay -> { showQualityOverlay() } // Fork hook: echo
+        is PlayerEvent.OnQualitySelected -> { selectStreamQuality(event.quality) } // Fork hook: echo
+        PlayerEvent.OnAutoQualitySelected -> { selectAutoQuality() } // Fork hook: echo
+        PlayerEvent.OnCancelAutoQualityChange -> { cancelAutoQualityChange(byViewer = true) } // Fork hook: echo
+        is PlayerEvent.OnAudioMenuLanguageSelected -> { switchSourceForAudio(event.option) } // Fork hook: echo
+        is PlayerEvent.OnAudioMenuSourcesRequested -> { showSourcesForAudio(event.option) } // Fork hook: echo
         PlayerEvent.OnShowSourcesPanel -> {
             showSourcesPanel()
         }
