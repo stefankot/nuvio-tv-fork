@@ -174,6 +174,7 @@ internal fun PlayerRuntimeController.initializePlayer(
         _uiState.update { it.copy(error = message, showLoadingOverlay = false) }
         return
     }
+    armAutoPlayHedge(url) // fork hook
     sourceRecoveryPickerError = null
     beginFormatsPlayback(url, headers) // Nuvio RS hook: Arc formats
     mpvMediaLoadPrepared = false
@@ -3012,6 +3013,7 @@ private fun PlayerRuntimeController.recordFirstFrameDiagnostics(
             "audioUnderruns=${playbackSnapshot.audioUnderrunCount} rebufferCount=$rebufferCount " +
             "host=${currentStreamUrl.safeHost()} engine=$currentInternalPlayerEngine"
     )
+    verifyAudioSwitchDuration(player.duration.takeIf { it > 0L } ?: -1L) // fork hook: echo A5
 
     val dvConversionOccurred = conversionSucceeded > 0 ||
         signalingRewrites > 0 ||

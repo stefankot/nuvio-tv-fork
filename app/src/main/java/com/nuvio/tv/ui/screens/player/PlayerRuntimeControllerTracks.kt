@@ -320,6 +320,7 @@ internal fun PlayerRuntimeController.updateAvailableTracks(tracks: Tracks) {
         audioTracks = audioTracks,
         subtitleTracks = subtitleTracks
     )
+    applyPendingAudioLanguage(audioTracks) // fork hook: echo A5
     applyLosslessAudioDefaultIfUnset(audioTracks) // Nuvio RS hook: Arc formats
     if (currentStreamHasVideoTrack) {
         maybeScheduleFirstFrameWatchdog()

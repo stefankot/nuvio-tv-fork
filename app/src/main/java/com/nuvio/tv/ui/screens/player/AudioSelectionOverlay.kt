@@ -2,6 +2,7 @@
 
 package com.nuvio.tv.ui.screens.player
 
+import com.nuvio.tv.core.streams.AudioMenuOption
 import com.nuvio.tv.ui.theme.NuvioTheme
 
 import androidx.compose.foundation.BorderStroke
@@ -90,7 +91,11 @@ internal fun AudioSelectionOverlay(
     onNightModeChange: (NightMode) -> Unit,
     onPersistAmplificationChange: (Boolean) -> Unit,
     onDismiss: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    languageOptions: List<AudioMenuOption>? = null, // fork hook: echo A5
+    isLoadingSources: Boolean = false,
+    onLanguageSelected: (AudioMenuOption) -> Unit = {},
+    onLanguageSourcesRequested: (AudioMenuOption) -> Unit = {}
 ) {
     val tracksFocusRequester = remember { FocusRequester() }
     val delayMinusFocusRequester = remember { FocusRequester() }
@@ -196,7 +201,16 @@ internal fun AudioSelectionOverlay(
                 modifier = Modifier.padding(bottom = NuvioTheme.spacing.sm)
             ) {
                 Column(modifier = Modifier.width(444.dp)) {
-                    AudioTracksContent(
+                    if (languageOptions != null) AudioLanguageList( // fork hook: echo A5
+                        options = languageOptions,
+                        isLoadingSources = isLoadingSources,
+                        listState = listState,
+                        initialFocusRequester = tracksFocusRequester,
+                        rightFocusRequester = FocusRequester.Cancel,
+                        onTrackSelected = onTrackSelected,
+                        onLanguageSelected = onLanguageSelected,
+                        onSourcesRequested = onLanguageSourcesRequested
+                    ) else AudioTracksContent(
                         tracks = tracks,
                         selectedIndex = selectedIndex,
                         listState = listState,

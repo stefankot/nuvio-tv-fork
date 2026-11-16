@@ -390,6 +390,7 @@ internal fun PlayerRuntimeController.startProgressUpdates() {
                                         "host=${currentStreamUrl.safePlaybackEventsHost()}"
                                 )
                                 finishLoadingDiagnostics("mpv_first_frame_ready")
+                                verifyAudioSwitchDuration(playerDuration) // fork hook: echo A5
                                 if (_uiState.value.postPlayDismissedForCurrentEpisode) {
                                     _uiState.update { it.copy(postPlayDismissedForCurrentEpisode = false) }
                                 }
@@ -1628,6 +1629,7 @@ fun PlayerRuntimeController.onEvent(
                 selectServerAudio(event.index)
             } else {
                 rememberAudioSelection(event.index)
+                rememberListeningLanguage(event.index) // fork hook: echo A5
                 selectAudioTrack(event.index)
             }
             _uiState.update {
@@ -1808,6 +1810,7 @@ fun PlayerRuntimeController.onEvent(
                     showControls = true
                 )
             }
+            if (isAudioLanguageMenuEnabled()) startAudioLanguageMenu() // fork hook: echo A5
         }
         PlayerEvent.OnShowSubtitleOverlay -> {
             _uiState.update {

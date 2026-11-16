@@ -565,6 +565,7 @@ class StreamScreenViewModel @Inject constructor(
             var connectionFit: StreamConnectionFit? = null
             var connectionFitCaptured = false
 
+            val raceHeadStart = com.nuvio.tv.fork.echo.EchoRaceHook.headStart(context, newScope, persistedBingeGroup != null || autoPlayHandledForSession) // fork hook
             val successMutex = kotlinx.coroutines.sync.Mutex()
             suspend fun applySuccess(addonStreamGroups: List<AddonStreams>, isAllLoaded: Boolean) = successMutex.withLock {
                 if (!connectionFitCaptured) {
@@ -663,6 +664,7 @@ class StreamScreenViewModel @Inject constructor(
                 // configured timeout has elapsed. This gives slower addons a
                 // chance to return higher-quality streams before the selector
                 // picks from whatever is available.
+                if (!isAllLoaded && !autoPlayHandledForSession && !resolvedAutoPlayTarget) com.nuvio.tv.fork.echo.EchoRaceHook.offer(raceHeadStart, allStreams, playerSettings, installedAddonOrder.toSet()) // fork hook
                 val shouldAutoSelect = !autoPlayHandledForSession && !resolvedAutoPlayTarget && isAllLoaded
                 var selectedAutoPlayStream = if (earlyBingeGroupMatch != null) {
                     earlyBingeGroupMatch
@@ -687,6 +689,10 @@ class StreamScreenViewModel @Inject constructor(
                 if (selectedAutoPlayStream != null) {
                     resolvedAutoPlayTarget = true
                 }
+                val raceField = com.nuvio.tv.fork.echo.EchoRaceHook.field(context, selectedAutoPlayStream, allStreams, playerSettings, installedAddonOrder.toSet(), persistedBingeGroup) // fork hook
+                if (selectedAutoPlayStream != null && raceField != null) { // fork hook
+                    com.nuvio.tv.fork.echo.EchoRaceHook.run(context, newScope, raceField, raceHeadStart, selectedAutoPlayStream, playerSettings.showPlayerLoadingStatus, { autoPlayHandledForSession }, { m -> updateUiStateIfChanged { it.copy(directAutoPlayMessage = m) } }, { w -> updateUiStateIfChanged { it.copy(autoPlayStream = w) } })
+                } else if (selectedAutoPlayStream != null) com.nuvio.tv.fork.echo.EchoRaceHook.stop(raceHeadStart) // fork hook
 
                 val currentFilter = _uiState.value.selectedAddonFilter
                 val fullFiltered = groupStreamsByProvider(if (currentFilter == null) {
@@ -719,7 +725,7 @@ class StreamScreenViewModel @Inject constructor(
                         // shouldAutoSelect=false once a target is resolved, and
                         // would otherwise clobber the real pick with null before
                         // Compose observes it.
-                        autoPlayStream = selectedAutoPlayStream ?: it.autoPlayStream,
+                        autoPlayStream = selectedAutoPlayStream?.takeIf { raceField == null } ?: it.autoPlayStream, // fork hook
                         error = null,
                         showDirectAutoPlayOverlay = if (directAutoPlayFlowEnabledForSession || it.autoPlayPlaybackInfo != null) {
                             true

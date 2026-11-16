@@ -33,4 +33,5 @@
     <string name="notif_source_failed_quality">No working %1$s source</string>
     <string name="notif_source_failed_audio">No working source with %1$s audio</string>
     <string name="player_link_no_video">This source isn\'t starting</string>
+    <string name="stream_racing_sources">Checking %1$d links for the fastest</string>
 </resources>
