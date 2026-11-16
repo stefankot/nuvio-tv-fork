@@ -402,6 +402,7 @@ fun StreamScreen(
         }
     }
 
+    com.nuvio.tv.fork.ForkHooks.introBeforePlayer(uiState) // fork hook
     val showOverlay = uiState.showDirectAutoPlayOverlay || uiState.externalPlayerOverlayVisible
 
     Box(

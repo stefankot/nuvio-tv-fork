@@ -626,6 +626,7 @@ fun PlayerScreen(
         }
     }
 
+    com.nuvio.tv.fork.ForkHooks.introOnPlayerOpen() // fork hook
     // Initial focus on container - the LaunchedEffect above will handle focusing controls
     LaunchedEffect(Unit) {
         if (uiState.error == null) {

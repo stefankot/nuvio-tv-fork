@@ -27,4 +27,17 @@ object ForkHooks {
         val skin = SkinRegistry.skinFor(rememberSkinId()) ?: return false
         return skin.PlayerChrome(uiState, onEvent)
     }
+
+    /** NuvioNavHost: intro odtwarzania (Echo A6) rysowane nad aplikacją; Wstecz je pomija. Wyłączone = sama treść. */
+    @Composable
+    fun introWrap(content: @Composable () -> Unit) = com.nuvio.tv.fork.echo.EchoIntroHook.Wrap(content)
+
+    /** StreamScreen: autoodtwarzanie wchodzi od razu w intro. */
+    @Composable
+    fun introBeforePlayer(uiState: com.nuvio.tv.ui.screens.stream.StreamScreenUiState) =
+        com.nuvio.tv.fork.echo.EchoIntroHook.BeforePlayer(uiState.autoPlayDecided, uiState.showDirectAutoPlayOverlay)
+
+    /** PlayerScreen: ręczne otwarcie źródła też pokazuje intro. */
+    @Composable
+    fun introOnPlayerOpen() = com.nuvio.tv.fork.echo.EchoIntroHook.OnPlayerOpen()
 }
