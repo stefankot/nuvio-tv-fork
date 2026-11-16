@@ -8,7 +8,7 @@ import com.nuvio.tv.ui.screens.settings.ForkFeatures
 object BetaFeatures {
     fun settings(context: Context): BetaPerformanceSettings = BetaPerformanceSettings(
         raceAutoPlaySources = ForkFeatures.enabled(context, "echo_race"),
-        sourceFallback = ForkFeatures.enabled(context, "echo_quality_menu"),
+        sourceFallback = ForkFeatures.enabled(context, "echo_source_fallback"),
         sourceSwitchTimeoutSeconds = 8,
         autoQuality = ForkFeatures.enabled(context, "echo_auto_quality"),
         autoQualityHotSwap = ForkFeatures.enabled(context, "echo_hot_swap"),

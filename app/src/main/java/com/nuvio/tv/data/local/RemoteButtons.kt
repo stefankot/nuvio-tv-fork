@@ -31,6 +31,7 @@ enum class RemoteButtonJob(val id: String) {
     SPEED("speed"),
     ASPECT("aspect"),
     WATCH_PARTY("watch_party"),
+    QUALITY("quality"), // Fork hook: echo (quality menu)
     EXTERNAL("external"),
     REPORT_MARK("report_mark"),
     LEAVE("leave");

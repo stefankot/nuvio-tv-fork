@@ -101,3 +101,11 @@ APK: `app/build/outputs/apk/full/debug/app-full-arm64-v8a-debug.apk`. Gradle ma 
 - 11 Wygląd: przełączanie przez wiersz „Wygląd" nie crashuje; po przełączeniu Home zmienił układ (Netflix). Powrót do Nuvio i brak zmian dla pustego Kit: niezweryfikowane wzrokowo.
 - 12 Regresja Echo: nic z Echo jeszcze nie podpięte w odtwarzaczu.
 - Niesprawdzone: 4 (zawartość KE), 7 (trwałość modelu mowy), YouTube bez logowania.
+
+## Krok 12–13: Echo A1–A3 (16.11.2026) — KOMPILUJE SIĘ, NIEPRZETESTOWANE
+- Skopiowane 1:1 z UP/echo @ e952419: SourceSwitch, QualityFallback, AutoQuality, AutoQualityHotSwap, AutoPlayHedge, AudioMenu, QualitySelectionOverlay, AudioLanguageMenuContent, PlayerPopCard, PlaybackIntro, AutoPlayRace, AutoPlayPreferences, AudioTrackProbe, StreamAudio, PlaybackIntroState (+ zasoby intro i napisy `echo_*_strings.xml`).
+- Adaptery (`fork/echo/`): `EchoControllerState` (pola Echo jako rozszerzenia kontrolera, bez edycji PlayerRuntimeController.kt), `EchoReshapedBridge` (switchToSourceStream, StreamPlayback), `EchoRaceCandidates`, shimy (`BetaFeatures` → ForkFeatures, wszystkie klucze Echo domyślnie WYŁĄCZONE; `FileKeyframes` = stub, `NewLookNotifications` = nic nie pokazuje).
+- Hooki (R2, ~25 linii) w: PlaybackEvents, Initialization, Streams, Lifecycle, SourceFallback, PlayerScreen, PlayerViewModel; widoczność `private`→`internal` dla 2 funkcji w Streams (hot swap). PlayerUiState: dodane pola/zdarzenia Echo.
+- Dostępne: menu jakości (zadanie pilota „Quality” w Arc + przełącznik „Echo: przełączanie źródła”), Auto Quality (monitor startuje przy włączonym przełączniku), hot swap. Przełączniki w kategorii forka (wszystkie wyłączone domyślnie).
+- NIE podpięte jeszcze: A4 wyścig źródeł (StreamScreenViewModel, Streams, Initialization: armAutoPlayHedge), A5 menu audio (Tracks, Observers, nakładka audio), A6 intro (NavHost, StreamScreen, PlayerScreen, Streams). Kod tych funkcji jest w aplikacji, ale nieaktywny.
+- Testy 13–18 wymagają addonu z kilkoma źródłami (czeka na użytkownika).

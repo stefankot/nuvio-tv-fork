@@ -1080,7 +1080,7 @@ internal fun PlayerRuntimeController.switchToSourceStream(
     }
     clearChapterSkipState()
     recomputeMergedSkipIntervals()
-    showStreamSourceIndicator(stream)
+    if (!isSourceSwitching()) showStreamSourceIndicator(stream) // Fork hook: echo
     resetPostPlayOverlayState(clearEpisode = false)
 
     _exoPlayer?.let { player ->
@@ -1632,6 +1632,7 @@ internal fun PlayerRuntimeController.switchToEpisodeStream(
     autoSelection: SourceFallbackHandoff.TriedSources? = null
 ) {
     autoSourceRecovery?.cancel()
+    if (isSourceSwitching()) cancelSourceSwitch() // Fork hook: echo
     if (openExternalStreamInBrowser(stream = stream, fromEpisodePanel = true)) {
         return
     }

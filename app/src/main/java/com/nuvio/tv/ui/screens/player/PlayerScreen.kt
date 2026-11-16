@@ -375,7 +375,7 @@ fun PlayerScreen(
             returnToDetailsFromEndPrompt()
         } else if (uiState.error != null) {
             exitPlayerFromError()
-        } else if (uiState.showAudioOverlay || uiState.showSubtitleOverlay) {
+        } else if (uiState.showAudioOverlay || uiState.showSubtitleOverlay || uiState.showQualityOverlay) { // Fork hook: echo
             viewModel.onEvent(PlayerEvent.OnDismissTransientOverlay)
         } else if (uiState.showStreamInfoOverlay) {
             dismissStreamInfoOverlay()
@@ -863,7 +863,7 @@ fun PlayerScreen(
                 // When a side panel or dialog is open, let it handle all keys
                 val panelOrDialogOpen = uiState.showEpisodesPanel || uiState.showSourcesPanel || uiState.showPartyPanel ||
                         uiState.showChaptersPanel ||
-                        uiState.showAudioOverlay || uiState.showSubtitleOverlay ||
+                        uiState.showAudioOverlay || uiState.showSubtitleOverlay || uiState.showQualityOverlay || // Fork hook: echo
                         uiState.showSubtitleStylePanel || uiState.showSpeedDialog ||
                         uiState.showSubtitleDelayOverlay || uiState.showSubtitleTimingDialog ||
                         uiState.showMoreDialog ||
@@ -2148,6 +2148,20 @@ fun PlayerScreen(
                 .fillMaxSize()
                 .zIndex(2.6f)
                 .then(playerControlsDim)
+        )
+
+        QualitySelectionOverlay( // Fork hook: echo (quality menu)
+            visible = uiState.showQualityOverlay,
+            streams = uiState.sourceAllStreams,
+            currentQuality = uiState.currentStreamQuality,
+            isLoading = uiState.isLoadingSourceStreams,
+            onQualitySelected = { viewModel.onEvent(PlayerEvent.OnQualitySelected(it)) },
+            onDismiss = { viewModel.onEvent(PlayerEvent.OnDismissTransientOverlay) },
+            modifier = Modifier.fillMaxSize().zIndex(2.6f),
+            languageNotes = uiState.qualityLanguageNotes,
+            autoShown = uiState.autoQualityEnabled,
+            autoActive = uiState.autoQualityActive,
+            onAutoSelected = { viewModel.onEvent(PlayerEvent.OnAutoQualitySelected) }
         )
 
         SubtitleSelectionOverlay(

@@ -82,6 +82,7 @@ internal fun PlayerRuntimeController.tryFallbackToNextSourceAfterError(
     errorMessage: String,
     onFallbackFailure: (() -> Unit)? = null
 ): Boolean {
+    if (handleSourceSwitchFailure(errorMessage)) return true // Fork hook: echo
     if (currentStreamUrl == sourceFallbackExhaustedUrl) return false
     if (!streamAutoPlayFallbackActive || autoSwitchInternalPlayerOnErrorEnabled) return false
     if (hasRenderedFirstFrame) return false

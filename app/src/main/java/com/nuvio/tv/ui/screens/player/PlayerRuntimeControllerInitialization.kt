@@ -511,6 +511,7 @@ internal fun PlayerRuntimeController.initializePlayer(
                     .build()
             }
             val bandwidthMeter = SafeBandwidthMeter(rawBandwidthMeter, isHls)
+            playerBandwidthMeter = bandwidthMeter // Fork hook: echo
 
             val resolvedStreamMime = currentStreamMimeType ?: PlayerMediaSourceFactory.inferMimeType(
                 url = url,
@@ -1295,7 +1296,7 @@ internal fun PlayerRuntimeController.initializePlayer(
                                         message = context.getString(R.string.player_loading_buffering),
                                         detail = "overlay_reopened"
                                     )
-                                    state.copy(showLoadingOverlay = true, showControls = false, loadingMessage = context.getString(R.string.player_loading_buffering))
+                                    state.copy(showLoadingOverlay = true, showControls = state.showControls && isSourceSwitching() /* Fork hook: echo */, loadingMessage = context.getString(R.string.player_loading_buffering))
                                 } else {
                                     recordLoadingDiagnosticEvent(
                                         phase = "buffering_before_first_frame",
@@ -1396,8 +1397,11 @@ internal fun PlayerRuntimeController.initializePlayer(
                                 PlayerStartupPlaybackPolicy.ReadyAction.None -> Unit
                             }
                             tryApplyPendingResumeProgress(this@apply)
-                            _uiState.value.pendingSeekPosition?.let { position ->
+                            if (!rejectUnseekableSwitchPick(isCurrentMediaItemSeekable)) _uiState.value.pendingSeekPosition?.let { position -> // Fork hook: echo
+                                val tolerant = isSourceSwitching() // Fork hook: echo
+                                if (tolerant) setSeekParameters(SOURCE_SWITCH_SEEK_PARAMETERS) // Fork hook: echo
                                 seekTo(position)
+                                if (tolerant) setSeekParameters(androidx.media3.exoplayer.SeekParameters.DEFAULT) // Fork hook: echo
                                 if (NuvioExoPlayerPerformanceHelper.enabled) {
                                     seekBufferingUiDeferred = true
                                     seekBufferingUiJob?.cancel()
@@ -1539,6 +1543,7 @@ internal fun PlayerRuntimeController.initializePlayer(
                         cancelTunnelAvSyncWatchdog() // Nuvio RS hook: Arc formats
                         val status = error.findInvalidResponseCodeException()?.responseCode
                         val detailedError = error.toDisplayMessage(context)
+                        if (handleSourceSwitchFailure(detailedError)) return // Fork hook: echo
                         if (status in listOf(401, 403, 404, 410) && autoSourceRecovery?.failDefinitively(detailedError) == true) return
                         cancelStableProgressReset()
 
@@ -1954,6 +1959,7 @@ internal fun PlayerRuntimeController.initializePlayer(
                         totalBytesLoaded: Long,
                         bitrateEstimate: Long
                     ) {
+                        if (bitrateEstimate > 0L) lastBandwidthEstimateBps = bitrateEstimate // Fork hook: echo
                         playbackAnalyticsDiagnostics.onBandwidthEstimate(
                             eventTime = eventTime,
                             totalLoadTimeMs = totalLoadTimeMs,

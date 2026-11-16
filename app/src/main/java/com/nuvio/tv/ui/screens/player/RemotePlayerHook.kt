@@ -65,6 +65,7 @@ class RemotePlayerHook(longPressMs: Long) {
             RemoteButtonJob.INFO -> send(PlayerEvent.OnShowStreamInfo)
             RemoteButtonJob.STATS -> send(PlayerEvent.OnTogglePlayerStatsHud)
             RemoteButtonJob.WATCH_PARTY -> send(PlayerEvent.OnShowPartyPanel)
+            RemoteButtonJob.QUALITY -> send(PlayerEvent.OnShowQualityOverlay)
             else -> return false
         }
         return true

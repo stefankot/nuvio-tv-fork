@@ -6,3 +6,7 @@ app/src/main/java/com/nuvio/tv/MainActivity.kt
 app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerStreams.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerPlaybackEvents.kt
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerInitialization.kt
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerLifecycle.kt
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerSourceFallback.kt
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerViewModel.kt

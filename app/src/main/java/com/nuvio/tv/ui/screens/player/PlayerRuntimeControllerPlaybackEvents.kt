@@ -1970,9 +1970,11 @@ fun PlayerRuntimeController.onEvent(
             filterSourceStreamsByAddon(event.addonName)
         }
         is PlayerEvent.OnSourceStreamSelected -> {
+            if (isSourceSwitching()) cancelSourceSwitch() // Fork hook: echo
             switchToSourceStream(event.stream)
         }
         PlayerEvent.OnDismissTransientOverlay -> {
+            if (_uiState.value.showQualityOverlay) dismissQualityOverlay() // Fork hook: echo
             _uiState.update {
                 it.copy(
                     showAudioOverlay = false,

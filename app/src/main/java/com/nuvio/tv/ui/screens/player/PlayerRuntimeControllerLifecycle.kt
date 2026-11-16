@@ -21,6 +21,8 @@ internal fun PlayerRuntimeController.releasePlayer(
         playbackRecoveryGate.cancel(resetIdentity = flushPlaybackState)
     }
     logScrobbleDiagnostic("release_player", "flushPlaybackState=$flushPlaybackState")
+    cancelAutoQualityHotSwap("player released") // Fork hook: echo
+    if (flushPlaybackState) { cancelSourceSwitch(); cancelAutoQualityChange(byViewer = false) } // Fork hook: echo
 
     // Preserve current subtitle selection across any rebuild. When the user explicitly
     // selected a track, persistedTrackPreference was nulled and the choice lives only

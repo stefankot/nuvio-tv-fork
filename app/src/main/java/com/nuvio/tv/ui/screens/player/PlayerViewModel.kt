@@ -162,6 +162,7 @@ class PlayerViewModel @Inject constructor(
 
     init {
         controller.bindParty()
+        if (com.nuvio.tv.core.player.BetaFeatures.settings(context).autoQuality) controller.startAutoQualityMonitor() // Fork hook: echo
     }
 
     val party: com.nuvio.tv.core.party.PartyRepository
