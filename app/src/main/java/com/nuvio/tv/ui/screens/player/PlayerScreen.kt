@@ -2145,14 +2145,14 @@ fun PlayerScreen(
             },
             onNightModeChange = { viewModel.onEvent(PlayerEvent.OnSetNightMode(it)) },
             onDismiss = { viewModel.onEvent(PlayerEvent.OnDismissTransientOverlay) },
-            modifier = Modifier
-                .fillMaxSize()
-                .zIndex(2.6f)
-                .then(playerControlsDim),
             languageOptions = if (com.nuvio.tv.core.player.BetaFeatures.settings(LocalContext.current).audioLanguageMenu) uiState.audioMenuOptions.orEmpty() else null, // fork hook: echo A5
             isLoadingSources = uiState.isLoadingSourceStreams,
             onLanguageSelected = { viewModel.onEvent(PlayerEvent.OnAudioMenuLanguageSelected(it)) },
-            onLanguageSourcesRequested = { viewModel.onEvent(PlayerEvent.OnAudioMenuSourcesRequested(it)) }
+            onLanguageSourcesRequested = { viewModel.onEvent(PlayerEvent.OnAudioMenuSourcesRequested(it)) },
+            modifier = Modifier
+                .fillMaxSize()
+                .zIndex(2.6f)
+                .then(playerControlsDim)
         )
 
         QualitySelectionOverlay( // Fork hook: echo (quality menu)

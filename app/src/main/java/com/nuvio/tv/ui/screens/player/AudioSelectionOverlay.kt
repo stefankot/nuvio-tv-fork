@@ -90,12 +90,12 @@ internal fun AudioSelectionOverlay(
     onCenterMixLevelChange: (Int) -> Unit,
     onNightModeChange: (NightMode) -> Unit,
     onPersistAmplificationChange: (Boolean) -> Unit,
-    onDismiss: () -> Unit,
-    modifier: Modifier = Modifier,
     languageOptions: List<AudioMenuOption>? = null, // fork hook: echo A5
     isLoadingSources: Boolean = false,
     onLanguageSelected: (AudioMenuOption) -> Unit = {},
-    onLanguageSourcesRequested: (AudioMenuOption) -> Unit = {}
+    onLanguageSourcesRequested: (AudioMenuOption) -> Unit = {},
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val tracksFocusRequester = remember { FocusRequester() }
     val delayMinusFocusRequester = remember { FocusRequester() }
@@ -210,7 +210,9 @@ internal fun AudioSelectionOverlay(
                         onTrackSelected = onTrackSelected,
                         onLanguageSelected = onLanguageSelected,
                         onSourcesRequested = onLanguageSourcesRequested
-                    ) else AudioTracksContent(
+                    ) // fork hook: echo A5
+                    else
+                    AudioTracksContent(
                         tracks = tracks,
                         selectedIndex = selectedIndex,
                         listState = listState,

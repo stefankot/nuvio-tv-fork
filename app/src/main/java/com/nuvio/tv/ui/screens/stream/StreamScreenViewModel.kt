@@ -693,6 +693,7 @@ class StreamScreenViewModel @Inject constructor(
                 if (selectedAutoPlayStream != null && raceField != null) { // fork hook
                     com.nuvio.tv.fork.echo.EchoRaceHook.run(context, newScope, raceField, raceHeadStart, selectedAutoPlayStream, playerSettings.showPlayerLoadingStatus, { autoPlayHandledForSession }, { m -> updateUiStateIfChanged { it.copy(directAutoPlayMessage = m) } }, { w -> updateUiStateIfChanged { it.copy(autoPlayStream = w) } })
                 } else if (selectedAutoPlayStream != null) com.nuvio.tv.fork.echo.EchoRaceHook.stop(raceHeadStart) // fork hook
+                if (raceField != null) selectedAutoPlayStream = null // fork hook: wygrany z wyścigu ustawia EchoRaceHook
 
                 val currentFilter = _uiState.value.selectedAddonFilter
                 val fullFiltered = groupStreamsByProvider(if (currentFilter == null) {
@@ -725,7 +726,7 @@ class StreamScreenViewModel @Inject constructor(
                         // shouldAutoSelect=false once a target is resolved, and
                         // would otherwise clobber the real pick with null before
                         // Compose observes it.
-                        autoPlayStream = selectedAutoPlayStream?.takeIf { raceField == null } ?: it.autoPlayStream, // fork hook
+                        autoPlayStream = selectedAutoPlayStream ?: it.autoPlayStream,
                         error = null,
                         showDirectAutoPlayOverlay = if (directAutoPlayFlowEnabledForSession || it.autoPlayPlaybackInfo != null) {
                             true

@@ -96,7 +96,9 @@ fun NuvioNavHost(
         val navViewModelStoreOwner = LocalNavViewModelStoreOwner.current
             ?: checkNotNull(LocalViewModelStoreOwner.current)
         CompositionLocalProvider(LocalViewModelStoreOwner provides navViewModelStoreOwner) {
-            com.nuvio.tv.fork.ForkHooks.introWrap { PlaybackNavHost(navController, startDestination, hideBuiltInHeaders, discoverIsRoot) } // fork hook
+            com.nuvio.tv.fork.ForkHooks.introWrap { // fork hook
+            PlaybackNavHost(navController, startDestination, hideBuiltInHeaders, discoverIsRoot)
+            } // fork hook
         }
     }
 }

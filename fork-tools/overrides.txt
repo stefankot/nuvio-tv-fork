@@ -13,7 +13,6 @@ app/src/main/java/com/nuvio/tv/core/player/StreamAutoPlaySelector.kt
 app/src/main/java/com/nuvio/tv/core/player/dvmkv/MatroskaExtractor.java
 app/src/main/java/com/nuvio/tv/data/local/PlayerSettingsDataStore.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/AudioOutputRouteDetector.kt
-app/src/main/java/com/nuvio/tv/ui/screens/player/AudioSelectionOverlay.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/AutoPlaySourceFallback.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/DolbyVisionBaseLayerPolicy.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/GainAudioProcessor.kt
@@ -34,12 +33,10 @@ app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerAutomati
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerEngineFailover.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerErrorRecovery.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerExpiredLinkRefresh.kt
-app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerMpv.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerMpvEvents.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerObservers.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerStartup.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerTorrent.kt
-app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerTracks.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/StyledSubtitle.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/autosync/AutoSyncPreferences.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/autosync/AutoSyncRunPolicy.kt
@@ -56,5 +53,3 @@ app/src/main/java/com/nuvio/tv/ui/screens/settings/PlaybackSettingsModel.kt
 app/src/main/java/com/nuvio/tv/ui/screens/settings/PlaybackSettingsViewModel.kt
 app/src/main/java/com/nuvio/tv/ui/screens/settings/PlaybackSubtitleSettings.kt
 app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsCatalog.kt
-app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreen.kt
-app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt
