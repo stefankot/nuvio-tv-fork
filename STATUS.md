@@ -92,3 +92,12 @@ APK: `app/build/outputs/apk/full/debug/app-full-arm64-v8a-debug.apk`. Gradle ma 
 - Krok 9: przełączniki (Kalendarz, wyszukiwarka ustawień, pilot Arc) w kategorii forka; wyszukiwarka respektuje przełącznik.
 - Krok 10: moduł skin: `skin/api` (SkinId, SkinPreferences, Skin, SkinRegistry), pusty `KitSkin`, hooki 2–4 (Home, nakładka odtwarzacza przez `ForkHooks`), wiersz „Wygląd: Nuvio/Netflix/Mój projekt". NETFLIX włącza istniejący przełącznik Reshaped. Hook 1 (opakowanie motywu w `MainActivity`) i hook powłoki nawigacji NIE dodane (wymagają opakowania bloku; do zrobienia przy pierwszym ekranie kit). Generator tokenów w makiecie: pakiet zmieniony na `com.nuvio.tv.skin.kit.tokens` (`npm run build:tokens` OK; `check:kotlin` nie ruszył: brak bibliotek w cache Gradle). Tokeny NIE skopiowane do aplikacji.
 - check.sh OK; hand-maintained: 10 (limit 35).
+
+## Krok 11: przejście testowe (16.11.2026, fork `com.nuviodebug.com`, skrót APK OK, testy tekstowe)
+- 1 Start: OK. 2 Kategoria forka: OK (+ wiersze: test łącza, przełączniki, Wygląd). 3 Live TV: OK (wcześniej). 5 YouTube: OK po poprawce (wcześniej).
+- 8 B: wiersz „Test łącza i raport sprzętu" widoczny (informuje, gdzie jest test; sam test w Ustawienia → Advanced, niesprawdzany).
+- 9 E: wyszukiwarka otwiera się, wpisanie „sub" daje wyniki (Subtitles, Nuvio Reshaped, Playback); wybór wyniku klawiaturą NIEZWERYFIKOWANY.
+- 10 D: pozycja Calendar w menu, ekran się otwiera, pusty stan (brak klucza TMDB/biblioteki), bez crasha.
+- 11 Wygląd: przełączanie przez wiersz „Wygląd" nie crashuje; po przełączeniu Home zmienił układ (Netflix). Powrót do Nuvio i brak zmian dla pustego Kit: niezweryfikowane wzrokowo.
+- 12 Regresja Echo: nic z Echo jeszcze nie podpięte w odtwarzaczu.
+- Niesprawdzone: 4 (zawartość KE), 7 (trwałość modelu mowy), YouTube bez logowania.
