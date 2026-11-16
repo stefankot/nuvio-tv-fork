@@ -55,5 +55,6 @@ internal fun NuvioReshapedSettingsContent(
         netflixUiSettingsItems()
         liveTvSettingsItems()
         reshapedSyncSettingsItems()
+        keCatalogSettingsItems() // fork hook: KE catalog
     }
 }
