@@ -76,6 +76,7 @@ fun NuvioNavHost(
     hideBuiltInHeaders: Boolean = false,
     discoverIsRoot: Boolean = false
 ) {
+    androidx.compose.runtime.SideEffect { com.nuvio.tv.ui.screens.settings.ForkFeatures.open = { r -> navController.navigate(r) } } // fork hook
     PlaybackAvailabilityProvider {
         // The NavController keeps its back stack ViewModels in the store of the owner it is
         // composed under, so use the session store when MainActivity provides one.
@@ -1223,6 +1224,42 @@ private fun PlaybackNavHost(
                         }
                     }
                 }
+            )
+        }
+
+        composable(Screen.KeLiveTv.route) { // KE hook: Live TV
+            val openCountry by it.savedStateHandle
+                .getStateFlow<String?>("ke_live_tv_open_country", null)
+                .collectAsState()
+            com.nuvio.tv.livetv.ui.LiveTvScreen(
+                onOpenSources = { add, scan -> navController.navigate(Screen.KeLiveTvSources.createRoute(add, scan)) },
+                openCountry = openCountry,
+                onCountryOpened = { it.savedStateHandle["ke_live_tv_open_country"] = null }
+            )
+        }
+
+        composable(
+            route = Screen.KeLiveTvSources.route,
+            arguments = listOf(
+                androidx.navigation.navArgument(Screen.KeLiveTvSources.ADD_ARG) { type = androidx.navigation.NavType.BoolType; defaultValue = false },
+                androidx.navigation.navArgument(Screen.KeLiveTvSources.SCAN_ARG) { type = androidx.navigation.NavType.BoolType; defaultValue = false }
+            )
+        ) { backStackEntry ->
+            com.nuvio.tv.livetv.ui.LiveTvSourcesScreen(
+                openAdd = backStackEntry.arguments?.getBoolean(Screen.KeLiveTvSources.ADD_ARG) == true,
+                onBackPress = { navController.popBackStack() },
+                openScan = backStackEntry.arguments?.getBoolean(Screen.KeLiveTvSources.SCAN_ARG) == true,
+                onOpenLiveTv = { country ->
+                    navController.previousBackStackEntry?.savedStateHandle?.set("ke_live_tv_open_country", country.orEmpty())
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(Screen.YouTube.route) { // Nuvio One hook: YouTube
+            com.nuvio.tv.youtube.YouTubeScreen(
+                onOpenSettings = { navController.navigate(Screen.Settings.route) { launchSingleTop = true } },
+                onPlay = { v -> navController.navigate(youtubePlayerRoute(v)) }
             )
         }
 

@@ -55,5 +55,6 @@ internal fun NuvioReshapedSettingsContent(
         netflixUiSettingsItems()
         liveTvSettingsItems()
         reshapedSyncSettingsItems()
+        forkFeaturesSettingsItems() // fork hook: switches for KE / Arc / Echo / Nuvio One
     }
 }

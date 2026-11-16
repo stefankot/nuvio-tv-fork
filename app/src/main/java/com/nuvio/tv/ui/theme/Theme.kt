@@ -136,6 +136,9 @@ object NuvioTheme {
         @ReadOnlyComposable
         get() = LocalNuvioTextStyles.current
 
+    val marquee: NuvioMarqueeTokens // KE adapter
+        get() = NuvioMarquee.tokens
+
     val spacing: NuvioSpacingTokens
         get() = NuvioSpacing.tokens
 

@@ -141,6 +141,12 @@ sealed class Screen(val route: String) {
         }
     }
     data object Search : Screen("search")
+    data object KeLiveTv : Screen("ke_live_tv") // KE hook
+    data object KeLiveTvSources : Screen("ke_live_tv_sources?add={add}&scan={scan}") { // KE hook
+        const val ADD_ARG = "add"
+        const val SCAN_ARG = "scan"
+        fun createRoute(add: Boolean, scan: Boolean = false): String = "ke_live_tv_sources?add=$add&scan=$scan"
+    }
     data object Discover : Screen("discover")
     data object Library : Screen("library")
     data object Settings : Screen("settings")
