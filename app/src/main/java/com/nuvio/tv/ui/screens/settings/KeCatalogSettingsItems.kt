@@ -14,6 +14,27 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nuvio.tv.livetv.bridge.KeCatalogViewModel
 
+/** YouTube (Nuvio One) switch + open row. */
+internal fun LazyListScope.youtubeSettingsItems() {
+    item(key = "fork_youtube") {
+        val context = LocalContext.current
+        var on by remember { mutableStateOf(ForkFeatures.enabled(context, "fork_youtube")) }
+        androidx.compose.foundation.layout.Column(
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(com.nuvio.tv.ui.theme.NuvioTheme.spacing.md)
+        ) {
+            ToggleSettingsItem(
+                icon = Icons.Default.Language,
+                title = "YouTube (Nuvio One)",
+                subtitle = "Przeglądanie i odtwarzanie YouTube",
+                isChecked = on,
+                onCheckedChange = { on = it; ForkFeatures.set(context, "fork_youtube", it) },
+            )
+            if (on) NavigationSettingsItem(Icons.Default.Language, "Otwórz YouTube", "", onClick = { ForkFeatures.open?.invoke("youtube") })
+            if (on) YouTubeSettingsContent()
+        }
+    }
+}
+
 /** KE catalog switches/rows, shown in the one fork settings category. */
 internal fun LazyListScope.keCatalogSettingsItems() {
     item(key = "fork_ke_catalog") {

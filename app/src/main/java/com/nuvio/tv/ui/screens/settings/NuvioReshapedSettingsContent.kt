@@ -56,5 +56,6 @@ internal fun NuvioReshapedSettingsContent(
         liveTvSettingsItems()
         reshapedSyncSettingsItems()
         keCatalogSettingsItems() // fork hook: KE catalog
+        youtubeSettingsItems() // fork hook: Nuvio One YouTube
     }
 }

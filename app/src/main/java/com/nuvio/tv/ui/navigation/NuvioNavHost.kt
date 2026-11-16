@@ -89,6 +89,7 @@ fun NuvioNavHost(
     hideBuiltInHeaders: Boolean = false,
     discoverIsRoot: Boolean = false
 ) {
+    androidx.compose.runtime.SideEffect { com.nuvio.tv.ui.screens.settings.ForkFeatures.open = { r -> navController.navigate(r) } } // fork hook
     PlaybackAvailabilityProvider {
         // The NavController keeps its back stack ViewModels in the store of the owner it is
         // composed under, so use the session store when MainActivity provides one.
