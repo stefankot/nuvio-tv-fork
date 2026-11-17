@@ -68,6 +68,7 @@ private fun SimpleSettingsScreen(navigate: (String) -> Unit, onLevelChanged: () 
         item { Text("Ty", style = MaterialTheme.typography.titleMedium) }
         item { Button(onClick = { navigate(Screen.Account.route) }) { Text("Konto") } }
         item { Button(onClick = { navigate(Screen.ManageProfiles.route) }) { Text("Profil") } }
+        item { Button(onClick = { navigate("fork_tv_search") }) { Text("Szukaj w telewizji") } }
         item { Text("Źródła", style = MaterialTheme.typography.titleMedium) }
         item { Button(onClick = { navigate(Screen.AddonManager.route) }) { Text("Dodatki") } }
         if (actions.isNotEmpty() || toggles.isNotEmpty()) item { Text("Oglądanie, tryb nocny, telewizja", style = MaterialTheme.typography.titleMedium) }
