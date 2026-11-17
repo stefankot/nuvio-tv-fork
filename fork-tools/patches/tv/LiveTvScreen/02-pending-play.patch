@@ -1,0 +1,13 @@
+--- a
++++ b
+@@ -338,6 +338,10 @@
+         }
+     }
+     val currentLaunchPlay by rememberUpdatedState(launchPlay)
++    // Fork hook: tv - kanał poproszony z innego ekranu (kafel na Home) startuje, gdy lista kanałów jest gotowa
++    LaunchedEffect(uiState.channels) {
++        com.nuvio.tv.fork.tv.ekrany.PendingPlay.take(uiState.channels.associateBy { it.streamUrl })?.let { currentLaunchPlay(it, null) }
++    }
+ 
+     val categoryList = rememberLazyListState()
+     // Focus put on a category by the guide (Back, ◀) does not pick it: only the viewer's moves do.

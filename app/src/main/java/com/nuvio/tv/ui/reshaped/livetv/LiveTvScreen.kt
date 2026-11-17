@@ -338,6 +338,10 @@ fun LiveTvScreen(
         }
     }
     val currentLaunchPlay by rememberUpdatedState(launchPlay)
+    // Fork hook: tv - kanał poproszony z innego ekranu (kafel na Home) startuje, gdy lista kanałów jest gotowa
+    LaunchedEffect(uiState.channels) {
+        com.nuvio.tv.fork.tv.ekrany.PendingPlay.take(uiState.channels.associateBy { it.streamUrl })?.let { currentLaunchPlay(it, null) }
+    }
 
     val categoryList = rememberLazyListState()
     // Focus put on a category by the guide (Back, ◀) does not pick it: only the viewer's moves do.
@@ -506,6 +510,7 @@ fun LiveTvScreen(
                         !showSourceDialog && !showCategoryDialog && !showMenu && !showPlaylists &&
                         !naming && editingList == null,
                 )
+                com.nuvio.tv.fork.tv.ekrany.ForYouRow(launchPlay) // Fork patch: dostawca #12 - rząd „Dla Ciebie”
                 Spacer(Modifier.height(NuvioTheme.spacing.sm))
                 LaunchedEffect(gridFocused) { if (gridFocused) categoriesOpen = false }
                 Box(modifier = Modifier.fillMaxWidth().height(GUIDE_RULER + GUIDE_ROW * GUIDE_ROWS)) {

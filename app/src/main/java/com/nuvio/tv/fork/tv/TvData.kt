@@ -125,6 +125,15 @@ class TvData(
     }
 
     fun followedList(): List<Followed> = synchronized(lock) { ensureLoaded(); Following.active(followed) }
+    /** Znacznik komórki przewodnika: stan i postęp emisji o tym tytule i starcie (null = brak śladu). */
+    fun markFor(title: String, startMs: Long): Pair<WatchState, Float>? = synchronized(lock) {
+        if (!enabled) return@synchronized null
+        ensureLoaded()
+        val pk = ShowIdentity.normalizeTitle(title)
+        val r = records.values.firstOrNull { it.programKey == pk && it.startMs == startMs } ?: return@synchronized null
+        if (r.state == WatchState.UNWATCHED) null else r.state to (r.positionMs.toFloat() / r.durMs.coerceAtLeast(1)).coerceIn(0f, 1f)
+    }
+
     fun records(): List<WatchRecord> = synchronized(lock) { ensureLoaded(); records.values.toList() }
     fun episodeLog(): List<LogEntry> = synchronized(lock) { ensureLoaded(); log }
     fun sessions(): List<ViewSession> = synchronized(lock) { ensureLoaded(); sessions }

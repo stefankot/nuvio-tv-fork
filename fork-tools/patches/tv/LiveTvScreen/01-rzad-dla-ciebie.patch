@@ -1,0 +1,10 @@
+--- a
++++ b
+@@ -506,6 +506,7 @@
+                         !showSourceDialog && !showCategoryDialog && !showMenu && !showPlaylists &&
+                         !naming && editingList == null,
+                 )
++                com.nuvio.tv.fork.tv.ekrany.ForYouRow(launchPlay) // Fork patch: dostawca #12 - rząd „Dla Ciebie”
+                 Spacer(Modifier.height(NuvioTheme.spacing.sm))
+                 LaunchedEffect(gridFocused) { if (gridFocused) categoriesOpen = false }
+                 Box(modifier = Modifier.fillMaxWidth().height(GUIDE_RULER + GUIDE_ROW * GUIDE_ROWS)) {

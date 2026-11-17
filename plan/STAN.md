@@ -3,7 +3,7 @@
 ## Teraz
 
 - Bieżący blok: **B00**
-- Następne zadanie: **B03-1**
+- Następne zadanie: **B04-1**
 - Gałąź robocza: `auto/wdrozenie` (z `final`)
 - Build w tle: commit B01-6 (log /tmp/fork-build.log, status /tmp/fork-build.status)
 - Niezweryfikowane buildem commity: brak
@@ -18,6 +18,8 @@
 - Katalog `../nuvio-tv-kicia`: sklonowany (tylko odczyt)
 
 ## Dziennik (najnowsze na górze, jedna linia na zadanie)
+
+- 2026-11-17 B03: rząd Dla Ciebie (łatka LiveTvScreen), CellMark (łatka LiveTvGuide), ProgramPage (trasa fork_program/{key}), PendingPlay, ReminderToast, wiersz domowy w rejestrze; logika+testy dla filtrów/MiniGuide/z opóźnieniem. UI MiniGuide/panelu grup/odtwarzacza -> BLOKADY.
 
 - 2026-11-17 B02-3..9: EpisodeLog, WatchLog (reguły #1), ProgramTypes, Following+ChannelStats, ProgramCard+cache, ForYouQueue, TvData (pliki fork_tv), TvModule (ustawienia, akcja czyszczenia); testy JVM dla każdego. Kompilacja i testy czekają na build.
 
