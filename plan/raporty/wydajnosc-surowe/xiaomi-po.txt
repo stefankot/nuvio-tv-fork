@@ -1,0 +1,15 @@
+== po: 20xDOWN
+Total frames rendered: 181;Janky frames: 78 (43.09%);Janky frames (legacy): 150 (82.87%);50th percentile: 34ms;90th percentile: 150ms;95th percentile: 250ms;99th percentile: 450ms;Number Missed Vsync: 51;Number High input latency: 200;Number Slow UI thread: 77;Number Slow bitmap uploads: 0;Number Slow issue draw commands: 27;Number Frame deadline missed: 78;Number Frame deadline missed (legacy): 78;50th gpu percentile: 6ms;90th gpu percentile: 7ms;95th gpu percentile: 10ms;99th gpu percentile: 11ms;
+== idle 20s po wejsciu (podglad gra)
+cpu_ticks=15 w 20s => 0.8% jednego rdzenia
+== idle 20s po ~70s
+== kanal z podgladem: t=3..23s
+cpu_ticks=615 w 20s => 30.8% jednego rdzenia
+Total frames rendered: 146;Janky frames: 42 (28.77%);Janky frames (legacy): 108 (73.97%);50th percentile: 27ms;90th percentile: 81ms;95th percentile: 89ms;99th percentile: 101ms;Number Missed Vsync: 22;Number High input latency: 202;Number Slow UI thread: 41;Number Slow bitmap uploads: 0;Number Slow issue draw commands: 5;Number Frame deadline missed: 42;Number Frame deadline missed (legacy): 42;50th gpu percentile: 4ms;90th gpu percentile: 6ms;95th gpu percentile: 7ms;99th gpu percentile: 10ms;
+cpu_ticks=27 w 20s => 1.4% jednego rdzenia
+== t=75..95s (po auto-stop)
+cpu_ticks=12 w 20s => 0.6% jednego rdzenia
+== pierwszy kanal t=3..23
+cpu_ticks=1063 w 20s => 53.2% jednego rdzenia
+== t=70..90 (autostop)
+cpu_ticks=24 w 20s => 1.2% jednego rdzenia
