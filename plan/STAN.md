@@ -19,6 +19,8 @@
 
 ## Dziennik (najnowsze na górze, jedna linia na zadanie)
 
+- 2026-11-17 B11-1..4 zrobione jako raporty (plan/raporty: mowa-lokalna, glos-neuronowy, dublift, tlumaczenie-napisow); bez nowego kodu. Pełne testy JVM (test68, 3:37): zostało 11 padających testów BAZY (DolbyVision 6, Trakt 2, Http1Only, SearchViewModelSuggestions; SettingsCatalog poprawiony o NUVIO_RESHAPED). DV/Http1Only/SettingsCatalog padają przez zmiany Reshaped (DV81 konwersja, h2, nowa kategoria), nie naprawiane (cudzy kod).
+
 - 2026-11-17 emulator (APK build67, skrót OK): ekran Szukaj w telewizji (TvSearchScreen) DZIAŁA: Ustawienia→Prosty→„Szukaj w telewizji”, wpisanie „tvp” zwraca kanały (TVP1, TVP Info, TVP Sport…). Rzędy modułów na Home (hook w ClassicHomeContent i ModernHomeRowsList jako pierwszy element) NIEWIDOCZNE na Home w Modern (lista przewinięta za pierwszy rząd); dostęp tylko przez ustawienia. Dotyk (adb tap) nie aktywuje przycisków TV; używać DPAD. Buildy APK 4:48–7:01 (limit 10 min).
 
 - 2026-11-17 B09: LektorModule+SystemLektor (TTS→PCM), kompiluje; miks w procesorach dźwięku NIE wpięty. B04-4: hook ForkHooks.wantsNextSourceForAudio w PlayerRuntimeControllerTracks (brak polskiej ścieżki → następne źródło), kompiluje (build60), nieprzetestowane na urządzeniu.
