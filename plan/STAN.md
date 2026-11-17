@@ -3,7 +3,7 @@
 ## Teraz
 
 - Bieżący blok: **B00**
-- Następne zadanie: **B05–B10: skopiować z .stage/ (nieśledzony katalog) do drzewa źródeł i zbudować; potem B11**
+- Następne zadanie: **B05–B10 wdrożone w src i kompilują się (build50). Dalej: testy JVM, wpięcia B04/B07, B06a-2/3/5, B11**
 - Gałąź robocza: `auto/wdrozenie` (z `final`)
 - Build w tle: commit B01-6 (log /tmp/fork-build.log, status /tmp/fork-build.status)
 - Niezweryfikowane buildem commity: brak
@@ -18,6 +18,8 @@
 - Katalog `../nuvio-tv-kicia`: sklonowany (tylko odczyt)
 
 ## Dziennik (najnowsze na górze, jedna linia na zadanie)
+
+- 2026-11-17 B05–B10: skopiowane z .stage/ do src, apply_b07 zastosowany; compileFullDebugKotlin OK (build50). Testy JVM i wpięcia niezweryfikowane.
 
 - 2026-11-17 STOP (limit): B05/B06/B06b/B07/B08/B09/B10 napisane w `.stage/` (main, test2, res, assets, apply_b05_b06.py, apply_b07.py) i NIEWDROŻONE do src ani niezbudowane; B06a-2/3/5, B11 niezrobione. Ostatni build testów (commit z B04) przeszedł kompilację; znane padające testy bazy: DolbyVision(6), Trakt(2), Http1Only, SearchViewModelSuggestions, SettingsCatalog.
 
