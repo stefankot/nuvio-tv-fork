@@ -38,3 +38,9 @@ Lista dla właściciela. Wykonawca dopisuje tu wszystko, czego nie da się spraw
 - B05-3: Ustawienia (Prosty) → „Moduły (wszystkie ustawienia)”: lista modułów z wyłącznikami. Sprawdzone.
 - Tryb nocny: nakładka bursztynowa jest teraz nad treścią (wcześniej niewidoczna): „Tryb nocny: włączony” w Prosty → ekran lekko ciepły. NIEsprawdzone wzrokowo.
 - Rzędy modułów na ekranie głównym działają tylko w układzie Classic; w Modern ich nie ma.
+- Lektor: w odtwarzaczu z polskimi napisami powiedz „włącz lektora” (albo włącz „Włączaj automatycznie” w module Lektor): po chwili głos czyta kwestie, oryginał jest ściszany w trakcie kwestii; pierwsze włączenie pokazuje uwagę o Dolby. Ustawienia: głośność i ściszanie w module Lektor. Wymaga polskiego głosu w systemie (Ustawienia Android → mowa).
+- „Napisy nie pasują” (głosem): przełącza na następny plik napisów w tym samym języku; trzecia próba proponuje wyłączenie napisów.
+- Whisper offline: Ustawienia → moduł Sterowanie głosem → „Rozpoznawanie mowy offline (Whisper)”; wymaga pobranego modelu mowy (to samo, co synchronizacja napisów z dźwiękiem).
+- Tryb nocny: „Tryb nocny: początek/koniec” przełączają godziny harmonogramu (21/22/23 i 06/07/08).
+- Nastroje: Ustawienia (Prosty) → „Na co masz ochotę?”: wymaga klucza TMDB w `local.properties`; bez niego komunikat „Brak klucza TMDB”.
+- „Sterowanie głosem: przykłady poleceń” — lista przykładów.
