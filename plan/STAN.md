@@ -19,6 +19,8 @@
 
 ## Dziennik (najnowsze na górze, jedna linia na zadanie)
 
+- 2026-11-17 emulator (APK z B05–B07, skrót OK): start OK, wybór profilu OK, ekran Prosty (Ustawienia: Ty/Konto/Profil/Źródła/Dodatki, Oglądanie, tryb nocny, telewizja; Zawsze po polsku...) OK, bez crasha. VoiceModule dodany (nakładka nasłuchu, SpeechRecognizer pl-PL → RuleParser, wynik tylko jako komunikat; wykonanie poleceń NIE zrobione). Brak modułów: discover, lektor, picks, ai (tylko logika bez UI/rejestracji). lintVital pada w buildzie APK (błąd lint) → budować z -x lintVitalAnalyzeFullDebug -x lintVitalReportFullDebug.
+
 - 2026-11-17 testy: Discover/Voice/EpgExtraParse naprawione (genres.json, liczebniki 'dwadzieścia cztery'/'dwójce', łatka dostawca #05: odcinek w Pending). Zielone. Dalej: wpięcia B04/B07, test na emulatorze (tekstowo), B06a, B11.
 
 - 2026-11-17 testy JVM (test52): moje padające: DiscoverTest (2: kolejność wyników, koszyki 'serial kryminalny'/'soap opera'), VoiceTest (3: atrapa embeddera, szyna reguł, dopasowanie kanałów 'tvn dwadzieścia cztery'/'tvp dwójce'), EpgExtraParseTest (numer odcinka S1E2 = null). Reszta (DolbyVision 6, Trakt 2, Http1Only, SearchViewModelSuggestions, SettingsCatalog) = baza. Do naprawy w następnej kolejności.

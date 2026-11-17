@@ -31,7 +31,7 @@ import kotlinx.coroutines.runBlocking
 object VoiceModule : ForkModule {
     override val id = "voice"
     override val title = "Sterowanie głosem"
-    override val defaultEnabled = false
+    override val defaultEnabled = true
 
     override fun settings() = listOf(
         ModuleSetting("voice_key_service", SettingsLevel.ESSENTIAL, "Sterowanie głosem", "Przycisk asystenta otwiera nasłuch", "Wymaga włączenia usługi ułatwień dostępu Nuvio w systemie", defaultValue = false),
