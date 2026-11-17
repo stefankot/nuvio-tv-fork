@@ -1,3 +1,5 @@
+> AKTUALIZACJA 17.11.2026 (wieczór): bieżący stan = `STATUS.md` (sekcje „LISTA FUNKCJI” i „LISTA MODUŁÓW”) oraz `plan/STAN.md` (dziennik). Gałąź robocza `auto/wdrozenie`. Zrobione od 16.11: Echo A1–A6 podpięte i sprawdzone, bloki B00–B05 i większość B06–B09, raporty B11. Zasady pracy z buildem: osobno APK i testy (razem >10 min przez pamięć 8 GB), nowe funkcje w trakcie builda pisać do katalogu pośredniego. Testy JVM: 4223, 2 padają (Trakt, brak kluczy). Opis poniżej jest historyczny (16.11).
+
 # HANDOFF: stan prac i problemy do rozwiązania (dla innego modelu AI)
 
 Data: 16.11.2026. Wszystko lokalnie, nic nie wypchnięte do sieci.
