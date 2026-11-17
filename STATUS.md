@@ -119,3 +119,12 @@ APK: `app/build/outputs/apk/full/debug/app-full-arm64-v8a-debug.apk`. Gradle ma 
 - Test prędkości (Advanced): OK (55 ms, 395,5 Mbps). Live TV: lista kanałów OK. AutoSync napisów: OK. Wyszukiwarka: OK.
 - NIEZWERYFIKOWANE: zawartość katalogu KE, YouTube bez logowania, trwałość modelu mowy, wyścig przy następnym odcinku (hook w Streams nie dodany), Echo source fallback po błędzie dekodera (nie przełączył).
 - Uwaga: w emulatorze przypadkowo przełączono „Playback issue reports” (Advanced) i ustawiono Auto Stream Selection na „Auto-play first source”.
+
+## 17.11.2026 (2): preloading źródeł, preferencje auto-play, fallback
+- Preloading źródeł na ekranie szczegółów (`fork/echo/EchoSourcePreload.kt`, hook w `MetaDetailsScreen`, przełącznik w kategorii forka, domyślnie WŁĄCZONY): film (start/koniec po ~0,9–1,4 s) i serial S1E1 (1,5 s) OK; korzysta z istniejącego cache sesji wyszukiwania `StreamRepository`.
+- Auto-play z wyborem rozdzielczości i kodeka (wiersze „Auto-play: rozdzielczość” dowolna/4K/1080p/720p i „kodek” dowolny/AVC/HEVC, `EchoRaceHook.preferred/prefs`): sprawdzone na żywo: 720p → wybrano „Torrentio 720p”; 1080p → „1080p HDR”; 1080p+AVC → „1080p” i film gra; 4K → „4k DV|HDR”. Echo stosuje pigułki tylko w trybie regex; fork stosuje je też w trybie „first source”.
+- Zapamiętany ostatni link (funkcja Reshaped „reuse last link”) omija selektor i preferencje; to zachowanie bazy.
+- Fallback po błędzie: „Automatically try another source” (Reshaped, osobny przełącznik w kategorii Reshaped) działa przy braku startu źródła, NIE przy błędzie dekodera (MediaCodec): wtedy gracz robi 2 próby tego samego źródła i pokazuje błąd. To logika bazy, niezmieniona. Echo „następne źródło po błędzie” osobno niezweryfikowane.
+- NIE podpięte (świadomie): wyścig źródeł przy następnym odcinku (Streams.kt, kilka ścieżek wyboru).
+- Błąd pakowania APK (`packageFullDebug`) wystąpił raz; powtórka przeszła.
+- Uwaga: w emulatorze przypadkowo wyłączony i przywrócony „Echo: przełączanie źródła”; otwarty dialog „Sign out?” anulowany (konto nadal zalogowane).
