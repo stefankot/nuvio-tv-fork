@@ -3,3 +3,4 @@ app/src/full/AndroidManifest.xml
 settings.gradle.kts
 app/src/main/java/com/nuvio/tv/data/remote/api/TmdbApi.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerUiState.kt
+app/src/main/java/com/nuvio/tv/ui/screens/detail/MetaDetailsScreen.kt
