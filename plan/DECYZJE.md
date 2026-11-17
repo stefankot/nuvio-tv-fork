@@ -43,3 +43,5 @@ Wykonawca nie pyta właściciela. Korzysta z tej listy. Właściciel może zmien
 - 2026-11-17 B02: logika TV z Kicia w jednym pakiecie `com.nuvio.tv.fork.tv` (bez podpakietów rdzen/dane) — prostsze importy; jedyny import `reshaped.livetv` w `most/`.
 - 2026-11-17 B04-5: pamięć serialu = istniejące „ciągłość grupy wydania” (ReuseBingeGroup + PreferBingeGroupForNextEpisode) włączane przy zapisie odpowiedzi — nie piszemy nowego mechanizmu.
 - 2026-11-17 B04-4: decyzja o ścieżkach (AudioCheck) jest czystą logiką z testami; podpięcie do odtwarzacza nie wykonane (brak bezpiecznego publicznego wejścia mechanizmu odzyskiwania; patrz BLOKADY).
+- 2026-11-17 B10-0: Scout z Arc NIE jest przenoszony (71 plików, ok. 23 000 linii, silne sprzężenie z modelami aplikacji; patrz plan/raporty/scout.md). Budujemy własny moduł `fork/picks` według B10-1..8.
+- 2026-11-17 B06a: skórka KE (B06a-2/3/5) odłożona — zgodnie z CLAUDE.md „wygląd nie ma znaczenia teraz”; wykonane B06a-1 i raport B06a-4.

@@ -3,7 +3,7 @@
 ## Teraz
 
 - Bieżący blok: **B00**
-- Następne zadanie: **B05-1**
+- Następne zadanie: **B05–B10: skopiować z .stage/ (nieśledzony katalog) do drzewa źródeł i zbudować; potem B11**
 - Gałąź robocza: `auto/wdrozenie` (z `final`)
 - Build w tle: commit B01-6 (log /tmp/fork-build.log, status /tmp/fork-build.status)
 - Niezweryfikowane buildem commity: brak
@@ -18,6 +18,8 @@
 - Katalog `../nuvio-tv-kicia`: sklonowany (tylko odczyt)
 
 ## Dziennik (najnowsze na górze, jedna linia na zadanie)
+
+- 2026-11-17 STOP (limit): B05/B06/B06b/B07/B08/B09/B10 napisane w `.stage/` (main, test2, res, assets, apply_b05_b06.py, apply_b07.py) i NIEWDROŻONE do src ani niezbudowane; B06a-2/3/5, B11 niezrobione. Ostatni build testów (commit z B04) przeszedł kompilację; znane padające testy bazy: DolbyVision(6), Trakt(2), Http1Only, SearchViewModelSuggestions, SettingsCatalog.
 
 - 2026-11-17 B04: SourcePresets (source_presets.json + 30 przypadków testu), SourceChoice (zapis przez DataStore), SourcesModule (3 odpowiedzi + rozmiar napisów w ustawieniach), FirstRun: auto-próba źródła, AudioCheck, ReadyPick/SourceLanguage, SubtitleQueue, test kodowania. Build w tle sprawdzi.
 

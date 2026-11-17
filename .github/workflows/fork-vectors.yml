@@ -1,0 +1,35 @@
+name: Fork vectors
+
+# Paczka wektorów filmów (B06b-5): ręcznie i raz w tygodniu. Wymaga sekretu TMDB_API_KEY (nie ma go w repozytorium).
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * 1"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Test skryptu (atrapa API)
+        run: python3 scripts/fork/tests/test_build_vectors.py
+      - name: Biblioteka modelu
+        run: pip install sentence-transformers
+      - name: Budowa paczki
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+        run: |
+          if [ -z "$TMDB_API_KEY" ]; then echo "Brak sekretu TMDB_API_KEY - pomijam"; exit 0; fi
+          python3 scripts/fork/build_vectors.py --out vectors-pack.bin --limit 40000
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('vectors-pack.bin') != ''
+        with:
+          name: vectors-pack
+          path: vectors-pack.bin
