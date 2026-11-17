@@ -101,6 +101,8 @@ data class LiveTvProgramme(
     val description: String? = null,
     /** The guide's picture for it (an http link), kept like [description]. */
     val image: String? = null,
+    /** Etykieta odcinka z przewodnika (S3E168, E6009). */ // Fork patch: dostawca #6
+    val episode: String? = null,
 )
 
 enum class LiveTvSourceType { M3u, Stalker, Xtream }

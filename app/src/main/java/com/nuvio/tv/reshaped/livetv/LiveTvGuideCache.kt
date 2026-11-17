@@ -1,5 +1,6 @@
 package com.nuvio.tv.reshaped.livetv
 
+import android.util.Log // Fork patch: dostawca #11
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.File
@@ -17,7 +18,7 @@ internal object LiveTvGuideCache {
     // 5: playlist-scoped channel identities and complete guide imports. 6: no overlapping programmes.
     // 7: id matches rank over name matches. 8: a name match fills in for an id without programmes.
     // 9: a name match with the channel's own country tag wins.
-    private const val VERSION = 10
+    private const val VERSION = 11 // Fork patch: dostawca #6
     private const val MAX_TITLE = 1_000
 
     class Entry(val schedule: LiveTvSchedule, val logos: Map<String, String>, val nextReadAtMs: Long)
@@ -40,17 +41,18 @@ internal object LiveTvGuideCache {
 
     /** The saved programmes, or null when they are missing, stale or for other guides or channels. */
     fun read(file: File, key: Long, guideFiles: List<File>, nowMs: Long, maxGuideAgeMs: Long): Entry? = runCatching {
-        if (!file.isFile) return null
+        if (!file.isFile) { Log.i(LiveTvEpgTrace.TAG, "saved programmes: miss (no file)"); return null } // Fork patch: dostawca #11
         DataInputStream(GZIPInputStream(file.inputStream().buffered(), 16 * 1024)).use { input ->
-            if (input.readInt() != VERSION || input.readLong() != key) return null
+            if (input.readInt() != VERSION) { Log.i(LiveTvEpgTrace.TAG, "saved programmes: miss (format version)"); return null } // Fork patch: dostawca #11
+            if (input.readLong() != key) { Log.i(LiveTvEpgTrace.TAG, "saved programmes: miss (key: guides, channels, names or window changed)"); return null }
             val nextReadAtMs = input.readLong()
-            if (nowMs >= nextReadAtMs) return null
+            if (nowMs >= nextReadAtMs) { Log.i(LiveTvEpgTrace.TAG, "saved programmes: miss (expired or a channel ran out)"); return null } // Fork patch: dostawca #11
             val files = input.readInt()
             if (files != guideFiles.size) return null
             guideFiles.forEach { guide ->
                 val modified = input.readLong()
                 // A guide downloaded since, or due to be downloaded again, means a full read.
-                if (guide.lastModified() != modified || nowMs - modified !in 0 until maxGuideAgeMs) return null
+                if (guide.lastModified() != modified || nowMs - modified !in 0 until maxGuideAgeMs) { Log.i(LiveTvEpgTrace.TAG, "saved programmes: miss (guide file replaced or older than refresh interval)"); return null } // Fork patch: dostawca #11
             }
             val logos = HashMap<String, String>()
             repeat(input.readInt()) { logos[input.readUTF()] = input.readUTF() }
@@ -70,6 +72,7 @@ internal object LiveTvGuideCache {
                         stopEpochMs = input.readLong(),
                         description = if (input.readBoolean()) input.readShared() else null,
                         image = input.readOptional(),
+                        episode = input.readOptional(), // Fork patch: dostawca #6
                     )
                 }
             }
@@ -113,6 +116,7 @@ internal object LiveTvGuideCache {
                         programme.description?.let { out.writeInt(texts.getValue(it.take(MAX_TITLE))) }
                         // A cut link would be a broken one.
                         out.writeOptional(programme.image?.takeIf { it.length <= MAX_TITLE })
+                        out.writeOptional(programme.episode) // Fork patch: dostawca #6
                     }
                 }
             }

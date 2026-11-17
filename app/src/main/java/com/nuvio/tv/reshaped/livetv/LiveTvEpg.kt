@@ -291,10 +291,11 @@ private fun readGuide(input: InputStream, builder: LiveTvScheduleBuilder, parser
                         if (start == null || (stop != null && !builder.mayKeep(keys, start, stop))) {
                             parser.skipElement()
                         } else {
-                            val programme = parser.readProgramme(builder.wantsDetails(keys, start, stop ?: start + LAST_PROGRAMME_MS))
+                            val programme = parser.readProgramme(builder.wantsPicture(start, stop ?: start + LAST_PROGRAMME_MS)) // Fork patch: dostawca #6
                             val title = programme.title
                             if (title != null) {
-                                builder.programme(channelId, start, stop, title, programme.description, programme.image)
+                                builder.programme(channelId, start, stop, title, programme.description, programme.image, programme.episode) // Fork patch: dostawca #6
+                                if (builder.wantsDetails(keys, start, stop ?: start + LAST_PROGRAMME_MS)) programme.extra?.let { com.nuvio.tv.fork.tv.most.ForkTvHooks.onProgrammeRead(title, start, it) } // Fork patch: dostawca #7
                             }
                         }
                     }
@@ -390,11 +391,34 @@ private fun XmlPullParser.readChannel(channelId: String, builder: LiveTvSchedule
     builder.channel(channelId, names, icon)
 }
 
+private fun forkExtraOf(subTitle: String?, episode: String?, age: String?, year: Int?, country: String?, categories: List<String>, credits: List<Pair<String, String>>) = // Fork patch: dostawca #7
+    com.nuvio.tv.fork.tv.most.ProgrammeExtra(subTitle, episode, age, year, country, categories.toList(), credits.toList()).takeIf { !it.isEmpty }
+
+/** Dzieci kontenera (rating, credits): nazwa i tekst; zostawia parser na END_TAG kontenera. */
+private fun XmlPullParser.readChildTexts(): List<Pair<String, String>> {
+    val out = ArrayList<Pair<String, String>>(4)
+    var depth = 1
+    while (depth > 0) {
+        when (next()) {
+            XmlPullParser.START_TAG -> if (depth == 1) {
+                val child = name
+                val t = readText().trim()
+                if (t.isNotEmpty()) out.add(child to t)
+            } else depth++
+            XmlPullParser.END_TAG -> depth--
+            XmlPullParser.END_DOCUMENT -> return out
+        }
+    }
+    return out
+}
+
 /** What [readProgramme] takes from a programme. */
 private class ProgrammeText {
     var title: String? = null
     var description: String? = null
     var image: String? = null
+    var episode: String? = null // Fork patch: dostawca #6
+    var extra: com.nuvio.tv.fork.tv.most.ProgrammeExtra? = null // Fork patch: dostawca #7
 }
 
 /**
@@ -403,6 +427,8 @@ private class ProgrammeText {
  */
 private fun XmlPullParser.readProgramme(details: Boolean): ProgrammeText {
     val text = ProgrammeText()
+    var subTitle: String? = null; var age: String? = null; var year: Int? = null; var country: String? = null // Fork patch: dostawca #7
+    val categories = ArrayList<String>(3); val credits = ArrayList<Pair<String, String>>(10)
     var depth = 1
     while (depth > 0) {
         when (next()) {
@@ -412,6 +438,14 @@ private fun XmlPullParser.readProgramme(details: Boolean): ProgrammeText {
                     text.title = readText().trim().takeIf(String::isNotBlank)
                 details && depth == 1 && text.description == null && name.equals("desc", ignoreCase = true) ->
                     text.description = readText().trim().takeIf(String::isNotBlank)
+                details && depth == 1 && text.episode == null && name.equals("episode-num", ignoreCase = true) ->
+                    text.episode = readText().trim().takeIf { it.isNotBlank() && it.length <= 24 } // Fork patch: dostawca #6
+                details && depth == 1 && subTitle == null && name.equals("sub-title", ignoreCase = true) -> subTitle = readText().trim().takeIf(String::isNotBlank) // Fork patch: dostawca #7
+                details && depth == 1 && year == null && name.equals("date", ignoreCase = true) -> year = readText().trim().take(4).toIntOrNull()
+                details && depth == 1 && country == null && name.equals("country", ignoreCase = true) -> country = readText().trim().takeIf(String::isNotBlank)
+                details && depth == 1 && name.equals("category", ignoreCase = true) -> readText().trim().takeIf { it.isNotBlank() && categories.size < 4 }?.let { categories.add(it) }
+                details && depth == 1 && age == null && name.equals("rating", ignoreCase = true) -> age = readChildTexts().firstOrNull { it.first.equals("value", true) }?.second
+                details && depth == 1 && name.equals("credits", ignoreCase = true) -> credits.addAll(readChildTexts().take(14 - credits.size))
                 details && depth == 1 && text.image == null && name.equals("icon", ignoreCase = true) -> {
                     text.image = getAttributeValue(null, "src")?.trim()?.takeIf(String::isHttpUrl)
                     depth++
@@ -419,9 +453,10 @@ private fun XmlPullParser.readProgramme(details: Boolean): ProgrammeText {
                 else -> depth++
             }
             XmlPullParser.END_TAG -> depth--
-            XmlPullParser.END_DOCUMENT -> return text
+            XmlPullParser.END_DOCUMENT -> { text.extra = forkExtraOf(subTitle, text.episode, age, year, country, categories, credits); return text } // Fork patch: dostawca #7
         }
     }
+    text.extra = forkExtraOf(subTitle, text.episode, age, year, country, categories, credits)
     return text
 }
 
@@ -495,7 +530,7 @@ internal class LiveTvScheduleBuilder(
     /** Repeated titles (news, films shown twice) are kept once. */
     private val titles = HashMap<String, String>()
     private var channelsDone = false
-    private data class Pending(val start: Long, val title: String, val description: String?, val image: String?)
+    private data class Pending(val start: Long, val title: String, val description: String?, val image: String?, val episode: String? = null)
     /** XMLTV's optional stop is inferred from the next start of the same guide channel. */
     private val pending = HashMap<String, Pending>()
 
@@ -505,12 +540,12 @@ internal class LiveTvScheduleBuilder(
         pending.remove(channelId)
         keysFor(channelId)?.let { keys ->
             if (mayKeep(keys, previous.start, nextStart)) {
-                add(keys, previous.title, previous.start, nextStart, previous.description, previous.image)
+                add(keys, previous.title, previous.start, nextStart, previous.description, previous.image, previous.episode)
             }
         }
     }
 
-    fun programme(channelId: String, start: Long, stop: Long?, title: String, description: String? = null, image: String? = null) {
+    fun programme(channelId: String, start: Long, stop: Long?, title: String, description: String? = null, image: String? = null, episode: String? = null) {
         finishPending(channelId, start)
         val keys = keysFor(channelId) ?: return
         if (stop == null) {
@@ -626,6 +661,10 @@ internal class LiveTvScheduleBuilder(
             }
         }
 
+    /** Fork patch: dostawca #6 - obrazy i numery odcinków dla całego okna, nie tylko najbliższych godzin. */
+    fun wantsPicture(startEpochMs: Long, stopEpochMs: Long): Boolean =
+        window.detailsPerChannel > 0 && startEpochMs < nowEpochMs + window.aheadMs
+
     fun wantsDetails(startEpochMs: Long, stopEpochMs: Long): Boolean =
         window.detailsPerChannel > 0 && stopEpochMs > nowEpochMs && startEpochMs < nowEpochMs + window.detailsMs
 
@@ -675,13 +714,14 @@ internal class LiveTvScheduleBuilder(
         stopEpochMs: Long,
         description: String? = null,
         image: String? = null,
+        episode: String? = null, // Fork patch: dostawca #6
     ) {
         if (request.shiftMsByKey.isEmpty()) {
-            keys.forEach { add(it, title, startEpochMs, stopEpochMs, description, image) }
+            keys.forEach { add(it, title, startEpochMs, stopEpochMs, description, image, episode) }
         } else {
             keys.forEach { key ->
                 val shift = request.shiftMsByKey[key] ?: 0L
-                add(key, title, startEpochMs + shift, stopEpochMs + shift, description, image)
+                add(key, title, startEpochMs + shift, stopEpochMs + shift, description, image, episode)
             }
         }
     }
@@ -694,6 +734,7 @@ internal class LiveTvScheduleBuilder(
         stopEpochMs: Long,
         description: String? = null,
         image: String? = null,
+        episode: String? = null, // Fork patch: dostawca #6
     ) {
         val catchupDays = request.catchupKeys[key]
         val catchup = catchupDays != null
@@ -733,7 +774,8 @@ internal class LiveTvScheduleBuilder(
             stopEpochMs = stopEpochMs,
             // Repeats share one copy, as titles do.
             description = description?.takeIf { details }?.let(::shortDescription)?.let { titles.getOrPut(it) { it } },
-            image = image?.takeIf { details }?.let { titles.getOrPut(it) { it } },
+            image = image?.takeIf { window.detailsPerChannel > 0 }?.let { titles.getOrPut(it) { it } }, // Fork patch: dostawca #6
+            episode = episode?.let { titles.getOrPut(it) { it } },
         ))
     }
 
@@ -754,7 +796,7 @@ internal class LiveTvScheduleBuilder(
             pending.forEach { (channelId, last) ->
                 val keys = keysFor(channelId) ?: return@forEach
                 val stop = last.start + LAST_PROGRAMME_MS
-                if (mayKeep(keys, last.start, stop)) add(keys, last.title, last.start, stop, last.description, last.image)
+                if (mayKeep(keys, last.start, stop)) add(keys, last.title, last.start, stop, last.description, last.image, last.episode)
             }
         }
         pending.clear()
@@ -783,7 +825,7 @@ internal class LiveTvScheduleBuilder(
                 // A channel whose earlier programme did not fit keeps none after it.
                 if ((keep[key] ?: 0) != rank) continue
                 val programme = list.getOrNull(firstAhead.getValue(key) + rank) ?: continue
-                val size = (programme.description?.length ?: 0) + (programme.image?.length ?: 0)
+                val size = programme.description?.length ?: 0 // Fork patch: dostawca #6
                 if (budget < size) continue
                 budget -= size
                 keep[key] = rank + 1
@@ -796,13 +838,13 @@ internal class LiveTvScheduleBuilder(
             if (list.indices.none { (it < from || it >= until) && list[it].hasDetails() }) return@forEach
             entry.setValue(
                 list.mapIndexed { index, programme ->
-                    if ((index < from || index >= until) && programme.hasDetails()) programme.copy(description = null, image = null) else programme
+                    if ((index < from || index >= until) && programme.hasDetails()) programme.copy(description = null) else programme
                 },
             )
         }
     }
 
-    private fun LiveTvProgramme.hasDetails(): Boolean = description != null || image != null
+    private fun LiveTvProgramme.hasDetails(): Boolean = description != null
 }
 
 /**

@@ -16,16 +16,16 @@ Dane dostawcy właściciela (z pomiaru 7.11): lista M3U, 313 kanałów, EPG 51 M
 - [ ] **B01-2 Wczytanie w tle po starcie (#2).** `LiveTvRepository.kt`: `warmUp`, `cancelWarmUp`, stałe; wywołanie po starcie aplikacji przez rejestr (nakładka albo inicjalizacja modułu), anulowanie przy starcie odtwarzania. Urządzenia „low memory” pomijają.
   Ukończone, gdy: kompiluje się; pozycja w `DO_SPRAWDZENIA_NA_TV.md` („pierwsze wejście do TV pokazuje program od razu”).
 
-- [ ] **B01-3 Dziennik czasu EPG (#11).** Skopiuj `K/reshaped/livetv/LiveTvEpgTrace.kt` i wywołania `LiveTvEpgTrace.step/begin` oraz logi w `LiveTvGuideCache.kt`.
+- [x] **B01-3 Dziennik czasu EPG (#11).** Skopiuj `K/reshaped/livetv/LiveTvEpgTrace.kt` i wywołania `LiveTvEpgTrace.step/begin` oraz logi w `LiveTvGuideCache.kt`.
   Ukończone, gdy: kompiluje się.
 
 - [ ] **B01-4 Pierwszeństwo przewodnika dodanego przez użytkownika i uzupełnianie z drugiego przewodnika (#3, #4).** `LiveTvRepository.kt`: ranking (dodany przewodnik wygrywa), `extraLists`, funkcja `forgeEnrichProgrammes` (nazwij `enrichProgrammes`, przenieś do `J/fork/tv/most`). Testy z Kicia, jeśli istnieją, przenieś.
   Ukończone, gdy: test JVM: emisja bez obrazu dostaje obraz z drugiej listy przy tym samym tytule i starcie w granicach 10 minut.
 
-- [ ] **B01-5 Numer odcinka i obrazy dla całego okna (#6).** `LiveTvModels.kt` (pole `episode` w `LiveTvProgramme`), `LiveTvEpg.kt` (przekazywanie `episode`, `wantsPicture`, obrazy nie są obcinane), `LiveTvGuideCache.kt` (zapis i odczyt `episode`, podniesienie `VERSION` o 1 względem obecnej wartości w nowym forku).
+- [x] **B01-5 Numer odcinka i obrazy dla całego okna (#6).** `LiveTvModels.kt` (pole `episode` w `LiveTvProgramme`), `LiveTvEpg.kt` (przekazywanie `episode`, `wantsPicture`, obrazy nie są obcinane), `LiveTvGuideCache.kt` (zapis i odczyt `episode`, podniesienie `VERSION` o 1 względem obecnej wartości w nowym forku).
   Ukończone, gdy: istniejące testy `LiveTvGuideLoadingTest` i `LiveTvArchiveTest` są zielone.
 
-- [ ] **B01-6 Szczegóły z EPG (#7).** `LiveTvEpg.kt`: czytanie `sub-title`, `episode-num`, `date`, `country`, `category`, `rating`, `credits`, funkcja `readChildTexts`. Wynik przekazuj przez jedno wywołanie `ForkTvHooks.onProgrammeRead(...)` (interfejs w `J/fork/tv/most`, implementacja pusta do B02).
+- [x] **B01-6 Szczegóły z EPG (#7).** `LiveTvEpg.kt`: czytanie `sub-title`, `episode-num`, `date`, `country`, `category`, `rating`, `credits`, funkcja `readChildTexts`. Wynik przekazuj przez jedno wywołanie `ForkTvHooks.onProgrammeRead(...)` (interfejs w `J/fork/tv/most`, implementacja pusta do B02).
   Ukończone, gdy: test JVM parsera na małym pliku XMLTV z tymi polami.
 
 - [ ] **B01-7 Zakres przewodnika (#5).** Okno 7 dni wstecz i 8 naprzód oraz zachowanie starszych dni po odświeżeniu, ale według DECYZJE #6: pełne tylko poza „low memory”.

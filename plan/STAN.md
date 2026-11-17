@@ -5,7 +5,7 @@
 - Bieżący blok: **B00**
 - Następne zadanie: **B01-2**
 - Gałąź robocza: `auto/wdrozenie` (z `final`)
-- Build w tle: commit B00-4 (log /tmp/fork-build.log, status /tmp/fork-build.status)
+- Build w tle: commit B01-6 (log /tmp/fork-build.log, status /tmp/fork-build.status)
 - Niezweryfikowane buildem commity: brak
 
 ## Środowisko (uzupełnij w pierwszej turze)
@@ -18,6 +18,8 @@
 - Katalog `../nuvio-tv-kicia`: sklonowany (tylko odczyt)
 
 ## Dziennik (najnowsze na górze, jedna linia na zadanie)
+
+- 2026-11-17 B01-3/5/6: łatki dostawca (dziennik EPG, episode+obrazy, szczegóły XMLTV przez ForkTvHooks) + EpgExtraParseTest; łatki są w fork-tools/patches/dostawca/<plik>/. Pierwszy build testów padł tylko na wyścigu plików, powtórzony.
 
 - 2026-11-17 B01-1: łatka dostawca #1 (klucz sumy) + MatchingKeyTest; narzędzie fork-tools/patchstep.sh. Niezweryfikowane buildem do końca builda w tle.
 
