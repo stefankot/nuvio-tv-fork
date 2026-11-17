@@ -58,6 +58,13 @@ object ForkHooks {
     @Composable
     fun simpleSettings(navigate: (String) -> Unit): Boolean = com.nuvio.tv.fork.settings.SimpleSettingsGate(navigate)
 
+    /** PlayerRuntimeControllerTracks: po poznaniu ścieżek dźwięku (B04-4). true = brak polskiej ścieżki i profil chce polskiej: spróbuj następnego źródła. */
+    fun wantsNextSourceForAudio(c: Context, languages: List<String?>, attemptsUsed: Int, maxAttempts: Int): Boolean =
+        com.nuvio.tv.fork.sources.AudioCheck.decide(
+            wantsPolish = com.nuvio.tv.fork.sources.SourceChoice.answer(c) == "pl_always" || com.nuvio.tv.fork.sources.SourceChoice.answer(c) == "pl_if_good",
+            trackLanguages = languages, attemptsUsed = attemptsUsed, maxAttempts = maxAttempts,
+        ) == com.nuvio.tv.fork.sources.AudioCheck.Decision.TRY_NEXT
+
     // --- Rejestr modułów (B00) ---
 
     /** PlaybackNavHost: trasy włączonych modułów. */

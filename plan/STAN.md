@@ -19,6 +19,8 @@
 
 ## Dziennik (najnowsze na górze, jedna linia na zadanie)
 
+- 2026-11-17 B09: LektorModule+SystemLektor (TTS→PCM), kompiluje; miks w procesorach dźwięku NIE wpięty. B04-4: hook ForkHooks.wantsNextSourceForAudio w PlayerRuntimeControllerTracks (brak polskiej ścieżki → następne źródło), kompiluje (build60), nieprzetestowane na urządzeniu.
+
 - 2026-11-17 B08: DiscoverModule (rzędy Odkrywaj na Home z dziennika/oglądania; koszyki gatunków tylko z grupy kanału, bo LogEntry nie ma kategorii); kompiluje (build58), niezweryfikowane na urządzeniu. Brak: ekran Szukaj (TvSearchIndex), moduły lektor/picks/ai.
 
 - 2026-11-17 B07: VoiceActions (klawisze pilota: pauza/play/przewijanie/wstecz/nawigacja/kanał/odcinek + tryb nocny) podpięte do VoiceModule; kompiluje (build57), niezweryfikowane na urządzeniu (SpeechRecognizer w emulatorze zwykle niedostępny). Dalej: moduły discover/lektor/picks/ai, wpięcia B04, B06a, B11.
