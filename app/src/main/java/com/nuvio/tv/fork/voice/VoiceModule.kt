@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.navigation.compose.composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,6 +37,12 @@ object VoiceModule : ForkModule {
     override fun settings() = listOf(
         ModuleSetting("voice_whisper", SettingsLevel.ESSENTIAL, "Sterowanie głosem", "Rozpoznawanie mowy offline (Whisper)", "Wymaga pobranego modelu mowy (ustawienia napisów: model mowy); działa bez internetu", defaultValue = false),
         ModuleSetting("voice_key_service", SettingsLevel.ESSENTIAL, "Sterowanie głosem", "Przycisk asystenta otwiera nasłuch", "Wymaga włączenia usługi ułatwień dostępu Nuvio w systemie", defaultValue = false),
+    )
+
+    override fun routes() = listOf(com.nuvio.tv.fork.registry.ModuleRoute(VOICE_HELP_ROUTE) { composable(VOICE_HELP_ROUTE) { VoiceHelpScreen() } })
+
+    override fun actions() = listOf(
+        com.nuvio.tv.fork.registry.ModuleAction("Sterowanie głosem: przykłady poleceń", SettingsLevel.SIMPLE, "Lista tego, co można powiedzieć") { com.nuvio.tv.ui.screens.settings.ForkFeatures.open?.invoke(VOICE_HELP_ROUTE) },
     )
 
     private val parser = RuleParser()

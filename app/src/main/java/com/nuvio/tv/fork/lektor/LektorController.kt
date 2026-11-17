@@ -52,6 +52,8 @@ object LektorController {
                 }
             } finally { tts.shutdown() }
         }
-        return "Włączam lektora…"
+        val first = !com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(app, "lektor_dolby_note", false)
+        if (first) com.nuvio.tv.ui.screens.settings.ForkFeatures.set(app, "lektor_dolby_note", true)
+        return "Włączam lektora…" + if (first) " " + LektorRules.DOLBY_NOTE else ""
     }
 }

@@ -73,7 +73,9 @@ object ForkHooks {
     /** PlayerScreen: udostępnia stan i zdarzenia odtwarzacza modułom (napisy nie pasują, głos). */
     @Composable
     fun playerBridge(uiState: PlayerUiState, timeline: kotlinx.coroutines.flow.StateFlow<com.nuvio.tv.ui.screens.player.PlaybackTimelineState>, onEvent: (PlayerEvent) -> Unit) {
+        val ctx = androidx.compose.ui.platform.LocalContext.current
         androidx.compose.runtime.SideEffect { com.nuvio.tv.fork.sources.PlayerBridge.set(uiState, onEvent) }
+        androidx.compose.runtime.LaunchedEffect(uiState.audioTracks.size, uiState.isPlaying) { com.nuvio.tv.fork.sources.PlayerBridge.maybeAutoLektor(ctx) }
         androidx.compose.runtime.LaunchedEffect(timeline) { timeline.collect { com.nuvio.tv.fork.sources.PlayerBridge.position(it.currentPosition, uiState.isPlaying) } }
         androidx.compose.runtime.DisposableEffect(Unit) { onDispose { com.nuvio.tv.fork.sources.PlayerBridge.clear(); com.nuvio.tv.fork.lektor.LektorController.stop() } }
     }
@@ -84,6 +86,7 @@ object ForkHooks {
     fun moduleRoutes(builder: NavGraphBuilder, c: Context) {
         ForkRegistry.forContext(c).routes().forEach { it.register(builder) }
         builder.composable(com.nuvio.tv.fork.settings.MODULES_ROUTE) { com.nuvio.tv.fork.settings.ModulesScreen() }
+        builder.composable(com.nuvio.tv.fork.settings.TOOLS_ROUTE) { com.nuvio.tv.fork.settings.ToolsHubScreen() }
     }
 
     /** HomeScreen: rzędy włączonych modułów (rysuje je B03; pusta lista = bez zmian). */

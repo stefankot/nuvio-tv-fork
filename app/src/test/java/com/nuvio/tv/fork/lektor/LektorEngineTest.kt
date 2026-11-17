@@ -41,6 +41,18 @@ class LektorEngineTest {
         assertTrue("lewy $l", l > 5_000); assertEquals(l, r)
     }
 
+    @Test fun `ustawienia glosnosci i sciszania zmieniaja miks`() {
+        LektorEngine.load(listOf(cue(0, 2_000, "Test")))
+        LektorEngine.setDuckDepth(-6f)
+        val shallow = LektorEngine.gainAt(1_000)
+        LektorEngine.setDuckDepth(-14f)
+        assertTrue(LektorEngine.gainAt(1_000) < shallow)
+        LektorEngine.voiceGain = 0.5f
+        LektorEngine.voice[0] = Pcm(ShortArray(48_000) { 16_384 }, 24_000)
+        assertEquals(0.5f, LektorEngine.voiceAt(1_000), 0.001f)
+        LektorEngine.voiceGain = 1f
+    }
+
     @Test fun `wyłączony lektor nie aktywuje procesora`() {
         val p = LektorAudioProcessor()
         p.configure(AudioProcessor.AudioFormat(48_000, 2, C.ENCODING_PCM_16BIT))

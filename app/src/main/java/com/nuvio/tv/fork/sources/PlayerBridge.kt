@@ -10,9 +10,22 @@ object PlayerBridge {
     private var queue: SubtitleQueue? = null
     private var queueKey: List<String> = emptyList()
 
+    private var autoTried = false
     fun set(s: PlayerUiState, e: (PlayerEvent) -> Unit) { state = s; send = e }
+
+    /** B09-6: lektor sam, gdy profil chce polskiego, brak polskiej ścieżki dźwięku, są polskie napisy i włączono „lektor_auto”. Raz na odtwarzanie. */
+    fun maybeAutoLektor(c: android.content.Context) {
+        val s = state ?: return
+        if (autoTried || s.audioTracks.isEmpty() || !s.isPlaying) return
+        if (!com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(c, "lektor_auto", false)) return
+        autoTried = true
+        val hasPlAudio = AudioCheck.hasPolish(s.audioTracks.map { it.language })
+        val hasPlSubs = s.addonSubtitles.any { it.lang.startsWith("pl", true) || it.lang.startsWith("pol", true) }
+        val wantsPl = SourceChoice.answer(c).let { it == "pl_always" || it == "pl_if_good" }
+        if (com.nuvio.tv.fork.lektor.LektorRules.step(wantsPl, hasPlAudio, hasPlSubs, true) == com.nuvio.tv.fork.lektor.LektorRules.Step.LEKTOR) com.nuvio.tv.fork.lektor.LektorController.start(c)
+    }
     fun position(posMs: Long, playing: Boolean) = com.nuvio.tv.fork.lektor.LektorEngine.updatePosition(posMs, playing)
-    fun clear() { state = null; send = null; queue = null }
+    fun clear() { state = null; send = null; queue = null; autoTried = false }
     val active: Boolean get() = send != null
     fun send(e: PlayerEvent) { send?.invoke(e) }
     fun cues() = state?.subtitleAutoSyncCues.orEmpty()
