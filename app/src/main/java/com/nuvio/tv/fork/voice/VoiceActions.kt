@@ -16,7 +16,26 @@ object VoiceActions {
         "ep.next" to KeyEvent.KEYCODE_MEDIA_NEXT, "ep.prev" to KeyEvent.KEYCODE_MEDIA_PREVIOUS,
     )
 
+    private val routes = mapOf(
+        "home" to "home", "library" to "library", "search" to "search", "settings" to "settings", "settings.open" to "settings",
+        "tv" to com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE, "apps" to com.nuvio.tv.fork.launcher.LauncherModule.APPS_ROUTE,
+        "guide.show" to com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE, "now.list" to com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE,
+    )
+
+    @Volatile var lastMessage: String? = null
+
     fun run(context: Context, call: VoiceCommandCall): Boolean {
+        if (call.id == "subs.mismatch") {
+            val msg = com.nuvio.tv.fork.sources.PlayerBridge.subtitleMismatch() ?: return false
+            lastMessage = msg; return true
+        }
+        if (call.id == "channel.play") {
+            val url = call.params["kanal_id"] ?: return false
+            com.nuvio.tv.fork.tv.ekrany.PendingPlay.ask(url)
+            ForkFeatures.open?.invoke(com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE)
+            return true
+        }
+        routes[call.id]?.let { r -> ForkFeatures.open?.invoke(r); return true }
         keys[call.id]?.let { code ->
             val a = context as? Activity ?: return false
             a.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, code)); a.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, code))

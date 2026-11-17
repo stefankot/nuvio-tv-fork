@@ -70,6 +70,13 @@ object ForkHooks {
             trackLanguages = languages, attemptsUsed = attemptsUsed, maxAttempts = maxAttempts,
         ) == com.nuvio.tv.fork.sources.AudioCheck.Decision.TRY_NEXT
 
+    /** PlayerScreen: udostępnia stan i zdarzenia odtwarzacza modułom (napisy nie pasują, głos). */
+    @Composable
+    fun playerBridge(uiState: PlayerUiState, onEvent: (PlayerEvent) -> Unit) {
+        androidx.compose.runtime.SideEffect { com.nuvio.tv.fork.sources.PlayerBridge.set(uiState, onEvent) }
+        androidx.compose.runtime.DisposableEffect(Unit) { onDispose { com.nuvio.tv.fork.sources.PlayerBridge.clear() } }
+    }
+
     // --- Rejestr modułów (B00) ---
 
     /** PlaybackNavHost: trasy włączonych modułów. */

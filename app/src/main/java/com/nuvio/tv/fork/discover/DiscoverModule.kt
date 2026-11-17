@@ -3,6 +3,7 @@ package com.nuvio.tv.fork.discover
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -55,6 +56,15 @@ object DiscoverModule : ForkModule {
 
     override fun routes() = listOf(
         com.nuvio.tv.fork.registry.ModuleRoute("fork_tv_search") { composable("fork_tv_search") { TvSearchScreen() } },
+        com.nuvio.tv.fork.registry.ModuleRoute("fork_discover") {
+            composable("fork_discover") {
+                androidx.compose.foundation.lazy.LazyColumn(Modifier.fillMaxSize().padding(48.dp)) { item { Rows() } }
+            }
+        },
+    )
+
+    override fun actions() = listOf(
+        com.nuvio.tv.fork.registry.ModuleAction("Odkrywaj telewizję (rzędy)", com.nuvio.tv.fork.registry.SettingsLevel.SIMPLE, "Co oglądać: wznów, nowe odcinki, gatunki z archiwum") { ForkFeatures.open?.invoke("fork_discover") },
     )
 
     override fun homeRows() = listOf(ModuleHomeRow("discover_rows", "Odkrywaj", order = 60) { Rows() })

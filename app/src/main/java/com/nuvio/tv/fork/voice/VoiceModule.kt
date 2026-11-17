@@ -39,6 +39,11 @@ object VoiceModule : ForkModule {
 
     private val parser = RuleParser()
 
+    /** Kanały z Live TV (id = adres strumienia, żeby od razu poprosić o odtwarzanie). */
+    private fun channelIndex() = EntityIndex(
+        com.nuvio.tv.reshaped.livetv.LiveTvRepository.uiState.value.channels.map { Entity(it.streamUrl, listOf(it.name)) },
+    )
+
     @Composable
     private fun Overlay() {
         val c = LocalContext.current
@@ -54,10 +59,10 @@ object VoiceModule : ForkModule {
             rec.setRecognitionListener(object : RecognitionListener {
                 override fun onResults(r: Bundle?) {
                     val t = r?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull().orEmpty()
-                    val call = runBlocking { parser.parse(t, VoiceContext()) }
+                    val call = runBlocking { parser.parse(t, VoiceContext(channels = channelIndex())) }
                     Log.i("ForkVoice", "text='$t' -> ${call?.id} ${call?.params}")
                     val done = call != null && VoiceActions.run(c, call)
-                    shown = if (call != null) "„$t” → ${call.id}" + (if (done) " ✓" else "") else "Nie zrozumiałem: „$t”"
+                    shown = if (call != null) "„$t” → ${call.id}" + (if (done) " ✓" else "") + (VoiceActions.lastMessage?.let { " · $it" } ?: "") else "Nie zrozumiałem: „$t”"
                     rec.destroy()
                 }
                 override fun onError(error: Int) { Log.i("ForkVoice", "error=$error"); shown = "Błąd nasłuchu ($error)"; rec.destroy() }
