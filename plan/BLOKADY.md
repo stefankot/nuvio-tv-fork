@@ -33,3 +33,7 @@ Co może dostarczyć właściciel: sekret TMDB w ustawieniach repozytorium; decy
 Co próbowałem: PicksModule (ekran „Na co masz ochotę?”, 5 nastrojów, discover z TMDB, punktacja regułowa) działa na emulatorze do momentu zapytania; bez klucza wynik „Brak klucza TMDB”.
 Czego brakuje: `TMDB_API_KEY` w `local.properties` (w tej kopii pusty). Bez niego kalendarz Echo i nastroje nie pobiorą danych z TMDB.
 Co może dostarczyć właściciel: darmowy klucz TMDB (v3) w `NuvioFork/local.properties` jako `TMDB_API_KEY=...`.
+
+## Testy Trakt (3) — brak kluczy Trakt
+Co ustaliłem: TraktAuthServiceTest (2) i TraktProgressServiceFailureTest (czasem) padają, bo `TraktAuthService.hasRequiredCredentials()` wymaga `TRAKT_CLIENT_ID` i `TRAKT_CLIENT_SECRET` z `local.properties`, a tu są puste; kod i testy są identyczne w bazie, w Reshaped i w forku, więc to nie błąd forka ani repo, tylko brak sekretów w środowisku.
+Co może dostarczyć właściciel: klucze aplikacji Trakt (client id/secret) w `NuvioFork/local.properties`, albo zgoda, by testy uznać za zależne od środowiska.
