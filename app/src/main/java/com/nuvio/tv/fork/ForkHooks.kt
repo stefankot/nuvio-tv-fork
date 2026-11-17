@@ -5,6 +5,8 @@ import android.view.KeyEvent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.zIndex
+import androidx.compose.foundation.layout.fillMaxSize
 import com.nuvio.tv.fork.arc.RemoteGlobalHook
 import com.nuvio.tv.fork.registry.ForkRegistry
 import com.nuvio.tv.fork.registry.ModuleHomeRow
@@ -95,7 +97,8 @@ object ForkHooks {
         val c = LocalContext.current
         androidx.compose.runtime.LaunchedEffect(Unit) { com.nuvio.tv.fork.settings.FirstRunDefaults.run(c) }
         val overlays = remember(c) { ForkRegistry.forContext(c).rootOverlays() }
-        overlays.forEach { it() }
+        // Rysowane nad treścią aplikacji (wcześniej leżały pod nią, bo hook jest pierwszym elementem Box).
+        androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.fillMaxSize().zIndex(100f)) { overlays.forEach { it() } }
     }
 
     /** PlayerScreen: klawisze odtwarzacza dla modułów. true = obsłużony. */

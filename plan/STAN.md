@@ -19,6 +19,8 @@
 
 ## Dziennik (najnowsze na górze, jedna linia na zadanie)
 
+- 2026-11-17 12:27 BŁĄD NAKŁADEK NAPRAWIONY: rootOverlays modułów (tryb nocny, głos, przypomnienia, linia Gotowe) rysowały się POD treścią (hook jest pierwszym elementem Box w MainActivity). Teraz Box z zIndex(100) w ForkHooks.moduleOverlays. SPRAWDZONE na emulatorze (build74, skrót OK): na szczegółach The Matrix widać „Gotowe” (B04-6). Buildy w tej sesji: max 8:07. Emulator tylko -no-window (polecenie użytkownika).
+
 - 2026-11-17 Hook rzędów modułów w ModernHomeRowsList WYCOFANY: Modern Home mapuje indeks wiersza na indeks elementu listy, dodatkowy element przesuwa indeksy (ryzyko regresji fokusu/przewijania). Zostaje hook w ClassicHomeContent (układ Classic). Rzędy modułów w układzie Modern: do zrobienia inaczej. Smoke emulator (build70): Live TV (lista kanałów), Kalendarz (odcinki), Szukaj w TV, Moduły: OK, bez crashy.
 
 - 2026-11-17 B05-3: ekran Moduły (route fork_modules; przycisk w Prosty): lista modułów z wyłącznikiem i pozycjami; SPRAWDZONE na emulatorze (build70, skrót OK). Brak jeszcze wpięcia jako kategoria w standardowym SettingsScreen (Essential/Advanced) – dostęp tylko z ekranu Prosty. check.sh: SettingsCatalogTest bazy przywrócony (pada z powodu kategorii Reshaped; oczekiwane).
