@@ -8,10 +8,10 @@ Zasada: stan należy do programu i odcinka, nie do kanału i godziny. Pojęcia: 
 
 ## Zadania
 
-- [ ] **B02-1 Kopia logiki z Kicia.** Z `K/main/java/com/nuvio/tv/forge/tv/`: `ShowIdentity.kt`, `RecentlyViewed.kt`, `RecentChannels.kt`, `EpisodeAlerts.kt`, `ForgeEpgExtras.kt`, `ForgeReminders.kt`, `ForgeTv.kt`, `ForgeTvTmdb.kt` do `J/fork/tv` (zmiana pakietu; nazwy bez przedrostka Forge). Testy z `K/test/java/com/nuvio/tv/forge/tv/` i `ForgeEpgExtrasTest`. Brakujące wywołanie TMDB `searchMulti` dodaj do `TmdbApi` jedną metodą (`// fork-hook: tv`).
+- [x] **B02-1 Kopia logiki z Kicia.** Z `K/main/java/com/nuvio/tv/forge/tv/`: `ShowIdentity.kt`, `RecentlyViewed.kt`, `RecentChannels.kt`, `EpisodeAlerts.kt`, `ForgeEpgExtras.kt`, `ForgeReminders.kt`, `ForgeTv.kt`, `ForgeTvTmdb.kt` do `J/fork/tv` (zmiana pakietu; nazwy bez przedrostka Forge). Testy z `K/test/java/com/nuvio/tv/forge/tv/` i `ForgeEpgExtrasTest`. Brakujące wywołanie TMDB `searchMulti` dodaj do `TmdbApi` jedną metodą (`// fork-hook: tv`).
   Ukończone, gdy: przeniesione testy są zielone.
 
-- [ ] **B02-2 Most do Reshaped.** `fork/tv/most`: jedyne miejsce importujące `reshaped.livetv.*`. Implementacja `ForkTvHooks` z B01-6: `onProgrammeRead`, `onGuideRead(channels, schedule)`, `onPlay(channel, programme)`, `onPosition(channel, emisja, pozycjaMs)`. Wpięcia: `LiveTvRepository.kt` (2 linie: po odczycie przewodnika, przy starcie odtwarzania), `LiveTvPlayerOverlay.kt` (1 linia: pozycja co 10 s, na żywo i z archiwum; źródło: aktualizacje pozycji używane przez `LiveTvReplayFollow`).
+- [x] **B02-2 Most do Reshaped.** `fork/tv/most`: jedyne miejsce importujące `reshaped.livetv.*`. Implementacja `ForkTvHooks` z B01-6: `onProgrammeRead`, `onGuideRead(channels, schedule)`, `onPlay(channel, programme)`, `onPosition(channel, emisja, pozycjaMs)`. Wpięcia: `LiveTvRepository.kt` (2 linie: po odczycie przewodnika, przy starcie odtwarzania), `LiveTvPlayerOverlay.kt` (1 linia: pozycja co 10 s, na żywo i z archiwum; źródło: aktualizacje pozycji używane przez `LiveTvReplayFollow`).
   Ukończone, gdy: test JVM mostu na sztucznych kanałach; wpięcia w `WPIECIA.txt`.
 
 - [ ] **B02-3 Dziennik odcinków i indeks tytułów.** Archiwum Reshaped nie trzyma opisów, więc identyfikator odcinka zapisuj w chwili czytania EPG. Plik na profil w `files/fork_tv/`: dla każdej emisji kanałów z archiwum z ostatnich 7 dni i następnych 8: klucz programu, kanał, start, długość, identyfikator odcinka. Zwarty format, limit 200 000 wpisów, najstarsze wypadają. Służy też jako indeks do szukania (B08).

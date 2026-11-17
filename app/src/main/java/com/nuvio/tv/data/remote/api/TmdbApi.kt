@@ -269,6 +269,15 @@ interface TmdbApi {
         @Query("api_key") apiKey: String
     ): Response<TmdbAlternativeTitlesResponse>
 
+    /** Fork hook: tv. Szukanie tytułu po nazwie (programy Live TV nie mają identyfikatorów). */
+    @GET("search/multi")
+    suspend fun searchMulti(
+        @Query("query") query: String,
+        @Query("api_key") apiKey: String,
+        @Query("language") language: String? = null,
+        @Query("include_adult") includeAdult: Boolean = false,
+    ): Response<TmdbSearchMultiResponse>
+
     /** Fork hook: echo-calendar. The /tv/{id} body for the Calendar: status and the next/last episodes. */
     @GET("tv/{tv_id}")
     suspend fun getTvSchedule(
@@ -788,4 +797,23 @@ data class TmdbScheduleEpisode(
     @Json(name = "episode_type") val episodeType: String? = null,
     @Json(name = "runtime") val runtime: Int? = null,
     @Json(name = "still_path") val stillPath: String? = null
+)
+
+// Fork hook: tv
+@JsonClass(generateAdapter = true)
+data class TmdbSearchMultiResponse(
+    @Json(name = "results") val results: List<TmdbSearchMultiItem>? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class TmdbSearchMultiItem(
+    @Json(name = "id") val id: Int,
+    @Json(name = "media_type") val mediaType: String? = null,
+    @Json(name = "title") val title: String? = null,
+    @Json(name = "name") val name: String? = null,
+    @Json(name = "original_title") val originalTitle: String? = null,
+    @Json(name = "original_name") val originalName: String? = null,
+    @Json(name = "release_date") val releaseDate: String? = null,
+    @Json(name = "first_air_date") val firstAirDate: String? = null,
+    @Json(name = "popularity") val popularity: Double? = null
 )

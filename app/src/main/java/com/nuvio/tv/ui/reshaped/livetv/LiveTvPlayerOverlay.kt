@@ -669,6 +669,9 @@ internal class LiveTvPlayerState(
 
     /** The programme the title shows while a replay plays. */
     private var replayTitleProgramme: LiveTvProgramme? = null
+    /** Fork hook: tv - miejsce obrazu w czasie kanału. */
+    internal fun playheadEpochMs(): Long = playheadMs(LiveTvClock.nowEpochMs())
+
     /** Fork patch: dostawca #10 */
     internal val replayingProgramme: LiveTvProgramme? get() = replayTitleProgramme?.takeIf { isCatchup() }
     /** The replay whose end has been acted on, so it is acted on once. */
@@ -836,6 +839,14 @@ private fun BoxScope.LiveTvPlayerOverlayContent(state: LiveTvPlayerState, uiStat
     val zapList = remember(state.currentListUrl, liveState.shownChannels) { state.zapList() }
     val currentIndex = remember(state.currentListUrl, zapList) { zapList.indexOfFirst { it.streamUrl == state.currentListUrl } }
     val current = zapList.getOrNull(currentIndex)
+
+    // Fork hook: tv - pozycja co 10 s (na żywo i z archiwum)
+    LaunchedEffect(state.currentListUrl) {
+        while (state.currentListUrl != null) {
+            delay(10_000L)
+            com.nuvio.tv.fork.tv.most.TvBridge.onPosition(state.currentListUrl, state.isCatchup(), state.playheadEpochMs())
+        }
+    }
 
     // Fork patch: dostawca #10
     state.zapConfirm?.let { step ->
