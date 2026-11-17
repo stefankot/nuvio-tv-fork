@@ -5,3 +5,4 @@ app/src/main/java/com/nuvio/tv/data/remote/api/TmdbApi.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerUiState.kt
 app/src/main/java/com/nuvio/tv/ui/screens/detail/MetaDetailsScreen.kt
 app/src/main/java/com/nuvio/tv/ui/screens/home/ClassicHomeContent.kt
+app/src/main/java/com/nuvio/tv/ui/screens/home/ModernHomeRowsList.kt
