@@ -31,10 +31,10 @@ Skróty: `K` = `../nuvio-tv-kicia`, `J` = `app/src/main/java/com/nuvio/tv`.
 - [x] **B00-6 Rozszerzenie `fork-tools` o łatki.** Test kontraktowy już istnieje: `fork-tools/check.sh` z `hooks.tsv`, `overrides.txt`, `hooked-overrides.txt`. Dodaj czwartą klasę plików: „łatany” (`fork-tools/patched-overrides.txt` + pliki w `fork-tools/patches/<seria>/NN-opis.patch`). `check.sh` dla takiego pliku: po odwróceniu łatek serii i usunięciu linii z `hooks.tsv` plik musi być identyczny z Reshaped na przypiętym commicie. Pliki łatane liczą się do limitu 35. Tam, gdzie w dalszych blokach jest mowa o `plan/WPIECIA.txt` albo `scripts/fork/hooks.sh`, używaj `fork-tools/hooks.tsv` i `check.sh`.
   Ukończone, gdy: `check.sh` jest zielony, a ręczna zmiana jednej linii w pliku łatanym poza łatką go wywraca (sprawdź i przywróć).
 
-- [ ] **B00-7 Moduł „pierwsze uruchomienie”.** `J/fork/settings/FirstRunDefaults`: przy pierwszym starcie profilu ustawia przez istniejące DataStore: TMDB włączone, język TMDB i aplikacji polski, poziom Prosty (flaga modułu, używana od B05). Nie zmienia wartości, które użytkownik już zapisał. Żadnych edycji domyślnych wartości w plikach bazy.
+- [x] **B00-7 Moduł „pierwsze uruchomienie”.** `J/fork/settings/FirstRunDefaults`: przy pierwszym starcie profilu ustawia przez istniejące DataStore: TMDB włączone, język TMDB i aplikacji polski, poziom Prosty (flaga modułu, używana od B05). Nie zmienia wartości, które użytkownik już zapisał. Żadnych edycji domyślnych wartości w plikach bazy.
   Ukończone, gdy: test JVM potwierdza „nie nadpisuje zapisanych”.
 
-- [ ] **B00-8 Autoaktualizacja z forków.** Przenieś `K/scripts/forge/autoupdate.sh`, `watch-upstream.sh` i workflow `forge-autoupdate.yml` jako `scripts/fork/` i `fork-autoupdate.yml`, dostosowane do źródeł z `UPSTREAM_SOURCES.md`. Workflow tylko na ręczne uruchomienie (`workflow_dispatch`), bez harmonogramu i bez wydawania APK: otwiera gałąź `sync/auto-*` i uruchamia `fork-verify`. Nic nie scala do `main`.
+- [x] **B00-8 Autoaktualizacja z forków.** Przenieś `K/scripts/forge/autoupdate.sh`, `watch-upstream.sh` i workflow `forge-autoupdate.yml` jako `scripts/fork/` i `fork-autoupdate.yml`, dostosowane do źródeł z `UPSTREAM_SOURCES.md`. Workflow tylko na ręczne uruchomienie (`workflow_dispatch`), bez harmonogramu i bez wydawania APK: otwiera gałąź `sync/auto-*` i uruchamia `fork-verify`. Nic nie scala do `main`.
   Ukończone, gdy: skrypt przechodzi `bash -n`, workflow jest poprawnym YAML-em.
 
 ## Po bloku

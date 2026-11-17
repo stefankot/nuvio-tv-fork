@@ -65,6 +65,7 @@ object ForkHooks {
     @Composable
     fun moduleOverlays() {
         val c = LocalContext.current
+        androidx.compose.runtime.LaunchedEffect(Unit) { com.nuvio.tv.fork.settings.FirstRunDefaults.run(c) }
         val overlays = remember(c) { ForkRegistry.forContext(c).rootOverlays() }
         overlays.forEach { it() }
     }

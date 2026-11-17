@@ -1,0 +1,36 @@
+name: Fork autoupdate
+
+# Tylko ręczne uruchomienie. Otwiera gałąź sync/auto-* z nowościami z forków i uruchamia fork-verify. Niczego nie scala do main.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    outputs:
+      branch: ${{ steps.run.outputs.branch }}
+      merged: ${{ steps.run.outputs.merged }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: final
+          fetch-depth: 0
+      - id: run
+        run: bash scripts/fork/autoupdate.sh
+      - name: Wypchnij gałąź sync
+        if: steps.run.outputs.merged == 'true'
+        run: git push origin "HEAD:refs/heads/${{ steps.run.outputs.branch }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sync-report
+          path: ${{ runner.temp }}/forge-update
+  verify:
+    needs: sync
+    if: needs.sync.outputs.merged == 'true'
+    uses: ./.github/workflows/fork-verify.yml
+    with:
+      ref: ${{ needs.sync.outputs.branch }}
