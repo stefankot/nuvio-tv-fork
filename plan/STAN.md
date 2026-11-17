@@ -19,6 +19,8 @@
 
 ## Dziennik (najnowsze na górze, jedna linia na zadanie)
 
+- 2026-11-17 B07: VoiceActions (klawisze pilota: pauza/play/przewijanie/wstecz/nawigacja/kanał/odcinek + tryb nocny) podpięte do VoiceModule; kompiluje (build57), niezweryfikowane na urządzeniu (SpeechRecognizer w emulatorze zwykle niedostępny). Dalej: moduły discover/lektor/picks/ai, wpięcia B04, B06a, B11.
+
 - 2026-11-17 emulator (APK z B05–B07, skrót OK): start OK, wybór profilu OK, ekran Prosty (Ustawienia: Ty/Konto/Profil/Źródła/Dodatki, Oglądanie, tryb nocny, telewizja; Zawsze po polsku...) OK, bez crasha. VoiceModule dodany (nakładka nasłuchu, SpeechRecognizer pl-PL → RuleParser, wynik tylko jako komunikat; wykonanie poleceń NIE zrobione). Brak modułów: discover, lektor, picks, ai (tylko logika bez UI/rejestracji). lintVital pada w buildzie APK (błąd lint) → budować z -x lintVitalAnalyzeFullDebug -x lintVitalReportFullDebug.
 
 - 2026-11-17 testy: Discover/Voice/EpgExtraParse naprawione (genres.json, liczebniki 'dwadzieścia cztery'/'dwójce', łatka dostawca #05: odcinek w Pending). Zielone. Dalej: wpięcia B04/B07, test na emulatorze (tekstowo), B06a, B11.

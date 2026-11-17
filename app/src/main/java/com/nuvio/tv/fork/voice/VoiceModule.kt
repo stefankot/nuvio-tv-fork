@@ -54,7 +54,8 @@ object VoiceModule : ForkModule {
                     val t = r?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull().orEmpty()
                     val call = runBlocking { parser.parse(t, VoiceContext()) }
                     Log.i("ForkVoice", "text='$t' -> ${call?.id} ${call?.params}")
-                    shown = if (call != null) "„$t” → ${call.id}" else "Nie zrozumiałem: „$t”"
+                    val done = call != null && VoiceActions.run(c, call)
+                    shown = if (call != null) "„$t” → ${call.id}" + (if (done) " ✓" else "") else "Nie zrozumiałem: „$t”"
                     rec.destroy()
                 }
                 override fun onError(error: Int) { Log.i("ForkVoice", "error=$error"); shown = "Błąd nasłuchu ($error)"; rec.destroy() }
