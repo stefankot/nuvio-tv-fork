@@ -1,3 +1,4 @@
 app/src/main/java/com/nuvio/tv/reshaped/livetv/LiveTvEpg.kt	dostawca/LiveTvEpg
 app/src/main/java/com/nuvio/tv/reshaped/livetv/LiveTvGuideCache.kt	dostawca/LiveTvGuideCache
 app/src/main/java/com/nuvio/tv/reshaped/livetv/LiveTvModels.kt	dostawca/LiveTvModels
+app/src/main/java/com/nuvio/tv/reshaped/livetv/LiveTvRepository.kt	dostawca/LiveTvRepository

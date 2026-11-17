@@ -1,0 +1,18 @@
+--- a
++++ b
+@@ -74,11 +74,12 @@
+         private const val HOUR = 60L * 60 * 1000
+         private const val DAY = 24 * HOUR
+         val Regular = LiveTvGuideWindow(
+-            pastMs = 3 * HOUR, maxPast = 6, aheadMs = 12 * HOUR, maxAhead = 18,
+-            catchupPastMs = DAY, maxCatchupPast = 48,
++            // Fork patch: dostawca #5 - cały przewodnik: 7 dni wstecz i 8 naprzód (poza urządzeniami "low memory": LowMemory poniżej)
++            pastMs = 7 * DAY, maxPast = 400, aheadMs = 8 * DAY, maxAhead = 400,
++            catchupPastMs = 7 * DAY, maxCatchupPast = 400,
+             detailsMs = 6 * HOUR, maxDescription = 320, detailsPerChannel = 4, detailsBudgetChars = 6_000_000,
+             maxCatchupProgrammes = 300_000,
+-            maxShortAhead = 48, maxAheadProgrammes = 60_000,
++            maxShortAhead = 800, maxAheadProgrammes = 160_000,
+         )
+         val LowMemory = LiveTvGuideWindow(
+             pastMs = 2 * HOUR, maxPast = 4, aheadMs = 8 * HOUR, maxAhead = 10,

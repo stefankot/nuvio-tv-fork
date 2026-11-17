@@ -13,3 +13,6 @@ Lista dla właściciela. Wykonawca dopisuje tu wszystko, czego nie da się spraw
 ## Dopisane przez wykonawcę
 
 (numer zadania, kroki, oczekiwany wynik)
+
+## B01-2
+- Uruchom aplikację, odczekaj ok. minuty, wejdź do TV: program (przewodnik) widoczny od razu, bez długiego ładowania. (Urządzenia 'low memory' pomijają wczytanie w tle.)

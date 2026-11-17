@@ -3,7 +3,7 @@
 ## Teraz
 
 - Bieżący blok: **B00**
-- Następne zadanie: **B01-2**
+- Następne zadanie: **B01-8**
 - Gałąź robocza: `auto/wdrozenie` (z `final`)
 - Build w tle: commit B01-6 (log /tmp/fork-build.log, status /tmp/fork-build.status)
 - Niezweryfikowane buildem commity: brak
@@ -18,6 +18,10 @@
 - Katalog `../nuvio-tv-kicia`: sklonowany (tylko odczyt)
 
 ## Dziennik (najnowsze na górze, jedna linia na zadanie)
+
+- 2026-11-17 B01-7: okno 7d/8d dla Regular, LowMemory bez zmian (DECYZJE #6), zachowanie historii; GuideWindowTest.
+
+- 2026-11-17 B01-2/4: łatka repozytorium (warmUp, ranking dodanego przewodnika, extraLists+enrich), TvModule (rootOverlays → warmUp), EnrichProgrammesTest. cancelWarmUp nie podpięty do startu odtwarzania (limit 10 min); do rozważenia w B02.
 
 - 2026-11-17 B01-3/5/6: łatki dostawca (dziennik EPG, episode+obrazy, szczegóły XMLTV przez ForkTvHooks) + EpgExtraParseTest; łatki są w fork-tools/patches/dostawca/<plik>/. Pierwszy build testów padł tylko na wyścigu plików, powtórzony.
 

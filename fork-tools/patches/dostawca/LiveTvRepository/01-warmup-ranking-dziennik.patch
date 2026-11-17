@@ -1,0 +1,112 @@
+--- a
++++ b
+@@ -78,6 +78,8 @@
+     private const val IDLE_RELEASE_MS = 5L * 60 * 1000
+     /** How long a guide download or read carries on once nothing shows Live TV. */
+     private const val UNSEEN_GRACE_MS = 10_000L
++    /** Fork patch: dostawca #2 - jak długo [warmUp] może trzymać ładowanie przewodnika przed wejściem do Live TV. */
++    private const val WARM_UP_MAX_MS = 10L * 60 * 1000
+     /** Sources loaded at once on a refresh: each holds a connection and a parse buffer. */
+     private const val PARALLEL_SOURCES = 2
+     /** Channels whose older days are kept in memory once looked at; see [requestHistory]. */
+@@ -124,6 +126,8 @@
+     private var profileJob: Job? = null
+     private var idleJob: Job? = null
+     private var epgJob: Job? = null
++    private var warmUpJob: Job? = null // Fork patch: dostawca #2
++    @Volatile private var warmUpStarted = false // Fork patch: dostawca #2
+     @Volatile private var epgGeneration = 0
+     /** The guide programmes kept for each [LiveTvChannel.guideKey], for "up next" and the guide. */
+     @Volatile private var keptSchedule: LiveTvSchedule = emptyMap()
+@@ -212,6 +216,31 @@
+     }
+ 
+     /**
++     * Fork patch: dostawca #2 - ładuje kanały i przewodnik przed wejściem do Live TV (po starcie aplikacji),
++     * żeby pierwsza wizyta zastała je gotowe. Przewodnik ładuje się tylko, gdy coś obserwuje stan, więc
++     * ta funkcja obserwuje go do [WARM_UP_MAX_MS]; [cancelWarmUp] puszcza od razu. Słabe telewizory pomijają.
++     */
++    fun warmUp(context: Context, profileId: Int) {
++        val app = context.applicationContext
++        if (warmUpStarted || LiveTvDevice.isLowMemory(app)) return
++        warmUpStarted = true
++        ensureLoaded(app, profileId)
++        warmUpJob = scope.launch {
++            LiveTvEpgTrace.step("warm-up: started")
++            val ready = withTimeoutOrNull(WARM_UP_MAX_MS) {
++                _uiState.first { it.isLoaded && !it.isLoading && !it.isEpgLoading }
++            }
++            LiveTvEpgTrace.step(if (ready != null) "warm-up: ready" else "warm-up: gave up or cancelled")
++        }
++    }
++
++    /** Fork patch: dostawca #2 */
++    fun cancelWarmUp() {
++        warmUpJob?.cancel()
++        warmUpJob = null
++    }
++
++    /**
+      * Lets go of everything Live TV holds (channels, guide, loads, the zap list) once nothing
+      * has shown it for [IDLE_RELEASE_MS]: after going back to Home, only the saved files remain.
+      * The list and a Live TV channel in the player both count as showing it.
+@@ -1633,6 +1662,7 @@
+         epgGeneration++
+         epgJob?.cancel()
+         val generation = epgGeneration
++        LiveTvEpgTrace.begin("generation=$generation guides=${epgUrls.size} channels=${channels.size} guideKeys=${guideKeys.size}") // Fork patch: dostawca #11
+         val guideFiles = epgUrls.map { File(guideDir(), "guide_${Integer.toHexString(it.hashCode())}.xml.gz") }
+         val cacheFile = File(guideDir(), LiveTvGuideCache.FILE_NAME)
+         val catchupKeys = channels.mapNotNullTo(HashSet()) { channel -> channel.guideKey.takeIf { channel.catchup != null } }
+@@ -1642,6 +1672,7 @@
+         // Names (and missing logos) decide name matches and guide logos: a list that renames
+         // channels keeping their ids must not be served the matches kept for the old names.
+         val cacheKey = LiveTvGuideCache.key(epgUrls, guideKeys, window, catchupKeys) * 31 + liveTvGuideMatchingKey(channels)
++        LiveTvEpgTrace.step("cacheKey=$cacheKey urls=${epgUrls.hashCode()} keys=${guideKeys.size} matching=${liveTvGuideMatchingKey(channels)}") // Fork patch: dostawca #11
+         guideWindow = window
+         synchronized(history) { history.clear() }
+         // Which sources each guide belongs to, and how a portal's guide is fetched. Read here, on [serial].
+@@ -1737,6 +1768,7 @@
+                             val previous = schedule
+                             val previousLogos = _uiState.value.guideLogos.filterKeys { it in guideKeys }
+                             val loaded = HashMap<String, List<LiveTvProgramme>>()
++                            val extraLists = HashMap<String, MutableList<List<LiveTvProgramme>>>() // Fork patch: dostawca #4 - przewodniki, które przegrały ranking
+                             val logos = HashMap<String, String>()
+                             val truncated = HashSet<String>()
+                             val failedLinks = HashSet<String>()
+@@ -1772,6 +1804,9 @@
+                                     // an id the viewer assigned in the playlist is what shows (as in other players);
+                                     // then a channel's own playlist's guides first, in its order; then the others'.
+                                     fun rank(key: String): Int {
++                                        // Fork patch: dostawca #3 - przewodnik dodany przez użytkownika zawsze wygrywa
++                                        val added = sourcesById[sourceForKey[key]]?.epgUrl?.trim().orEmpty()
++                                        if (added.isNotEmpty() && added == epgUrl) return -1
+                                         val order = sourceLinks[sourceForKey[key]]?.indexOf(epgUrl)
+                                             ?.takeIf { it >= 0 } ?: (epgUrls.size + index)
+                                         return if (key in guide.nameMatched) NAME_MATCH_RANK + order else order
+@@ -1780,10 +1815,13 @@
+                                         val priority = rank(key)
+                                         if (priority < (scheduleRanks[key] ?: Int.MAX_VALUE)) {
+                                             scheduleRanks[key] = priority
++                                            loaded[key]?.let { extraLists.getOrPut(key) { ArrayList(2) }.add(it) } // Fork patch: dostawca #4
+                                             loaded[key] = list
+                                             val spill = guide.spill
+                                             if (guide.complete && spill != null) chosenSpills[key] = spill else chosenSpills -= key
+                                             if (key in guide.truncated) truncated += key else truncated -= key
++                                        } else {
++                                            extraLists.getOrPut(key) { ArrayList(2) }.add(list) // Fork patch: dostawca #4
+                                         }
+                                     }
+                                     guide.logos.forEach { (key, logo) ->
+@@ -1799,6 +1837,11 @@
+                                     )
+                                 })
+                                 val failed = failedLinks.isNotEmpty()
++                                // Fork patch: dostawca #4 - zwycięzca bierze brakujący obraz, odcinek i opis z tej samej emisji drugiego przewodnika
++                                if (!failed && !partial) for ((key, list) in loaded.toMap()) {
++                                    val others = extraLists[key] ?: continue
++                                    loaded[key] = com.nuvio.tv.fork.tv.most.enrichProgrammes(list, others)
++                                }
+                                 if (force && epgGeneration == generation) forceGuideDownload = false
+                                 // A guide that failed, or broke off part way, keeps what it showed before.
+                                 schedule = if ((failed || partial) && previous.isNotEmpty()) HashMap(previous).apply { putAll(loaded) } else loaded

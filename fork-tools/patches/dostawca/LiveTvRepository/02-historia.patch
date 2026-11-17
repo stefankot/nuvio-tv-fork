@@ -1,0 +1,18 @@
+--- a
++++ b
+@@ -1837,6 +1837,15 @@
+                                     )
+                                 })
+                                 val failed = failedLinks.isNotEmpty()
++                                // Fork patch: dostawca #5 - dni, których dostawca już nie podaje, zostają (7 dni wstecz): wcześniejszy odczyt trafia przed nowy
++                                if (!failed && !partial && window !== LiveTvGuideWindow.LowMemory) {
++                                    for ((key, list) in loaded.toMap()) {
++                                        val old = previous[key] ?: continue
++                                        val first = list.firstOrNull()?.startEpochMs ?: continue
++                                        val older = old.filter { it.stopEpochMs <= first && it.stopEpochMs > nowMs - window.pastMs }
++                                        if (older.isNotEmpty()) loaded[key] = older + list
++                                    }
++                                }
+                                 // Fork patch: dostawca #4 - zwycięzca bierze brakujący obraz, odcinek i opis z tej samej emisji drugiego przewodnika
+                                 if (!failed && !partial) for ((key, list) in loaded.toMap()) {
+                                     val others = extraLists[key] ?: continue
