@@ -550,9 +550,9 @@ internal class LiveTvScheduleBuilder(
         finishPending(channelId, start)
         val keys = keysFor(channelId) ?: return
         if (stop == null) {
-            pending[channelId] = Pending(start, title, description, image)
+            pending[channelId] = Pending(start, title, description, image, episode) // Fork patch: dostawca #6
         } else if (mayKeep(keys, start, stop)) {
-            add(keys, title, start, stop, description, image)
+            add(keys, title, start, stop, description, image, episode) // Fork patch: dostawca #6
         }
     }
 

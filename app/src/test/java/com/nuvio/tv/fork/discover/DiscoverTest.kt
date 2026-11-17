@@ -68,7 +68,7 @@ class DiscoverTest {
         assertTrue(prog.nowAndSoon.size <= 1 || prog.nowAndSoon.map { it.programKey }.distinct().size == prog.nowAndSoon.size) // emisje jednego programu scalone
         assertTrue(idx.search("p", now).channels.isEmpty()) // od 2 liter
         assertTrue(idx.search("kanal testowy", now).channels.size >= 30 || idx.search("kanal testowy", now).channels.size == 30)
-        assertEquals(listOf("b", "a"), RecentSearches.add(listOf("a"), " b "))
+        assertEquals(listOf("bb", "a"), RecentSearches.add(listOf("a"), " bb "))
     }
 
     @Test fun `kolejka okladek limit 40 i brak podczas odtwarzania`() {

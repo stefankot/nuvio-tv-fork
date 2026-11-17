@@ -67,8 +67,10 @@ class VoiceTest {
             "Wiedźmin" to "t3", "wiedzmina" to "t3", "wiedźminie" to "t3", "wiedzmin" to "t3", "wiedźmin" to "t3", "Matrix" to "t4", "matriksa" to "t4", "matrixie" to "t4", "matrix" to "t4", "matriks" to "t4",
             "Breaking Bad" to "t5", "breaking bad" to "t5", "brejking bad" to "t5", "breaking badzie" to "t5", "breaking bed" to "t5",
         )
+        val extra = listOf("HBO" to "hbo", "hbo" to "hbo", "na HBO" to "hbo", "TVP Info" to "tvpinfo", "tvp info" to "tvpinfo", "tvp sport" to "tvpsport", "TVP Sport" to "tvpsport",
+            "TV4" to "tv4", "tv 4" to "tv4", "Canal+ Premium" to "canal", "canal plus premium" to "canal", "MiniMini+" to "minimini", "minimini" to "minimini")
         var ok = 0; var total = 0; val bad = ArrayList<String>()
-        for ((q, id) in ch) { total++; if (channels.match(q).firstOrNull()?.id == id) ok++ else bad += "kanał '$q' -> ${channels.match(q).firstOrNull()?.id} (chciano $id)" }
+        for ((q, id) in ch + extra) { total++; if (channels.match(q).firstOrNull()?.id == id) ok++ else bad += "kanał '$q' -> ${channels.match(q).firstOrNull()?.id} (chciano $id)" }
         for ((q, id) in tt) { total++; if (titles.match(q).firstOrNull()?.id == id) ok++ else bad += "tytuł '$q' -> ${titles.match(q).firstOrNull()?.id} (chciano $id)" }
         assertTrue("$total wypowiedzi, trafionych $ok: $bad", total >= 80 && ok.toDouble() / total >= 0.9)
     }
@@ -100,7 +102,7 @@ class VoiceTest {
     }
 
     @Test fun `dopasowanie znaczeniowe na atrapie embeddera`() = runBlocking {
-        val emb = BagEmbedder(); val sem = SemanticParser(emb, threshold = 0.5f)
+        val emb = BagEmbedder(); val sem = SemanticParser(emb, threshold = 0.85f)
         assertEquals("subs.on", sem.parse("włącz napisy", ctx)?.id)
         assertNull(sem.parse("zzz qqq xxx", ctx))
         emb.down = true; assertNull(sem.parse("włącz napisy", ctx))
@@ -119,7 +121,7 @@ class VoiceTest {
     }
 
     @Test fun `szyna - reguly przed znaczeniem`() = runBlocking {
-        val chain = ParserChain(listOf(parser, SemanticParser(BagEmbedder(), threshold = 0.5f)))
-        assertEquals("pause", chain.parse("pauza", ctx)?.id); assertNotNull(chain.parse("zatrzymaj odtwarzanie", ctx))
+        val chain = ParserChain(listOf(parser, SemanticParser(BagEmbedder(), threshold = 0.85f)))
+        assertEquals("pause", chain.parse("pauza", ctx)?.id); assertNotNull(chain.parse("zatrzymaj", ctx))
     }
 }

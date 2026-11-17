@@ -13,13 +13,13 @@ object Text {
     }
 
     private val numberWords = mapOf(
-        "zero" to "0", "jeden" to "1", "jedna" to "1", "jedynka" to "1", "pierwszy" to "1", "dwa" to "2", "dwie" to "2", "dwojka" to "2", "drugi" to "2",
+        "zero" to "0", "jeden" to "1", "jedna" to "1", "jedynka" to "1", "pierwszy" to "1", "dwa" to "2", "dwie" to "2", "dwojka" to "2", "dwojce" to "2", "dwojke" to "2", "drugi" to "2",
         "trzy" to "3", "trojka" to "3", "trzeci" to "3", "cztery" to "4", "czworka" to "4", "czwarty" to "4", "piec" to "5", "piatka" to "5", "piaty" to "5",
         "szesc" to "6", "siedem" to "7", "osiem" to "8", "dziewiec" to "9", "dziesiec" to "10",
     )
 
     /** Zamienia liczebniki słowne na cyfry ("tvp jeden" → "tvp 1"). */
-    fun digits(norm: String): String = norm.split(' ').joinToString(" ") { numberWords[it] ?: it }
+    fun digits(norm: String): String = norm.replace("dwadziescia cztery", "24").split(' ').joinToString(" ") { numberWords[it] ?: it }
 
     /** Końcówka fleksyjna odcięta od słów ≥ 5 liter ("polsacie" → "polsac" ~ "polsat"). */
     fun stem(token: String): String {
