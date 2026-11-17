@@ -44,8 +44,10 @@ object VoiceModule : ForkModule {
         val c = LocalContext.current
         val count by VoiceTrigger.count.collectAsState()
         var shown by remember { mutableStateOf("") }
+        val permission = androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { }
         LaunchedEffect(count) {
             if (count == 0) return@LaunchedEffect
+            if (androidx.core.content.ContextCompat.checkSelfPermission(c, android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED) { shown = "Zezwól na mikrofon i powtórz polecenie"; permission.launch(android.Manifest.permission.RECORD_AUDIO); return@LaunchedEffect }
             if (!SpeechRecognizer.isRecognitionAvailable(c)) { shown = "Brak rozpoznawania mowy w systemie"; return@LaunchedEffect }
             shown = "Słucham…"
             val rec = SpeechRecognizer.createSpeechRecognizer(c)
