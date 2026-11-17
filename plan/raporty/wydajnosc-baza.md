@@ -7,7 +7,7 @@ Urządzenie: Xiaomi TV Box 3rd gen `MiTV-AFMU0` (Android 14, armeabi-v7a, 2 GB R
 |---|---|
 | 20 × ▼ po liście/siatce Live TV (co 150 ms) | 179 klatek, **47% zacinających się** (84), p50 40 ms, p90 200 ms, p95 250 ms, p99 350 ms; pominięte vsync 59; „slow UI thread” 84; „high input latency” 190 |
 | 20 × ▶ w przewodniku (co 150 ms) | 37 klatek, 11% zacinających się (4), p50 11 ms, p90 200 ms, p99 250 ms; „high input latency” 34 |
-| Start kanału z listy (OK) | `startInitialPlayback` +0,3 s po klawiszu; ExoPlayer Init +0,9 s; dekoder wideo (c2.amlogic.avc) utworzony +1,4 s; czas do pierwszej klatki: dodano znacznik `ForkPerf` (patrz niżej), pomiar w następnym buildzie |
+| Start kanału (OK na liście, potem 7 × ▼ w odtwarzaczu co 7 s) | `ForkPerf first_play start_to_play_ms` = 608 / 707 / 629 / 691 / 550 / 605 / 643 ms (adres strumienia → odtwarzanie; do tego ok. 0,3 s od klawisza do `startInitialPlayback`); host 12.hls.gd; **kanały startują szybko, bez opóźnienia ponad 1 s** |
 | Bezczynność Live TV 30 s | 2 klatki/30 s, CPU aplikacji 0% (OK; w przeciwieństwie do Kicii WY-406) |
 | Home (Modern): 20 × ▼ (co 150 ms) | 229 klatek, **47% zacinających się** (108), p50 38 ms, p90 150 ms, p99 300 ms; „slow UI thread” 107; GPU p50/p90/p99 = 8/10/14 ms, więc wąskie gardło to wątek UI/CPU, nie GPU |
 | Pamięć | PSS 260-330 MB, wolne ok. 150 MB (RAM) przy 545 MB swapu |
