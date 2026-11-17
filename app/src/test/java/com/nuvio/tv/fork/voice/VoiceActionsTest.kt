@@ -27,6 +27,11 @@ class VoiceActionsTest {
         assertEquals(listOf("home", LIVE_TV_ROUTE, "settings", "fork_apps"), opened)
     }
 
+    @Test fun `gatunki i nastroje otwieraja Odkrywaj i nastroje`() {
+        listOf("genre.show", "archive.movies", "mood.light", "mood.gems").forEach { assertTrue(VoiceActions.run(ctx, VoiceCommandCall(it))) }
+        assertEquals(listOf("fork_discover", "fork_discover", "fork_picks", "fork_picks"), opened)
+    }
+
     @Test fun `kanal prosi o odtwarzanie i otwiera Live TV`() {
         assertTrue(VoiceActions.run(ctx, VoiceCommandCall("channel.play", mapOf("kanal_id" to "http://x/stream"))))
         assertEquals(listOf(LIVE_TV_ROUTE), opened)

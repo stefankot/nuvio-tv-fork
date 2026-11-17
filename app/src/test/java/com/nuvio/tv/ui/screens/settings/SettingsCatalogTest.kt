@@ -23,6 +23,7 @@ class SettingsCatalogTest {
                 SettingsCategory.LAYOUT,
                 SettingsCategory.CONTENT_DISCOVERY,
                 SettingsCategory.PLAYBACK,
+                SettingsCategory.NUVIO_RESHAPED,
                 SettingsCategory.INTEGRATION,
                 SettingsCategory.TRACKING,
                 SettingsCategory.ADVANCED,
@@ -50,6 +51,14 @@ class SettingsCatalogTest {
     fun `debug is hidden in release builds and in essential mode`() {
         assertFalse(SettingsCategory.DEBUG in visibleSettingsCategories(true, isEssentialMode = false, isDebugBuild = false))
         assertFalse(SettingsCategory.DEBUG in visibleSettingsCategories(true, isEssentialMode = true, isDebugBuild = true))
+    }
+
+    @Test
+    fun `reshaped settings remain reachable for every profile mode and build`() {
+        allCombinations().forEach { categories ->
+            assertTrue(SettingsCategory.NUVIO_RESHAPED in categories)
+            assertEquals(SettingsRailGroup.WATCH, SettingsCategory.NUVIO_RESHAPED.group)
+        }
     }
 
     @Test

@@ -19,12 +19,20 @@ object VoiceActions {
     private val routes = mapOf(
         "home" to "home", "library" to "library", "search" to "search", "settings" to "settings", "settings.open" to "settings",
         "tv" to com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE, "apps" to com.nuvio.tv.fork.launcher.LauncherModule.APPS_ROUTE,
+        "genre.show" to "fork_discover", "archive.movies" to "fork_discover", "now.kind" to "fork_discover", "followed.news" to "fork_discover", "continue" to "fork_discover",
+        "mood.light" to "fork_picks", "mood.heavy" to "fork_picks", "mood.gems" to "fork_picks",
         "guide.show" to com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE, "now.list" to com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE,
     )
 
     @Volatile var lastMessage: String? = null
+    private val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.IO)
 
     fun run(context: Context, call: VoiceCommandCall): Boolean {
+        if (call.id == "subs.bigger" || call.id == "subs.smaller") {
+            val size = if (call.id == "subs.bigger") com.nuvio.tv.fork.sources.SubtitleSizeChoice.LARGE else com.nuvio.tv.fork.sources.SubtitleSizeChoice.SMALL
+            scope.launch { com.nuvio.tv.fork.sources.SourceChoice.applySubtitleSize(context, size) }
+            lastMessage = "Napisy: " + size.title.lowercase(); return true
+        }
         if (call.id == "subs.mismatch") {
             val msg = com.nuvio.tv.fork.sources.PlayerBridge.subtitleMismatch() ?: return false
             lastMessage = msg; return true
