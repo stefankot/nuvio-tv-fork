@@ -97,7 +97,7 @@ class SearchViewModel @Inject constructor(
     private var lastCompletedRequestKey: String? = null
     private var hasRenderedFirstCatalog = false
     private var pendingCatalogResponses = 0
-    private var lastNonEmptyQuery: String = ""
+    private var pendingEmptyQueryJob: Job? = null
     private var revealBatchAfterNextDiscoverFetch = false
     private var hideUnreleasedContent = false
 
@@ -259,20 +259,24 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun onQueryChanged(query: String) {
-        // Skip if query is exactly the same (no change at all)
-        if (query == _uiState.value.query) {
+        pendingEmptyQueryJob?.cancel()
+        pendingEmptyQueryJob = null
+        if (query == _uiState.value.query) return
+        if (query.isEmpty() && _uiState.value.query.isNotEmpty()) {
+            // Focus recomposition can emit empty then restore the text on the next frame.
+            // Keep the current results for two frames, then honor a real clear/backspace.
+            // A restored query cancels this job before anything visible is cleared or fetched.
+            pendingEmptyQueryJob = viewModelScope.launch {
+                delay(32L)
+                applyQueryChanged(query)
+            }
             return
         }
-        
-        // Detect if this is a recomposition artifact: transitioning to empty from the current
-        // non-empty query. This happens when focus changes and Compose recomposes the text field.
-        val isRecompositionArtifact = query.isEmpty() && query != _uiState.value.query && _uiState.value.query == lastNonEmptyQuery
-        
-        // Track non-empty queries for recomposition detection
-        if (query.isNotEmpty()) {
-            lastNonEmptyQuery = query
-        }
+        applyQueryChanged(query)
+    }
 
+    private fun applyQueryChanged(query: String) {
+        if (query == _uiState.value.query) return
         _uiState.update {
             val trimmedInput = query.trim()
             // Narrow the strip to what still matches before anything is fetched, so a letter
@@ -288,18 +292,8 @@ class SearchViewModel @Inject constructor(
                 // Keep whatever is on screen while a keystroke waits to run. Clearing here flashed
                 // the no-results state on every letter, because on a remote each letter outlasts the
                 // debounce. The screen renders skeleton rows for this window instead.
-                // For recomposition artifacts (empty query during focus change), preserve catalogRows.
-                catalogRows = when {
-                    isRecompositionArtifact -> it.catalogRows
-                    trimmedInput.length < MIN_SEARCH_QUERY_LENGTH -> emptyList()
-                    else -> it.catalogRows
-                }
+                catalogRows = if (trimmedInput.length < MIN_SEARCH_QUERY_LENGTH) emptyList() else it.catalogRows
             )
-        }
-
-        // Skip fetches for recomposition artifacts to avoid unnecessary network calls
-        if (isRecompositionArtifact) {
-            return
         }
 
         // Drop in-flight requests for the previous keystroke before scheduling the next run.
