@@ -30,6 +30,7 @@ object TvModule : ForkModule {
     override fun rootOverlays(): List<@androidx.compose.runtime.Composable () -> Unit> = listOf({
         val c: Context = LocalContext.current
         LaunchedEffect(Unit) {
+            com.nuvio.tv.fork.tv.logo.ForkLogoPrefs.load(c)
             val pid = EntryPointAccessors.fromApplication(c.applicationContext, Deps::class.java).profiles().activeProfileId.value
             LiveTvRepository.warmUp(c, pid)
         }

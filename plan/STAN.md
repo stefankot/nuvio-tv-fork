@@ -3,7 +3,7 @@
 ## Teraz
 
 - Bieżący blok: **B00**
-- Następne zadanie: **B01-11**
+- Następne zadanie: **B02-1**
 - Gałąź robocza: `auto/wdrozenie` (z `final`)
 - Build w tle: commit B01-6 (log /tmp/fork-build.log, status /tmp/fork-build.status)
 - Niezweryfikowane buildem commity: brak
@@ -18,6 +18,8 @@
 - Katalog `../nuvio-tv-kicia`: sklonowany (tylko odczyt)
 
 ## Dziennik (najnowsze na górze, jedna linia na zadanie)
+
+- 2026-11-17 B01-11: pola EPG/logo w stronie konfiguracji (łatka), Coverage (logika+test); komunikat i lista „bez programu” w UI odłożone do B03 (brak ekranu).
 
 - 2026-11-17 B01-8/9/10: klawisze+potwierdzenie zap (ForkZapConfirm), logo (fork/tv/logo + 3 testy z Kicia), drugi przewodnik (assets/fork/epg_sources.json, EpgSources, ExtraGuides + test). Nadpisanie JSON z repozytorium: tylko lokalny plik filesDir/fork/epg_sources.json (pobieranie przez PackStore odłożone).
 

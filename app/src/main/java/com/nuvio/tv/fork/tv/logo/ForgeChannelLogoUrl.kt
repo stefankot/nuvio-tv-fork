@@ -61,6 +61,19 @@ internal fun rememberForgeLogoVersion(): Int {
 object ForkLogoPrefs {
     @Volatile var mode: Int = 1
     @Volatile var pattern: String = ""
+    /** Wczytuje zapisane ustawienia (prefs fork_features). */
+    fun load(c: android.content.Context) {
+        mode = com.nuvio.tv.ui.screens.settings.ForkFeatures.str(c, "tv_logo_mode", "1").toIntOrNull() ?: 1
+        pattern = com.nuvio.tv.ui.screens.settings.ForkFeatures.str(c, "tv_logo_pattern", "")
+    }
+
+    /** Własny adres logo ({name} = nazwa kanału) wprowadzony np. ze strony na telefonie; tryb 3. */
+    fun setPattern(c: android.content.Context, p: String) {
+        com.nuvio.tv.ui.screens.settings.ForkFeatures.setStr(c, "tv_logo_pattern", p)
+        com.nuvio.tv.ui.screens.settings.ForkFeatures.setStr(c, "tv_logo_mode", "3")
+        load(c)
+    }
+
     /** Wyłącznik modułu: wyłączony = logo jak w Reshaped. */
     @Volatile var enabled: Boolean = true
 

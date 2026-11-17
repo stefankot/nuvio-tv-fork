@@ -52,25 +52,33 @@ internal class LiveTvSetupServer(
         val fields = runCatching { JSONObject(body) }.getOrNull()
             ?: return json(Response.Status.BAD_REQUEST, """{"error":"invalid"}""")
         fun field(name: String) = fields.optString(name).trim()
+        // Fork patch: dostawca #9 - strona na telefonie przyjmuje też adres EPG i paczki logo (opcjonalnie)
+        val epg = field("epg")
+        if (epg.isNotEmpty() && !epg.isHttpUrl()) return json(Response.Status.BAD_REQUEST, """{"error":"invalid"}""")
+        val logo = field("logo")
+        if (logo.isNotEmpty()) {
+            if (!logo.startsWith("http")) return json(Response.Status.BAD_REQUEST, """{"error":"invalid"}""")
+            com.nuvio.tv.fork.tv.logo.ForkLogoPrefs.setPattern(context.applicationContext, logo)
+        }
         when (field("type")) {
             "m3u" -> {
                 val url = field("url")
                 if (!url.isHttpUrl()) return json(Response.Status.BAD_REQUEST, """{"error":"invalid"}""")
-                LiveTvRepository.loadM3uUrl(url)
+                LiveTvRepository.loadM3uUrl(url, epgUrl = epg)
             }
             "xtream" -> {
                 val settings = LiveTvXtreamSettings(field("server"), field("username"), field("password")).normalized()
                 if (!settings.isConfigured || !settings.serverUrl.isHttpUrl()) {
                     return json(Response.Status.BAD_REQUEST, """{"error":"invalid"}""")
                 }
-                LiveTvRepository.loadXtream(settings)
+                LiveTvRepository.loadXtream(settings, epgUrl = epg)
             }
             "stalker" -> {
                 val settings = LiveTvStalkerSettings(field("portal"), field("mac"), field("username"), field("password")).normalized()
                 if (!settings.isConfigured || !settings.portalUrl.isHttpUrl()) {
                     return json(Response.Status.BAD_REQUEST, """{"error":"invalid"}""")
                 }
-                LiveTvRepository.loadStalker(settings)
+                LiveTvRepository.loadStalker(settings, epgUrl = epg)
             }
             else -> return json(Response.Status.BAD_REQUEST, """{"error":"invalid"}""")
         }
@@ -258,6 +266,10 @@ font-size:15px;font-weight:600;cursor:pointer}
     <label for="su">$optUserHint</label><input id="su" autocapitalize="off">
     <label for="sw">$optPassHint</label><input id="sw" type="password">
   </div>
+  <details><summary>Zaawansowane</summary>
+  <label for="epg">Adres EPG (XMLTV, opcjonalnie), np. https://epg.ovh/pl.gz</label><input id="epg" type="url" autocapitalize="off" placeholder="https://">
+  <label for="logo">Paczka logo (opcjonalnie): adres z {name} w miejscu nazwy kanału</label><input id="logo" type="url" autocapitalize="off" placeholder="https://epg.ovh/logo/{name}.png">
+  </details>
   <button class="send" id="send">$send</button>
   <div id="status" class="status"></div>
 </div>
@@ -274,10 +286,10 @@ btn.onclick=async()=>{let res;btn.disabled=true;msg('$sending',true);
 try{if(tab==='m3u'){const f=document.getElementById('file').files[0];
 if(f){if(f.size>$maxBytes){msg('$tooLarge',false);return}
 res=await post('$playlistApi?name='+encodeURIComponent(f.name),f,'application/octet-stream')}
-else if(v('url')){res=await post('$sourceApi',JSON.stringify({type:'m3u',url:v('url')}),'application/json')}
+else if(v('url')){res=await post('$sourceApi',JSON.stringify({type:'m3u',url:v('url'),epg:v('epg'),logo:v('logo')}),'application/json')}
 else{msg('$chooseFile',false);return}}
-else if(tab==='xtream'){res=await post('$sourceApi',JSON.stringify({type:'xtream',server:v('xs'),username:v('xu'),password:v('xp')}),'application/json')}
-else{res=await post('$sourceApi',JSON.stringify({type:'stalker',portal:v('sp'),mac:v('sm'),username:v('su'),password:v('sw')}),'application/json')}
+else if(tab==='xtream'){res=await post('$sourceApi',JSON.stringify({type:'xtream',server:v('xs'),username:v('xu'),password:v('xp'),epg:v('epg'),logo:v('logo')}),'application/json')}
+else{res=await post('$sourceApi',JSON.stringify({type:'stalker',portal:v('sp'),mac:v('sm'),username:v('su'),password:v('sw'),epg:v('epg'),logo:v('logo')}),'application/json')}
 if(res.ok)msg('$sent',true);else msg(res.d.error==='too_large'?'$tooLarge':'$failed',false)}
 catch(e){msg('$connection',false)}finally{btn.disabled=false}};
 </script>

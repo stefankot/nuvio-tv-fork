@@ -3,3 +3,4 @@ app/src/main/java/com/nuvio/tv/reshaped/livetv/LiveTvGuideCache.kt	dostawca/Live
 app/src/main/java/com/nuvio/tv/reshaped/livetv/LiveTvModels.kt	dostawca/LiveTvModels
 app/src/main/java/com/nuvio/tv/reshaped/livetv/LiveTvRepository.kt	dostawca/LiveTvRepository
 app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverlay.kt	dostawca/LiveTvPlayerOverlay
+app/src/main/java/com/nuvio/tv/reshaped/livetv/LiveTvSetupServer.kt	dostawca/LiveTvSetupServer
