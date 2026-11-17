@@ -1,0 +1,23 @@
+--- a
++++ b
+@@ -144,12 +144,14 @@
+ internal fun liveTvGuideMatchingKey(channels: List<LiveTvChannel>): Long {
+     var matching = 0L
+     channels.forEach { channel ->
+-        matching = matching * 31 + channel.guideKey.hashCode()
+-        matching = matching * 31 + channel.name.hashCode()
+-        matching = matching * 31 + (channel.tvgName?.hashCode() ?: 0)
+-        matching = matching * 31 + if (channel.logoUrl.isNullOrBlank()) 1 else 0
+-        matching = matching * 31 + (channel.catchup?.days ?: 0)
+-        matching = matching * 31 + channel.guideShiftMinutes
++        // Fork patch: dostawca #1 - suma po kanałach zamiast łańcucha (kolejność ładowania źródeł nie zmienia klucza)
++        var one = channel.guideKey.hashCode().toLong()
++        one = one * 31 + channel.name.hashCode()
++        one = one * 31 + (channel.tvgName?.hashCode() ?: 0)
++        one = one * 31 + if (channel.logoUrl.isNullOrBlank()) 1 else 0
++        one = one * 31 + (channel.catchup?.days ?: 0)
++        one = one * 31 + channel.guideShiftMinutes
++        matching += one * 0x9E3779B97F4A7C15uL.toLong()
+     }
+     return matching
+ }

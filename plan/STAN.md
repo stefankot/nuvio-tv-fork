@@ -3,7 +3,7 @@
 ## Teraz
 
 - Bieżący blok: **B00**
-- Następne zadanie: **B01-1**
+- Następne zadanie: **B01-2**
 - Gałąź robocza: `auto/wdrozenie` (z `final`)
 - Build w tle: commit B00-4 (log /tmp/fork-build.log, status /tmp/fork-build.status)
 - Niezweryfikowane buildem commity: brak
@@ -18,6 +18,8 @@
 - Katalog `../nuvio-tv-kicia`: sklonowany (tylko odczyt)
 
 ## Dziennik (najnowsze na górze, jedna linia na zadanie)
+
+- 2026-11-17 B01-1: łatka dostawca #1 (klucz sumy) + MatchingKeyTest; narzędzie fork-tools/patchstep.sh. Niezweryfikowane buildem do końca builda w tle.
 
 - 2026-11-17 B00-7/8: FirstRunDefaults (fork/settings, wołane z moduleOverlays) + test; scripts/fork/autoupdate.sh i fork-autoupdate.yml (tylko ręcznie).
 
