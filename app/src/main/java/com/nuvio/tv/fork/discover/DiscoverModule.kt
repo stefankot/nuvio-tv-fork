@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.composable
 import androidx.tv.material3.Card
 import com.nuvio.tv.fork.registry.ForkModule
 import com.nuvio.tv.fork.registry.ModuleHomeRow
@@ -52,6 +53,10 @@ object DiscoverModule : ForkModule {
         return DiscoverRows.build(input)
     }
 
+    override fun routes() = listOf(
+        com.nuvio.tv.fork.registry.ModuleRoute("fork_tv_search") { composable("fork_tv_search") { TvSearchScreen() } },
+    )
+
     override fun homeRows() = listOf(ModuleHomeRow("discover_rows", "Odkrywaj", order = 60) { Rows() })
 
     @Composable
@@ -59,6 +64,9 @@ object DiscoverModule : ForkModule {
         val c = LocalContext.current
         var rows by remember { mutableStateOf<List<DiscoverRow>>(emptyList()) }
         LaunchedEffect(Unit) { while (true) { rows = runCatching { build(c) }.getOrDefault(emptyList()); delay(120_000L) } }
+        Card(onClick = { ForkFeatures.open?.invoke("fork_tv_search") }, modifier = Modifier.padding(bottom = 8.dp).width(240.dp)) {
+            Text("Szukaj w telewizji", Modifier.padding(12.dp), style = MaterialTheme.typography.titleSmall)
+        }
         rows.forEach { row ->
             Column(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
                 Text(row.title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 6.dp))
