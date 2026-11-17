@@ -41,6 +41,7 @@ object EchoSourcePreload {
         val episode = next?.nextEpisode
         val videoId = next?.nextVideoId
         LaunchedEffect(meta?.id, videoId) { start(c, meta, videoId, season, episode) }
+        androidx.compose.runtime.DisposableEffect(Unit) { onDispose { com.nuvio.tv.fork.sources.ReadyState.clear(); lastKey = null } }
     }
 
     private fun start(c: Context, meta: Meta?, nextVideoId: String?, season: Int?, episode: Int?) {
@@ -58,7 +59,7 @@ object EchoSourcePreload {
             android.util.Log.i("EchoPreload", "start $key")
             val t0 = System.currentTimeMillis()
             runCatching {
-                repo.getStreamsFromAllAddons(type = type, videoId = videoId, season = if (isSeries) season else null, episode = if (isSeries) episode else null).collect { }
+                repo.getStreamsFromAllAddons(type = type, videoId = videoId, season = if (isSeries) season else null, episode = if (isSeries) episode else null).collect { r -> if (r is com.nuvio.tv.core.network.NetworkResult.Success) com.nuvio.tv.fork.sources.ReadyState.update(r.data) }
             }
             android.util.Log.i("EchoPreload", "done $key in ${System.currentTimeMillis() - t0}ms")
         }

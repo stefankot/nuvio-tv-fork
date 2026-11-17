@@ -15,6 +15,8 @@ object SourcesModule : ForkModule {
     override val defaultEnabled = true
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    override fun rootOverlays(): List<@androidx.compose.runtime.Composable () -> Unit> = listOf({ ReadyOverlay() })
+
     override fun actions(): List<ModuleAction> {
         val answer = com.nuvio.tv.fork.sources.SourceChoiceState.current
         fun answerAction(id: String, text: String) = ModuleAction(
