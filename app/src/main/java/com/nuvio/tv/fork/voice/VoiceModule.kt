@@ -34,6 +34,7 @@ object VoiceModule : ForkModule {
     override val defaultEnabled = true
 
     override fun settings() = listOf(
+        ModuleSetting("voice_whisper", SettingsLevel.ESSENTIAL, "Sterowanie głosem", "Rozpoznawanie mowy offline (Whisper)", "Wymaga pobranego modelu mowy (ustawienia napisów: model mowy); działa bez internetu", defaultValue = false),
         ModuleSetting("voice_key_service", SettingsLevel.ESSENTIAL, "Sterowanie głosem", "Przycisk asystenta otwiera nasłuch", "Wymaga włączenia usługi ułatwień dostępu Nuvio w systemie", defaultValue = false),
     )
 
@@ -45,7 +46,10 @@ object VoiceModule : ForkModule {
     )
 
     /** Jedno nasłuchiwanie systemowym rozpoznawaniem mowy (pl-PL); null = błąd/brak mowy. Musi być wołane z wątku głównego. */
-    private suspend fun listen(c: android.content.Context, onError: (Int) -> Unit): String? = kotlinx.coroutines.suspendCancellableCoroutine { cont ->
+    private suspend fun listen(c: android.content.Context, onError: (Int) -> Unit): String? =
+        if (com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(c, "voice_whisper", false) && WhisperListen.available(c)) WhisperListen.listen(c) else systemListen(c, onError)
+
+    private suspend fun systemListen(c: android.content.Context, onError: (Int) -> Unit): String? = kotlinx.coroutines.suspendCancellableCoroutine { cont ->
         val rec = SpeechRecognizer.createSpeechRecognizer(c)
         rec.setRecognitionListener(object : RecognitionListener {
             override fun onResults(r: Bundle?) { rec.destroy(); if (cont.isActive) cont.resume(r?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull(), null) }
@@ -73,7 +77,7 @@ object VoiceModule : ForkModule {
         LaunchedEffect(count) {
             if (count == 0) return@LaunchedEffect
             if (androidx.core.content.ContextCompat.checkSelfPermission(c, android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED) { shown = "Zezwól na mikrofon i powtórz polecenie"; permission.launch(android.Manifest.permission.RECORD_AUDIO); return@LaunchedEffect }
-            if (!SpeechRecognizer.isRecognitionAvailable(c)) { shown = "Brak rozpoznawania mowy w systemie"; return@LaunchedEffect }
+            if (!(com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(c, "voice_whisper", false) && WhisperListen.available(c)) && !SpeechRecognizer.isRecognitionAvailable(c)) { shown = "Brak rozpoznawania mowy w systemie"; return@LaunchedEffect }
             shown = "Słucham…"
             val ctx = VoiceContext(channels = channelIndex())
             val t = listen(c) { shown = "Błąd nasłuchu ($it)" }
