@@ -78,6 +78,7 @@ private fun SimpleSettingsScreen(navigate: (String) -> Unit, onLevelChanged: () 
             var on by remember { mutableStateOf(ForkFeatures.enabled(c, s.key, s.defaultValue)) }
             Button(onClick = { on = !on; ForkFeatures.set(c, s.key, on) }) { Text(s.title + ": " + if (on) "włączone" else "wyłączone") }
         }
+        item { Button(onClick = { navigate(MODULES_ROUTE) }) { Text("Moduły (wszystkie ustawienia)") } }
         item { Text("System: poziom ustawień", style = MaterialTheme.typography.titleMedium) }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {

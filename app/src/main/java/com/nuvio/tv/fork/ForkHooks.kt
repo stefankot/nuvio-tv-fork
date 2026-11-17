@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.remember
 import android.content.Context
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.composable
 import com.nuvio.tv.skin.api.SkinRegistry
 import com.nuvio.tv.skin.api.rememberSkinId
 import com.nuvio.tv.ui.screens.player.PlayerEvent
@@ -72,6 +73,7 @@ object ForkHooks {
     /** PlaybackNavHost: trasy włączonych modułów. */
     fun moduleRoutes(builder: NavGraphBuilder, c: Context) {
         ForkRegistry.forContext(c).routes().forEach { it.register(builder) }
+        builder.composable(com.nuvio.tv.fork.settings.MODULES_ROUTE) { com.nuvio.tv.fork.settings.ModulesScreen() }
     }
 
     /** HomeScreen: rzędy włączonych modułów (rysuje je B03; pusta lista = bez zmian). */
