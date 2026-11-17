@@ -28,6 +28,8 @@ object PlayerBridge {
     fun clear() { state = null; send = null; queue = null; autoTried = false }
     val active: Boolean get() = send != null
     fun send(e: PlayerEvent) { send?.invoke(e) }
+    fun streamUrl(): String? = state?.currentStreamUrl
+    fun positionMs(): Long = com.nuvio.tv.fork.lektor.LektorEngine.positionMs()
     fun cues() = state?.subtitleAutoSyncCues.orEmpty()
 
     /** „Napisy nie pasują”: następny plik napisów w tym samym języku i ponowna synchronizacja. Zwraca komunikat dla użytkownika albo null (brak odtwarzacza). */

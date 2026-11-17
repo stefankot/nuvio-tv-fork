@@ -34,6 +34,27 @@ object VoiceActions {
             scope.launch { com.nuvio.tv.fork.sources.SourceChoice.applySubtitleSize(context, size) }
             lastMessage = "Napisy: " + size.title.lowercase(); return true
         }
+        if (call.id == "fav.add" || call.id == "fav.remove") {
+            val url = com.nuvio.tv.fork.sources.PlayerBridge.streamUrl() ?: return false
+            val repo = com.nuvio.tv.reshaped.livetv.LiveTvRepository
+            val ch = repo.uiState.value.channels.firstOrNull { it.streamUrl == url } ?: return false
+            val isFav = url in repo.uiState.value.favoriteUrls
+            if ((call.id == "fav.add") != isFav) repo.toggleFavorite(ch)
+            lastMessage = if (call.id == "fav.add") "Dodano do ulubionych: ${ch.name}" else "Usunięto z ulubionych: ${ch.name}"; return true
+        }
+        if (call.id == "seek.back" || call.id == "seek.forward") {
+            if (!com.nuvio.tv.fork.sources.PlayerBridge.active) return false
+            val ms = DurationParser.millis(call.params["czas"].orEmpty()) ?: 60_000L
+            val to = (com.nuvio.tv.fork.sources.PlayerBridge.positionMs() + if (call.id == "seek.back") -ms else ms).coerceAtLeast(0L)
+            com.nuvio.tv.fork.sources.PlayerBridge.send(com.nuvio.tv.ui.screens.player.PlayerEvent.OnSeekTo(to))
+            lastMessage = (if (call.id == "seek.back") "Cofam o " else "Przewijam o ") + (ms / 1000) + " s"; return true
+        }
+        if (call.id == "channel.number") {
+            val n = call.params["n"]?.toIntOrNull() ?: return false
+            val ch = com.nuvio.tv.reshaped.livetv.LiveTvRepository.uiState.value.channels.getOrNull(n - 1) ?: return false
+            com.nuvio.tv.fork.tv.ekrany.PendingPlay.ask(ch.streamUrl)
+            ForkFeatures.open?.invoke(com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE); lastMessage = ch.name; return true
+        }
         if (call.id == "subs.mismatch") {
             val msg = com.nuvio.tv.fork.sources.PlayerBridge.subtitleMismatch() ?: return false
             lastMessage = msg; return true
