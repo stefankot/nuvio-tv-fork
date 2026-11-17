@@ -28,3 +28,8 @@ Czego brakuje: sekretu `TMDB_API_KEY` w repozytorium (bez niego paczka nie powst
 Co może dostarczyć właściciel: sekret TMDB w ustawieniach repozytorium; decyzję o redystrybucji modelu.
 
 - B11-3 DubLift: potrzebne od właściciela 5 filmów w dwóch wydaniach (polski lektor/dubbing + oryginał angielski; w tym 2 z różnicą 25/23,976 fps, 1 z innym montażem, 1 z 5.1) do próby dopasowania. Raport: plan/raporty/dublift.md
+
+## B10 (nastroje) — brak klucza TMDB
+Co próbowałem: PicksModule (ekran „Na co masz ochotę?”, 5 nastrojów, discover z TMDB, punktacja regułowa) działa na emulatorze do momentu zapytania; bez klucza wynik „Brak klucza TMDB”.
+Czego brakuje: `TMDB_API_KEY` w `local.properties` (w tej kopii pusty). Bez niego kalendarz Echo i nastroje nie pobiorą danych z TMDB.
+Co może dostarczyć właściciel: darmowy klucz TMDB (v3) w `NuvioFork/local.properties` jako `TMDB_API_KEY=...`.

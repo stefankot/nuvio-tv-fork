@@ -10,9 +10,11 @@ object PlayerBridge {
     private var queue: SubtitleQueue? = null
     private var queueKey: List<String> = emptyList()
 
-    fun set(s: PlayerUiState, e: (PlayerEvent) -> Unit) { state = s; send = e }
+    fun set(s: PlayerUiState, e: (PlayerEvent) -> Unit) { state = s; send = e; com.nuvio.tv.fork.lektor.LektorEngine.updatePosition(s.currentPosition, s.isPlaying) }
     fun clear() { state = null; send = null; queue = null }
     val active: Boolean get() = send != null
+    fun send(e: PlayerEvent) { send?.invoke(e) }
+    fun cues() = state?.subtitleAutoSyncCues.orEmpty()
 
     /** „Napisy nie pasują”: następny plik napisów w tym samym języku i ponowna synchronizacja. Zwraca komunikat dla użytkownika albo null (brak odtwarzacza). */
     fun subtitleMismatch(): String? {

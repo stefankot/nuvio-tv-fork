@@ -29,6 +29,9 @@ object VoiceActions {
             val msg = com.nuvio.tv.fork.sources.PlayerBridge.subtitleMismatch() ?: return false
             lastMessage = msg; return true
         }
+        if (call.id == "lektor.on" || call.id == "lektor.off") {
+            lastMessage = if (call.id == "lektor.on") com.nuvio.tv.fork.lektor.LektorController.start(context) else { com.nuvio.tv.fork.lektor.LektorController.stop(); "Lektor wyłączony" }; return true
+        }
         if (call.id == "channel.play") {
             val url = call.params["kanal_id"] ?: return false
             com.nuvio.tv.fork.tv.ekrany.PendingPlay.ask(url)

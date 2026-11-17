@@ -74,7 +74,7 @@ object ForkHooks {
     @Composable
     fun playerBridge(uiState: PlayerUiState, onEvent: (PlayerEvent) -> Unit) {
         androidx.compose.runtime.SideEffect { com.nuvio.tv.fork.sources.PlayerBridge.set(uiState, onEvent) }
-        androidx.compose.runtime.DisposableEffect(Unit) { onDispose { com.nuvio.tv.fork.sources.PlayerBridge.clear() } }
+        androidx.compose.runtime.DisposableEffect(Unit) { onDispose { com.nuvio.tv.fork.sources.PlayerBridge.clear(); com.nuvio.tv.fork.lektor.LektorController.stop() } }
     }
 
     // --- Rejestr modułów (B00) ---
