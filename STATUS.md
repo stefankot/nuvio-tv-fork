@@ -109,3 +109,13 @@ APK: `app/build/outputs/apk/full/debug/app-full-arm64-v8a-debug.apk`. Gradle ma 
 - Dostępne: menu jakości (zadanie pilota „Quality” w Arc + przełącznik „Echo: przełączanie źródła”), Auto Quality (monitor startuje przy włączonym przełączniku), hot swap. Przełączniki w kategorii forka (wszystkie wyłączone domyślnie).
 - NIE podpięte jeszcze: A4 wyścig źródeł (StreamScreenViewModel, Streams, Initialization: armAutoPlayHedge), A5 menu audio (Tracks, Observers, nakładka audio), A6 intro (NavHost, StreamScreen, PlayerScreen, Streams). Kod tych funkcji jest w aplikacji, ale nieaktywny.
 - Testy 13–18 wymagają addonu z kilkoma źródłami (czeka na użytkownika).
+
+## 17.11.2026: testy na żywo (emulator, addony użytkownika: Torrentio/Comet/TorBox, YouStream)
+- Odtwarzanie źródła z Torrentio TB: OK (720p x264). 4K HEVC nie startuje na emulatorze (brak dekodera; ograniczenie emulatora).
+- Echo A1-A3: Auto Quality + hot swap: OK (720p → 1080p w tym samym punkcie, 66767 ms).
+- Echo A4 wyścig źródeł: OK ("AUTOPLAY_RACE: 8 raced, won #1 po 3560 ms"; komunikat „Checking 8 links…”).
+- Echo A5 menu języka audio: OK (AUDIO_MENU: 303 źródła, wiersze ko/en/ja; przełączenie źródła działa; Echo odrzuca źródło bez ścieżki ja).
+- Echo A6 intro: OK (NuvioIntro: 145 klatek, zakończone).
+- Test prędkości (Advanced): OK (55 ms, 395,5 Mbps). Live TV: lista kanałów OK. AutoSync napisów: OK. Wyszukiwarka: OK.
+- NIEZWERYFIKOWANE: zawartość katalogu KE, YouTube bez logowania, trwałość modelu mowy, wyścig przy następnym odcinku (hook w Streams nie dodany), Echo source fallback po błędzie dekodera (nie przełączył).
+- Uwaga: w emulatorze przypadkowo przełączono „Playback issue reports” (Advanced) i ustawiono Auto Stream Selection na „Auto-play first source”.
