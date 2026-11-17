@@ -3,7 +3,7 @@
 ## Teraz
 
 - Bieżący blok: **B00**
-- Następne zadanie: **B00-5**
+- Następne zadanie: **B00-7**
 - Gałąź robocza: `auto/wdrozenie` (z `final`)
 - Build w tle: commit B00-4 (log /tmp/fork-build.log, status /tmp/fork-build.status)
 - Niezweryfikowane buildem commity: brak
@@ -18,6 +18,8 @@
 - Katalog `../nuvio-tv-kicia`: sklonowany (tylko odczyt)
 
 ## Dziennik (najnowsze na górze, jedna linia na zadanie)
+
+- 2026-11-17 B00-5/6: wpięcia registry w NuvioNavHost, MainActivity, HomeScreen, PlayerScreen (ustawienia przez ForkModuleSettingsItems w pliku forka); check.sh obsługuje pliki łatane + selftest-patched.sh. Kompilacja wpięć niezweryfikowana (build w tle).
 
 - 2026-11-17 B00-4: pakiet fork/registry (ForkModule, ForkRegistry, ForkModules, testy). Build bazowy: assembleFullDebug zielony; testy JVM nie kompilowały się (testy usuniętego aktualizatora DownloadedUpdateTest, TesterChannelTest) — usunięte.
 

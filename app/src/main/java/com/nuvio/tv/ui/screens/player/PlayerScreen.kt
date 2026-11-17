@@ -683,6 +683,7 @@ fun PlayerScreen(
             .focusable(enabled = uiState.error == null)
             .onPreviewKeyEvent { keyEvent ->
                 if (liveTvPlayer.onPreviewKey(keyEvent.nativeKeyEvent, uiState)) return@onPreviewKeyEvent true // Nuvio RS hook: Live TV
+                if (com.nuvio.tv.fork.ForkHooks.modulePlayerKey(context, keyEvent.nativeKeyEvent)) return@onPreviewKeyEvent true // Fork hook: registry
                 run { // Arc hook: remote buttons (player and Live TV)
                     com.nuvio.tv.data.local.RemoteButtonStore.ensureLoaded(context)
                     if (arcRemote.onKey(

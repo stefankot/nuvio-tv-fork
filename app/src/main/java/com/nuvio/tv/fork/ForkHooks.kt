@@ -4,6 +4,12 @@ import android.app.Activity
 import android.view.KeyEvent
 import androidx.compose.runtime.Composable
 import com.nuvio.tv.fork.arc.RemoteGlobalHook
+import com.nuvio.tv.fork.registry.ForkRegistry
+import com.nuvio.tv.fork.registry.ModuleHomeRow
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.remember
+import android.content.Context
+import androidx.navigation.NavGraphBuilder
 import com.nuvio.tv.skin.api.SkinRegistry
 import com.nuvio.tv.skin.api.rememberSkinId
 import com.nuvio.tv.ui.screens.player.PlayerEvent
@@ -40,4 +46,31 @@ object ForkHooks {
     /** PlayerScreen: ręczne otwarcie źródła też pokazuje intro. */
     @Composable
     fun introOnPlayerOpen() = com.nuvio.tv.fork.echo.EchoIntroHook.OnPlayerOpen()
+
+    // --- Rejestr modułów (B00) ---
+
+    /** PlaybackNavHost: trasy włączonych modułów. */
+    fun moduleRoutes(builder: NavGraphBuilder, c: Context) {
+        ForkRegistry.forContext(c).routes().forEach { it.register(builder) }
+    }
+
+    /** HomeScreen: rzędy włączonych modułów (rysuje je B03; pusta lista = bez zmian). */
+    @Composable
+    fun moduleHomeRows(): List<ModuleHomeRow> {
+        val c = LocalContext.current
+        return remember(c) { ForkRegistry.forContext(c).homeRows() }
+    }
+
+    /** MainActivity: nakładki na całe okno. */
+    @Composable
+    fun moduleOverlays() {
+        val c = LocalContext.current
+        val overlays = remember(c) { ForkRegistry.forContext(c).rootOverlays() }
+        overlays.forEach { it() }
+    }
+
+    /** PlayerScreen: klawisze odtwarzacza dla modułów. true = obsłużony. */
+    fun modulePlayerKey(c: Context, e: KeyEvent): Boolean =
+        ForkRegistry.forContext(c).playerHandlers()
+            .any { it.onKey(e.keyCode, e.action == KeyEvent.ACTION_DOWN) }
 }

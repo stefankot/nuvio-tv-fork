@@ -22,6 +22,7 @@ class ForkRegistry(
     fun playerHandlers() = active().flatMap { it.playerHandlers() }
     fun voiceCommands() = active().flatMap { it.voiceCommands() }
     fun moduleIds() = modules.map { it.id }
+    fun allModules() = modules
 
     companion object {
         fun switchKey(id: String) = "module_$id"

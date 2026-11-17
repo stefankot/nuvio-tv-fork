@@ -1242,6 +1242,7 @@ private fun PlaybackNavHost(
             )
         }
 
+        com.nuvio.tv.fork.ForkHooks.moduleRoutes(this, context) // Fork hook: registry
         composable(Screen.Calendar.route) { // Fork hook: echo-calendar
             com.nuvio.tv.ui.screens.calendar.CalendarScreen(
                 onOpenShow = { showId, addonBaseUrl, season, episode ->

@@ -744,6 +744,7 @@ open class MainActivity : ComponentActivity() {
                     // Wrap everything in a Box. This prevents any black flash between
                     // profile selection and the home content
                     Box(modifier = Modifier.fillMaxSize()) {
+                    com.nuvio.tv.fork.ForkHooks.moduleOverlays() // Fork hook: registry
 
                     var startupDestination = StartupDestination.Loading
                     val surfaceContentReady = hasSeenAuthQrOnFirstLaunch != null &&

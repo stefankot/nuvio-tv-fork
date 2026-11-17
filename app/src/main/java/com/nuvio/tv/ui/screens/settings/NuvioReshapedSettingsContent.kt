@@ -58,6 +58,7 @@ internal fun NuvioReshapedSettingsContent(
         keCatalogSettingsItems() // fork hook: KE catalog
         deviceTestSettingsItems() // fork hook: link and hardware test
         forkSwitchesSettingsItems() // fork hook: switches
+        forkModuleSettingsItems()
         skinSettingsItems() // fork hook: skin
         echoPlaybackSettingsItems() // fork hook: echo
         youtubeSettingsItems() // fork hook: Nuvio One YouTube
