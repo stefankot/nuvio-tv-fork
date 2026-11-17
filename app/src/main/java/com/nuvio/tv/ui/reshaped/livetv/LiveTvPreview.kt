@@ -284,6 +284,7 @@ internal fun LiveTvPreviewVideo(
     // The first channel selected after the guide opens (or comes back) starts at once: that is
     // landing, not scrolling past.
     var landed by remember { mutableStateOf(false) }
+    val ctx = LocalContext.current // Fork patch: wydajnosc #1
     LaunchedEffect(channel?.id, playVideo) {
         preview.stop()
         if (!playVideo || channel == null) {
@@ -296,6 +297,11 @@ internal fun LiveTvPreviewVideo(
         if (landed) delay(PREVIEW_DELAY_MS)
         landed = true
         preview.play(channel)
+        // Fork patch: wydajnosc #1 - po minucie bez zmiany kanalu podglad sie zatrzymuje (na slabym TV zjadal ok. 86% rdzenia; zostaje logo)
+        if (com.nuvio.tv.fork.perf.PerfFlags.previewAutoStop(ctx)) {
+            delay(com.nuvio.tv.fork.perf.PerfFlags.PREVIEW_IDLE_STOP_MS)
+            preview.stop()
+        }
     }
     // Turning previews off removes the picture: nothing may keep playing unseen.
     DisposableEffect(preview) { onDispose { preview.stop() } }

@@ -81,8 +81,11 @@ object ForkHooks {
     }
 
     /** Tylko build debug: `adb shell am start -a com.nuvio.fork.OPEN -n <activity> --es route <trasa>` otwiera trasę (testy bez klikania). */
-    fun onDebugIntent(intent: android.content.Intent?) {
+    fun onDebugIntent(c: Context, intent: android.content.Intent?) {
         if (!com.nuvio.tv.BuildConfig.APPLICATION_ID.contains("debug") || intent?.action != "com.nuvio.fork.OPEN") return
+        // Tylko debug, do pomiarów A/B: --ez previews false (podgląd kanałów), --es module id --ez on false (moduł forka)
+        if (intent.hasExtra("previews")) com.nuvio.tv.reshaped.livetv.LiveTvPreferences.setPreviews(c, intent.getBooleanExtra("previews", true))
+        intent.getStringExtra("module")?.let { c.getSharedPreferences("fork_features", Context.MODE_PRIVATE).edit().putBoolean("module_$it", intent.getBooleanExtra("on", true)).apply() }
         val route = intent.getStringExtra("route") ?: return
         val handler = android.os.Handler(android.os.Looper.getMainLooper())
         var tries = 0

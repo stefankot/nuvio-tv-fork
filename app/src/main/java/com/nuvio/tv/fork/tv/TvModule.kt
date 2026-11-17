@@ -14,6 +14,7 @@ import dagger.hilt.components.SingletonComponent
 
 /** Moduł telewizji (B01+): wczytanie przewodnika w tle po starcie. */
 object TvModule : ForkModule {
+    private const val WARM_UP_DELAY_MS = 8_000L
     override val id = "tv"
     override val title = "Telewizja: dodatki (przewodnik w tle, logo, obejrzane)"
     override val defaultEnabled = true
@@ -25,6 +26,7 @@ object TvModule : ForkModule {
     )
 
     override fun settings() = listOf(
+        com.nuvio.tv.fork.registry.ModuleSetting(com.nuvio.tv.fork.perf.PerfFlags.PREVIEW_AUTOSTOP_KEY, com.nuvio.tv.fork.registry.SettingsLevel.ADVANCED, "Telewizja", "Zatrzymaj podgląd kanału po minucie", "Oszczędza procesor słabych telewizorów; zostaje logo, zmiana kanału wznawia podgląd", defaultValue = true),
         com.nuvio.tv.fork.registry.ModuleSetting("tv_for_you_row", com.nuvio.tv.fork.registry.SettingsLevel.ESSENTIAL, "Telewizja", "Rząd „Dla Ciebie” nad przewodnikiem", "Karty: wznów, nowy odcinek, na żywo", defaultValue = true),
         com.nuvio.tv.fork.registry.ModuleSetting("tv_reminders", com.nuvio.tv.fork.registry.SettingsLevel.ESSENTIAL, "Telewizja", "Przypomnienia o programach", "Karta nad obrazem na chwilę przed startem", defaultValue = true),
         com.nuvio.tv.fork.registry.ModuleSetting("tv_auto_follow", com.nuvio.tv.fork.registry.SettingsLevel.ESSENTIAL, "Telewizja", "Automatyczne obserwowane programy", "Serial staje się obserwowany po 2 obejrzanych odcinkach (można cofnąć)", defaultValue = true),
@@ -62,6 +64,8 @@ object TvModule : ForkModule {
         LaunchedEffect(Unit) {
             com.nuvio.tv.fork.tv.logo.ForkLogoPrefs.load(c)
             val pid = EntryPointAccessors.fromApplication(c.applicationContext, Deps::class.java).profiles().activeProfileId.value
+            // Wydajność: rozgrzewka przewodnika dopiero po uspokojeniu startu (Home i okładki mają pierwszeństwo).
+            kotlinx.coroutines.delay(WARM_UP_DELAY_MS)
             LiveTvRepository.warmUp(c, pid)
         }
     })

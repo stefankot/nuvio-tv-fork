@@ -1,0 +1,67 @@
+== po wyborze profilu 20s: mem
+ Java Heap: 31484 42852; Native Heap: 29820 30544; Graphics: 85576 85576; TOTAL PSS: 243453 TOTAL RSS: 308516 TOTAL SWAP PSS: 223;
+MemAvailable: 723004 kB;SwapTotal: 647964 kB;SwapFree: 216416 kB;
+== CPU 60 s po starcie (bezczynnosc Home)
+cpu_ticks=45 w 30s => 1.5% jednego rdzenia
+Total frames rendered: 0;Janky frames: 0 (0.00%);Janky frames (legacy): 0 (0.00%);50th percentile: 4950ms;90th percentile: 4950ms;95th percentile: 4950ms;99th percentile: 4950ms;Number Missed Vsync: 0;Number High input latency: 0;Number Slow UI thread: 0;Number Slow bitmap uploads: 0;Number Slow issue draw commands: 0;Number Frame deadline missed: 0;Number Frame deadline missed (legacy): 0;50th gpu percentile: 4950ms;90th gpu percentile: 4950ms;95th gpu percentile: 4950ms;99th gpu percentile: 4950ms;
+ Swap:   647964K total,   438452K used,   209512K free,   586864K cached
+400%cpu  16%user   0%nice  10%sys 365%idle   0%iow   6%irq   3%sirq   0%host
+  TID USER         PR  NI VIRT  RES  SHR S[%CPU] %MEM     TIME+ THREAD          PROCESS
+28820 u0_a118      20   0 1.8G 283M 213M S  0.0  14.7   0:00.02 OkHttp TaskRunn com.nuviodebug.com
+28807 u0_a118      20   0 1.8G 283M 213M S  0.0  14.7   0:00.02 OkHttp TaskRunn com.nuviodebug.com
+28802 u0_a118      20   0 1.8G 283M 213M S  0.0  14.7   0:00.00 OkHttp TaskRunn com.nuviodebug.com
+28799 u0_a118      20   0 1.8G 283M 213M S  0.0  14.7   0:00.00 api.mdblist.com com.nuviodebug.com
+28798 u0_a118      20   0 1.8G 283M 213M S  0.0  14.7   0:00.02 n.elfhosted.com com.nuviodebug.com
+28743 u0_a118      20   0 1.8G 283M 213M S  0.0  14.7   0:00.00 binder:26347_6  com.nuviodebug.com
+28733 u0_a118      20   0 1.8G 283M 213M S  0.0  14.7   0:00.00 binder:26347_5  com.nuviodebug.com
+28731 u0_a118      20   0 1.8G 283M 213M S  0.0  14.7   0:00.00 binder:26347_5  com.nuviodebug.com
+28727 u0_a118      20   0 1.8G 283M 213M S  0.0  14.7   0:00.01 FrameMetricsAgg com.nuviodebug.com
+28725 u0_a118      18  -2 1.8G 283M 213M S  0.0  14.7   0:00.00 hwuiTask1       com.nuviodebug.com
+28724 u0_a118      18  -2 1.8G 283M 213M S  0.0  14.7   0:00.00 hwuiTask0       com.nuviodebug.com
+28720 u0_a118      20   0 1.8G 283M 213M S  0.0  14.7   0:00.00 SurfaceSyncGrou com.nuviodebug.com
+== Home Modern 20xDOWN
+Total frames rendered: 86;Janky frames: 63 (73.26%);Janky frames (legacy): 73 (84.88%);50th percentile: 125ms;90th percentile: 300ms;95th percentile: 350ms;99th percentile: 500ms;Number Missed Vsync: 62;Number High input latency: 42;Number Slow UI thread: 63;Number Slow bitmap uploads: 0;Number Slow issue draw commands: 29;Number Frame deadline missed: 63;Number Frame deadline missed (legacy): 63;50th gpu percentile: 10ms;90th gpu percentile: 15ms;95th gpu percentile: 19ms;99th gpu percentile: 23ms;
+== Home 20xUP
+Total frames rendered: 209;Janky frames: 60 (28.71%);Janky frames (legacy): 156 (74.64%);50th percentile: 28ms;90th percentile: 117ms;95th percentile: 150ms;99th percentile: 250ms;Number Missed Vsync: 47;Number High input latency: 296;Number Slow UI thread: 60;Number Slow bitmap uploads: 0;Number Slow issue draw commands: 26;Number Frame deadline missed: 60;Number Frame deadline missed (legacy): 60;50th gpu percentile: 5ms;90th gpu percentile: 14ms;95th gpu percentile: 16ms;99th gpu percentile: 19ms;
+== Home bezczynnosc 60s
+cpu_ticks=25 w 60s => 0.4% jednego rdzenia
+Total frames rendered: 2;Janky frames: 1 (50.00%);Janky frames (legacy): 2 (100.00%);50th percentile: 30ms;90th percentile: 30ms;95th percentile: 30ms;99th percentile: 30ms;Number Missed Vsync: 0;Number High input latency: 2;Number Slow UI thread: 1;Number Slow bitmap uploads: 0;Number Slow issue draw commands: 1;Number Frame deadline missed: 1;Number Frame deadline missed (legacy): 1;50th gpu percentile: 12ms;90th gpu percentile: 12ms;95th gpu percentile: 12ms;99th gpu percentile: 12ms;
+== LiveTV lista 20xDOWN
+Total frames rendered: 0;Janky frames: 0 (0.00%);Janky frames (legacy): 0 (0.00%);50th percentile: 4950ms;90th percentile: 4950ms;95th percentile: 4950ms;99th percentile: 4950ms;Number Missed Vsync: 0;Number High input latency: 0;Number Slow UI thread: 0;Number Slow bitmap uploads: 0;Number Slow issue draw commands: 0;Number Frame deadline missed: 0;Number Frame deadline missed (legacy): 0;50th gpu percentile: 4950ms;90th gpu percentile: 4950ms;95th gpu percentile: 4950ms;99th gpu percentile: 4950ms;
+== LiveTV 20xUP
+Total frames rendered: 0;Janky frames: 0 (0.00%);Janky frames (legacy): 0 (0.00%);50th percentile: 4950ms;90th percentile: 4950ms;95th percentile: 4950ms;99th percentile: 4950ms;Number Missed Vsync: 0;Number High input latency: 0;Number Slow UI thread: 0;Number Slow bitmap uploads: 0;Number Slow issue draw commands: 0;Number Frame deadline missed: 0;Number Frame deadline missed (legacy): 0;50th gpu percentile: 4950ms;90th gpu percentile: 4950ms;95th gpu percentile: 4950ms;99th gpu percentile: 4950ms;
+== LiveTV 20xRIGHT (przewodnik)
+Total frames rendered: 79;Janky frames: 14 (17.72%);Janky frames (legacy): 64 (81.01%);50th percentile: 34ms;90th percentile: 53ms;95th percentile: 81ms;99th percentile: 97ms;Number Missed Vsync: 2;Number High input latency: 130;Number Slow UI thread: 14;Number Slow bitmap uploads: 0;Number Slow issue draw commands: 4;Number Frame deadline missed: 14;Number Frame deadline missed (legacy): 14;50th gpu percentile: 8ms;90th gpu percentile: 10ms;95th gpu percentile: 4950ms;99th gpu percentile: 4950ms;
+== LiveTV idle 30s
+cpu_ticks=18 w 30s => 0.6% jednego rdzenia
+Total frames rendered: 0;Janky frames: 0 (0.00%);Janky frames (legacy): 0 (0.00%);50th percentile: 4950ms;90th percentile: 4950ms;95th percentile: 4950ms;99th percentile: 4950ms;Number Missed Vsync: 0;Number High input latency: 0;Number Slow UI thread: 0;Number Slow bitmap uploads: 0;Number Slow issue draw commands: 0;Number Frame deadline missed: 0;Number Frame deadline missed (legacy): 0;50th gpu percentile: 4950ms;90th gpu percentile: 4950ms;95th gpu percentile: 4950ms;99th gpu percentile: 4950ms;
+ Java Heap: 42484 54820; Native Heap: 136592 137316; Graphics: 155268 155268; TOTAL PSS: 418454 TOTAL RSS: 485720 TOTAL SWAP PSS: 160;
+MemAvailable: 566424 kB;SwapTotal: 647964 kB;SwapFree: 212116 kB;
+== LiveTV lista 20xDOWN
+Total frames rendered: 220;Janky frames: 28 (12.73%);Janky frames (legacy): 33 (15.00%);50th percentile: 8ms;90th percentile: 133ms;95th percentile: 250ms;99th percentile: 450ms;Number Missed Vsync: 25;Number High input latency: 18;Number Slow UI thread: 28;Number Slow bitmap uploads: 0;Number Slow issue draw commands: 7;Number Frame deadline missed: 28;Number Frame deadline missed (legacy): 28;50th gpu percentile: 3ms;90th gpu percentile: 4ms;95th gpu percentile: 5ms;99th gpu percentile: 6ms;
+== LiveTV 20xUP
+Total frames rendered: 70;Janky frames: 36 (51.43%);Janky frames (legacy): 43 (61.43%);50th percentile: 48ms;90th percentile: 200ms;95th percentile: 250ms;99th percentile: 400ms;Number Missed Vsync: 33;Number High input latency: 52;Number Slow UI thread: 35;Number Slow bitmap uploads: 0;Number Slow issue draw commands: 7;Number Frame deadline missed: 36;Number Frame deadline missed (legacy): 36;50th gpu percentile: 4ms;90th gpu percentile: 7ms;95th gpu percentile: 9ms;99th gpu percentile: 13ms;
+== LiveTV 20xRIGHT (przewodnik)
+Total frames rendered: 20;Janky frames: 3 (15.00%);Janky frames (legacy): 2 (10.00%);50th percentile: 18ms;90th percentile: 29ms;95th percentile: 61ms;99th percentile: 61ms;Number Missed Vsync: 1;Number High input latency: 29;Number Slow UI thread: 2;Number Slow bitmap uploads: 0;Number Slow issue draw commands: 3;Number Frame deadline missed: 3;Number Frame deadline missed (legacy): 2;50th gpu percentile: 4ms;90th gpu percentile: 13ms;95th gpu percentile: 13ms;99th gpu percentile: 13ms;
+== LiveTV idle 30s
+cpu_ticks=14 w 30s => 0.5% jednego rdzenia
+Total frames rendered: 0;Janky frames: 0 (0.00%);Janky frames (legacy): 0 (0.00%);50th percentile: 4950ms;90th percentile: 4950ms;95th percentile: 4950ms;99th percentile: 4950ms;Number Missed Vsync: 0;Number High input latency: 0;Number Slow UI thread: 0;Number Slow bitmap uploads: 0;Number Slow issue draw commands: 0;Number Frame deadline missed: 0;Number Frame deadline missed (legacy): 0;50th gpu percentile: 4950ms;90th gpu percentile: 4950ms;95th gpu percentile: 4950ms;99th gpu percentile: 4950ms;
+ Java Heap: 34228 45652; Native Heap: 49644 50372; Graphics: 70924 70924; TOTAL PSS: 261668 TOTAL RSS: 329732 TOTAL SWAP PSS: 219;
+MemAvailable: 730048 kB;SwapTotal: 647964 kB;SwapFree: 188612 kB;
+== LiveTV lista 20xDOWN
+Total frames rendered: 184;Janky frames: 91 (49.46%);Janky frames (legacy): 160 (86.96%);50th percentile: 40ms;90th percentile: 200ms;95th percentile: 200ms;99th percentile: 400ms;Number Missed Vsync: 58;Number High input latency: 160;Number Slow UI thread: 88;Number Slow bitmap uploads: 2;Number Slow issue draw commands: 37;Number Frame deadline missed: 91;Number Frame deadline missed (legacy): 89;50th gpu percentile: 6ms;90th gpu percentile: 7ms;95th gpu percentile: 10ms;99th gpu percentile: 11ms;
+== LiveTV 20xUP
+Total frames rendered: 188;Janky frames: 63 (33.51%);Janky frames (legacy): 168 (89.36%);50th percentile: 31ms;90th percentile: 150ms;95th percentile: 200ms;99th percentile: 250ms;Number Missed Vsync: 39;Number High input latency: 249;Number Slow UI thread: 62;Number Slow bitmap uploads: 0;Number Slow issue draw commands: 14;Number Frame deadline missed: 63;Number Frame deadline missed (legacy): 63;50th gpu percentile: 6ms;90th gpu percentile: 9ms;95th gpu percentile: 10ms;99th gpu percentile: 11ms;
+== LiveTV 20xRIGHT
+Total frames rendered: 293;Janky frames: 98 (33.45%);Janky frames (legacy): 178 (60.75%);50th percentile: 26ms;90th percentile: 73ms;95th percentile: 81ms;99th percentile: 300ms;Number Missed Vsync: 68;Number High input latency: 327;Number Slow UI thread: 94;Number Slow bitmap uploads: 1;Number Slow issue draw commands: 21;Number Frame deadline missed: 98;Number Frame deadline missed (legacy): 95;50th gpu percentile: 4ms;90th gpu percentile: 7ms;95th gpu percentile: 7ms;99th gpu percentile: 8ms;
+== LiveTV idle 30s
+cpu_ticks=2596 w 30s => 86.5% jednego rdzenia
+Total frames rendered: 1509;Janky frames: 96 (6.36%);Janky frames (legacy): 14 (0.93%);50th percentile: 13ms;90th percentile: 15ms;95th percentile: 16ms;99th percentile: 19ms;Number Missed Vsync: 1;Number High input latency: 254;Number Slow UI thread: 2;Number Slow bitmap uploads: 20;Number Slow issue draw commands: 63;Number Frame deadline missed: 96;Number Frame deadline missed (legacy): 12;50th gpu percentile: 3ms;90th gpu percentile: 4ms;95th gpu percentile: 4ms;99th gpu percentile: 6ms;
+ Java Heap: 43172 54768; Native Heap: 73524 74304; Graphics: 117412 117412; TOTAL PSS: 341948 TOTAL RSS: 413044 TOTAL SWAP PSS: 209;
+MemAvailable: 610856 kB;SwapTotal: 647964 kB;SwapFree: 201668 kB;
+== Narzedzia/Moduly 15xDOWN
+Total frames rendered: 268;Janky frames: 3 (1.12%);Janky frames (legacy): 18 (6.72%);50th percentile: 11ms;90th percentile: 16ms;95th percentile: 22ms;99th percentile: 24ms;Number Missed Vsync: 1;Number High input latency: 494;Number Slow UI thread: 3;Number Slow bitmap uploads: 0;Number Slow issue draw commands: 0;Number Frame deadline missed: 3;Number Frame deadline missed (legacy): 3;50th gpu percentile: 2ms;90th gpu percentile: 2ms;95th gpu percentile: 3ms;99th gpu percentile: 5ms;
+== zimny start + 60s CPU (TV modul wlaczony)
+TotalTime: 1573
+CPU 60s po wyborze profilu: ticks=1012 (=16.9% rdzenia)
+Total frames rendered: 54;Janky frames: 15 (27.78%);Janky frames (legacy): 20 (37.04%);50th percentile: 13ms;90th percentile: 200ms;95th percentile: 600ms;99th percentile: 900ms;Number Missed Vsync: 11;Number High input latency: 78;Number Slow UI thread: 15;Number Slow bitmap uploads: 0;Number Slow issue draw commands: 7;Number Frame deadline missed: 15;Number Frame deadline missed (legacy): 15;50th gpu percentile: 3ms;90th gpu percentile: 9ms;95th gpu percentile: 15ms;99th gpu percentile: 4950ms;

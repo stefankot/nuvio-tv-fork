@@ -42,3 +42,5 @@ Co może dostarczyć właściciel: klucze aplikacji Trakt (client id/secret) w `
 Co próbowałem: `adb devices` (puste), `adb connect` do 192.168.31.29 i .44 (No route to host).
 Czego brakuje: adres IP projektora JMGO z włączonym debugowaniem sieciowym (port 5555) albo kabel USB.
 Co może dostarczyć właściciel: IP JMGO (Ustawienia → Sieć) i włączenie debugowania USB/sieciowego.
+
+- 2026-11-17 JMGO H931 (192.168.31.252): instalacja forka niemożliwa: `INSTALL_FAILED_DUPLICATE_PERMISSION` (`com.nuvio.reshaped.tv.permission.MIGRATE` należy do zainstalowanej aplikacji `com.nuvioreshaped.tv`). Poprzednia instalacja forka (podpis inny niż mój build, z 16.11) została odinstalowana, bo blokowała aktualizację. Żeby zmierzyć JMGO: właściciel odinstalowuje `com.nuvioreshaped.tv` na JMGO albo zgadza się na wariant builda z inną nazwą uprawnienia. Pomiary idą na Xiaomi.
