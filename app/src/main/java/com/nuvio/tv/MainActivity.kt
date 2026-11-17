@@ -1388,6 +1388,7 @@ open class MainActivity : ComponentActivity() {
         setIntent(intent)
         captureDeepLinkIntent(intent)
         captureLaunchIntent(intent)
+        com.nuvio.tv.fork.ForkHooks.onDebugIntent(intent) // Fork hook: debug open route
     }
 
     private fun captureDeepLinkIntent(intent: Intent?) {

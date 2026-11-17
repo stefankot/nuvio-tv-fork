@@ -11,7 +11,20 @@ object PlayerBridge {
     private var queueKey: List<String> = emptyList()
 
     private var autoTried = false
-    fun set(s: PlayerUiState, e: (PlayerEvent) -> Unit) { state = s; send = e }
+    // Pomiar opóźnienia startu (znacznik logcat „ForkPerf”): od ustawienia adresu strumienia i od ostatniego klawisza do pierwszego odtwarzania.
+    private var perfUrl: String? = null; private var perfStart = 0L; private var perfDone = true
+    @Volatile var lastKeyMs = 0L
+    private fun perf(s: PlayerUiState) {
+        val u = s.currentStreamUrl
+        if (u != perfUrl) { perfUrl = u; perfStart = android.os.SystemClock.elapsedRealtime(); perfDone = u == null }
+        if (!perfDone && s.isPlaying && !s.showLoadingOverlay && !s.isBuffering) {
+            perfDone = true
+            val now = android.os.SystemClock.elapsedRealtime()
+            val host = runCatching { android.net.Uri.parse(u).host }.getOrNull()
+            android.util.Log.i("ForkPerf", "first_play start_to_play_ms=${now - perfStart} key_to_play_ms=${if (lastKeyMs > 0) now - lastKeyMs else -1} host=$host")
+        }
+    }
+    fun set(s: PlayerUiState, e: (PlayerEvent) -> Unit) { state = s; send = e; perf(s) }
 
     /** B09-6: lektor sam, gdy profil chce polskiego, brak polskiej ścieżki dźwięku, są polskie napisy i włączono „lektor_auto”. Raz na odtwarzanie. */
     fun maybeAutoLektor(c: android.content.Context) {
