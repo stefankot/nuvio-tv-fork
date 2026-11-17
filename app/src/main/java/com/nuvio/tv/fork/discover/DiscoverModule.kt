@@ -1,0 +1,78 @@
+package com.nuvio.tv.fork.discover
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.tv.material3.Card
+import com.nuvio.tv.fork.registry.ForkModule
+import com.nuvio.tv.fork.registry.ModuleHomeRow
+import com.nuvio.tv.fork.tv.ChannelStats
+import com.nuvio.tv.fork.tv.most.TvBridge
+import com.nuvio.tv.reshaped.livetv.LiveTvClock
+import com.nuvio.tv.reshaped.livetv.LiveTvRepository
+import com.nuvio.tv.ui.screens.settings.ForkFeatures
+import kotlinx.coroutines.delay
+
+/** Odkrywaj (B08): rzędy z dziennika odcinków i oglądania na ekranie głównym. Wyłączone, gdy brak danych TV. */
+object DiscoverModule : ForkModule {
+    override val id = "discover"
+    override val title = "Odkrywaj telewizję (rzędy na ekranie głównym)"
+    override val defaultEnabled = true
+
+
+    fun build(context: android.content.Context): List<DiscoverRow> {
+        val data = TvBridge.data ?: return emptyList()
+        val now = LiveTvClock.nowEpochMs()
+        val genreText = runCatching { context.assets.open("fork/genres.json").bufferedReader().use { it.readText() } }.getOrDefault("{}")
+        val buckets = GenreBuckets(genreText)
+        val state = LiveTvRepository.uiState.value
+        val groupOf = state.channels.associate { it.guideKey to it.group }
+        val catchup = state.channels.filter { it.catchup != null }.associate { it.guideKey to 7 }
+        val input = DiscoverInput(
+            log = data.episodeLog(), records = data.records(), followed = data.followedList(),
+            yourChannels = ChannelStats.yourChannels(data.sessions(), now).toSet(), catchupDays = catchup,
+            bucketOf = { e -> buckets.bucketOf(emptyList(), groupOf[e.guideKey]) }, nowMs = now,
+        )
+        return DiscoverRows.build(input)
+    }
+
+    override fun homeRows() = listOf(ModuleHomeRow("discover_rows", "Odkrywaj", order = 60) { Rows() })
+
+    @Composable
+    private fun Rows() {
+        val c = LocalContext.current
+        var rows by remember { mutableStateOf<List<DiscoverRow>>(emptyList()) }
+        LaunchedEffect(Unit) { while (true) { rows = runCatching { build(c) }.getOrDefault(emptyList()); delay(120_000L) } }
+        rows.forEach { row ->
+            Column(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+                Text(row.title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 6.dp))
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(end = 24.dp)) {
+                    items(row.cards, key = { it.programKey + "|" + it.startMs }) { card ->
+                        Card(onClick = { ForkFeatures.open?.invoke("fork_program/" + android.net.Uri.encode(card.programKey)) }, modifier = Modifier.width(200.dp)) {
+                            Column(Modifier.padding(12.dp)) {
+                                card.badge?.let { Text(it, style = MaterialTheme.typography.labelSmall) }
+                                Text(card.title, style = MaterialTheme.typography.titleSmall, maxLines = 2)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
