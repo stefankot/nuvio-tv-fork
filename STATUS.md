@@ -134,3 +134,17 @@ Gałąź robocza: `auto/wdrozenie` (czysta; wcześniej `final`). Serie B00–B07
 **Działające (sprawdzone na emulatorze):** Reshaped (Live TV, IPTV/EPG, DV/HDR10, bez aktualizatora), YouTube, pilot Arc w całej aplikacji, wyszukiwarka ustawień, kalendarz (pusty bez klucza TMDB), test łącza, wiersz „Wygląd" (przełączanie bez crasha), Echo: Auto Quality + hot swap, wyścig źródeł, menu audio, intro, preloading, preferencje auto-play, AutoSync napisów.
 **Częściowe:** katalog KE (widoczny, zawartość niezweryfikowana), model mowy Whisper (trwałość niezweryfikowana), Echo fallback po błędzie dekodera (nie przełącza), wyścig przy następnym odcinku (hook w Streams.kt nie dodany), skórka Kit (pusty szkielet; hook 1 motywu i powłoki nawigacji nie dodane).
 **Zablokowane/zaparkowane:** logowanie QR (Supabase localhost), 4K HEVC na emulatorze (brak dekodera), KE tuner sprzętu, miniatury Echo, zgłoszenia problemów, tłumaczenia.
+
+## LISTA MODUŁÓW (17.11.2026, gałąź `auto/wdrozenie`)
+Rejestr: `fork/registry/ForkModules.kt`. Każdy moduł ma wyłącznik (Ustawienia → kategoria forka albo Prosty → „Moduły”).
+| Moduł | Co robi | Stan |
+|---|---|---|
+| tv | dziennik odcinków, „Dla Ciebie”, strona programu, przypomnienia, logo, drugi przewodnik | działa (emulator: Live TV, Kalendarz) |
+| sources | trzy odpowiedzi „polski dźwięk czy jakość”, auto-próba źródła, napisy, linia „Gotowe” | linia „Gotowe” sprawdzona; sprawdzenie ścieżek audio nieprzetestowane |
+| night | tryb nocny: harmonogram, dźwięk, ciepła nakładka (nad treścią po naprawie zIndex) | kod OK, wygląd niesprawdzony |
+| launcher | Aplikacje, wyjście 5×Wstecz, start z TV, ekran główny | niesprawdzone na urządzeniu |
+| voice | asystent/klawisz → mowa (system lub Whisper offline) → reguły → akcje, potwierdzenia, wybór kanału | nakładka i uprawnienie sprawdzone; mowa niesprawdzona (emulator bez mikrofonu) |
+| discover | rzędy z dziennika, ekran Odkrywaj, Szukaj w TV, wyłączniki rzędów | Szukaj sprawdzone; rzędy na Home tylko układ Classic |
+| lektor | TTS → miks z ściszaniem w odtwarzaczu, polecenie głosowe, ustawienia głośności | niesprawdzone na urządzeniu |
+| picks | „Na co masz ochotę?” (5 nastrojów, TMDB, punktacja regułowa) | wymaga TMDB_API_KEY (brak) |
+Testy JVM: 4223 testy, 2 padają (Trakt: brak kluczy w local.properties).
