@@ -32,6 +32,7 @@ object LektorController {
             while (PlayerBridge.cues().isEmpty() && tries++ < 20) delay(500)
             val cues = PlayerBridge.cues().map { SubtitleCue(it.startTimeMs, it.endTimeMs, it.text) }
             if (cues.isEmpty()) { status = "Brak napisów do przeczytania"; return@launch }
+            LektorModule.applySettings(app)
             LektorEngine.load(cues); LektorEngine.enabled = true
             val tts = SystemLektor(app)
             val done = HashSet<Long>()

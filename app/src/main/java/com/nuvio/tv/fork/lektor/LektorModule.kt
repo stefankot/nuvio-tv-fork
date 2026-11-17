@@ -18,7 +18,24 @@ object LektorModule : ForkModule {
         ModuleSetting("lektor_auto", SettingsLevel.ESSENTIAL, "Lektor", "Włączaj automatycznie, gdy brak polskiego dźwięku", "Przy polskich napisach i braku polskiej ścieżki", defaultValue = false),
     )
 
+    private const val K_VOL = "lektor_volume"; private const val K_DUCK = "lektor_duck"
+    private val volumes = listOf("100", "70", "130")
+    private val ducks = listOf("-10", "-6", "-14")
+
+    /** Wczytuje głośność lektora i siłę ściszania do silnika (przy włączeniu lektora). */
+    fun applySettings(c: android.content.Context) {
+        LektorEngine.voiceGain = (com.nuvio.tv.ui.screens.settings.ForkFeatures.str(c, K_VOL, "100").toIntOrNull() ?: 100) / 100f
+        LektorEngine.setDuckDepth(com.nuvio.tv.ui.screens.settings.ForkFeatures.str(c, K_DUCK, "-10").toFloatOrNull() ?: -10f)
+    }
+
+    private fun cycle(c: android.content.Context, key: String, values: List<String>) {
+        val cur = com.nuvio.tv.ui.screens.settings.ForkFeatures.str(c, key, values[0])
+        com.nuvio.tv.ui.screens.settings.ForkFeatures.setStr(c, key, values[(values.indexOf(cur) + 1) % values.size]); applySettings(c)
+    }
+
     override fun actions() = listOf(
+        ModuleAction("Lektor: głośność względem filmu (100% / 70% / 130%)", SettingsLevel.ESSENTIAL, "Kolejne naciśnięcia przełączają wartość") { c -> cycle(c, K_VOL, volumes) },
+        ModuleAction("Lektor: siła ściszania oryginału (−10 / −6 / −14 dB)", SettingsLevel.ESSENTIAL, "Kolejne naciśnięcia przełączają wartość") { c -> cycle(c, K_DUCK, ducks) },
         ModuleAction("Lektor: wyczyść pamięć podręczną", SettingsLevel.ADVANCED, "Usuwa zsyntezowane kwestie (limit 200 MB)") { c -> cache(c).clear() },
     )
 }

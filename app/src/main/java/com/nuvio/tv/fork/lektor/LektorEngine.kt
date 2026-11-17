@@ -15,7 +15,9 @@ object LektorEngine {
     @Volatile var enabled = false
     @Volatile var lines: List<Line> = emptyList()
     val voice = ConcurrentHashMap<Long, Pcm>()
-    private val envelope = DuckEnvelope()
+    @Volatile var voiceGain = 1f
+    @Volatile private var envelope = DuckEnvelope()
+    fun setDuckDepth(db: Float) { envelope = DuckEnvelope(depthDb = db) }
 
     @Volatile private var anchorPosMs = 0L
     @Volatile private var anchorNanos = 0L
@@ -61,7 +63,7 @@ class LektorAudioProcessor : BaseAudioProcessor() {
         val ui = LektorEngine.positionMs(); if (kotlin.math.abs(ui - (baseMs + frames * 1000 / rate)) > 1500) { baseMs = ui; frames = 0; t0 = ui }
         while (inp.remaining() >= 2 * ch) {
             val t = t0 + frames * 1000 / rate
-            val g = LektorEngine.gainAt(t); val v = LektorEngine.voiceAt(t)
+            val g = LektorEngine.gainAt(t); val v = LektorEngine.voiceAt(t) * LektorEngine.voiceGain
             for (c in 0 until ch) {
                 val s = inp.short / 32768f
                 out.putShort(((s * g + v).coerceIn(-1f, 1f) * 32767f).toInt().toShort())
