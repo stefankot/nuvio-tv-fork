@@ -366,7 +366,6 @@ internal fun ModernHomeRowsList(
             contentPadding = PaddingValues(bottom = rowsViewportHeight),
             verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.xl)
         ) {
-            item(key = "fork_module_rows") { com.nuvio.tv.fork.ForkHooks.HomeModuleRows() } // Fork hook: registry
             itemsIndexed(
                 items = carouselRows.list,
                 key = { index, row -> "${row.key}_$index" },
