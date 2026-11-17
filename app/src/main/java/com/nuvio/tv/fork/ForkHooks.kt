@@ -2,6 +2,8 @@ package com.nuvio.tv.fork
 
 import android.app.Activity
 import android.view.KeyEvent
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
 import com.nuvio.tv.fork.arc.RemoteGlobalHook
 import com.nuvio.tv.fork.registry.ForkRegistry
@@ -77,6 +79,12 @@ object ForkHooks {
     fun moduleHomeRows(): List<ModuleHomeRow> {
         val c = LocalContext.current
         return remember(c) { ForkRegistry.forContext(c).homeRows() }
+    }
+
+    /** ClassicHomeContent: rysuje rzędy modułów pod „Kontynuuj oglądanie” (B03/B08). */
+    @Composable
+    fun HomeModuleRows() {
+        moduleHomeRows().sortedBy { it.order }.forEach { row -> androidx.compose.runtime.key(row.id) { androidx.compose.foundation.layout.Column(androidx.compose.ui.Modifier.padding(horizontal = 48.dp)) { row.content() } } }
     }
 
     /** MainActivity: nakładki na całe okno. */

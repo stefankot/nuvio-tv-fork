@@ -711,6 +711,8 @@ fun ClassicHomeContent(
             }
         }
 
+        item(key = "fork_module_rows", contentType = "fork_module_rows") { com.nuvio.tv.fork.ForkHooks.HomeModuleRows() } // Fork hook: registry
+
         if (uiState.continueWatchingEnabled && uiState.upcomingItems.isNotEmpty()) {
             item(key = "upcoming_section", contentType = "upcoming_section") {
                 LaunchedEffect(upcomingPendingScrollToStart.intValue) {
