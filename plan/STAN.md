@@ -19,6 +19,8 @@
 
 ## Dziennik (najnowsze na górze, jedna linia na zadanie)
 
+- 2026-11-17 emulator (APK build67, skrót OK): ekran Szukaj w telewizji (TvSearchScreen) DZIAŁA: Ustawienia→Prosty→„Szukaj w telewizji”, wpisanie „tvp” zwraca kanały (TVP1, TVP Info, TVP Sport…). Rzędy modułów na Home (hook w ClassicHomeContent i ModernHomeRowsList jako pierwszy element) NIEWIDOCZNE na Home w Modern (lista przewinięta za pierwszy rząd); dostęp tylko przez ustawienia. Dotyk (adb tap) nie aktywuje przycisków TV; używać DPAD. Buildy APK 4:48–7:01 (limit 10 min).
+
 - 2026-11-17 B09: LektorModule+SystemLektor (TTS→PCM), kompiluje; miks w procesorach dźwięku NIE wpięty. B04-4: hook ForkHooks.wantsNextSourceForAudio w PlayerRuntimeControllerTracks (brak polskiej ścieżki → następne źródło), kompiluje (build60), nieprzetestowane na urządzeniu.
 
 - 2026-11-17 B08: DiscoverModule (rzędy Odkrywaj na Home z dziennika/oglądania; koszyki gatunków tylko z grupy kanału, bo LogEntry nie ma kategorii); kompiluje (build58), niezweryfikowane na urządzeniu. Brak: ekran Szukaj (TvSearchIndex), moduły lektor/picks/ai.
