@@ -26,3 +26,5 @@ Co może dostarczyć właściciel: opinię po teście na telewizorze.
 Co próbowałem: skrypt `scripts/fork/build_vectors.py` z testem na atrapie API (zielony), workflow `fork-vectors.yml` (poprawny YAML), format paczki i matematyka z testami JVM.
 Czego brakuje: sekretu `TMDB_API_KEY` w repozytorium (bez niego paczka nie powstaje; aplikacja działa na regułach) oraz uruchomienia modelu na urządzeniu (EmbeddingGemma/LiteRT) — wymaga pobrania modelu i sprawdzenia licencji Gemma (`plan/raporty/licencja-modelu.md`).
 Co może dostarczyć właściciel: sekret TMDB w ustawieniach repozytorium; decyzję o redystrybucji modelu.
+
+- B11-3 DubLift: potrzebne od właściciela 5 filmów w dwóch wydaniach (polski lektor/dubbing + oryginał angielski; w tym 2 z różnicą 25/23,976 fps, 1 z innym montażem, 1 z 5.1) do próby dopasowania. Raport: plan/raporty/dublift.md
