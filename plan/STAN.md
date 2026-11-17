@@ -3,9 +3,9 @@
 ## Teraz
 
 - Bieżący blok: **B00**
-- Następne zadanie: **B00-4**
+- Następne zadanie: **B00-5**
 - Gałąź robocza: `auto/wdrozenie` (z `final`)
-- Build w tle: commit 69d2027a3 (log /tmp/fork-build.log, status /tmp/fork-build.status)
+- Build w tle: commit B00-4 (log /tmp/fork-build.log, status /tmp/fork-build.status)
 - Niezweryfikowane buildem commity: brak
 
 ## Środowisko (uzupełnij w pierwszej turze)
@@ -18,6 +18,8 @@
 - Katalog `../nuvio-tv-kicia`: sklonowany (tylko odczyt)
 
 ## Dziennik (najnowsze na górze, jedna linia na zadanie)
+
+- 2026-11-17 B00-4: pakiet fork/registry (ForkModule, ForkRegistry, ForkModules, testy). Build bazowy: assembleFullDebug zielony; testy JVM nie kompilowały się (testy usuniętego aktualizatora DownloadedUpdateTest, TesterChannelTest) — usunięte.
 
 - 2026-11-17 B00-3: workflow fork-verify.yml + scripts/fork (ci-gradle-env, prefetch-sherpa, run-tests).
 
