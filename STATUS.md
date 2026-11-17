@@ -128,3 +128,9 @@ APK: `app/build/outputs/apk/full/debug/app-full-arm64-v8a-debug.apk`. Gradle ma 
 - NIE podpięte (świadomie): wyścig źródeł przy następnym odcinku (Streams.kt, kilka ścieżek wyboru).
 - Błąd pakowania APK (`packageFullDebug`) wystąpił raz; powtórka przeszła.
 - Uwaga: w emulatorze przypadkowo wyłączony i przywrócony „Echo: przełączanie źródła”; otwarty dialog „Sign out?” anulowany (konto nadal zalogowane).
+
+## 17.11.2026: LISTA FUNKCJI (krok 15)
+Gałąź robocza: `auto/wdrozenie` (czysta; wcześniej `final`). Serie B00–B07 = rdzeń TV/EPG/Reshaped (patrz `git log`).
+**Działające (sprawdzone na emulatorze):** Reshaped (Live TV, IPTV/EPG, DV/HDR10, bez aktualizatora), YouTube, pilot Arc w całej aplikacji, wyszukiwarka ustawień, kalendarz (pusty bez klucza TMDB), test łącza, wiersz „Wygląd" (przełączanie bez crasha), Echo: Auto Quality + hot swap, wyścig źródeł, menu audio, intro, preloading, preferencje auto-play, AutoSync napisów.
+**Częściowe:** katalog KE (widoczny, zawartość niezweryfikowana), model mowy Whisper (trwałość niezweryfikowana), Echo fallback po błędzie dekodera (nie przełącza), wyścig przy następnym odcinku (hook w Streams.kt nie dodany), skórka Kit (pusty szkielet; hook 1 motywu i powłoki nawigacji nie dodane).
+**Zablokowane/zaparkowane:** logowanie QR (Supabase localhost), 4K HEVC na emulatorze (brak dekodera), KE tuner sprzętu, miniatury Echo, zgłoszenia problemów, tłumaczenia.
