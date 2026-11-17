@@ -17,3 +17,24 @@ Urządzenie: Xiaomi TV Box 3rd gen `MiTV-AFMU0` (Android 14, armeabi-v7a, 2 GB R
 - 47% zacinających się klatek przy przewijaniu listy kanałów to wartość porównywalna z Live TV 42% w pomiarze Kicii na JMGO (p50/p90/p99 = 7/34/73 ms); na Xiaomi p90 jest 6× gorsze (2 GB RAM + swap).
 - Podejrzenia do sprawdzenia w pierwszej kolejności: podgląd kanału odtwarzany w liście (przełącznik „Channel previews” domyślnie włączony), nakładka modułów na całe okno, rozgrzewka przewodnika (`TvModule`), obciążenie pamięci/swap.
 - Znacznik pomiaru: `adb logcat -s ForkPerf` (`first_play start_to_play_ms=… key_to_play_ms=…`) od buildu b97.
+
+
+## Pomiar bazowy 17.11.2026 (Xiaomi, debug b97/b99; surowe: wydajnosc-surowe/xiaomi-baza.txt, xiaomi-ab.txt)
+Zakres wg polecenia właściciela: tylko ekrany i funkcje z modułów forka (nie Home/Ustawienia bazy). JMGO: niezmierzone, zablokowane (BLOKADY.md).
+
+| Pomiar | Wynik |
+|---|---|
+| Zimny start `am start -W` (4 próby) | 1917 / 1129 / 660 / 1237 ms |
+| CPU 60 s po wyborze profilu (rozgrzewka przewodnika pominięta na słabym TV) | 17% jednego rdzenia |
+| Live TV, 20 × ▼ / ▲ / ▶ | 49% / 34% / 33% klatek zacinających się; p90 200/150/73 ms; p99 400/250/300 ms |
+| Live TV „bezczynność” 30 s z podglądem | 1509 klatek (tyle co klatek strumienia), **86% rdzenia**, wątek UI 86%, RenderThread 26% |
+| Moduły/Narzędzia, 15 × ▼ | 1% zacinających się, p99 24 ms (OK; nakładka modułów nie szkodzi) |
+| PSS Live TV | 342–418 MB (Home 243–283 MB) |
+
+## A/B: podgląd kanałów (Live TV, Xiaomi)
+| Wariant | CPU 20 s w bezczynności | klatki 20 s | zacinające przy 20 × ▼ |
+|---|---|---|---|
+| podgląd włączony | 46% (druga seria; pierwsza 86%) | 35–1509 | 8–49% (duży rozrzut) |
+| podgląd wyłączony | **0,2%** | 0 | 42% |
+
+Wniosek: podgląd (TextureView ze strumieniem 50 kl./s) zjada 46–86% rdzenia, gdy użytkownik nic nie robi; samo zacinanie przewijania listy to osobny, nadal nieusunięty koszt kompozycji listy (Reshaped). 
