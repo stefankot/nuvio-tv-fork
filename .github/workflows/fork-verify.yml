@@ -1,0 +1,62 @@
+name: Fork verify
+
+# Każdy push do gałęzi auto/** i sync/** buduje APK i uruchamia testy JVM.
+on:
+  push:
+    branches: ["auto/**", "sync/**"]
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        default: ""
+
+concurrency:
+  group: fork-verify-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Android SDK licenses
+        run: |
+          SDKMANAGER="$(ls -d "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager | sort -V | tail -1)"
+          yes | "$SDKMANAGER" --licenses > /dev/null || true
+      - name: Cache sherpa-onnx AAR
+        uses: actions/cache@v4
+        with:
+          path: app/libs/sherpa-onnx-*.aar
+          key: sherpa-onnx-${{ hashFiles('app/reshaped.gradle') }}
+      - run: bash scripts/fork/prefetch-sherpa.sh
+      - run: bash scripts/fork/ci-gradle-env.sh
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Dane testowe (nieprawdziwe)
+        run: printf 'TRAKT_CLIENT_ID=ci-test\nTRAKT_CLIENT_SECRET=ci-test\n' > local.properties
+      - name: Spójność forka
+        run: bash fork-tools/check.sh
+      - name: Testy JVM
+        run: bash scripts/fork/run-tests.sh
+      - name: APK
+        run: ./gradlew :app:assembleFullDebug -PforgeArm64Only=true --stacktrace --max-workers=2
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: app/build/outputs/apk/full/debug/*.apk
+      - name: Raporty testów
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: app/build/reports/tests

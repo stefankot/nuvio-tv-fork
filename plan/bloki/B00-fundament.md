@@ -12,7 +12,7 @@ Skróty: `K` = `../nuvio-tv-kicia`, `J` = `app/src/main/java/com/nuvio/tv`.
 - [ ] **B00-2 Build bazowy.** Uruchom build i testy w tle według `KONTYNUUJ.md` sekcja 4. Nie czekaj; przejdź do B00-3. Gdy wynik będzie znany, zapisz w `STAN.md` liczbę testów i ewentualne błędy bazy. Błędy kompilacji bazy napraw najmniejszą możliwą zmianą.
   Ukończone, gdy: w `STAN.md` jest wynik builda bazowego (zielony albo lista naprawionych błędów).
 
-- [ ] **B00-3 CI na GitHubie.** Dodaj workflow `fork-verify.yml`: na push do `auto/**` kompilacja `assembleFullDebug -PforgeArm64Only=true`, testy JVM, artefakt APK. Wzór: `K/.github/workflows/forge-verify.yml` i `K/scripts/forge/ci-gradle-env.sh`, `run-tests.sh`. Istniejących workflowów bazy nie zmieniaj.
+- [x] **B00-3 CI na GitHubie.** Dodaj workflow `fork-verify.yml`: na push do `auto/**` kompilacja `assembleFullDebug -PforgeArm64Only=true`, testy JVM, artefakt APK. Wzór: `K/.github/workflows/forge-verify.yml` i `K/scripts/forge/ci-gradle-env.sh`, `run-tests.sh`. Istniejących workflowów bazy nie zmieniaj.
   Ukończone, gdy: workflow jest w repozytorium i (jeśli push możliwy) pierwszy przebieg jest widoczny w `gh run list`.
 
 - [ ] **B00-4 Rejestr modułów.** Pakiet `J/fork/registry`, wołany wyłącznie z `J/fork/ForkHooks.kt` (istnieje; ma już `onGlobalKey`, `skinScreen`, `skinPlayerChrome`, wpięcia Echo). Przełączniki przez istniejące `ForkFeatures` (`enabled(c, key, default)`); nie twórz drugiego mechanizmu. Interfejs `ForkModule`: `id`, `title`, `enabled` (przełącznik w prefs `fork_features`), oraz opcjonalne dostawcy:

@@ -3,9 +3,9 @@
 ## Teraz
 
 - Bieżący blok: **B00**
-- Następne zadanie: **B00-3**
+- Następne zadanie: **B00-4**
 - Gałąź robocza: `auto/wdrozenie` (z `final`)
-- Build w tle: brak
+- Build w tle: commit 69d2027a3 (log /tmp/fork-build.log, status /tmp/fork-build.status)
 - Niezweryfikowane buildem commity: brak
 
 ## Środowisko (uzupełnij w pierwszej turze)
@@ -18,6 +18,8 @@
 - Katalog `../nuvio-tv-kicia`: sklonowany (tylko odczyt)
 
 ## Dziennik (najnowsze na górze, jedna linia na zadanie)
+
+- 2026-11-17 B00-3: workflow fork-verify.yml + scripts/fork (ci-gradle-env, prefetch-sherpa, run-tests).
 
 - 2026-11-17 B00-1: gałąź auto/wdrozenie; check.sh OK (23 pliki) po dopisaniu MetaDetailsScreen.kt do base-hooks (hook Echo z wcześniejszego commita).
 
