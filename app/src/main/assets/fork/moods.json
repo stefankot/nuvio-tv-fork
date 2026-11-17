@@ -1,0 +1,86 @@
+{
+ "moods": [
+  {
+   "id": "light",
+   "title": "Lekkie na dziś",
+   "genres": {
+    "komedia": 1.0,
+    "familijny": 0.8,
+    "przygodowy": 0.7,
+    "animacja": 0.4
+   },
+   "maxRuntime": 110,
+   "minRating": 0,
+   "blockKeywords": [
+    "przemoc",
+    "wojna",
+    "trauma",
+    "samobojstwo",
+    "tortury",
+    "holocaust",
+    "gwalt"
+   ],
+   "popularityBias": 0.0,
+   "vectorQuery": "lekki, ciepły film na luźny wieczór, komedia lub przygoda, bez ciężkich tematów"
+  },
+  {
+   "id": "demanding",
+   "title": "Wymagające",
+   "genres": {
+    "dramat": 1.0,
+    "dokument": 0.9,
+    "historyczny": 0.5
+   },
+   "minRating": 7.3,
+   "keywordsBonus": [
+    "kino autorskie",
+    "artystyczny",
+    "festiwal"
+   ],
+   "popularityBias": 0.0,
+   "vectorQuery": "ambitny, wymagający film autorski, dramat o dużym ciężarze, nagradzany"
+  },
+  {
+   "id": "gems",
+   "title": "Nieodkryte perełki",
+   "genres": {},
+   "minRating": 7.0,
+   "votesMin": 150,
+   "votesMax": 5000,
+   "keywordsBonus": [
+    "kino niezalezne",
+    "festiwal",
+    "sundance",
+    "cannes",
+    "wenecja",
+    "berlinale",
+    "independent film"
+   ],
+   "popularityBias": -1.0,
+   "vectorQuery": "mało znany świetny film niezależny, festiwalowa perełka"
+  },
+  {
+   "id": "tension",
+   "title": "Trzyma w napięciu",
+   "genres": {
+    "kryminal": 1.0,
+    "thriller": 1.0,
+    "sensacja": 0.8,
+    "akcja": 0.5
+   },
+   "minRating": 0,
+   "popularityBias": 0.0,
+   "vectorQuery": "trzymający w napięciu thriller kryminalny, zwroty akcji"
+  },
+  {
+   "id": "ninety",
+   "title": "Na 90 minut",
+   "genres": {},
+   "minRuntime": 75,
+   "maxRuntime": 100,
+   "minRating": 0,
+   "popularityBias": 0.0,
+   "vectorQuery": "zgrabny film na półtorej godziny"
+  }
+ ]
+}

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Usługa ułatwień dostępu tylko do jednego klawisza: niczego nie czyta z ekranu (brak zdarzeń okna). -->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:canRequestFilterKeyEvents="true"
+    android:accessibilityFlags="flagRequestFilterKeyEvents"
+    android:notificationTimeout="0"
+    android:description="@string/fork_key_service_description" />

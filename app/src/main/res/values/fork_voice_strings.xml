@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fork_key_service_description">Pozwala przyciskowi głosowemu na pilocie uruchomić sterowanie głosem w Nuvio. Usługa nie czyta niczego z ekranu.</string>
+</resources>

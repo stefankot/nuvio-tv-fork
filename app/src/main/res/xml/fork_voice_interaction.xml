@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- recognitionService: wymagane przez parser, ignorowane od Androida 12 (usługa włączana tylko tam, patrz fork_assist.xml) -->
+<voice-interaction-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:sessionService="com.nuvio.tv.fork.voice.ForkVoiceSessionService"
+    android:recognitionService="com.nuvio.tv.fork.voice.ForkVoiceSessionService"
+    android:supportsAssist="true" />

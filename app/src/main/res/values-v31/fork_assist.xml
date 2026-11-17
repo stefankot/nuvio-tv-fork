@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <bool name="fork_assist_voice_service">true</bool>
+</resources>
