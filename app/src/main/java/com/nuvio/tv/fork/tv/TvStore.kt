@@ -22,7 +22,7 @@ import kotlinx.serialization.json.Json
  * guide. Kept apart from the Live TV engine (only a few calls reach in), per profile, in
  * `files/forge_tv/`. Everything here is best effort: a failed read or write loses a list, never playback.
  */
-object ForgeTv {
+object TvStore {
     private const val TAG = "TvStore"
     private const val MAX_AIRINGS = 6_000
     private const val MAX_ANNOUNCED = 400

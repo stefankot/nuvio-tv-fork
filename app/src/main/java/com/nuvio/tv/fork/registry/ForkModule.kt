@@ -15,6 +15,9 @@ data class ModuleSetting(
     val defaultValue: Boolean = false,
 )
 
+/** Jednorazowa czynność w ustawieniach (np. wyczyść historię). */
+data class ModuleAction(val title: String, val level: SettingsLevel, val description: String = "", val run: (android.content.Context) -> Unit)
+
 data class ModuleHomeRow(val id: String, val title: String, val order: Int = 0, val content: @Composable () -> Unit)
 
 /** Klawisze i zdarzenia odtwarzacza. Domyślnie nic nie robi. */
@@ -33,6 +36,7 @@ interface ForkModule {
     val title: String
     val defaultEnabled: Boolean get() = false
     fun settings(): List<ModuleSetting> = emptyList()
+    fun actions(): List<ModuleAction> = emptyList()
     fun routes(): List<ModuleRoute> = emptyList()
     fun homeRows(): List<ModuleHomeRow> = emptyList()
     fun rootOverlays(): List<@Composable () -> Unit> = emptyList()

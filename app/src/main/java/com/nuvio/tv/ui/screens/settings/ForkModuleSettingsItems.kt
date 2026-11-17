@@ -24,6 +24,9 @@ internal fun LazyListScope.forkModuleSettingsItems() {
                 icon = Icons.Default.Tune, title = m.title, subtitle = "", isChecked = on,
                 onCheckedChange = { on = it; ForkFeatures.set(context, k, it) },
             )
+            if (on) m.actions().forEach { a ->
+                SettingsActionRow(title = a.title, subtitle = a.description, onClick = { a.run(context) })
+            }
             if (on) m.settings().forEach { s ->
                 var v by remember { mutableStateOf(ForkFeatures.enabled(context, s.key, s.defaultValue)) }
                 ToggleSettingsItem(

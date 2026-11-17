@@ -16,6 +16,7 @@ class ForkRegistry(
     private fun active() = modules.filter { isEnabled(switchKey(it.id), it.defaultEnabled) }
 
     fun settings() = active().flatMap { m -> m.settings().map { m.id to it } }
+    fun actions() = active().flatMap { m -> m.actions().map { m.id to it } }
     fun routes() = active().flatMap { it.routes() }
     fun homeRows() = active().flatMap { it.homeRows() }.sortedBy { it.order }
     fun rootOverlays() = active().flatMap { it.rootOverlays() }

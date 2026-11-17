@@ -3,7 +3,7 @@
 ## Teraz
 
 - Bieżący blok: **B00**
-- Następne zadanie: **B02-3**
+- Następne zadanie: **B03-1**
 - Gałąź robocza: `auto/wdrozenie` (z `final`)
 - Build w tle: commit B01-6 (log /tmp/fork-build.log, status /tmp/fork-build.status)
 - Niezweryfikowane buildem commity: brak
@@ -18,6 +18,8 @@
 - Katalog `../nuvio-tv-kicia`: sklonowany (tylko odczyt)
 
 ## Dziennik (najnowsze na górze, jedna linia na zadanie)
+
+- 2026-11-17 B02-3..9: EpisodeLog, WatchLog (reguły #1), ProgramTypes, Following+ChannelStats, ProgramCard+cache, ForYouQueue, TvData (pliki fork_tv), TvModule (ustawienia, akcja czyszczenia); testy JVM dla każdego. Kompilacja i testy czekają na build.
 
 - 2026-11-17 B02-1/2: logika TV z Kicia (fork/tv, pakiet jednolity, TvStore=ForgeTv), searchMulti w TmdbApi, TvBridge (jedyny import reshaped.livetv) + wpięcia w repozytorium i overlay (łatki). Testy mostu na prawdziwym Contexcie niemożliwe w JVM: EpgExtrasTest zamiast. Zbieranie emisji obserwowanych poza oknem (watchedShows) pominięte.
 

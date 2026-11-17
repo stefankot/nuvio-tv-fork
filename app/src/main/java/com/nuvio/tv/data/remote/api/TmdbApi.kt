@@ -358,6 +358,7 @@ data class TmdbDetailsResponse(
     @Json(name = "runtime") val runtime: Int? = null,
     @Json(name = "episode_run_time") val episodeRunTime: List<Int>? = null,
     @Json(name = "vote_average") val voteAverage: Double? = null,
+    @Json(name = "vote_count") val voteCount: Int? = null, // Fork hook: tv
     @Json(name = "production_companies") val productionCompanies: List<TmdbCompany>? = null,
     @Json(name = "networks") val networks: List<TmdbNetwork>? = null,
     @Json(name = "production_countries") val productionCountries: List<TmdbCountry>? = null,
