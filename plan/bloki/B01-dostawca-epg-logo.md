@@ -31,10 +31,10 @@ Dane dostawcy właściciela (z pomiaru 7.11): lista M3U, 313 kanałów, EPG 51 M
 - [x] **B01-7 Zakres przewodnika (#5).** Okno 7 dni wstecz i 8 naprzód oraz zachowanie starszych dni po odświeżeniu, ale według DECYZJE #6: pełne tylko poza „low memory”.
   Ukończone, gdy: test JVM okna dla obu przypadków.
 
-- [ ] **B01-8 Klawisze Live TV (#10).** `ui/reshaped/livetv/LiveTvPlayerOverlay.kt`: klawisze zostają przy Live TV podczas startu i wznawiania strumienia (warunek `currentListUrl`), potwierdzenie zmiany kanału podczas odtwarzania z archiwum (`zapConfirm`, `zapNow`). Okno potwierdzenia zrób z istniejących komponentów aplikacji. Części MiniGuide nie przenoś tutaj (blok B03).
+- [x] **B01-8 Klawisze Live TV (#10).** `ui/reshaped/livetv/LiveTvPlayerOverlay.kt`: klawisze zostają przy Live TV podczas startu i wznawiania strumienia (warunek `currentListUrl`), potwierdzenie zmiany kanału podczas odtwarzania z archiwum (`zapConfirm`, `zapNow`). Okno potwierdzenia zrób z istniejących komponentów aplikacji. Części MiniGuide nie przenoś tutaj (blok B03).
   Ukończone, gdy: kompiluje się; pozycja na liście TV („OK i strzałki podczas startu kanału nie otwierają kontrolek filmu”).
 
-- [ ] **B01-9 Logo kanałów (#8).** Skopiuj `K/ui/forge/livetv/ForgeLogoPack.kt` i `ForgeChannelLogo.kt` do `J/fork/tv/logo` z testami (`ForgeLogoModeTest`, `ForgeLogoFiltersTest`, `ForgeLogoInnerTileTest`). Jedno wpięcie w `LiveTvModels.kt` w miejscu wyboru logo. Kolejność: paczka po nazwie kanału, ikona z EPG, logo z listy, kafel z nazwą.
+- [x] **B01-9 Logo kanałów (#8).** Skopiuj `K/ui/forge/livetv/ForgeLogoPack.kt` i `ForgeChannelLogo.kt` do `J/fork/tv/logo` z testami (`ForgeLogoModeTest`, `ForgeLogoFiltersTest`, `ForgeLogoInnerTileTest`). Jedno wpięcie w `LiveTvModels.kt` w miejscu wyboru logo. Kolejność: paczka po nazwie kanału, ikona z EPG, logo z listy, kafel z nazwą.
   Ukończone, gdy: przeniesione testy są zielone.
 
 - [x] **B01-10 Automatyczny drugi przewodnik i lista adresów.** Plik `app/src/main/assets/fork/epg_sources.json` (kraj, adres EPG, wzór logo; na start Polska według DECYZJE #22) z możliwością nadpisania wersją pobraną z repozytorium właściciela (ten sam mechanizm co katalog KE: `J/livetv/source/PackStore.kt`). Po dodaniu źródła moduł rozpoznaje kraj (końcówka `tvg-id`, nazwy grup) i dodaje przewodnik uzupełniający bez pytania. Użytkownik może go usunąć w ustawieniach Advanced.

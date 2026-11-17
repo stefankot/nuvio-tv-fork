@@ -17,6 +17,13 @@ object TvModule : ForkModule {
     override val title = "Telewizja: dodatki (przewodnik w tle, logo, obejrzane)"
     override val defaultEnabled = true
 
+    override fun settings() = listOf(
+        com.nuvio.tv.fork.registry.ModuleSetting(
+            com.nuvio.tv.fork.tv.guide.ExtraGuides.KEY, com.nuvio.tv.fork.registry.SettingsLevel.ADVANCED, "Telewizja",
+            "Przewodnik uzupełniający dla kraju listy", "Dodaje drugi przewodnik (obrazy, odcinki), gdy rozpozna kraj kanałów", defaultValue = true,
+        ),
+    )
+
     @EntryPoint @InstallIn(SingletonComponent::class)
     interface Deps { fun profiles(): ProfileManager }
 

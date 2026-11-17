@@ -1,0 +1,11 @@
+--- a
++++ b
+@@ -207,7 +207,7 @@
+ 
+     /** The channel's logo, or the guide's when the playlist has none. */
+     fun logoFor(channel: LiveTvChannel): String? =
+-        channel.logoUrl?.takeIf(String::isNotBlank) ?: guideLogos[channel.guideKey]
++        com.nuvio.tv.fork.tv.logo.ForkLogoPrefs.resolve(channel, guideLogos) // Fork patch: dostawca #8 - paczka logo, potem przewodnik, potem lista
+ 
+     /** [source]'s categories among [groups] (those it has: [own]), in its own order, then the shared one. */
+     fun groupsOf(source: LiveTvSource, own: Set<String>, groups: List<String> = this.groups): List<String> =

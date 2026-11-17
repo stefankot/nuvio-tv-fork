@@ -1,0 +1,11 @@
+--- a
++++ b
+@@ -1300,7 +1300,7 @@
+         }
+         providerGroupOrder = parts.flatMap { it.groupOrder }.distinct()
+         val groups = orderedGroups(groupCounts.keys)
+-        val epgUrls = parts.flatMap { it.epgUrls }.distinct()
++        val epgUrls = (parts.flatMap { it.epgUrls } + com.nuvio.tv.fork.tv.guide.ExtraGuides.urlsFor(appContext, channels)).distinct() // Fork patch: dostawca #9 - przewodnik uzupełniający dla kraju listy
+         val guideKeys = channels.mapTo(HashSet(channels.size * 2)) { it.guideKey }
+         val hasGuide = epgUrls.isNotEmpty() && guideKeys.isNotEmpty()
+         val guideInput = Triple(epgUrls, guideKeys, liveTvGuideMatchingKey(channels))

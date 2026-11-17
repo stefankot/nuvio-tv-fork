@@ -16,3 +16,10 @@ Lista dla właściciela. Wykonawca dopisuje tu wszystko, czego nie da się spraw
 
 ## B01-2
 - Uruchom aplikację, odczekaj ok. minuty, wejdź do TV: program (przewodnik) widoczny od razu, bez długiego ładowania. (Urządzenia 'low memory' pomijają wczytanie w tle.)
+
+## B01-8
+- Podczas startu kanału naciśnij OK i strzałki: nie powinny otwierać kontrolek filmu.
+- Podczas oglądania programu z archiwum zmień kanał strzałką ▲▼: pojawia się okno „Zmienić kanał?” z fokusem na „Zostań”.
+
+## B01-9/10
+- Kanały mają logo z paczki/przewodnika; dla listy z polskimi kanałami pojawia się obraz i numer odcinka z drugiego przewodnika (epg.ovh).

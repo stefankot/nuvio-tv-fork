@@ -223,7 +223,8 @@ internal class LiveTvPlayerState(
 
     /** Called first by the player's key handler; true when the key was Live TV's. */
     fun onPreviewKey(event: KeyEvent, uiState: PlayerUiState): Boolean {
-        if (!isActive()) return false
+        // Fork patch: dostawca #10 - gdy trwa sesja Live TV (wybrano kanał), klawisze zostają Live TV nawet gdy strumień chwilowo nie jest zarejestrowany
+        if (!isActive() && currentListUrl == null) return false
         val nuvioOverlayOpen = uiState.showEpisodesPanel || uiState.showSourcesPanel ||
             uiState.showAudioOverlay || uiState.showSubtitleOverlay || uiState.showSubtitleStylePanel ||
             uiState.showSpeedDialog || uiState.showSubtitleDelayOverlay || uiState.showSubtitleTimingDialog ||
@@ -406,7 +407,18 @@ internal class LiveTvPlayerState(
     /** Where the playing channel was in the list last zapped, so a zap skips searching for it. */
     private var zapIndexHint = -1
 
+    /** Fork patch: dostawca #10 - zmiana kanału podczas archiwum czeka na potwierdzenie. */
+    internal var zapConfirm by mutableStateOf<Int?>(null)
+
     private fun zap(step: Int) {
+        if (isCatchup()) {
+            if (zapConfirm == null) { hideInfo(); zapConfirm = step }
+            return
+        }
+        zapNow(step)
+    }
+
+    internal fun zapNow(step: Int) {
         hideInfo()
         val url = currentListUrl
         val picked = LiveTvRepository.zapList
@@ -657,6 +669,8 @@ internal class LiveTvPlayerState(
 
     /** The programme the title shows while a replay plays. */
     private var replayTitleProgramme: LiveTvProgramme? = null
+    /** Fork patch: dostawca #10 */
+    internal val replayingProgramme: LiveTvProgramme? get() = replayTitleProgramme?.takeIf { isCatchup() }
     /** The replay whose end has been acted on, so it is acted on once. */
     private var continuedWindow: LiveTvReplayWindow? = null
 
@@ -822,6 +836,15 @@ private fun BoxScope.LiveTvPlayerOverlayContent(state: LiveTvPlayerState, uiStat
     val zapList = remember(state.currentListUrl, liveState.shownChannels) { state.zapList() }
     val currentIndex = remember(state.currentListUrl, zapList) { zapList.indexOfFirst { it.streamUrl == state.currentListUrl } }
     val current = zapList.getOrNull(currentIndex)
+
+    // Fork patch: dostawca #10
+    state.zapConfirm?.let { step ->
+        com.nuvio.tv.fork.tv.ui.ForkZapConfirm(
+            programmeTitle = state.replayingProgramme?.title,
+            onStay = { state.zapConfirm = null },
+            onChange = { state.zapConfirm = null; state.zapNow(step) },
+        )
+    }
 
     var bannerVisible by remember { mutableStateOf(false) }
     LaunchedEffect(state.bannerKey) {

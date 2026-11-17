@@ -1,0 +1,11 @@
+{
+  "sources": [
+    {
+      "country": "PL",
+      "epg": "https://epg.ovh/pl.gz",
+      "logo": "https://epg.ovh/logo/{name}.png",
+      "idSuffixes": [".pl"],
+      "groupHints": ["PL", "Polska", "Polish", "Poland", "Polskie"]
+    }
+  ]
+}
