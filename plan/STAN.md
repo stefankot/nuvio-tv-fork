@@ -19,6 +19,8 @@
 
 ## Dziennik (najnowsze na górze, jedna linia na zadanie)
 
+- 2026-11-17 JMGO: właściciel zlecił instalację i test od instalacji na projektorze JMGO przez ADB (najpierw testy tekstowe, UI automation potem). Urządzenie NIE jest widoczne: `adb devices` puste; 192.168.31.29 i .44 → „No route to host”. Potrzebny adres IP JMGO (debugowanie sieciowe) albo USB. Skrypt: scratchpad/jmgo_install.sh <ip:port> (dobiera APK wg ABI, instaluje, sprawdza hash).
+
 - 2026-11-17 emulator (APK b92, skrót OK): menu „Narzędzia” + hub działa; nakładka głosu „Słucham…” widoczna nad Live TV (zIndex); brak crashy. Dodany WhisperTranscriptsTest (test na transkrypcjach Whisper small/base). Kolejka: wszystko, co wykonalne bez kluczy TMDB/Trakt i bez telewizora, wdrożone; dalej testy uzupełniające.
 
 - 2026-11-17 emulator (APK b90, skrót OK): menu główne ma pozycję „Narzędzia” (hub: Szukaj w TV, Odkrywaj, Na co masz ochotę?, przykłady poleceń, Aplikacje, Moduły) – SPRAWDZONE; ekran „Co mogę powiedzieć” – SPRAWDZONY. Wdrożone po b90 (test JVM w toku t91): fav/seek/kanał numer głosem, DurationParser. Nakładka nocna: pomiar koloru niedokładny (dark UI), niepotwierdzona wzrokowo.

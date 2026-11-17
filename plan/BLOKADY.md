@@ -37,3 +37,8 @@ Co może dostarczyć właściciel: darmowy klucz TMDB (v3) w `NuvioFork/local.pr
 ## Testy Trakt (3) — brak kluczy Trakt
 Co ustaliłem: TraktAuthServiceTest (2) i TraktProgressServiceFailureTest (czasem) padają, bo `TraktAuthService.hasRequiredCredentials()` wymaga `TRAKT_CLIENT_ID` i `TRAKT_CLIENT_SECRET` z `local.properties`, a tu są puste; kod i testy są identyczne w bazie, w Reshaped i w forku, więc to nie błąd forka ani repo, tylko brak sekretów w środowisku.
 Co może dostarczyć właściciel: klucze aplikacji Trakt (client id/secret) w `NuvioFork/local.properties`, albo zgoda, by testy uznać za zależne od środowiska.
+
+## JMGO — brak połączenia ADB
+Co próbowałem: `adb devices` (puste), `adb connect` do 192.168.31.29 i .44 (No route to host).
+Czego brakuje: adres IP projektora JMGO z włączonym debugowaniem sieciowym (port 5555) albo kabel USB.
+Co może dostarczyć właściciel: IP JMGO (Ustawienia → Sieć) i włączenie debugowania USB/sieciowego.
