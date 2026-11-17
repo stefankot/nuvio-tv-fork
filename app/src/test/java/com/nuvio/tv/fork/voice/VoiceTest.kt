@@ -106,7 +106,7 @@ class VoiceTest {
         emb.down = true; assertNull(sem.parse("włącz napisy", ctx))
     }
 
-    @Test fun `parser modelowy: poprawne narzedzie, nieznane odrzucone, limit czasu`() = runBlocking {
+    @Test fun `parser modelowy - poprawne narzedzie, nieznane odrzucone, limit czasu`() = runBlocking {
         val ok = object : LlmClient { override suspend fun choose(utterance: String, tools: List<LlmTool>, context: List<String>) = LlmChoice.Tool("mood.light", mapOf("x" to "y")) }
         assertEquals("mood.light", LlmParser(ok).parse("coś lekkiego ale nie komedię", ctx)?.id)
         val unknown = object : LlmClient { override suspend fun choose(utterance: String, tools: List<LlmTool>, context: List<String>) = LlmChoice.Tool("format.disk") }
@@ -118,7 +118,7 @@ class VoiceTest {
         assertNull(LlmParser(null).parse("coś", ctx)) // bez klucza
     }
 
-    @Test fun `szyna: reguly przed znaczeniem`() = runBlocking {
+    @Test fun `szyna - reguly przed znaczeniem`() = runBlocking {
         val chain = ParserChain(listOf(parser, SemanticParser(BagEmbedder(), threshold = 0.5f)))
         assertEquals("pause", chain.parse("pauza", ctx)?.id); assertNotNull(chain.parse("zatrzymaj odtwarzanie", ctx))
     }

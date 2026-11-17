@@ -50,7 +50,7 @@ class PicksTest {
         assertTrue(RuleScoring.rank(pool, easy, moods.getValue("ninety")).all { it.first.runtimeMin in 75..100 })
     }
 
-    @Test fun `wektory: rozlaczne dziesiatki, perelki bez mas i roznorodnosc`() {
+    @Test fun `wektory - rozlaczne dziesiatki, perelki bez mas i roznorodnosc`() {
         val r = Random(7)
         fun unit(base: Int, noise: Float) = VectorMath.truncateNormalize(FloatArray(128) { i -> (if (i / 32 == base) 1f else 0f) + noise * r.nextGaussian().toFloat() })
         val vp = pool.mapIndexed { i, p -> p.copy(vector = unit(if (p.genres.contains("kryminal")) 0 else if (p.genres == listOf("dramat")) 1 else if (p.genres.contains("komedia")) 2 else 3, 0.05f)) }
@@ -106,7 +106,7 @@ class PicksTest {
         assertTrue(runCatching { Survey(listOf(1, 2, 3, 4, 5, 6), Sliders()) }.isFailure)
     }
 
-    @Test fun `ranking przez model: odrzuca tytuly spoza listy i wraca do regul przy bledzie`() = runBlocking {
+    @Test fun `ranking przez model - odrzuca tytuly spoza listy i wraca do regul przy bledzie`() = runBlocking {
         val ranked = (1..80).map { t(it, listOf("x")) }; val mood = moods.getValue("light")
         val llm = object : RankLlm { override suspend fun rank(mood: String, tasteDescription: String, candidates: List<Pair<Int, String>>) = listOf(5 to "bo lubisz X", 999 to "spoza listy", 3 to "Y") }
         val out = LlmRanker(llm).rank("p", mood, ranked, "opis")

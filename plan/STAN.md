@@ -19,6 +19,8 @@
 
 ## Dziennik (najnowsze na górze, jedna linia na zadanie)
 
+- 2026-11-17 testy JVM (test52): moje padające: DiscoverTest (2: kolejność wyników, koszyki 'serial kryminalny'/'soap opera'), VoiceTest (3: atrapa embeddera, szyna reguł, dopasowanie kanałów 'tvn dwadzieścia cztery'/'tvp dwójce'), EpgExtraParseTest (numer odcinka S1E2 = null). Reszta (DolbyVision 6, Trakt 2, Http1Only, SearchViewModelSuggestions, SettingsCatalog) = baza. Do naprawy w następnej kolejności.
+
 - 2026-11-17 B05–B10: skopiowane z .stage/ do src, apply_b07 zastosowany; compileFullDebugKotlin OK (build50). Testy JVM i wpięcia niezweryfikowane.
 
 - 2026-11-17 STOP (limit): B05/B06/B06b/B07/B08/B09/B10 napisane w `.stage/` (main, test2, res, assets, apply_b05_b06.py, apply_b07.py) i NIEWDROŻONE do src ani niezbudowane; B06a-2/3/5, B11 niezrobione. Ostatni build testów (commit z B04) przeszedł kompilację; znane padające testy bazy: DolbyVision(6), Trakt(2), Http1Only, SearchViewModelSuggestions, SettingsCatalog.
