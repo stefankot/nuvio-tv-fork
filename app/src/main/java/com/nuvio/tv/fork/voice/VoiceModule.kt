@@ -44,6 +44,26 @@ object VoiceModule : ForkModule {
         com.nuvio.tv.reshaped.livetv.LiveTvRepository.uiState.value.channels.map { Entity(it.streamUrl, listOf(it.name)) },
     )
 
+    /** Jedno nasłuchiwanie systemowym rozpoznawaniem mowy (pl-PL); null = błąd/brak mowy. Musi być wołane z wątku głównego. */
+    private suspend fun listen(c: android.content.Context, onError: (Int) -> Unit): String? = kotlinx.coroutines.suspendCancellableCoroutine { cont ->
+        val rec = SpeechRecognizer.createSpeechRecognizer(c)
+        rec.setRecognitionListener(object : RecognitionListener {
+            override fun onResults(r: Bundle?) { rec.destroy(); if (cont.isActive) cont.resume(r?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull(), null) }
+            override fun onError(error: Int) { Log.i("ForkVoice", "error=$error"); onError(error); rec.destroy(); if (cont.isActive) cont.resume(null, null) }
+            override fun onReadyForSpeech(p: Bundle?) {}
+            override fun onBeginningOfSpeech() {}
+            override fun onRmsChanged(v: Float) {}
+            override fun onBufferReceived(b: ByteArray?) {}
+            override fun onEndOfSpeech() {}
+            override fun onPartialResults(p: Bundle?) {}
+            override fun onEvent(t: Int, p: Bundle?) {}
+        })
+        cont.invokeOnCancellation { runCatching { rec.destroy() } }
+        rec.startListening(Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM).putExtra(RecognizerIntent.EXTRA_LANGUAGE, "pl-PL"))
+    }
+
+    private val yes = setOf("tak", "potwierdzam", "dobrze", "jasne", "zgoda")
+
     @Composable
     private fun Overlay() {
         val c = LocalContext.current
@@ -55,27 +75,35 @@ object VoiceModule : ForkModule {
             if (androidx.core.content.ContextCompat.checkSelfPermission(c, android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED) { shown = "Zezwól na mikrofon i powtórz polecenie"; permission.launch(android.Manifest.permission.RECORD_AUDIO); return@LaunchedEffect }
             if (!SpeechRecognizer.isRecognitionAvailable(c)) { shown = "Brak rozpoznawania mowy w systemie"; return@LaunchedEffect }
             shown = "Słucham…"
-            val rec = SpeechRecognizer.createSpeechRecognizer(c)
-            rec.setRecognitionListener(object : RecognitionListener {
-                override fun onResults(r: Bundle?) {
-                    val t = r?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull().orEmpty()
-                    val call = runBlocking { parser.parse(t, VoiceContext(channels = channelIndex())) }
-                    Log.i("ForkVoice", "text='$t' -> ${call?.id} ${call?.params}")
-                    val done = call != null && VoiceActions.run(c, call)
-                    shown = if (call != null) "„$t” → ${call.id}" + (if (done) " ✓" else "") + (VoiceActions.lastMessage?.let { " · $it" } ?: "") else "Nie zrozumiałem: „$t”"
-                    rec.destroy()
+            val ctx = VoiceContext(channels = channelIndex())
+            val t = listen(c) { shown = "Błąd nasłuchu ($it)" }
+            if (t == null) { kotlinx.coroutines.delay(3000); shown = ""; return@LaunchedEffect }
+            val call = parser.parse(t, ctx)
+            Log.i("ForkVoice", "text='$t' -> ${call?.id} ${call?.params} conf=${call?.confidence}")
+            if (call == null) { shown = "Nie zrozumiałem: „$t”"; kotlinx.coroutines.delay(4000); shown = ""; return@LaunchedEffect }
+            VoiceActions.lastMessage = null
+            when (val d = Confidence.decide(listOf(call))) {
+                is Confidence.Decision.Run -> { val ok = VoiceActions.run(c, d.call); shown = "„$t” → ${d.call.id}" + (if (ok) " ✓" else "") + (VoiceActions.lastMessage?.let { " · $it" } ?: "") }
+                is Confidence.Decision.Confirm -> {
+                    shown = "Czy na pewno: ${d.call.id}? Powiedz „tak”"
+                    val a = listen(c) { shown = "Błąd nasłuchu ($it)" }
+                    shown = if (a != null && com.nuvio.tv.fork.voice.Text.norm(a) in yes) { VoiceActions.run(c, d.call); "${d.call.id} ✓" } else "Anulowano"
                 }
-                override fun onError(error: Int) { Log.i("ForkVoice", "error=$error"); shown = "Błąd nasłuchu ($error)"; rec.destroy() }
-                override fun onReadyForSpeech(p: Bundle?) {}
-                override fun onBeginningOfSpeech() {}
-                override fun onRmsChanged(v: Float) {}
-                override fun onBufferReceived(b: ByteArray?) {}
-                override fun onEndOfSpeech() {}
-                override fun onPartialResults(p: Bundle?) {}
-                override fun onEvent(t: Int, p: Bundle?) {}
-            })
-            rec.startListening(Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM).putExtra(RecognizerIntent.EXTRA_LANGUAGE, "pl-PL"))
-            kotlinx.coroutines.delay(6000); shown = ""
+                is Confidence.Decision.Suggest -> {
+                    val name = call.params["kanal"]
+                    val options = if (call.id == "channel.play" && name != null) ctx.channels.match(name).take(3) else emptyList()
+                    if (options.isEmpty()) { shown = "Nie jestem pewien: „$t”"; }
+                    else {
+                        shown = "Którą? " + options.mapIndexed { i, o -> "${i + 1}. ${o.name}" }.joinToString("  ") + " — powiedz numer"
+                        val a = listen(c) { shown = "Błąd nasłuchu ($it)" }
+                        val n = a?.let { com.nuvio.tv.fork.voice.Text.digits(com.nuvio.tv.fork.voice.Text.norm(it)).split(' ').firstNotNullOfOrNull { w -> w.toIntOrNull() } }
+                        val pick = n?.let { options.getOrNull(it - 1) }
+                        shown = if (pick != null) { VoiceActions.run(c, call.copy(params = call.params + ("kanal_id" to pick.id), confidence = 1f)); "${pick.name} ✓" } else "Anulowano"
+                    }
+                }
+                Confidence.Decision.Nothing -> shown = "Nie zrozumiałem: „$t”"
+            }
+            kotlinx.coroutines.delay(4000); shown = ""
         }
         if (shown.isNotEmpty()) Box(Modifier.padding(24.dp).background(Color(0xCC000000))) {
             Text(shown, color = Color.White, modifier = Modifier.padding(16.dp).align(Alignment.Center))

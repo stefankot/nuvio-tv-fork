@@ -51,7 +51,14 @@ object DiscoverModule : ForkModule {
             yourChannels = ChannelStats.yourChannels(data.sessions(), now).toSet(), catchupDays = catchup,
             bucketOf = { e -> buckets.bucketOf(emptyList(), groupOf[e.guideKey]) }, nowMs = now,
         )
-        return DiscoverRows.build(input)
+        val hidden = DiscoverRows.DEFAULT_ORDER.filterNot { ForkFeatures.enabled(context, "discover_show_$it", true) }.toSet()
+        return DiscoverRows.build(input, hiddenRows = hidden)
+    }
+
+    private val rowTitles = mapOf("continue" to "Oglądaj dalej", "followed" to "Obserwowane", "tonight" to "Dziś wieczorem", "films" to "Filmy w archiwum", "series" to "Seriale w archiwum")
+
+    override fun settings() = DiscoverRows.DEFAULT_ORDER.map { id ->
+        com.nuvio.tv.fork.registry.ModuleSetting("discover_show_$id", com.nuvio.tv.fork.registry.SettingsLevel.ESSENTIAL, "Odkrywaj", "Rząd: " + (rowTitles[id] ?: id.removePrefix("genre_")), "", defaultValue = true)
     }
 
     override fun routes() = listOf(

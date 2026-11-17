@@ -224,7 +224,7 @@ fun PlayerScreen(
     onOpenPartyMedia: (PartyMedia) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    com.nuvio.tv.fork.ForkHooks.playerBridge(uiState) { viewModel.onEvent(it) } // Fork hook: player bridge
+    com.nuvio.tv.fork.ForkHooks.playerBridge(uiState, viewModel.playbackTimeline) { viewModel.onEvent(it) } // Fork hook: player bridge
     val arcRemote = androidx.compose.runtime.remember { com.nuvio.tv.ui.screens.player.RemotePlayerHook(android.view.ViewConfiguration.getLongPressTimeout().toLong()) } // Arc hook
     val playerBadges = rememberPlayerBadges(viewModel, uiState)
     val partyState by viewModel.party.state.collectAsState()

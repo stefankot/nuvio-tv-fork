@@ -10,7 +10,8 @@ object PlayerBridge {
     private var queue: SubtitleQueue? = null
     private var queueKey: List<String> = emptyList()
 
-    fun set(s: PlayerUiState, e: (PlayerEvent) -> Unit) { state = s; send = e; com.nuvio.tv.fork.lektor.LektorEngine.updatePosition(s.currentPosition, s.isPlaying) }
+    fun set(s: PlayerUiState, e: (PlayerEvent) -> Unit) { state = s; send = e }
+    fun position(posMs: Long, playing: Boolean) = com.nuvio.tv.fork.lektor.LektorEngine.updatePosition(posMs, playing)
     fun clear() { state = null; send = null; queue = null }
     val active: Boolean get() = send != null
     fun send(e: PlayerEvent) { send?.invoke(e) }
