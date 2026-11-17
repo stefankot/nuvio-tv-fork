@@ -463,6 +463,7 @@ fun MetaDetailsScreen(
 ) {
     val playbackAvailability = LocalPlaybackAvailability.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    com.nuvio.tv.fork.echo.EchoSourcePreload.Run(uiState.meta, uiState.nextToWatch) // fork hook
     val posterCardCornerRadiusDp by viewModel.posterCardCornerRadiusDp.collectAsStateWithLifecycle()
     val effectiveAutoplayEnabled by viewModel.effectiveAutoplayEnabled.collectAsStateWithLifecycle(
         initialValue = false

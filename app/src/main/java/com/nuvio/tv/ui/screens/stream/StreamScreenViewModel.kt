@@ -664,7 +664,7 @@ class StreamScreenViewModel @Inject constructor(
                 // configured timeout has elapsed. This gives slower addons a
                 // chance to return higher-quality streams before the selector
                 // picks from whatever is available.
-                if (!isAllLoaded && !autoPlayHandledForSession && !resolvedAutoPlayTarget) com.nuvio.tv.fork.echo.EchoRaceHook.offer(raceHeadStart, allStreams, playerSettings, installedAddonOrder.toSet()) // fork hook
+                if (!isAllLoaded && !autoPlayHandledForSession && !resolvedAutoPlayTarget) com.nuvio.tv.fork.echo.EchoRaceHook.offer(context, raceHeadStart, allStreams, playerSettings, installedAddonOrder.toSet()) // fork hook
                 val shouldAutoSelect = !autoPlayHandledForSession && !resolvedAutoPlayTarget && isAllLoaded
                 var selectedAutoPlayStream = if (earlyBingeGroupMatch != null) {
                     earlyBingeGroupMatch
@@ -689,6 +689,7 @@ class StreamScreenViewModel @Inject constructor(
                 if (selectedAutoPlayStream != null) {
                     resolvedAutoPlayTarget = true
                 }
+                if (shouldAutoSelect) selectedAutoPlayStream = com.nuvio.tv.fork.echo.EchoRaceHook.preferred(context, selectedAutoPlayStream, allStreams, playerSettings, installedAddonOrder.toSet()) ?: selectedAutoPlayStream // fork hook
                 val raceField = com.nuvio.tv.fork.echo.EchoRaceHook.field(context, selectedAutoPlayStream, allStreams, playerSettings, installedAddonOrder.toSet(), persistedBingeGroup) // fork hook
                 if (selectedAutoPlayStream != null && raceField != null) { // fork hook
                     com.nuvio.tv.fork.echo.EchoRaceHook.run(context, newScope, raceField, raceHeadStart, selectedAutoPlayStream, playerSettings.showPlayerLoadingStatus, { autoPlayHandledForSession }, { m -> updateUiStateIfChanged { it.copy(directAutoPlayMessage = m) } }, { w -> updateUiStateIfChanged { it.copy(autoPlayStream = w) } })

@@ -22,8 +22,37 @@ private fun LazyListScope.echoSwitch(key: String, title: String, subtitle: Strin
     }
 }
 
+private fun LazyListScope.echoCycle(key: String, title: String, subtitle: String, values: List<Pair<String, String>>) {
+    item(key = "fork_echo_cycle_$key") {
+        val context = LocalContext.current
+        var cur by remember { mutableStateOf(ForkFeatures.str(context, key)) }
+        val label = values.firstOrNull { it.first == cur }?.second ?: values.first().second
+        NavigationSettingsItem(
+            Icons.Default.Tune, "$title: $label", subtitle,
+            onClick = {
+                val i = values.indexOfFirst { it.first == cur }.coerceAtLeast(0)
+                cur = values[(i + 1) % values.size].first
+                ForkFeatures.setStr(context, key, cur)
+            }
+        )
+    }
+}
+
 /** Echo: jakość, przełączanie źródeł i menu języka audio. Wszystko domyślnie WYŁĄCZONE (nieprzetestowane). Działa od następnego odtwarzania. */
 internal fun LazyListScope.echoPlaybackSettingsItems() {
+    item(key = "fork_detail_preload") {
+        val context = LocalContext.current
+        var on by remember { mutableStateOf(ForkFeatures.enabled(context, "fork_detail_preload", default = true)) }
+        ToggleSettingsItem(
+            icon = Icons.Default.Tune, title = "Preloading źródeł na ekranie szczegółów",
+            subtitle = "Wyszukuje źródła w tle, gdy otwierasz film lub serial, żeby Play startował szybciej",
+            isChecked = on, onCheckedChange = { on = it; ForkFeatures.set(context, "fork_detail_preload", it) },
+        )
+    }
+    echoCycle("echo_ap_quality", "Auto-play: rozdzielczość", "Kliknij, aby zmienić: dowolna → 4K → 1080p → 720p (dotyczy trybu Auto-play first source)",
+        listOf("" to "dowolna", "4k" to "4K", "1080p" to "1080p", "720p" to "720p"))
+    echoCycle("echo_ap_codec", "Auto-play: kodek", "Kliknij, aby zmienić: dowolny → AVC (H.264) → HEVC (H.265)",
+        listOf("" to "dowolny", "avc" to "AVC", "hevc" to "HEVC"))
     echoSwitch("echo_quality_menu", "Echo: przełączanie źródła w odtwarzaczu", "Menu jakości (przycisk pilota „Quality”) i zmiana źródła z zachowaniem pozycji")
     echoSwitch("echo_auto_quality", "Echo: Auto Quality", "Sam dobiera jakość do łącza (potrzebuje przełączania źródła)")
     echoSwitch("echo_hot_swap", "Echo: hot swap", "Zmiana jakości bez ekranu ładowania")

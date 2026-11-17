@@ -15,18 +15,35 @@ import kotlinx.coroutines.launch
 object EchoRaceHook {
     private fun on(c: Context) = BetaFeatures.settings(c).raceAutoPlaySources
 
+    /** Wybrane preferencje auto-play (rozdzielczość, kodek) jako pigułki Echo. */
+    fun prefs(c: Context): Set<String> = setOfNotNull(
+        com.nuvio.tv.ui.screens.settings.ForkFeatures.str(c, "echo_ap_quality").ifBlank { null },
+        com.nuvio.tv.ui.screens.settings.ForkFeatures.str(c, "echo_ap_codec").ifBlank { null },
+    )
+
+    /** Auto-play pierwszego źródła z uwzględnieniem wybranej rozdzielczości/kodeka; null = bez preferencji. */
+    fun preferred(c: Context, pick: Stream?, streams: List<Stream>, s: PlayerSettings, installed: Set<String>): Stream? {
+        if (pick == null || !com.nuvio.tv.core.player.AutoPlayPreferences.isConfigured(prefs(c))) return null
+        return StreamAutoPlaySelector.raceCandidates(
+            streams = streams, mode = s.streamAutoPlayMode, regexPattern = s.streamAutoPlayRegex,
+            source = s.streamAutoPlaySource, installedAddonNames = installed,
+            selectedAddons = s.streamAutoPlaySelectedAddons, selectedPlugins = s.streamAutoPlaySelectedPlugins,
+            preferences = prefs(c)
+        ).firstOrNull()
+    }
+
     /** Przed ładowaniem źródeł: zaczyna wyścig od razu, gdy pojawią się pierwsze pasujące linki. */
     fun headStart(c: Context, scope: CoroutineScope, skip: Boolean): AutoPlayRace.HeadStart? =
         if (on(c) && !skip) AutoPlayRace.HeadStart(scope) else null
 
-    fun offer(h: AutoPlayRace.HeadStart?, streams: List<Stream>, s: PlayerSettings, installed: Set<String>) {
+    fun offer(c: Context, h: AutoPlayRace.HeadStart?, streams: List<Stream>, s: PlayerSettings, installed: Set<String>) {
         h ?: return
         h.offer(
             StreamAutoPlaySelector.raceCandidates(
                 streams = streams, mode = s.streamAutoPlayMode, regexPattern = s.streamAutoPlayRegex,
                 source = s.streamAutoPlaySource, installedAddonNames = installed,
                 selectedAddons = s.streamAutoPlaySelectedAddons, selectedPlugins = s.streamAutoPlaySelectedPlugins,
-                preferences = emptySet()
+                preferences = prefs(c)
             )
         )
     }
@@ -36,7 +53,7 @@ object EchoRaceHook {
         if (pick == null || !on(c)) return null
         return AutoPlayRace.fieldFor(
             pick = pick, streams = streams, mode = s.streamAutoPlayMode, regexPattern = s.streamAutoPlayRegex,
-            preferences = emptySet(), source = s.streamAutoPlaySource,
+            preferences = prefs(c), source = s.streamAutoPlaySource,
             installedAddonNames = installed, selectedAddons = s.streamAutoPlaySelectedAddons,
             selectedPlugins = s.streamAutoPlaySelectedPlugins, bingeGroup = binge
         )
