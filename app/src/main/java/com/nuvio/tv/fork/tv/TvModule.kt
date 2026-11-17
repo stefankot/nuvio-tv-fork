@@ -2,6 +2,7 @@ package com.nuvio.tv.fork.tv
 
 import android.content.Context
 import androidx.compose.runtime.LaunchedEffect
+import androidx.navigation.compose.composable
 import androidx.compose.ui.platform.LocalContext
 import com.nuvio.tv.core.profile.ProfileManager
 import com.nuvio.tv.fork.registry.ForkModule
@@ -46,7 +47,7 @@ object TvModule : ForkModule {
 
     override fun routes() = listOf(
         com.nuvio.tv.fork.registry.ModuleRoute("fork_program/{key}") {
-            androidx.navigation.compose.composable("fork_program/{key}") { entry ->
+            composable("fork_program/{key}") { entry ->
                 com.nuvio.tv.fork.tv.ekrany.ProgramPage(entry.arguments?.getString("key").orEmpty())
             }
         },

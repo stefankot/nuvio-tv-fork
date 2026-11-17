@@ -22,8 +22,8 @@ import com.nuvio.tv.fork.tv.most.TvBridge
 
 /** Znacznik obejrzenia i cienki pasek postępu w komórce przewodnika (B03-4). Brak śladu / moduł wyłączony = nic. */
 @Composable
-fun BoxScope.CellMark(title: String, startMs: Long) {
-    val mark = remember(title, startMs) { TvBridge.data?.markFor(title, startMs) } ?: return
+fun CellMark(scope: BoxScope, title: String, startMs: Long) = scope.run {
+    val mark = remember(title, startMs) { TvBridge.data?.markFor(title, startMs) } ?: return@run
     val (state, progress) = mark
     if (state == WatchState.WATCHED) {
         BasicText("✓", style = TextStyle(color = Color(0xFF7BD88F), fontSize = 12.sp), modifier = Modifier.align(Alignment.TopEnd).padding(end = 6.dp, top = 2.dp))

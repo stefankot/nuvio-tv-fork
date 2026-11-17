@@ -47,6 +47,17 @@ object ForkHooks {
     @Composable
     fun introOnPlayerOpen() = com.nuvio.tv.fork.echo.EchoIntroHook.OnPlayerOpen()
 
+    /** PlayerRuntimeController: obowiązujący poziom trybu nocnego (harmonogram) zamiast surowego ustawienia (B05-6). */
+    fun effectiveNight(mode: com.nuvio.tv.data.local.NightMode): com.nuvio.tv.data.local.NightMode {
+        val eff = com.nuvio.tv.fork.night.NightModule.controller.effective(System.currentTimeMillis())
+        val key = com.nuvio.tv.fork.night.NightEffects.effectiveAudio(mode.settingValue, eff, eff)
+        return com.nuvio.tv.data.local.NightMode.entries.firstOrNull { it.settingValue == key } ?: mode
+    }
+
+    /** NuvioNavHost: na poziomie Prostym ekran Ustawień rysuje moduł. true = narysowany. */
+    @Composable
+    fun simpleSettings(navigate: (String) -> Unit): Boolean = com.nuvio.tv.fork.settings.SimpleSettingsGate(navigate)
+
     // --- Rejestr modułów (B00) ---
 
     /** PlaybackNavHost: trasy włączonych modułów. */

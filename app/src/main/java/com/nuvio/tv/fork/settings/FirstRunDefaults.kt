@@ -31,7 +31,14 @@ object FirstRunDefaults {
             r.tmdbEnabled?.let { p[en] = it }; r.tmdbLanguage?.let { p[lang] = it }
         }
         val locPrefs = app.getSharedPreferences("app_locale", Context.MODE_PRIVATE)
-        val r = FirstRunPlan.decide(FirstRunPlan.Stored(true, "x", locPrefs.getString("locale_tag", null), ForkFeatures.str(app, LEVEL_KEY).ifEmpty { null }))
+        val recoveryPrefs = app.getSharedPreferences("nuvio_auto_source_recovery", Context.MODE_PRIVATE)
+        val r = FirstRunPlan.decide(FirstRunPlan.Stored(true, "x", locPrefs.getString("locale_tag", null), ForkFeatures.str(app, LEVEL_KEY).ifEmpty { null },
+            autoRecovery = if (recoveryPrefs.contains("enabled")) true else null))
+        if (r.autoRecovery == true) {
+            com.nuvio.tv.core.player.recovery.AutoSourceRecoverySettings.setEnabled(app, true)
+            val player = EntryPointAccessors.fromApplication(app, com.nuvio.tv.fork.sources.SourceChoice.Deps::class.java).player()
+            player.setStreamAutoPlayFallbackOnFailure(true); player.setStreamAutoPlayFallbackMaxSources(3); player.setStreamAutoPlayFallbackStartupTimeoutSeconds(15)
+        }
         r.appLocale?.let { locPrefs.edit().putString("locale_tag", it).apply() }
         r.level?.let { ForkFeatures.setStr(app, LEVEL_KEY, it) }
         ForkFeatures.set(app, flag, true)

@@ -37,3 +37,9 @@ Wykonawca nie pyta właściciela. Korzysta z tej listy. Właściciel może zmien
 ## Podjęte przez wykonawcę
 
 (dopisuj tutaj: data, zadanie, decyzja, jedno zdanie uzasadnienia)
+
+- 2026-11-17 B00-5: ustawienia modułów renderuje `ForkModuleSettingsItems` wołane z istniejącego `forkSwitchesSettingsItems` (plik forka), nie z SettingsScreen — zero nowych zmian w rdzeniu.
+- 2026-11-17 B01: łatki Reshaped trzymane per plik w `fork-tools/patches/<seria>/<plik>/NN-opis.patch` (seria w patched-overrides.txt to `seria/plik`) — odwracanie łatek jednego pliku nie może dotykać innych.
+- 2026-11-17 B02: logika TV z Kicia w jednym pakiecie `com.nuvio.tv.fork.tv` (bez podpakietów rdzen/dane) — prostsze importy; jedyny import `reshaped.livetv` w `most/`.
+- 2026-11-17 B04-5: pamięć serialu = istniejące „ciągłość grupy wydania” (ReuseBingeGroup + PreferBingeGroupForNextEpisode) włączane przy zapisie odpowiedzi — nie piszemy nowego mechanizmu.
+- 2026-11-17 B04-4: decyzja o ścieżkach (AudioCheck) jest czystą logiką z testami; podpięcie do odtwarzacza nie wykonane (brak bezpiecznego publicznego wejścia mechanizmu odzyskiwania; patrz BLOKADY).

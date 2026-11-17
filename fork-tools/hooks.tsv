@@ -36,3 +36,6 @@ app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	// Fork hook: regis
 app/src/main/java/com/nuvio/tv/MainActivity.kt	// Fork hook: registry	val rootRoutes	registry	nakładki modułów	
 app/src/main/java/com/nuvio/tv/ui/screens/home/HomeScreen.kt	// Fork hook: registry	val uiState	registry	rzędy modułów	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	// Fork hook: registry	onPreviewKeyEvent	registry	klawisze modułów	
+app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	// Fork hook: settings	rootComposable(Screen.Settings.route)	settings	ekran Prosty zamiast Ustawień	SettingsScreen(
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerInitialization.kt	// Fork hook: night	nightModeAudioProcessor.setMode	night	obowiązujący poziom nocny (start)	nightModeAudioProcessor.setMode(playerSettings.nightMode)
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerPlaybackEvents.kt	// Fork hook: night	nightModeAudioProcessor.setMode	night	obowiązujący poziom nocny (zmiana)	nightModeAudioProcessor.setMode(mode)

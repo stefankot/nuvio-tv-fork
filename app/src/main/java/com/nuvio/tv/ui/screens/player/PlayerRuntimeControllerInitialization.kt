@@ -925,7 +925,7 @@ internal fun PlayerRuntimeController.initializePlayer(
             } else {
                 playerSettings.audioOutputChannels
             }
-            nightModeAudioProcessor.setMode(playerSettings.nightMode)
+            nightModeAudioProcessor.setMode(com.nuvio.tv.fork.ForkHooks.effectiveNight(playerSettings.nightMode)) // Fork hook: night
             if (isBluetoothAudioOutput) {
                 Log.i(
                     PlayerRuntimeController.TAG,

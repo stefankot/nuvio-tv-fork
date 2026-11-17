@@ -37,6 +37,27 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+    
+        <!-- Fork: start z telewizorem (domyślnie wyłączony w ustawieniach modułu) -->
+        <receiver android:name="com.nuvio.tv.fork.launcher.ForkBootReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Fork: Nuvio jako ekran główny; alias WYŁĄCZONY domyślnie, włącza go ustawienie (po istnieniu ekranu Aplikacje) -->
+        <activity-alias
+            android:name="com.nuvio.tv.launcher.ForkHomeAlias"
+            android:enabled="false"
+            android:exported="true"
+            android:targetActivity="com.nuvio.tv.launcher.AppIconDefault">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity-alias>
     </application>
 
 </manifest>

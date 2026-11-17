@@ -1346,7 +1346,7 @@ private fun PlaybackNavHost(
         }
 
         rootComposable(Screen.Settings.route) {
-            SettingsScreen(
+            if (!com.nuvio.tv.fork.ForkHooks.simpleSettings { navController.navigate(it) }) SettingsScreen( // Fork hook: settings
                 showBuiltInHeader = !hideBuiltInHeaders,
                 onNavigateToAddons = { navController.navigate(Screen.AddonManager.route) },
                 onNavigateToPlugins = { navController.navigate(Screen.Plugins.route) },

@@ -4,6 +4,6 @@
                  .offset { IntOffset(titleShift(), 0) }
                  .padding(start = 16.dp, end = 10.dp),
          )
-+        com.nuvio.tv.fork.tv.ekrany.CellMark(title, cell.start) // Fork hook: tv
++        com.nuvio.tv.fork.tv.ekrany.CellMark(this, title, cell.start) // Fork hook: tv
      }
  }

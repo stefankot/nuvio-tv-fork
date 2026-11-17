@@ -23,7 +23,7 @@ if [ -s "$PATCHED" ]; then
   while IFS=$'\t' read -r f series; do [ -n "$f" ] || continue
     tmp=$(mktemp); cp "$f" "$tmp"
     for pf in $(ls -r fork-tools/patches/$series/*.patch 2>/dev/null); do patch -R -s "$tmp" < "$pf" >/dev/null 2>&1 || { echo "BŁĄD: łatka nie cofa się: $pf"; fail=1; }; done
-    grep -v 'Fork hook:' "$tmp" > "$tmp.2"
+    if grep -q 'Fork hook:' "$tmp"; then grep -v 'Fork hook:' "$tmp" > "$tmp.2"; else cp "$tmp" "$tmp.2"; fi # grep -v dopisałby znak nowej linii na końcu pliku
     cmp -s "$tmp.2" "$PUP/$f" || { echo "BŁĄD: plik łatany różni się od Reshaped poza łatkami: $f"; fail=1; }
     rm -f "$tmp" "$tmp.2"
   done < "$PATCHED"

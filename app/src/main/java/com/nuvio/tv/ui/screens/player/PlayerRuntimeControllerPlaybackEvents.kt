@@ -258,7 +258,7 @@ internal fun PlayerRuntimeController.applyNightMode(mode: NightMode) {
     _uiState.update { it.copy(nightMode = mode) }
     if (isUsingMpvEngine()) return
     val wasActive = nightModeAudioProcessor.isNightModeEnabled()
-    nightModeAudioProcessor.setMode(mode)
+    nightModeAudioProcessor.setMode(com.nuvio.tv.fork.ForkHooks.effectiveNight(mode)) // Fork hook: night
 
     if (wasActive != nightModeAudioProcessor.isNightModeEnabled()) {
         playbackSpeedAwareAudioSink?.notifyAudioProcessingRequirementChanged()

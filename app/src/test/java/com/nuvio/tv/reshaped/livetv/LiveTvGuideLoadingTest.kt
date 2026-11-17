@@ -379,9 +379,9 @@ class LiveTvGuideLoadingTest {
             }
             append("</tv>")
         }
-        val guide = readXmlTvGuide(xml.byteInputStream(), LiveTvGuideRequest.from(listOf(one)), now, LiveTvGuideWindow.Regular, ::KXmlParser)
+        val guide = readXmlTvGuide(xml.byteInputStream(), LiveTvGuideRequest.from(listOf(one)), now, LiveTvGuideWindow.LowMemory, ::KXmlParser)
         val ahead = guide.schedule.getValue(one.guideKey).count { it.stopEpochMs > now }
-        assertEquals(LiveTvGuideWindow.Regular.maxShortAhead, ahead)
+        assertEquals(LiveTvGuideWindow.LowMemory.maxShortAhead, ahead) // Fork: Regular ma teraz zakres 7d/8d (patch dostawca #5)
     }
 
     @Test fun moreChannelNameFormsMatch() {

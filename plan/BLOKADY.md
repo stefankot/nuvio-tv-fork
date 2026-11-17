@@ -16,3 +16,8 @@ Co próbowałem: logika i testy JVM gotowe (ChannelFilters, MiniGuideLogic, Dela
 Czego brakuje: sprawdzenia na telewizorze/emulatorze (po zakończeniu kompilacji), decyzji o wyglądzie (skórka).
 Co może dostarczyć właściciel: opinię po zobaczeniu rzędu „Dla Ciebie” i strony programu.
 
+
+## B04-4 / B04-6 / B04-8 (część w odtwarzaczu i szczegółach)
+Co próbowałem: logika i testy (AudioCheck, SourceLanguage.readyLine, ReadyPick, SubtitleQueue). Podpięcie sprawdzenia ścieżek do mechanizmu odzyskiwania źródeł, linia „Gotowe” w ekranie szczegółów i pozycja „Napisy nie pasują” w menu napisów wymagają zmian w dużych plikach odtwarzacza/szczegółów bez wglądu w wygląd.
+Czego brakuje: weryfikacji na emulatorze i decyzji o wyglądzie linii.
+Co może dostarczyć właściciel: opinię po teście na telewizorze.

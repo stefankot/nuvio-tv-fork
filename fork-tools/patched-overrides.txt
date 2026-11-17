@@ -6,3 +6,4 @@ app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverlay.kt	dostawc
 app/src/main/java/com/nuvio/tv/reshaped/livetv/LiveTvSetupServer.kt	dostawca/LiveTvSetupServer
 app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvScreen.kt	tv/LiveTvScreen
 app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvGuide.kt	tv/LiveTvGuide
+app/src/main/java/com/nuvio/tv/core/player/SubtitleCharsetDetector.kt	uzupelnienia/SubtitleCharsetDetector
