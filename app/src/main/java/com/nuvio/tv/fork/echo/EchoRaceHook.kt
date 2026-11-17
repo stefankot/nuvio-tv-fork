@@ -21,11 +21,17 @@ object EchoRaceHook {
         com.nuvio.tv.ui.screens.settings.ForkFeatures.str(c, "echo_ap_codec").ifBlank { null },
     )
 
+    /** Echo stosuje preferencje tylko w trybie regex; tu działają też przy „pierwszym źródle”. */
+    private fun modeFor(c: Context, mode: com.nuvio.tv.data.local.StreamAutoPlayMode) =
+        if (mode == com.nuvio.tv.data.local.StreamAutoPlayMode.FIRST_STREAM &&
+            com.nuvio.tv.core.player.AutoPlayPreferences.isConfigured(prefs(c))
+        ) com.nuvio.tv.data.local.StreamAutoPlayMode.REGEX_MATCH else mode
+
     /** Auto-play pierwszego źródła z uwzględnieniem wybranej rozdzielczości/kodeka; null = bez preferencji. */
     fun preferred(c: Context, pick: Stream?, streams: List<Stream>, s: PlayerSettings, installed: Set<String>): Stream? {
         if (pick == null || !com.nuvio.tv.core.player.AutoPlayPreferences.isConfigured(prefs(c))) return null
         return StreamAutoPlaySelector.raceCandidates(
-            streams = streams, mode = s.streamAutoPlayMode, regexPattern = s.streamAutoPlayRegex,
+            streams = streams, mode = modeFor(c, s.streamAutoPlayMode), regexPattern = s.streamAutoPlayRegex,
             source = s.streamAutoPlaySource, installedAddonNames = installed,
             selectedAddons = s.streamAutoPlaySelectedAddons, selectedPlugins = s.streamAutoPlaySelectedPlugins,
             preferences = prefs(c)
@@ -40,7 +46,7 @@ object EchoRaceHook {
         h ?: return
         h.offer(
             StreamAutoPlaySelector.raceCandidates(
-                streams = streams, mode = s.streamAutoPlayMode, regexPattern = s.streamAutoPlayRegex,
+                streams = streams, mode = modeFor(c, s.streamAutoPlayMode), regexPattern = s.streamAutoPlayRegex,
                 source = s.streamAutoPlaySource, installedAddonNames = installed,
                 selectedAddons = s.streamAutoPlaySelectedAddons, selectedPlugins = s.streamAutoPlaySelectedPlugins,
                 preferences = prefs(c)
@@ -52,7 +58,7 @@ object EchoRaceHook {
     fun field(c: Context, pick: Stream?, streams: List<Stream>, s: PlayerSettings, installed: Set<String>, binge: String?): List<Stream>? {
         if (pick == null || !on(c)) return null
         return AutoPlayRace.fieldFor(
-            pick = pick, streams = streams, mode = s.streamAutoPlayMode, regexPattern = s.streamAutoPlayRegex,
+            pick = pick, streams = streams, mode = modeFor(c, s.streamAutoPlayMode), regexPattern = s.streamAutoPlayRegex,
             preferences = prefs(c), source = s.streamAutoPlaySource,
             installedAddonNames = installed, selectedAddons = s.streamAutoPlaySelectedAddons,
             selectedPlugins = s.streamAutoPlaySelectedPlugins, bingeGroup = binge
