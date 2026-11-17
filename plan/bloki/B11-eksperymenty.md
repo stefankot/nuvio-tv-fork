@@ -4,7 +4,7 @@ Cel: sprawdzić trzy rzeczy o niepewnym wyniku. Każde zadanie kończy się rapo
 
 ## Zadania
 
-- [ ] **B11-1 Pomiar jakości mowy po polsku.** Silniki mowy są wdrożone w B07-6. Tutaj tylko pomiar: zestaw 60 nagranych albo zsyntetyzowanych poleceń po polsku przepuść przez Whisper tiny, base i small; zapisz trafność po dopasowaniu encji i czas. Wynik decyduje o progach automatycznego wyboru silnika.
+- [x] **B11-1 Pomiar jakości mowy po polsku.** Silniki mowy są wdrożone w B07-6. Tutaj tylko pomiar: zestaw 60 nagranych albo zsyntetyzowanych poleceń po polsku przepuść przez Whisper tiny, base i small; zapisz trafność po dopasowaniu encji i czas. Wynik decyduje o progach automatycznego wyboru silnika.
   Ukończone, gdy: raport `raporty/mowa-lokalna.md`; progi w B07-6 poprawione, jeśli pomiar je podważa.
 
 - [x] **B11-2 Lokalny głos neuronowy dla lektora.** Sprawdź, czy biblioteka sherpa w wersji użytej w forku ma syntezę mowy i czy istnieje dla niej polski głos na licencji pozwalającej na użycie. Jeśli tak: druga implementacja `Lektor` z B09, model pobierany na żądanie. Jeśli nie: tylko raport.
