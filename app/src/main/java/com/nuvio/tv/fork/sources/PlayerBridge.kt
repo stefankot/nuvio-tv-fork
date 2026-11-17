@@ -28,6 +28,12 @@ object PlayerBridge {
     fun clear() { state = null; send = null; queue = null; autoTried = false }
     val active: Boolean get() = send != null
     fun send(e: PlayerEvent) { send?.invoke(e) }
+    /** Lektor czyta napisy z synchronizacji: wybierz polskie napisy z dodatku, jeśli żadne nie jest wybrane. */
+    fun ensurePolishSubtitle() {
+        val s = state ?: return
+        if (s.selectedAddonSubtitle != null) return
+        s.addonSubtitles.firstOrNull { it.lang.startsWith("pl", true) || it.lang.startsWith("pol", true) }?.let { send?.invoke(PlayerEvent.OnSelectAddonSubtitle(it)) }
+    }
     fun streamUrl(): String? = state?.currentStreamUrl
     fun positionMs(): Long = com.nuvio.tv.fork.lektor.LektorEngine.positionMs()
     fun cues() = state?.subtitleAutoSyncCues.orEmpty()

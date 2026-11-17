@@ -25,6 +25,7 @@ object LektorController {
         if (!PlayerBridge.active) return "Lektor działa tylko podczas odtwarzania"
         val app = context.applicationContext
         job?.cancel()
+        PlayerBridge.ensurePolishSubtitle()
         PlayerBridge.send(PlayerEvent.OnReloadSubtitleAutoSyncCues)
         job = scope.launch {
             status = "Przygotowuję lektora…"
@@ -34,6 +35,8 @@ object LektorController {
             if (cues.isEmpty()) { status = "Brak napisów do przeczytania"; return@launch }
             LektorModule.applySettings(app)
             LektorEngine.load(cues); LektorEngine.enabled = true
+            // Procesor dźwięku włącza się dopiero po flush rurociągu: seek do bieżącej pozycji go wymusza.
+            PlayerBridge.send(PlayerEvent.OnSeekTo(LektorEngine.positionMs()))
             val tts = SystemLektor(app)
             val done = HashSet<Long>()
             try {
