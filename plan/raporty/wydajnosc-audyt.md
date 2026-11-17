@@ -12,3 +12,13 @@ Kicia (SHA 58b3a0a) ma audyt z pomiarami, a w kodzie prawie nic z poprawek. Zakr
 | 303 profil bazowy, `baselineprofile/` | tak | moduł istnieje w Kicii | niewdrożone w tej sesji (wymaga osobnego buildu i pomiaru) |
 | 203/205/207/204/202/201 obrazy/logotypy | częściowo | tylko zalecenie | niezmierzone w forku |
 | 402/403/404 szum TMDB/IMDb/DeArrow | baza/moduły | zalecenie | niewdrożone |
+
+## KOREKTA (po wskazaniu właściciela): właściwe repozytorium Kicii
+Audyt powyżej oparłem na jednowersyjnej kopii `Desktop/nuvio 2/nuvio-tv-kicia` (1 commit, bez poprawek). Pełne repozytorium to `Desktop/nuvio-tv-kicia` (976 commitów; kopie robocze `-makieta`, `-poprawki` mają tę samą historię, bez niezacommitowanych zmian wydajnościowych). Wdrożone tam poprawki wydajności (wszystkie w `ui/forge/**`, kod Forge Home/Live TV Kicii, którego fork nie ma):
+| Commit | Co |
+|---|---|
+| 3976e3b7b, 1b16f1682 | `ForgeUi.EAGER_BACKGROUND_LOAD=false` (WY-307: bez ładowania EPG/Live TV/YouTube w tle po starcie) |
+| db0388847, 7c12e95be | `LIVE_CARD_PREVIEW=false` (bez podglądu live na fokusie karty), `CHANNEL_FRAMES` (klatki ze streamów tylko, gdy EPG nie ma obrazu) |
+| be6999959 | WY-308: zasłona 96% czytana w fazie rysowania |
+| 6924140f9 | WY-309/314: przewijanie półek Home z `snapshotFlow` |
+Dotyczy forka wprost tylko to, co jest odpowiednikiem podglądu live: w Reshaped Live TV podgląd na fokusie kanału gra domyślnie i to on był zmierzonym kosztem (46–86% rdzenia). Kicia wyłączyła go całkiem; fork ma teraz auto-stop po 60 s.
