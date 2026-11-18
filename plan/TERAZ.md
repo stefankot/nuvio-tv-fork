@@ -48,6 +48,8 @@ Ostatnia aktualizacja: 19.11.2026 ok. 02:40 (koniec wątku 5).
 - build90 (APK armeabi-v7a, 2 min 26 s, skrót 7297d6fb…, ZAINSTALOWANY na JMGO): drugi start Live TV = „now slice used” (przewodnik od razu), ale pełny zapis odrzucony („guide file replaced or older”: plik zepsutego epg.team zmienia się przy każdej próbie, a termin zapisu = szybka ponowna próba). POPRAWIONE (łatka 08-zapis-czesciowy-odczyt): znacznik `guide_kept_*.partial` → odczyt bez sprawdzania plików przewodników, termin zapisu zwykły (ponowna próba w tle i tak). build91 compile OK, NIEZBUDOWANE.
 - Karta TVDB na JMGO: DZIAŁA (potwierdzenie właściciela 19.11 na build90).
 
+- Rdzeń napisów AI (sesja „AI subtitles module review”, scalenie 3a9f943ca, same nowe pliki `fork/ai/subtitles/`, bez integracji): testy jednostkowe build92 16/16 OK, `scripts/ai-subtitles/check-ai-subtitles-hooks` = 0, `fork-tools/check.sh` OK. Do sprawdzenia w następnej paczce: aplikacja buduje się i startuje normalnie.
+
 - Pytanie właściciela „szczegóły seriali — czy moduł nie pobiera?”: moduł pobiera szczegóły serialu (tytuł, opis PL, plakat, tło, gatunki, obsada), ale tylko dla kart IPTV; ekran szczegółów w głównej części aplikacji bierze dane z dodatków + TMDB bazy (nie z modułu).
 
 ## WYDAJNOŚĆ I KATEGORIE IPTV (19.11 ok. 03:30, wątek 6; zadanie właściciela)
