@@ -1,5 +1,12 @@
 name: AI narrator compatibility
 on:
+  push:
+    branches: [feature/ai-narrator]
+    paths:
+      - "ai-narrator/**"
+      - "app/reshaped.gradle"
+      - "app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt"
+      - ".github/workflows/ai-narrator-compatibility.yml"
   workflow_dispatch:
     inputs:
       upstream_tag:
