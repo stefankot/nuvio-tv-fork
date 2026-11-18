@@ -18,6 +18,10 @@ internal class NarratorPreferences(context: Context) {
 
     fun load(): NarratorOptions = NarratorOptions(
         enabled = prefs.getBoolean("enabled", false),
+        backend = runCatching { NarratorBackend.valueOf(prefs.getString("backend", "GEMINI")!!) }
+            .getOrDefault(NarratorBackend.GEMINI),
+        localEndpoint = prefs.getString("local_endpoint", "") ?: "",
+        localSpeakerId = prefs.getString("local_speaker", "") ?: "",
         model = runCatching { NarratorModel.valueOf(prefs.getString("model", "FLASH_LITE")!!) }
             .getOrDefault(NarratorModel.FLASH_LITE),
         voice = prefs.getString("voice", "Kore") ?: "Kore",
@@ -28,6 +32,9 @@ internal class NarratorPreferences(context: Context) {
     fun save(options: NarratorOptions) {
         prefs.edit()
             .putBoolean("enabled", options.enabled)
+            .putString("backend", options.backend.name)
+            .putString("local_endpoint", options.localEndpoint)
+            .putString("local_speaker", options.localSpeakerId)
             .putString("model", options.model.name)
             .putString("voice", options.voice)
             .putFloat("volume", options.narratorVolume.coerceIn(0f, 1f))
@@ -35,9 +42,14 @@ internal class NarratorPreferences(context: Context) {
             .apply()
     }
 
-    fun apiKey(): String {
-        val encrypted = prefs.getString("api_key_ciphertext", null) ?: return ""
-        val iv = prefs.getString("api_key_nonce", null) ?: return ""
+    fun apiKey(): String = secret("api_key")
+    fun saveApiKey(value: String) = saveSecret("api_key", value)
+    fun localToken(): String = secret("local_token")
+    fun saveLocalToken(value: String) = saveSecret("local_token", value)
+
+    private fun secret(field: String): String {
+        val encrypted = prefs.getString("${field}_ciphertext", null) ?: return ""
+        val iv = prefs.getString("${field}_nonce", null) ?: return ""
         return runCatching {
             val cipher = Cipher.getInstance("AES/GCM/NoPadding")
             cipher.init(Cipher.DECRYPT_MODE, key(), GCMParameterSpec(128, Base64.decode(iv, Base64.NO_WRAP)))
@@ -45,18 +57,18 @@ internal class NarratorPreferences(context: Context) {
         }.getOrDefault("")
     }
 
-    fun saveApiKey(value: String) {
+    private fun saveSecret(field: String, value: String) {
         val trimmed = value.trim()
         if (trimmed.isEmpty()) {
-            prefs.edit().remove("api_key_ciphertext").remove("api_key_nonce").apply()
+            prefs.edit().remove("${field}_ciphertext").remove("${field}_nonce").apply()
             return
         }
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.ENCRYPT_MODE, key())
-        val secret = cipher.doFinal(trimmed.toByteArray(Charsets.UTF_8))
+        val encrypted = cipher.doFinal(trimmed.toByteArray(Charsets.UTF_8))
         prefs.edit()
-            .putString("api_key_ciphertext", Base64.encodeToString(secret, Base64.NO_WRAP))
-            .putString("api_key_nonce", Base64.encodeToString(cipher.iv, Base64.NO_WRAP))
+            .putString("${field}_ciphertext", Base64.encodeToString(encrypted, Base64.NO_WRAP))
+            .putString("${field}_nonce", Base64.encodeToString(cipher.iv, Base64.NO_WRAP))
             .apply()
     }
 
