@@ -9,6 +9,8 @@ enum class NarratorModel(val apiId: String) {
     FLASH_LITE("gemini-3.8-flash-lite-tts")
 }
 
+enum class NarratorBackend { GEMINI, ZONOS_LOCAL }
+
 data class NarratorLine(val startMs: Long, val endMs: Long, val text: String) {
     init { require(startMs >= 0 && endMs > startMs) }
 }
@@ -24,6 +26,9 @@ data class NarratorFrame(
 
 data class NarratorOptions(
     val enabled: Boolean = false,
+    val backend: NarratorBackend = NarratorBackend.GEMINI,
+    val localEndpoint: String = "",
+    val localSpeakerId: String = "",
     val model: NarratorModel = NarratorModel.FLASH_LITE,
     val voice: String = "Kore",
     val narratorVolume: Float = 0.65f,
@@ -61,14 +66,23 @@ object NarratorText {
             "przerysowanych akcentów ani dodawania słów. $inflection"
     }
 
-    fun fingerprint(model: NarratorModel, voice: String, text: String, style: String): String {
-        val raw = "${model.apiId}\u0000$voice\u0000$text\u0000$style"
+    fun fingerprint(model: NarratorModel, voice: String, text: String, style: String): String =
+        fingerprint("${model.apiId}:$voice", text, style)
+
+    /** Backend and local server identity are part of the cache key; tokens never are. */
+    fun fingerprint(identity: String, text: String, style: String): String {
+        val raw = "$identity\u0000$text\u0000$style"
         val bytes = MessageDigest.getInstance("SHA-256").digest(raw.toByteArray(Charsets.UTF_8))
         return bytes.joinToString("") { "%02x".format(Locale.ROOT, it.toInt() and 0xff) }
     }
 }
 
 object NarratorPlanner {
+    /** A seek detector must not confuse pause/buffering with a timeline discontinuity. */
+    fun isDiscontinuity(previousMs: Long, currentMs: Long, elapsedMs: Long): Boolean =
+        previousMs >= 0L && (currentMs < previousMs - 750L ||
+            currentMs - previousMs > elapsedMs.coerceAtLeast(0L) + 1_750L)
+
     fun current(lines: List<NarratorLine>, positionMs: Long): NarratorLine? =
         lines.firstOrNull { positionMs in it.startMs until it.endMs && NarratorText.eligible(it.text) }
 
