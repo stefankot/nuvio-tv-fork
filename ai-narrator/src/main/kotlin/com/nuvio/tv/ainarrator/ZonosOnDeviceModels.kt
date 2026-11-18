@@ -59,6 +59,8 @@ internal object ZonosModelManifest {
  */
 internal class ZonosOnDeviceModels(context: Context) {
     private val dir = File(context.applicationContext.filesDir, "zonos3-mini/v1")
+    private val verifiedMarker = context.applicationContext.getSharedPreferences(
+        "zonos3_verified_models_v1", Context.MODE_PRIVATE)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val mutex = Mutex()
     private var downloadJob: Job? = null
@@ -67,7 +69,26 @@ internal class ZonosOnDeviceModels(context: Context) {
 
     init {
         dir.mkdirs()
-        scope.launch { mutex.withLock { inspectFiles() } }
+        // Avoid hashing 1.12 GB on every PlayerScreen launch, including when using Gemini.
+        _status.value = ModelDownloadStatus(
+            if (ZonosModelManifest.files.all { hasVerifiedMarker(it) }) ModelPhase.READY else ModelPhase.MISSING)
+    }
+
+    private fun hasVerifiedMarker(spec: ZonosModelSpec): Boolean {
+        val file = File(dir, spec.name)
+        return file.isFile && file.length() == spec.maxBytes &&
+            verifiedMarker.getLong(spec.name + "_size", -1L) == file.length() &&
+            verifiedMarker.getLong(spec.name + "_mtime", -1L) == file.lastModified()
+    }
+
+    private fun markVerified() {
+        val edit = verifiedMarker.edit()
+        for (spec in ZonosModelManifest.files) {
+            val file = File(dir, spec.name)
+            edit.putLong(spec.name + "_size", file.length())
+                .putLong(spec.name + "_mtime", file.lastModified())
+        }
+        edit.apply()
     }
 
     fun modelPaths(): ZonosModelPaths? =
@@ -92,6 +113,7 @@ internal class ZonosOnDeviceModels(context: Context) {
                     }
                     _status.value = ModelDownloadStatus(ModelPhase.DOWNLOADING)
                     for (spec in missing) downloadAndVerify(spec)
+                    markVerified()
                     _status.value = ModelDownloadStatus(ModelPhase.READY, message = "Sprawdzono SHA-256 obu modeli")
                 } catch (error: kotlinx.coroutines.CancellationException) {
                     _status.value = ModelDownloadStatus(ModelPhase.MISSING, message = "Można wznowić pobieranie")
@@ -114,6 +136,7 @@ internal class ZonosOnDeviceModels(context: Context) {
                     File(dir, spec.name).delete()
                     File(dir, spec.name + ".part").delete()
                 }
+                verifiedMarker.edit().clear().apply()
                 _status.value = ModelDownloadStatus(ModelPhase.MISSING)
             }
         }
