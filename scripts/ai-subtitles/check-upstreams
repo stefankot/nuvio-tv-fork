@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+"""Read-only version drift report. Never fetches source code or modifies a branch."""
+import argparse
+import json
+import os
+import pathlib
+import sys
+import urllib.error
+import urllib.request
+
+LOCK = pathlib.Path(__file__).resolve().parents[2] / "docs/agent/ai-subtitles/UPSTREAM_LOCK.json"
+
+def head(repository, branch, token):
+    req = urllib.request.Request(
+        f"https://api.github.com/repos/{repository}/branches/{branch}",
+        headers={
+            "Accept": "application/vnd.github+json",
+            "User-Agent": "nuvio-ai-subtitles-upstream-audit",
+            **({"Authorization": f"Bearer {token}"} if token else {}),
+        },
+    )
+    with urllib.request.urlopen(req, timeout=12) as r:
+        return json.load(r)["commit"]["sha"]
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--offline", action="store_true", help="Validate lock metadata only, no network")
+    args = parser.parse_args()
+    lock = json.loads(LOCK.read_text(encoding="utf-8"))
+    assert lock["schema_version"] == 1
+    target = lock["target"]
+    sources = [
+        (target["repository"], target["integration_branch"], target["integration_sha"], False),
+        *((x["repository"], x["branch"], x["sha"], x["reference_only"]) for x in lock["sources"]),
+    ]
+    for repository, branch, pinned, reference_only in sources:
+        assert len(pinned) == 40 and all(c in "0123456789abcdef" for c in pinned)
+        if args.offline:
+            print(f"LOCK_VALID {repository}@{branch} pinned={pinned} reference_only={reference_only}")
+            continue
+        try:
+            current = head(repository, branch, os.environ.get("GITHUB_TOKEN", ""))
+            status = "UNCHANGED" if current == pinned else "DRIFT_REQUIRES_REVIEW"
+            classification = "safe-mechanical: no update required" if current == pinned else (
+                "contract review: integration base moved; run isolated rebase dry-run and hook tests" if not reference_only else
+                "manual decision: reference-only source moved; no automatic adoption"
+            )
+            print(f"{status} {repository}@{branch} pinned={pinned} current={current} / {classification}")
+        except (urllib.error.URLError, TimeoutError, KeyError, ValueError) as exc:
+            print(f"UNVERIFIED {repository}@{branch}: {type(exc).__name__}: {exc}", file=sys.stderr)
+            return 2
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main())

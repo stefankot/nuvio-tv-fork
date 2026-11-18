@@ -1,0 +1,23 @@
+PASS: PL: Russian and Western are both mandatory
+PASS: RU original, PL and original excluded, model cannot select second Western
+PASS: Reject unverified high-scored and excluded languages
+PASS: Atomic block validation and export preserve timing
+PASS: Bad output must not be partially accepted
+PASS: Readability issues warn, without deleting source meaning
+PASS: Reserve persists across new process/object and restart
+PASS: Uncertain transmissions stay charged, overlapping uploads double count
+PASS: Releasing only positively unsent reservations
+PASS: Concurrent reservations cannot exceed budget
+PASS: Corruption fails closed instead of resetting spent budget
+PASS: Material key isolates episodes, never resets a single episode
+PASS: Priority and Western tie-breaking agree with legacy selection
+PASS: Timestamp padding and stable source-order export
+PASS: Unicode readability scan counts surrogate pairs once
+PASS: Budget snapshots and idempotent SENT do not rewrite the ledger
+TOTAL PASS: 16
+LOCK_VALID stefankot/nuvio-tv-fork@final pinned=464b04df900738a24733a274c9c0daa601fc51cb reference_only=False
+LOCK_VALID Hossam-Ali/NuvioTVEnhanced@upstream-pr/ai-subtitle-translation pinned=0984180957ca4fbf7b358df5ca815c4e82f2b316 reference_only=True
+LOCK_VALID NuvioMedia/NuvioTV@dev pinned=15286b68c48b1afc5632aa309ed3d4afc3b5a4d7 reference_only=True
+export-srt-and-vtt-6000: median=8 ms; rounds=4, 5, 5, 8, 8, 8, 8
+validate-6000: median=4 ms; rounds=3, 3, 4, 4, 7, 8, 10
+choose-6000: median=2 ms; rounds=2, 2, 2, 2, 2, 3, 3
