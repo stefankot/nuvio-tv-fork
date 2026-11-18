@@ -140,8 +140,9 @@ internal fun PlayerRuntimeController.startSidecarAddonSubtitle(
 
     sidecarSubtitleJob = scope.launch {
         try {
-            val rawBody = rawBodyLoader?.invoke()
-                ?: downloadSubtitleBody(subtitle.url, subtitle.lang, subtitle.headers)
+            val rawBody = (rawBodyLoader?.invoke()
+                ?: downloadSubtitleBody(subtitle.url, subtitle.lang, subtitle.headers))
+                .let(com.nuvio.tv.fork.subs.TextSubtitleFormats::toSrt) // fork hook: MPL2/MicroDVD → SRT (polskie napisy)
             if (!isCurrent()) return@launch
 
             val resolvedMime = PlayerSubtitleUtils.sniffSubtitleMimeType(rawBody, subtitle.url)

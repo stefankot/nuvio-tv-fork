@@ -43,6 +43,18 @@ object FirstRunDefaults {
     }
 
     /**
+     * Fork 19.11 (JMGO: „odtwarzanie się klatkuje”): seriale HDTV 25 kl./s na ekranie 60 Hz szarpią. Raz włącza
+     * dopasowanie częstotliwości ekranu (START_STOP: 50 Hz dla 25 kl./s i powrót po wyjściu), gdy było wyłączone.
+     */
+    private suspend fun frameRateMatching(app: Context) {
+        if (ForkFeatures.enabled(app, "fork_defaults_frm_done")) return
+        val store = EntryPointAccessors.fromApplication(app, com.nuvio.tv.fork.sources.SourceChoice.Deps::class.java).player()
+        if (store.playerSettings.first().frameRateMatchingMode == com.nuvio.tv.data.local.FrameRateMatchingMode.OFF)
+            store.setFrameRateMatchingMode(com.nuvio.tv.data.local.FrameRateMatchingMode.START_STOP)
+        ForkFeatures.set(app, "fork_defaults_frm_done", true)
+    }
+
+    /**
      * Raz na profil (także istniejący, właściciel 18.11 P2): automatyczny wybór źródła = tryb „pierwsze źródło”
      * z rankingiem KE (KeRanking) zamiast ręcznej listy. Zmienia tylko tryb MANUAL; Regex i inne zostają.
      */
@@ -59,6 +71,7 @@ object FirstRunDefaults {
         val app = c.applicationContext
         reshapedOn(app)
         runCatching { polishSubtitles(app) }
+        runCatching { frameRateMatching(app) }
         val d = EntryPointAccessors.fromApplication(app, Deps::class.java)
         val pid = d.profiles().activeProfileId.value
         runCatching { autoSource(app, pid) }

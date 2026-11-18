@@ -1,6 +1,7 @@
 package com.nuvio.tv.skin.kicia.components
 
 import androidx.compose.ui.platform.testTag
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.draw.alpha
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -101,6 +102,7 @@ fun ForgeSideSheet(
                     .width(ForgeDims.SideSheetWidth)
                     .fillMaxHeight()
                     .clip(RoundedCornerShape(topStart = ForgeDims.RadiusSheet, bottomStart = ForgeDims.RadiusSheet)) // v7.4: left corners only
+                    .verticalScroll(androidx.compose.foundation.rememberScrollState()) // fork 19.11: dłuższe panele („Więcej”) nie mieściły się na ekranie
                     .background(ForgeColors.GlassFallback) // v7.4: --szklo-zapas (szkło bez rozmycia)
                     .forgeEdge(RoundedCornerShape(topStart = ForgeDims.RadiusSheet, bottomStart = ForgeDims.RadiusSheet)) // makieta 7.7 A8
                     .testTag("panel")
