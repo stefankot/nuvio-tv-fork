@@ -7,3 +7,4 @@ app/src/main/java/com/nuvio/tv/ui/screens/detail/MetaDetailsScreen.kt
 app/src/main/java/com/nuvio/tv/ui/screens/home/ClassicHomeContent.kt
 app/src/main/java/com/nuvio/tv/ui/screens/ExperienceModeSelectionScreen.kt
 app/src/main/java/com/nuvio/tv/ui/screens/profile/ProfileSelectionScreen.kt
+app/src/main/java/com/nuvio/tv/ui/screens/LayoutSelectionScreen.kt

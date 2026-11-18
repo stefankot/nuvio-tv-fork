@@ -48,7 +48,7 @@ object KiciaSkin : Skin {
         "wizard_mode" -> SkinScreen { a ->
             com.nuvio.tv.skin.kicia.wizard.ForgeWizardMode(a["focus"] as FocusRequester, onEssential = a["onEssential"] as () -> Unit, onAdvanced = a["onAdvanced"] as () -> Unit); true
         }
-        "wizard_layout" -> SkinScreen { a -> WizardLayout(a); true } // wpięcie w LayoutSelectionScreen zdjęte (limit 35 plików)
+        "wizard_layout" -> SkinScreen { a -> WizardLayout(a); true }
         else -> null
     }
 
