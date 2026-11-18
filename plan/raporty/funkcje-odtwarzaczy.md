@@ -25,7 +25,7 @@ Sprawdzone w kodzie gałęzi `hybryda-zrodel`. Porównałem pliki każdego forka
 ## Brak w forku (z ważniejszych)
 **Echo**
 - Wykrywanie napisów końcowych z obrazu (`CreditsDetector`) i dopasowanie czasów pomijania do konkretnego pliku (`SkipTimeFitter`: nazwy rozdziałów, klatki kluczowe). Dziś „Pomiń intro” bierze czasy z bazy danych, które przy innym wydaniu mogą być przesunięte.
-- Szybszy start (`FastPlaybackStart`: start już po krótkim buforze, a nie po 2,5–5 s) i rozgrzewanie połączenia przed startem (`PlaybackConnectionPrewarmer`).
+- Szybszy start (`FastPlaybackStart`: start po 1,5 s bufora zamiast domyślnych 5 s w bazie) i rozgrzewanie połączenia przed startem (`PlaybackConnectionPrewarmer`). JEST natomiast: wcześniejsze wyszukiwanie źródeł na ekranie szczegółów (`fork/echo/EchoSourcePreload`, przełącznik `fork_detail_preload`, domyślnie ON) oraz ręczne ustawienie „bufor przed startem” w bazie.
 
 **One**
 - Pauza i cofanie kanału bez archiwum (`LiveTvTimeshift`): po pauzie aplikacja nagrywa kanał do pamięci podręcznej telewizora i odtwarza z nagrania.
