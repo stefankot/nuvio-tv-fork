@@ -1,6 +1,8 @@
 package com.nuvio.tv.ainarrator
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,22 +43,34 @@ fun NarratorOverlay(controller: PlayerRuntimeController, visible: Boolean, modif
     val context = LocalContext.current
     val prefs = remember(context) { NarratorPreferences(context) }
     val engine = remember(controller) { NarratorEngine(context) }
+    val models = remember(context) { ZonosOnDeviceModels(context) }
+    val durable = remember(context) { NarratorPersistentAudio(context) }
+    val preparation = remember(controller) { NarratorPreparer(context, models, durable) }
     var options by remember(prefs) { mutableStateOf(prefs.load()) }
     var geminiKey by remember(prefs) { mutableStateOf(prefs.apiKey()) }
-    var zonosToken by remember(prefs) { mutableStateOf(prefs.localToken()) }
     var showDialog by remember { mutableStateOf(false) }
     var draft by remember { mutableStateOf(options) }
     var newGeminiKey by remember { mutableStateOf("") }
-    var newZonosToken by remember { mutableStateOf("") }
-    var serverAddress by remember { mutableStateOf(options.localEndpoint) }
-    var speakerId by remember { mutableStateOf(options.localSpeakerId) }
+    var confirmDeleteAudio by remember { mutableStateOf(false) }
     var inputError by remember { mutableStateOf("") }
     val liveOptions by rememberUpdatedState(options)
     val liveGeminiKey by rememberUpdatedState(geminiKey)
-    val liveZonosToken by rememberUpdatedState(zonosToken)
     val status by engine.status.collectAsState()
+    val download by models.status.collectAsState()
+    val progress by preparation.status.collectAsState()
+    val nativeAvailable = remember(context) {
+        java.io.File(context.applicationInfo.nativeLibraryDir, "libzonos3_server.so").let {
+            it.isFile && it.canExecute()
+        }
+    }
 
-    DisposableEffect(engine) { onDispose { engine.close() } }
+    DisposableEffect(engine, preparation, models) {
+        onDispose {
+            preparation.close()
+            models.close()
+            engine.close()
+        }
+    }
     LaunchedEffect(controller, engine) {
         var previousUrl = ""
         var mediaIdentity = ""
@@ -65,9 +79,8 @@ fun NarratorOverlay(controller: PlayerRuntimeController, visible: Boolean, modif
         while (isActive) {
             val cfg = liveOptions
             if (!cfg.enabled ||
-                (cfg.backend == NarratorBackend.GEMINI && liveGeminiKey.isBlank()) ||
-                (cfg.backend == NarratorBackend.ZONOS_LOCAL && cfg.localEndpoint.isBlank())) {
-                engine.tick(NarratorFrame("", 0L, false, false, ""), cfg, liveGeminiKey, liveZonosToken)
+                (cfg.backend == NarratorBackend.GEMINI && liveGeminiKey.isBlank())) {
+                engine.tick(NarratorFrame("", 0L, false, false, ""), cfg, liveGeminiKey)
                 delay(900L)
                 continue
             }
@@ -103,8 +116,7 @@ fun NarratorOverlay(controller: PlayerRuntimeController, visible: Boolean, modif
                     cachedLines
                 ),
                 cfg,
-                liveGeminiKey,
-                liveZonosToken
+                liveGeminiKey
             )
             delay(220L)
         }
@@ -113,10 +125,8 @@ fun NarratorOverlay(controller: PlayerRuntimeController, visible: Boolean, modif
     if (visible) {
         Button(onClick = {
             draft = options
-            serverAddress = options.localEndpoint
-            speakerId = options.localSpeakerId
             newGeminiKey = ""
-            newZonosToken = ""
+            confirmDeleteAudio = false
             inputError = ""
             showDialog = true
         }, modifier = modifier.padding(12.dp)) {
@@ -170,15 +180,86 @@ fun NarratorOverlay(controller: PlayerRuntimeController, visible: Boolean, modif
                         })
                     }) { Text("Zmień limit") }
                 } else {
-                    Text("Lokalny ZONOS3-Mini — serwer w tej samej sieci LAN.")
-                    Text("Pełny adres bazowy serwera z portem (HTTP/HTTPS):")
-                    NarratorField(serverAddress, { serverAddress = it.take(200) })
-                    Text("Identyfikator głosu (puste = pierwszy głos serwera):")
-                    NarratorField(speakerId, { speakerId = it.take(120) })
-                    Text("Token serwera, jeśli włączono autoryzację (nowy):")
-                    NarratorField(newZonosToken, { newZonosToken = it.take(300) }, secret = true)
-                    Text("Bez opłat Gemini; zasoby i energia lokalnego komputera.")
-                }
+                    Text("ZONOS3-Mini — bezpośrednio na tym Android TV; bez serwera LAN.")
+                    Text("Model GGUF: około 1,12 GB. Pobierany wyłącznie po wybraniu opcji poniżej.")
+                    Text("Stan modelu: " + when (download.phase) {
+                        ModelPhase.CHECKING -> "Sprawdzanie plików"
+                        ModelPhase.MISSING -> "Niepobrany"
+                        ModelPhase.DOWNLOADING -> "Pobieranie"
+                        ModelPhase.READY -> "Pobrany i zweryfikowany"
+                        ModelPhase.ERROR -> "Błąd: " + download.message
+                    })
+                    if (download.phase == ModelPhase.DOWNLOADING) {
+                        NarratorProgressBar((100L * download.downloadedBytes /
+                            download.expectedBytes.coerceAtLeast(1L)).toInt().coerceIn(0, 100))
+                        Text("Pobrano ${download.downloadedBytes / 1_000_000L} / " +
+                            "${download.expectedBytes / 1_000_000L} MB")
+                        Button(onClick = { models.cancelDownload() }) { Text("Przerwij pobieranie") }
+                    } else if (download.phase != ModelPhase.READY && download.phase != ModelPhase.CHECKING) {
+                        Button(onClick = { models.downloadOnUserRequest() }) {
+                            Text("Pobierz / wznów pobieranie modelu")
+                        }
+                    }
+                    if (download.phase == ModelPhase.READY) {
+                        Text(if (nativeAvailable) "Silnik ARM64: dostępny" else
+                            "Silnik ARM64 nie jest dołączony do APK — synteza zablokowana.")
+                        Text("Audio przygotowuje się WYŁĄCZNIE przy wstrzymanym filmie.")
+                        Text("Niezbędne są pełne napisy z czasami. Ukończone WAV pozostają na dysku.")
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(onClick = {
+                                val cues = controller.uiState.value.subtitleAutoSyncCues.mapNotNull { cue ->
+                                    if (cue.startTimeMs < 0 || cue.endTimeMs <= cue.startTimeMs) null
+                                    else NarratorLine(cue.startTimeMs, cue.endTimeMs, cue.text)
+                                }
+                                preparation.begin(PreparationHalf.FIRST,
+                                    controller.playbackTimeline.value.duration, cues) {
+                                    controller.uiState.value.isPlaying
+                                }
+                            }) { Text("Przygotuj 1. połowę") }
+                            Button(onClick = {
+                                val cues = controller.uiState.value.subtitleAutoSyncCues.mapNotNull { cue ->
+                                    if (cue.startTimeMs < 0 || cue.endTimeMs <= cue.startTimeMs) null
+                                    else NarratorLine(cue.startTimeMs, cue.endTimeMs, cue.text)
+                                }
+                                preparation.begin(PreparationHalf.SECOND,
+                                    controller.playbackTimeline.value.duration, cues) {
+                                    controller.uiState.value.isPlaying
+                                }
+                            }) { Text("Przygotuj 2. połowę") }
+                        }
+                    }
+                    if (progress.total > 0) {
+                        NarratorProgressBar(progress.percentage)
+                        Text("Gotowe: ${progress.completed}/${progress.total} " +
+                            "(${progress.percentage}%), z cache: ${progress.cached}")
+                        if (progress.etaSeconds != null) {
+                            Text("Szacowany pozostały czas: ${progress.etaSeconds / 60L} min")
+                        }
+                    }
+                    if (progress.message.isNotBlank()) Text(progress.message)
+                    if (progress.phase == PreparationPhase.WORKING) {
+                        Button(onClick = { preparation.pause() }) {
+                            Text("Wstrzymaj przygotowanie i zachowaj gotowe WAV")
+                        }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(onClick = {
+                            preparation.pause()
+                            models.deleteOnUserRequest()
+                        }) { Text("Usuń pobrany model") }
+                        Button(onClick = { confirmDeleteAudio = !confirmDeleteAudio }) {
+                            Text("Usuń przygotowane audio")
+                        }
+                    }
+                    if (confirmDeleteAudio) {
+                        Text("Potwierdź: usunąć wszystkie trwale zapisane kwestie lektora?")
+                        Button(onClick = {
+                            preparation.pause()
+                            engine.deletePreparedAudioOnUserRequest()
+                            confirmDeleteAudio = false
+                        }) { Text("Potwierdź usunięcie WAV") }
+                    }
+
                 Text("Głośność lektora: ${(draft.narratorVolume * 100).toInt()}%")
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = {
@@ -192,42 +273,30 @@ fun NarratorOverlay(controller: PlayerRuntimeController, visible: Boolean, modif
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = {
                         val result = runCatching {
-                            val endpoint = if (draft.backend == NarratorBackend.ZONOS_LOCAL && serverAddress.isNotBlank())
-                                ZonosEndpoint.parse(serverAddress).toString()
-                            else options.localEndpoint
-                            val chosen = draft.copy(localEndpoint = endpoint, localSpeakerId = speakerId.trim())
-                            if (chosen.enabled && chosen.backend == NarratorBackend.ZONOS_LOCAL && endpoint.isBlank()) {
-                                throw IllegalArgumentException("Podaj adres serwera ZONOS3.")
-                            }
                             if (newGeminiKey.isNotBlank()) prefs.saveApiKey(newGeminiKey)
-                            if (newZonosToken.isNotBlank()) prefs.saveLocalToken(newZonosToken)
-                            prefs.save(chosen)
-                            chosen
+                            prefs.save(draft)
+                            draft
                         }
                         result.onSuccess { chosen ->
                             geminiKey = prefs.apiKey()
-                            zonosToken = prefs.localToken()
                             options = chosen
                             newGeminiKey = ""
-                            newZonosToken = ""
                             showDialog = false
                         }.onFailure {
-                            inputError = "Nie udało się zapisać: sprawdź adres serwera i ustawienia."
+                            inputError = "Nie udało się zapisać ustawień."
                         }
                     }) { Text("Zapisz") }
-                    Button(onClick = {
-                        if (draft.backend == NarratorBackend.GEMINI) {
+                    if (draft.backend == NarratorBackend.GEMINI) {
+                        Button(onClick = {
                             prefs.saveApiKey("")
                             geminiKey = ""
-                        } else {
-                            prefs.saveLocalToken("")
-                            zonosToken = ""
-                        }
-                    }) { Text("Usuń token") }
+                        }) { Text("Usuń klucz Gemini") }
+                    }
                     Button(onClick = { engine.clearCache() }) { Text("Wyczyść cache") }
                 }
-                Text("ZONOS3 przetwarza napisy tylko na wybranym serwerze lokalnym. " +
-                    "Gemini przesyła je do Google. Bitstream/passthrough może uniemożliwić miksowanie.")
+                Text("ZONOS3 generuje lokalnie tylko przy pauzie. Podczas filmu odtwarzane są " +
+                    "wyłącznie zapisane WAV; Gemini przesyła napisy do Google. " +
+                    "15 minut to limit pojedynczego przygotowania, nie gwarancja czasu dla połowy filmu.")
             }
         }
     }
@@ -243,4 +312,12 @@ private fun NarratorField(value: String, onValueChange: (String) -> Unit, secret
         visualTransformation = if (secret) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
         textStyle = TextStyle(color = Color.Black)
     )
+}
+
+@Composable
+private fun NarratorProgressBar(percent: Int) {
+    val fraction = percent.coerceIn(0, 100) / 100f
+    Box(Modifier.width(420.dp).height(9.dp).background(Color.DarkGray)) {
+        Box(Modifier.width((420f * fraction).dp).height(9.dp).background(Color(0xFF8CC4D1)))
+    }
 }
