@@ -8,7 +8,6 @@ import java.net.HttpURLConnection
 import java.net.InetAddress
 import java.net.URI
 import java.net.URL
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Adapter to Zyphra's locally hosted ZONOS3-Mini HTTP API.
@@ -16,7 +15,6 @@ import java.util.concurrent.ConcurrentHashMap
  * A separate local machine/server runs ZONOS3 and hosts its model weights.
  */
 internal class LocalZonosTts {
-    private val automaticSpeakers = ConcurrentHashMap<String, String>()
 
     suspend fun synthesize(
         endpoint: String,
@@ -26,14 +24,9 @@ internal class LocalZonosTts {
     ): ByteArray = withContext(Dispatchers.IO) {
         val base = ZonosEndpoint.parse(endpoint)
         require(text.isNotBlank() && text.length <= 380)
-        // Never send subtitles to arbitrary public hosts or follow server redirects.
-        require(ZonosEndpoint.isPrivateHost(base)) { "Serwer musi być w sieci lokalnej" }
-        // On-device neutral TTS needs no speaker asset; speaker ID is optional in the API.
-        val effectiveSpeaker = if (base.host == "127.0.0.1") speakerId.trim() else {
-            speakerId.trim().takeIf { it.isNotEmpty() }
-                ?: automaticSpeakers[base.toString()]
-                ?: fetchFirstSpeaker(base, accessToken).also { automaticSpeakers[base.toString()] = it }
-        }
+        // No LAN path is available in device mode. A token protects our loopback worker.
+        require(base.host == "127.0.0.1") { "ZONOS3 działa wyłącznie na tym urządzeniu" }
+        val effectiveSpeaker = speakerId.trim()
         val body = JSONObject()
             .put("text", text)
             .put("language", "pl")
@@ -53,25 +46,6 @@ internal class LocalZonosTts {
             val wav = readBounded(request, MAX_WAV_BYTES)
             require(WavValidation.isWav(wav)) { "ZONOS3 nie zwrócił WAV" }
             wav
-        } finally {
-            request.disconnect()
-        }
-    }
-
-    private fun fetchFirstSpeaker(base: URI, token: String): String {
-        val request = open(base.resolve("/v2/speakers").toURL(), token, "GET")
-        try {
-            if (request.responseCode !in 200..299) {
-                throw IllegalStateException("ZONOS3 speakers HTTP ${request.responseCode}")
-            }
-            val response = String(readBounded(request, 256 * 1024), Charsets.UTF_8)
-            val speakers = JSONObject(response).optJSONArray("speakers")
-                ?: throw IllegalStateException("Serwer nie udostępnia głosów")
-            for (i in 0 until speakers.length()) {
-                val id = speakers.optJSONObject(i)?.optString("id").orEmpty()
-                if (id.isNotBlank()) return id
-            }
-            throw IllegalStateException("Brak domyślnego głosu ZONOS3")
         } finally {
             request.disconnect()
         }
