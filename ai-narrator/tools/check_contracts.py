@@ -9,6 +9,20 @@ checks = {
     "app/reshaped.gradle": [
         "ai-narrator/src/main/kotlin",
         "ai-narrator/src/test/kotlin",
+        "ai-narrator/jniLibs",
+    ],
+    "ai-narrator/src/main/kotlin/com/nuvio/tv/ainarrator/ZonosOnDeviceModels.kt": [
+        "downloadOnUserRequest", "verifySha256", "applicationContext.filesDir", "ModelPhase.READY",
+    ],
+    "ai-narrator/src/main/kotlin/com/nuvio/tv/ainarrator/NarratorPreparation.kt": [
+        "NarratorPreparationPlan", "PreparationHalf", "NarratorPersistentAudio",
+        "filesDir", "15L * 60L * 1000L",
+    ],
+    "ai-narrator/src/main/kotlin/com/nuvio/tv/ainarrator/ZonosNativeServer.kt": [
+        "127.0.0.1", "ZONOS3_ACCESS_TOKEN", "isPackaged", "memory.check",
+    ],
+    "ai-narrator/src/main/kotlin/com/nuvio/tv/ainarrator/NarratorEngine.kt": [
+        "NarratorPersistentAudio", "ZONOS3 requires pre-rendered audio",
     ],
     "app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt": [
         "com.nuvio.tv.ainarrator.NarratorOverlay(",
