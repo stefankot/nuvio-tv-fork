@@ -10,8 +10,8 @@ Porównanie gałęzi z bazowym `main` za pomocą GitHub Compare:
 |---|---:|---:|---:|
 | Pliki upstream zmienione | 1 | 5 | 0 |
 | Pliki forka zmienione | 1 | 4 | 0 |
-| Nowe pliki modułu i workflow | 11 | 981 | 0 |
-| **Łącznie** | **13** | **990** | **0** |
+| Nowe pliki modułu i workflow | 14 | 1455 | 0 |
+| **Łącznie** | **16** | **1464** | **0** |
 
 Jedyna zmiana istniejącego pliku z odtwarzaczem: `app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt` — wywołanie `NarratorOverlay` (5 wierszy). Własny `app/reshaped.gradle` otrzymał dwa wpisy źródeł (4 wiersze z komentarzem). **Bez zmian** w `app/build.gradle.kts`, `PlayerRuntimeController*`, mpv, ExoPlayer i obecnej synchronizacji.
 
@@ -26,6 +26,8 @@ Jedyna zmiana istniejącego pliku z odtwarzaczem: `app/src/main/java/com/nuvio/t
 ## 3. Upstream compatibility test
 
 **Wykonano:** odczyt i porównanie struktury GitHub, weryfikację obecności 9 wymaganych kontraktów w 6 plikach integracyjnych — **9/9 zgodnych**. Potwierdzono także schemat `speechMetadata` i `prebuiltVoiceConfig.voiceName` w kodzie klienta.
+
+**Aktualizacja 18.11.2026:** backend ZONOS3-Mini dodano w katalogu `ai-narrator` bez dalszej ingerencji w upstream. Zawiera serwerowe `POST /v2/generate`, lokalne hasło dostępu, wybór silnika i testy kontraktowe. Szczegóły: [ZONOS3_LOCAL.md](ZONOS3_LOCAL.md). Stan: **nieprzetestowany na urządzeniu**.
 
 **GitHub Actions:** przebieg [AI narrator compatibility #44382299088](https://github.com/stefankot/nuvio-tv-fork/actions/runs/44382299088) zakończył się `failure` w obu próbach; GitHub nie zwrócił kroków ani logów zadania. Przyczyna nieznana, **brak potwierdzonej kompilacji lub testów**. Nie jest to wynik pozytywny.
 
@@ -59,3 +61,10 @@ Przygotowano `ai-narrator/tools/check_contracts.py` i `merge_dry_run.sh` oraz os
 - Brak wyników realnych odsłuchów, połączenia z API i kompilacji. **Wymóg pełnowartościowego lektora nie jest jeszcze spełniony.**
 
 Referencje API: https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/text-to-speech/overview oraz https://cloud.google.com/model-garden/pricing .
+
+
+### Aktualny przebieg po dodaniu ZONOS3
+[AI narrator compatibility #44386680927](https://github.com/stefankot/nuvio-tv-fork/actions/runs/44386680927): `failure` bez zwróconych kroków/logów. Nie może być traktowany jako wynik kompilacji ani testu poprawności kodu.
+
+### Dodatkowa granica integracyjna
+`LocalZonosTts.kt` komunikuje się wyłącznie z lokalnym serwerem HTTP. Nie wymaga modyfikacji `PlayerRuntimeController` ani silników wideo. Wybór dostawcy i cache są odizolowane wewnątrz modułu.
