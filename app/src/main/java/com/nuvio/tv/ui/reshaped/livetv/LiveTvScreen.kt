@@ -558,7 +558,7 @@ fun LiveTvScreen(
                         !showSourceDialog && !showCategoryDialog && !showMenu && !showPlaylists &&
                         !naming && editingList == null,
                 )
-                com.nuvio.tv.fork.tv.ekrany.ForYouRow(launchPlay) // Fork patch: dostawca #12 - rząd „Dla Ciebie”
+                if (forgeBrowseB) com.nuvio.tv.fork.tv.ekrany.ForYouRow(launchPlay) // Fork patch: dostawca #12 - rząd „Dla Ciebie” (Kicia A: w półce nagłówka)
                 Spacer(Modifier.height(if (!forgeBrowseB) 0.dp else NuvioTheme.spacing.sm)) // forge hook v7.4
                 LaunchedEffect(gridFocused) { if (gridFocused) categoriesOpen = false }
                 Box(modifier = Modifier.fillMaxWidth().height(if (!forgeBrowseB) forgeGridHeight else GUIDE_RULER + GUIDE_ROW * GUIDE_ROWS)) { // forge hook v7.4 (6.2) // forge: variant A grid from y 246

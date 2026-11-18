@@ -30,13 +30,25 @@ import com.nuvio.tv.reshaped.livetv.LiveTvProgramme
 import com.nuvio.tv.ui.screens.settings.ForkFeatures
 import kotlinx.coroutines.delay
 
+/**
+ * Pozycje „Dla Ciebie” (odświeżane co minutę); pusta lista, gdy moduł TV albo rząd wyłączony.
+ * Skórka Kicia wstawia je do własnej półki kart (19.11: osobny rząd ucinał przyciski przewodnika).
+ */
+@Composable
+fun rememberForYouItems(): List<ResolvedItem> {
+    val context = LocalContext.current
+    if (!ForkFeatures.enabled(context, "module_tv", true) || !ForkFeatures.enabled(context, "tv_for_you_row", true)) return emptyList()
+    var items by remember { mutableStateOf<List<ResolvedItem>>(emptyList()) }
+    LaunchedEffect(Unit) { while (true) { items = runCatching { TvQueue.build() }.getOrDefault(emptyList()); delay(60_000L) } }
+    return items
+}
+
+fun forYouBadgeLabel(b: Badge) = badgeLabel(b)
+
 /** Rząd „Dla Ciebie” nad przewodnikiem (B03-1/2). Pusty lub wyłączony = nic nie rysuje. */
 @Composable
 fun ForYouRow(onPlay: (LiveTvChannel, LiveTvProgramme?) -> Unit) {
-    val context = LocalContext.current
-    if (!ForkFeatures.enabled(context, "module_tv", true) || !ForkFeatures.enabled(context, "tv_for_you_row", true)) return
-    var items by remember { mutableStateOf<List<ResolvedItem>>(emptyList()) }
-    LaunchedEffect(Unit) { while (true) { items = runCatching { TvQueue.build() }.getOrDefault(emptyList()); delay(60_000L) } }
+    val items = rememberForYouItems()
     if (items.isEmpty()) return
     Column(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
         Text("Dla Ciebie", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 6.dp))

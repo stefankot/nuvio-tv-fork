@@ -121,6 +121,9 @@ internal fun ForgeGuideHeaderA(
         (favourites + recent).take(24)
     }
     val nowMs = clock.value
+    // fork (19.11): „Dla Ciebie” (fork/tv) w tej półce zamiast osobnego rzędu, który ucinał przyciski pod półką.
+    val forYouAll = com.nuvio.tv.fork.tv.ekrany.rememberForYouItems()
+    val forYou = remember(forYouAll, shown) { val onShelf = shown.map { it.second.guideKey }.toSet(); forYouAll.filter { it.channel.guideKey !in onShelf }.take(12) }
     // makieta 7.7b H16: „Kontynuuj oglądanie” first — programmes left part way in the archive (still in it), newest first;
     // OK = resume from where it was left. They lead the shelf (the separate row and its title come with the layout pass).
     val resumeAll by TvStore.resume.collectAsStateWithLifecycle()
@@ -161,7 +164,7 @@ internal fun ForgeGuideHeaderA(
     Column(modifier.fillMaxWidth()) {
         // v7.4 (06): content from y 68 (below the bar): title "Na żywo" y 76, cards y 110 (160x114, focus 180x128), tools y 252, programme header y 292, grid y 341.
         Spacer(Modifier.height(8.dp))
-        if (shown.isNotEmpty() || resumes.isNotEmpty()) {
+        if (shown.isNotEmpty() || resumes.isNotEmpty() || forYou.isNotEmpty()) {
             // v7.6 (owner 13.11): no shelf title "Na żywo"; the cards say it with a blinking red dot
             Spacer(Modifier.height(5.dp))
             // makieta 7.7b H16: a resume card added in front would sit left of the screen (the row keeps its first visible card)
@@ -196,6 +199,24 @@ internal fun ForgeGuideHeaderA(
                         modifier = Modifier.focusProperties { gridFocus?.let { down = it } }.then(if (i == 0) Modifier.focusRequester(firstRecent) else Modifier),
                     )
                 }
+                itemsIndexed(forYou, key = { _, it -> "foryou|" + it.item.programKey + "|" + it.item.guideKey }) { i, r ->
+                    val p = r.programme
+                    ForgeRecentProgrammeCard(
+                        show = RecentShow(
+                            key = "foryou|" + r.item.programKey, title = r.item.title,
+                            channelName = com.nuvio.tv.fork.tv.ekrany.forYouBadgeLabel(r.item.badge) + " · " + r.channel.name,
+                            channelUrl = r.channel.streamUrl, guideKey = r.channel.guideKey, logoUrl = r.channel.logoUrl,
+                            imageUrl = p?.image, lastViewedMs = r.item.startMs,
+                        ),
+                        frame = p?.image?.takeIf { it.isNotBlank() } ?: frames[r.channel.guideKey]?.second,
+                        channel = r.channel,
+                        live = r.item.badge == com.nuvio.tv.fork.tv.Badge.LIVE,
+                        nowMs = nowMs,
+                        onClick = { onPlay(r.channel, p) },
+                        onLongClick = { com.nuvio.tv.ui.screens.settings.ForkFeatures.open?.invoke("fork_program/" + android.net.Uri.encode(r.item.programKey)) },
+                        modifier = Modifier.focusProperties { gridFocus?.let { down = it } }.then(if (i == 0 && resumes.isEmpty()) Modifier.focusRequester(firstRecent) else Modifier),
+                    )
+                }
                 itemsIndexed(shown, key = { _, it -> it.first.key }) { cardIndex, (show, channel) ->
                     val onNow = uiState.currentProgrammes[channel.guideKey]
                     val live = onNow != null && forgeSameTitle(onNow.title, show.title)
@@ -208,7 +229,7 @@ internal fun ForgeGuideHeaderA(
                         progress = if (live && onNow != null && onNow.stopEpochMs > onNow.startEpochMs) ((nowMs - onNow.startEpochMs).toFloat() / (onNow.stopEpochMs - onNow.startEpochMs)).coerceIn(0f, 1f) else 0f,
                         onClick = { onPlay(channel, null) },
                         onLongClick = { TvStore.remove(show.key) },
-                        modifier = Modifier.testTag("karta.$cardIndex").focusProperties { gridFocus?.let { down = it } }.then(if (cardIndex == 0 && resumes.isEmpty()) Modifier.focusRequester(firstRecent) else Modifier), // v7.4 (06, 6.2: ▼ na ostatnie narzędzie)
+                        modifier = Modifier.testTag("karta.$cardIndex").focusProperties { gridFocus?.let { down = it } }.then(if (cardIndex == 0 && resumes.isEmpty() && forYou.isEmpty()) Modifier.focusRequester(firstRecent) else Modifier), // v7.4 (06, 6.2: ▼ na ostatnie narzędzie)
                         badgeTag = "plakietka.$cardIndex",
                     )
                 }
