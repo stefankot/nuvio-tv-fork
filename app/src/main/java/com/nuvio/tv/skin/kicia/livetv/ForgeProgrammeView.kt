@@ -298,7 +298,7 @@ internal fun ForgeProgrammeRows(uiState: LiveTvUiState, onPlay: (LiveTvChannel, 
                                 p.startEpochMs <= now && p.stopEpochMs > now -> onPlay(e.channel, null)
                                 p.stopEpochMs <= now -> onPlay(e.channel, p)
                                 else -> {
-                                    com.nuvio.tv.fork.tv.ForgeReminders.toggle(context.applicationContext, com.nuvio.tv.fork.tv.ForgeReminder(e.channel.streamUrl, p.startEpochMs, p.title, e.channel.name))
+                                    com.nuvio.tv.fork.tv.Reminders.toggle(context.applicationContext, com.nuvio.tv.fork.tv.Reminder(e.channel.streamUrl, p.startEpochMs, p.title, e.channel.name))
                                     ForgeToast.show("Przypomnienie: " + p.title + " · " + forgeTvTime(p.startEpochMs), top = true)
                                 }
                             }

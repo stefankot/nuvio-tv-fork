@@ -42,6 +42,51 @@ object TvStore {
     /** The alerts not yet announced: what a badge or a toast shows. */
     val unannounced: StateFlow<List<EpisodeAlert>> = _unannounced.asStateFlow()
 
+    private val _resume = MutableStateFlow<List<TvResume>>(emptyList())
+    /** Makieta 7.7 G31/H16/A10: programmes from the archive, newest first (watched ones stay, for the „✓ Obejrzane” badge). */
+    val resume: StateFlow<List<TvResume>> = _resume.asStateFlow()
+    private var resumeSavedMs = 0L
+
+    /** Makieta 7.7: the archive replay of [programme] on [channel] has reached [atMs]; saved at most every 15 s. */
+    fun recordReplay(channel: LiveTvChannel, programme: LiveTvProgramme, atMs: Long, nowMs: Long = System.currentTimeMillis()) {
+        if (atMs < programme.startEpochMs || atMs > programme.stopEpochMs) return
+        synchronized(lock) {
+            // test 15.11 (JMGO): leaving the player reports position 0 (the airing's start) and wiped the progress made
+            val before = _resume.value.firstOrNull { it.channelUrl == channel.streamUrl && it.startMs == programme.startEpochMs }
+            if (before != null && atMs - programme.startEpochMs < 5_000L && before.positionMs > atMs + 5_000L) return
+            val entry = TvResume(
+                channelUrl = channel.streamUrl, channelName = channel.name, guideKey = channel.guideKey, title = programme.title.trim(),
+                episode = programme.episode, image = programme.image, startMs = programme.startEpochMs, stopMs = programme.stopEpochMs,
+                positionMs = atMs, updatedMs = nowMs,
+            )
+            _resume.value = (listOf(entry) + _resume.value.filter { it.key != entry.key }).take(60)
+            if (nowMs - resumeSavedMs >= 15_000L) {
+                resumeSavedMs = nowMs
+                save("resume_$profileId.json", json.encodeToString(ListSerializer(TvResume.serializer()), _resume.value))
+                Log.i(TAG, "resume '${entry.title}' at ${(entry.fraction * 100).toInt()}% (${entry.leftMinutes} min left)")
+            }
+        }
+    }
+
+    /** The saved place of this airing, if any. */
+    fun resumeFor(channelUrl: String, startMs: Long): TvResume? = _resume.value.firstOrNull { it.channelUrl == channelUrl && it.startMs == startMs }
+
+    private val _favoriteShows = MutableStateFlow<Set<String>>(emptySet())
+    /** Makieta 7.7 D14/F27: programmes followed with „+” (titles as [ShowIdentity.normalizeTitle]). */
+    val favoriteShows: StateFlow<Set<String>> = _favoriteShows.asStateFlow()
+
+    fun isFavoriteShow(title: String): Boolean = ShowIdentity.normalizeTitle(title) in _favoriteShows.value
+
+    /** Makieta 7.7 D14: „+” on 08 — adds or removes the programme; returns whether it is a favourite now. */
+    fun toggleFavoriteShow(title: String): Boolean = synchronized(lock) {
+        val key = ShowIdentity.normalizeTitle(title)
+        if (key.isEmpty()) return@synchronized false
+        val now = if (key in _favoriteShows.value) _favoriteShows.value - key else _favoriteShows.value + key
+        _favoriteShows.value = now
+        save("favorite_shows_$profileId.json", json.encodeToString(SetSerializer(String.serializer()), now))
+        key in now
+    }
+
     private var dir: File? = null
     private var profileId = Int.MIN_VALUE
     private var storedAirings: List<Airing> = emptyList()
@@ -63,11 +108,17 @@ object TvStore {
         announced = runCatching {
             json.decodeFromString(SetSerializer(String.serializer()), read(folder, "announced_$profileId.json").orEmpty())
         }.getOrDefault(emptySet())
+        _favoriteShows.value = runCatching {
+            json.decodeFromString(SetSerializer(String.serializer()), read(folder, "favorite_shows_$profileId.json").orEmpty())
+        }.getOrDefault(emptySet())
+        _resume.value = runCatching {
+            json.decodeFromString(ListSerializer(TvResume.serializer()), read(folder, "resume_$profileId.json").orEmpty())
+        }.getOrDefault(emptyList())
         recompute(System.currentTimeMillis())
     }
 
     /** Titles (as [ShowIdentity.normalizeTitle]) the guide read should collect every airing of. */
-    fun watchedKeys(): Set<String> = _recent.value.mapTo(HashSet()) { it.key }
+    fun watchedKeys(): Set<String> = _recent.value.mapTo(HashSet()) { it.key } + _favoriteShows.value // makieta 7.7 D14: followed programmes too
 
     /** The viewer chose to watch [programme] on [channel]: it goes first in the list. */
     fun onWatched(channel: LiveTvChannel, programme: LiveTvProgramme?, nowMs: Long = System.currentTimeMillis()) {

@@ -1,5 +1,4 @@
 diff --git a/app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.kt b/app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.kt
-index dffbe2eb9..01fb1c669 100644
 --- a/app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.kt
 +++ b/app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.kt
 @@ -2,6 +2,7 @@
@@ -10,7 +9,7 @@ index dffbe2eb9..01fb1c669 100644
  import com.nuvio.tv.ui.screens.party.PartySettingsContent
  import com.nuvio.tv.ui.screens.party.PartyViewModel
  import com.nuvio.tv.ui.theme.NuvioTheme
-@@ -37,6 +38,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
+@@ -37,6 +38,7 @@
  import androidx.compose.foundation.lazy.LazyListState
  import androidx.compose.foundation.lazy.rememberLazyListState
  import androidx.compose.material.icons.Icons
@@ -18,7 +17,7 @@ index dffbe2eb9..01fb1c669 100644
  import androidx.compose.material.icons.rounded.Groups
  import androidx.compose.material.icons.rounded.PlayArrow
  import androidx.compose.material.icons.filled.BugReport
-@@ -160,10 +162,13 @@ private fun settingsSectionSpec(category: SettingsCategory): SettingsSectionSpec
+@@ -160,10 +162,13 @@
      SettingsCategory.PROFILES -> SettingsSectionSpec(category, stringResource(R.string.settings_profiles), Icons.Default.People, destination = SettingsSectionDestination.Inline)
      SettingsCategory.WATCH_PARTY -> SettingsSectionSpec(category, stringResource(R.string.party_title), Icons.Rounded.Groups, destination = SettingsSectionDestination.Inline)
      SettingsCategory.APPEARANCE -> SettingsSectionSpec(category, stringResource(R.string.appearance_title), Icons.Default.Palette, destination = SettingsSectionDestination.Inline)
@@ -32,7 +31,7 @@ index dffbe2eb9..01fb1c669 100644
      SettingsCategory.INTEGRATION -> SettingsSectionSpec(category, stringResource(R.string.settings_integration), Icons.Default.Link, destination = SettingsSectionDestination.Inline)
      SettingsCategory.TRACKING -> SettingsSectionSpec(category, stringResource(R.string.settings_tracking_title), Icons.Default.Sync, destination = SettingsSectionDestination.Inline)
      SettingsCategory.ADVANCED -> SettingsSectionSpec(category, stringResource(R.string.settings_advanced), Icons.Default.Build, destination = SettingsSectionDestination.Inline)
-@@ -186,6 +191,7 @@ fun SettingsScreen(
+@@ -186,6 +191,7 @@
      experienceModeViewModel: ExperienceModeSettingsViewModel = hiltViewModel(),
      partyViewModel: PartyViewModel = hiltViewModel()
  ) {
@@ -40,7 +39,7 @@ index dffbe2eb9..01fb1c669 100644
      val isPrimaryProfileActive by profileViewModel.isPrimaryProfileActive.collectAsStateWithLifecycle()
      val isWatchPartyAvailable by partyViewModel.party.available.collectAsStateWithLifecycle()
      val experienceModeState by remember(experienceModeViewModel) {
-@@ -206,6 +212,26 @@ fun SettingsScreen(
+@@ -206,6 +212,26 @@
      }
  
      val isEssentialMode = loadedExperienceMode == ExperienceMode.ESSENTIAL
@@ -67,7 +66,7 @@ index dffbe2eb9..01fb1c669 100644
  
      val visibleCategories = remember(isPrimaryProfileActive, isEssentialMode, isWatchPartyAvailable) {
          visibleSettingsCategories(
-@@ -239,6 +265,9 @@ fun SettingsScreen(
+@@ -239,6 +265,9 @@
              SettingsCategory.TRACKING to FocusRequester(),
              SettingsCategory.PLAYBACK to FocusRequester(),
              SettingsCategory.NUVIO_RESHAPED to FocusRequester(), // Nuvio RS hook
@@ -77,14 +76,14 @@ index dffbe2eb9..01fb1c669 100644
              SettingsCategory.ADVANCED to FocusRequester(),
              SettingsCategory.ABOUT to FocusRequester(),
              SettingsCategory.ACCOUNT to FocusRequester()
-@@ -370,6 +399,36 @@ fun SettingsScreen(
+@@ -370,7 +399,37 @@
      }
  
      val focusManager = LocalFocusManager.current
 +    val forgeBarFocus = com.nuvio.tv.skin.kicia.nav.LocalForgeBarFocus.current // forge hook v7.4 (01: ▲ z pierwszej kategorii szyny -> pasek)
 +    var forgeRailFirstFocused by remember { mutableStateOf(false) } // forge hook v7.4
 +    var forgeRailFocused by remember { mutableStateOf<String?>(null) } // forge hook v7.4 (1.15): the rail category that really has the focus
-+
+ 
 +    // forge hook v7.4 (1.15): the bar asked for a category (long OK on Tryb nocny): select it and focus it on the rail
 +    val forgeWanted = com.nuvio.tv.skin.kicia.nav.ForgeNavState.settingsCategory
 +    LaunchedEffect(forgeWanted) {
@@ -111,10 +110,11 @@ index dffbe2eb9..01fb1c669 100644
 +        }
 +        com.nuvio.tv.skin.kicia.nav.ForgeNavState.settingsCategory = null
 +    }
- 
++
      LaunchedEffect(visibleSections) {
          if (visibleSections.none { it.category == selectedCategory }) {
-@@ -428,12 +487,12 @@ fun SettingsScreen(
+             selectedCategory = visibleSections.firstOrNull()?.category ?: SettingsCategory.APPEARANCE
+@@ -428,12 +487,12 @@
      Box(
          modifier = Modifier
              .fillMaxSize()
@@ -132,7 +132,7 @@ index dffbe2eb9..01fb1c669 100644
              )
      ) {
          SettingsWorkspaceSurface(
-@@ -691,11 +750,11 @@ fun SettingsScreen(
+@@ -691,11 +750,11 @@
              } else {
              Row(
                  modifier = Modifier.fillMaxSize(),
@@ -146,7 +146,7 @@ index dffbe2eb9..01fb1c669 100644
                          .fillMaxHeight()
                  ) {
                      LazyColumn(
-@@ -735,6 +794,12 @@ fun SettingsScreen(
+@@ -735,6 +794,12 @@
                                      railFocusJob = null
                                      railRestoringCategory = null
                                  }
@@ -159,7 +159,7 @@ index dffbe2eb9..01fb1c669 100644
                                  val toDetailKey = if (isRtl) Key.DirectionLeft else Key.DirectionRight
                                  if (event.type == KeyEventType.KeyDown && event.key == toDetailKey) {
                                      val pendingSection = focusedTabCategory
-@@ -751,7 +816,7 @@ fun SettingsScreen(
+@@ -751,7 +816,7 @@
                                      false
                                  }
                              },
@@ -168,7 +168,7 @@ index dffbe2eb9..01fb1c669 100644
                      ) {
                          item(key = "settings_search_row") { // Fork hook: settings-search
                              if (ForkFeatures.enabled(androidx.compose.ui.platform.LocalContext.current, "fork_settings_search", true)) SettingsRailButton(title = "Search settings", icon = Icons.Default.Search, isSelected = false, onClick = { showSettingsSearch = true })
-@@ -761,11 +826,13 @@ fun SettingsScreen(
+@@ -761,11 +826,13 @@
                              key = { _, section -> section.category }
                          ) { index, section ->
                              Column {
@@ -183,7 +183,7 @@ index dffbe2eb9..01fb1c669 100644
                                          val restoringTo = railRestoringCategory
                                          if (section.category == restoringTo) {
                                              // Cleared here rather than waiting for the attempt to
-@@ -786,6 +853,7 @@ fun SettingsScreen(
+@@ -786,6 +853,7 @@
                                      rawIconRes = section.rawIconRes,
                                      isSelected = selectedCategory == section.category,
                                      focusRequester = railFocusRequesters[section.category],
@@ -191,15 +191,15 @@ index dffbe2eb9..01fb1c669 100644
                                      onClick = { onSectionClick(section) },
                                      suppressSelectedVisual = railHadFocus
                                          && focusedTabCategory != null
-@@ -1000,6 +1068,11 @@ private fun SettingsDetailPane(
+@@ -1000,6 +1068,11 @@
          SettingsCategory.NUVIO_RESHAPED -> NuvioReshapedSettingsContent( // Nuvio RS hook
              initialFocusRequester = if (allowDetailAutofocus) contentFocusRequesters[SettingsCategory.NUVIO_RESHAPED] else null
          )
 +        SettingsCategory.YOUTUBE -> YouTubeSettingsContent( // forge hook: 1Tube
 +            initialFocusRequester = if (allowDetailAutofocus) contentFocusRequesters[SettingsCategory.YOUTUBE] else null
 +        )
-+        SettingsCategory.NIGHT_MODE -> ForgeNightSettingsContent(initialFocusRequester = if (allowDetailAutofocus) contentFocusRequesters[SettingsCategory.NIGHT_MODE] else null) // forge hook: v7.4
-+        SettingsCategory.FORGE -> ForgeSettingsContent(initialFocusRequester = if (allowDetailAutofocus) contentFocusRequesters[SettingsCategory.FORGE] else null) // forge hook
++        SettingsCategory.NIGHT_MODE -> com.nuvio.tv.skin.kicia.settings.ForgeNightSettingsContent(initialFocusRequester = if (allowDetailAutofocus) contentFocusRequesters[SettingsCategory.NIGHT_MODE] else null) // forge hook: v7.4
++        SettingsCategory.FORGE -> com.nuvio.tv.skin.kicia.settings.ForgeSettingsContent(initialFocusRequester = if (allowDetailAutofocus) contentFocusRequesters[SettingsCategory.FORGE] else null) // forge hook
          SettingsCategory.TRACKING -> TrackingSettingsContent(
              initialFocusRequester = if (allowDetailAutofocus) {
                  contentFocusRequesters[SettingsCategory.TRACKING]

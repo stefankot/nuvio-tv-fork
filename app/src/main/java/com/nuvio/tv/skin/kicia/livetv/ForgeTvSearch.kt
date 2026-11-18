@@ -176,7 +176,7 @@ fun ForgeTvSearch(
                                                     keep(); leaveTo(rowKey)
                                                     when {
                                                         hit.programme.startEpochMs > now -> {
-                                                            com.nuvio.tv.fork.tv.ForgeReminders.toggle(context.applicationContext, com.nuvio.tv.fork.tv.ForgeReminder(hit.channel.streamUrl, hit.programme.startEpochMs, hit.programme.title, hit.channel.name))
+                                                            com.nuvio.tv.fork.tv.Reminders.toggle(context.applicationContext, com.nuvio.tv.fork.tv.Reminder(hit.channel.streamUrl, hit.programme.startEpochMs, hit.programme.title, hit.channel.name))
                                                             com.nuvio.tv.skin.kicia.components.ForgeToast.show("Przypomnę: " + hit.programme.title + " · " + forgeTvTime(hit.programme.startEpochMs))
                                                         }
                                                         hit.programme.stopEpochMs > now -> { onPlay(hit.channel, null); onClose() }

@@ -9,6 +9,7 @@ import com.nuvio.tv.domain.model.ReleaseQuality
 import com.nuvio.tv.domain.model.ReleaseResolution
 import com.nuvio.tv.domain.model.ReleaseVisualTag
 import com.nuvio.tv.domain.model.Stream
+import com.nuvio.tv.domain.model.streamData // fork: pole KE jako rozszerzenie (KeStreamShims)
 import com.nuvio.tv.domain.model.StreamClientResolveParsed
 import java.util.concurrent.ConcurrentHashMap
 

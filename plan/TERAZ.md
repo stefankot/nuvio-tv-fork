@@ -11,6 +11,8 @@ Gdy właściciel napisze „kontynuuj”:
 5. Gdy kontekst zbliża się do limitu (ok. 95%): przerwij, zapisz tu dokładnie, w którym miejscu punktu jesteś, commit.
 
 ## Wymaga zgody właściciela
+- (18.11) Przenoszenie czegokolwiek z innych forków (zwł. kitty/Codex): tylko po potwierdzeniu. Porównania = sama lista.
+- (18.11) W1 (test/limit łącza KE, ~4000 linii) nie rozpoczęty: wymaga potwierdzenia zakresu.
 - **Kompilacja** (Gradle) i emulator: właściciel 18.11 kazał NIE kompilować do odwołania; automatyczna ochrona też to blokowała. Zapytaj, zanim zbudujesz. Nie sprawdzaj funkcji przez build, jeśli da się w kodzie.
 - Push do GitHuba.
 

@@ -1071,8 +1071,8 @@ private fun SettingsDetailPane(
         SettingsCategory.YOUTUBE -> YouTubeSettingsContent( // forge hook: 1Tube
             initialFocusRequester = if (allowDetailAutofocus) contentFocusRequesters[SettingsCategory.YOUTUBE] else null
         )
-        SettingsCategory.NIGHT_MODE -> ForgeNightSettingsContent(initialFocusRequester = if (allowDetailAutofocus) contentFocusRequesters[SettingsCategory.NIGHT_MODE] else null) // forge hook: v7.4
-        SettingsCategory.FORGE -> ForgeSettingsContent(initialFocusRequester = if (allowDetailAutofocus) contentFocusRequesters[SettingsCategory.FORGE] else null) // forge hook
+        SettingsCategory.NIGHT_MODE -> com.nuvio.tv.skin.kicia.settings.ForgeNightSettingsContent(initialFocusRequester = if (allowDetailAutofocus) contentFocusRequesters[SettingsCategory.NIGHT_MODE] else null) // forge hook: v7.4
+        SettingsCategory.FORGE -> com.nuvio.tv.skin.kicia.settings.ForgeSettingsContent(initialFocusRequester = if (allowDetailAutofocus) contentFocusRequesters[SettingsCategory.FORGE] else null) // forge hook
         SettingsCategory.TRACKING -> TrackingSettingsContent(
             initialFocusRequester = if (allowDetailAutofocus) {
                 contentFocusRequesters[SettingsCategory.TRACKING]

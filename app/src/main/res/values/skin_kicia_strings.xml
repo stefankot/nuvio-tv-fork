@@ -16,4 +16,9 @@
     <string name="forge_ready_choices">sources to choose from: %1$d</string>
     <string name="forge_ready_found">Source found</string>
     <string name="forge_settings_youtube" translatable="false">YouTube</string>
+    <string name="forge_ready_audio_lektor">voice-over %s</string>
+    <string name="forge_ready_audio_dubbing">dubbed %s</string>
+    <string name="forge_ready_audio_language">%s</string>
+    <string name="forge_ready_audio_subtitles">subtitles %s</string>
+    <string name="forge_ready_audio_ai_subtitles">AI subtitles</string>
 </resources>

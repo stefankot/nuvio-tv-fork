@@ -124,8 +124,8 @@ private fun ForgeProgramCard(
     LaunchedEffect(programme.title) { metaVm.load(programme.title, extra?.year) }
     val tmdb by metaVm.meta.collectAsState()
     val favorite = channel.streamUrl in liveTv.favoriteUrls
-    LaunchedEffect(Unit) { com.nuvio.tv.fork.tv.ForgeReminders.load(ctx.applicationContext) }
-    val reminders by com.nuvio.tv.fork.tv.ForgeReminders.list.collectAsState()
+    LaunchedEffect(Unit) { com.nuvio.tv.fork.tv.Reminders.load(ctx.applicationContext) }
+    val reminders by com.nuvio.tv.fork.tv.Reminders.list.collectAsState()
     val reminded = reminders.any { it.channelUrl == channel.streamUrl && it.startMs == programme.startEpochMs }
 
     // One row in time order: past airings, the one in the background, future ones (spec 08). Without other airings: "Emisje" = what follows.
@@ -197,7 +197,7 @@ private fun ForgeProgramCard(
                         val day = forgeShortDay(programme.startEpochMs) + " " + forgeTvTime(programme.startEpochMs)
                         ForgeButton(text = "Nowy odcinek: $day" + if (reminded) " · przypomnę" else "", icon = Icons.Filled.Notifications, primary = true, focusRequester = main, modifier = mainMod,
                             onOk = {
-                                com.nuvio.tv.fork.tv.ForgeReminders.toggle(ctx.applicationContext, com.nuvio.tv.fork.tv.ForgeReminder(channel.streamUrl, programme.startEpochMs, programme.title, channel.name))
+                                com.nuvio.tv.fork.tv.Reminders.toggle(ctx.applicationContext, com.nuvio.tv.fork.tv.Reminder(channel.streamUrl, programme.startEpochMs, programme.title, channel.name))
                                 forge08Toast(ctx, if (reminded) "Przypomnienie usunięte" else "Przypomnę o nowym odcinku")
                             })
                     }
@@ -415,11 +415,11 @@ private fun ForgeProgramDetailV6(
                 if (programme.startEpochMs > now) {
                     // A programme still to come (S08 state "Przyszły"): the main button reminds.
                     val ctx = androidx.compose.ui.platform.LocalContext.current
-                    LaunchedEffect(Unit) { com.nuvio.tv.fork.tv.ForgeReminders.load(ctx.applicationContext) }
-                    val reminders by com.nuvio.tv.fork.tv.ForgeReminders.list.collectAsState()
+                    LaunchedEffect(Unit) { com.nuvio.tv.fork.tv.Reminders.load(ctx.applicationContext) }
+                    val reminders by com.nuvio.tv.fork.tv.Reminders.list.collectAsState()
                     val on = reminders.any { it.channelUrl == channel.streamUrl && it.startMs == programme.startEpochMs }
                     ForgeButton(text = if (on) "Przypomnę" else "Przypomnij mi", icon = androidx.compose.material.icons.Icons.Filled.Notifications, primary = true, focusRequester = first,
-                        onOk = { com.nuvio.tv.fork.tv.ForgeReminders.toggle(ctx.applicationContext, com.nuvio.tv.fork.tv.ForgeReminder(channel.streamUrl, programme.startEpochMs, programme.title, channel.name)) })
+                        onOk = { com.nuvio.tv.fork.tv.Reminders.toggle(ctx.applicationContext, com.nuvio.tv.fork.tv.Reminder(channel.streamUrl, programme.startEpochMs, programme.title, channel.name)) })
                     ForgeButton(text = "Oglądaj kanał", icon = Icons.Filled.PlayArrow, onOk = onWatchLive)
                 } else
                 ForgeButton(text = if (live) "Oglądaj na żywo" else "Oglądaj kanał", icon = Icons.Filled.PlayArrow, primary = true, focusRequester = first, onOk = onWatchLive)
@@ -434,7 +434,7 @@ private fun ForgeProgramDetailV6(
             // Cast: TMDB with photos when it matched, otherwise the guide's own credits (text as written, no photo).
             val guideCredits = extra?.credits.orEmpty().filter { it.first == "actor" || it.first == "director" || it.first == "presenter" }.map { (role, text) ->
                 val dash = text.lastIndexOf(" - ")
-                com.nuvio.tv.fork.tv.TvStorePerson(null, if (dash > 0) text.substring(dash + 3) else text, if (dash > 0) text.substring(0, dash) else role, null)
+                com.nuvio.tv.fork.tv.TvPerson(null, if (dash > 0) text.substring(dash + 3) else text, if (dash > 0) text.substring(0, dash) else role, null)
             }
             (tmdb?.let { (it.directors + it.cast) }?.takeIf { it.isNotEmpty() } ?: guideCredits).takeIf { it.isNotEmpty() && !compact }?.let { people ->
                 Spacer(Modifier.height(24.dp))
@@ -498,7 +498,7 @@ internal fun forgeDayLabel(ms: Long, nowMs: Long, zone: java.time.ZoneId = java.
 
 /** A cast member: TMDB photo when there is one, initials otherwise; the role under the name. */
 @Composable
-internal fun ForgePersonChip(p: com.nuvio.tv.fork.tv.TvStorePerson) {
+internal fun ForgePersonChip(p: com.nuvio.tv.fork.tv.TvPerson) {
     // v6 S20: OK on a person (TMDB id known) opens Nuvio's person screen (photo, biography, filmography).
     com.nuvio.tv.skin.kicia.components.ForgeFocusBox(
         radius = 12.dp,

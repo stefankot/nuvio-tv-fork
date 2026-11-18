@@ -198,7 +198,7 @@ internal object ForgeMiniGuideNav {
                 ForgeMiniSlot.RESTART -> state.startOverProgramme(channel)?.let { state.hideInfo(); state.playCatchup(channel, it) }
                 ForgeMiniSlot.LIVE -> { paused = false; state.switchTo(channel, force = true) } // makieta 7.7 E19: jump to live
                 ForgeMiniSlot.REMIND -> if (shown != null) appContext?.let {
-                    com.nuvio.tv.fork.tv.ForgeReminders.toggle(it, com.nuvio.tv.fork.tv.ForgeReminder(channel.streamUrl, shown.startEpochMs, shown.title, channel.name))
+                    com.nuvio.tv.fork.tv.Reminders.toggle(it, com.nuvio.tv.fork.tv.Reminder(channel.streamUrl, shown.startEpochMs, shown.title, channel.name))
                 }
                 ForgeMiniSlot.BAR -> state.openScrub(channel, 0, keepInfo = true)
                 ForgeMiniSlot.FAV -> LiveTvRepository.toggleFavorite(channel)
@@ -262,8 +262,8 @@ fun ForgeMiniGuideCard(
     nav.onGuide = { dispatcher?.onBackPressed() }
     val context = androidx.compose.ui.platform.LocalContext.current
     nav.appContext = context.applicationContext
-    LaunchedEffect(Unit) { com.nuvio.tv.fork.tv.ForgeReminders.load(context.applicationContext) }
-    val reminders by com.nuvio.tv.fork.tv.ForgeReminders.list.collectAsState()
+    LaunchedEffect(Unit) { com.nuvio.tv.fork.tv.Reminders.load(context.applicationContext) }
+    val reminders by com.nuvio.tv.fork.tv.Reminders.list.collectAsState()
     val live by LiveTvRepository.uiState.collectAsState()
     val favorite = channel.streamUrl in live.favoriteUrls
     val upcoming = forgeUpcoming(LiveTvRepository.schedule(channel.guideKey), now, clockMs)
@@ -487,7 +487,7 @@ internal fun ForgeMiniGuideDetailHost(state: LiveTvPlayerState) {
                         airing.stopEpochMs <= at && channel.catchup != null -> { close(); state.hideInfo(); state.playCatchup(channel, airing) }
                         airing.stopEpochMs <= at -> android.widget.Toast.makeText(ctx, "Ten kanał nie ma archiwum — nagrania nie da się odtworzyć", android.widget.Toast.LENGTH_SHORT).show()
                         else -> {
-                            com.nuvio.tv.fork.tv.ForgeReminders.toggle(ctx.applicationContext, com.nuvio.tv.fork.tv.ForgeReminder(channel.streamUrl, airing.startEpochMs, airing.title, channel.name))
+                            com.nuvio.tv.fork.tv.Reminders.toggle(ctx.applicationContext, com.nuvio.tv.fork.tv.Reminder(channel.streamUrl, airing.startEpochMs, airing.title, channel.name))
                             android.widget.Toast.makeText(ctx, "Przypomnę o: " + airing.title, android.widget.Toast.LENGTH_SHORT).show()
                         }
                     }
@@ -512,7 +512,7 @@ internal fun forgeTvProgress(startMs: Long, stopMs: Long, nowMs: Long): Float =
     if (stopMs <= startMs) 0f else ((nowMs - startMs).toFloat() / (stopMs - startMs)).coerceIn(0f, 1f)
 
 /** The reminder to announce now: one starting within a minute either side, not announced yet. */
-internal fun forgeDueReminder(list: List<com.nuvio.tv.fork.tv.ForgeReminder>, announced: Set<String>, nowMs: Long): com.nuvio.tv.fork.tv.ForgeReminder? =
+internal fun forgeDueReminder(list: List<com.nuvio.tv.fork.tv.Reminder>, announced: Set<String>, nowMs: Long): com.nuvio.tv.fork.tv.Reminder? =
     list.firstOrNull { it.key !in announced && it.startMs in (nowMs - 60_000)..(nowMs + 60_000) }
 
 /**
@@ -523,9 +523,9 @@ internal fun forgeDueReminder(list: List<com.nuvio.tv.fork.tv.ForgeReminder>, an
 internal fun ForgeReminderToast() {
     if (!com.nuvio.tv.skin.kicia.rememberForgeReminderCard()) return
     val context = androidx.compose.ui.platform.LocalContext.current
-    LaunchedEffect(Unit) { com.nuvio.tv.fork.tv.ForgeReminders.load(context.applicationContext) }
-    val reminders by com.nuvio.tv.fork.tv.ForgeReminders.list.collectAsState()
-    var shown by androidx.compose.runtime.remember { mutableStateOf<com.nuvio.tv.fork.tv.ForgeReminder?>(null) }
+    LaunchedEffect(Unit) { com.nuvio.tv.fork.tv.Reminders.load(context.applicationContext) }
+    val reminders by com.nuvio.tv.fork.tv.Reminders.list.collectAsState()
+    var shown by androidx.compose.runtime.remember { mutableStateOf<com.nuvio.tv.fork.tv.Reminder?>(null) }
     LaunchedEffect(reminders) {
         while (true) {
             val due = forgeDueReminder(reminders, ForgeReminderLog.announced, System.currentTimeMillis())

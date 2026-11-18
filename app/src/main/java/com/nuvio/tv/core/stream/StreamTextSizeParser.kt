@@ -1,6 +1,7 @@
 package com.nuvio.tv.core.stream
 
 import com.nuvio.tv.domain.model.Stream
+import com.nuvio.tv.domain.model.streamData // fork: pole KE jako rozszerzenie (KeStreamShims)
 import java.util.Locale
 
 /**

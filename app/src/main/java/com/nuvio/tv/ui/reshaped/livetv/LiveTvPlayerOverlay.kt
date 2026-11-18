@@ -641,8 +641,6 @@ internal class LiveTvPlayerState(
         return (window.startMs + controller.playbackTimeline.value.currentPosition.coerceAtLeast(0L)).coerceAtMost(now)
     }
 
-    /** forge: where the picture is in the channel's time, for the MiniGuide's bar of a replay. */
-    internal fun playheadEpochMs(): Long = playheadMs(LiveTvClock.nowEpochMs())
 
     /** The earliest time [channel]'s provider keeps, with a minute to spare. */
     private fun earliestMs(channel: LiveTvChannel, now: Long): Long =
@@ -863,8 +861,6 @@ internal class LiveTvPlayerState(
     internal fun playheadEpochMs(): Long = playheadMs(LiveTvClock.nowEpochMs())
 
     /** Fork patch: dostawca #10 */
-    internal val replayingProgramme: LiveTvProgramme? get() = replayTitleProgramme?.takeIf { isCatchup() }
-    /** forge: the past programme now replaying, for the MiniGuide's "Z archiwum"; null when live. */
     internal val replayingProgramme: LiveTvProgramme? get() = replayTitleProgramme?.takeIf { isCatchup() }
     /** The replay whose end has been acted on, so it is acted on once. */
     private var continuedWindow: LiveTvReplayWindow? = null
