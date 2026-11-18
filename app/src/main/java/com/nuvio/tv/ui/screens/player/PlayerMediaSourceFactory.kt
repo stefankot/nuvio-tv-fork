@@ -351,7 +351,21 @@ internal class PlayerMediaSourceFactory(private val context: Context) {
         }
 
         val mediaSource = when {
-            isHls && !forceDefaultFactory -> HlsMediaSource.Factory(httpDataSourceFactory)
+            // forge fix 13.11 (JMGO: half the channels still hung on „Buffering…” after 54d62f7): the player always passes its
+            // own extractors (the DV hook), so forceDefaultFactory was always true and this branch never ran. Those extractors
+            // never reach HLS anyway (DefaultMediaSourceFactory builds HLS with its stock reader), so HLS always comes here.
+            isHls -> HlsMediaSource.Factory(httpDataSourceFactory)
+                // forge hook v7.4 (test 13.11: TVP 1 HD sends no IDR frame at all, only recovery-point I-frames; Media3's
+                // HLS reader adds only FLAG_IGNORE_SPLICE_INFO_STREAM, so it waited for an IDR forever): every HLS stream starts on
+                // any I-frame, as TeamPlay and TiviMate do (build 5 limited it to registered Live TV and a channel opened from the
+                // „Na żywo” card was not registered, so it still hung)
+                .setExtractorFactory(
+                    androidx.media3.exoplayer.hls.DefaultHlsExtractorFactory(
+                        androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES, true,
+                    ).also { android.util.Log.i("ForgeLiveStart", "hls extractor: non-IDR keyframes allowed") }
+                )
+                // after the extractor factory, which it is handed to (it was set on DefaultMediaSourceFactory before)
+                .apply { customSubtitleParserFactory?.let { setSubtitleParserFactory(it) } }
                 .setAllowChunklessPreparation(true)
                 .setLoadErrorHandlingPolicy(loadErrorHandlingPolicy)
                 .createMediaSource(mediaItem)

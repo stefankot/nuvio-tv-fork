@@ -1,0 +1,34 @@
+diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPreview.kt b/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPreview.kt
+index cc45cd764..fae4ebaa7 100644
+--- a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPreview.kt
++++ b/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPreview.kt
+@@ -185,7 +185,28 @@ internal class LiveTvPreviewPlayer(private val context: Context) {
+             .apply { if (hls) setMimeType(MimeTypes.APPLICATION_M3U8) }
+             .build()
+         runCatching {
+-            exo.setMediaSource(DefaultMediaSourceFactory(dataSource).createMediaSource(item))
++            // Like the full player (forge hook v7.4): many channels (TVP 1/2 HD, Teletoon+ HD, JMGO test 13.11) send no IDR
++            // frame, only recovery-point I-frames; with Media3's default readers the preview waited for an IDR forever.
++            exo.setMediaSource(
++                DefaultMediaSourceFactory(
++                    dataSource,
++                    androidx.media3.extractor.DefaultExtractorsFactory()
++                        .setTsExtractorFlags(androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES),
++                ).let { factory ->
++                    if (hls) {
++                        androidx.media3.exoplayer.hls.HlsMediaSource.Factory(dataSource)
++                            .setExtractorFactory(
++                                androidx.media3.exoplayer.hls.DefaultHlsExtractorFactory(
++                                    androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES, true,
++                                ),
++                            )
++                            .setAllowChunklessPreparation(true)
++                            .createMediaSource(item)
++                    } else {
++                        factory.createMediaSource(item)
++                    }
++                },
++            )
+             exo.prepare()
+             exo.playWhenReady = true
+         }
