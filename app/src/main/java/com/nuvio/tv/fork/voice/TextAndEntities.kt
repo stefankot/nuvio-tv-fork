@@ -4,12 +4,14 @@ import java.text.Normalizer
 
 object Text {
     private val COMBINING = Regex("\\p{InCombiningDiacriticalMarks}+")
+    private val NON_WORD = Regex("[^a-z0-9: ]+")
+    private val SPACES = Regex("\\s+")
 
     /** Małe litery, bez znaków diakrytycznych i interpunkcji (zostają cyfry i dwukropek w godzinach), pojedyncze spacje. */
     fun norm(raw: String): String {
         val lower = raw.lowercase().replace('ł', 'l').replace('ø', 'o')
         val plain = COMBINING.replace(Normalizer.normalize(lower, Normalizer.Form.NFD), "")
-        return plain.replace(Regex("[^a-z0-9: ]+"), " ").replace(Regex("\\s+"), " ").trim()
+        return plain.replace(NON_WORD, " ").replace(SPACES, " ").trim()
     }
 
     private val numberWords = mapOf(
