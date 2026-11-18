@@ -9,11 +9,11 @@ Porównanie gałęzi z bazowym `main` za pomocą GitHub Compare:
 | Klasa | Pliki | Dodane wiersze | Usunięte |
 |---|---:|---:|---:|
 | Pliki upstream zmienione | 1 | 5 | 0 |
-| Pliki forka zmienione | 1 | 4 | 0 |
-| Nowe pliki modułu i workflow | 14 | 1528 | 0 |
-| **Łącznie** | **16** | **1537** | **0** |
+| Pliki forka zmienione | 1 | 8 | 0 |
+| Nowe pliki modułu i workflow | 21 | 2429 | 0 |
+| **Łącznie** | **23** | **2442** | **0** |
 
-Jedyna zmiana istniejącego pliku z odtwarzaczem: `app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt` — wywołanie `NarratorOverlay` (5 wierszy). Własny `app/reshaped.gradle` otrzymał dwa wpisy źródeł (4 wiersze z komentarzem). **Bez zmian** w `app/build.gradle.kts`, `PlayerRuntimeController*`, mpv, ExoPlayer i obecnej synchronizacji.
+Jedyna zmiana istniejącego pliku z odtwarzaczem: `app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt` — wywołanie `NarratorOverlay` (5 wierszy). Własny `app/reshaped.gradle` otrzymał deklaracje źródeł oraz opcjonalnego katalogu JNI (8 dodanych wierszy). **Bez zmian** w `app/build.gradle.kts`, `PlayerRuntimeController*`, mpv, ExoPlayer i obecnej synchronizacji.
 
 ## 2. Integration boundary report
 
@@ -27,7 +27,7 @@ Jedyna zmiana istniejącego pliku z odtwarzaczem: `app/src/main/java/com/nuvio/t
 
 **Wykonano:** odczyt i porównanie struktury GitHub, weryfikację obecności 9 wymaganych kontraktów w 6 plikach integracyjnych — **9/9 zgodnych**. Potwierdzono także schemat `speechMetadata` i `prebuiltVoiceConfig.voiceName` w kodzie klienta.
 
-**Aktualizacja 18.11.2026:** backend ZONOS3-Mini dodano w katalogu `ai-narrator` bez dalszej ingerencji w upstream. Zawiera serwerowe `POST /v2/generate`, lokalne hasło dostępu, wybór silnika i testy kontraktowe. Szczegóły: [ZONOS3_LOCAL.md](ZONOS3_LOCAL.md). Stan: **nieprzetestowany na urządzeniu**.
+**Aktualizacja 18.11.2026:** backend ZONOS3-Mini dodano w katalogu `ai-narrator` bez dalszej ingerencji w upstream. Początkowo używał LAN; tryb LAN został zastąpiony przygotowaniem WAV bezpośrednio na Android TV. Obejmuje pobieranie modelu na żądanie, zarządzanie RAM i trwałe audio. Brak skompilowanego silnika natywnego ARM64: BLOCKED. Szczegóły: [ZONOS3_LOCAL.md](ZONOS3_LOCAL.md). Stan: **nieprzetestowany na urządzeniu**.
 
 **GitHub Actions:** przebieg [AI narrator compatibility #44382299088](https://github.com/stefankot/nuvio-tv-fork/actions/runs/44382299088) zakończył się `failure` w obu próbach; GitHub nie zwrócił kroków ani logów zadania. Przyczyna nieznana, **brak potwierdzonej kompilacji lub testów**. Nie jest to wynik pozytywny.
 
@@ -67,4 +67,12 @@ Referencje API: https://docs.cloud.google.com/gemini-enterprise-agent-platform/m
 [AI narrator compatibility #44386680927](https://github.com/stefankot/nuvio-tv-fork/actions/runs/44386680927): `failure` bez zwróconych kroków/logów. Nie może być traktowany jako wynik kompilacji ani testu poprawności kodu.
 
 ### Dodatkowa granica integracyjna
-`LocalZonosTts.kt` komunikuje się wyłącznie z lokalnym serwerem HTTP. Nie wymaga modyfikacji `PlayerRuntimeController` ani silników wideo. Wybór dostawcy i cache są odizolowane wewnątrz modułu.
+`ZonosNativeServer.kt` uruchamia serwer natywny wyłącznie na 127.0.0.1 danego Android TV; `LocalZonosTts.kt` jest transportem do tego procesu, nie do komputera LAN. Nie wymaga modyfikacji `PlayerRuntimeController` ani silników wideo. Wybór dostawcy i cache są odizolowane wewnątrz modułu.
+
+### Aktualizacja: urządzenia 2/3/4 GB i pre-rendering
+
+Dodano pobieranie modeli GGUF (~1,12 GB) po kliknięciu, SHA-256, wznowienie, kontrolę miejsca, planowanie pierwszej lub drugiej połowy filmu, pasek postępu, zatrzymanie sesji po 15 minutach oraz trwały cache WAV do 2 GiB. Synteza ZONOS3 podczas filmu została wyłączona. Dla Xiaomi TV Box S 3rd Gen (2 GB), Onn 4K Pro (3 GB) i projektora (4 GB) wprowadzono konserwatywne progi wolnej RAM (1250/1500/1750 MiB przy starcie). **Nie przetestowano ich na żadnym urządzeniu.**
+
+**Blokery odbioru:** brak skompilowanego i uruchomionego na Androidzie natywnego silnika ZONOS3 ARM64; brak potwierdzenia, że zwykłe napisy SRT/VTT są dostępne jako kompletna lista czasowa; brak benchmarku, czy połowa filmu powstaje w 15 minut; brak udanej kompilacji Gradle. Dodany eksperymentalny skrypt NDK nie jest dowodem działania. Wynik GitHub Actions nadal failure bez szczegółowych kroków: https://github.com/stefankot/nuvio-tv-fork/actions/runs/44395987767 .
+
+Przygotowanie dotyczy syntezy polskich napisów, **nie ich tłumaczenia z innych języków**. Pliki zostają lokalnie po zamknięciu aplikacji, ale zachowanie w praktyce nie zostało zweryfikowane na Android TV.
