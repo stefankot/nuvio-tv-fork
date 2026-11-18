@@ -158,6 +158,8 @@ fun ForgePlayerControls(
                     onLongOk = { ForgeControlsReturn.index = 2; onShowSourcesPanel(); onResetHideTimer() },
                     onOk = { ForgeControlsReturn.index = 2; viewModel.onEvent(com.nuvio.tv.ui.screens.player.PlayerEvent.OnShowQualityOverlay); onResetHideTimer() })
                 com.nuvio.tv.skin.kicia.components.ForgeButton(text = "Szybkość", icon = Icons.Outlined.Speed, small = true, focusRequester = rowFocus[3], onOk = { ForgeControlsReturn.index = 3; onShowSpeedDialog(); onResetHideTimer() })
+                // Fork (test JMGO 18.11): przycisk otwierający okno „Więcej” (Spróbuj innego źródła, Napisy nie pasują, Lektor).
+                com.nuvio.tv.skin.kicia.components.ForgeButton(text = "Więcej", icon = Icons.Outlined.MoreHoriz, small = true, onOk = { moreOpen = true; onResetHideTimer() })
             }
         }
         ForgeSideSheet(visible = moreOpen, onDismiss = { moreOpen = false }, title = "Więcej") {
