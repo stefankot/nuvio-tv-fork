@@ -1,3 +1,9 @@
+## 18.11.2026 wieczór (koniec wątku 3)
+- Gałąź `hybryda-zrodel` na GitHub (`origin`), ostatni build arm32 na JMGO (P1 „Więcej” + P8 lektor bez awarii + czerwona ikona).
+- Rodzina: serwer `nuviosync.caring.design` (Zenbox) działa; właściciel na JMGO wysyła ustawienia; strona członka nieprzetestowana.
+- Lektor: na JMGO niemy (brak TTS). Następny test na Xiaomi (ma polski TTS); Piper odrzucony; do sprawdzenia API Google/Microsoft/OpenAI. Szczegóły i kolejka: `plan/TERAZ.md`.
+- Build: ok. 6 min niezależnie od rozmiaru zmiany (bez lint 5:56 vs 6:41).
+
 ## 18.11.2026 test emulatora (AVD nuvio_tv, Android TV 14 arm64, APK b5da5916 = skrót zgodny)
 - Start bez awarii (bufor crash pusty), 159 MB PSS. Logowanie: „Continue without account” → kreator 3 kroków → ekran główny Kicii.
 - Menu: Szukaj, Home, Live TV, YouTube, Biblioteka, Kalendarz, Narzędzia (YouTube w menu i kolejność Kicii działają). Ustawienia podstawowe: pytanie „po polsku / jakość” widoczne. Narzędzia: hub z 6 pozycjami.

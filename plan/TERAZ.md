@@ -1,10 +1,10 @@
 # TERAZ — stan pracy i instrukcja „kontynuuj” (aktualizuj po każdym kroku)
 
-Ostatnia aktualizacja: 18.11.2026 ok. 22:20 (wątek 3, koniec przy ~95% kontekstu).
+Ostatnia aktualizacja: 18.11.2026 ok. 22:45 (koniec wątku 3).
 
 ## NAJPIERW (wątek 4): co robić po „kontynuuj”
 1. `cd "/Users/milajovovich/Desktop/nuvio 2/NuvioFork" && git status --short && git branch --show-current` (gałąź `hybryda-zrodel`, wypchnięta na GitHub `origin`).
-2. Zrób **paczkę poprawek P1–P6** (niżej) naraz, BEZ kompilowania pojedynczych poprawek. Potem JEDEN build w zakładce terminala (zasady w `../CLAUDE.md`: `-PforkAbi=armeabi-v7a` dla JMGO, `--console=rich | tee /tmp/buildN.log`, w trakcie builda pisz dalej kod; nie zabijaj ciepłego demona Gradle między buildami; spróbuj `-x lintVitalAnalyzeFullDebug -x lintVitalReportFullDebug -x lintVitalFullDebug`, zmierz czas).
+2. Przeczytaj sekcję „Lektor / synteza mowy” (decyzje właściciela). Zrób **paczkę poprawek** (niżej; P1 i P8 już zrobione i przetestowane, P4 ikona w buildzie) naraz, BEZ kompilowania pojedynczych poprawek. Potem JEDEN build w zakładce terminala (zasady w `../CLAUDE.md`: `-PforkAbi=armeabi-v7a` dla JMGO, `--console=rich | tee /tmp/buildN.log`, w trakcie builda pisz dalej kod; nie zabijaj ciepłego demona Gradle między buildami; spróbuj `-x lintVitalAnalyzeFullDebug -x lintVitalReportFullDebug -x lintVitalFullDebug`, zmierz czas).
 3. Zainstaluj na JMGO (`adb connect 192.168.31.252:5555`, H931, Android 11, tylko armeabi-v7a; aplikacja „Nuvio Debug” `com.nuviodebug.com`, właściciel zalogowany: profil „Stef+Patryk”, 321 kanałów IPTV, YouTube zalogowany). Testy TEKSTOWO: `fork-tools/test/{ui.sh,tap.sh,go.sh,focus.sh}` (`export ANDROID_SERIAL=192.168.31.252:5555`). `go.sh "tekst" DOWN|UP|LEFT|RIGHT` naciska OK dopiero, gdy fokus jest na celu — NIGDY OK na ślepo (18.11 OK na ślepo zmieniło ustawienie startu; przywrócone na „ekran główny”). Dotyk działa tylko na górnym pasku; przyciski tv-material wybiera się pilotem.
 4. Okno testów na JMGO od właściciela: 2 h od 22:04 18.11; potem testy na emulatorze na Macu (AVD `nuvio_tv`, `-PforkAbi=arm64-v8a`).
 5. Test rodziny, strona członka: na emulatorze (świeża instalacja) ekran startowy → „Mam kod od rodziny” → kod z JMGO (Ustawienia → Rodzina → „Dodaj telewizor rodziny”, ważny 10 min). Sprawdź: pobrane dodatki, IPTV, konto, profil po restarcie.
@@ -14,6 +14,12 @@ Ostatnia aktualizacja: 18.11.2026 ok. 22:20 (wątek 3, koniec przy ~95% kontekst
 - Polecenia do sprawdzenia: „pauza”, „przewiń o minutę”, „włącz TVN” (kanał z IPTV), „inne źródło” (`TryAnotherSource`), „napisy nie pasują”, „lektor”, „tryb nocny”, „szukaj Fight Club”.
 - Gdy trzeba, żeby właściciel powiedział coś do pilota: najpierw ZAGRAJ 3× GŁOŚNY DŹWIĘK (`for i in 1 2 3; do afplay -v 10 /System/Library/Sounds/Sosumi.aiff; done`), potem napisz dokładnie, co ma powiedzieć, i czekaj na potwierdzenie. Wynik czytaj z logów (`adb logcat | grep -iE "Voice|Whisper|Assist"`) i z uiautomator.
 - Sprawdź model mowy (Whisper offline vs systemowe rozpoznawanie) i czas od końca mowy do akcji.
+
+## Lektor / synteza mowy — decyzja właściciela 18.11 (NADRZĘDNE dla P3, P9)
+1. NAJPIERW test na **Xiaomi TV Box 3rd gen** (MiTV-AFMU0, Android 14, tylko armeabi-v7a, ADB `192.168.31.183:35313`; przy „No route to host” `adb kill-server` i ponownie): ma polski TTS systemowy (JMGO NIE ma). Build `-PforkAbi=armeabi-v7a`. Ustawienie „Po polsku przy dobrej jakości”, film z angielskim dźwiękiem i polskimi napisami (np. Fight Club, `detail/tt0137523/movie?playOnLoad=true` przez intent `com.nuvio.fork.OPEN`), lektor auto albo „Więcej” → „Lektor”. Zagraj 3× dźwięk i zapytaj właściciela o jakość.
+2. Jeśli jakość na Xiaomi kiepska: właściciel MUSI NAJPIERW USŁYSZEĆ PRÓBKI, zanim cokolwiek wdrożymy. Przygotuj krótkie próbki (to samo zdanie z napisów) jako pliki audio na Macu i wyślij właścicielowi. Piper („gosia”, „darkman”, „mc_speech” i cała rodzina) ODRZUCONE przez właściciela: brzmią jak robot — nie proponować.
+3. Kandydaci do sprawdzenia (ceny, darmowe limity miesięczne, warunki użycia, polskie głosy, opóźnienie, czy wolno używać w aplikacji prywatnej na TV): Google Cloud Text-to-Speech (głosy Neural2/WaveNet/Chirp pl-PL), Microsoft Azure Speech (pl-PL neural, np. Agnieszka/Marek/Zofia), OpenAI TTS (gpt-4o-mini-tts / tts-1: czy zasady pozwalają na takie użycie, czy polski brzmi naturalnie), ewentualnie inne (ElevenLabs itp.). Wynik: krótki raport `plan/raporty/tts-porownanie.md` dla nietechnicznego właściciela + próbki. Klucze API wpisuje właściciel (nigdy nie wpisuj ich sam).
+4. Niezależnie od wyboru (P3): gdy na urządzeniu nie ma działającego głosu lektora, nie włączaj lektora auto (dziś na JMGO włącza się niemy), pokaż komunikat, co zrobić, a ranking źródeł ma wtedy preferować polski dźwięk.
 
 ## Paczka poprawek (z testu JMGO 18.11)
 - P1. Odtwarzacz skórki Kicia (`skin/kicia/player/ForgePlayerControls.kt`): brak przycisku „Więcej” → okno z „Spróbuj innego źródła”, „Napisy nie pasują”, „Lektor” nieosiągalne (`moreOpen` nigdy true). Dodaj przycisk „Więcej” w rzędzie po „Szybkość”.

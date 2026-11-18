@@ -1,5 +1,7 @@
 # Kontynuacja: fork Nuvio Android TV
 
+**Stan na koniec wątku 3 (18.11 ok. 22:45):** gałąź `hybryda-zrodel` (GitHub), kolejka i decyzje o lektorze/TTS w `NuvioFork/plan/TERAZ.md` sekcja „NAJPIERW (wątek 4)”.
+
 **NAJPIERW (18.11.2026, nadrzędne wobec wszystkiego niżej):** gdy użytkownik napisze „kontynuuj”, otwórz `NuvioFork/plan/TERAZ.md` i wykonuj jego instrukcję i kolejkę. Starsze sekcje tego pliku i `NuvioFork/CLAUDE.md` / `plan/KONTYNUUJ.md` są historyczne.
 
 **ZASADA STAŁA (18.11): przy ok. 95% kontekstu** przerwij pracę, zapisz wszystko w repozytorium (`NuvioFork/plan/TERAZ.md`: stan, wyniki testów, paczka poprawek, dokładne następne kroki; skrypty i notatki w `NuvioFork/`, nie w `/tmp`), commit + push (`origin`, bieżąca gałąź). Sekcja „NAJPIERW” w TERAZ.md ma być takim promptem, żeby samo „kontynuuj” w nowym wątku od razu uruchomiło pracę bez pytań.
