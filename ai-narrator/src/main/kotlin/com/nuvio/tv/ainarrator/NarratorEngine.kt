@@ -264,7 +264,7 @@ internal class NarratorEngine(context: Context) {
                     NarratorBackend.ZONOS_LOCAL -> "Błąd ZONOS3 — sprawdź serwer, głos i token"
                 }
             } finally {
-                pending.remove(key)
+                pending.remove(key, coroutineContext[Job])
             }
         }
         val existing = pending.putIfAbsent(key, job)
