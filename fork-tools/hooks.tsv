@@ -49,3 +49,5 @@ app/src/main/java/com/nuvio/tv/ui/screens/LayoutSelectionScreen.kt	// Fork hook:
 app/src/main/java/com/nuvio/tv/core/player/StreamAutoPlaySelector.kt	// Fork hook: ke-rank	StreamAutoPlayMode.FIRST_STREAM	sources	hybryda: ranking KE	StreamAutoPlayMode.FIRST_STREAM -> candidateStreams.firstOrNull { isPlayable(it) }
 app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt	KeRanking.begin(	private fun loadStreams	sources	hybryda: tytuł i preferowane źródło dla rankingu KE	
 app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt	KeRanking.rememberManualPick(	OnStreamSelected	sources	hybryda: preferowane źródło serialu (KE)	
+app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt	fallbackWhenPreferredSourcesEmpty(	A manual selection can complete	echo	Echo: fallback, gdy preferowane dodatki puste	
+app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt	import com.nuvio.tv.core.player.fallbackWhenPreferredSourcesEmpty	import	echo	import fallbacku Echo	

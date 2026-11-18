@@ -208,3 +208,24 @@ fun StreamAutoPlaySelector.raceCandidates(
         .let { if (mode == StreamAutoPlayMode.FIRST_STREAM) com.nuvio.tv.fork.sources.KeRanking.order(it) else it } // hybryda: ranking KE przed wyścigiem
     return modeMatches(scoped, mode, regexPattern, preferences)
 }
+
+/**
+ * Echo (UP/echo e952419, core/player/StreamAutoPlaySelector.kt 82-101), 1:1 jako rozszerzenie: auto-odtwarzanie jest
+ * włączone, ale każdy dodatek, do którego jest ograniczone, wrócił pusty (błąd, limit czasu, brak tytułu). Zamiast listy
+ * ręcznej graj pierwsze działające źródło z pozostałych dodatków, w ich kolejności (tu: po rankingu KE).
+ */
+fun StreamAutoPlaySelector.fallbackWhenPreferredSourcesEmpty(
+    streams: List<Stream>,
+    mode: StreamAutoPlayMode,
+    source: StreamAutoPlaySource,
+    installedAddonNames: Set<String>,
+    selectedAddons: Set<String>,
+    selectedPlugins: Set<String>
+): Stream? {
+    if (mode == StreamAutoPlayMode.MANUAL || streams.isEmpty()) return null
+    if (scopedCandidates(streams, source, installedAddonNames, selectedAddons, selectedPlugins).isNotEmpty()) {
+        return null
+    }
+    return com.nuvio.tv.fork.sources.KeRanking.order(streams).firstOrNull { isPlayable(it) && !it.isTorrent() }
+}
+

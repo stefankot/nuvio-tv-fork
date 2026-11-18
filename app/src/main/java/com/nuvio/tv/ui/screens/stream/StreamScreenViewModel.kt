@@ -1,5 +1,6 @@
 package com.nuvio.tv.ui.screens.stream
 
+import com.nuvio.tv.core.player.fallbackWhenPreferredSourcesEmpty
 import com.nuvio.tv.core.player.recovery.AutoSourceRecoveryPlan
 import com.nuvio.tv.core.player.recovery.AutoSourceRecoverySettings
 import com.nuvio.tv.core.player.recovery.AutoSourceRecoveryHandoff
@@ -480,10 +481,7 @@ class StreamScreenViewModel @Inject constructor(
                 }
             }
 
-            // forge hook M3b (check 13.11): in the automatic mode the remembered link would skip the ranking, the startup
-            // recovery and "Spróbuj innego źródła"; SmartLastFile (N8) already picks the same file there.
-            if (!autoPlayHandledForSession && playerSettings.streamReuseLastLinkEnabled &&
-                playerSettings.streamAutoPlayMode != StreamAutoPlayMode.SMART && !(com.nuvio.tv.BuildConfig.IS_DEBUG_BUILD && com.nuvio.tv.skin.kicia.nav.ForgeNavState.debugManualSources)) { // forge hook v7.4: pomiar 05 – lista źródeł
+            if (!autoPlayHandledForSession && playerSettings.streamReuseLastLinkEnabled) {
                 val cached = streamLinkCacheDataStore.getValid(
                     contentKey = streamCacheKey,
                     maxAgeMs = playerSettings.streamReuseLastLinkCacheHours * 60L * 60L * 1000L
@@ -688,10 +686,10 @@ class StreamScreenViewModel @Inject constructor(
                         selectedAddons = playerSettings.streamAutoPlaySelectedAddons,
                         selectedPlugins = playerSettings.streamAutoPlaySelectedPlugins,
                         preferredBingeGroup = persistedBingeGroup,
-                        preferBingeGroupInSelection = persistedBingeGroup != null,
-                        smartExpected = forgeSmartExpected(season, episode) // forge
+                        preferBingeGroupInSelection = persistedBingeGroup != null
                     )
                 }
+                if (shouldAutoSelect && selectedAutoPlayStream == null && com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(context, "echo_source_fallback")) selectedAutoPlayStream = StreamAutoPlaySelector.fallbackWhenPreferredSourcesEmpty(allStreams, playerSettings.streamAutoPlayMode, playerSettings.streamAutoPlaySource, installedAddonOrder.toSet(), playerSettings.streamAutoPlaySelectedAddons, playerSettings.streamAutoPlaySelectedPlugins) // Fork hook: echo (fallback, gdy preferowane dodatki puste)
                 // A manual selection can complete while matching is on the worker.
                 if (autoPlayHandledForSession || resolvedAutoPlayTarget) selectedAutoPlayStream = null
                 if (selectedAutoPlayStream != null) {
@@ -801,8 +799,7 @@ class StreamScreenViewModel @Inject constructor(
                         season = season,
                         episode = episode,
                         playerSettings = playerSettings,
-                        installedAddonNames = installedAddonOrder.toSet(),
-                        smartExpected = forgeSmartExpected(season, episode) // forge
+                        installedAddonNames = installedAddonOrder.toSet()
                     ) { original, prepared ->
                         updateUiStateIfChanged { state ->
                             val updatedGroups = directDebridStreamPreparer.replacePreparedStream(
@@ -1259,20 +1256,6 @@ class StreamScreenViewModel @Inject constructor(
         )
     }
 
-    /**
-     * forge fix 13.11: the title's facts for the automatic choice; when the details screen was skipped and its metadata
-     * has not arrived yet, the running time and year the screen was opened with (Home's hero knows them).
-     */
-    private fun forgeSmartExpected(season: Int?, episode: Int?): com.nuvio.tv.core.streams.smart.SmartExpected {
-        val facts = com.nuvio.tv.core.streams.smart.SmartTitleFacts
-        val e = facts.expected(contentId, season, episode)
-        val state = _uiState.value
-        return e.copy(
-            durationSec = e.durationSec ?: (state.runtime ?: runtime)?.takeIf { episode == null && it > 0 }?.times(60L),
-            year = e.year ?: facts.yearOf(state.year ?: year),
-        )
-    }
-
     private fun loadMissingMetaDetailsIfNeeded() {
         val requiresMetadataLookup = genres.isNullOrBlank() || year.isNullOrBlank() || runtime == null
         val metaId = contentId ?: videoId.substringBefore(":")
@@ -1286,10 +1269,6 @@ class StreamScreenViewModel @Inject constructor(
 
             val meta = result.data
             playbackMetaVideos = meta.videos
-            // forge fix 13.11: year and running time for the automatic choice when the details screen was skipped (Home „Odtwórz”)
-            if (com.nuvio.tv.core.streams.smart.SmartTitleFacts.get(contentId ?: metaId) == null) {
-                com.nuvio.tv.core.streams.smart.SmartTitleFacts.rememberMeta(listOf(contentId, metaId), meta)
-            }
             if (!requiresMetadataLookup) return@launch
             val metaGenres = meta.genres.takeIf { it.isNotEmpty() }
                 ?.joinToString(" • ") { localizedGenreLabel(context, it) }
@@ -1791,8 +1770,7 @@ class StreamScreenViewModel @Inject constructor(
             settings = settings,
             installedAddonNames = addonRepository.getInstalledAddons().first().enabledAddons().map { it.displayName }.toSet(),
             preferredBingeGroup = preferred, initialSource = initialSource,
-            profileId = playbackProfileId, videoId = videoId,
-            smartExpected = forgeSmartExpected(season, episode) // forge
+            profileId = playbackProfileId, videoId = videoId
         )
     }
 

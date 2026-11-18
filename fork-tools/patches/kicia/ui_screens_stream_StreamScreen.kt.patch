@@ -1,5 +1,5 @@
 diff --git a/app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreen.kt b/app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreen.kt
-index 358d00e0a..5116a3cf9 100644
+index 358d00e0a..cc053f5f6 100644
 --- a/app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreen.kt
 +++ b/app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreen.kt
 @@ -2,6 +2,7 @@
@@ -25,15 +25,7 @@ index 358d00e0a..5116a3cf9 100644
                      isLoading = uiState.isLoading,
                      resumeText = resumeText,
                      error = uiState.error,
-@@ -501,6 +503,7 @@ fun StreamScreen(
-                         if (currentIndex >= 0) {
-                             focusedStreamIndex = currentIndex
-                         }
-+                        com.nuvio.tv.core.player.recovery.SmartBadSources.clearFor(stream) // forge M3a: chosen by hand
-                         scope.coroutineLaunch {
-                             val playbackInfo = viewModel.resolveStreamForPlayback(stream)
-                             if (playbackInfo != null) {
-@@ -523,7 +526,7 @@ fun StreamScreen(
+@@ -523,7 +525,7 @@ fun StreamScreen(
                      onExpandStreams = { viewModel.expandFilteredStreamsIfNeeded() },
                      hazeState = streamHazeState,
                      modifier = Modifier
@@ -42,7 +34,7 @@ index 358d00e0a..5116a3cf9 100644
                          .fillMaxHeight()
                  )
              }
-@@ -763,6 +766,7 @@ private fun LeftContentSection(
+@@ -763,6 +765,7 @@ private fun LeftContentSection(
  @OptIn(ExperimentalTvMaterial3Api::class)
  @Composable
  private fun RightStreamSection(
@@ -50,7 +42,7 @@ index 358d00e0a..5116a3cf9 100644
      isLoading: Boolean,
      resumeText: String?,
      error: String?,
-@@ -875,9 +879,11 @@ private fun RightStreamSection(
+@@ -875,9 +878,11 @@ private fun RightStreamSection(
          }
      }
  
@@ -63,7 +55,7 @@ index 358d00e0a..5116a3cf9 100644
      ) {
          androidx.compose.animation.AnimatedVisibility(
              visible = enter,
-@@ -892,7 +898,7 @@ private fun RightStreamSection(
+@@ -892,7 +897,7 @@ private fun RightStreamSection(
              Column(
                  modifier = Modifier
                      .fillMaxSize()
@@ -72,7 +64,7 @@ index 358d00e0a..5116a3cf9 100644
                      .then(
                          if (hazeState != null) {
                              Modifier.hazeEffect(state = hazeState) {
-@@ -911,9 +917,16 @@ private fun RightStreamSection(
+@@ -911,9 +916,16 @@ private fun RightStreamSection(
                              NuvioTheme.colors.BackgroundCard.copy(alpha = 0.5f)
                          }
                      )
@@ -91,7 +83,7 @@ index 358d00e0a..5116a3cf9 100644
                      Box(
                          modifier = Modifier
                              .padding(bottom = NuvioTheme.spacing.sm)
-@@ -933,7 +946,7 @@ private fun RightStreamSection(
+@@ -933,7 +945,7 @@ private fun RightStreamSection(
                  }
  
                  // Addon filter chips
@@ -100,7 +92,7 @@ index 358d00e0a..5116a3cf9 100644
                      androidx.compose.animation.AnimatedVisibility(
                          visible = sourceChips.isNotEmpty() || (!isLoading && availableAddons.isNotEmpty()),
                          enter = fadeIn(animationSpec = tween(300)),
-@@ -1273,7 +1286,7 @@ private fun StreamsList(
+@@ -1273,7 +1285,7 @@ private fun StreamsList(
                  }
              },
          verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md),
@@ -109,7 +101,7 @@ index 358d00e0a..5116a3cf9 100644
      ) {
          sharedStream?.let { shared ->
              item(key = "party_shared_stream") {
-@@ -1380,6 +1393,7 @@ private fun StreamCard(
+@@ -1380,6 +1392,7 @@ private fun StreamCard(
      val density = LocalDensity.current
      val unknownStreamLabel = stringResource(R.string.stream_unknown)
      val streamName = remember(stream, unknownStreamLabel) { stream.getDisplayNameOrNull() ?: unknownStreamLabel }

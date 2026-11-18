@@ -503,7 +503,6 @@ fun StreamScreen(
                         if (currentIndex >= 0) {
                             focusedStreamIndex = currentIndex
                         }
-                        com.nuvio.tv.core.player.recovery.SmartBadSources.clearFor(stream) // forge M3a: chosen by hand
                         scope.coroutineLaunch {
                             val playbackInfo = viewModel.resolveStreamForPlayback(stream)
                             if (playbackInfo != null) {
