@@ -247,11 +247,23 @@ object FamilySync {
         return true
     }
 
+    /**
+     * Właściciel odebrał dostęp w panelu: telewizor rodziny kasuje ustawienia od rodziny (klucze do serwisów, konto,
+     * dodatki) i uruchamia się od nowa. Telewizor właściciela tylko się odłącza (to jego własne ustawienia).
+     */
     private fun removed(c: Context) {
+        val member = role(c) == Role.MEMBER
         prefs(c).edit().clear().commit()
         _state.value = State(message = "Ten telewizor odłączono od rodziny (zrobił to właściciel w panelu)")
-        Log.i(TAG, "removed from family")
+        Log.i(TAG, "removed from family member=$member")
+        if (!member) return
+        val n = FamilySnapshot.wipe(c)
+        Log.i(TAG, "wiped family settings files=$n")
+        val act = lastActivity?.get()
+        if (act != null && !act.isFinishing) restart(act, "Właściciel odłączył ten telewizor od rodziny, ustawienia rodziny usunięte")
+        else Runtime.getRuntime().exit(0) // w tle: zamknij, żeby DataStore nie zapisał starej kopii z pamięci
     }
+    @Volatile private var lastActivity: java.lang.ref.WeakReference<Activity>? = null
 
     /** Wgrane pliki ustawień czyta dopiero nowy proces: uruchom aplikację od nowa (aplikacja jest na ekranie, więc wolno). */
     private fun restart(activity: Activity, message: String) {
@@ -271,6 +283,7 @@ object FamilySync {
     /** Raz na proces, gdy aplikacja jest na ekranie: właściciel wysyła zmiany, rodzina pobiera nowszą wersję. */
     fun onAppVisible(activity: Activity) {
         refresh(activity)
+        lastActivity = java.lang.ref.WeakReference(activity)
         FamilyStats.install(activity)
         poll?.cancel()
         val first = !started

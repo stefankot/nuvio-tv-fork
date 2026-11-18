@@ -44,6 +44,12 @@ internal object FamilySnapshot {
 
     fun sha(b: ByteArray): String = FamilyCrypto.hex(java.security.MessageDigest.getInstance("SHA-256").digest(b))
 
+    /**
+     * Odebrany dostęp (19.11): kasuje wszystko, co przyszło od rodziny — klucze do serwisów, konto, dodatki, profile,
+     * playlisty (te same pliki co w zrzucie). Po tym aplikację trzeba od razu zamknąć (DataStore trzyma kopię w pamięci).
+     */
+    fun wipe(context: Context): Int = files(context).count { (_, f) -> f.delete() }
+
     /** Pliki zrzutu: ścieżka → zawartość. */
     fun entries(zipBytes: ByteArray): Map<String, ByteArray> {
         val out = LinkedHashMap<String, ByteArray>()

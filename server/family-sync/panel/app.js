@@ -41,7 +41,8 @@ async function loadFamily() {
 }
 
 let family = null; // {id, key, owner}
-let snap = null;   // {version, updated, src, files: [{name, entry, kind, prefs, orig}]}
+let snap = null;
+let revoked = null; // nazwy kluczy do zmiany u dostawców po ostatnim odebraniu dostępu   // {version, updated, src, files: [{name, entry, kind, prefs, orig}]}
 
 // ---------- ekrany ----------
 async function start() {
@@ -119,7 +120,13 @@ async function homeView() {
   const problems = Object.entries(bySrc).filter(([, s]) => s.size >= 1).sort((a, b) => b[1].size - a[1].size)
     .map(([src, s]) => `<li>Źródło „${h`${src}`}” nie startuje na ${s.size} ${s.size === 1 ? 'telewizorze' : 'telewizorach'}. ${s.size > 1 ? 'Rozważ wyłączenie tego dodatku w Ustawieniach.' : 'Jeśli się powtarza, wyłącz ten dodatek.'}</li>`).join('');
   const crashes = evs.filter(e => e.k === 'crash').length;
-  app.innerHTML = `<h2>Telewizory rodziny</h2>
+  const notice = revoked ? `<details open><summary>Odebrano dostęp: co jeszcze zrobić</summary><div class="pref" style="display:block">
+    <p>Odłączony telewizor skasuje ustawienia rodziny (klucze do serwisów, konto, dodatki), gdy tylko połączy się z internetem z aktualną aplikacją.
+    Jeśli był offline, ma starą wersję albo nie ufasz osobie, zmień u dostawców te klucze i wpisz nowe w Ustawieniach → Klucze do serwisów:</p>
+    ${revoked.length ? `<ul>${revoked.map(k => `<li>${h`${k}`}</li>`).join('')}</ul>` : '<p class="muted">Nie znalazłem kluczy w ustawieniach.</p>'}
+    <p>Konto Nuvio: zmień hasło na stronie konta, żeby wylogować wszystkie urządzenia.</p>
+    <div class="row"><button id="revokedOk">Zrobione</button></div></div></details>` : '';
+  app.innerHTML = notice + `<h2>Telewizory rodziny</h2>
     ${devs.length ? `<div class="tvs">${cards}</div>` : '<p>Żaden telewizor jeszcze się nie zgłosił. Telewizory zgłaszają się po aktualizacji aplikacji, przy starcie i co 15 minut.</p>'}
     <h2>Problemy (30 dni)</h2>
     ${problems || crashes ? `<ul class="problems">${problems}${crashes ? `<li>Aplikacja zamknęła się z błędem ${crashes} razy. Jeśli to się powtarza, zaktualizuj aplikację.</li>` : ''}</ul>` : '<p>Bez problemów.</p>'}
@@ -132,6 +139,7 @@ async function homeView() {
     if (!confirm('Usunąć ten telewizor z listy i jego statystyki? (Ustawienia na nim zostają; wróci na listę, jeśli znów się zgłosi.)')) return;
     await api('device_forget', { id: family.id, device: b.dataset.forget }); homeView();
   });
+  $('#revokedOk')?.addEventListener('click', () => { revoked = null; homeView(); });
   app.querySelectorAll('[data-remove]').forEach(b => b.onclick = () => removeFromFamily(b.dataset.remove, devs));
   $('#clear').onclick = async () => { if (confirm('Wyczyścić wszystkie statystyki?')) { await api('events_clear', { id: family.id }); homeView(); } };
 }
@@ -254,7 +262,7 @@ async function upload(edits) {
 
 // ---------- odebranie dostępu: nowy klucz rodziny dla wszystkich oprócz usuniętego ----------
 async function removeFromFamily(dev, devs) {
-  if (!confirm('Odebrać temu telewizorowi dostęp do ustawień rodziny? Pozostałe telewizory dostaną nowy klucz automatycznie.')) return;
+  if (!confirm('Odebrać temu telewizorowi dostęp? Przestanie dostawać ustawienia, a po połączeniu z internetem sam skasuje klucze do serwisów, konto i dodatki od rodziny. Pozostałe telewizory dostaną nowy klucz automatycznie.')) return;
   const r = await api('get', null, '&id=' + family.id);
   if (r.status !== 200 || !r.data) { toast('Brak połączenia z serwerem.'); return; }
   if ((r.epoch || 0) !== (family.epoch || 0)) { toast('Klucz w tej przeglądarce jest nieaktualny. Połącz panel ponownie kodem z telewizora.'); return; }
@@ -273,6 +281,17 @@ async function removeFromFamily(dev, devs) {
   const res = await api('rotate', { id: family.id, owner: family.owner, data: b64(await enc(await aesKey(newRaw), plain)), epoch, wraps, remove: [dev], base: r.version });
   if (res.status !== 200) { toast(res.status === 409 ? 'Telewizor właśnie wysłał zmiany. Spróbuj ponownie.' : 'Nie udało się (serwer: ' + (res.error || res.status) + ').'); return; }
   family.key = newKey; family.epoch = epoch; family.keys = { ...keys, [epoch]: newKey }; await saveFamily(family);
+  // Klucze do serwisów, które usunięty telewizor już ma: sam je skasuje po połączeniu z internetem, ale pewność daje
+  // tylko zmiana klucza u dostawcy (telewizor mógł być offline albo mieć starą aplikację).
+  revoked = [];
+  try {
+    for (const e of await unzip(plain)) {
+      let prefs = null;
+      try { prefs = e.name.endsWith('.preferences_pb') ? decodePrefs(e.data) : e.name.endsWith('.xml') ? decodeXml(e.data) : null; } catch {}
+      for (const p of prefs || []) if (SECRET.test(p.key) && typeof p.value === 'string' && p.value.length >= 8 && p.value.length < 400) revoked.push(nice(p.key));
+    }
+  } catch {}
+  revoked = [...new Set(revoked)];
   snap = null; toast('Dostęp odebrany. Pozostałe telewizory dostaną nowy klucz w ciągu 15 minut.'); homeView();
 }
 
