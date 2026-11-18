@@ -51,7 +51,7 @@ Ostatnia aktualizacja: 19.11.2026 ok. 02:40 (koniec wątku 5).
 - Wszystko NIEZBUDOWANE do APK (kompilacja kontrolna build83). Po buildzie: powtórzyć `step.sh` na pasku i Live TV, Kategorie → Programy (lista kategorii), Szukaj „tvn”, Odkrywaj z Live TV.
 
 - Kompilacja build83 (armeabi-v7a, 4 min 45 s): OK.
-- Zgłoszenie „na głównym ekranie znika hero” (19.11 ok. 03:15): kod hero (`skin/kicia/home/ForgeHomeContent.kt`) i źródło (`HomeViewModelCatalogPipeline`, `heroCatalogKeys`) IDENTYCZNE z Kicią; Kicia na JMGO na tym profilu też nie pokazuje hero. Przyczyna: na profilu nie wybrano katalogów hero → brak „polecanych” → fokus od razu na pierwszej karcie → `inHero = false` → hero gaśnie. Czeka na decyzję właściciela: (a) wybrać katalogi hero w ustawieniach, (b) zmiana kodu: hero zostaje nad pierwszą półką i pokazuje kartę z fokusem.
+- Zgłoszenie „na głównym ekranie znika hero” (19.11 ok. 03:15): kod hero (`skin/kicia/home/ForgeHomeContent.kt`) i źródło (`HomeViewModelCatalogPipeline`, `heroCatalogKeys`) IDENTYCZNE z Kicią; Kicia na JMGO na tym profilu też nie pokazuje hero. Przyczyna: na profilu nie wybrano katalogów hero → brak „polecanych” → fokus od razu na pierwszej karcie → `inHero = false` → hero gaśnie. DECYZJA właściciela: „Hero nad półką” — ZROBIONE (`heroOverShelf` w ForgeHomeContent: bez polecanych hero zostaje nad pierwszą półką i pokazuje kartę z fokusem), build84 kompiluje się, NIEZBUDOWANE do APK.
 
 ## NAJPIERW (wątek 6): co robić po „kontynuuj”
 1. `cd "/Users/milajovovich/Desktop/nuvio 2/NuvioFork" && git status --short && git branch --show-current` (gałąź `hybryda-zrodel`, wypchnięta).

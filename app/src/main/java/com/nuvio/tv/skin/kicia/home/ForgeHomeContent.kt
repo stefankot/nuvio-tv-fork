@@ -182,6 +182,9 @@ fun ForgeHomeContent(
         if (uiState.heroSectionEnabled) uiState.heroItems.filterNot { forgeIsAddonAction(it.id, it.name) }.take(8) else emptyList()
     }
     var featuredIndex by remember(featured) { mutableIntStateOf(0) }
+    // fork 19.11 (właściciel: „na głównym ekranie znika hero”, wybór „Hero nad półką”): bez katalogów hero (polecanych)
+    // hero zostaje nad pierwszą półką i pokazuje kartę z fokusem; gaśnie dopiero przy zejściu na kolejne półki.
+    val heroOverShelf = featured.isEmpty()
     // v6: with the hero's buttons, ↓ from the bar (and the first focus) lands on ▶; without featured titles on the first card.
     val continueShelf = androidx.compose.foundation.lazy.rememberLazyListState() // test 15.11 (B-1)
     val homeScope = androidx.compose.runtime.rememberCoroutineScope()
@@ -403,7 +406,7 @@ fun ForgeHomeContent(
                                 focusRequester = if (i == 0) firstCard else null,
                                 onFocusChange = { focused ->
                                     if (focused) {
-                                        focusedShelf = myIndex; inHero = false
+                                        focusedShelf = myIndex; inHero = heroOverShelf && myIndex == 0
                                         hero = heroOf(item)
                                         focusedMeta = null
                                     }
@@ -446,7 +449,7 @@ fun ForgeHomeContent(
                                 onLongClick = {},
                                 modifier = Modifier
                                     .then(if (continueItems.isEmpty() && i == 0) Modifier.focusRequester(firstCard) else Modifier)
-                                    .onFocusChanged { if (it.hasFocus) { focusedShelf = myIndex; inHero = false; focusedMeta = null } },
+                                    .onFocusChanged { if (it.hasFocus) { focusedShelf = myIndex; inHero = heroOverShelf && myIndex == 0; focusedMeta = null } },
                             )
                         }
                     }
@@ -472,7 +475,7 @@ fun ForgeHomeContent(
                                 onLongClick = {},
                                 modifier = Modifier
                                     .then(if (continueItems.isEmpty() && tvResumes.isEmpty() && i == 0) Modifier.focusRequester(firstCard) else Modifier)
-                                    .onFocusChanged { if (it.hasFocus) { focusedShelf = myIndex; inHero = false; focusedMeta = null } },
+                                    .onFocusChanged { if (it.hasFocus) { focusedShelf = myIndex; inHero = heroOverShelf && myIndex == 0; focusedMeta = null } },
                             )
                         }
                     }
@@ -487,7 +490,7 @@ fun ForgeHomeContent(
                                 focusRequester = if (continueItems.isEmpty() && liveShown.isEmpty() && i == 0) firstCard else null,
                                 onFocusChange = { focused ->
                                     if (focused) {
-                                        focusedShelf = myIndex; inHero = false
+                                        focusedShelf = myIndex; inHero = heroOverShelf && myIndex == 0
                                         hero = HeroInfo(alert.showTitle, forgeTvNewSubtitle(alert, channel.name), alert.airing.description, null)
                                         focusedMeta = null
                                     }
@@ -532,7 +535,7 @@ fun ForgeHomeContent(
                                 focusRequester = if (continueItems.isEmpty() && liveShown.isEmpty() && i == 0) firstCard else null,
                                 onFocusChange = { focused ->
                                     if (focused) {
-                                        focusedShelf = myIndex; inHero = false
+                                        focusedShelf = myIndex; inHero = heroOverShelf && myIndex == 0
                                         hero = heroOf(item)
                                         focusedMeta = null
                                     }
@@ -569,7 +572,7 @@ fun ForgeHomeContent(
                     ForgeShelf(tag = "polka-tytul.$myIndex", title = "Wyróżnione", extraGap = 16.dp) { // owner 10.11: the focused big poster grows 12.5% and covered the heading
                         itemsIndexed(featured, key = { i, it -> "feat_${it.id}_$i" }) { _, meta ->
                             com.nuvio.tv.skin.kicia.components.ForgeBigCard(
-                                onFocusChange = { focused -> if (focused) { focusedShelf = myIndex; inHero = false; focusedMeta = meta; onItemFocus(meta) } },
+                                onFocusChange = { focused -> if (focused) { focusedShelf = myIndex; inHero = heroOverShelf && myIndex == 0; focusedMeta = meta; onItemFocus(meta) } },
                                 onOk = { onNavigateToDetail(meta.id, meta.apiType, "") },
                             ) {
                                 com.nuvio.tv.skin.kicia.components.ForgePosterImage(meta.poster ?: meta.background, meta.rawPosterUrl, meta.name)
@@ -592,7 +595,7 @@ fun ForgeHomeContent(
                 val myIndex = shelfIndex++
                 item(key = "forge_youtube") {
                     com.nuvio.tv.skin.kicia.youtube.ForgeHomeYouTubeShelf(onFocused = {
-                        focusedShelf = myIndex; inHero = false
+                        focusedShelf = myIndex; inHero = heroOverShelf && myIndex == 0
                         focusedMeta = null
                     })
                 }
@@ -606,7 +609,7 @@ fun ForgeHomeContent(
                                 focusRequester = if (continueItems.isEmpty() && myIndex == 0 && i == 0) firstCard else null,
                                 onFocusChange = { focused ->
                                     if (focused) {
-                                        focusedShelf = myIndex; inHero = false
+                                        focusedShelf = myIndex; inHero = heroOverShelf && myIndex == 0
                                         hero = heroOf(meta)
                                         focusedMeta = meta
                                         onItemFocus(meta)
