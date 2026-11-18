@@ -1,5 +1,6 @@
 package com.nuvio.tv.skin.kicia.livetv
 
+import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.ui.platform.testTag
 import androidx.compose.foundation.BorderStroke
@@ -255,6 +256,14 @@ internal fun ForgeGuideHeaderA(
                 icon = Icons.Outlined.FormatListBulleted, // v7.4: list icon, no chevron
                 onOk = { if (onFilter != null) filterSheet = true },
             )
+            // Fork 19.11 (właściciel: „Narzędzia” w najodpowiedniejsze miejsca): „Odkrywaj telewizję” obok narzędzi przewodnika.
+            if (com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(androidx.compose.ui.platform.LocalContext.current, "module_discover", true)) {
+                Spacer(Modifier.width(12.dp))
+                com.nuvio.tv.skin.kicia.components.ForgePillSelect(
+                    text = "Odkrywaj", selected = false, bare = false, icon = Icons.Outlined.Explore,
+                    onOk = { com.nuvio.tv.ui.screens.settings.ForkFeatures.open?.invoke("fork_discover") },
+                )
+            }
             Spacer(Modifier.weight(1f))
             Spacer(Modifier.width(12.dp))
             com.nuvio.tv.skin.kicia.components.ForgeFocusBox(radius = 18.dp, modifier = Modifier.height(com.nuvio.tv.skin.kicia.tokens.ForgeDims.PillSelectHeight).testTag("przycisk-maly.2").focusRequester(ForgeGuideFocus.rememberDayRow()), scaleOnFocus = false, onOk = { daySheet = true }) { focused ->

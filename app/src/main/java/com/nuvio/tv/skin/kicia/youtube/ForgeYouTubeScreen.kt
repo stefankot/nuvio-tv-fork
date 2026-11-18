@@ -133,6 +133,8 @@ fun ForgeYouTubeScreen(
     LaunchedEffect(pending) {
         ForgeYouTubeLaunch.take()?.let { item -> viewModel.activate(item, listOf(item), onPlay) }
     }
+    val pendingQuery by ForgeYouTubeLaunch.query.collectAsState()
+    LaunchedEffect(pendingQuery) { ForgeYouTubeLaunch.takeSearch()?.let { q -> viewModel.search(q) } } // fork 19.11: szukaj z ekranu Szukaj
     LaunchedEffect(listState, state.canLoadMore) {
         snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index to listState.layoutInfo.totalItemsCount }
             .collect { (last, total) -> if (last != null && total > 0 && last >= total - 2 && state.canLoadMore) viewModel.loadMore() }

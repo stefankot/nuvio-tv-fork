@@ -1,5 +1,6 @@
 package com.nuvio.tv.skin.kicia.search
 
+import androidx.compose.material.icons.outlined.Mood
 import androidx.compose.ui.platform.testTag
 import androidx.compose.foundation.focusGroup
 import androidx.compose.ui.focus.focusProperties
@@ -75,7 +76,7 @@ import com.nuvio.tv.ui.screens.search.SearchViewModel
  * Gatunek + a grid of posters) always underneath. All data and searching come from Nuvio's own
  * [SearchViewModel]; this only draws it.
  *
- * TODO(scalanie): "Telewizja" and "YouTube" result shelves need search sources outside SearchViewModel.
+ * TODO(scalanie): "Telewizja" and "YouTube" result shelves need search sources outside SearchViewModel. Fork 19.11: fork/discover/SearchExtras.
  */
 @Composable
 fun ForgeSearchScreen(
@@ -155,6 +156,13 @@ fun ForgeSearchScreen(
             }
 
             if (query.isBlank()) {
+                // Fork 19.11: „Na co masz ochotę?” (nastroje, fork/picks) przeniesione z „Narzędzi”.
+                if (com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(androidx.compose.ui.platform.LocalContext.current, "module_picks", true)) item(key = "fork_picks") {
+                    Row(Modifier.padding(horizontal = ForgeDims.ContentStart)) {
+                        ForgePillSelect(text = "Na co masz ochotę?", selected = false, bare = false, icon = Icons.Outlined.Mood,
+                            onOk = { com.nuvio.tv.ui.screens.settings.ForkFeatures.open?.invoke(com.nuvio.tv.fork.picks.PicksModule.ROUTE) })
+                    }
+                }
                 if (state.recentSearches.isNotEmpty()) {
                     item(key = "recent") {
                         Column {
@@ -216,6 +224,8 @@ fun ForgeSearchScreen(
                         Text("Nic nie znaleziono dla „${state.submittedQuery}”", style = ForgeText.head, modifier = Modifier.padding(start = ForgeDims.ContentStart))
                     }
                 }
+                // Fork 19.11: półki „Telewizja” i „YouTube” (TODO scalanie wyżej), fork/discover/SearchExtras.
+                item(key = "fork_extras") { com.nuvio.tv.fork.discover.SearchExtras(state.submittedQuery.ifBlank { query }, Modifier.padding(start = ForgeDims.ContentStart)) }
             }
 
             // Odkrywaj: always underneath (unless switched off in Nuvio's settings).

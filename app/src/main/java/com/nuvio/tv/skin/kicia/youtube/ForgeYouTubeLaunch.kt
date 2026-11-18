@@ -17,4 +17,10 @@ object ForgeYouTubeLaunch {
 
     /** The video to play now, once. */
     fun take(): YtItem? = _pending.value.also { _pending.value = null }
+
+    // Fork 19.11 (właściciel: „search nie szuka w YouTube”): zapytanie z ekranu Szukaj, wykonane po otwarciu YouTube.
+    private val _query = MutableStateFlow<String?>(null)
+    val query: StateFlow<String?> = _query.asStateFlow()
+    fun askSearch(q: String) { _query.value = q }
+    fun takeSearch(): String? = _query.value.also { _query.value = null }
 }

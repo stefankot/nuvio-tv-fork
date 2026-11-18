@@ -24,7 +24,7 @@ const val TOOLS_ROUTE = "fork_tools"
 @Composable
 fun rememberToolsMenuItem(): DrawerItem? {
     val context = LocalContext.current
-    return remember { if (ForkFeatures.enabled(context, "fork_tools_menu", default = true)) DrawerItem(route = TOOLS_ROUTE, label = "Narzędzia", icon = Icons.Default.Apps) else null }
+    return remember { if (ForkFeatures.enabled(context, "fork_tools_menu", default = false) /* 19.11: pozycje rozmieszczone w aplikacji (Szukaj, Live TV, menu profilu, Ustawienia → Moduły) */) DrawerItem(route = TOOLS_ROUTE, label = "Narzędzia", icon = Icons.Default.Apps) else null }
 }
 
 /** Hub: Szukaj w TV, Odkrywaj, nastroje, polecenia głosowe, moduły; tylko włączone moduły. */

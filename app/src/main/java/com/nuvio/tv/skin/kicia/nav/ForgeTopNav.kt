@@ -1,5 +1,6 @@
 package com.nuvio.tv.skin.kicia.nav
 
+import androidx.compose.material.icons.outlined.Apps
 import android.os.SystemClock
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -361,6 +362,13 @@ internal fun ForgeTopNav(
                     menuOpen = false
                     ForgeNavState.reopenAvatarMenu = true
                     onEntryClick(PillNavEntry("forge_history", PillNavEntryKind.Tab, "forge_history", "Historia"))
+                }
+                // Fork 19.11: „Aplikacje” (fork/launcher) przeniesione z „Narzędzi”.
+                if (com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(androidx.compose.ui.platform.LocalContext.current, "module_launcher", true)) {
+                    ForgeSheetRow(text = "Aplikacje", icon = androidx.compose.material.icons.Icons.Outlined.Apps) {
+                        menuOpen = false
+                        com.nuvio.tv.ui.screens.settings.ForkFeatures.open?.invoke(com.nuvio.tv.fork.launcher.LauncherModule.APPS_ROUTE)
+                    }
                 }
                 if (profile != null) {
                     ForgeSheetRow(text = "Przełącz profil", icon = androidx.compose.material.icons.Icons.Outlined.Person) {
