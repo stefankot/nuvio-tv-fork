@@ -23,7 +23,7 @@ internal class GeminiNarratorTts {
                 .put("generationConfig", JSONObject()
                     .put("responseModalities", JSONArray().put("AUDIO"))
                     .put("speechConfig", JSONObject()
-                        .put("voiceConfig", JSONObject().put("voice", voice))))
+                        .put("voiceConfig", JSONObject().put("prebuiltVoiceConfig", JSONObject().put("voiceName", voice)))))
             val connection = URL(
                 "https://generativelanguage.googleapis.com/v1beta/models/${model.apiId}:generateContent"
             ).openConnection() as HttpURLConnection
