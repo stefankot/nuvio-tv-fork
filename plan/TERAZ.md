@@ -1,6 +1,36 @@
 # TERAZ — stan pracy i instrukcja „kontynuuj” (aktualizuj po każdym kroku)
 
-Ostatnia aktualizacja: 18.11.2026 (wątek 3, „kontynuuj”): punkt 4 częściowo.
+Ostatnia aktualizacja: 18.11.2026 ok. 22:20 (wątek 3, koniec przy ~95% kontekstu).
+
+## NAJPIERW (wątek 4): co robić po „kontynuuj”
+1. `cd "/Users/milajovovich/Desktop/nuvio 2/NuvioFork" && git status --short && git branch --show-current` (gałąź `hybryda-zrodel`, wypchnięta na GitHub `origin`).
+2. Zrób **paczkę poprawek P1–P6** (niżej) naraz, BEZ kompilowania pojedynczych poprawek. Potem JEDEN build w zakładce terminala (zasady w `../CLAUDE.md`: `-PforkAbi=armeabi-v7a` dla JMGO, `--console=rich | tee /tmp/buildN.log`, w trakcie builda pisz dalej kod; nie zabijaj ciepłego demona Gradle między buildami; spróbuj `-x lintVitalAnalyzeFullDebug -x lintVitalReportFullDebug -x lintVitalFullDebug`, zmierz czas).
+3. Zainstaluj na JMGO (`adb connect 192.168.31.252:5555`, H931, Android 11, tylko armeabi-v7a; aplikacja „Nuvio Debug” `com.nuviodebug.com`, właściciel zalogowany: profil „Stef+Patryk”, 321 kanałów IPTV, YouTube zalogowany). Testy TEKSTOWO: `fork-tools/test/{ui.sh,tap.sh,go.sh,focus.sh}` (`export ANDROID_SERIAL=192.168.31.252:5555`). `go.sh "tekst" DOWN|UP|LEFT|RIGHT` naciska OK dopiero, gdy fokus jest na celu — NIGDY OK na ślepo (18.11 OK na ślepo zmieniło ustawienie startu; przywrócone na „ekran główny”). Dotyk działa tylko na górnym pasku; przyciski tv-material wybiera się pilotem.
+4. Okno testów na JMGO od właściciela: 2 h od 22:04 18.11; potem testy na emulatorze na Macu (AVD `nuvio_tv`, `-PforkAbi=arm64-v8a`).
+5. Test rodziny, strona członka: na emulatorze (świeża instalacja) ekran startowy → „Mam kod od rodziny” → kod z JMGO (Ustawienia → Rodzina → „Dodaj telewizor rodziny”, ważny 10 min). Sprawdź: pobrane dodatki, IPTV, konto, profil po restarcie.
+
+## Paczka poprawek (z testu JMGO 18.11)
+- P1. Odtwarzacz skórki Kicia (`skin/kicia/player/ForgePlayerControls.kt`): brak przycisku „Więcej” → okno z „Spróbuj innego źródła”, „Napisy nie pasują”, „Lektor” nieosiągalne (`moreOpen` nigdy true). Dodaj przycisk „Więcej” w rzędzie po „Szybkość”.
+- P2. Właściciel: WSZYSTKIE funkcje forka spoza bazy Nuvio domyślnie włączone (lektor, sterowanie głosem, automatyczny wybór źródła = tryb „pierwsze źródło” z rankingiem KE zamiast ręcznej listy, kontrole pliku, itd.). Miejsca: `ForkFeatures.ON_BY_DEFAULT`, `fork/settings/FirstRunDefaults`, domyślny `StreamAutoPlayMode` (profil JMGO dziś = ręczna lista).
+- P3. Test „czy lektor działa” (TTS z polskim głosem na urządzeniu) przy starcie; od wyniku zależy logika: działa → źródła z polskimi napisami równie dobre jak polski dźwięk (lektor przeczyta), napisy PL wymagane; nie działa → polski dźwięk wyżej. Wpiąć w `fork/sources/KeRanking` (polishTier/subsTier) i `PlayerBridge.maybeAutoLektor`.
+- P4. Ikona: czerwony kwadrat (zrobione w `app/src/debug/res/mipmap-anydpi/`, wejdzie z buildem; sprawdź na JMGO).
+- P5. Szybkość buildu: zmierz z ciepłym demonem i bez lint (patrz krok 2); wynik do `STATUS.md`.
+- P6. Lista „Jakość” (Echo): teksty po angielsku — NIE tłumaczyć (zasada), tylko odnotowane.
+
+## Wyniki testu JMGO 18.11 (APK arm32 z 0b509719b bez ikony)
+- Start OK, 150 MB PSS, awarie w logu tylko systemowej `tvrecommendations`.
+- Instalacja obok Nuvio Reshaped wymagała zmiany uprawnienia MIGRATE (zrobione).
+- Ekran startowy: „Mam kod od rodziny” pod rzędem przycisków OK.
+- Live TV: 321 kanałów, przewodnik, „Dla Ciebie”, „Na żywo”, szukaj programu — działa.
+- Film (Fight Club, Torrentio TB 1080p): start 5,0 s (`ForkPerf`); lista źródeł z plakietkami Kicii OK.
+- „Jakość” (Echo): przełączenie 1080p→4K w trakcie: wyścig 8 źródeł 2,7 s, obraz po 12,3 s, pozycja zachowana.
+- Rodzina (właściciel): „Udostępnij” → `uploaded v=1 bytes=281398`; kod parowania 6 cyfr z odliczaniem 10 min — działa. Strona członka NIEPRZETESTOWANA.
+- Serwer: `https://nuviosync.caring.design/api.php` (Zenbox s7, katalog `domains/caring.design/public_html/nuviosync/`, SQLite w `data/`, SSL Let's Encrypt, DNS Cloudflare bez proxy). Test curl pełnego API OK.
+- Prompt dla panelu webowego: `plan/prompty/panel-admin-zenbox.md` (do wklejenia innemu modelowi przez właściciela).
+
+---
+
+# Starsza część (wątek 2–3)
 
 ## Jak kontynuować
 Gdy właściciel napisze „kontynuuj”:
