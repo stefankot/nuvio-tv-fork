@@ -14,3 +14,9 @@ Shimy Echo: BetaPerformanceSettings/BetaFeatures (ForkFeatures, domyślnie wył�
 - `ui/screens/settings/ForgeSettingsContent.kt`, `ForgeNightSettings.kt` → `skin/kicia/settings/`.
 - `res/values{,-pl}/forge_tv_strings.xml` → `skin_kicia_strings.xml`; `res/font/satoshi_{bold,medium}.ttf`.
 - Adapter: `skin/kicia/KiciaSkin.kt` (jedyny plik pisany od nowa).
+
+## Hybryda źródeł (18.11.2026)
+- KE `upstream/ke` @ `0a87a08` (1:1): `core/stream/*` (ReleaseFactsParser, TrashReleaseGroups, ContentIdentityGuard, ResolutionLimit, PreferredSource, TextSizeParser…), `core/player/{StreamQualityRank,DecodeCapability,BingeGroups,StreamContinuation}.kt`, `data/local/{PreferredSourceDataStore,BoundedPrefs}.kt`, `domain/model/ReleaseTags.kt`. Nakładka `domain/model/KeStreamShims.kt` (pola AIOStreams puste).
+- Echo `upstream/echo` @ `e952419`: `fallbackWhenPreferredSourcesEmpty` (rozszerzenie w `fork/echo/EchoRaceCandidates.kt`).
+- Kicia `34c80c6` (zamrożona, dopasowywana swobodnie): `fork/sources/kicia/{DurationCheck,SoundCheck,SmartBadSources,FileInherentFailure}.kt` (z `core/player/recovery`, zmieniony pakiet; SmartBadSources bez SmartOutcomeStore), `core/streams/smart/ReleaseInfo.kt` (wyświetlanie plakietek), `forgeNeedsMpvContainer` → `fork/sources/MpvContainers.kt`, `PlayerTryAnotherSource` → `fork/sources/TryAnotherSource.kt` (uproszczone, bez sesji Echo Kicii).
+- Adaptery forka: `fork/sources/KeRanking.kt`, `StartupChecks.kt`, `TryAnotherSource.kt`, `MpvContainers.kt`. Wpięcia: `fork-tools/hooks.tsv` (seria sources).

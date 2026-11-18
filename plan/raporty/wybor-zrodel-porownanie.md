@@ -27,3 +27,11 @@ Wszystkie trzy mają własny parser nazw i ranking. W aplikacji może działać 
 1. Ranking i parser z **KE** (najdokładniejszy, zgodny z TRaSH), jako moduł z wpięciem w selektor.
 2. Z **Kicii** tylko to, czego KE i Echo nie mają: sprawdzanie urządzenia, nauka na wynikach, kontrola długości i dźwięku, rozgrzewka, bufor, P2P, „Spróbuj innego źródła”, AVI/WMV.
 3. **Echo** zostaje bez zmian (wyścig, zamiana w locie); dodać jego brakujący fallback.
+
+## Co zrobiono (18.11.2026, niekompilowane)
+- Ranking KE działa w trybie „pierwsze źródło” i przed wyścigiem Echo: zły tytuł/rok odpada, potem jakość wg TRaSH, na koniec pliki, których telewizor nie dekoduje sprzętowo albo przekraczają jego rozdzielczość; preferowane źródło serialu na początek (zapis przy ręcznym wyborze).
+- Pytanie „polski lektor/dubbing czy jakość” steruje rankingiem; polskie napisy wyżej, gdy język napisów = polski. Jeden przełącznik „Oszczędzanie łącza”.
+- Echo: fallback, gdy preferowane dodatki są puste.
+- Kicia: kontrola otwartego pliku (zły czas trwania, brak dźwięku → od razu następne źródło), pamięć złych źródeł (30 min / zły plik 24 h, ręczny wybór zdejmuje), „Spróbuj innego źródła” (menu Więcej i głos), AVI/WMV w mpv.
+- Nie przeniesione z Kicii: nauka na wynikach, rozgrzewka połączenia, bufor wg bitrate (wymaga zmian w sterowaniu buforem), ciche P2P (wymaga łatek debrid i okna zgody w odtwarzaczu).
+- Nie przeniesione z KE: limit i test łącza, wybór zawczasu (etap W1: wymagają pobierania wieloma połączeniami KE).
