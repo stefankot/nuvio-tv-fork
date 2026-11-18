@@ -28,7 +28,7 @@ object BlockPlanner {
                 var best = end; var bestGap = -1L
                 for (i in from..end) {
                     val gap = (cues.getOrNull(i + 1)?.startMs ?: Long.MAX_VALUE) - cues[i].endMs
-                    if (gap > bestGap) { bestGap = gap; best = i }
+                    if (gap >= bestGap) { bestGap = gap; best = i }
                 }
                 end = best
             }

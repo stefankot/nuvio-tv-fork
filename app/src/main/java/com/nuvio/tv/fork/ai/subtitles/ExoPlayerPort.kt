@@ -51,7 +51,7 @@ class ExoPlayerPort(private val controller: PlayerRuntimeController, private val
 
     override suspend fun loadCues(option: SubtitleOption): List<DocCue> {
         val sub = main { controller._uiState.value.addonSubtitles.firstOrNull { it.url == option.url } } ?: return emptyList()
-        val raw = controller.downloadSubtitleBody(sub.url, sub.lang, sub.headers)
+        val raw = com.nuvio.tv.fork.subs.TextSubtitleFormats.toSrt(controller.downloadSubtitleBody(sub.url, sub.lang, sub.headers)) // MPL2/MicroDVD → SRT
         if (raw.length > 8 * 1024 * 1024) throw BlockFailedException("Plik napisów za duży")
         return withContext(Dispatchers.Default) { toDocCues(parseSidecarTimedCuesRobust(raw, sub.url).cues) }
     }
