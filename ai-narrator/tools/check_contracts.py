@@ -21,6 +21,9 @@ checks = {
     "app/src/main/java/com/nuvio/tv/ui/screens/player/SubtitleCueTracker.kt": [
         "val state: StateFlow<SubtitleCueState>",
     ],
+    "ai-narrator/src/main/kotlin/com/nuvio/tv/ainarrator/LocalZonosTts.kt": [
+        '"/v2/generate"', '"pl"', '"wav"', "isPrivateHost",
+    ],
     "app/src/main/java/com/nuvio/tv/ui/screens/player/NuvioBaseMpvView.kt": [
         "val mpv: MPV",
     ],
