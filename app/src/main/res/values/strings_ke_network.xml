@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- W1: teksty testu łącza KE 0a87a08 (res/values/strings.xml), kopia 1:1 -->
+<resources>
+    <string name="stream_test_run_title">Run last played stream speed test</string>
+    <string name="stream_test_avg_bitrate">Average video bitrate</string>
+    <string name="stream_test_unit_mbps">%1$.1f Mbps</string>
+    <string name="stream_test_serving_host_label">Serving host: %1$s</string>
+    <string name="stream_test_file_label">File: %1$s</string>
+    <string name="stream_test_row_warning_suffix">" \u26a0"</string>
+    <string name="stream_test_row_pm_suffix">" \u00b7 PM"</string>
+    <string name="stream_test_row_h1_suffix">" \u00b7 HTTP/1.1 sockets"</string>
+    <string name="stream_test_verdict_leave_off">Recommendation: leave parallel connections off \u2014 a single connection already delivers %1$s, more than 2\u00d7 this title\'s bitrate.</string>
+    <string name="stream_test_verdict_recommend">Recommendation: %1$d connections / %2$d MB chunks \u2014 %3$s. Lowest-memory configuration that meets 2\u00d7 this title\'s bitrate; faster configurations may appear above but use more memory for no playback benefit.</string>
+    <string name="stream_test_verdict_marginal">Best result: %1$d connections / %2$d MB chunks at %3$s \u2014 above this title\'s %4$s average bitrate, but under the 2\u00d7 headroom target. Playback should work, but may buffer during high-bitrate scenes or seeks.</string>
+    <string name="stream_test_verdict_cannot_sustain">This connection can\'t sustain this title \u2014 the fastest tested configuration (%1$d connections / %2$d MB chunks) reached %3$s, below the title\'s %4$s average bitrate. Expect buffering; consider a lower-bitrate version.</string>
+    <string name="stream_test_verdict_fastest_nobitrate">Fastest stable: %1$d connections / %2$d MB chunks at %3$s. Title bitrate unknown \u2014 play a video first for a tailored recommendation.</string>
+    <string name="stream_test_verdict_pm_suffix">" Requires Nuvio Performance Mode."</string>
+    <string name="stream_test_caveat">Measures raw download throughput only \u2014 real playback also depends on buffering, decoding and server load, and holds the target buffer in memory as well.</string>
+    <string name="stream_test_label_parallel_dyn">Parallel Connect (%1$d conn / %2$d MB chunks)</string>
+    <string name="stream_test_btn_measuring_dyn">Measuring: %1$s\u2026</string>
+    <string name="stream_test_cell_failed">%1$s failed (%2$s) \u2014 continuing sweep</string>
+    <string name="stream_test_cell_skipped">%1$s skipped \u2014 %2$s</string>
+    <string name="stream_test_cell_rate_limited">%1$s discarded \u2014 the source rate-limited it, so it did not run at that connection count</string>
+    <string name="stream_test_cell_retry_wait">%1$s refused \u2014 waiting %2$ds and retrying once</string>
+    <string name="stream_test_note_rate_limited">Rate-limited</string>
+    <string name="stream_test_note_no_transfer">No transfer</string>
+    <string name="stream_test_note_skipped">Skipped</string>
+    <string name="stream_test_detail_rate_limited">the source refused this connection count</string>
+    <string name="stream_test_detail_no_transfer">rate-limited into moving almost no data</string>
+    <string name="stream_test_note_skipped_generic">over the device budget</string>
+    <string name="stream_test_verdict_recommend_trade">Recommendation: %1$d connections / %2$d MB chunks \u2014 %3$s (%4$s\u00d7 this title\'s bitrate). Chosen over %5$d \u00d7 %6$d MB (2\u00d7+) because on this device\'s memory budget it leaves %7$d MB \u2248 %8$d s of playback buffer instead of %9$d MB \u2248 %10$d s \u2014 tank depth beats refill rate here.</string>
+</resources>
