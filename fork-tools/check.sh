@@ -2,7 +2,7 @@
 # Test spójności forka. Uruchom z katalogu NuvioFork: bash fork-tools/check.sh
 cd "$(dirname "$0")/.." || exit 2
 . fork-tools/pins.env
-UP=../upstream/reshaped; BASE=85f9010aa; fail=0
+UP=../upstream/reshaped; BASE=9174319d2; fail=0
 bad(){ echo "BŁĄD: $*"; fail=1; }
 [ "$(git -C $UP rev-parse --short=9 HEAD)" = "$RESHAPED" ] || bad "klon Reshaped nie jest na $RESHAPED"
 # (a) pliki 'override' identyczne z Reshaped
