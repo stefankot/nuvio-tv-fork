@@ -341,6 +341,7 @@ class StreamScreenViewModel @Inject constructor(
             is StreamScreenEvent.OnAddonFilterSelected -> filterByAddon(event.addonName)
             is StreamScreenEvent.OnStreamSelected -> {
                 cancelStreamsLoad()
+                if (season != null) com.nuvio.tv.fork.sources.KeRanking.rememberManualPick(context, contentId ?: videoId.substringBefore(":"), event.stream) // Fork hook: ke-rank (preferowane źródło serialu)
             }
             StreamScreenEvent.OnAutoPlayConsumed -> {
                 if (autoPlayHandledForSession &&
@@ -409,6 +410,7 @@ class StreamScreenViewModel @Inject constructor(
     }
 
     private fun loadStreams(forceRefresh: Boolean = false) {
+        com.nuvio.tv.fork.sources.KeRanking.begin(context, contentType, contentName ?: title, year, season, episode, videoId, contentId ?: videoId.substringBefore(":")) // Fork hook: ke-rank
         streamRepository.setLocalPluginSearchPaused(false)
         streamLoadScope?.cancel()
         streamLoadScope = null

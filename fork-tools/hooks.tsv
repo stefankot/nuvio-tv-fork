@@ -47,3 +47,5 @@ app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	"library", mapOf(	L
 app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	"youtube", mapOf(	YouTubeScreen(	skin	skin: YouTube	
 app/src/main/java/com/nuvio/tv/ui/screens/LayoutSelectionScreen.kt	// Fork hook: skin	continueFocusRequester.requestFocus	skin	skin: kreator krok 2	
 app/src/main/java/com/nuvio/tv/core/player/StreamAutoPlaySelector.kt	// Fork hook: ke-rank	StreamAutoPlayMode.FIRST_STREAM	sources	hybryda: ranking KE	StreamAutoPlayMode.FIRST_STREAM -> candidateStreams.firstOrNull { isPlayable(it) }
+app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt	KeRanking.begin(	private fun loadStreams	sources	hybryda: tytuł i preferowane źródło dla rankingu KE	
+app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt	KeRanking.rememberManualPick(	OnStreamSelected	sources	hybryda: preferowane źródło serialu (KE)	

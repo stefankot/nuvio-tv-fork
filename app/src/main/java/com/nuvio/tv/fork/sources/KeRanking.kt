@@ -16,6 +16,7 @@ import com.nuvio.tv.ui.screens.settings.ForkFeatures
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -35,11 +36,44 @@ object KeRanking {
     @Volatile private var decode: DecodeCapability = DecodeCapability.UNKNOWN
     @Volatile private var tvCap: ReleaseResolution? = null
 
-    /** Tytuł, którego dotyczy bieżące szukanie źródeł (ustawiane przez ekran źródeł / odtwarzacz); null = bez strażnika. */
-    @Volatile var identity: ContentIdentity? = null
-
+    /** Tytuł, którego dotyczy bieżące szukanie źródeł; null = bez strażnika. Ważny [TTL_MS] od [begin]. */
+    @Volatile private var identityRaw: ContentIdentity? = null
     /** Preferowane źródło bieżącego serialu (KE PreferredSourceDataStore); null = brak. */
-    @Volatile var preferred: PreferredSource? = null
+    @Volatile private var preferredRaw: PreferredSource? = null
+    @Volatile private var setAtMs = 0L
+    /** Po tym czasie dane ekranu źródeł nie dotyczą już wyboru (np. następny odcinek w odtwarzaczu, inny tytuł). */
+    private const val TTL_MS = 90_000L
+    private fun fresh() = android.os.SystemClock.elapsedRealtime() - setAtMs < TTL_MS
+    val identity: ContentIdentity? get() = identityRaw?.takeIf { fresh() }
+    val preferred: PreferredSource? get() = preferredRaw?.takeIf { fresh() }
+
+    @dagger.hilt.EntryPoint @dagger.hilt.InstallIn(dagger.hilt.components.SingletonComponent::class)
+    interface Deps { fun preferredSources(): com.nuvio.tv.data.local.PreferredSourceDataStore }
+
+    /** Ekran źródeł: początek szukania źródeł dla tytułu (wpięcie `Fork hook: ke-rank` w StreamScreenViewModel.loadStreams). */
+    fun begin(context: Context, type: String?, title: String?, year: String?, season: Int?, episode: Int?, videoId: String?, showId: String?) {
+        identityRaw = ContentIdentity.of(type, title, year, season, episode, videoId)
+        preferredRaw = null
+        setAtMs = android.os.SystemClock.elapsedRealtime()
+        val app = context.applicationContext
+        if (showId.isNullOrBlank()) return
+        scope.launch {
+            preferredRaw = runCatching {
+                dagger.hilt.android.EntryPointAccessors.fromApplication(app, Deps::class.java).preferredSources().observe(showId).first()
+            }.getOrNull()
+        }
+    }
+
+    /** Ręczny wybór źródła (długie OK / panel): zapamiętaj je jako preferowane dla serialu (KE PreferredSource.of). */
+    fun rememberManualPick(context: Context, showId: String?, stream: Stream) {
+        if (showId.isNullOrBlank()) return
+        val app = context.applicationContext
+        scope.launch {
+            runCatching {
+                dagger.hilt.android.EntryPointAccessors.fromApplication(app, Deps::class.java).preferredSources().set(showId, PreferredSource.of(stream))
+            }
+        }
+    }
 
     /** Raz po starcie: przełącznik, dekodery urządzenia (zapytanie trwa), największa rozdzielczość telewizora. */
     fun warm(context: Context) {
