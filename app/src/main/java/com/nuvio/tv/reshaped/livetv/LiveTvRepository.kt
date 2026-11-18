@@ -1667,7 +1667,6 @@ object LiveTvRepository {
         val generation = epgGeneration
         LiveTvEpgTrace.begin("generation=$generation guides=${epgUrls.size} channels=${channels.size} guideKeys=${guideKeys.size}") // Fork patch: dostawca #11
         val guideFiles = epgUrls.map { File(guideDir(), "guide_${Integer.toHexString(it.hashCode())}.xml.gz") }
-        val cacheFile = File(guideDir(), LiveTvGuideCache.FILE_NAME)
         val catchupKeys = channels.mapNotNullTo(HashSet()) { channel -> channel.guideKey.takeIf { channel.catchup != null } }
         // A channel two sources list with the same link (a provider's and an edited copy of its
         // playlist) is one channel: the copy whose guide has nothing shows the other's.
@@ -1675,6 +1674,10 @@ object LiveTvRepository {
         // Names (and missing logos) decide name matches and guide logos: a list that renames
         // channels keeping their ids must not be served the matches kept for the old names.
         val cacheKey = LiveTvGuideCache.key(epgUrls, guideKeys, window, catchupKeys) * 31 + liveTvGuideMatchingKey(channels)
+        // Fork patch: kicia-epg (Kicia 14.11, JMGO C1): jeden zapis na klucz (każdy profil ma własną listę), inaczej zmiana
+        // profilu nadpisywała wspólny plik i następny start czytał cały XMLTV od nowa (70 s na JMGO).
+        val cacheFile = LiveTvGuideCache.fileFor(guideDir(), LiveTvGuideCache.FILE_NAME, cacheKey)
+        val nowFile = LiveTvGuideCache.fileFor(guideDir(), LiveTvGuideCache.NOW_FILE_NAME, cacheKey) // Fork patch: kicia-epg
         LiveTvEpgTrace.step("cacheKey=$cacheKey urls=${epgUrls.hashCode()} keys=${guideKeys.size} matching=${liveTvGuideMatchingKey(channels)}") // Fork patch: dostawca #11
         guideWindow = window
         synchronized(history) { history.clear() }
@@ -1709,7 +1712,8 @@ object LiveTvRepository {
         epgJob = scope.launch {
             withContext(Dispatchers.IO) {
                 // Guides of an earlier source.
-                guideDir().listFiles()?.filter { it !in guideFiles && it != cacheFile }?.forEach(File::delete)
+                guideDir().listFiles()?.filter { it !in guideFiles && !LiveTvGuideCache.isSavedGuide(it) }?.forEach(File::delete) // Fork patch: kicia-epg
+                LiveTvGuideCache.trim(guideDir(), keep = setOf(cacheFile, nowFile)) // Fork patch: kicia-epg
             }
             var schedule: LiveTvSchedule = keptSchedule
             // [schedule] with channels sharing a link filled in from each other: what is shown.
@@ -1751,6 +1755,12 @@ object LiveTvRepository {
                     // stops the download and read instead of letting them compete with playback.
                     val finished = whileSeen {
                         val force = forceGuideDownload
+                        // Fork patch: kicia-epg (Kicia 24e08b945): najpierw mały wycinek „teraz”, pokazany od razu.
+                        if (firstRead && !force && keptSchedule.isEmpty()) {
+                            val quick = withContext(Dispatchers.IO) { LiveTvGuideCache.readNow(nowFile, cacheKey, guideFiles, nowMs) }
+                            android.util.Log.i(LiveTvEpgTrace.TAG, if (quick != null) "now slice used (guide_now)" else "no usable now slice")
+                            if (quick != null) publishGuide(quick.schedule, quick.logos, nowMs, emptySet())
+                        }
                         // Opening again: the programmes kept by the last full read, while still good.
                         val saved = if (firstRead && !force) {
                             withContext(Dispatchers.IO) { LiveTvGuideCache.read(cacheFile, cacheKey, guideFiles, nowMs, EPG_DOWNLOAD_MS) }
@@ -1762,6 +1772,7 @@ object LiveTvRepository {
                             schedule = saved.schedule
                             nextReadAtMs = saved.nextReadAtMs
                             publishGuide(schedule, saved.logos, nowMs, emptySet())
+                            withContext(Dispatchers.IO) { LiveTvGuideCache.writeNow(nowFile, cacheKey, guideFiles, saved.schedule, saved.logos, nowMs) } // Fork patch: kicia-epg
                         } else {
                             // Every feed is matched against every channel, so a playlist without a guide of its own
                             // still finds its channels in another source's guide; the ranks below make a playlist's
@@ -1874,7 +1885,10 @@ object LiveTvRepository {
                                 // A guide that broke off part way is not saved as the kept programmes.
                                 if (!failed && !partial && loaded.isNotEmpty() && epgGeneration == generation) {
                                     val entry = LiveTvGuideCache.Entry(loaded, logos, nextReadAtMs)
-                                    withContext(Dispatchers.IO) { LiveTvGuideCache.write(cacheFile, cacheKey, guideFiles, entry) }
+                                    withContext(Dispatchers.IO) {
+                                        LiveTvGuideCache.write(cacheFile, cacheKey, guideFiles, entry)
+                                        LiveTvGuideCache.writeNow(nowFile, cacheKey, guideFiles, loaded, logos, nowMs) // Fork patch: kicia-epg
+                                    }
                                 }
                                 if (spills != null && loaded.isNotEmpty() && epgGeneration == generation) {
                                     val taken = chosenSpills.filterValues { !it.failed }

@@ -15,6 +15,13 @@ import java.util.zip.GZIPOutputStream
  */
 internal object LiveTvGuideCache {
     const val FILE_NAME = "guide_kept.bin.gz"
+    // Fork patch: kicia-epg (Kicia 24e08b945): mały wycinek „teraz” (3 h wstecz .. 12 h naprzód) czytany przed pełnym zapisem.
+    const val NOW_FILE_NAME = "guide_now.bin.gz"
+    const val NOW_BEFORE_MS = 3L * 60 * 60 * 1000
+    const val NOW_AFTER_MS = 12L * 60 * 60 * 1000
+    private const val NOW_MIN_AHEAD_MS = 3L * 60 * 60 * 1000
+    // Fork patch: kicia-epg (Kicia 14.11, JMGO C1): po jednym zapisie na klucz (profil), ostatnie 4 każdego rodzaju zostają.
+    private const val KEEP_PER_KIND = 4
     // 5: playlist-scoped channel identities and complete guide imports. 6: no overlapping programmes.
     // 7: id matches rank over name matches. 8: a name match fills in for an id without programmes.
     // 9: a name match with the channel's own country tag wins.
@@ -22,6 +29,22 @@ internal object LiveTvGuideCache {
     private const val MAX_TITLE = 1_000
 
     class Entry(val schedule: LiveTvSchedule, val logos: Map<String, String>, val nextReadAtMs: Long)
+
+    fun fileFor(dir: File, base: String, key: Long): File = // Fork patch: kicia-epg
+        File(dir, base.removeSuffix(".bin.gz") + "_" + java.lang.Long.toHexString(key) + ".bin.gz")
+
+    fun isSavedGuide(file: File): Boolean = file.name.startsWith("guide_kept") || file.name.startsWith("guide_now") // Fork patch: kicia-epg
+
+    fun trim(dir: File, keep: Set<File>) { // Fork patch: kicia-epg
+        val saved = dir.listFiles()?.filter { isSavedGuide(it) } ?: return
+        saved.filter { it.name == FILE_NAME || it.name == NOW_FILE_NAME }.forEach { it.delete() }
+        listOf("guide_kept_", "guide_now_").forEach { prefix ->
+            saved.filter { it.name.startsWith(prefix) && it !in keep }
+                .sortedByDescending { it.lastModified() }
+                .drop(KEEP_PER_KIND - 1)
+                .forEach { it.delete() }
+        }
+    }
 
     /** What the saved programmes were read for: the guides, the channels and how much is kept. */
     fun key(epgUrls: List<String>, guideKeys: Set<String>, window: LiveTvGuideWindow, catchupKeys: Set<String> = emptySet()): Long {
@@ -40,7 +63,7 @@ internal object LiveTvGuideCache {
     }
 
     /** The saved programmes, or null when they are missing, stale or for other guides or channels. */
-    fun read(file: File, key: Long, guideFiles: List<File>, nowMs: Long, maxGuideAgeMs: Long): Entry? = runCatching {
+    fun read(file: File, key: Long, guideFiles: List<File>, nowMs: Long, maxGuideAgeMs: Long, checkGuides: Boolean = true): Entry? = runCatching { // Fork patch: kicia-epg (checkGuides)
         if (!file.isFile) { Log.i(LiveTvEpgTrace.TAG, "saved programmes: miss (no file)"); return null } // Fork patch: dostawca #11
         DataInputStream(GZIPInputStream(file.inputStream().buffered(), 16 * 1024)).use { input ->
             if (input.readInt() != VERSION) { Log.i(LiveTvEpgTrace.TAG, "saved programmes: miss (format version)"); return null } // Fork patch: dostawca #11
@@ -52,7 +75,7 @@ internal object LiveTvGuideCache {
             guideFiles.forEach { guide ->
                 val modified = input.readLong()
                 // A guide downloaded since, or due to be downloaded again, means a full read.
-                if (guide.lastModified() != modified || nowMs - modified !in 0 until maxGuideAgeMs) { Log.i(LiveTvEpgTrace.TAG, "saved programmes: miss (guide file replaced or older than refresh interval)"); return null } // Fork patch: dostawca #11
+                if (checkGuides && (guide.lastModified() != modified || nowMs - modified !in 0 until maxGuideAgeMs)) { Log.i(LiveTvEpgTrace.TAG, "saved programmes: miss (guide file replaced or older than refresh interval)"); return null } // Fork patch: dostawca #11 // Fork patch: kicia-epg
             }
             val logos = HashMap<String, String>()
             repeat(input.readInt()) { logos[input.readUTF()] = input.readUTF() }
@@ -128,6 +151,24 @@ internal object LiveTvGuideCache {
             temp.delete()
             file.delete()
         }
+    }
+
+    /** Fork patch: kicia-epg. Wycinek „teraz”; null, gdy brak, inny klucz albo za mało go zostało naprzód. */
+    fun readNow(file: File, key: Long, guideFiles: List<File>, nowMs: Long): Entry? =
+        read(file, key, guideFiles, nowMs + NOW_MIN_AHEAD_MS, Long.MAX_VALUE, checkGuides = false)
+            ?.takeIf { entry -> entry.schedule.values.any { it.isNotEmpty() } }
+
+    /** Fork patch: kicia-epg. Zapis wycinka „teraz”; nieudany zapis = tylko wolniejsze następne otwarcie. */
+    fun writeNow(file: File, key: Long, guideFiles: List<File>, schedule: LiveTvSchedule, logos: Map<String, String>, nowMs: Long) {
+        val from = nowMs - NOW_BEFORE_MS
+        val until = nowMs + NOW_AFTER_MS
+        val slice = HashMap<String, List<LiveTvProgramme>>(schedule.size * 2)
+        schedule.forEach { (guideKey, programmes) ->
+            val kept = programmes.filter { it.stopEpochMs > from && it.startEpochMs < until }
+            if (kept.isNotEmpty()) slice[guideKey] = kept
+        }
+        if (slice.isEmpty()) return
+        write(file, key, guideFiles, Entry(slice, logos, until))
     }
 
     private fun DataInputStream.readOptional(): String? = if (readBoolean()) readUTF() else null
