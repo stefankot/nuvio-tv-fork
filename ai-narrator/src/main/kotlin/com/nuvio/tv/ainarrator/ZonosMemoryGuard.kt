@@ -38,25 +38,38 @@ internal object ZonosMemoryPolicy {
      * 2 GB boxes are deliberately NOT approved for simultaneous 4K playback + 1.1 GB GGUF.
      * 3/4 GB classes may run only if live headroom and native process-size checks pass.
      */
-    fun evaluate(snapshot: ZonosMemorySnapshot, starting: Boolean): ZonosMemoryVerdict {
+    fun evaluate(snapshot: ZonosMemorySnapshot, starting: Boolean, offline: Boolean = false): ZonosMemoryVerdict {
         val ram = snapshot.totalBytes
-        val minSupportedRam = 2_500L * MIB
-        val isThreeGbClass = ram < 3_500L * MIB
-        val freeNeeded = if (isThreeGbClass) 1_500L * MIB else 1_750L * MIB
-        val reserve = max(snapshot.lowMemoryThresholdBytes + 256L * MIB,
-            if (isThreeGbClass) 520L * MIB else 700L * MIB)
-        val processLimit = if (isThreeGbClass) 1_300L * MIB else 1_950L * MIB
-        val verdict = when {
-            ram < minSupportedRam -> ZonosMemoryDecision.INSUFFICIENT_TOTAL_RAM
+        val mib = 1024L * 1024L
+        val isTwoGbClass = ram < 2_500L * mib
+        val isThreeGbClass = ram < 3_500L * mib
+        val freeNeeded = when {
+            isTwoGbClass -> 1_250L * mib
+            isThreeGbClass -> 1_500L * mib
+            else -> 1_750L * mib
+        }
+        val reserve = max(snapshot.lowMemoryThresholdBytes + 256L * mib, when {
+            isTwoGbClass -> 450L * mib
+            isThreeGbClass -> 520L * mib
+            else -> 700L * mib
+        })
+        val processLimit = when {
+            isTwoGbClass -> 1_100L * mib
+            isThreeGbClass -> 1_300L * mib
+            else -> 1_950L * mib
+        }
+        val decision = when {
+            ram < 1_700L * mib || (isTwoGbClass && !offline) ->
+                ZonosMemoryDecision.INSUFFICIENT_TOTAL_RAM
             snapshot.systemLowMemory || snapshot.availableBytes < reserve ->
                 ZonosMemoryDecision.LOW_AVAILABLE_RAM
             snapshot.applicationPssBytes > processLimit ->
                 ZonosMemoryDecision.EXCESS_PROCESS_MEMORY
-            starting && snapshot.availableBytes < max(freeNeeded, reserve) ->
+            starting && snapshot.availableBytes < freeNeeded ->
                 ZonosMemoryDecision.LOW_AVAILABLE_RAM
             else -> ZonosMemoryDecision.ALLOW
         }
-        return ZonosMemoryVerdict(verdict, freeNeeded, reserve, processLimit)
+        return ZonosMemoryVerdict(decision, freeNeeded, reserve, processLimit)
     }
 }
 
