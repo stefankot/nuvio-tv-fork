@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
+# Noncommitting upstream merge probe, using the fork's existing release-merge conflict policy.
 set -euo pipefail
-TAG="${1:?Official NuvioTV tag required}"
-if [[ ! "$TAG" =~ ^[a-zA-Z0-9._-]+$ ]]; then echo "Invalid tag"; exit 2; fi
+
+TAG="${1:?Pass an official NuvioTV tag}"
+if [[ ! "$TAG" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+  echo "Invalid upstream tag" >&2
+  exit 2
+fi
+
 ROOT="$(git rev-parse --show-toplevel)"
-TEMP="$(mktemp -d "${RUNNER_TEMP:-/tmp}/ai-narrator-merge.XXXXXX")"
+TEMP="$(mktemp -d "${RUNNER_TEMP:-/tmp}/ai-narrator-upstream.XXXXXX")"
 REPORT="$ROOT/upstream-compatibility-report.txt"
 cleanup() {
   git -C "$TEMP" merge --abort >/dev/null 2>&1 || true
@@ -11,32 +17,69 @@ cleanup() {
   rmdir "$TEMP" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
+
 {
-  echo "AI narrator upstream compatibility dry run"
+  echo "UPSTREAM COMPATIBILITY — noncommitting isolated test"
   echo "Feature HEAD: $(git rev-parse HEAD)"
-  echo "Official upstream tag: $TAG"
+  echo "Official NuvioTV tag: $TAG"
+  echo "No branch update or release publication"
 } > "$REPORT"
-git fetch --no-tags https://github.com/NuvioMedia/NuvioTV.git "refs/tags/$TAG:refs/tags/ai-narrator-check-$TAG"
+
 git worktree add --detach "$TEMP" HEAD
+git -C "$TEMP" fetch --no-tags https://github.com/NuvioMedia/NuvioTV.git "refs/tags/$TAG"
+
 set +e
-git -C "$TEMP" merge --no-commit --no-ff "refs/tags/ai-narrator-check-$TAG" > "$TEMP/ai-merge.log" 2>&1
-status=$?
+git -C "$TEMP" merge --no-ff --no-commit FETCH_HEAD > "$TEMP/ai-merge.log" 2>&1
+merge_status=$?
 set -e
-if (( status != 0 )); then
+
+# Match fork-owned workflow preference in mirror-nuviotv-release.yml.
+git -C "$TEMP" restore --source=HEAD --staged --worktree .github/workflows
+
+if (( merge_status != 0 )); then
+  mapfile -t conflicts < <(git -C "$TEMP" diff --name-only --diff-filter=U)
   {
-    echo "RESULT: MERGE FAILED / MANUAL REVIEW REQUIRED"
-    echo "Conflicted files:"
-    git -C "$TEMP" diff --name-only --diff-filter=U || true
-    cat "$TEMP/ai-merge.log"
+    echo "Merge exit status: $merge_status"
+    echo "Conflicted files: ${#conflicts[@]}"
+    printf '  %s\n' "${conflicts[@]}"
   } >> "$REPORT"
-  cat "$REPORT"
+
+  # The existing AutoSync special-case: upstream build.gradle wins,
+  # then reinsert only the known fork-owned Reshaped Gradle hook.
+  if [[ "${#conflicts[@]}" -eq 1 && "${conflicts[0]}" == "app/build.gradle.kts" ]]; then
+    git -C "$TEMP" checkout --theirs -- app/build.gradle.kts
+    hook='apply(from = "reshaped.gradle") // Nuvio RS hook: fork build settings'
+    if ! grep -qxF "$hook" "$TEMP/app/build.gradle.kts"; then
+      printf '\n%s\n' "$hook" >> "$TEMP/app/build.gradle.kts"
+    fi
+    git -C "$TEMP" add app/build.gradle.kts
+    echo "Special-case app/build.gradle.kts resolved using existing upstream rule" >> "$REPORT"
+  else
+    echo "RESULT: CONFLICT — review required; no automatic resolution attempted" >> "$REPORT"
+    cat "$TEMP/ai-merge.log" >> "$REPORT"
+    cat "$REPORT"
+    exit 1
+  fi
+fi
+
+if [[ -n "$(git -C "$TEMP" diff --name-only --diff-filter=U)" ]]; then
+  echo "RESULT: UNRESOLVED CONFLICT" >> "$REPORT"
   exit 1
 fi
-echo "RESULT: MERGE CLEAN, compiling merged worktree without commit" >> "$REPORT"
+echo "MERGE: CLEAN or resolved strictly with current fork rule" >> "$REPORT"
+{
+  echo "Changed paths:"
+  git -C "$TEMP" status --short
+  echo "Checks:"
+} >> "$REPORT"
 set +e
-(cd "$TEMP" && ./gradlew :app:compileFullDebugKotlin :app:testFullDebugUnitTest --no-daemon) >> "$REPORT" 2>&1
-status=$?
+(
+  cd "$TEMP"
+  python3 ai-narrator/tools/check_contracts.py
+  ./gradlew :app:compileFullDebugKotlin :app:testFullDebugUnitTest --tests '*Narrator*Test*' --no-daemon
+) >> "$REPORT" 2>&1
+test_status=$?
 set -e
-echo "BUILD_RESULT=$status" >> "$REPORT"
-tail -n 50 "$REPORT"
-exit "$status"
+echo "BUILD_AND_CONTRACT_EXIT=$test_status" >> "$REPORT"
+tail -n 70 "$REPORT"
+exit "$test_status"
