@@ -8,11 +8,6 @@
         <intent>
             <action android:name="android.speech.RecognitionService" />
         </intent>
-        <!-- fork: launcher (ekran Aplikacje) widzi aplikacje na TV -->
-        <intent>
-            <action android:name="android.intent.action.MAIN" />
-            <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
-        </intent>
     </queries>
 
     <uses-permission android:name="android.permission.INTERNET" />
