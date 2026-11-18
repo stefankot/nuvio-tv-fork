@@ -31,7 +31,8 @@ object SourceChoice {
         val preset = presets(c).firstOrNull { it.id == presetId } ?: return
         val store = EntryPointAccessors.fromApplication(c.applicationContext, Deps::class.java).player()
         store.setStreamAutoPlayRankedRegex(preset.rules)
-        store.setStreamAutoPlayMode(StreamAutoPlayMode.REGEX_MATCH)
+        // Hybryda 18.11: tryb „pierwsze źródło” = ranking KE + polski dźwięk z tych reguł (KeRanking); Regex omijałby ranking.
+        store.setStreamAutoPlayMode(StreamAutoPlayMode.FIRST_STREAM)
         preset.audio.getOrNull(0)?.let { store.setPreferredAudioLanguage(langCode(it)) }
         store.setSecondaryPreferredAudioLanguage(preset.audio.getOrNull(1)?.let(::langCode))
         preset.subs.getOrNull(0)?.let { store.setSubtitlePreferredLanguage(langCode(it)) }
@@ -40,6 +41,15 @@ object SourceChoice {
         store.setStreamAutoPlayReuseBingeGroup(true)
         store.setStreamAutoPlayPreferBingeGroupForNextEpisode(true)
         ForkFeatures.setStr(c, stateKey(), presetId)
+        KeRanking.warm(c)
+    }
+
+    /** Tryb Regex zapisany przez starą wersję odpowiedzi: przestaw na „pierwsze źródło”, gdy reguły to wciąż zestaw odpowiedzi. */
+    suspend fun useRanking(c: Context) {
+        val store = EntryPointAccessors.fromApplication(c.applicationContext, Deps::class.java).player()
+        val s = store.playerSettings.first()
+        if (s.streamAutoPlayMode == StreamAutoPlayMode.REGEX_MATCH && SourcePresets.matching(s.streamAutoPlayRankedRegex, presets(c)) != SourcePresets.CUSTOM)
+            store.setStreamAutoPlayMode(StreamAutoPlayMode.FIRST_STREAM)
     }
 
     /** B04-9: napisy dla seniorów: rozmiar, półprzezroczyste tło, obrys. */

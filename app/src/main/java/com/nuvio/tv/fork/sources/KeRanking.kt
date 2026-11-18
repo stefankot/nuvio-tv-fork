@@ -75,10 +75,28 @@ object KeRanking {
         }
     }
 
-    /** Raz po starcie: przełącznik, dekodery urządzenia (zapytanie trwa), największa rozdzielczość telewizora. */
+    /**
+     * Odpowiedź na pytanie „polski lektor/dubbing czy jakość obrazu?” (fork/sources/SourceChoice): tylko reguły polskiego
+     * dźwięku z jej zestawu (`source_presets.json`, testy B04-1: „PL subs” to nie polski dźwięk). Null = bez preferencji
+     * języka (odpowiedź „oryginał” albo brak odpowiedzi); jakość układa wtedy sam ranking KE.
+     */
+    @Volatile private var polishRules: SourcePreset? = null
+
+    private fun polishTier(s: Stream): Int {
+        val p = polishRules ?: return 0
+        val text = listOfNotNull(s.name, s.title, s.description).joinToString(" ")
+        return SourcePresets.tierOf(p, text) ?: Int.MAX_VALUE
+    }
+
+    /** Raz po starcie i po każdej zmianie odpowiedzi: przełącznik, język, dekodery urządzenia, rozdzielczość telewizora. */
     fun warm(context: Context) {
         val app = context.applicationContext
         enabled = ForkFeatures.enabled(app, KEY, true)
+        val answer = SourceChoice.answer(app)
+        polishRules = SourceChoice.presets(app).firstOrNull { it.id == answer }
+            ?.let { preset -> preset.copy(rules = preset.rules.filter { "lektor" in it }) }?.takeIf { it.rules.isNotEmpty() }
+        // Dawniej odpowiedź włączała tryb Regex, który omija ranking KE: jednorazowo przestaw na „pierwsze źródło”.
+        if (answer.isNotEmpty() && answer != SourcePresets.CUSTOM) scope.launch { runCatching { SourceChoice.useRanking(app) } }
         tvCap = tvMaxResolution(app)
         scope.launch { decode = runCatching { DecodeCapability.current(app) }.getOrDefault(DecodeCapability.UNKNOWN) }
     }
@@ -95,7 +113,8 @@ object KeRanking {
                 val facts = ReleaseFactsParser.factsFor(s)
                 dc.verdict(facts) != DecodeVerdict.SOFTWARE && (cap == null || !isOverResolutionCap(facts.resolution, cap))
             }
-            val ordered = fits + demoted
+            // Polski dźwięk według odpowiedzi właściciela przed jakością; w obrębie szczebla zostaje kolejność KE (stabilne).
+            val ordered = (fits + demoted).let { list -> if (polishRules == null) list else list.sortedBy(::polishTier) }
             preferred?.preferredFirst(ordered)?.first ?: ordered
         }.getOrDefault(streams)
     }
