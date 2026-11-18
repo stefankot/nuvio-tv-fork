@@ -47,11 +47,11 @@ object NuvioRadii {
         xxs = 2.dp,
         xs = 4.dp,
         sm = 8.dp,
-        md = 12.dp,
-        lg = 14.dp,
+        md = if (com.nuvio.tv.skin.kicia.ForgeUi.ON) 8.dp else 12.dp, // forge hook v7.4: radii 8 / 16 / full
+        lg = if (com.nuvio.tv.skin.kicia.ForgeUi.ON) 16.dp else 14.dp, // forge hook v7.4
         xl = 16.dp,
-        xxl = 20.dp,
-        panel = 28.dp,
+        xxl = if (com.nuvio.tv.skin.kicia.ForgeUi.ON) 16.dp else 20.dp, // forge hook v7.4
+        panel = if (com.nuvio.tv.skin.kicia.ForgeUi.ON) 16.dp else 28.dp, // forge hook v7.4
         full = 999.dp
     )
 }

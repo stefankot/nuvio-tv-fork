@@ -196,11 +196,14 @@ fun SkipIntroButton(
                     isFocused = it.isFocused
                     if (it.isFocused) onFocused?.invoke()
                 },
-            colors = CardDefaults.colors(
+            colors = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_PLAYER) CardDefaults.colors( // forge: pill of the mockup, white when focused (S04 b20)
+                containerColor = com.nuvio.tv.skin.kicia.tokens.ForgeColors.Sheet,
+                focusedContainerColor = com.nuvio.tv.skin.kicia.tokens.ForgeColors.Focus
+            ) else CardDefaults.colors(
                 containerColor = NuvioPrimitives.neutral875.copy(alpha = 0.85f),
                 focusedContainerColor = NuvioTheme.colors.Secondary
             ),
-            shape = CardDefaults.shape(shape = RoundedCornerShape(NuvioTheme.radii.md))
+            shape = CardDefaults.shape(shape = RoundedCornerShape(if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_PLAYER) 22.dp else NuvioTheme.radii.md))
         ) {
             androidx.compose.foundation.layout.Column(
                 modifier = Modifier.width(IntrinsicSize.Max)
@@ -212,13 +215,14 @@ fun SkipIntroButton(
                     Icon(
                         imageVector = Icons.Default.SkipNext,
                         contentDescription = null,
-                        tint = if (isFocused) NuvioTheme.colors.OnSecondary else Color.White,
+                        tint = if (isFocused) (if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_PLAYER) com.nuvio.tv.skin.kicia.tokens.ForgeColors.OnFocus else NuvioTheme.colors.OnSecondary) else Color.White,
                         modifier = Modifier.size(20.dp)
                     )
                     Text(
                         text = getSkipLabel(lastType, targetsPostCredits),
-                        color = if (isFocused) NuvioTheme.colors.OnSecondary else Color.White,
-                        fontSize = 14.sp,
+                        color = if (isFocused) (if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_PLAYER) com.nuvio.tv.skin.kicia.tokens.ForgeColors.OnFocus else NuvioTheme.colors.OnSecondary) else Color.White,
+                        fontSize = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_PLAYER) 15.sp else 14.sp,
+                        fontWeight = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_PLAYER) androidx.compose.ui.text.font.FontWeight.Bold else null,
                         modifier = Modifier.padding(start = NuvioTheme.spacing.sm)
                     )
                 }

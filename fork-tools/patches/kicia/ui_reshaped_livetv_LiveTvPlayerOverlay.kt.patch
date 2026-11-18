@@ -1,0 +1,652 @@
+diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverlay.kt b/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverlay.kt
+index 82e74ab29..a3e53d9e0 100644
+--- a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverlay.kt
++++ b/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverlay.kt
+@@ -178,11 +178,17 @@ internal class LiveTvPlayerState(
+     /** OK is down on the bare picture: a short press acts on release, a held one starts the programme over. */
+     private var okHeld = false
+ 
+-    private fun showInfo() {
++    internal fun showInfo() { // forge: internal (MiniGuide keeps the card up)
+         infoOpen = true
+         infoJob?.cancel()
+         infoJob = scope.launch {
+-            delay(INFO_MS)
++            // forge fix 14.11 (makieta 7.6, ZACHOWANIE 5.14: „w pauzie zostaje”): paused, the MiniGuide stays and the pause screen waits
++            // (it took over after 5 s, and OK on „Info” then resumed instead)
++            val until = android.os.SystemClock.uptimeMillis() + INFO_MS
++            while (android.os.SystemClock.uptimeMillis() < until || (!controller.uiState.value.isPlaying && controller.uiState.value.error == null)) {
++                if (controller.uiState.value.showPauseOverlay && !controller.uiState.value.isPlaying) controller._uiState.update { it.copy(showPauseOverlay = false) }
++                delay(250L)
++            }
+             infoOpen = false
+         }
+     }
+@@ -196,6 +202,40 @@ internal class LiveTvPlayerState(
+     /** The player, for the details the Now/Next card shows. */
+     internal val player: PlayerRuntimeController get() = controller
+ 
++    /** forge fix 14.11 (JMGO A2): leaves the player (set by the player screen); a long Back and Back in the archive's question use it. */
++    internal var exit: (() -> Unit)? = null
++    private var backHeldHandled = false
++
++    /**
++     * forge fix 14.11 (JMGO A1/A4): pause and resume at once, without the film player's own bar (its range is the whole
++     * stream: 24 h ahead live, the archive's whole recording): live it is a time shift, the MiniGuide shows where it stands.
++     */
++    internal fun togglePause() {
++        val playing = controller.uiState.value.isPlaying
++        controller.onEvent(PlayerEvent.OnPlayPause, showPlaybackControls = false)
++        // „paused” = behind live from a pause on: it stays after resuming, until the channel goes live again
++        if (playing && !isCatchup()) com.nuvio.tv.skin.kicia.livetv.ForgeMiniGuideNav.paused = true
++        if (!isCatchup()) com.nuvio.tv.skin.kicia.livetv.ForgeMiniGuideNav.onPauseToggled(nowPaused = playing) // forge hook 7.7 E19: the shift in minutes
++    }
++
++    /** forge fix 14.11 (JMGO A1): whether the picture stands still now. */
++    internal fun isPausedNow(): Boolean = !controller.uiState.value.isPlaying
++
++    /** forge fix 14.11 (JMGO A2): a held Back (repeats, or a late release) leaves the player from any state; true = consumed. */
++    private fun forgeLongBack(event: KeyEvent): Boolean {
++        if (event.keyCode != KeyEvent.KEYCODE_BACK && event.keyCode != KeyEvent.KEYCODE_ESCAPE) return false
++        if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) { backHeldHandled = false; return false }
++        val held = (event.action == KeyEvent.ACTION_DOWN && event.repeatCount > 0) ||
++            (event.action == KeyEvent.ACTION_UP && event.eventTime - event.downTime >= ViewConfiguration.getLongPressTimeout())
++        if (backHeldHandled) { if (event.action == KeyEvent.ACTION_UP) backHeldHandled = false; return true }
++        if (!held) return false
++        backHeldHandled = event.action == KeyEvent.ACTION_DOWN // the release that follows is swallowed
++        hideInfo()
++        zapConfirm = null
++        exit?.invoke()
++        return true
++    }
++
+     /** Whether the player is showing a Live TV channel (read on each key; a memory lookup). */
+     fun isActive(): Boolean = LiveTvPlaybackRegistry.isLiveTv(controller.currentStreamUrl)
+ 
+@@ -203,6 +243,17 @@ internal class LiveTvPlayerState(
+         if (currentListUrl == null && isActive()) {
+             currentListUrl = LiveTvPlaybackRegistry.listUrlFor(controller.currentStreamUrl)
+             bannerKey++
++            // forge hook (JMGO 6): a replay opened from the guide gets the same start guard as one started here
++            if (isCatchup()) currentChannel()?.let { ch ->
++                // forge fix 14.11 (JMGO A5): a programme opened from the guide's archive also stops at its own end
++                LiveTvPlaybackRegistry.replayWindow(controller.currentStreamUrl)?.let { window ->
++                    val at = window.startMs + REPLAY_BIND_SLACK_MS
++                    replayBound = LiveTvRepository.schedule(ch.guideKey).firstOrNull { at >= it.startEpochMs && at < it.stopEpochMs }
++                    replayBoundHit = false
++                }
++                controller.currentStreamUrl.let { watchReplayStart(ch, it, it) }
++            }
++            else currentChannel()?.let(::watchLiveStart) // forge hook v7.4: the first channel opened gets the same guard
+         }
+     }
+ 
+@@ -225,12 +276,34 @@ internal class LiveTvPlayerState(
+     fun onPreviewKey(event: KeyEvent, uiState: PlayerUiState): Boolean {
+         // Fork patch: dostawca #10 - gdy trwa sesja Live TV (wybrano kanał), klawisze zostają Live TV nawet gdy strumień chwilowo nie jest zarejestrowany
+         if (!isActive() && currentListUrl == null) return false
++        if (forgeLongBack(event)) return true // forge fix 14.11 (JMGO A2): a long Back always leaves at once
++        // test 15.11 (B-6): Back on the legend closes the legend only (it also left the player)
++        if (com.nuvio.tv.skin.kicia.livetv.ForgeRemoteLegend.pressed != -1 && (event.keyCode == KeyEvent.KEYCODE_BACK || event.keyCode == KeyEvent.KEYCODE_ESCAPE)) {
++            if (event.action == KeyEvent.ACTION_UP) com.nuvio.tv.skin.kicia.livetv.ForgeRemoteLegend.dismiss()
++            return true
++        }
++        if (archiveEnd != null || com.nuvio.tv.skin.kicia.livetv.ForgeRemoteLegend.pressed != -1) return false // forge hook 7.7 E25 / H9: the card or the legend own the keys
+         val nuvioOverlayOpen = uiState.showEpisodesPanel || uiState.showSourcesPanel ||
+             uiState.showAudioOverlay || uiState.showSubtitleOverlay || uiState.showSubtitleStylePanel ||
+             uiState.showSpeedDialog || uiState.showSubtitleDelayOverlay || uiState.showSubtitleTimingDialog ||
+             uiState.showMoreDialog || uiState.showStreamInfoOverlay
+         val down = event.action == KeyEvent.ACTION_DOWN
+         if (scrub != null) return onScrubKey(event, down, uiState)
++        // forge fix 14.11 (JMGO A1/A4): the remote's play/pause keys pause at once from any state, without the film bar
++        if (!nuvioOverlayOpen && uiState.error == null && event.keyCode in FORGE_PAUSE_KEYS) {
++            if (down && event.repeatCount == 0) {
++                val playing = uiState.isPlaying
++                val wanted = when (event.keyCode) { KeyEvent.KEYCODE_MEDIA_PLAY -> !playing; KeyEvent.KEYCODE_MEDIA_PAUSE, KeyEvent.KEYCODE_MEDIA_STOP -> playing; else -> true }
++                if (wanted) togglePause()
++                if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_MINIGUIDE && !panelOpen) showInfo()
++            }
++            return true
++        }
++        // forge fix 14.11 (JMGO A1): over the pause screen OK resumes here too (the player's own resume brings its bar)
++        if (!nuvioOverlayOpen && uiState.error == null && uiState.showPauseOverlay && event.keyCode in OK_KEYS && !panelOpen && !infoOpen) { // forge fix 14.11 (JMGO A6): with the MiniGuide up OK is its own
++            if (down && event.repeatCount == 0) { togglePause(); swallowOkRelease = true; okHeld = false }
++            return true
++        }
+         if (panelOpen && programmesChannel != null) {
+             return when (event.keyCode) {
+                 // Back to the channels, on the channel whose programmes these are.
+@@ -312,6 +385,11 @@ internal class LiveTvPlayerState(
+             // A past programme seeks and pauses like a film: only ▲▼ (back to live channels) and
+             // Back on the bare picture (back to this channel live) stay Live TV's.
+             if (uiState.showControls || nuvioOverlayOpen || uiState.error != null) return false
++            // forge (owner 10.11): from the archive too, OK opens the MiniGuide (pause, restart, info) instead of the player's own controls.
++            if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_MINIGUIDE) {
++                if (infoOpen) return com.nuvio.tv.skin.kicia.livetv.ForgeMiniGuideNav.onKey(this, event)
++                if (event.keyCode in OK_KEYS) { if (!down) { togglePause(); showInfo() }; return true } // forge fix 14.11 (JMGO A1): OK pauses at once (and shows the MiniGuide)
++            }
+             return when (event.keyCode) {
+                 KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN -> {
+                     if (down) zap(if (event.keyCode == KeyEvent.KEYCODE_DPAD_UP) -1 else 1)
+@@ -322,26 +400,30 @@ internal class LiveTvPlayerState(
+                 in SCRUB_KEYS -> {
+                     // ◀ at the very start of one that seeks (a programme started over, which
+                     // began early) reaches back past its start with the rewind bar.
+-                    if (replaySeeks() && !(event.keyCode in BACK_SCRUB_KEYS && atReplayStart())) return false
++                    // forge fix 14.11 (JMGO A4): an HLS replay no longer goes to the film bar (it spans the whole archive, −23:57:22): the rewind bar always
+                     val channel = currentChannel() ?: return false
+                     if (down && event.repeatCount == 0) openScrub(channel, if (event.keyCode in BACK_SCRUB_KEYS) -1 else 1)
+                     channel.catchup != null
+                 }
+                 KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_ESCAPE -> {
+-                    if (uiState.showPauseOverlay) return false
++                    // forge fix 14.11 (JMGO A2): over the pause screen Back asks too (it opened the film bar first, then took two more Backs)
++                    if (uiState.showPauseOverlay && !com.nuvio.tv.skin.kicia.ForgeUi.NEW_MINIGUIDE) return false
++                    if (uiState.showPauseOverlay && !down) controller._uiState.update { it.copy(showPauseOverlay = false) }
+                     // A channel gone since (removed, or its source edited) leaves Back to the player.
+                     val channel = currentChannel() ?: return false
+-                    if (!down) switchTo(channel)
++                    if (!down) { if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_MINIGUIDE) { if (zapConfirm == null) { hideInfo(); zapConfirm = 0 } } else switchTo(channel) } // forge hook (owner 13.11): Back from the archive asks first, like ▲▼ (step 0 = this channel live)
+                     true
+                 }
+                 else -> false
+             }
+         }
+         // ▲▼◀ and OK are Live TV's only on the bare picture: never over controls, panels or errors.
+-        if (uiState.showControls || nuvioOverlayOpen || uiState.error != null || uiState.showPauseOverlay) {
++        if (uiState.showControls || nuvioOverlayOpen || uiState.error != null || (uiState.showPauseOverlay && !infoOpen)) { // forge fix 14.11 (JMGO A6): the MiniGuide keeps its keys while paused
+             if (infoOpen) hideInfo()
+             return false
+         }
++        if (!infoOpen && com.nuvio.tv.skin.kicia.livetv.ForgeArchiveOffer.onKey(this, event)) return true // forge hook (owner 13.11): OK takes the archive offer
++        if (infoOpen && com.nuvio.tv.skin.kicia.ForgeUi.NEW_MINIGUIDE) return com.nuvio.tv.skin.kicia.livetv.ForgeMiniGuideNav.onKey(this, event) // forge hook: MiniGuide buttons (S09)
+         return when (event.keyCode) {
+             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> {
+                 // A short press acts on release (info, then the controls); held, the programme on
+@@ -363,7 +445,7 @@ internal class LiveTvPlayerState(
+                                 hideInfo()
+                                 controller.onEvent(PlayerEvent.OnToggleControls)
+                             }
+-                            else -> showInfo()
++                            else -> { togglePause(); showInfo() } // forge fix 14.11 (JMGO A1): OK on the bare picture pauses at once (a time shift) and shows the MiniGuide
+                         }
+                     }
+                 }
+@@ -375,10 +457,13 @@ internal class LiveTvPlayerState(
+                 true
+             }
+             KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN -> {
++                if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_MINIGUIDE && !infoOpen) return forgeHoldKey(event) // forge hook 7.7b H9: short on release, long ≥ 520 ms
+                 if (down) zap(if (event.keyCode == KeyEvent.KEYCODE_DPAD_UP) -1 else 1)
+                 true
+             }
+             KeyEvent.KEYCODE_DPAD_LEFT -> {
++                if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_MINIGUIDE && !infoOpen) return forgeHoldKey(event) // forge hook 7.7b H9
++                if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_MINIGUIDE) { if (down && event.repeatCount == 0) showInfo(); return true } // forge hook: hidden UI ◀ = MiniGuide (mockup S09), not the channel list
+                 // With the info card up, ◀ rewinds a channel the provider keeps (catch-up).
+                 val rewind = infoOpen && currentChannel()?.catchup != null
+                 if (down && event.repeatCount == 0) {
+@@ -393,6 +478,8 @@ internal class LiveTvPlayerState(
+                 true
+             }
+             KeyEvent.KEYCODE_DPAD_RIGHT -> {
++                if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_MINIGUIDE && !infoOpen) return forgeHoldKey(event) // forge hook 7.7b H9
++                if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_MINIGUIDE) { if (down && event.repeatCount == 0) showInfo(); return true } // forge hook: hidden UI ▶ = MiniGuide (mockup S09), not Nuvio's controls
+                 // A live channel has nothing to seek to: ▶ opens the controls (audio, subtitles).
+                 if (down && event.repeatCount == 0) {
+                     hideInfo()
+@@ -404,13 +491,66 @@ internal class LiveTvPlayerState(
+         }
+     }
+ 
++    /**
++     * forge hook 7.7b H9: with the controls hidden, ▲▼◀▶ act on RELEASE (short: ▲▼ zap, ◀▶ MiniGuide); held ≥ 520 ms the
++     * long action runs once instead (◀ from the start, ▶ next episode, ▼ Szczegóły i odcinki, ▲ the MiniGuide) and the
++     * remote legend may follow.
++     */
++    private var holdCode = -1
++    private var holdSince = 0L
++    private var holdFired = false
++    private fun forgeHoldKey(event: KeyEvent): Boolean {
++        val code = event.keyCode
++        when (event.action) {
++            KeyEvent.ACTION_DOWN -> {
++                if (event.repeatCount == 0 || holdCode != code) { holdCode = code; holdSince = event.downTime; holdFired = false }
++                if (!holdFired && (event.isLongPress || event.eventTime - holdSince >= 520L)) { holdFired = true; forgeLongAction(code) } // test 15.11: the system's long-press flag counts too
++            }
++            KeyEvent.ACTION_UP -> {
++                if (holdCode == code && !holdFired) when (code) {
++                    KeyEvent.KEYCODE_DPAD_UP -> zap(-1)
++                    KeyEvent.KEYCODE_DPAD_DOWN -> zap(1)
++                    else -> showInfo()
++                }
++                holdCode = -1; holdFired = false
++            }
++        }
++        return true
++    }
++    private fun forgeLongAction(code: Int) {
++        val channel = currentChannel() ?: return
++        val now = LiveTvClock.nowEpochMs()
++        val shown = replayingProgramme ?: LiveTvRepository.uiState.value.currentProgrammes[channel.guideKey]
++        when (code) {
++            KeyEvent.KEYCODE_DPAD_LEFT -> startOverProgramme(channel)?.let {
++                playCatchup(channel, it); com.nuvio.tv.skin.kicia.components.ForgeToast.show("Od początku programu", top = true)
++            } ?: com.nuvio.tv.skin.kicia.components.ForgeToast.show("Ten kanał nie ma archiwum", top = true)
++            KeyEvent.KEYCODE_DPAD_RIGHT -> {
++                val next = shown?.let { p -> LiveTvRepository.schedule(channel.guideKey).filter {
++                    it.title.trim().equals(p.title.trim(), ignoreCase = true) && it.startEpochMs > p.startEpochMs && it.stopEpochMs <= now &&
++                        LiveTvCatchupLinks.isPlayable(channel.catchup, it, now)
++                }.minByOrNull { it.startEpochMs } }
++                if (next != null) playCatchup(channel, next)
++                else {
++                    val after = shown?.let { p -> LiveTvRepository.schedule(channel.guideKey).firstOrNull { it.startEpochMs >= p.stopEpochMs } }
++                    com.nuvio.tv.skin.kicia.components.ForgeToast.show("Nie ma jeszcze następnego odcinka", top = true,
++                        note = after?.let { "Kolejny program: " + com.nuvio.tv.skin.kicia.livetv.forgeTvTime(it.startEpochMs) + " · " + it.title })
++                }
++            }
++            KeyEvent.KEYCODE_DPAD_DOWN -> shown?.let { com.nuvio.tv.skin.kicia.livetv.ForgeMiniGuideNav.detail = channel to it }
++            KeyEvent.KEYCODE_DPAD_UP -> showInfo()
++        }
++        // test 15.11 (B-4/B-5): no legend over the details (long ▼); after ◀ ▶ it waits for the Komunikat to be read
++        if (code == KeyEvent.KEYCODE_DPAD_LEFT || code == KeyEvent.KEYCODE_DPAD_RIGHT) scope.launch { kotlinx.coroutines.delay(2_500); com.nuvio.tv.skin.kicia.livetv.ForgeRemoteLegend.offer(code) }
++    }
++
+     /** Where the playing channel was in the list last zapped, so a zap skips searching for it. */
+     private var zapIndexHint = -1
+ 
+     /** Fork patch: dostawca #10 - zmiana kanału podczas archiwum czeka na potwierdzenie. */
+     internal var zapConfirm by mutableStateOf<Int?>(null)
+ 
+-    private fun zap(step: Int) {
++    internal fun zap(step: Int) { // forge: internal (MiniGuide ▲▼)
+         if (isCatchup()) {
+             if (zapConfirm == null) { hideInfo(); zapConfirm = step }
+             return
+@@ -428,6 +568,7 @@ internal class LiveTvPlayerState(
+         val index = zapIndexHint.takeIf { it in list.indices && list[it].streamUrl == url } ?: list.indexOfFirst { it.streamUrl == url }
+         val next = if (index < 0) 0 else Math.floorMod(index + step, list.size)
+         zapIndexHint = next
++        com.nuvio.tv.skin.kicia.livetv.ForgeMiniGuideNav.zapAt = android.os.SystemClock.uptimeMillis() // forge hook 7.7b H8: the tile's countdown
+         switchTo(list[next])
+     }
+ 
+@@ -479,6 +620,8 @@ internal class LiveTvPlayerState(
+ 
+     /** The rewind bar, while it shows (see [LiveTvScrub]). */
+     var scrub by mutableStateOf<LiveTvScrub?>(null)
++    /** forge hook v7.4 (07): the rewind runs on the MiniGuide's own bar (the MiniGuide stays, no native bar). */
++    var scrubInInfo by mutableStateOf(false)
+         private set
+     private var scrubJob: Job? = null
+     /** OK went down while the rewind bar showed: its release plays the time picked. */
+@@ -498,16 +641,21 @@ internal class LiveTvPlayerState(
+         return (window.startMs + controller.playbackTimeline.value.currentPosition.coerceAtLeast(0L)).coerceAtMost(now)
+     }
+ 
++    /** forge: where the picture is in the channel's time, for the MiniGuide's bar of a replay. */
++    internal fun playheadEpochMs(): Long = playheadMs(LiveTvClock.nowEpochMs())
++
+     /** The earliest time [channel]'s provider keeps, with a minute to spare. */
+     private fun earliestMs(channel: LiveTvChannel, now: Long): Long =
+         now - (channel.catchup?.days ?: 0) * 24L * 60 * 60 * 1000 + 60_000L
+ 
+     /** Shows the rewind bar on where the picture is, moved one [direction] step. */
+-    private fun openScrub(channel: LiveTvChannel, direction: Int) {
++    internal fun openScrub(channel: LiveTvChannel, direction: Int, keepInfo: Boolean = false) { // forge: internal (MiniGuide bar)
+         if (channel.catchup == null) return
+         // Its older days, for stepping back past what the guide keeps in memory.
+         LiveTvRepository.requestHistory(channel)
+-        hideInfo()
++        // forge hook v7.4 (07): from the MiniGuide's bar the MiniGuide stays and its bar moves; otherwise the native rewind bar
++        scrubInInfo = keepInfo
++        if (keepInfo) showInfo() else hideInfo()
+         val now = LiveTvClock.nowEpochMs()
+         val at = playheadMs(now)
+         val from = LiveTvScrubSteps.rangeStart(LiveTvRepository.schedule(channel.guideKey), at, earliestMs(channel, now))
+@@ -549,6 +697,7 @@ internal class LiveTvPlayerState(
+         scrubJob = null
+         scrubOkDown = false
+         scrub = null
++        scrubInInfo = false // forge hook v7.4 (07)
+     }
+ 
+     /** Plays from the picked time: a replay from there, or the channel live when that is now. */
+@@ -562,6 +711,16 @@ internal class LiveTvPlayerState(
+             return
+         }
+         val start = bar.targetMs
++        // forge fix 14.11 (JMGO A4): within a replay the player can seek in (HLS with a length), ◀▶ seeks instead of loading the stream again
++        val window = LiveTvPlaybackRegistry.replayWindow(controller.currentStreamUrl)
++        val length = controller._exoPlayer?.duration ?: 0L
++        if (isCatchup() && channel.streamUrl == currentListUrl && window != null && replaySeeks() && start >= window.startMs && start < window.startMs + length - REPLAY_END_HOLD_MS) {
++            switchJob?.cancel()
++            replayBound = replayBound?.takeIf { start >= it.startEpochMs && start < it.stopEpochMs }
++            replayBoundHit = false
++            controller._exoPlayer?.seekTo(start - window.startMs)
++            return
++        }
+         switchJob?.cancel()
+         switchJob = scope.launch {
+             val replay = LiveTvRepository.replayChannel(channel, start)
+@@ -572,6 +731,9 @@ internal class LiveTvPlayerState(
+             currentListUrl = channel.streamUrl
+             val programme = LiveTvRepository.schedule(channel.guideKey).firstOrNull { start >= it.startEpochMs && start < it.stopEpochMs }
+             replayTitleProgramme = programme
++            // forge fix 14.11 (JMGO A5): a rewind of live runs on (back to the archive's limit, forward to now); within a programme picked from the archive it still ends there
++            replayBound = replayBound?.takeIf { start >= it.startEpochMs && start < it.stopEpochMs }
++            replayBoundHit = false
+             controller._uiState.update { it.copy(title = programme?.title ?: channel.name, logo = LiveTvRepository.uiState.value.logoFor(channel)) }
+             playReplay(channel, replay)
+         }
+@@ -584,7 +746,7 @@ internal class LiveTvPlayerState(
+             return false
+         }
+         when (event.keyCode) {
+-            in SCRUB_KEYS -> if (down) stepScrub(if (event.keyCode in BACK_SCRUB_KEYS) -1 else 1, event.repeatCount) else settleScrub()
++            in SCRUB_KEYS -> if (down) { stepScrub(if (event.keyCode in BACK_SCRUB_KEYS) -1 else 1, event.repeatCount); if (scrubInInfo) showInfo() } else settleScrub() // forge hook v7.4 (07): the MiniGuide stays up while it rewinds
+             in OK_KEYS -> if (down && event.repeatCount == 0) {
+                 scrubOkDown = true
+             } else if (!down && scrubOkDown) {
+@@ -632,7 +794,11 @@ internal class LiveTvPlayerState(
+         hideInfo()
+         switchJob?.cancel()
+         switchJob = scope.launch {
+-            val replay = LiveTvRepository.catchupChannel(channel, programme)
++            // forge fix 15.11 (JMGO): a resume starts inside an airing (no guide entry starts there) — that very airing plays,
++            // the race could pick another airing of the episode and the replay then missed its own end
++            val resume = LiveTvRepository.schedule(channel.guideKey).none { it.startEpochMs == programme.startEpochMs }
++            val (channel, programme, replay) = if (resume) Triple(channel, programme, LiveTvRepository.catchupChannel(channel, programme))
++                else com.nuvio.tv.skin.kicia.livetv.ForgeAiringRace.pick(channel, programme) // forge hook (owner 13.11): every airing of this episode races
+             if (replay == null) {
+                 // What plays stays as it was.
+                 android.widget.Toast.makeText(controller.context, R.string.live_tv_catchup_failed, android.widget.Toast.LENGTH_SHORT).show()
+@@ -641,6 +807,8 @@ internal class LiveTvPlayerState(
+             currentListUrl = channel.streamUrl
+             bannerKey++
+             replayTitleProgramme = programme
++            replayBound = programme // forge fix 14.11 (JMGO A5): a programme picked from the archive ends where it ends
++            replayBoundHit = false
+             controller._uiState.update { it.copy(title = programme.title, logo = LiveTvRepository.uiState.value.logoFor(channel)) }
+             playReplay(channel, replay)
+         }
+@@ -651,8 +819,30 @@ internal class LiveTvPlayerState(
+         LiveTvPlaybackRegistry.register(url, listUrl = channel.streamUrl, catchup = true, window = replay.window)
+         replayFallback = replay.fallback?.let { url to it }
+         controller.switchToSourceStream(channel.toStream(replay.playback))
++        watchReplayStart(channel, url, replay.playback.streamUrl)
++    }
++
++    /**
++     * forge hook (JMGO test 13.11: an archive hung 70 s on „Uruchamianie strumienia…” with no word): a replay that shows no
++     * picture in [REPLAY_START_MS] tries its other link; with none, says so and goes back to the channel live.
++     */
++    private var replayStartJob: Job? = null
++    private fun watchReplayStart(channel: LiveTvChannel, url: String, rawUrl: String) {
++        replayStartJob?.cancel()
++        replayStartJob = scope.launch {
++            delay(REPLAY_START_MS)
++            val still = controller.currentStreamUrl == url || controller.currentStreamUrl == rawUrl
++            if (!still || controller.hasRenderedFirstFrame) return@launch
++            android.util.Log.i("ForgeAiringRace", "replay start timeout on ${channel.name}")
++            if (playReplayFallback(url)) return@launch
++            com.nuvio.tv.skin.kicia.components.ForgeToast.show("Archiwum nie odpowiada — wracam na żywo", top = true)
++            replayTitleProgramme = null
++            pickFromPanel(channel)
++        }
+     }
+ 
++    private val REPLAY_START_MS = 20_000L
++
+     /** The replay playing (its player URL) and the other link to play should the provider fail it. */
+     private var replayFallback: Pair<String, LiveTvReplay>? = null
+ 
+@@ -674,8 +864,38 @@ internal class LiveTvPlayerState(
+ 
+     /** Fork patch: dostawca #10 */
+     internal val replayingProgramme: LiveTvProgramme? get() = replayTitleProgramme?.takeIf { isCatchup() }
++    /** forge: the past programme now replaying, for the MiniGuide's "Z archiwum"; null when live. */
++    internal val replayingProgramme: LiveTvProgramme? get() = replayTitleProgramme?.takeIf { isCatchup() }
+     /** The replay whose end has been acted on, so it is acted on once. */
+     private var continuedWindow: LiveTvReplayWindow? = null
++    /** forge fix 14.11 (JMGO A5): the programme picked from the archive, whose end the replay stops at; null for a rewind of live. */
++    private var replayBound: LiveTvProgramme? = null
++    /** forge hook 7.7 E25/H10: the archive programme whose end shows the „Następny odcinek” card; null = no card. */
++    internal var archiveEnd by mutableStateOf<LiveTvProgramme?>(null)
++    private var endLogMs = 0L
++
++    /** forge 7.7 E25: after [ended], the next episode of the same programme still in the archive, else what followed on the channel. */
++    internal fun nextAfterArchiveEnd(ended: LiveTvProgramme): Pair<LiveTvChannel, LiveTvProgramme>? {
++        val channel = currentChannel() ?: return null
++        val now = LiveTvClock.nowEpochMs()
++        val schedule = LiveTvRepository.schedule(channel.guideKey)
++        val title = ended.title.trim().lowercase()
++        val sameNext = schedule.filter {
++            it.title.trim().lowercase() == title && it.startEpochMs > ended.startEpochMs && it.episode != ended.episode &&
++                it.stopEpochMs <= now && LiveTvCatchupLinks.isPlayable(channel.catchup, it, now)
++        }.minByOrNull { it.startEpochMs }
++        val after = schedule.firstOrNull { it.startEpochMs >= ended.stopEpochMs }
++        return (sameNext ?: after)?.let { channel to it }
++    }
++
++    /** forge 7.7 E25: plays what the card offers (from the archive, or the channel live when it airs now). */
++    internal fun playAfterArchiveEnd() {
++        val ended = archiveEnd ?: return
++        archiveEnd = null
++        val (channel, next) = nextAfterArchiveEnd(ended) ?: return
++        if (next.stopEpochMs <= LiveTvClock.nowEpochMs()) playCatchup(channel, next) else switchTo(channel, force = true)
++    }
++    private var replayBoundHit = false
+ 
+     /**
+      * Follows a replay as it plays ([positionMs] into it, [durationMs] long when known): the title
+@@ -693,6 +913,28 @@ internal class LiveTvPlayerState(
+                 if (controller._uiState.value.title != programme.title) controller._uiState.update { it.copy(title = programme.title) }
+             }
+         }
++        (replayBound ?: replayTitleProgramme)?.let { com.nuvio.tv.fork.tv.TvStore.recordReplay(channel, it, at) } // forge hook 7.7 G31/H16: where the archive was left
++        // test 15.11 (JMGO): a replay ran past its programme's end without stopping — say once per minute what the end check sees
++        if (android.os.SystemClock.elapsedRealtime() - endLogMs > 60_000L) {
++            endLogMs = android.os.SystemClock.elapsedRealtime()
++            android.util.Log.i("ForgeReplayEnd", "at=$at windowStart=${window.startMs} pos=$positionMs bound=${replayBound?.let { it.title + " " + it.startEpochMs + "-" + it.stopEpochMs }} hit=$replayBoundHit bounded=${window.bounded}")
++        }
++        // forge fix 14.11 (JMGO A5): a programme picked from the archive stops at its own end (the provider's stream runs on
++        // to now, into the next programmes); a seek past the end comes back to it.
++        replayBound?.let { bound ->
++            val endAt = bound.stopEpochMs - window.startMs
++            when {
++                at > bound.stopEpochMs + REPLAY_PAST_END_MS -> controller._exoPlayer?.seekTo((endAt - REPLAY_END_HOLD_MS).coerceAtLeast(0L))
++                at >= bound.stopEpochMs - REPLAY_END_HOLD_MS -> if (!replayBoundHit) {
++                    replayBoundHit = true
++                    if (controller.uiState.value.isPlaying) togglePause()
++                    // forge hook 7.7 E25/H10: the „Następny odcinek za 10 s” card instead of the MiniGuide
++                    if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_MINIGUIDE && nextAfterArchiveEnd(bound) != null) { hideInfo(); archiveEnd = bound } else showInfo()
++                }
++                else -> replayBoundHit = false
++            }
++            return
++        }
+         // A replay's length is known for HLS; a TS replay is as long as was asked for. One that
+         // names no end runs on to live by itself, and is only followed should it stop.
+         if (!window.bounded) return
+@@ -718,14 +960,16 @@ internal class LiveTvPlayerState(
+         }
+     }
+ 
+-    internal fun switchTo(channel: LiveTvChannel) {
+-        if (channel.streamUrl == currentListUrl && !isCatchup()) {
++    internal fun switchTo(channel: LiveTvChannel, force: Boolean = false) { // forge: force = back to live on the same channel (08 „Oglądaj na żywo”)
++        if (!force && channel.streamUrl == currentListUrl && !isCatchup()) {
+             closePanel()
+             return
+         }
+         currentListUrl = channel.streamUrl
+         bannerKey++
+         replayTitleProgramme = null
++        replayBound = null // forge fix 14.11 (JMGO A5)
++        com.nuvio.tv.skin.kicia.livetv.ForgeMiniGuideNav.paused = false // forge fix 14.11 (JMGO A6): live again, not shifted
+         closePanel()
+         // The loading screen and pause screen show the player's logo: the new channel's, from the first press.
+         controller._uiState.update { it.copy(title = channel.name, logo = LiveTvRepository.uiState.value.logoFor(channel)) }
+@@ -739,9 +983,71 @@ internal class LiveTvPlayerState(
+                 listUrl = channel.streamUrl,
+             )
+             controller.switchToSourceStream(channel.toStream(playback))
++            watchLiveStart(channel) // forge hook v7.4
+         }
+     }
+ 
++    /**
++     * forge hook v7.4 (test 13.11: TVP 1 HD hung >100 s on „Uruchamianie strumienia…” with no word; owner: no fixed waits,
++     * check every second). Each second until the first picture:
++     * - the player failed, or no data came in [LIVE_NO_DATA_MS]: the channel starts once more on a fresh address
++     *   (the provider starts an idle channel on its first viewer); failing again, it says so;
++     * - data is buffered but the decoder gives no picture for [LIVE_NO_PICTURE_MS] after the player is ready: the
++     *   device cannot show this channel (e.g. 1080i on the emulator), so it says so at once.
++     */
++    private var liveStartJob: Job? = null
++    private fun watchLiveStart(channel: LiveTvChannel) {
++        liveStartJob?.cancel()
++        liveStartJob = scope.launch {
++            var restarted = false
++            var since = android.os.SystemClock.elapsedRealtime()
++            var readySince = 0L
++            while (true) {
++                delay(1_000L)
++                if (!isActive() || currentListUrl != channel.streamUrl || isCatchup()) return@launch
++                val p = controller._exoPlayer
++                if (controller.hasRenderedFirstFrame || p?.isPlaying == true) return@launch
++                val now = android.os.SystemClock.elapsedRealtime()
++                val failed = p == null || p.playerError != null || p.playbackState == androidx.media3.common.Player.STATE_IDLE
++                val noData = (p?.totalBufferedDuration ?: 0L) <= 0L && now - since >= LIVE_NO_DATA_MS
++                if (p?.playbackState == androidx.media3.common.Player.STATE_READY) { if (readySince == 0L) readySince = now } else readySince = 0L
++                val noPicture = readySince > 0L && now - readySince >= LIVE_NO_PICTURE_MS
++                if (!(failed && now - since >= 1_000L) && !noData && !noPicture) continue
++                android.util.Log.i("ForgeLiveStart", "${channel.name} failed=$failed noData=$noData noPicture=$noPicture restarted=$restarted after=${now - since}ms")
++                if (noPicture) { com.nuvio.tv.skin.kicia.components.ForgeToast.show("Ten kanał nie wyświetla się na tym urządzeniu — wybierz inny", top = true); return@launch }
++                if (restarted) { com.nuvio.tv.skin.kicia.livetv.ForgeChannelFailed.channel.value = channel; return@launch } // makieta 07 blad-kanalu
++                restarted = true
++                since = now
++                readySince = 0L
++                val playback = LiveTvRepository.prepareForPlayback(channel)
++                LiveTvPlaybackRegistry.register(
++                    PlayerMediaSourceFactory.normalizePlaybackRequest(playback.streamUrl, playback.headers).url,
++                    listUrl = channel.streamUrl,
++                )
++                controller.switchToSourceStream(channel.toStream(playback))
++            }
++        }
++    }
++
++    /**
++     * forge fix 15.11 (JMGO: the TV lost the internet for 2 min while AXN played, Nuvio's raw „Błąd odtwarzania” with a
++     * Java exception stayed after the network came back): a live channel that drops while watched starts once more,
++     * quietly; failing again, the start guard's „Kanał nie odpowiada” says so. While the start guard still watches, or
++     * its window is up, the raw error is only hidden (the guard decides).
++     */
++    internal fun recoverLiveDrop() {
++        val error = controller.uiState.value.error ?: return
++        if (!isActive() || isCatchup()) return
++        val channel = currentChannel() ?: return
++        controller._uiState.update { it.copy(error = null) }
++        if (liveStartJob?.isActive == true || com.nuvio.tv.skin.kicia.livetv.ForgeChannelFailed.channel.value != null) return
++        android.util.Log.i("ForgeLiveStart", "${channel.name} dropped while watched, restarting: $error")
++        switchTo(channel, force = true)
++    }
++
++    private val LIVE_NO_DATA_MS = 6_000L
++    private val LIVE_NO_PICTURE_MS = 3_000L
++
+     /** Switches the display to the playing channel's frame rate (see [LiveTvFrameRateMatch]). */
+     internal suspend fun matchDisplay(fps: Float, raw: Float) = controller.matchDisplayToLiveTrack(fps, raw)
+ 
+@@ -773,9 +1079,14 @@ internal class LiveTvPlayerState(
+     )
+ 
+     private companion object {
+-        const val ZAP_SETTLE_MS = 350L
++        const val ZAP_SETTLE_MS = com.nuvio.tv.skin.kicia.livetv.ForgeMiniGuideNav.ZAP_MS // forge hook 7.7b H8: 500 ms (was 350)
+         /** How near its end a replay hands over to what follows, before the player stops at its end. */
+         const val REPLAY_END_MARGIN_MS = 1_500L
++        /** forge fix 14.11 (JMGO A5): a programme from the archive pauses this near its end; past it by more, it comes back. */
++        const val REPLAY_END_HOLD_MS = 2_000L
++        const val REPLAY_PAST_END_MS = 5_000L
++        /** Providers start a replay a little early: the programme is the one on this long after the replay's start. */
++        const val REPLAY_BIND_SLACK_MS = 120_000L
+         /** A replay this near to now goes live rather than asking for a few seconds more. */
+         const val REPLAY_CAUGHT_UP_MS = 90_000L
+         const val INFO_MS = 6_000L
+@@ -785,6 +1096,8 @@ internal class LiveTvPlayerState(
+         val SCRUB_KEYS = intArrayOf(KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_MEDIA_REWIND, KeyEvent.KEYCODE_MEDIA_FAST_FORWARD)
+         val BACK_SCRUB_KEYS = intArrayOf(KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_MEDIA_REWIND)
+         val OK_KEYS = intArrayOf(KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER)
++        /** forge fix 14.11 (JMGO A1): the remote's pause keys. */
++        val FORGE_PAUSE_KEYS = intArrayOf(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, KeyEvent.KEYCODE_MEDIA_PLAY, KeyEvent.KEYCODE_MEDIA_PAUSE, KeyEvent.KEYCODE_MEDIA_STOP, KeyEvent.KEYCODE_SPACE)
+     }
+ }
+ 
+@@ -860,6 +1173,7 @@ private fun BoxScope.LiveTvPlayerOverlayContent(state: LiveTvPlayerState, uiStat
+     var bannerVisible by remember { mutableStateOf(false) }
+     LaunchedEffect(state.bannerKey) {
+         if (state.bannerKey == 0) return@LaunchedEffect
++        if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_MINIGUIDE) { state.showInfo(); return@LaunchedEffect } // forge hook: a switch shows the MiniGuide (S09), not the old banner
+         bannerVisible = true
+         delay(BANNER_MS)
+         bannerVisible = false
+@@ -898,12 +1212,33 @@ private fun BoxScope.LiveTvPlayerOverlayContent(state: LiveTvPlayerState, uiStat
+                 clock = clock,
+                 startOver = remember(channel, liveState.currentProgrammes, clock.value / 60_000L) { state.startOverProgramme(channel) != null },
+                 rewind = channel.catchup != null,
++                replay = state.replayingProgramme,
++                playheadMs = state.playheadEpochMs(),
++                scrubMs = state.scrub?.takeIf { state.scrubInInfo }?.targetMs, // forge hook v7.4 (07)
+             )
+         }
+     }
+ 
++    if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_MINIGUIDE) com.nuvio.tv.skin.kicia.livetv.ForgeArchiveOfferCard(state) // forge hook (owner 13.11): earlier airing from the archive
++    com.nuvio.tv.skin.kicia.livetv.ForgeChannelFailedDialog(state) // forge hook v7.4 (makieta 07 blad-kanalu): the start guard's second failure
++    com.nuvio.tv.skin.kicia.livetv.ForgeArchiveEndCard(state) // forge hook 7.7 E25/H10: „Następny odcinek za 10 s”
++    com.nuvio.tv.skin.kicia.livetv.ForgeRemoteLegendDialog() // forge hook 7.7b H9: the remote legend after a long press
++    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { com.nuvio.tv.skin.kicia.livetv.ForgeRemoteLegend.dismiss() } } // test 15.11 (B-6): it stayed for the next channel
++    LaunchedEffect(uiState.error) { state.recoverLiveDrop() } // forge fix 15.11 (JMGO): a channel that drops while watched restarts, no raw error
++    state.zapConfirm?.let { step ->
++        com.nuvio.tv.skin.kicia.livetv.ForgeZapConfirm(
++            programmeTitle = state.replayingProgramme?.title,
++            toLive = step == 0, // forge: Back (step 0) = this channel live
++            logoUrl = com.nuvio.tv.skin.kicia.livetv.forgeCurrentChannelLogo(state), // forge v7.6
++            onStay = { state.zapConfirm = null },
++            onChange = { state.zapConfirm = null; state.zapNow(step) },
++            // forge fix 14.11 (JMGO A2): asked by Back, a second Back leaves (it used to close the question and ask again forever)
++            onBack = if (step == 0) ({ state.zapConfirm = null; state.exit?.invoke() }) else null,
++        )
++    }
++
+     AnimatedVisibility(
+-        visible = state.scrub != null && !uiState.showControls && !state.panelOpen,
++        visible = state.scrub != null && !state.scrubInInfo && !uiState.showControls && !state.panelOpen, // forge hook v7.4 (07): no native bar when the MiniGuide rewinds
+         // As the player's own seek bar comes and goes.
+         enter = fadeIn(tween(150)),
+         exit = fadeOut(tween(150)),
+@@ -923,6 +1258,7 @@ private fun BoxScope.LiveTvPlayerOverlayContent(state: LiveTvPlayerState, uiStat
+     ) {
+         LiveTvChannelPanel(state, liveState.currentProgrammes, clock)
+     }
++    com.nuvio.tv.skin.kicia.livetv.ForgeMiniGuideDetailHost(state) // forge hook: S08 from the MiniGuide
+ 
+ }
+ 
+@@ -1009,9 +1345,13 @@ private fun LiveTvInfoCard(
+     clock: State<Long>,
+     startOver: Boolean,
+     rewind: Boolean,
++    replay: LiveTvProgramme? = null,
++    playheadMs: Long = 0L,
++    scrubMs: Long? = null, // forge hook v7.4 (07)
+ ) {
+     // Read once per minute tick: the kept guide is a map lookup.
+     val next = remember(channel.guideKey, now, clock.value / 60_000L) { LiveTvRepository.nextProgramme(channel.guideKey) }
++    if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_MINIGUIDE) { com.nuvio.tv.skin.kicia.livetv.ForgeMiniGuideCard(channel, logo, now, next, clock.value, startOver, rewind, number, replay, playheadMs, scrubMs); return } // forge hook: MiniGuide (S09)
+     val shape = RoundedCornerShape(22.dp)
+     Row(
+         modifier = Modifier

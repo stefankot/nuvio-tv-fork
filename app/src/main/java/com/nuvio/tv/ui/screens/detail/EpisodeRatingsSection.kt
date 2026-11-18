@@ -302,7 +302,8 @@ fun EpisodeRatingsSection(
 }
 
 private fun ratingColor(value: Double): androidx.compose.ui.graphics.Color {
-    return when {
+    return com.nuvio.tv.skin.kicia.tokens.ForgeRatingScale.color(value) // forge hook: v7.4 rating scale (W-67)
+    @Suppress("UNREACHABLE_CODE") when {
         value >= 9.7 -> androidx.compose.ui.graphics.Color(0xFF1DA1F3)
         value >= 9.0 -> androidx.compose.ui.graphics.Color(0xFF186A3B)
         value >= 8.0 -> androidx.compose.ui.graphics.Color(0xFF28B463)
@@ -314,7 +315,8 @@ private fun ratingColor(value: Double): androidx.compose.ui.graphics.Color {
 }
 
 private fun ratingTextColor(value: Double): Color {
-    return when {
+    return com.nuvio.tv.skin.kicia.tokens.ForgeRatingScale.textColor // forge hook: v7.4 rating scale (W-67)
+    @Suppress("UNREACHABLE_CODE") when {
         value >= 7.0 && value < 8.0 -> Color(0xFF1D1D1F)
         else -> Color.White
     }

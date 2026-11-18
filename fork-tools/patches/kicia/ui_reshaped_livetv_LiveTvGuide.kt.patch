@@ -1,0 +1,312 @@
+diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvGuide.kt b/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvGuide.kt
+index 6396fdc1e..428de8381 100644
+--- a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvGuide.kt
++++ b/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvGuide.kt
+@@ -13,6 +13,8 @@ import androidx.compose.animation.core.spring
+ import androidx.compose.animation.core.tween
+ import androidx.compose.foundation.background
+ import androidx.compose.foundation.layout.Box
++import androidx.compose.ui.semantics.contentDescription
++import androidx.compose.ui.semantics.semantics
+ import androidx.compose.foundation.layout.BoxWithConstraints
+ import androidx.compose.foundation.layout.Column
+ import androidx.compose.foundation.layout.Row
+@@ -25,6 +27,7 @@ import androidx.compose.foundation.layout.padding
+ import androidx.compose.foundation.layout.size
+ import androidx.compose.foundation.layout.width
+ import androidx.compose.foundation.layout.widthIn
++import androidx.compose.foundation.layout.Arrangement
+ import androidx.compose.foundation.lazy.LazyColumn
+ import androidx.compose.foundation.lazy.itemsIndexed
+ import androidx.compose.foundation.lazy.rememberLazyListState
+@@ -39,6 +42,7 @@ import androidx.compose.runtime.Composable
+ import androidx.compose.runtime.LaunchedEffect
+ import androidx.compose.runtime.Stable
+ import androidx.compose.runtime.State
++import androidx.compose.runtime.collectAsState
+ import androidx.compose.runtime.derivedStateOf
+ import androidx.compose.runtime.getValue
+ import androidx.compose.runtime.key
+@@ -63,6 +67,9 @@ import androidx.compose.ui.graphics.graphicsLayer
+ import androidx.compose.ui.graphics.lerp
+ import androidx.compose.ui.layout.Layout
+ import androidx.compose.ui.platform.LocalDensity
++import androidx.compose.ui.platform.testTag
++import androidx.compose.foundation.layout.heightIn
++import androidx.compose.ui.layout.layout
+ import androidx.compose.ui.res.stringResource
+ import androidx.compose.ui.text.font.FontWeight
+ import androidx.compose.ui.text.style.TextOverflow
+@@ -71,6 +78,7 @@ import androidx.compose.ui.unit.Dp
+ import androidx.compose.ui.unit.IntOffset
+ import androidx.compose.ui.unit.IntSize
+ import androidx.compose.ui.unit.dp
++import androidx.compose.ui.unit.sp
+ import androidx.compose.ui.zIndex
+ import androidx.lifecycle.compose.collectAsStateWithLifecycle
+ import androidx.tv.material3.Icon
+@@ -87,12 +95,12 @@ import kotlinx.coroutines.launch
+ import kotlin.math.abs
+ import kotlin.math.roundToInt
+ 
+-private val MINUTE_WIDTH = 6.dp
++private val MINUTE_WIDTH = 4.dp // forge hook v7.4: 120 dp per 30 min
+ private val ROW_HEIGHT = 56.dp
+-private val CHANNEL_COLUMN = 220.dp
+-private val CELL = Color(0xFF1A1A1D)
+-private val CELL_PAST = Color(0xFF141416)
+-private val CELL_NOW = Color(0xFF26262A)
++private val CHANNEL_COLUMN = 132.dp // forge: logos only (was 220 dp with names)
++private val CELL = Color(0xFF3A3A3C) // forge hook v7.4: --surface
++private val CELL_PAST = Color(0xFF3A3A3C) // forge hook v7.4
++private val CELL_NOW = Color(0x3DFFFFFF) // forge hook v7.4: .komorka.teraz = --wyp-24 (zamiast --surface)
+ private val CHANNEL_SELECTED = Color(0xFF2C2C31)
+ private val NOW_LINE = Color.White.copy(alpha = 0.55f)
+ /** The space between two cells of a row. */
+@@ -220,6 +228,9 @@ internal class LiveTvGuideState(
+         row = index.coerceIn(0, (channels.size - 1).coerceAtLeast(0))
+     }
+ 
++    /** forge hook: the day picker of the mockup (S07) moves the guide to the same time on another day. */
++    fun forgeJumpTo(ms: Long) { anchorMs = ms; viewStartMs = floorSlot(ms - leadMs); followsNow = false }
++
+     fun backToNow() {
+         val now = LiveTvClock.nowEpochMs()
+         anchorMs = now
+@@ -444,7 +455,7 @@ internal fun LiveTvGuideGrid(
+         val windowStart = step * WINDOW_STEP - margin
+         val windowEnd = step * WINDOW_STEP + WINDOW_STEP + span + margin
+         Column {
+-            Row(modifier = Modifier.fillMaxWidth().height(rulerHeight), verticalAlignment = Alignment.CenterVertically) {
++            Row(modifier = Modifier.fillMaxWidth().height(rulerHeight).testTag("epg-os-opak"), verticalAlignment = Alignment.CenterVertically) { // forge hook v7.4 (06)
+                 Box(modifier = Modifier.width(channelColumn).padding(start = 8.dp)) { corner() }
+                 TimeRuler(windowStart, windowEnd, timeline, clock, modifier = Modifier.weight(1f))
+             }
+@@ -506,6 +517,8 @@ internal fun LiveTvGuideGrid(
+                         }
+                         GuideRow(
+                             channel = channel,
++                            number = index + 1,
++                            tagIndex = index, // forge hook v7.4 (06): epg-kanal.N = list index (not the visible one: reading the scroll here would recompose every row)
+                             logo = liveState.logoFor(channel),
+                             isFavorite = channel.streamUrl in liveState.favoriteUrls,
+                             picked = if (state.selecting) channel.streamUrl in state.picked else null,
+@@ -528,14 +541,26 @@ internal fun LiveTvGuideGrid(
+                     modifier = Modifier
+                         .padding(start = channelColumn)
+                         .fillMaxSize()
++                        // forge hook v7.4 (06 epg-teraz): the line starts at the top of the time ruler (y 342), not below it
++                        .layout { measurable, constraints ->
++                            val r = rulerHeight.roundToPx()
++                            val h = constraints.maxHeight + r
++                            val placeable = measurable.measure(constraints.copy(minHeight = h, maxHeight = h))
++                            layout(constraints.maxWidth, constraints.maxHeight) { placeable.place(0, -r) }
++                        }
+                         .clipToBounds()
+                         .drawBehind {
+                             val x = timeline.x(clock.value).toFloat()
+                             if (x in 0f..size.width) {
+-                                drawLine(NOW_LINE, Offset(x, 0f), Offset(x, size.height), strokeWidth = 2f)
++                                // forge hook v7.4 (06 epg-teraz): 2 dp line with a filled 8 dp dot at the top
++                                drawLine(NOW_LINE, Offset(x, 0f), Offset(x, size.height), strokeWidth = 2.dp.toPx())
++                                drawCircle(NOW_LINE, radius = 4.dp.toPx(), center = Offset(x, 4.dp.toPx()))
+                             }
+                         },
+-                )
++                ) {
++                    // forge hook v7.4 (06): a node where the line is, so the layout measurement can pair it with epg-teraz
++                    Box(Modifier.offset { IntOffset(timeline.x(clock.value) - 1.dp.roundToPx(), 0) }.width(2.dp).fillMaxHeight().testTag("epg-teraz"))
++                }
+             }
+         }
+     }
+@@ -588,6 +613,8 @@ private fun TimeRuler(
+ @Composable
+ private fun GuideRow(
+     channel: LiveTvChannel,
++    number: Int, // forge hook v7.4: position in the list, shown as the channel number
++    tagIndex: Int, // forge hook v7.4 (06): index among the visible rows, for the layout tags
+     logo: String?,
+     isFavorite: Boolean,
+     /** While picking channels: whether this one is ticked; null otherwise. */
+@@ -605,25 +632,25 @@ private fun GuideRow(
+     channelColumn: Dp,
+     rowHeight: Dp,
+ ) {
+-    Row(modifier = Modifier.fillMaxWidth().height(rowHeight).padding(vertical = 3.dp)) {
+-        val rowHighlight by animateColorAsState(if (selectedRow) CHANNEL_SELECTED else Color.Transparent, SELECTION_FADE, label = "guideRow")
++    Row(modifier = Modifier.fillMaxWidth().height(rowHeight).padding(vertical = 2.dp)) { // forge hook v7.4: row 44 + gap 4
++        // forge hook v7.4 (06 epg-kanal): number 14 (70%) + logo 28 dp, no box and no icons; padding 8, gap 8, radius 8
+         Row(
+             modifier = Modifier
+                 .width(channelColumn)
+                 .fillMaxHeight()
+-                .padding(end = 8.dp)
+-                .clip(RoundedCornerShape(10.dp))
+-                .drawBehind { drawRect(rowHighlight) }
++                .padding(end = 4.dp)
++                .then(if (tagIndex >= 0) Modifier.testTag("epg-kanal.$tagIndex") else Modifier) // forge hook v7.4 (06)
++                .clip(RoundedCornerShape(8.dp))
+                 .padding(horizontal = 8.dp),
+             verticalAlignment = Alignment.CenterVertically,
++            horizontalArrangement = Arrangement.spacedBy(8.dp),
+         ) {
+             if (moving) {
+-                Icon(Icons.Filled.UnfoldMore, contentDescription = null, tint = Color.White, modifier = Modifier.padding(end = 6.dp).size(18.dp))
++                Icon(Icons.Filled.UnfoldMore, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+             }
+             if (picked != null) {
+                 Box(
+                     modifier = Modifier
+-                        .padding(end = 8.dp)
+                         .size(18.dp)
+                         .clip(RoundedCornerShape(5.dp))
+                         .background(if (picked) Color.White else Color.White.copy(alpha = 0.14f)),
+@@ -632,31 +659,21 @@ private fun GuideRow(
+                     if (picked) Icon(Icons.Filled.Check, contentDescription = null, tint = Color.Black, modifier = Modifier.size(14.dp))
+                 }
+             }
+-            LiveTvLogo(url = logo, name = channel.name, width = 48.dp, height = 30.dp)
+-            Text(
+-                text = channel.name,
+-                style = if (rowHeight >= 48.dp) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodyMedium,
+-                fontWeight = if (selectedRow) FontWeight.SemiBold else FontWeight.Normal,
+-                color = Color.White.copy(alpha = if (selectedRow) 1f else 0.75f),
++            BasicText(
++                text = number.toString(),
++                style = androidx.compose.ui.text.TextStyle(fontFamily = com.nuvio.tv.skin.kicia.tokens.SatoshiFamily, fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium, color = Color.White.copy(alpha = 0.7f), textAlign = androidx.compose.ui.text.style.TextAlign.End),
+                 maxLines = 1,
+-                overflow = TextOverflow.Ellipsis,
+-                modifier = Modifier.padding(start = 10.dp).weight(1f),
++                modifier = Modifier.widthIn(min = 16.dp).heightIn(min = 20.dp).then(if (tagIndex >= 0) Modifier.testTag("epg-nr.$tagIndex") else Modifier), // forge hook v7.4 (06): 14/20
+             )
+-            if (isFavorite) {
+-                Icon(
+-                    imageVector = Icons.Filled.Star,
+-                    contentDescription = stringResource(R.string.live_tv_favorites),
+-                    tint = Color.White.copy(alpha = 0.55f),
+-                    modifier = Modifier.padding(start = 4.dp).size(14.dp),
+-                )
+-            }
+-            if (channel.catchup != null) {
+-                Icon(
+-                    imageVector = Icons.Default.History,
+-                    contentDescription = stringResource(R.string.live_tv_catchup),
+-                    tint = Color.White.copy(alpha = 0.55f),
+-                    modifier = Modifier.padding(start = 4.dp).size(16.dp),
+-                )
++            Box(
++                modifier = Modifier.weight(1f).semantics { contentDescription = channel.name },
++                contentAlignment = Alignment.CenterStart,
++            ) {
++                if (logo.isNullOrBlank()) BasicText(
++                    text = com.nuvio.tv.skin.kicia.detail.forgeInitials(channel.name), // v7.4 epg-inicjaly: plain 12/700 70%, no box
++                    style = androidx.compose.ui.text.TextStyle(fontFamily = com.nuvio.tv.skin.kicia.tokens.SatoshiFamily, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.7f), textAlign = androidx.compose.ui.text.style.TextAlign.Center),
++                    modifier = Modifier.widthIn(min = 24.dp),
++                ) else Box(if (tagIndex >= 0) Modifier.testTag("epg-logo.$tagIndex") else Modifier) { LiveTvLogo(url = logo, name = channel.name, width = 60.dp, height = 28.dp) } // forge hook v7.4 (06)
+             }
+         }
+         val cells = remember(blocks, windowStart, windowEnd) { blocks.cellsIn(windowStart, windowEnd) }
+@@ -669,6 +686,7 @@ private fun GuideRow(
+             timeline = timeline,
+             clock = clock,
+             modifier = Modifier.weight(1f).fillMaxHeight(),
++            tagCells = tagIndex == 0, // forge hook v7.4 (06): epg-kom.N in the first visible row
+         )
+     }
+ }
+@@ -688,16 +706,21 @@ private fun GuideCells(
+     timeline: GuideTimeline,
+     clock: State<Long>,
+     modifier: Modifier = Modifier,
++    tagCells: Boolean = false, // forge hook v7.4 (06)
+ ) {
+     val density = LocalDensity.current
+     val gapPx = with(density) { CELL_GAP.roundToPx() }
+-    val noGuide = stringResource(R.string.live_tv_guide_none)
++    // forge fix 9.11: while the guide is still being read the empty rows say so instead of "Brak programu"
++    val guideLoading = com.nuvio.tv.reshaped.livetv.LiveTvRepository.uiState.collectAsState().value.isEpgLoading
++    val noGuide = if (guideLoading) "Wczytywanie przewodnika…" else stringResource(R.string.live_tv_guide_none)
+     // Where the guide has nothing, the stretch is one cell; the half hour of it selected is drawn on it.
+     val overlay = selectedBlock?.takeIf { it.programme == null }
+         ?.let { LiveTvGuideCell(it, maxOf(it.start, windowStart), minOf(it.stop, windowEnd)) }
+         ?.takeIf { it.stop > it.start }
+     val selectedIndex = if (selectedBlock == null || overlay != null) -1 else cells.indexOfFirst { it.block == selectedBlock }
+     val now = clock.value
++    // forge hook v7.4 (06): the first cell in view (only the tagged row reads the timeline in composition)
++    val firstShown = if (tagCells) cells.indexOfFirst { timeline.x(it.stop) > 0 }.coerceAtLeast(0) else 0
+     Layout(
+         modifier = modifier.clipToBounds(),
+         content = {
+@@ -723,6 +746,7 @@ private fun GuideCells(
+                         timeline = timeline,
+                         gapPx = gapPx,
+                         clock = clock,
++                        tag = if (tagCells && index >= firstShown) "epg-kom.${index - firstShown}" else "", // forge hook v7.4 (06)
+                     )
+                 }
+             }
+@@ -810,7 +834,7 @@ private fun glideVelocity(velocity: Float, from: Float, to: Float): Float {
+ /** [GUIDE_GLIDE]'s natural frequency, √stiffness. */
+ private val GLIDE_OMEGA = kotlin.math.sqrt(320f)
+ private val SELECTION_FADE = tween<Color>(durationMillis = 140, easing = FastOutSlowInEasing)
+-private val SELECTION_FADE_FLOAT = tween<Float>(durationMillis = 140, easing = FastOutSlowInEasing)
++private val SELECTION_FADE_FLOAT = tween<Float>(durationMillis = 300, easing = androidx.compose.animation.core.CubicBezierEasing(.4f, 0f, .2f, 1f)) // forge hook v7.4: --ruch-300, --krzywa
+ 
+ @Composable
+ private fun GuideCell(
+@@ -823,6 +847,7 @@ private fun GuideCell(
+     timeline: GuideTimeline,
+     gapPx: Int,
+     clock: State<Long>,
++    tag: String = "", // forge hook v7.4 (06)
+ ) {
+     val density = LocalDensity.current
+     // The width its time takes, less the gap to the next cell; worked out from the timeline's
+@@ -846,8 +871,9 @@ private fun GuideCell(
+         modifier = Modifier
+             .cellWidth(width, selected)
+             .fillMaxHeight()
++            .then(if (tag.isNotEmpty()) Modifier.testTag(tag) else Modifier) // forge hook v7.4 (06)
+             .clip(shape)
+-            .drawBehind { drawRect(lerp(fill, Color.White, selection)) }
++            .drawBehind { drawRect(lerp(fill, Color(0xFFEBEBE8), selection)) } // forge hook v7.4: fokus = --focus #EBEBE8
+             .then(
+                 if (progress) {
+                     // Read at draw time: the minute tick redraws it without recomposing. It runs
+@@ -876,16 +902,25 @@ private fun GuideCell(
+                 .padding(start = 6.dp)
+                 .graphicsLayer { alpha = if (titleShift() > 0) 1f else 0f },
+         )
+-        BasicText(
+-            text = title,
+-            style = style.copy(fontWeight = if (selected || state == GuideCellState.Now) FontWeight.Medium else FontWeight.Normal),
+-            color = { lerp(text, Color.Black, selection) },
+-            maxLines = 1,
+-            overflow = TextOverflow.Ellipsis,
+-            modifier = Modifier
+-                .offset { IntOffset(titleShift(), 0) }
+-                .padding(start = 16.dp, end = 10.dp),
+-        )
++        // forge hook v7.4 (06): komorka-czas 12/16 70% over komorka-tytul 14/20 bold, padding 12
++        androidx.compose.foundation.layout.Column(
++            modifier = Modifier.offset { IntOffset(titleShift(), 0) }.padding(start = 12.dp, end = 12.dp),
++            verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
++        ) {
++            if (cell.stop - cell.start >= 20 * 60_000L) BasicText(
++                text = com.nuvio.tv.skin.kicia.livetv.forgeTvTime(cell.start),
++                style = androidx.compose.ui.text.TextStyle(fontFamily = com.nuvio.tv.skin.kicia.tokens.SatoshiFamily, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium),
++                color = { lerp(Color.White.copy(alpha = 0.7f), Color(0xFF14161A), selection) },
++                maxLines = 1,
++            )
++            BasicText(
++                text = title,
++                style = androidx.compose.ui.text.TextStyle(fontFamily = com.nuvio.tv.skin.kicia.tokens.SatoshiFamily, fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Bold),
++                color = { lerp(Color.White, Color(0xFF14161A), selection) },
++                maxLines = 1,
++                overflow = TextOverflow.Ellipsis,
++            )
++        }
+         com.nuvio.tv.fork.tv.ekrany.CellMark(this, title, cell.start) // Fork hook: tv
+     }
+ }

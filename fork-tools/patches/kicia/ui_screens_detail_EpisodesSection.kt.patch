@@ -1,0 +1,95 @@
+diff --git a/app/src/main/java/com/nuvio/tv/ui/screens/detail/EpisodesSection.kt b/app/src/main/java/com/nuvio/tv/ui/screens/detail/EpisodesSection.kt
+index 81c657a2a..5d60b8e13 100644
+--- a/app/src/main/java/com/nuvio/tv/ui/screens/detail/EpisodesSection.kt
++++ b/app/src/main/java/com/nuvio/tv/ui/screens/detail/EpisodesSection.kt
+@@ -138,8 +138,8 @@ fun SeasonTabs(
+         regularSeasons + specials
+     }
+ 
+-    val tabShape = remember { RoundedCornerShape(20.dp) }
+-    val tabBorder = CardDefaults.border(
++    val tabShape = remember { RoundedCornerShape(if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) 18.dp else 20.dp) } // forge: pill 36 (S03)
++    val tabBorder = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) CardDefaults.border() else CardDefaults.border(
+         focusedBorder = Border(
+             border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
+             shape = RoundedCornerShape(20.dp)
+@@ -147,7 +147,7 @@ fun SeasonTabs(
+     )
+     val tabScale = CardDefaults.scale(focusedScale = 1.0f)
+     val typography = MaterialTheme.typography
+-    val tabTextStyle = remember(typography) { typography.titleMedium }
++    val tabTextStyle = remember(typography) { if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) com.nuvio.tv.skin.kicia.tokens.ForgeText.label else typography.titleMedium }
+     val textSecondary = NuvioTheme.extendedColors.textSecondary
+     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+     val initialSeasonIndex = remember(sortedSeasons, selectedSeason) {
+@@ -274,8 +274,8 @@ fun SeasonTabs(
+             }
+             .focusGroup(),
+         state = lazyListState,
+-        contentPadding = PaddingValues(horizontal = NuvioTheme.spacing.xxxl, vertical = NuvioTheme.spacing.xl),
+-        horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md)
++        contentPadding = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) PaddingValues(start = 40.dp, end = 40.dp, top = 12.dp, bottom = 12.dp) else PaddingValues(horizontal = NuvioTheme.spacing.xxxl, vertical = NuvioTheme.spacing.xl), // forge
++        horizontalArrangement = Arrangement.spacedBy(if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) 12.dp else NuvioTheme.spacing.md)
+     ) {
+         items(sortedSeasons, key = { it }) { season ->
+             val isSelected = season == selectedSeason
+@@ -323,6 +323,7 @@ fun SeasonTabs(
+                 }
+                     .onPreviewKeyEvent { event ->
+                         val native = event.nativeKeyEvent
++                        if (com.nuvio.tv.skin.kicia.detail.ForgeSeasonDown.onSeasonTabKey(native, isSelected, downFocusRequester)) return@onPreviewKeyEvent true // forge hook: ▼ into an episode that is on screen
+                         if (native.action == AndroidKeyEvent.ACTION_DOWN) {
+                             if (native.keyCode == AndroidKeyEvent.KEYCODE_MENU) {
+                                 longPressTriggered = true
+@@ -354,7 +355,10 @@ fun SeasonTabs(
+                         selected = isSelected
+                     },
+                 shape = CardDefaults.shape(shape = tabShape),
+-                colors = CardDefaults.colors(
++                colors = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) CardDefaults.colors( // forge: glass pills, white when focused (S03)
++                    containerColor = if (isSelected) com.nuvio.tv.skin.kicia.tokens.ForgeColors.Surface3 else com.nuvio.tv.skin.kicia.tokens.ForgeColors.Surface,
++                    focusedContainerColor = com.nuvio.tv.skin.kicia.tokens.ForgeColors.Focus
++                ) else CardDefaults.colors(
+                     containerColor = if (isSelected) NuvioTheme.colors.SurfaceVariant else NuvioTheme.colors.BackgroundCard,
+                     focusedContainerColor = NuvioTheme.colors.Secondary
+                 ),
+@@ -365,11 +369,13 @@ fun SeasonTabs(
+                     text = if (season == 0) stringResource(R.string.episodes_specials) else stringResource(R.string.episodes_season, season),
+                     style = tabTextStyle,
+                     color = when {
++                        isFocused && com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL -> com.nuvio.tv.skin.kicia.tokens.ForgeColors.OnFocus
++                        com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL -> com.nuvio.tv.skin.kicia.tokens.ForgeColors.Text
+                         isFocused -> NuvioTheme.colors.OnSecondary
+                         isSelected -> NuvioTheme.colors.TextPrimary
+                         else -> textSecondary
+                     },
+-                    modifier = Modifier.padding(vertical = 10.dp, horizontal = 20.dp)
++                    modifier = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) Modifier.padding(vertical = 9.dp, horizontal = 16.dp) else Modifier.padding(vertical = 10.dp, horizontal = 20.dp)
+                 )
+             }
+         }
+@@ -416,7 +422,7 @@ fun EpisodesRow(
+     val dedupedEpisodes = remember(episodes) { episodes.distinctBy { it.id } }
+     var optionsEpisode by remember { mutableStateOf<Video?>(null) }
+     val isOverlayOpen = optionsEpisode != null
+-    val cardMetrics = rememberEpisodeCardMetrics(posterCardCornerRadiusDp)
++    val cardMetrics = rememberEpisodeCardMetrics(posterCardCornerRadiusDp).let { if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) it.copy(rowHorizontalPadding = 40.dp, itemSpacing = 20.dp, cardWidth = 205.dp, cardHeight = 115.dp) else it } // forge: 190×106 cards from x 58 (S03)
+     val density = LocalDensity.current
+     val rowPrefetchStrategy = remember { LazyListPrefetchStrategy(nestedPrefetchItemCount = 2) }
+     val initialEpisodeIndex = remember(dedupedEpisodes, restoreEpisodeId, scrollToEpisodeId, anchorEpisodeId) {
+@@ -433,6 +439,7 @@ fun EpisodesRow(
+         prefetchStrategy = rowPrefetchStrategy
+     )
+     val episodeWindowIds = remember(dedupedEpisodes) { dedupedEpisodes.map { it.id } }
++    androidx.compose.runtime.DisposableEffect(lazyListState, dedupedEpisodes, episodeFocusRequesters) { val off = com.nuvio.tv.skin.kicia.detail.ForgeSeasonDown.register(lazyListState, { dedupedEpisodes.getOrNull(it)?.id }, episodeFocusRequesters); onDispose { off() } } // forge hook: season ▼ fallback
+     lazyListState.keepDetailRowWindow(
+         itemIds = episodeWindowIds,
+         lazyKeyAt = { index -> dedupedEpisodes.getOrNull(index)?.id },
+@@ -658,6 +665,7 @@ private fun EpisodeCard(
+     onFocused: (() -> Unit)? = null,
+     onFocusRestored: (() -> Unit)? = null
+ ) {
++    if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) { com.nuvio.tv.skin.kicia.detail.ForgeEpisodeCard(episode, watchProgress?.progressPercentage ?: 0f, watchProgress?.isCompleted() == true || isMarkedWatched, onClick, onLongPress, upFocusRequester, downFocusRequester, focusRequester, isFocusEnabled, { onFocused?.invoke(); onFocusRestored?.invoke() }); return } // forge hook: episode card (S03)
+     val context = LocalContext.current
+     val density = LocalDensity.current
+     val configuration = LocalConfiguration.current

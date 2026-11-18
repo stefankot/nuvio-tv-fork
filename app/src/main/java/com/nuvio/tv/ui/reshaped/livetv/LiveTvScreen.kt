@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.layout.layout
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -69,6 +70,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.onPreviewKeyEvent
@@ -143,6 +145,7 @@ internal fun filterChannels(
     customLists: List<LiveTvCustomList> = emptyList(),
 ): List<LiveTvChannel> {
     val filter = filterFor(key)
+    com.nuvio.tv.skin.kicia.livetv.ForgeEpgCategories.filter(channels, key, hiddenChannels, query)?.let { return it } // forge hook: EPG categories (13.11)
     val needle = query.trim()
     if (filter is LiveTvFilter.Custom) {
         // In the viewer's order; a channel its source no longer lists is left out.
@@ -225,6 +228,18 @@ fun LiveTvScreen(
     var query by rememberSaveable { mutableStateOf("") }
     var showSourceDialog by remember { mutableStateOf(false) }
     var showCategoryDialog by remember { mutableStateOf(false) }
+    // forge hook: the TV tab opens on the Freely-style front page when there is something to show, on the guide otherwise.
+    val forgeBrowseB = com.nuvio.tv.skin.kicia.rememberForgeTvBrowseB() // forge: Settings → Nuvio Forge → Układ Live TV
+    var forgeBrowse by rememberSaveable(forgeBrowseB) { mutableStateOf(true) } // forge: decided again when the layout setting changes
+    var forgeBrowseDecided by rememberSaveable(forgeBrowseB) { mutableStateOf(false) }
+    LaunchedEffect(uiState.isLoaded, forgeBrowseB) {
+        if (uiState.isLoaded && !forgeBrowseDecided) {
+            forgeBrowseDecided = true
+            val f = com.nuvio.tv.fork.tv.TvStore
+            forgeBrowse = forgeBrowseB && (f.recent.value.isNotEmpty() || f.recentChannels.value.isNotEmpty() || f.alerts.value.isNotEmpty())
+        }
+    }
+    androidx.activity.compose.BackHandler(enabled = forgeBrowseB && !forgeBrowse && forgeBrowseDecided) { forgeBrowse = true }
     var launching by remember { mutableStateOf(false) }
     val previewsEnabled = rememberLiveTvPreviewsEnabled()
     val preview = rememberLiveTvPreviewPlayer()
@@ -262,7 +277,7 @@ fun LiveTvScreen(
         filterKey = when (val current = filterFor(filterKey)) {
             is LiveTvFilter.Group -> when {
                 current.name in uiState.hiddenGroups -> home
-                multiSource -> home
+                multiSource && !com.nuvio.tv.skin.kicia.livetv.ForgeEpgCategories.isKey(filterKey) -> home // forge hook: EPG categories
                 else -> filterKey
             }
             is LiveTvFilter.Source -> if (uiState.sources.none { it.id == current.id }) home else filterKey
@@ -388,10 +403,19 @@ fun LiveTvScreen(
             onCatchup = { channel, programme -> currentLaunchPlay(channel, programme) },
             // Back, and ◀ from what is on now, go to the categories, as in TV guides: to the one
             // selected, or (scrolled out of view) the nearest one.
-            onClose = { currentToCategories() },
-            onExitLeft = { currentToCategories() },
+            onClose = {
+                if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_NAV) {
+                    // forge (mockup 06: the grid's Back = the tools row; JMGO 13.11: three moves up only went to the row above, then
+                    // the shelf, so "Szukaj programu" / "Kategorie" were out of reach from a channel deep in the list)
+                    val tool = com.nuvio.tv.skin.kicia.livetv.ForgeGuideFocus.lastTool
+                    if (tool == null || !runCatching { tool.requestFocus() }.getOrDefault(false)) {
+                        repeat(3) { focusManager.moveFocus(androidx.compose.ui.focus.FocusDirection.Up) }
+                    }
+                } else currentToCategories()
+            }, // forge: owner — no side menu; Back goes up to the bar
+            onExitLeft = { if (!com.nuvio.tv.skin.kicia.ForgeUi.NEW_NAV) currentToCategories() }, // forge: owner — no side menu on ◀
             // ▲ from the first channel stays there: the categories open only on ◀ or Back.
-            onExitUp = {},
+            onExitUp = { if (!com.nuvio.tv.skin.kicia.livetv.ForgeGuideFocus.toDayRow()) focusManager.moveFocus(androidx.compose.ui.focus.FocusDirection.Up) }, // forge: ▲ from the first channel → day row, then recent row, then the bar (S07)
             // Held OK: in a playlist of the viewer's, moves the channel; elsewhere starts picking
             // channels for favorites or a playlist.
             onLongPress = { channel -> onGuideLongPress(channel) },
@@ -400,6 +424,8 @@ fun LiveTvScreen(
     }
     onGuideLongPress = { channel ->
         val shownList = filterFor(filterKey) as? LiveTvFilter.Custom
+        val forgeProgramme = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_NAV && !guide.selecting) guide.selected() else null // forge hook: long OK opens the programme (S07 panel / S08)
+        if (forgeProgramme != null) com.nuvio.tv.skin.kicia.livetv.ForgeGuideDetail.open(channel, forgeProgramme) else
         when {
             // Held while picking: ticks, as a press would.
             guide.selecting -> guide.togglePicked(channel)
@@ -489,14 +515,36 @@ fun LiveTvScreen(
             .background(NuvioTheme.colors.Background)
             .onFocusChanged { screenFocused = it.hasFocus },
     ) {
-        if (!uiState.isLoaded && !uiState.isLoading && !uiState.hasSource) {
+        if (forgeBrowse && forgeBrowseDecided && uiState.isLoaded && uiState.hasSource) {
+            com.nuvio.tv.skin.kicia.livetv.ForgeTvBrowse(
+                channels = uiState.channels,
+                onPlay = launchPlay,
+                onOpenGuide = { forgeBrowse = false },
+                topPadding = topPadding,
+            )
+        } else if (!uiState.isLoading && !uiState.hasSource) { // forge (owner 10.11): also after the last playlist was removed (isLoaded stays true), so the add button is there
             LiveTvEmptyState(onAddSource = { showSourceDialog = true })
         } else {
+            // forge hook v7.4 (6.2, W-79/W-81): with the focus in the tools row or the grid the bar tucks away and the content
+            // moves up 228 dp (tools row y 24); the grid grows to the bottom and shows whole rows only (27 + 8 x 48).
+            var forgeToolsFocused by remember { mutableStateOf(false) }
+            val forgeLifted = !forgeBrowseB && (gridFocused || forgeToolsFocused || com.nuvio.tv.skin.kicia.livetv.ForgeProgrammeView.focused) // forge hook: programme view (owner 13.11)
+            LaunchedEffect(forgeLifted) { com.nuvio.tv.skin.kicia.nav.ForgeNavState.liveTvLifted = forgeLifted }
+            androidx.compose.runtime.DisposableEffect(Unit) { onDispose { com.nuvio.tv.skin.kicia.nav.ForgeNavState.liveTvLifted = false } }
+            val forgeLift by animateDpAsState(if (forgeLifted) 228.dp else 0.dp, tween(320, easing = FastOutSlowInEasing), label = "forgeLiveLift")
+            val forgeGridHeight = if (forgeLifted) GUIDE_RULER + GUIDE_ROW * 8 else 198.dp // v7.4 (06): siatka y 342-540
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(start = NuvioTheme.spacing.xxl, end = NuvioTheme.spacing.xl, top = topPadding),
+                    .layout { measurable, constraints -> // forge hook v7.4 (6.2): taller by what the grid grows, drawn moved up
+                        val extra = (forgeGridHeight - 198.dp).roundToPx()
+                        val h = constraints.maxHeight + extra
+                        val placeable = measurable.measure(constraints.copy(minHeight = h, maxHeight = h))
+                        layout(constraints.maxWidth, constraints.maxHeight) { placeable.place(0, -forgeLift.roundToPx()) }
+                    }
+                    .padding(start = if (!forgeBrowseB) 40.dp else NuvioTheme.spacing.xxl, end = if (!forgeBrowseB) 40.dp else NuvioTheme.spacing.xl, top = topPadding), // forge hook v7.4: right edge x 920; forge: content edge x 58, grid from x 150 (S07)
             ) {
+                if (!forgeBrowseB) com.nuvio.tv.skin.kicia.livetv.ForgeGuideHeaderA(guide, uiState, gridFocused, minuteClock, filterKey, launchPlay, Modifier.weight(1f), gridFocus, onFilter = { filterKey = it }, onToolsFocus = { forgeToolsFocused = it }) else // forge hook: S07 variant A
                 LiveTvHeader(
                     guide = guide,
                     uiState = uiState,
@@ -511,9 +559,9 @@ fun LiveTvScreen(
                         !naming && editingList == null,
                 )
                 com.nuvio.tv.fork.tv.ekrany.ForYouRow(launchPlay) // Fork patch: dostawca #12 - rząd „Dla Ciebie”
-                Spacer(Modifier.height(NuvioTheme.spacing.sm))
+                Spacer(Modifier.height(if (!forgeBrowseB) 0.dp else NuvioTheme.spacing.sm)) // forge hook v7.4
                 LaunchedEffect(gridFocused) { if (gridFocused) categoriesOpen = false }
-                Box(modifier = Modifier.fillMaxWidth().height(GUIDE_RULER + GUIDE_ROW * GUIDE_ROWS)) {
+                Box(modifier = Modifier.fillMaxWidth().height(if (!forgeBrowseB) forgeGridHeight else GUIDE_RULER + GUIDE_ROW * GUIDE_ROWS)) { // forge hook v7.4 (6.2) // forge: variant A grid from y 246
                     // The guide moves aside for the categories: drawn moved, not laid out again.
                     val shift by animateDpAsState(
                         if (categoriesOpen || guide.selecting) CATEGORY_COLUMN + NuvioTheme.spacing.md else 0.dp,
@@ -525,6 +573,7 @@ fun LiveTvScreen(
                             .fillMaxSize()
                             .graphicsLayer { translationX = shift.toPx() }
                             .focusRequester(gridFocus)
+                            .focusProperties { canFocus = !com.nuvio.tv.skin.kicia.livetv.ForgeProgrammeView.active; com.nuvio.tv.skin.kicia.livetv.ForgeGuideFocus.lastTool?.let { up = it } } // forge hook v7.4 (6.7): ▲ z siatki na ostatnie narzędzie; owner 13.11: no grid focus under the programme view
                             .onFocusChanged { gridFocused = it.isFocused }
                             .onPreviewKeyEvent { guide.onKey(it.nativeKeyEvent) }
                             // Focusable even when empty: a list emptied under the focus (the last channel taken out)
@@ -536,11 +585,11 @@ fun LiveTvScreen(
                             active = gridFocused,
                             clock = minuteClock,
                             // Six channels at once, with room for longer names.
-                            channelColumn = 280.dp,
+                            channelColumn = 112.dp, // forge hook v7.4: 108 + 4, grid from x 152; narrow logo-only column like the mockup (grid starts at x 150 dp)
                             rowHeight = GUIDE_ROW,
                             rulerHeight = GUIDE_RULER,
                             modifier = Modifier.fillMaxSize(),
-                            corner = { LiveTvGuideDate(guide.viewStartMs, minuteClock) },
+                            corner = { if (forgeBrowseB) LiveTvGuideDate(guide.viewStartMs, minuteClock) }, // forge: the day pill says the date (S07 A)
                         )
                         if (visibleChannels.isEmpty() && !filtering && uiState.isLoaded && !uiState.isLoading) {
                             Text(
@@ -560,6 +609,7 @@ fun LiveTvScreen(
                             LiveTvPickingBar(count = null, modifier = Modifier.align(Alignment.BottomCenter))
                         }
                     }
+                    if (!forgeBrowseB) com.nuvio.tv.skin.kicia.livetv.ForgeProgrammeRows(uiState, launchPlay, Modifier.matchParentSize()) // forge hook (owner 13.11): Kategorie → Programy = rows of tiles in place of the grid
                     // Called by its full name: inside the Column the ColumnScope variant would be picked.
                     androidx.compose.animation.AnimatedVisibility(
                         // While picking channels the playlists stay beside them.
@@ -915,8 +965,8 @@ private fun LiveTvHeader(
 
 /** The least the header takes; it grows into what the guide's six rows leave. */
 private val HEADER_HEIGHT = 104.dp
-private val GUIDE_ROW = 52.dp
-private val GUIDE_RULER = 28.dp
+private val GUIDE_ROW = 48.dp // forge hook v7.4: 44 + 4
+private val GUIDE_RULER = 24.dp // forge hook v7.4 (06): oś 22 + 2, rzędy od y 366 (komórki 368)
 private const val GUIDE_ROWS = 6
 
 private const val POSTER_DELAY_MS = 250L

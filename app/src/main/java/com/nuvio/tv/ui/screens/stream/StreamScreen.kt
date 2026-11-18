@@ -2,6 +2,7 @@
 
 package com.nuvio.tv.ui.screens.stream
 
+import androidx.compose.ui.platform.testTag
 import com.nuvio.tv.core.player.recovery.AutoSourceRecoveryHandoff
 
 import android.content.Intent
@@ -459,12 +460,13 @@ fun StreamScreen(
                     genres = uiState.genres,
                     year = uiState.year,
                     modifier = Modifier
-                        .weight(0.4f)
+                        .weight(0.542f) // forge hook v7.4: right panel 440 dp
                         .fillMaxHeight()
                 )
 
                 // Right side - Streams container
                 RightStreamSection(
+                    forgeTitle = uiState.title, // forge hook v7.4 (05): tytuł panelu 20/700
                     isLoading = uiState.isLoading,
                     resumeText = resumeText,
                     error = uiState.error,
@@ -501,6 +503,7 @@ fun StreamScreen(
                         if (currentIndex >= 0) {
                             focusedStreamIndex = currentIndex
                         }
+                        com.nuvio.tv.core.player.recovery.SmartBadSources.clearFor(stream) // forge M3a: chosen by hand
                         scope.coroutineLaunch {
                             val playbackInfo = viewModel.resolveStreamForPlayback(stream)
                             if (playbackInfo != null) {
@@ -523,7 +526,7 @@ fun StreamScreen(
                     onExpandStreams = { viewModel.expandFilteredStreamsIfNeeded() },
                     hazeState = streamHazeState,
                     modifier = Modifier
-                        .weight(0.6f)
+                        .weight(0.458f) // forge hook v7.4
                         .fillMaxHeight()
                 )
             }
@@ -763,6 +766,7 @@ private fun LeftContentSection(
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun RightStreamSection(
+    forgeTitle: String = "",
     isLoading: Boolean,
     resumeText: String?,
     error: String?,
@@ -875,9 +879,11 @@ private fun RightStreamSection(
         }
     }
 
+    val forgePanel = com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL // forge hook v7.4 (05): Panel 440 od krawędzi do krawędzi (x 520-960, y 0-540), lewe rogi, margines 24
     Column(
         modifier = modifier
-            .padding(top = NuvioTheme.spacing.xxxl, end = NuvioTheme.spacing.xxxl, bottom = NuvioTheme.spacing.xxxl)
+            .then(if (forgePanel) Modifier else Modifier.padding(top = NuvioTheme.spacing.xxxl, end = NuvioTheme.spacing.xxxl, bottom = NuvioTheme.spacing.xxxl))
+            .testTag("panel-zrodel.0")
     ) {
         androidx.compose.animation.AnimatedVisibility(
             visible = enter,
@@ -892,7 +898,7 @@ private fun RightStreamSection(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(NuvioTheme.radii.xl))
+                    .clip(if (forgePanel) RoundedCornerShape(topStart = com.nuvio.tv.skin.kicia.tokens.ForgeDims.RadiusSheet, bottomStart = com.nuvio.tv.skin.kicia.tokens.ForgeDims.RadiusSheet) else RoundedCornerShape(NuvioTheme.radii.xl))
                     .then(
                         if (hazeState != null) {
                             Modifier.hazeEffect(state = hazeState) {
@@ -911,9 +917,16 @@ private fun RightStreamSection(
                             NuvioTheme.colors.BackgroundCard.copy(alpha = 0.5f)
                         }
                     )
-                    .padding(NuvioTheme.spacing.lg)
+                    .padding(if (forgePanel) 24.dp else NuvioTheme.spacing.lg)
             ) {
-                resumeText?.let { text ->
+                // forge hook v7.4 (05): tytuł 20/700 (y 24), pod nim „Wznów od 01:37” 14, 70% (y 58; bez wznowienia: pusty wiersz), filtry y 86
+                if (forgePanel) {
+                    Text(forgeTitle, style = com.nuvio.tv.skin.kicia.tokens.ForgeText.head, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.height(26.dp).testTag("panel-tytul.0"))
+                    Spacer(Modifier.height(8.dp))
+                    Text(resumeText.orEmpty(), style = com.nuvio.tv.skin.kicia.tokens.ForgeText.label5, maxLines = 1, modifier = Modifier.height(20.dp).testTag("t-14.0"))
+                    Spacer(Modifier.height(4.dp)) // v7.4 (05): filtry y 86
+                }
+                if (!forgePanel) resumeText?.let { text ->
                     Box(
                         modifier = Modifier
                             .padding(bottom = NuvioTheme.spacing.sm)
@@ -933,7 +946,7 @@ private fun RightStreamSection(
                 }
 
                 // Addon filter chips
-                Box(modifier = Modifier.height(NuvioTheme.spacing.huge)) {
+                Box(modifier = Modifier.height(if (forgePanel) 44.dp else NuvioTheme.spacing.huge)) { // forge hook v7.4 (05): filtry y 86 (36 + 8), wiersze od y 130
                     androidx.compose.animation.AnimatedVisibility(
                         visible = sourceChips.isNotEmpty() || (!isLoading && availableAddons.isNotEmpty()),
                         enter = fadeIn(animationSpec = tween(300)),
@@ -1273,7 +1286,7 @@ private fun StreamsList(
                 }
             },
         verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md),
-        contentPadding = PaddingValues(start = NuvioTheme.spacing.sm, end = NuvioTheme.spacing.sm, top = NuvioTheme.spacing.sm, bottom = NuvioTheme.spacing.xxl)
+        contentPadding = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) PaddingValues(top = 0.dp, bottom = NuvioTheme.spacing.xxl) /* forge hook v7.4 (05): wiersze na pełną szerokość 392, od y 130 */ else PaddingValues(start = NuvioTheme.spacing.sm, end = NuvioTheme.spacing.sm, top = NuvioTheme.spacing.sm, bottom = NuvioTheme.spacing.xxl)
     ) {
         sharedStream?.let { shared ->
             item(key = "party_shared_stream") {
@@ -1380,6 +1393,7 @@ private fun StreamCard(
     val density = LocalDensity.current
     val unknownStreamLabel = stringResource(R.string.stream_unknown)
     val streamName = remember(stream, unknownStreamLabel) { stream.getDisplayNameOrNull() ?: unknownStreamLabel }
+    if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) { com.nuvio.tv.skin.kicia.detail.ForgeStreamCard(stream, streamName, outlined, onClick, focusRequester, onFocusChanged, onUpKey); return } // forge hook: source row of the mockup (b14)
     val streamDescription = remember(stream) { stream.getDisplayDescription() }
     val hasBadges = stream.badges.isNotEmpty() || (showFileSizeBadges && stream.behaviorHints?.videoSize != null) || reserveBadgeSpace
     val cardShape = RoundedCornerShape(NuvioTheme.radii.md)

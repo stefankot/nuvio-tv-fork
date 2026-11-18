@@ -4,12 +4,16 @@ cd "$(dirname "$0")/.." || exit 2
 . fork-tools/pins.env
 UP=../upstream/reshaped; BASE=9174319d2; fail=0
 bad(){ echo "BŁĄD: $*"; fail=1; }
+# Seria "kicia" (skórka Kicia): jedna łatka na plik, fork-tools/patches/kicia/<ścieżka z _>.patch, nakładana jako ostatnia.
+# unkicia <plik> -> ścieżka do kopii z cofniętą łatką Kicii (albo sam plik, gdy łatki nie ma).
+unkicia(){ local f="$1" n pf; n=$(echo "${f#app/src/main/java/com/nuvio/tv/}" | tr / _); pf="fork-tools/patches/kicia/$n.patch"
+  if [ -f "$pf" ]; then local tmp; tmp=$(mktemp); cp "$f" "$tmp"; patch -R -s "$tmp" < "$pf" >/dev/null 2>&1 || { echo "BŁĄD: łatka Kicii nie cofa się: $pf" >&2; }; echo "$tmp"; else echo "$f"; fi; }
 [ "$(git -C $UP rev-parse --short=9 HEAD)" = "$RESHAPED" ] || bad "klon Reshaped nie jest na $RESHAPED"
 # (a) pliki 'override' identyczne z Reshaped
-while read -r f; do [ -n "$f" ] && { cmp -s "$f" "$UP/$f" || bad "override różni się od Reshaped: $f"; }; done < fork-tools/overrides.txt
+while read -r f; do [ -n "$f" ] && { cmp -s "$(unkicia "$f")" "$UP/$f" || bad "override różni się od Reshaped: $f"; }; done < fork-tools/overrides.txt
 # (b) pliki z hookami: wolno tylko DODAWAĆ linie względem Reshaped
 while read -r f; do [ -n "$f" ] || continue
-  diff "$UP/$f" "$f" | grep '^<' | sed 's/^< //' | while IFS= read -r l; do
+  diff "$UP/$f" "$(unkicia "$f")" | grep '^<' | sed 's/^< //' | while IFS= read -r l; do
     t=$(echo "$l" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
     awk -F'\t' -v f="$f" -v t="$t" 'NR>1 && $1==f { o=$6; gsub(/^[ \t]+|[ \t]+$/,"",o); if (o==t) found=1 } END{exit found?0:1}' fork-tools/hooks.tsv \
       || { echo "BŁĄD: hook-plik zmienia kod Reshaped ($f): $t"; exit 1; }
@@ -21,7 +25,7 @@ tail -n +2 fork-tools/hooks.tsv | while IFS=$'\t' read -r f m a mod p; do grep -
 PATCHED=${PATCHED_LIST:-fork-tools/patched-overrides.txt}; PUP=${PATCHED_UP:-$UP}
 if [ -s "$PATCHED" ]; then
   while IFS=$'\t' read -r f series; do [ -n "$f" ] || continue
-    tmp=$(mktemp); cp "$f" "$tmp"
+    tmp=$(mktemp); cp "$(unkicia "$f")" "$tmp"
     for pf in $(ls -r fork-tools/patches/$series/*.patch 2>/dev/null); do patch -R -s "$tmp" < "$pf" >/dev/null 2>&1 || { echo "BŁĄD: łatka nie cofa się: $pf"; fail=1; }; done
     if grep -q 'Fork hook:' "$tmp"; then grep -v 'Fork hook:' "$tmp" > "$tmp.2"; else cp "$tmp" "$tmp.2"; fi # grep -v dopisałby znak nowej linii na końcu pliku
     cmp -s "$tmp.2" "$PUP/$f" || { echo "BŁĄD: plik łatany różni się od Reshaped poza łatkami: $f"; fail=1; }

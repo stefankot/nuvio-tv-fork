@@ -8,3 +8,17 @@ app/src/main/java/com/nuvio/tv/ui/screens/home/ClassicHomeContent.kt
 app/src/main/java/com/nuvio/tv/ui/screens/ExperienceModeSelectionScreen.kt
 app/src/main/java/com/nuvio/tv/ui/screens/profile/ProfileSelectionScreen.kt
 app/src/main/java/com/nuvio/tv/ui/screens/LayoutSelectionScreen.kt
+app/src/main/java/com/nuvio/tv/domain/model/AppFont.kt
+app/src/main/java/com/nuvio/tv/ui/screens/ambient/AmbientModeHost.kt
+app/src/main/java/com/nuvio/tv/ui/screens/ambient/AmbientSlideshow.kt
+app/src/main/java/com/nuvio/tv/ui/screens/detail/CastSection.kt
+app/src/main/java/com/nuvio/tv/ui/screens/detail/EpisodeRatingsSection.kt
+app/src/main/java/com/nuvio/tv/ui/screens/detail/EpisodesSection.kt
+app/src/main/java/com/nuvio/tv/ui/screens/detail/HeroSection.kt
+app/src/main/java/com/nuvio/tv/ui/screens/player/PostPlayOverlay.kt
+app/src/main/java/com/nuvio/tv/ui/screens/player/SkipIntroButton.kt
+app/src/main/java/com/nuvio/tv/ui/screens/search/SearchScreen.kt
+app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsDesignSystem.kt
+app/src/main/java/com/nuvio/tv/ui/theme/Color.kt
+app/src/main/java/com/nuvio/tv/ui/theme/ShapeTokens.kt
+app/src/main/java/com/nuvio/tv/ui/theme/Type.kt

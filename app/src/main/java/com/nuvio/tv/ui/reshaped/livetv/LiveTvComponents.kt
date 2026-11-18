@@ -52,6 +52,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Border
 import androidx.tv.material3.Button
 import androidx.tv.material3.ButtonDefaults
@@ -264,6 +265,8 @@ internal fun LiveTvLogo(
     width: Dp,
     height: Dp,
     modifier: Modifier = Modifier,
+    /** forge: a light plate behind the logo, for logos with dark lettering (the guide shows logos alone). */
+    plaque: Boolean = false,
 ) {
     val shape = RoundedCornerShape(8.dp)
     var failed by remember(url) { mutableStateOf(false) }
@@ -271,14 +274,15 @@ internal fun LiveTvLogo(
         modifier = modifier
             .size(width, height)
             .clip(shape)
-            .background(Color.White.copy(alpha = 0.06f)),
+            // forge: channel logos are drawn black-and-white WITHOUT a plate (the logo files are not edited)
+            .background(Color.Transparent), // forge hook v7.4: no plate under the initials (epg-inicjaly)
         contentAlignment = Alignment.Center,
     ) {
         if (url.isNullOrBlank() || failed) {
             Text(
                 text = name.initials(),
-                style = MaterialTheme.typography.labelLarge,
-                color = NuvioTheme.colors.TextTertiary,
+                style = androidx.compose.ui.text.TextStyle(fontFamily = com.nuvio.tv.skin.kicia.tokens.SatoshiFamily, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold), // forge hook v7.4
+                color = Color.White.copy(alpha = 0.7f),
             )
         } else {
             val context = LocalContext.current
@@ -294,10 +298,8 @@ internal fun LiveTvLogo(
                         .build()
                 }
             }
-            AsyncImage(
-                model = request,
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
+            com.nuvio.tv.skin.kicia.components.ForgeColorLogo( // forge hook v7.6 (owner 13.11): the logo in its own colours in the interface (black-and-white only on pictures)
+                request = request,
                 onError = { failed = true },
                 modifier = Modifier
                     .fillMaxSize()

@@ -1,0 +1,213 @@
+diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/pillnav/PillNavScaffold.kt b/app/src/main/java/com/nuvio/tv/ui/reshaped/pillnav/PillNavScaffold.kt
+index d84fe73bb..92c325f1a 100644
+--- a/app/src/main/java/com/nuvio/tv/ui/reshaped/pillnav/PillNavScaffold.kt
++++ b/app/src/main/java/com/nuvio/tv/ui/reshaped/pillnav/PillNavScaffold.kt
+@@ -1,7 +1,9 @@
+ package com.nuvio.tv.ui.reshaped.pillnav
+ 
++import androidx.compose.foundation.background // forge
+ import android.util.Log
+ import androidx.activity.compose.BackHandler
++import com.nuvio.tv.skin.kicia.nav.forgeTagRoot
+ import androidx.compose.animation.AnimatedVisibility
+ import androidx.compose.animation.core.FastOutSlowInEasing
+ import androidx.compose.animation.core.LinearOutSlowInEasing
+@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.Box
+ import androidx.compose.foundation.layout.fillMaxSize
+ import androidx.compose.foundation.layout.padding
+ import androidx.compose.runtime.Composable
++import com.nuvio.tv.skin.kicia.components.forgeHazeSource
+ import androidx.compose.runtime.CompositionLocalProvider
+ import androidx.compose.runtime.LaunchedEffect
+ import androidx.compose.runtime.MutableState
+@@ -26,6 +29,7 @@ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
+ import kotlinx.coroutines.delay
+ import androidx.compose.ui.platform.LocalDensity
++import androidx.compose.ui.unit.dp
+ import androidx.compose.ui.focus.FocusDirection
+ import androidx.compose.ui.focus.FocusRequester
+ import androidx.compose.ui.input.key.Key
+@@ -86,7 +90,9 @@ internal fun PillNavScaffold(
+     // In the Netflix look the pill stays put on Home (whose page starts below its band) and on Search
+     // (Nuvio's own screen, moved down below the band here).
+     val netflixUi = com.nuvio.tv.ui.reshaped.netflix.rememberNetflixUiEnabled()
+-    val netflixSearch = currentRoute == Screen.Search.route && netflixUi
++    // forge: with the mockup's top bar, Search sits below the bar like in the Netflix look (field at y 84 dp)
++    val netflixSearch = (currentRoute == Screen.Search.route && (netflixUi || com.nuvio.tv.skin.kicia.ForgeUi.NEW_NAV)) ||
++        (com.nuvio.tv.skin.kicia.ForgeUi.NEW_NAV && com.nuvio.tv.skin.kicia.nav.forgeBelowBar(currentRoute)) // forge hook: screens with their own header sit below the bar
+     val netflixHome = currentRoute == Screen.Home.route && netflixUi
+     val autoHide = showBar && currentRoute != Screen.Settings.route &&
+         currentRoute != com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE && !netflixSearch && !netflixHome
+@@ -95,6 +101,21 @@ internal fun PillNavScaffold(
+     // Liquid glass on capable TVs with Nuvio's blur setting on. The screen is recorded only while the pill is on
+     // it, never during playback; the pill slides out over the last recording, which is then dropped.
+     val glassBackdrop = rememberPillGlassBackdrop(blurEnabled)
++    val forgeHaze = com.nuvio.tv.skin.kicia.components.rememberForgeHazeState() // forge (owner 10.11): backdrop blur under the top bar
++    val forgeSoft = com.nuvio.tv.skin.kicia.components.rememberForgeSoftBlur() // the same for Android 11 and below, in software
++    run {
++        val soft = forgeSoft
++        val density = LocalDensity.current
++        val direction = LocalLayoutDirection.current
++        LaunchedEffect(soft, showBar) {
++            if (soft == null || !showBar || !com.nuvio.tv.skin.kicia.ForgeUi.NEW_NAV) return@LaunchedEffect
++            val stripPx = with(density) { 110.dp.roundToPx() }
++            while (true) {
++                delay(com.nuvio.tv.skin.kicia.components.ForgeSoftBlur.IntervalMs)
++                soft.refresh(density, direction, stripPx)
++            }
++        }
++    }
+     val glassDensity = LocalDensity.current
+     val glassLayoutDirection = LocalLayoutDirection.current
+     LaunchedEffect(showBar, glassBackdrop) {
+@@ -111,6 +132,7 @@ internal fun PillNavScaffold(
+     val keyboardController = LocalSoftwareKeyboardController.current
+     val contentFocusRequester = remember { FocusRequester() }
+     var pendingBarFocus by remember { mutableStateOf(false) }
++    var forgeExitDialog by remember { mutableStateOf(false) } // forge hook v7.4: Okno wyjścia (16)
+     var pendingContentFocus by remember { mutableStateOf(false) }
+ 
+     val showProfile = showProfileSelector && activeProfileName.isNotEmpty()
+@@ -154,11 +176,28 @@ internal fun PillNavScaffold(
+         requestBarFocus()
+     }
+ 
+-    BackHandler(enabled = showBar && state.hasFocus) {
+-        if (longPressBackHeld.value) return@BackHandler
+-        onExitApp()
++    // forge hook v7.4 (1.23): after Back from a tab to Home the Home tab keeps focus. The new screen takes focus for
++    // itself during its first frames, so focus is put back on the tab for up to 1.5 s, until it has held for 400 ms.
++    var forgeBackHomeFocus by remember { androidx.compose.runtime.mutableIntStateOf(0) }
++    LaunchedEffect(forgeBackHomeFocus) {
++        if (forgeBackHomeFocus == 0) return@LaunchedEffect
++        val home = Screen.Home.route
++        val deadline = android.os.SystemClock.uptimeMillis() + 1_500L
++        var heldSince = 0L
++        while (android.os.SystemClock.uptimeMillis() < deadline) {
++            kotlinx.coroutines.delay(50)
++            val now = android.os.SystemClock.uptimeMillis()
++            android.util.Log.d("ForgeNav", "1.23 t=${now - (deadline - 1_500L)} hasFocus=${state.hasFocus} key=${state.focusedKey}") // forge v7.4: diagnostyka
++            if (state.hasFocus && state.focusedKey == home) {
++                if (heldSince == 0L) heldSince = now else if (now - heldSince >= 400L) break
++            } else {
++                heldSince = 0L
++                runCatching { requesterFor(home).requestFocus() }
++            }
++        }
+     }
+ 
++
+     LaunchedEffect(pendingBarFocus, showBar, selectedKey, entries) {
+         if (!pendingBarFocus) return@LaunchedEffect
+         if (!showBar) {
+@@ -199,6 +238,8 @@ internal fun PillNavScaffold(
+     Box(
+         modifier = Modifier
+             .fillMaxSize()
++            .forgeTagRoot() // forge hook v7.4: testTag -> resource-id (pomiar geometrii)
++            .then(if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_NAV && netflixSearch) Modifier.background(com.nuvio.tv.skin.kicia.tokens.ForgeColors.Bg) else Modifier) // forge hook: no black band above screens below the bar
+             .onPreviewKeyEvent { keyEvent ->
+                 if (keyEvent.type == KeyEventType.KeyDown) glassBackdrop?.poke()
+                 // Swallow the rest of a long-press Back until it is released so it cannot also exit the app.
+@@ -212,8 +253,10 @@ internal fun PillNavScaffold(
+         Box(
+             modifier = Modifier
+                 .fillMaxSize()
+-                .then(if (netflixSearch) Modifier.padding(top = PillNavTokens.barTopGap + PillNavTokens.barHeight) else Modifier)
++                .then(if (netflixSearch) Modifier.padding(top = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_NAV) androidx.compose.ui.unit.Dp(66f) else PillNavTokens.barTopGap + PillNavTokens.barHeight) else Modifier)
+                 .pillGlassSource(glassBackdrop?.takeIf { showBar })
++                .forgeHazeSource(if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_NAV) forgeHaze else null)
++                .then(if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_NAV && forgeSoft != null) with(forgeSoft) { Modifier.source() } else Modifier)
+                 .onPreviewKeyEvent { keyEvent ->
+                     if (keyEvent.key == Key.Back) {
+                         // Long-press Back on a root screen jumps straight to the pill, past the screens' own Back.
+@@ -258,6 +301,7 @@ internal fun PillNavScaffold(
+             CompositionLocalProvider(
+                 LocalSidebarExpanded provides state.hasFocus,
+                 LocalContentFocusRequester provides contentFocusRequester,
++                com.nuvio.tv.skin.kicia.nav.LocalForgeBarFocus provides (if (showBar && com.nuvio.tv.skin.kicia.ForgeUi.NEW_NAV && !state.hasFocus) requestBarFocus else null), // forge hook v7.4: Back from a tab's content -> bar
+             ) {
+                 NuvioNavHost(
+                     navController = navController,
+@@ -267,6 +311,26 @@ internal fun PillNavScaffold(
+                 )
+             }
+         }
++        // forge hook v7.4 (1.19, 1.23): registered after NuvioNavHost, so Back on the bar wins over the NavHost's own pop
++        // (the pop restored the old focus in Home's hero instead of keeping it on the Home tab)
++        BackHandler(enabled = showBar && state.hasFocus) {
++            if (longPressBackHeld.value) return@BackHandler
++            // forge hook v7.4 (01, 1.19-1.20): Back on the bar goes to the Home tab; on Home it asks "Zamknąć Nuvio?"
++            if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_NAV) {
++                val home = Screen.Home.route
++                if (currentRoute != home && entries.any { it.key == home }) {
++                    com.nuvio.tv.skin.kicia.nav.ForgeNavState.homeKeepsBarFocus = true // forge hook v7.4 (1.23)
++                    onNavigate(home)
++                    navigateToPillRoute(navController, currentRoute, home)
++                    runCatching { requesterFor(home).requestFocus() }
++                    forgeBackHomeFocus += 1 // forge hook v7.4 (1.23): Home's hero grabs focus once it composes; keep it on the tab
++                } else {
++                    forgeExitDialog = true
++                }
++                return@BackHandler
++            }
++            onExitApp()
++        }
+ 
+         // Slides in from the top edge when a root screen appears and out when a detail screen opens; the
+         // enter/exit only moves and fades the pill's layer.
+@@ -282,6 +346,10 @@ internal fun PillNavScaffold(
+                 targetOffsetY = { -it },
+             ) + fadeOut(animationSpec = tween(durationMillis = 160)),
+         ) {
++            CompositionLocalProvider(
++                com.nuvio.tv.skin.kicia.components.LocalForgeNavHaze provides forgeHaze,
++                com.nuvio.tv.skin.kicia.components.LocalForgeNavSoftBlur provides forgeSoft,
++            ) {
+             PillNavigationBar(
+                 entries = entries,
+                 selectedKey = selectedKey,
+@@ -290,7 +358,7 @@ internal fun PillNavScaffold(
+                 frosted = blurEnabled,
+                 // While it animates out on a detail screen the pill must not be a focus target.
+                 interactive = showBar,
+-                hidden = hiddenUnlessFocused || (autoHide && state.hiddenByScroll),
++                hidden = hiddenUnlessFocused || (autoHide && state.hiddenByScroll) || (currentRoute == com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE && com.nuvio.tv.skin.kicia.nav.ForgeNavState.liveTvLifted), // forge hook v7.4 (6.2)
+                 canLeaveUp = topBannerVisible,
+                 isRtl = isRtl,
+                 activeProfileColorHex = activeProfileColorHex,
+@@ -304,6 +372,7 @@ internal fun PillNavScaffold(
+                         val reselect = currentRoute == route
+                         onNavigate(route)
+                         navigateToPillRoute(navController, currentRoute, route)
++                        // forge hook v7.4 (1.15): also for long OK on Tryb nocny the focus goes into the content first; Settings then moves it to the asked category (with retries)
+                         pendingContentFocus = reselect
+                     }
+                 },
+@@ -317,7 +386,25 @@ internal fun PillNavScaffold(
+                 // The Netflix look uses clear glass: no grey or black body, just the bend, rim and lens.
+                 clear = netflixUi,
+             )
++            }
++        }
++        // forge hook v7.4 (16): Okno wyjścia; "Zostań" has the focus, "Zamknij" leaves to the TV's home screen
++        run {
++            val activity = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
++            com.nuvio.tv.skin.kicia.components.ForgeDialog(
++                visible = forgeExitDialog,
++                title = "Zamknąć Nuvio?",
++                message = "Odtwarzanie i pobieranie w tle zostaną zatrzymane.",
++                buttons = listOf(
++                    com.nuvio.tv.skin.kicia.components.ForgeDialogButton("Zostań", primary = true) { forgeExitDialog = false },
++                    com.nuvio.tv.skin.kicia.components.ForgeDialogButton("Zamknij") { forgeExitDialog = false; activity?.finishAndRemoveTask() },
++                ),
++                onDismiss = { forgeExitDialog = false },
++                initialFocusIndex = 0,
++            )
+         }
++        com.nuvio.tv.skin.kicia.nav.ForgeNightOverlay() // forge hook: Tryb nocny (v7 01)
++        com.nuvio.tv.skin.kicia.components.ForgeToastHost() // forge hook: Komunikat (v7.4)
+     }
+ }
+ 

@@ -1,0 +1,36 @@
+diff --git a/app/src/main/java/com/nuvio/tv/ui/theme/Type.kt b/app/src/main/java/com/nuvio/tv/ui/theme/Type.kt
+index a55e0dd91..1e926be53 100644
+--- a/app/src/main/java/com/nuvio/tv/ui/theme/Type.kt
++++ b/app/src/main/java/com/nuvio/tv/ui/theme/Type.kt
+@@ -36,6 +36,7 @@ fun getFontFamily(appFont: AppFont): FontFamily = when (appFont) {
+     AppFont.INTER -> InterFamily
+     AppFont.DM_SANS -> DMSansFamily
+     AppFont.OPEN_SANS -> OpenSansFamily
++    AppFont.SATOSHI -> com.nuvio.tv.skin.kicia.tokens.SatoshiFamily // forge hook
+ }
+ 
+ @Immutable
+@@ -56,7 +57,7 @@ data class NuvioTextStyleTokens(
+ )
+ 
+ @OptIn(ExperimentalTvMaterial3Api::class)
+-fun buildNuvioTypography(fontFamily: FontFamily): Typography = Typography(
++fun buildNuvioTypography(fontFamily: FontFamily): Typography = Typography( // forge hook v7.4: scale of the mockup (tylko skórka Kicia)
+     displayLarge = TextStyle(
+         fontFamily = fontFamily,
+         fontWeight = FontWeight.Bold,
+@@ -144,11 +145,11 @@ fun buildNuvioTypography(fontFamily: FontFamily): Typography = Typography(
+     labelSmall = TextStyle(
+         fontFamily = fontFamily,
+         fontWeight = FontWeight.Medium,
+-        fontSize = 10.sp,
+-        lineHeight = 14.sp,
++        fontSize = if (com.nuvio.tv.skin.kicia.ForgeUi.ON) 12.sp else 10.sp, // forge: nothing under 12 sp on a TV (mockup rule)
++        lineHeight = if (com.nuvio.tv.skin.kicia.ForgeUi.ON) 16.sp else 14.sp,
+         letterSpacing = 0.5.sp
+     )
+-)
++).let { if (com.nuvio.tv.skin.kicia.ForgeUi.ON) com.nuvio.tv.skin.kicia.tokens.forgeAlignTypography(it) else it }
+ 
+ @OptIn(ExperimentalTvMaterial3Api::class)
+ val NuvioTypography = buildNuvioTypography(InterFamily)

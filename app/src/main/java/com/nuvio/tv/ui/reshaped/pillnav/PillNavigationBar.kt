@@ -162,6 +162,13 @@ internal fun PillNavigationBar(
     backdrop: PillGlassBackdrop? = null,
     clear: Boolean = false,
 ) {
+    if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_NAV) { // forge hook: the top bar of the mockup
+        com.nuvio.tv.skin.kicia.nav.ForgeTopNav(
+            entries, selectedKey, state, requesterFor, interactive, hidden, canLeaveUp, isRtl,
+            activeProfileColorHex, activeProfileAvatarImageUrl, onEntryClick, onExitDown, onExitUp, modifier,
+        )
+        return
+    }
     val barFocused = state.hasFocus
     val hideTarget = if (hidden && !barFocused) 1f else 0f
     // Read only inside graphicsLayer below, so hiding and showing redraw the layer without recomposing or relayout.

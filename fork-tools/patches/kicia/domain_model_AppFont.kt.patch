@@ -1,0 +1,12 @@
+diff --git a/app/src/main/java/com/nuvio/tv/domain/model/AppFont.kt b/app/src/main/java/com/nuvio/tv/domain/model/AppFont.kt
+index bd397f104..382018365 100644
+--- a/app/src/main/java/com/nuvio/tv/domain/model/AppFont.kt
++++ b/app/src/main/java/com/nuvio/tv/domain/model/AppFont.kt
+@@ -3,5 +3,6 @@ package com.nuvio.tv.domain.model
+ enum class AppFont(val displayName: String) {
+     INTER("Inter"),
+     DM_SANS("DM Sans"),
+-    OPEN_SANS("Open Sans")
++    OPEN_SANS("Open Sans"),
++    SATOSHI("Satoshi") // forge: the font of the TV mockup (skórka Kicia)
+ }

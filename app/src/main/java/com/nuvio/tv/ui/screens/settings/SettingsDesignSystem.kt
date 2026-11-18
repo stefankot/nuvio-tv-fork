@@ -161,7 +161,9 @@ internal fun settingsTallRowShape(): RoundedCornerShape =
     if (isFlatSettingsStyle()) settingsRowShape() else RoundedCornerShape(SettingsSecondaryCardRadius)
 
 @Composable
-internal fun settingsRowColors(): CardColors = if (isFlatSettingsStyle()) {
+internal fun settingsRowColors(): CardColors = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_SETTINGS) { // forge hook: rows on surface2 (mockup S13)
+    CardDefaults.colors(containerColor = com.nuvio.tv.skin.kicia.tokens.ForgeColors.Surface2, focusedContainerColor = com.nuvio.tv.skin.kicia.tokens.ForgeColors.Surface3)
+} else if (isFlatSettingsStyle()) {
     CardDefaults.colors(
         containerColor = Color.Transparent,
         focusedContainerColor = settingsFocusFillColor()
@@ -177,7 +179,9 @@ internal fun settingsRowColors(): CardColors = if (isFlatSettingsStyle()) {
 internal fun settingsRowBorder(
     contentAlpha: Float = 1f,
     shape: RoundedCornerShape = settingsRowShape()
-): CardBorder = if (isFlatSettingsStyle()) {
+): CardBorder = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_SETTINGS) { // forge hook: white focus outline (mockup S13)
+    CardDefaults.border(border = Border.None, focusedBorder = Border(border = androidx.compose.foundation.BorderStroke(2.dp, com.nuvio.tv.skin.kicia.tokens.ForgeColors.Focus), shape = shape))
+} else if (isFlatSettingsStyle()) {
     CardDefaults.border(border = Border.None, focusedBorder = Border.None)
 } else {
     CardDefaults.border(
@@ -337,7 +341,9 @@ internal fun SettingsWorkspaceSurface(
     classicContainer: Boolean = true,
     content: @Composable BoxScope.() -> Unit
 ) {
-    if (isFlatSettingsStyle() || !classicContainer) {
+    if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_SETTINGS) { // forge (owner 10.11): mockup S13 — no panel around the screen, rail and rows sit on the background
+        Box(modifier = modifier, content = content)
+    } else if (isFlatSettingsStyle() || !classicContainer) {
         Box(
             modifier = modifier.padding(horizontal = NuvioTheme.spacing.md, vertical = NuvioTheme.spacing.sm),
             content = content
@@ -379,6 +385,7 @@ internal fun SettingsRailButton(
         modifier
     }
     val showSelected = isSelected && !suppressSelectedVisual
+    if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_SETTINGS) { com.nuvio.tv.skin.kicia.settings.ForgeSettingsRailButton(title, showSelected, onClick, focusRequester, onFocused, icon, rawIconRes?.let { rememberRawSvgPainter(it) }, modifier); return } // forge hook: rail of the mockup (S13)
 
     Card(
         onClick = onClick,
@@ -609,6 +616,7 @@ internal fun SettingsDetailHeader(
     subtitle: String,
     modifier: Modifier = Modifier
 ) {
+    if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_SETTINGS) { Text(text = title, style = com.nuvio.tv.skin.kicia.tokens.ForgeText.head, modifier = modifier.fillMaxWidth().padding(bottom = 12.dp).testTag("naglowek-sekcji.0")); return } // v7.4 (14): x 296 jak wiersze (bez wcięcia nagłówka) // forge hook: title 20/26 (v7.4), no subtitle (S13); testTag (14)
     when (NuvioTheme.settingsUiStyle) {
         SettingsUiStyle.ZEN -> Column(
             modifier = modifier
@@ -669,6 +677,14 @@ internal fun SettingsGroupCard(
     subtitle: String? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
+    if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_SETTINGS) { // forge (owner 10.11): no card around a group (mockup S13): a grey caps heading, rows 4 dp apart
+        Column(modifier = modifier.fillMaxWidth().padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            if (!title.isNullOrBlank()) Text(text = title.uppercase(), style = com.nuvio.tv.skin.kicia.tokens.ForgeText.captionBold.copy(color = com.nuvio.tv.skin.kicia.tokens.ForgeColors.Text3), modifier = Modifier.padding(start = 4.dp, bottom = 4.dp))
+            if (!subtitle.isNullOrBlank()) Text(text = subtitle, style = com.nuvio.tv.skin.kicia.tokens.ForgeText.caption.copy(color = com.nuvio.tv.skin.kicia.tokens.ForgeColors.Text3), modifier = Modifier.padding(start = 4.dp, bottom = 4.dp))
+            content()
+        }
+        return
+    }
     when (NuvioTheme.settingsUiStyle) {
         SettingsUiStyle.ZEN, SettingsUiStyle.HORIZON -> Column(
             modifier = modifier
@@ -1295,11 +1311,12 @@ private fun SettingsTogglePill(
     val alpha = if (enabled) 1f else 0.35f
     val zen = isFlatSettingsStyle()
     val trackColor = when {
+        com.nuvio.tv.skin.kicia.ForgeUi.NEW_SETTINGS && checked -> com.nuvio.tv.skin.kicia.tokens.ForgeColors.Ok.copy(alpha = alpha) // forge hook: green switch (mockup S13)
         zen && checked -> NuvioTheme.colors.Secondary.copy(alpha = 0.9f * alpha)
         checked -> NuvioTheme.colors.Secondary.copy(alpha = 0.35f * alpha)
         else -> NuvioTheme.colors.Border.copy(alpha = alpha)
     }
-    val knobColor = if (zen && checked) {
+    val knobColor = if (zen && checked && !com.nuvio.tv.skin.kicia.ForgeUi.NEW_SETTINGS) {
         NuvioTheme.colors.OnSecondary.copy(alpha = alpha)
     } else {
         Color.White.copy(alpha = alpha)

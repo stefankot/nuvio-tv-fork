@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 object SkinPreferences {
     private const val PREFS = "fork_skin"
     private const val KEY = "skin"
-    private val _skin = MutableStateFlow(SkinId.NUVIO)
+    private val _skin = MutableStateFlow(SkinId.KICIA) // domyślnie wygląd Kicia (właściciel 18.11)
     val skin: StateFlow<SkinId> = _skin.asStateFlow()
     @Volatile private var loaded = false
 
@@ -21,8 +21,14 @@ object SkinPreferences {
         if (loaded) return
         synchronized(this) {
             if (loaded) return
-            _skin.value = SkinId.fromKey(prefs(context).getString(KEY, null))
+            val saved = prefs(context).getString(KEY, null)
+            _skin.value = if (saved == null) SkinId.KICIA else SkinId.fromKey(saved)
             loaded = true
+            // Pierwsze uruchomienie: zapisz Kicię jako wybór i włącz jej górny pasek (jak przy wyborze w Ustawieniach).
+            if (saved == null) {
+                prefs(context).edit().putString(KEY, SkinId.KICIA.key).apply()
+                com.nuvio.tv.ui.reshaped.pillnav.PillNavPreferences.setEnabled(context, true)
+            }
         }
     }
 
@@ -34,6 +40,8 @@ object SkinPreferences {
         // NETFLIX = istniejący przełącznik Reshaped.
         if (id == SkinId.NETFLIX) com.nuvio.tv.ui.reshaped.netflix.NetflixUiPreferences.setEnabled(context, true)
         else if (previous == SkinId.NETFLIX) com.nuvio.tv.ui.reshaped.netflix.NetflixUiPreferences.setEnabled(context, false)
+        // KICIA = górny pasek Reshaped (pill nav) z poprawkami Kicii.
+        if (id == SkinId.KICIA) com.nuvio.tv.ui.reshaped.pillnav.PillNavPreferences.setEnabled(context, true)
     }
 
     private fun prefs(context: Context) = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

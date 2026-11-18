@@ -122,6 +122,7 @@ object ForkHooks {
     @Composable
     fun moduleOverlays() {
         val c = LocalContext.current
+        remember(c) { com.nuvio.tv.skin.api.SkinPreferences.ensureLoaded(c) } // skórka znana przed pierwszym ekranem (ForgeUi.ON)
         androidx.compose.runtime.LaunchedEffect(Unit) { com.nuvio.tv.fork.settings.FirstRunDefaults.run(c) }
         val overlays = remember(c) { ForkRegistry.forContext(c).rootOverlays() }
         // Rysowane nad treścią aplikacji (wcześniej leżały pod nią, bo hook jest pierwszym elementem Box).
