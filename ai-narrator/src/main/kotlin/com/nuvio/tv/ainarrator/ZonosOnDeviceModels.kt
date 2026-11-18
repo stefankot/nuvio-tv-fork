@@ -33,15 +33,15 @@ internal data class ModelDownloadStatus(
 
 internal data class ZonosModelPaths(val backbone: File, val decoder: File)
 
-internal data class ZonosModelSpec(val name: String, val sha256: String, val maxBytes: Long) {
-    val url: String get() = "https://huggingface.co/Zyphra/ZONOS3-Mini/resolve/7146a686b62bcb0661528fa300984e815e10152b/gguf/" + name
+internal data class ZonosModelSpec(val name: String, val sha256: String, val maxBytes: Long, val remoteName: String = name) {
+    val url: String get() = "https://huggingface.co/Zyphra/ZONOS3-Mini/resolve/d78708d60375ab377501bad854bfe111b0b28d63/gguf/" + remoteName
 }
 
 /** Exact upstream SHA-256 digests. Only the minimal backbone and audio decoder are downloaded. */
 internal object ZonosModelManifest {
     val files = listOf(
         ZonosModelSpec("backbone-ptq.gguf",
-            "66fceb6d73a8c30bde80249e4112bb308380ab7f3384fa11c8e4048115e4ceec", 663_150_624L),
+            "66fceb6d73a8c30bde80249e4112bb308380ab7f3384fa11c8e4048115e4ceec", 663_150_624L, "zonos3-ptq.gguf"),
         ZonosModelSpec("zac-keep2.gguf",
             "834e5b70b88294afc3c702a478487e0664dcc6b574c16fc6167d72444aabeafd", 452_325_440L)
     )
