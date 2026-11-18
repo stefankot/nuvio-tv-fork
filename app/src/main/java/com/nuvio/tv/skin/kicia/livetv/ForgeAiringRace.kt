@@ -82,6 +82,7 @@ internal object ForgeAiringRace {
     suspend fun pick(channel: LiveTvChannel, programme: LiveTvProgramme): Triple<LiveTvChannel, LiveTvProgramme, LiveTvReplay?> {
         val now = LiveTvClock.nowEpochMs()
         val others = withContext(Dispatchers.Default) { runCatching { otherAirings(programme, now) }.getOrDefault(emptyList()) }
+        android.util.Log.i("ForgeAiringRace", "pick '" + programme.title + "' ep=" + programme.episode + " on " + channel.name + ": " + others.size + " other airings") // forge JMGO 6 diagnosis
         if (others.isEmpty()) return Triple(channel, programme, LiveTvRepository.catchupChannel(channel, programme))
         com.nuvio.tv.skin.kicia.components.ForgeToast.show("Szukam działającej emisji (" + (others.size.coerceAtMost(MAX_CANDIDATES - 1) + 1) + ")", top = true)
         val won = race(listOf(channel to programme) + others.take(MAX_CANDIDATES - 1))
@@ -95,8 +96,9 @@ internal object ForgeAiringRace {
         val earlier = withContext(Dispatchers.Default) {
             runCatching { otherAirings(programme, now, before = programme.startEpochMs).filter { it.second.stopEpochMs <= now } }.getOrDefault(emptyList())
         }
+        android.util.Log.i("ForgeAiringRace", "findEarlier '" + programme.title + "' ep=" + programme.episode + " on " + channel.name + ": " + earlier.size + " earlier airings") // forge JMGO 7 diagnosis
         if (earlier.isEmpty()) return null
-        return race(earlier.take(MAX_CANDIDATES))
+        return race(earlier.take(MAX_CANDIDATES)).also { android.util.Log.i("ForgeAiringRace", "findEarlier won=" + (it?.channel?.name ?: "none")) }
     }
 
     /** Asks for every candidate's replay at once and checks its stream; the first that answers wins. */

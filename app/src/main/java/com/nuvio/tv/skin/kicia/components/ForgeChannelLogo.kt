@@ -281,3 +281,18 @@ fun ForgeLogoWithShadow(url: String, modifier: Modifier = Modifier, contentDescr
         ForgeAutoLogo(url = url, contentDescription = contentDescription, modifier = Modifier.matchParentSize())
     }
 }
+
+/**
+ * v7.6 (owner 13.11): a channel logo in its own COLOURS, never stretched ([ContentScale.Fit]), for the interface (dialogs, lists, the EPG
+ * column). On a programme picture the logo stays black-and-white ([ForgeAutoLogo]).
+ */
+@Composable
+fun ForgeColorLogo(url: String, modifier: Modifier = Modifier, contentDescription: String? = null) {
+    AsyncImage(model = url, contentDescription = contentDescription, contentScale = ContentScale.Fit, modifier = modifier)
+}
+
+/** [ForgeColorLogo] for a screen's own image request (headers, size, fetcher), centred in its box. */
+@Composable
+fun ForgeColorLogo(request: coil3.request.ImageRequest, modifier: Modifier = Modifier, onError: () -> Unit = {}) {
+    AsyncImage(model = request, contentDescription = null, contentScale = ContentScale.Fit, alignment = androidx.compose.ui.Alignment.Center, onError = { onError() }, modifier = modifier)
+}

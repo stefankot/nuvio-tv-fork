@@ -1,6 +1,7 @@
 package com.nuvio.tv.skin.kicia.livetv
 
 import androidx.compose.material.icons.filled.Replay
+import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.graphicsLayer
@@ -46,6 +47,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -78,7 +80,7 @@ import com.nuvio.tv.ui.screens.player.PlayerEvent
 import com.nuvio.tv.ui.screens.player.onEvent
 
 /** The element the remote is on inside the MiniGuide (mockup S09; the card draws it, keys move it). */
-internal enum class ForgeMiniSlot { GUIDE, TILE, BAR, INFO, RESTART, REMIND, FAV, NEXT }
+internal enum class ForgeMiniSlot { GUIDE, TILE, BAR, LIVE, INFO, RESTART, REMIND, FAV, NEXT }
 
 /**
  * Remote navigation of the S09 MiniGuide. Reshaped keeps the card itself (OK shows it, its timer hides it,
@@ -90,8 +92,29 @@ internal object ForgeMiniGuideNav {
     /** 0 = on now; k > 0 = the k-th programme after it. */
     var ahead by mutableIntStateOf(0)
     var paused by mutableStateOf(false)
+    /** makieta 7.7b H8 (--zapping): the switch comes 500 ms after the last ▲▼. */
+    const val ZAP_MS = 500L
+    /** makieta 7.7b H8: when the last ▲▼ zap was asked (uptime ms); the tile shows the countdown to the switch. */
+    var zapAt by androidx.compose.runtime.mutableLongStateOf(0L)
+    /** makieta 7.7 E19: time spent paused behind live (ms), and since when it stands still now (0 = playing). */
+    private var shiftMs = 0L
+    private var pausedSinceMs = 0L
+    fun onPauseToggled(nowPaused: Boolean) {
+        val now = android.os.SystemClock.elapsedRealtime()
+        if (!paused) { shiftMs = 0L; pausedSinceMs = 0L }
+        if (nowPaused) pausedSinceMs = now
+        else if (pausedSinceMs > 0L) { shiftMs += now - pausedSinceMs; pausedSinceMs = 0L }
+    }
+    /** makieta 7.7 E19: „−N min” behind the live transmission (at least 1 while shifted). */
+    fun shiftMinutes(): Int {
+        val now = android.os.SystemClock.elapsedRealtime()
+        val ms = shiftMs + if (pausedSinceMs > 0L) now - pausedSinceMs else 0L
+        return (ms / 60_000L).toInt().coerceAtLeast(1)
+    }
     /** The programme whose details (S08) are open over the player. */
     var detail by mutableStateOf<Pair<LiveTvChannel, LiveTvProgramme>?>(null)
+    /** JMGO test 14.11: the details open on OK's release; opened on its press, the release clicked their first button („Oglądaj”). */
+    private var detailOnRelease: Pair<LiveTvChannel, LiveTvProgramme>? = null
     internal var onGuide: (() -> Unit)? = null
     internal var appContext: android.content.Context? = null
 
@@ -102,11 +125,12 @@ internal object ForgeMiniGuideNav {
 
     /** The slots the card shows right now, in ◀▶ order of the button row. */
     internal fun buttons(ahead: Int, startOver: Boolean, hasNext: Boolean): List<ForgeMiniSlot> = buildList {
+        if (ahead == 0 && paused) add(ForgeMiniSlot.LIVE) // makieta 7.7 E19: „Na żywo” only while time-shifted, first in the row
         add(ForgeMiniSlot.INFO)
         if (ahead == 0 && startOver) add(ForgeMiniSlot.RESTART)
         if (ahead > 0) add(ForgeMiniSlot.REMIND)
         add(ForgeMiniSlot.FAV)
-        if (hasNext) add(ForgeMiniSlot.NEXT)
+        // makieta 7.7b H5: „Następnie” is not a button (no focus); its slot is gone from the row
     }
 
     /** The key handler while the card is up: always consumes (Reshaped's card owns the keys then). */
@@ -120,8 +144,11 @@ internal object ForgeMiniGuideNav {
         val now = LiveTvClock.nowEpochMs()
         val onNow = LiveTvRepository.uiState.value.currentProgrammes[channel.guideKey]
         val upcoming = forgeUpcoming(LiveTvRepository.schedule(channel.guideKey), onNow, now)
-        val shown = if (ahead == 0) onNow else upcoming.getOrNull(ahead - 1)
-        val next = if (ahead == 0) upcoming.firstOrNull() else upcoming.getOrNull(ahead)
+        // forge fix 14.11 (JMGO A6): from the archive „Info” is the programme replaying, not the one on the channel now
+        val shown = if (ahead == 0) (state.replayingProgramme ?: onNow) else upcoming.getOrNull(ahead - 1)
+        // forge fix 14.11 (makieta 7.6, 07): from the archive „Dalej” is the programme after the one replaying, not the next live one
+        val replaying = state.replayingProgramme
+        val next = if (ahead == 0) (if (replaying != null) forgeAfter(LiveTvRepository.schedule(channel.guideKey), replaying) else upcoming.firstOrNull()) else upcoming.getOrNull(ahead)
         val startOver = state.startOverProgramme(channel) != null
         val row = buttons(ahead, startOver, next != null)
         // The programme bar can be entered (▲ from the buttons) when the channel keeps an archive: ◀▶ / OK then open the rewind bar.
@@ -129,6 +156,7 @@ internal object ForgeMiniGuideNav {
         if (slot != ForgeMiniSlot.GUIDE && slot != ForgeMiniSlot.TILE && !(slot == ForgeMiniSlot.BAR && channel.catchup != null && ahead == 0) && slot !in row) slot = row.first()
         val ok = event.keyCode == KeyEvent.KEYCODE_DPAD_CENTER || event.keyCode == KeyEvent.KEYCODE_ENTER || event.keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER
         if (!down) {
+            if (ok) { detailOnRelease?.let { detail = it }; detailOnRelease = null }
             if (event.keyCode == KeyEvent.KEYCODE_BACK || event.keyCode == KeyEvent.KEYCODE_ESCAPE) {
                 if (ahead > 0) { ahead = 0; state.showInfo() } else state.hideInfo()
             }
@@ -165,15 +193,16 @@ internal object ForgeMiniGuideNav {
             }
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> when (slot) {
                 ForgeMiniSlot.GUIDE -> { state.hideInfo(); onGuide?.invoke() }
-                ForgeMiniSlot.TILE -> if (ahead > 0) ahead = 0 else slot = row.first()
-                ForgeMiniSlot.INFO -> shown?.let { detail = channel to it }
+                ForgeMiniSlot.TILE -> if (ahead > 0) ahead = 0 else if (state.isPausedNow()) state.togglePause() else slot = row.first() // forge fix 14.11 (JMGO A1): paused, OK on the tile plays on
+                ForgeMiniSlot.INFO -> shown?.let { detailOnRelease = channel to it }
                 ForgeMiniSlot.RESTART -> state.startOverProgramme(channel)?.let { state.hideInfo(); state.playCatchup(channel, it) }
+                ForgeMiniSlot.LIVE -> { paused = false; state.switchTo(channel, force = true) } // makieta 7.7 E19: jump to live
                 ForgeMiniSlot.REMIND -> if (shown != null) appContext?.let {
                     com.nuvio.tv.fork.tv.ForgeReminders.toggle(it, com.nuvio.tv.fork.tv.ForgeReminder(channel.streamUrl, shown.startEpochMs, shown.title, channel.name))
                 }
                 ForgeMiniSlot.BAR -> state.openScrub(channel, 0, keepInfo = true)
                 ForgeMiniSlot.FAV -> LiveTvRepository.toggleFavorite(channel)
-                ForgeMiniSlot.NEXT -> next?.let { detail = channel to it }
+                ForgeMiniSlot.NEXT -> next?.let { detailOnRelease = channel to it }
             }
             KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_ESCAPE -> Unit // acts on release
             else -> return false
@@ -187,6 +216,10 @@ internal fun forgeUpcoming(schedule: List<LiveTvProgramme>, onNow: LiveTvProgram
     val from = onNow?.stopEpochMs ?: nowMs
     return schedule.filter { it.startEpochMs >= from }.sortedBy { it.startEpochMs }.distinctBy { it.startEpochMs }.take(40)
 }
+
+/** The channel's programme right after [programme] (makieta 7.6, 07: „Dalej” in the archive follows the replay). */
+internal fun forgeAfter(schedule: List<LiveTvProgramme>, programme: LiveTvProgramme): LiveTvProgramme? =
+    schedule.filter { it.startEpochMs >= programme.stopEpochMs }.minByOrNull { it.startEpochMs }
 
 /** "zostało 8 min" */
 internal fun forgeLeft(stopMs: Long, nowMs: Long): String = "zostało " + ((stopMs - nowMs + 59_999) / 60_000).coerceAtLeast(0) + " min"
@@ -238,7 +271,7 @@ fun ForgeMiniGuideCard(
     // v7.4 (07): while rewinding, the programme under the picked time (the title and hours follow the marker)
     val scrubProgramme = scrubMs?.let { t -> LiveTvRepository.schedule(channel.guideKey).firstOrNull { t >= it.startEpochMs && t < it.stopEpochMs } }
     val shown = scrubProgramme ?: if (replay != null) replay else if (ahead == 0) now else upcoming.getOrNull(ahead - 1)
-    val after = if (ahead == 0) (next ?: upcoming.firstOrNull()) else upcoming.getOrNull(ahead)
+    val after = if (ahead == 0) (if (replay != null) forgeAfter(LiveTvRepository.schedule(channel.guideKey), replay) else next ?: upcoming.firstOrNull()) else upcoming.getOrNull(ahead) // forge fix 14.11 (makieta 7.6, 07)
     val row = ForgeMiniGuideNav.buttons(ahead, startOver, after != null)
     val slot = nav.slot
 
@@ -269,9 +302,10 @@ fun ForgeMiniGuideCard(
                 if (picture != null) AsyncImage(model = picture, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
                 else if (!url.isNullOrBlank()) ForgeAutoLogo(url = url, contentDescription = channel.name, modifier = Modifier.align(Alignment.Center).size(96.dp, 48.dp))
                 Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.45f to Color.Transparent, 1f to Color.Black.copy(alpha = .78f))))
+                ForgeZapCountdown(Modifier.align(Alignment.BottomStart)) // makieta 7.7b H8
                 Row(Modifier.padding(start = 12.dp, top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                     if (number > 0) Text(number.toString(), style = ForgeText.captionBold, modifier = Modifier.padding(end = 8.dp).testTag("kanal-nr.0"))
-                    if (replay == null && ahead == 0) com.nuvio.tv.skin.kicia.components.ForgeBadge("Na żywo", com.nuvio.tv.skin.kicia.components.ForgeBadgeKind.Live, Modifier.testTag("plakietka.0"))
+                    // v7.6 (owner 13.11): no "Na żywo" inside the tile; the state is in the line beside it
                     // Owner 12.11: no ⟲ on the tile – it looked like an „Od początku” button that cannot be picked; the ⏮ in the row beside says it
                 }
                 Column(Modifier.align(Alignment.BottomStart).padding(start = 8.dp, end = 8.dp, bottom = 8.dp)) {
@@ -290,6 +324,7 @@ fun ForgeMiniGuideCard(
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(22.dp).testTag("mini-meta.0")) {
                 when {
                     replay != null -> com.nuvio.tv.skin.kicia.components.ForgeBadge("Z archiwum", com.nuvio.tv.skin.kicia.components.ForgeBadgeKind.Archive, Modifier.testTag("plakietka.1"))
+                    ahead == 0 && ForgeMiniGuideNav.paused -> com.nuvio.tv.skin.kicia.components.ForgeBadge("Z przesunięciem −${ForgeMiniGuideNav.shiftMinutes()} min", com.nuvio.tv.skin.kicia.components.ForgeBadgeKind.Shift, Modifier.testTag("plakietka.1")) // makieta 7.7b H6: paused live = time-shifted, yellow
                     ahead == 0 -> com.nuvio.tv.skin.kicia.components.ForgeBadge("Na żywo", com.nuvio.tv.skin.kicia.components.ForgeBadgeKind.Live, Modifier.testTag("plakietka.1"))
                 }
                 val time = when {
@@ -330,7 +365,8 @@ fun ForgeMiniGuideCard(
                 var n = 0
                 row.forEach { s ->
                     when (s) {
-                        ForgeMiniSlot.INFO -> ForgeMiniCircle(Icons.Outlined.Info, slot == s, "Info i odcinki", "przycisk-okragly.${n++}")
+                        ForgeMiniSlot.LIVE -> ForgeMiniCircle(Icons.Filled.LiveTv, slot == s, "Na żywo", "przycisk-okragly.${n++}") // makieta 7.7 E19
+                        ForgeMiniSlot.INFO -> ForgeMiniCircle(Icons.Outlined.Info, slot == s, "Szczegóły i odcinki", "przycisk-okragly.${n++}")
                         ForgeMiniSlot.RESTART -> ForgeMiniCircle(Icons.Filled.SkipPrevious, slot == s, "Od początku", "przycisk-okragly.${n++}")
                         ForgeMiniSlot.REMIND -> {
                             val on = shown != null && reminders.any { it.channelUrl == channel.streamUrl && it.startMs == shown.startEpochMs }
@@ -434,6 +470,13 @@ internal fun ForgeMiniGuideDetailHost(state: LiveTvPlayerState) {
                 },
                 onWatchFromStart = if (channel.catchup != null) ({ shownProgramme -> close(); state.hideInfo(); state.playCatchup(channel, shownProgramme) }) else null,
                 playing = state.replayingProgramme ?: if (state.currentListUrl == channel.streamUrl) LiveTvRepository.uiState.value.currentProgrammes[channel.guideKey] else null,
+                // forge fix 14.11 (JMGO A6): the state of playing reaches the details
+                playingLabel = when {
+                    state.currentListUrl != channel.streamUrl -> null
+                    state.replayingProgramme != null -> "Z archiwum"
+                    ForgeMiniGuideNav.paused -> "Z przesunięciem"
+                    else -> null
+                },
                 onPlayAiring = { airing ->
                     val at = LiveTvClock.nowEpochMs()
                     when {
@@ -517,11 +560,11 @@ internal object ForgeReminderLog { val announced = mutableSetOf<String>() }
  * so the change is confirmed first. The safe answer ("Zostań") has the focus; Back also stays.
  */
 @Composable
-internal fun ForgeZapConfirm(programmeTitle: String?, toLive: Boolean = false, onStay: () -> Unit, onChange: () -> Unit) {
+internal fun ForgeZapConfirm(programmeTitle: String?, toLive: Boolean = false, logoUrl: String? = null, onStay: () -> Unit, onChange: () -> Unit, onBack: (() -> Unit)? = null) {
     val stay = androidx.compose.runtime.remember { androidx.compose.ui.focus.FocusRequester() }
     LaunchedEffect(Unit) { runCatching { stay.requestFocus() } }
     androidx.compose.ui.window.Dialog(
-        onDismissRequest = onStay,
+        onDismissRequest = onBack ?: onStay, // forge fix 14.11 (JMGO A2): Back = leave, when the question came from Back
         properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
     ) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -529,12 +572,10 @@ internal fun ForgeZapConfirm(programmeTitle: String?, toLive: Boolean = false, o
                 Modifier.width(520.dp).clip(RoundedCornerShape(16.dp)).background(ForgeColors.Bg).padding(28.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
+                // v7.6 (owner 13.11): the channel's logo in colour on top; no sentence about the guide (too much text)
+                if (!logoUrl.isNullOrBlank()) com.nuvio.tv.skin.kicia.components.ForgeColorLogo(url = logoUrl, modifier = Modifier.size(width = 96.dp, height = 36.dp))
                 Text(if (toLive) "Wrócić do transmisji na żywo?" else "Zmienić kanał?", style = ForgeText.head)
-                Text(
-                    "Oglądasz program z archiwum" + (programmeTitle?.let { ": $it" } ?: "") +
-                        (if (toLive) ". Po powrocie na żywo wrócisz do niego przez przewodnik albo „Info i odcinki”." else ". Po zmianie kanału wrócisz do niego przez przewodnik albo „Info i odcinki”."),
-                    style = ForgeText.body,
-                )
+                Text("Oglądasz program z archiwum" + (programmeTitle?.let { ": $it" } ?: "") + ".", style = ForgeText.body)
                 Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     com.nuvio.tv.skin.kicia.components.ForgeButton(text = "Zostań", primary = true, focusRequester = stay, onOk = onStay)
                     com.nuvio.tv.skin.kicia.components.ForgeButton(text = if (toLive) "Na żywo" else "Zmień kanał", onOk = onChange)
@@ -542,4 +583,33 @@ internal fun ForgeZapConfirm(programmeTitle: String?, toLive: Boolean = false, o
             }
         }
     }
+}
+
+/** v7.6: the logo of the channel now playing in the Live TV player (for the dialog above); null when unknown. */
+internal fun forgeCurrentChannelLogo(state: LiveTvPlayerState): String? {
+    val url = state.currentListUrl ?: return null
+    val channel = com.nuvio.tv.reshaped.livetv.LiveTvRepository.uiState.value.channels.firstOrNull { it.streamUrl == url } ?: return null
+    return forgeChannelLogo(channel)?.takeIf { it.isNotBlank() }
+}
+
+
+/**
+ * Makieta 7.7b H8: the tile's activity while zapping — a 4 dp bar in the focus colour along its bottom edge, 0 → 100%
+ * linearly over the switch delay, from the start again at every press.
+ */
+@Composable
+private fun ForgeZapCountdown(modifier: Modifier = Modifier) {
+    val at = ForgeMiniGuideNav.zapAt
+    if (at == 0L) return
+    val progress = remember(at) { androidx.compose.animation.core.Animatable(0f) }
+    var done by remember(at) { mutableStateOf(false) }
+    LaunchedEffect(at) {
+        val total = ForgeMiniGuideNav.ZAP_MS
+        val left = (total - (android.os.SystemClock.uptimeMillis() - at)).coerceAtLeast(0L)
+        progress.snapTo(1f - left.toFloat() / total)
+        progress.animateTo(1f, androidx.compose.animation.core.tween(left.toInt(), easing = androidx.compose.animation.core.LinearEasing))
+        done = true
+    }
+    if (done) return
+    Box(modifier.fillMaxWidth(progress.value).height(4.dp).background(ForgeColors.Focus))
 }

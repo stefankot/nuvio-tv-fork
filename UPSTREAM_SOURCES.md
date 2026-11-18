@@ -9,7 +9,7 @@ Dozwolone zmiany: QualitySelectionOverlay.kt: usunięta funkcja rememberBetaPerf
 Shimy Echo: BetaPerformanceSettings/BetaFeatures (ForkFeatures, domyślnie wyłączone).
 
 ## Skórka Kicia (18.11.2026)
-- Źródło: lokalny stary fork `nuvio-tv-kicia-poprawki`, gałąź `fix/zgloszenia-jmgo`, commit `429d32225b325bd9f6f1bf7b4e640a27654d0bb8`.
+- Źródło: lokalny stary fork `~/Desktop/nuvio-tv-kicia`, gałąź `feat/auto-odtwarzanie` (najnowsza, 15.11), commit `34c80c6395e5d5666f6c3b2f507b6626c3ed86ea` (zawiera `fix/zgloszenia-jmgo` 429d322 + 168 commitów, makieta 7.6–7.7).
 - `app/src/main/java/com/nuvio/tv/ui/forge/**` → `skin/kicia/**` (1:1, zmiana pakietu `com.nuvio.tv.ui.forge` → `com.nuvio.tv.skin.kicia`; odwołania `com.nuvio.tv.forge.tv.ForgeTv` → `com.nuvio.tv.fork.tv.TvStore`, `ForgeEpgExtras` → `EpgExtras`, `forge.tv.*` → `fork.tv.*`, `forge.ready.*` → `fork.sources.*`).
 - `ui/screens/settings/ForgeSettingsContent.kt`, `ForgeNightSettings.kt` → `skin/kicia/settings/`.
 - `res/values{,-pl}/forge_tv_strings.xml` → `skin_kicia_strings.xml`; `res/font/satoshi_{bold,medium}.ttf`.

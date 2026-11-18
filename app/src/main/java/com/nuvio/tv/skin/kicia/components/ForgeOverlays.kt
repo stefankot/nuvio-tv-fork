@@ -85,6 +85,10 @@ fun ForgeSideSheet(
     OverlayFocus(visible, enter, returnFocusTo)
     BackHandler(enabled = visible, onBack = onDismiss)
     Box(modifier.fillMaxSize()) {
+        // makieta 7.7 A9: a curtain under the Panel (API 30 = the JMGO: 60% without blur; the blur needs a host haze)
+        AnimatedVisibility(visible = visible, enter = fadeIn(ForgeMotion.fadeSpec()), exit = fadeOut(ForgeMotion.fadeSpec())) {
+            Box(Modifier.fillMaxSize().background(ForgeColors.Scrim))
+        }
         AnimatedVisibility(
             visible = visible,
             modifier = Modifier.align(Alignment.CenterEnd),
@@ -98,6 +102,7 @@ fun ForgeSideSheet(
                     .fillMaxHeight()
                     .clip(RoundedCornerShape(topStart = ForgeDims.RadiusSheet, bottomStart = ForgeDims.RadiusSheet)) // v7.4: left corners only
                     .background(ForgeColors.GlassFallback) // v7.4: --szklo-zapas (szkło bez rozmycia)
+                    .forgeEdge(RoundedCornerShape(topStart = ForgeDims.RadiusSheet, bottomStart = ForgeDims.RadiusSheet)) // makieta 7.7 A8
                     .testTag("panel")
                     .padding(horizontal = 24.dp, vertical = 24.dp)
                     .focusProperties {
@@ -140,6 +145,7 @@ fun ForgePopover(
                 .width(width)
                 .clip(RoundedCornerShape(ForgeDims.RadiusSheet))
                 .background(ForgeColors.GlassFallback) // v7.4: --szklo-zapas
+                .forgeEdge(RoundedCornerShape(ForgeDims.RadiusSheet)) // makieta 7.7 A8
                 .testTag("popover")
                 .padding(8.dp)
                 .focusProperties { exit = { FocusRequester.Cancel } }
@@ -219,6 +225,8 @@ fun ForgeDialog(
     message: String? = null,
     initialFocusIndex: Int = 0,
     returnFocusTo: FocusRequester? = null,
+    note: String? = null, // v7.6: explanation under the message, smaller
+    topContent: (@Composable () -> Unit)? = null, // v7.6: e.g. the channel logo above the title
 ) {
     val requesters = remember(buttons.size) { List(buttons.size) { FocusRequester() } }
     val group = remember { FocusRequester() }
@@ -234,6 +242,10 @@ fun ForgeDialog(
     }
     BackHandler(enabled = visible, onBack = onDismiss)
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        // makieta 7.7 A9: a curtain under the Okno (API 30 = the JMGO: 60% without blur)
+        AnimatedVisibility(visible = visible, enter = fadeIn(ForgeMotion.fadeSpec()), exit = fadeOut(ForgeMotion.fadeSpec())) {
+            Box(Modifier.fillMaxSize().background(ForgeColors.Scrim))
+        }
         AnimatedVisibility(
             visible = visible,
             enter = fadeIn(ForgeMotion.fadeSpec()),
@@ -244,14 +256,17 @@ fun ForgeDialog(
                     .width(ForgeDims.DialogWidth)
                     .clip(RoundedCornerShape(ForgeDims.RadiusSheet))
                     .background(ForgeColors.GlassFallback) // v7.4: --szklo-zapas
+                    .forgeEdge(RoundedCornerShape(ForgeDims.RadiusSheet)) // makieta 7.7 A8
                     .testTag("okno")
                     .padding(24.dp) // v7.4: okno 440, padding 24
                     .focusProperties { exit = { FocusRequester.Cancel } }
                     .focusRequester(group)
                     .focusGroup(),
             ) {
+                if (topContent != null) { topContent(); Spacer(Modifier.height(8.dp)) }
                 Text(title, style = ForgeText.head)
                 if (message != null) { Spacer(Modifier.height(12.dp)); Text(message, style = ForgeText.body) }
+                if (note != null) { Spacer(Modifier.height(8.dp)); Text(note, style = ForgeText.caption.copy(color = ForgeColors.Text3)) }
                 Spacer(Modifier.height(24.dp)) // v7.4: title 26, 12, text 22, 24, buttons 44
                 // v7.4: przyciski do prawej, odstęp 12, sąsiad odsuwa się przy fokusie
                 ForgeSpreadRow(Modifier.fillMaxWidth(), gap = 12.dp, alignEnd = true) {

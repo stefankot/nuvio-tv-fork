@@ -148,5 +148,6 @@ fun ForgeFocusBox(
             .focusable(enabled = enabled),
     ) {
         androidx.compose.runtime.CompositionLocalProvider(LocalForgeTag provides null, LocalForgeForced provides null) { content(shown) }
+        if (onLongOk != null) ForgeHoldRing(holding = pressed && focused, modifier = Modifier.align(androidx.compose.ui.Alignment.TopEnd)) // makieta 7.7 A6
     }
 }

@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -46,7 +48,11 @@ internal object ForgeArchiveOffer {
         if (state.currentListUrl != o.listUrl || state.isCatchup()) { offer = null; return false }
         return when (event.keyCode) {
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> {
-                if (event.action == KeyEvent.ACTION_UP) { offer = null; state.playCatchup(o.win.channel, o.win.programme) }
+                if (event.action == KeyEvent.ACTION_UP) {
+                    offer = null; state.playCatchup(o.win.channel, o.win.programme)
+                    // v7.6 (owner 13.11): the card says only "Pomijaj reklamy"; the explanation comes once the archive plays
+                    com.nuvio.tv.skin.kicia.components.ForgeToast.show("Program leci teraz z archiwum", top = true, note = "Reklamy możesz dowolnie przewijać.")
+                }
                 true
             }
             KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_ESCAPE -> {
@@ -67,6 +73,7 @@ internal object ForgeArchiveOffer {
             val channel = ui.channels.firstOrNull { it.streamUrl == url } ?: continue
             val programme = ui.currentProgrammes[channel.guideKey] ?: continue
             if (!asked.add(url + "|" + programme.startEpochMs)) continue
+            android.util.Log.i("ForgeAiringRace", "offer check '" + programme.title + "' on " + channel.name) // forge JMGO 7 diagnosis
             val win = runCatching { ForgeAiringRace.findEarlier(channel, programme) }.getOrNull() ?: continue
             if (state.currentListUrl != url || state.isCatchup()) continue
             offer = Offer(url, win)
@@ -83,16 +90,16 @@ internal fun ForgeArchiveOfferCard(state: LiveTvPlayerState) {
     val o = ForgeArchiveOffer.offer ?: return
     if (state.currentListUrl != o.listUrl || state.infoOpen) return
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopEnd) {
-        Column(
-            Modifier.padding(top = 110.dp, end = 58.dp).widthIn(max = 420.dp)
-                .clip(RoundedCornerShape(24.dp)).background(Color(0xE6343840)).padding(16.dp),
+        // v7.6 (owner 13.11): a short card: icon, "Pomijaj reklamy", OK (the rest is said after the archive starts)
+        androidx.compose.foundation.layout.Row(
+            Modifier.padding(top = 110.dp, end = 58.dp)
+                .clip(RoundedCornerShape(24.dp)).background(Color(0xE6343840)).padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
         ) {
-            Text("W archiwum · bez czekania na reklamy", style = ForgeText.label.copy(color = ForgeColors.Ok))
-            Text(
-                o.win.programme.title + " · " + forgeTvTime(o.win.programme.startEpochMs) + " · " + o.win.channel.name,
-                style = ForgeText.button, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 2.dp),
-            )
-            Text("OK – oglądaj od początku z przewijaniem", style = ForgeText.caption.copy(color = ForgeColors.Text3), modifier = Modifier.padding(top = 4.dp))
+            androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Filled.SkipNext, null, tint = Color.White, modifier = Modifier.size(24.dp))
+            Text("Pomijaj reklamy", style = ForgeText.button)
+            Text("OK", style = ForgeText.label.copy(color = ForgeColors.Ok), modifier = Modifier.clip(RoundedCornerShape(50)).background(Color(0x33FFFFFF)).padding(horizontal = 8.dp, vertical = 2.dp))
         }
     }
 }

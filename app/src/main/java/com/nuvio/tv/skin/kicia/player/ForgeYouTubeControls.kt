@@ -108,6 +108,8 @@ internal fun ForgeYouTubeControls(
         repeat(6) { if (!ok) { ok = runCatching { progressBarFocusRequester.requestFocus() }.isSuccess; if (!ok) kotlinx.coroutines.delay(80) } }
     }
     val chapters = info?.chapters.orEmpty()
+    val likeFocus = remember { FocusRequester() } // makieta 7.7b H3
+    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { ForgeYouTubePanelRequests.barFocused = false } } // test 15.11 (B-3)
     val position = scrub.state.markerMs ?: scrub.state.positionMs
     val chapter = forgeChapterAt(chapters, position)
 
@@ -118,20 +120,35 @@ internal fun ForgeYouTubeControls(
             title = info?.title ?: uiState.title,
             subtitle = listOfNotNull(info?.author, info?.subscribers?.takeIf { it.isNotBlank() }).joinToString(" · ").ifBlank { null },
             endsAt = null,
-            endActions = { // v7.4 (13): Napisy i Ustawienia jako Przyciski okrągłe 36 przy tytule
-                ForgeIconButton(icon = Icons.Outlined.ClosedCaption, contentDescription = "Napisy", size = 36.dp, onOk = onShowSubtitleDialog)
-                ForgeIconButton(icon = Icons.Outlined.Settings, contentDescription = "Ustawienia", size = 36.dp, onOk = { moreOpen = true; onResetHideTimer() })
-            },
+            endActions = {}, // makieta 7.7b H3: Napisy and the rest moved to the one row above the bar
         ) {
             Box(Modifier.onGloballyPositioned { controlsTopPx = it.positionInRoot().y })
+            // makieta 7.7b H3: ALL buttons above the bar in one row under the title (gap 12, from x 40): Lubię to, Do kanału
+            // (Awatar 44), Napisy, Jakość, Więcej. No ❚❚ and no „Do początku” (OK on the bar pauses; long OK there = from the start).
+            Row(Modifier.fillMaxWidth().padding(bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                com.nuvio.tv.skin.kicia.components.ForgeButton(
+                    text = "Lubię to" + (info?.likeCount?.takeIf { it.isNotBlank() }?.let { " · $it" } ?: ""),
+                    icon = if (info?.liked == true) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp, small = true, focusRequester = likeFocus,
+                    onOk = { yt.toggleLike(); onResetHideTimer() },
+                )
+                val channelId = info?.channelId
+                if (channelId != null) com.nuvio.tv.skin.kicia.components.ForgeFocusBox(
+                    radius = 22.dp, onOk = { session.openChannel(channelId, info?.author.orEmpty()) },
+                ) { _ -> com.nuvio.tv.skin.kicia.components.ForgeAvatar(name = info?.author.orEmpty(), size = 44.dp, imageUrl = info?.authorImage) }
+                ForgeIconButton(icon = Icons.Outlined.ClosedCaption, contentDescription = "Napisy", size = 36.dp, onOk = onShowSubtitleDialog)
+                com.nuvio.tv.skin.kicia.components.ForgeButton(text = "Jakość", icon = Icons.Outlined.Settings, small = true, onOk = { moreOpen = true; onResetHideTimer() })
+                com.nuvio.tv.skin.kicia.components.ForgeButton(text = "Więcej", icon = Icons.Outlined.MoreHoriz, small = true, onOk = { ForgeYouTubePanelRequests.open(); onResetHideTimer() })
+            }
             ForgeScrubBar(
                 state = scrub.state,
                 focused = barFocused,
                 modifier = Modifier.fillMaxWidth().height(16.dp).testTag("postep.0") // v7.4: y 412, 16
                     .focusRequester(progressBarFocusRequester)
                     .focusRequester(playPauseFocusRequester) // v7.4: OK on the bar pauses; no ❚❚ in the row
-                    .onFocusChanged { barFocused = it.isFocused; if (it.isFocused) onResetHideTimer() }
-                    .forgeScrubKeys(scrub, onTogglePause = { onPlayPause(); onResetHideTimer() })
+                    .onFocusChanged { barFocused = it.isFocused; ForgeYouTubePanelRequests.barFocused = it.isFocused; if (it.isFocused) onResetHideTimer() }
+                    .forgeScrubKeys(scrub, onTogglePause = { onPlayPause(); onResetHideTimer() },
+                        onUp = { runCatching { likeFocus.requestFocus() }.isSuccess }, // makieta 7.7b H3: ▲ from the bar = the button row
+                        onDown = { ForgeYouTubePanelRequests.open(); true }) // makieta 7.7b H3: ▼ from the bar = the next videos
                     .focusable(),
             )
             Row(Modifier.fillMaxWidth().padding(top = 4.dp, start = 24.dp)) { // v7.4: czasy 12, y 432
@@ -139,31 +156,8 @@ internal fun ForgeYouTubeControls(
                 Spacer(Modifier.weight(1f))
                 Text(if (info?.isLive == true) "Na żywo" else "−" + forgeTime((scrub.state.durationMs - scrub.state.positionMs).coerceAtLeast(0)), style = ForgeText.caption, modifier = Modifier.testTag("odtw-czas.1"))
             }
-            Row(Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                // v7.4 (13): ⏮ ⏭ (36), then Lubię to · liczba, Subskrybuj, Więcej (Przyciski małe z ikoną), y 460
-                ForgeIconButton(icon = Icons.Filled.SkipPrevious, contentDescription = "Poprzedni", size = 36.dp, onOk = {
-                    onSeekTo(forgePrevChapterStart(chapters, position)); onResetHideTimer()
-                })
-                ForgeIconButton(icon = Icons.Filled.SkipNext, contentDescription = "Następny", size = 36.dp, onOk = {
-                    val next = forgeNextChapterStart(chapters, position)
-                    if (next != null) onSeekTo(next)
-                    else ytState.related.firstOrNull()?.let { session.playVideo(it, ytState.related) }
-                    onResetHideTimer()
-                })
-                com.nuvio.tv.skin.kicia.components.ForgeButton(
-                    text = "Lubię to" + (info?.likeCount?.takeIf { it.isNotBlank() }?.let { " · $it" } ?: ""),
-                    icon = if (info?.liked == true) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp, small = true,
-                    onOk = { yt.toggleLike(); onResetHideTimer() },
-                )
-                com.nuvio.tv.skin.kicia.components.ForgeButton(
-                    text = if (info?.subscribed == true) "Subskrybujesz" else "Subskrybuj",
-                    icon = Icons.Outlined.Notifications, small = true,
-                    onOk = { yt.toggleSubscribe(); onResetHideTimer() },
-                )
-                com.nuvio.tv.skin.kicia.components.ForgeButton(text = "Więcej", icon = Icons.Outlined.MoreHoriz, small = true, onOk = { ForgeYouTubePanelRequests.open(); onResetHideTimer() })
-            }
         }
-        ForgeSideSheet(visible = moreOpen, onDismiss = { moreOpen = false }, title = "Ustawienia") {
+        ForgeSideSheet(visible = moreOpen, onDismiss = { moreOpen = false }, title = "Jakość") {
             ForgeSheetRow(text = "Szybkość") { moreOpen = false; onShowSpeedDialog() }
             ForgeSheetRow(text = "Informacje") { moreOpen = false; onShowStreamInfo() }
         }

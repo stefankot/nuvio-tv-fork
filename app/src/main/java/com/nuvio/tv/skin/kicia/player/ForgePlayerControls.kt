@@ -84,7 +84,20 @@ fun ForgePlayerControls(
         onSeek = { onSeekTo(it); onResetHideTimer() },
     )
     var barFocused by remember { mutableStateOf(false) }
+    val ccFocus = remember { androidx.compose.ui.focus.FocusRequester() } // forge hook v7.5: ▲ from the bar (ZACHOWANIE 5.8)
+    val firstButtonFocus = remember { androidx.compose.ui.focus.FocusRequester() } // ▼ from the bar (5.9)
+    // forge fix 14.11 (ZACHOWANIE 5.13): Back from a panel opened from the row comes back to its button (it landed on the bar)
+    val rowFocus = remember { listOf(firstButtonFocus) + List(3) { androidx.compose.ui.focus.FocusRequester() } }
+    val panelOpen = uiState.showEpisodesPanel || uiState.showSourcesPanel || uiState.showSpeedDialog || uiState.showStreamInfoOverlay
+    LaunchedEffect(panelOpen, uiState.showControls) {
+        val index = ForgeControlsReturn.index
+        if (panelOpen || !uiState.showControls || index < 0) return@LaunchedEffect
+        kotlinx.coroutines.delay(320) // after PlayerScreen's own 250 ms request for the bar
+        ForgeControlsReturn.index = -1
+        runCatching { rowFocus[index].requestFocus() }
+    }
     var moreOpen by remember { mutableStateOf(false) }
+    var sourceBubble by remember { mutableStateOf(false) } // makieta 7.7 B1
     var controlsTopPx by remember { mutableFloatStateOf(0f) }
     var rootHeightPx by remember { mutableFloatStateOf(0f) }
     LaunchedEffect(controlsTopPx, rootHeightPx) {
@@ -108,7 +121,7 @@ fun ForgePlayerControls(
         ForgePlayerScaffold(
             visible = true, title = title, subtitle = subtitle, endsAt = endsAt,
             endActions = { // v7.4 (05): Napisy i Dźwięk jako Przyciski okrągłe 36 przy tytule
-                ForgeSubtitleButton(onOk = onShowSubtitleDialog) // owner 9.11: CC doubles as the AutoSync state (dots / check / "!")
+                ForgeSubtitleButton(modifier = Modifier.focusRequester(ccFocus), onOk = onShowSubtitleDialog) // owner 9.11: CC doubles as the AutoSync state (dots / check / "!")
                 ForgeIconButton(icon = Icons.Outlined.Headphones, contentDescription = "Dźwięk", size = 36.dp, onOk = onShowAudioDialog)
             },
         ) {
@@ -123,7 +136,9 @@ fun ForgePlayerControls(
                     .focusRequester(progressBarFocusRequester)
                     .focusRequester(playPauseFocusRequester) // v7.4: no ❚❚ in the row; OK on the bar pauses (5.5), the player's "focus ❚❚" lands here
                     .onFocusChanged { barFocused = it.isFocused; if (it.isFocused) onResetHideTimer() }
-                    .forgeScrubKeys(scrub, onTogglePause = { onPlayPause(); onResetHideTimer() })
+                    .forgeScrubKeys(scrub, onTogglePause = { onPlayPause(); onResetHideTimer() },
+                        onUp = { runCatching { ccFocus.requestFocus() }.isSuccess },
+                        onDown = { runCatching { firstButtonFocus.requestFocus() }.isSuccess })
                     .focusable(),
             )
             Row(Modifier.fillMaxWidth().padding(top = 4.dp, start = 24.dp)) { // v7.4: czasy 12, y 432; bieżący od x 64
@@ -136,16 +151,21 @@ fun ForgePlayerControls(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) { // v7.4 (05): Przyciski małe z ikoną, y 460
-                com.nuvio.tv.skin.kicia.components.ForgeButton(text = "Informacje", icon = Icons.Outlined.Info, small = true, onOk = { onShowStreamInfo(); onResetHideTimer() })
-                if (series) com.nuvio.tv.skin.kicia.components.ForgeButton(text = "Odcinki", icon = Icons.Outlined.VideoLibrary, small = true, onOk = { onShowEpisodesPanel(); onResetHideTimer() })
-                com.nuvio.tv.skin.kicia.components.ForgeButton(text = "Źródła", icon = Icons.Outlined.Layers, small = true, onOk = { onShowSourcesPanel(); onResetHideTimer() })
-                com.nuvio.tv.skin.kicia.components.ForgeButton(text = "Szybkość", icon = Icons.Outlined.Speed, small = true, onOk = { onShowSpeedDialog(); onResetHideTimer() })
-                // forge M3b (N3, check 13.11): the "Więcej" sheet has no opener since v7.4, so the row is a small button here
-                if (uiState.canTryAnotherSource) com.nuvio.tv.skin.kicia.components.ForgeButton(text = "Inne źródło", icon = Icons.Outlined.SwapHoriz, small = true, onOk = {
-                    viewModel.onEvent(com.nuvio.tv.ui.screens.player.PlayerEvent.OnTryAnotherSource); onResetHideTimer()
-                })
+                com.nuvio.tv.skin.kicia.components.ForgeButton(text = "Informacje", icon = Icons.Outlined.Info, small = true, focusRequester = firstButtonFocus, onOk = { ForgeControlsReturn.index = 0; onShowStreamInfo(); onResetHideTimer() })
+                if (series) com.nuvio.tv.skin.kicia.components.ForgeButton(text = "Odcinki", icon = Icons.Outlined.VideoLibrary, small = true, focusRequester = rowFocus[1], onOk = { ForgeControlsReturn.index = 1; onShowEpisodesPanel(); onResetHideTimer() })
+                // forge hook v7.5 (05, owner 13.11): ONE button for the source and the quality level; „Inne źródło” lives in its panel
+                com.nuvio.tv.skin.kicia.components.ForgeButton(text = "Źródło i jakość", icon = Icons.Outlined.Layers, small = true, focusRequester = rowFocus[2],
+                    onLongOk = { ForgeControlsReturn.index = 2; onShowSourcesPanel(); onResetHideTimer() }, // makieta 7.7 B1: long OK = the 7.6 panel
+                    onOk = { sourceBubble = true; onResetHideTimer() }) // makieta 7.7 B1: short OK = the bubble
+                com.nuvio.tv.skin.kicia.components.ForgeButton(text = "Szybkość", icon = Icons.Outlined.Speed, small = true, focusRequester = rowFocus[3], onOk = { ForgeControlsReturn.index = 3; onShowSpeedDialog(); onResetHideTimer() })
             }
         }
+        if (sourceBubble) ForgeSourcePopover( // makieta 7.7 B1/H1: over the „Źródło i jakość” button
+            viewModel = viewModel,
+            onClose = { sourceBubble = false; runCatching { rowFocus[2].requestFocus() } },
+            onOpenPanel = { ForgeControlsReturn.index = 2; onShowSourcesPanel() },
+            modifier = Modifier.align(Alignment.BottomStart).padding(start = 220.dp, bottom = 112.dp),
+        )
         ForgeSideSheet(visible = moreOpen, onDismiss = { moreOpen = false }, title = "Więcej") {
             ForgeSheetRow(text = "Źródła") { moreOpen = false; onShowSourcesPanel() }
             if (uiState.canTryAnotherSource) ForgeSheetRow(text = "Spróbuj innego źródła") { // forge M3b (N3)
@@ -157,6 +177,9 @@ fun ForgePlayerControls(
         }
     }
 }
+
+/** forge fix 14.11: the row button a panel was opened from (-1 = none), kept outside the composition the panel may replace. */
+internal object ForgeControlsReturn { @Volatile var index: Int = -1 }
 
 /** "2024" for a film; "S2:O4 · Woe's Hollow" for an episode. */
 internal fun forgePlayerSubtitle(year: String?, season: Int?, episode: Int?, episodeTitle: String?): String? =

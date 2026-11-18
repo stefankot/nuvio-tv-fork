@@ -44,8 +44,19 @@ fun ForgeStreamCard(
     focusRequester: FocusRequester?,
     onFocusChanged: ((Boolean) -> Unit)?,
     onUpKey: (() -> Unit)?,
+    /** In the player's panel (wide): all five badges; the list before playing fits three. */
+    wide: Boolean = false,
 ) {
-    val (top, bottom) = forgeStreamLines(stream.quality, stream.badges.map { it.name }, stream.behaviorHints?.videoSize, stream.addonName, fallbackName)
+    // makieta 7.5 (05, N15): type over "size · bitrate · codec · addon", badges resolution / language / HDR on the right
+    val files = androidx.compose.runtime.remember(stream) { forgeFileBadgesFor(stream) }
+    val (oldTop, oldBottom) = forgeStreamLines(stream.quality, stream.badges.map { it.name }, stream.behaviorHints?.videoSize, stream.addonName, fallbackName)
+    val top = files.type ?: oldTop
+    val size = stream.behaviorHints?.videoSize ?: com.nuvio.tv.core.streams.smart.SmartStreamRanking.candidate(stream).sizeBytes
+    val bottom = when {
+        files.type == null -> oldBottom
+        wide -> listOfNotNull(size?.takeIf { it > 0 }?.let { ReadyPick.sizeText(it) }, stream.addonName.takeIf { it.isNotBlank() }).joinToString(" · ")
+        else -> forgeFileSecondLine(files, size, stream.addonName)
+    }
     ForgeFocusBox(
         radius = 16.dp,
         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp) /* v7.4 (05): Wiersz 56 */.onPreviewKeyEvent { e ->
@@ -66,6 +77,7 @@ fun ForgeStreamCard(
                 Text(top, style = ForgeText.shelfTitle.copy(color = fg), maxLines = 1, overflow = TextOverflow.Ellipsis) // v7.4 (05): 16/700
                 if (bottom.isNotBlank()) Text(bottom, style = ForgeText.label5.copy(color = if (focused) ForgeColors.OnFocus.copy(alpha = .75f) else ForgeColors.Text2), maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
+            (if (wide) files.all else files.narrow).forEach { com.nuvio.tv.skin.kicia.components.ForgeBadge(it, com.nuvio.tv.skin.kicia.components.ForgeBadgeKind.Quality, Modifier.padding(start = 8.dp)) }
             if (best) Icon(Icons.Filled.Check, null, tint = if (focused) androidx.compose.ui.graphics.Color(0xFF1E7A4C) else ForgeColors.Ok, modifier = Modifier.padding(start = 12.dp).size(24.dp))
         }
     }
@@ -79,3 +91,18 @@ internal fun forgeStreamLines(quality: String?, badges: List<String>, sizeBytes:
     val bottom = (tags.drop(2) + listOfNotNull(sizeBytes?.takeIf { it > 0 }?.let { ReadyPick.sizeText(it) }, addon.takeIf { it.isNotBlank() })).joinToString(" · ")
     return top to bottom
 }
+
+/** The file's badges for the source list, with the title's length from the stream screen (for the bitrate). */
+internal fun forgeFileBadgesFor(stream: Stream): FileBadges {
+    val candidate = com.nuvio.tv.core.streams.smart.SmartStreamRanking.candidate(stream)
+    val info = com.nuvio.tv.core.streams.smart.ReleaseParser.parse(candidate.text, candidate.sizeBytes)
+    val size = candidate.sizeBytes ?: info.textSizeBytes
+    val t = ForgeFileBadges.title
+    val duration = t?.let { com.nuvio.tv.core.streams.smart.SmartTitleFacts.expected(it.first, it.second, it.third).durationSec }
+    val lang = com.nuvio.tv.core.streams.smart.SmartPolicyHolder.current.audioLanguage
+    return ForgeFileBadges.of(info, size, duration, lang, lang)
+}
+
+/** "4,9 GB · 18 Mb/s · HEVC · Torrentio". */
+internal fun forgeFileSecondLine(files: FileBadges, sizeBytes: Long?, addon: String): String =
+    listOfNotNull(sizeBytes?.takeIf { it > 0 }?.let { ReadyPick.sizeText(it) }, files.bitrate, files.codec, addon.takeIf { it.isNotBlank() }).joinToString(" · ")

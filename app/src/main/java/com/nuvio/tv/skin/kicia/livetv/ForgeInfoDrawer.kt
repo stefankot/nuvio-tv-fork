@@ -101,6 +101,8 @@ fun ForgeInfoDrawer(
     /** The airing the player is on right now: the replayed one, else what is live on this channel; null when the player is elsewhere. */
     playing: LiveTvProgramme? = null,
     onDismiss: () -> Unit,
+    /** forge fix 14.11 (JMGO A6): how the player plays [playing] („Z archiwum”, „Z przesunięciem”); null = by the clock. */
+    playingLabel: String? = null,
 ) {
     var mode by remember { mutableStateOf(DrawerMode.Info) }
     var shown by remember(programme) { mutableStateOf(programme) }
@@ -137,8 +139,11 @@ fun ForgeInfoDrawer(
                 Spacer(Modifier.height(8.dp))
                 val past = shown.stopEpochMs <= now
                 val soon = shown.startEpochMs > now
+                // forge fix 14.11 (JMGO A6): the airing the player is on says how it plays (archive, time shift), not only the clock
+                val asPlayed = playingLabel?.takeIf { playing != null && playing.startEpochMs == shown.startEpochMs && playing.title == shown.title }
                 com.nuvio.tv.skin.kicia.components.ForgeBadge(
-                    when { soon -> "Wkrótce"; past && channel.catchup != null -> "Archiwum"; past -> "Niedostępne w archiwum"; else -> "Na żywo" },
+                    asPlayed ?: when { soon -> "Wkrótce"; past && channel.catchup != null -> "Archiwum"; past -> "Niedostępne w archiwum"; else -> "Na żywo" },
+                    if (asPlayed != null) (if (asPlayed.startsWith("Z przesunięciem")) com.nuvio.tv.skin.kicia.components.ForgeBadgeKind.Shift else com.nuvio.tv.skin.kicia.components.ForgeBadgeKind.Archive) else // makieta 7.7b H6
                     when { soon -> com.nuvio.tv.skin.kicia.components.ForgeBadgeKind.Soon; past && channel.catchup != null -> com.nuvio.tv.skin.kicia.components.ForgeBadgeKind.Archive; past -> com.nuvio.tv.skin.kicia.components.ForgeBadgeKind.Unavailable; else -> com.nuvio.tv.skin.kicia.components.ForgeBadgeKind.Live },
                 )
             }
@@ -147,8 +152,12 @@ fun ForgeInfoDrawer(
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     var firstSet = false
                     fun req(): FocusRequester? = if (!firstSet) { firstSet = true; first } else null
-                    if (live) ForgeButton(text = "Oglądaj na żywo", icon = Icons.Filled.PlayArrow, primary = true, focusRequester = req(), onOk = onWatchLive)
-                    if (canStart) ForgeButton(text = "Od początku", icon = androidx.compose.material.icons.Icons.Filled.SkipPrevious, focusRequester = req(), onOk = { onWatchFromStart?.invoke(shown) })
+                    // makieta 7.7b H4: opened from the player that shows this very airing live, „Na żywo” would do nothing:
+                    // main = „Od początku” (archive), on a channel without archive „Wróć do oglądania” (= Back)
+                    val watchingThisLive = live && playingLabel == null && playing != null && playing.startEpochMs == shown.startEpochMs
+                    if (live && !watchingThisLive) ForgeButton(text = "Oglądaj na żywo", icon = Icons.Filled.PlayArrow, primary = true, focusRequester = req(), onOk = onWatchLive)
+                    if (canStart) ForgeButton(text = "Od początku", icon = androidx.compose.material.icons.Icons.Outlined.Replay, primary = watchingThisLive, focusRequester = req(), onOk = { onWatchFromStart?.invoke(shown) })
+                    else if (watchingThisLive) ForgeButton(text = "Wróć do oglądania", icon = Icons.Filled.PlayArrow, primary = true, focusRequester = req(), onOk = onDismiss)
                     if (numbered.size > 1 || sameTitle.size > 1) ForgeButton(text = "Więcej odcinków", icon = Icons.Filled.Info, focusRequester = req(), onOk = { mode = DrawerMode.More })
                     com.nuvio.tv.skin.kicia.components.ForgeIconButton(
                         icon = if (favorite) Icons.Filled.Star else Icons.Outlined.StarBorder, contentDescription = "Ulubione", active = favorite,

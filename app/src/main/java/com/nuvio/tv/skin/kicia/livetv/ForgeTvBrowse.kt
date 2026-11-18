@@ -91,7 +91,7 @@ fun ForgeTvBrowse(
     // A channel tile on Home asked for this channel: start it as soon as the list is here.
     val pendingPlay by ForgePendingPlay.request.collectAsStateWithLifecycle()
     LaunchedEffect(pendingPlay, byUrl) {
-        ForgePendingPlay.take(byUrl)?.let { onPlay(it, null) }
+        ForgePendingPlay.take(byUrl)?.let { onPlay(it, ForgePendingPlay.lastProgramme) } // makieta 7.7 G31: a resume from Home
     }
 
     val shownAlerts = remember(alerts, byGuide) {
@@ -289,7 +289,8 @@ fun ForgeTvBrowse(
             }
         }
     }
-    if (searching) ForgeTvSearch(channels = channels, onPlay = onPlay, onClose = { searching = false })
+    if (searching) ForgeTvSearch(channels = channels, onPlay = onPlay, onClose = { searching = false }, host = "przegladaj")
+    ForgeTvSearchReturn("przegladaj") { searching = true } // forge fix 14.11 (JMGO A3): back from the details or the player = the results again
     detail?.let { (ch, p) ->
         val now = System.currentTimeMillis()
         ForgeProgramDetail(
@@ -298,6 +299,7 @@ fun ForgeTvBrowse(
             onWatchLive = { detail = null; onPlay(ch, null) },
             onWatchFromStart = if (ch.catchup != null && p.startEpochMs < now) ({ detail = null; onPlay(ch, p) }) else null,
             onDismiss = { detail = null },
+            onPlayAiring = { airing -> detail = null; onPlay(ch, airing) }, // forge fix 15.11 (JMGO): any archived episode plays
         )
     }
     }

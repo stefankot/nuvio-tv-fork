@@ -71,6 +71,7 @@ fun ForgeButton(
                 .height(height)
                 .clip(RoundedCornerShape(radius))
                 .background(bg)
+                .forgeEdge(RoundedCornerShape(radius)) // makieta 7.7 A8
                 .defaultMinSize(minWidth = if (small) 0.dp else 160.dp) // v7.4: przycisk-min-szer
                 .padding(horizontal = if (small) 16.dp else 20.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -116,7 +117,7 @@ fun ForgeIconButton(
         }
         val fg = if (focused) ForgeColors.OnFocus else ForgeColors.Text
         Box(
-            modifier = Modifier.size(size).clip(RoundedCornerShape(size / 2)).background(bg),
+            modifier = Modifier.size(size).clip(RoundedCornerShape(size / 2)).background(bg).forgeEdge(RoundedCornerShape(size / 2)), // makieta 7.7 A8
             contentAlignment = Alignment.Center,
         ) {
             val iconSize = if (size <= 36.dp) 24.dp else 28.dp // v7.4: ikona 28 w kole 44, 24 w kole 36
@@ -187,6 +188,7 @@ fun ForgePillSelect(
                 .height(ForgeDims.PillSelectHeight)
                 .clip(RoundedCornerShape(radius))
                 .background(bg)
+                .then(if (bg.alpha > 0f) Modifier.forgeEdge(RoundedCornerShape(radius)) else Modifier) // makieta 7.7 A8
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -265,6 +267,7 @@ fun ForgeField(
         Row(
             (if (fill) Modifier.fillMaxWidth() else Modifier).height(ForgeDims.ButtonHeight).clip(RoundedCornerShape(ForgeDims.RadiusButton))
                 .background(if (focused) ForgeColors.Focus else ForgeColors.Surface)
+                .forgeEdge(RoundedCornerShape(ForgeDims.RadiusButton)) // makieta 7.7 A8
                 .padding(horizontal = 20.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),

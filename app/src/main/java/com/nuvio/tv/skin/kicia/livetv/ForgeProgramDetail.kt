@@ -47,6 +47,8 @@ import com.nuvio.tv.skin.kicia.components.ForgeAutoLogo
 import com.nuvio.tv.skin.kicia.components.ForgeButton
 import com.nuvio.tv.skin.kicia.components.ForgeIconButton
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
@@ -83,9 +85,11 @@ fun ForgeProgramDetail(
     onDismiss: () -> Unit,
     /** v6: the MiniGuide's "Info i odcinki" opens as a drawer under the picture, not a full screen. */
     compact: Boolean = false,
+    /** forge fix 15.11 (JMGO, owner: „odtwarzanie odcinków z archiwum nie działa”): OK on any past airing card plays that airing from the archive. */
+    onPlayAiring: ((LiveTvProgramme) -> Unit)? = null,
 ) {
     if (compact) { ForgeProgramDetailV6(channel, programme, onWatchLive, onWatchFromStart, onDismiss, compact = true); return }
-    ForgeProgramCard(channel, programme, onWatchLive, onWatchFromStart, onDismiss)
+    ForgeProgramCard(channel, programme, onWatchLive, onWatchFromStart, onDismiss, onPlayAiring)
 }
 
 /**
@@ -101,8 +105,15 @@ private fun ForgeProgramCard(
     onWatchLive: () -> Unit,
     onWatchFromStart: (() -> Unit)?,
     onDismiss: () -> Unit,
+    onPlayAiring: ((LiveTvProgramme) -> Unit)? = null,
 ) {
     val now = remember { System.currentTimeMillis() }
+    // forge fix 15.11 (JMGO): every past airing in the archive plays on OK, not only the one the card was opened for
+    fun fromStartFor(e: LiveTvProgramme): (() -> Unit)? = when {
+        e.startEpochMs == programme.startEpochMs && onWatchFromStart != null -> onWatchFromStart
+        onPlayAiring != null && e.stopEpochMs <= now && com.nuvio.tv.reshaped.livetv.LiveTvCatchupLinks.isPlayable(channel.catchup, e, now) -> ({ onPlayAiring(e) })
+        else -> null
+    }
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val airings = remember(channel.guideKey, programme) { forgeAirings(LiveTvRepository.schedule(channel.guideKey), programme, now) }
     val live = programme.startEpochMs <= now && now < programme.stopEpochMs
@@ -176,34 +187,43 @@ private fun ForgeProgramCard(
             com.nuvio.tv.skin.kicia.components.ForgeSpreadRow(
                 Modifier.padding(top = 12.dp).focusProperties { down = currentCard }.focusGroup(), gap = 12.dp, // v7.4: sąsiedzi odsuwają się przy fokusie (--rozsun)
             ) {
+                // makieta 7.7 D11/D12/H4: main = „Odtwórz S · O” (archive from the start) / „Oglądaj na żywo” while it airs
+                // (opened from outside the player) / „Nowy odcinek: sob 12:25” with a bell for a future airing; second „Od
+                // początku” only while it airs and the channel has an archive; round „+” = favourite. No „Więcej odcinków”, no ★.
+                val epShort = forgeEpisodeShort(programme.episode ?: extra?.episode)?.replace(" ", " · ")
+                val mainMod = Modifier.testTag("przycisk.0").onFocusChanged { if (it.isFocused) lastButton = main }
                 Item(0) { when {
-                    future && reminded -> ForgeButton(text = "Usuń przypomnienie", icon = Icons.Filled.Notifications, primary = true, focusRequester = main, modifier = Modifier.testTag("przycisk.0").onFocusChanged { if (it.isFocused) lastButton = main },
-                        onOk = { com.nuvio.tv.fork.tv.ForgeReminders.toggle(ctx.applicationContext, com.nuvio.tv.fork.tv.ForgeReminder(channel.streamUrl, programme.startEpochMs, programme.title, channel.name)) })
-                    future -> ForgeButton(text = "Przypomnij", icon = Icons.Filled.Notifications, primary = true, focusRequester = main, modifier = Modifier.testTag("przycisk.0").onFocusChanged { if (it.isFocused) lastButton = main },
-                        onOk = {
-                            com.nuvio.tv.fork.tv.ForgeReminders.toggle(ctx.applicationContext, com.nuvio.tv.fork.tv.ForgeReminder(channel.streamUrl, programme.startEpochMs, programme.title, channel.name))
-                            com.nuvio.tv.skin.kicia.components.ForgeToast.show("Przypomnienie ustawione")
-                        })
-                    !live && onWatchFromStart != null -> ForgeButton(text = "Odtwórz z archiwum", icon = Icons.Filled.PlayArrow, primary = true, focusRequester = main, modifier = Modifier.testTag("przycisk.0").onFocusChanged { if (it.isFocused) lastButton = main }, onOk = onWatchFromStart)
-                    else -> ForgeButton(text = "Oglądaj na żywo", icon = Icons.Filled.PlayArrow, primary = true, focusRequester = main, modifier = Modifier.testTag("przycisk.0").onFocusChanged { if (it.isFocused) lastButton = main }, onOk = onWatchLive)
+                    future -> {
+                        val day = forgeShortDay(programme.startEpochMs) + " " + forgeTvTime(programme.startEpochMs)
+                        ForgeButton(text = "Nowy odcinek: $day" + if (reminded) " · przypomnę" else "", icon = Icons.Filled.Notifications, primary = true, focusRequester = main, modifier = mainMod,
+                            onOk = {
+                                com.nuvio.tv.fork.tv.ForgeReminders.toggle(ctx.applicationContext, com.nuvio.tv.fork.tv.ForgeReminder(channel.streamUrl, programme.startEpochMs, programme.title, channel.name))
+                                forge08Toast(ctx, if (reminded) "Przypomnienie usunięte" else "Przypomnę o nowym odcinku")
+                            })
+                    }
+                    live -> ForgeButton(text = "Oglądaj na żywo", icon = Icons.Filled.PlayArrow, primary = true, focusRequester = main, modifier = mainMod, onOk = onWatchLive)
+                    onWatchFromStart != null -> ForgeButton(text = if (epShort != null) "Odtwórz $epShort" else "Odtwórz", icon = Icons.Filled.PlayArrow, primary = true, focusRequester = main, modifier = mainMod, onOk = onWatchFromStart)
+                    else -> ForgeButton(text = "Oglądaj kanał", icon = Icons.Filled.PlayArrow, primary = true, focusRequester = main, modifier = mainMod, onOk = onWatchLive)
                 } }
                 var nextTag = 1
                 if (live && onWatchFromStart != null) {
                     val r = remember { FocusRequester() }
                     val t = nextTag++
-                    Item(t) { ForgeButton(text = "Od początku", icon = Icons.Filled.SkipPrevious, focusRequester = r, modifier = Modifier.testTag("przycisk.$t").onFocusChanged { if (it.isFocused) lastButton = r }, onOk = onWatchFromStart) }
+                    Item(t) { ForgeButton(text = "Od początku", icon = Icons.Outlined.Replay, focusRequester = r, modifier = Modifier.testTag("przycisk.$t").onFocusChanged { if (it.isFocused) lastButton = r }, onOk = onWatchFromStart) }
                 }
-                if (episodes.size > 1) {
-                    val r = remember { FocusRequester() }
-                    val t = nextTag++
-                    Item(t) { ForgeButton(text = "Więcej odcinków", focusRequester = r, modifier = Modifier.testTag("przycisk.$t").onFocusChanged { if (it.isFocused) lastButton = r }, onOk = { moreOpen = true }) }
-                }
-                val star = remember { FocusRequester() }
+                val plus = remember { FocusRequester() }
+                // makieta 7.7 D14: „+” follows the PROGRAMME (favourites + new episodes), not the channel
+                val favShows by com.nuvio.tv.fork.tv.TvStore.favoriteShows.collectAsState()
+                val followed = com.nuvio.tv.fork.tv.ShowIdentity.normalizeTitle(programme.title) in favShows
                 Item(nextTag) { ForgeIconButton(
-                    icon = if (favorite) Icons.Filled.Star else Icons.Outlined.StarBorder,
-                    contentDescription = "Ulubione", active = favorite, focusRequester = star,
-                    modifier = Modifier.testTag("przycisk-okragly.0").onFocusChanged { if (it.isFocused) lastButton = star },
-                    onOk = { LiveTvRepository.toggleFavorite(channel) },
+                    icon = if (followed) Icons.Filled.Check else Icons.Filled.Add,
+                    contentDescription = "Ulubione", active = followed, focusRequester = plus,
+                    modifier = Modifier.testTag("przycisk-okragly.0").onFocusChanged { if (it.isFocused) lastButton = plus },
+                    onOk = {
+                        if (com.nuvio.tv.fork.tv.TvStore.toggleFavoriteShow(programme.title))
+                            forge08Toast(ctx, "Dodano do ulubionych. Nowe odcinki pokażą się w rzędzie „Nowe odcinki”.")
+                        else forge08Toast(ctx, "Usunięto z ulubionych")
+                    },
                 ) }
             }
         }
@@ -230,7 +250,7 @@ private fun ForgeProgramCard(
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     items(episodes.size) { i ->
-                        ForgeAiringCard(channel, episodes[i], now, i, if (i == current) currentCard else null, onWatchLive, onWatchFromStart.takeIf { episodes[i].startEpochMs == programme.startEpochMs }, upTo = lastButton, tagged = sectionsShown)
+                        ForgeAiringCard(channel, episodes[i], now, i, if (i == current) currentCard else null, onWatchLive, fromStartFor(episodes[i]), upTo = lastButton, tagged = sectionsShown)
                     }
                 }
                 LaunchedEffect(Unit) { kotlinx.coroutines.delay(50); runCatching { currentCard.requestFocus() } }
@@ -242,7 +262,7 @@ private fun ForgeProgramCard(
                     modifier = Modifier.fillMaxWidth().testTag("polka.0"),
                 ) {
                     items(episodes.size, key = { episodes[it].startEpochMs }) { i ->
-                        ForgeAiringCard(channel, episodes[i], now, i, if (i == current) currentCard else null, onWatchLive, onWatchFromStart.takeIf { episodes[i].startEpochMs == programme.startEpochMs }, upTo = lastButton, tagged = sectionsShown)
+                        ForgeAiringCard(channel, episodes[i], now, i, if (i == current) currentCard else null, onWatchLive, fromStartFor(episodes[i]), upTo = lastButton, tagged = sectionsShown)
                     }
                 }
             }
@@ -278,6 +298,11 @@ private fun ForgeAiringCard(
                 else forgeChannelLogo(channel)?.takeIf { it.isNotBlank() }?.let {
                     ForgeAutoLogo(url = it, contentDescription = null, modifier = Modifier.align(Alignment.Center).size(width = 86.dp, height = 46.dp))
                 }
+                // makieta 7.7 A10: watched (≥ 90%) = „✓ Obejrzane” in the corner; started = a progress bar along the bottom
+                com.nuvio.tv.fork.tv.TvStore.resumeFor(channel.streamUrl, p.startEpochMs)?.let { r ->
+                    if (r.watched) com.nuvio.tv.skin.kicia.components.ForgeBadge("✓ Obejrzane", com.nuvio.tv.skin.kicia.components.ForgeBadgeKind.OnImage, Modifier.align(Alignment.TopEnd).padding(8.dp))
+                    else if (r.started) Box(Modifier.align(Alignment.BottomStart).fillMaxWidth(r.fraction).height(4.dp).background(ForgeColors.Live))
+                }
             }
         }
         Column(Modifier.padding(start = 8.dp, end = 8.dp, top = 16.dp)) {
@@ -300,6 +325,18 @@ internal fun forgeAvailability(channel: LiveTvChannel, p: LiveTvProgramme, now: 
 }
 
 /** v7.4 (08): "Sezon 24 · Odcinek 4308" -> "S24 O4308", "Odcinek 6009" -> "O6009". */
+/** test 15.11 (JMGO): 08 is its own window (Dialog), the app's Komunikat is drawn under it — a system toast shows above. */
+internal fun forge08Toast(ctx: android.content.Context, text: String) =
+    android.widget.Toast.makeText(ctx, text, android.widget.Toast.LENGTH_LONG).show()
+
+/** makieta 7.7 D12: the day as a short word (pon, wt, śr, czw, pt, sob, nd). */
+internal fun forgeShortDay(ms: Long): String =
+    when (java.time.Instant.ofEpochMilli(ms).atZone(java.time.ZoneId.systemDefault()).dayOfWeek) {
+        java.time.DayOfWeek.MONDAY -> "pon"; java.time.DayOfWeek.TUESDAY -> "wt"; java.time.DayOfWeek.WEDNESDAY -> "śr"
+        java.time.DayOfWeek.THURSDAY -> "czw"; java.time.DayOfWeek.FRIDAY -> "pt"; java.time.DayOfWeek.SATURDAY -> "sob"
+        else -> "nd"
+    }
+
 internal fun forgeEpisodeShort(raw: String?): String? {
     val label = forgeEpisodeLabel(raw) ?: return null
     val s = Regex("Sezon (\\d+)").find(label)?.groupValues?.get(1)

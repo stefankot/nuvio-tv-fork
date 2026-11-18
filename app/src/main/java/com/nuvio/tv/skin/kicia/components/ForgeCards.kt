@@ -70,7 +70,7 @@ fun ForgeCard(
         val cardHaze = rememberForgeHazeState() // owner 10.11: the footer blurs the card's own picture
         androidx.compose.runtime.CompositionLocalProvider(LocalForgeCardHaze provides cardHaze) {
             androidx.compose.foundation.layout.Box(
-                modifier = Modifier.size(width, height).clip(shape).background(ForgeColors.CardBase),
+                modifier = Modifier.size(width, height).forgeCardShadow(shape).clip(shape).background(ForgeColors.CardBase), // makieta 7.7 A7: stały cień karty
             ) {
                 content(focused)
             }
@@ -110,6 +110,8 @@ fun ForgeShelf(
     /** More room under the heading for cards that grow a lot on focus (the big posters would cover it). */
     extraGap: androidx.compose.ui.unit.Dp = 0.dp,
     tag: String = "", // v7.4: testTag tytułu (polka-tytul.N)
+    /** test 15.11 (B-1): Home scrolls the first shelf back before it moves the focus there. */
+    state: androidx.compose.foundation.lazy.LazyListState? = null,
     content: LazyListScope.() -> Unit,
 ) {
     // v6: the title of the shelf that holds focus is white, the others 50% (colour change 240 ms).
@@ -133,6 +135,7 @@ fun ForgeShelf(
             LocalForgeScaleOrigin provides androidx.compose.ui.graphics.TransformOrigin(0.5f, 0.25f), // v7.4: .polka .sk { transform-origin: 50% 25% }
         ) {
             LazyRow(
+                state = state ?: androidx.compose.foundation.lazy.rememberLazyListState(),
                 contentPadding = PaddingValues(
                     start = ForgeDims.ContentStart,
                     end = ForgeDims.ContentEnd,

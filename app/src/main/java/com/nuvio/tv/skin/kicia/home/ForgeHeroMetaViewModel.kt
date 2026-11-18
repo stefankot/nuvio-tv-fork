@@ -24,7 +24,16 @@ class ForgeHeroMetaViewModel @Inject constructor(
     private val metas: MetaRepository,
     private val library: com.nuvio.tv.domain.repository.LibraryRepository,
     private val watched: com.nuvio.tv.data.local.WatchedItemsPreferences, // v7.4 (03): Popover karty „Oznacz jako obejrzane”
+    // test 15.11 (JMGO): Home's TV rows (archive resumes, recent channels) read TvStore, which only Live TV used to load
+    @dagger.hilt.android.qualifiers.ApplicationContext private val appContext: android.content.Context,
+    private val profiles: com.nuvio.tv.core.profile.ProfileManager,
 ) : ViewModel() {
+    init {
+        viewModelScope.launch {
+            profiles.activeProfileId.collect { id -> kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { runCatching { com.nuvio.tv.fork.tv.TvStore.attach(appContext, id) } } }
+        }
+    }
+
     fun markWatched(item: com.nuvio.tv.domain.model.MetaPreview) {
         viewModelScope.launch {
             runCatching {

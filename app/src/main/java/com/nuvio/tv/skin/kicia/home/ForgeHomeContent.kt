@@ -2,6 +2,7 @@
 
 package com.nuvio.tv.skin.kicia.home
 
+import kotlinx.coroutines.launch
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.zIndex
@@ -139,6 +140,12 @@ fun ForgeHomeContent(
         if (uiState.continueWatchingEnabled) uiState.upcomingItems else emptyList()
     }
     val liveChannels by com.nuvio.tv.fork.tv.TvStore.recentChannels.collectAsStateWithLifecycle()
+    // makieta 7.7 G31: archive programmes left part way join „Kontynuuj oglądanie” (still in the archive, not watched)
+    val tvResumeAll by com.nuvio.tv.fork.tv.TvStore.resume.collectAsStateWithLifecycle()
+    val tvResumes = remember(tvResumeAll) {
+        val now = System.currentTimeMillis()
+        tvResumeAll.filter { it.started && now - it.positionMs < 7L * 86_400_000L }.distinctBy { it.channelUrl + "|" + it.title + "|" + it.episode }.take(10) // test 15.11: one card per programme
+    }
     // "Nowe odcinki" of the mockup come from the TV guide (S01: EPG, rule "Nowy odcinek"); Nuvio's own upcoming
     // episodes stand in when the guide has none.
     val tvAlerts by com.nuvio.tv.fork.tv.TvStore.alerts.collectAsStateWithLifecycle()
@@ -170,17 +177,23 @@ fun ForgeHomeContent(
     // v6 (owner 9.11): the hero is a carousel of the featured titles (Nuvio's hero catalogs) and no longer follows shelf focus.
     // First slide change after 20 s, then every 10 s (as in Nuvio's HeroCarousel); without featured titles the old behaviour stays.
     val featured = remember(uiState.heroItems, uiState.heroSectionEnabled) {
-        if (uiState.heroSectionEnabled) uiState.heroItems.take(8) else emptyList()
+        // forge fix 15.11 (JMGO, PROPOZYCJE-UX nr 1): an addon's ACTION (Torbox „Delete all files”, id „dltorbox”) is not a film:
+        // one OK on its „Odtwórz” would run it. Such items never reach the hero.
+        if (uiState.heroSectionEnabled) uiState.heroItems.filterNot { forgeIsAddonAction(it.id, it.name) }.take(8) else emptyList()
     }
     var featuredIndex by remember(featured) { mutableIntStateOf(0) }
     // v6: with the hero's buttons, ↓ from the bar (and the first focus) lands on ▶; without featured titles on the first card.
+    val continueShelf = androidx.compose.foundation.lazy.rememberLazyListState() // test 15.11 (B-1)
+    val homeScope = androidx.compose.runtime.rememberCoroutineScope()
     val firstCard = remember(featured.isEmpty()) { if (featured.isEmpty()) entryTarget else FocusRequester() }
     val heroPlay = entryTarget
     LaunchedEffect(featured) {
         if (featured.size > 1) {
             kotlinx.coroutines.delay(20_000)
             while (true) {
-                featuredIndex = (featuredIndex + 1) % featured.size
+                // forge fix 14.11 (JMGO B2): never while the remote is on the hero's buttons: the JMGO handles a key up to
+                // 3 s late, so OK landed on the next slide and played another title than the one shown
+                if (!inHero) featuredIndex = (featuredIndex + 1) % featured.size
                 kotlinx.coroutines.delay(10_000)
             }
         }
@@ -275,7 +288,12 @@ fun ForgeHomeContent(
             // partly off screen), so Home could not be left downwards. ▼ goes to the first card of the first shelf by name.
             .onPreviewKeyEvent { e ->
                 if (e.type == androidx.compose.ui.input.key.KeyEventType.KeyDown && e.key == androidx.compose.ui.input.key.Key.DirectionDown && inHero && featured.isNotEmpty()) {
-                    runCatching { firstCard.requestFocus() }.isSuccess // the card's own focus callback moves the state
+                    // test 15.11 (JMGO, B-1): with the first shelf scrolled, its first card is gone and ▼ did nothing — the shelf
+                    // goes back to its start first, then the focus follows
+                    runCatching { firstCard.requestFocus() }.isSuccess || run {
+                        homeScope.launch { continueShelf.scrollToItem(0); androidx.compose.runtime.withFrameNanos { }; runCatching { firstCard.requestFocus() } }
+                        true
+                    }
                 } else false
             }
             .focusGroup()) {
@@ -375,10 +393,10 @@ fun ForgeHomeContent(
             // Space for the hero and the bar; the first shelf header sits at y = 456.
             item(key = "forge_hero_space") { Spacer(Modifier.height(432.dp)) } // v7.4: 24 dp of padding + 432 = the first shelf stays at y 456
             var shelfIndex = 0
-            if (continueItems.isNotEmpty()) {
+            if (continueItems.isNotEmpty() || tvResumes.isNotEmpty()) {
                 val myIndex = shelfIndex++
                 item(key = "forge_continue") {
-                    ForgeShelf(tag = "polka-tytul.$myIndex", title = "Kontynuuj oglądanie") {
+                    ForgeShelf(tag = "polka-tytul.$myIndex", title = "Kontynuuj oglądanie", state = continueShelf) {
                         itemsIndexed(continueItems, key = { i, it -> "cw_$i${continueKey(it)}" }) { i, item ->
                             val info = cwCard(item)
                             com.nuvio.tv.skin.kicia.components.ForgeTagged("karta.$i") { ForgeWideCard(
@@ -406,6 +424,31 @@ fun ForgeHomeContent(
                                 )
                             } }
                         }
+                        // makieta 7.7 G31: „TVN · wczoraj 19:00 · zostało 9 min”, OK = resume from the archive, long OK = 08
+                        itemsIndexed(tvResumes, key = { _, r -> "tvr_" + r.key }) { i, r ->
+                            // test 15.11 (JMGO): Live TV lets go of its channels while unused — the card is drawn from the saved place then
+                            val channel = liveTv.channels.firstOrNull { it.streamUrl == r.channelUrl } ?: liveTv.channels.firstOrNull { it.guideKey == r.guideKey }
+                                ?: com.nuvio.tv.reshaped.livetv.LiveTvChannel(
+                                    id = r.channelUrl, name = r.channelName, streamUrl = r.channelUrl, guideKey = r.guideKey,
+                                    logoUrl = liveChannels.firstOrNull { it.streamUrl == r.channelUrl }?.logoUrl,
+                                )
+                            com.nuvio.tv.skin.kicia.livetv.ForgeRecentProgrammeCard(
+                                show = com.nuvio.tv.fork.tv.RecentShow(
+                                    key = r.key, title = r.title,
+                                    channelName = r.channelName + " · " + com.nuvio.tv.skin.kicia.livetv.forgeDayLabel(r.startMs, System.currentTimeMillis()) + " " + com.nuvio.tv.skin.kicia.livetv.forgeTvTime(r.startMs) + " · zostało " + r.leftMinutes + " min",
+                                    channelUrl = r.channelUrl, guideKey = r.guideKey, logoUrl = channel.logoUrl, imageUrl = r.image, lastViewedMs = r.updatedMs,
+                                ),
+                                frame = r.image, channel = channel, live = false, nowMs = System.currentTimeMillis(), progress = r.fraction,
+                                onClick = {
+                                    com.nuvio.tv.skin.kicia.livetv.ForgePendingPlay.ask(r.channelUrl, guideKey = r.guideKey, programme = com.nuvio.tv.reshaped.livetv.LiveTvProgramme(r.title, r.positionMs, r.stopMs, image = r.image, episode = r.episode))
+                                    com.nuvio.tv.skin.kicia.nav.ForgeNavRequests.open(com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE)
+                                },
+                                onLongClick = {},
+                                modifier = Modifier
+                                    .then(if (continueItems.isEmpty() && i == 0) Modifier.focusRequester(firstCard) else Modifier)
+                                    .onFocusChanged { if (it.hasFocus) { focusedShelf = myIndex; inHero = false; focusedMeta = null } },
+                            )
+                        }
                     }
                 }
             }
@@ -428,7 +471,7 @@ fun ForgeHomeContent(
                                 },
                                 onLongClick = {},
                                 modifier = Modifier
-                                    .then(if (continueItems.isEmpty() && i == 0) Modifier.focusRequester(firstCard) else Modifier)
+                                    .then(if (continueItems.isEmpty() && tvResumes.isEmpty() && i == 0) Modifier.focusRequester(firstCard) else Modifier)
                                     .onFocusChanged { if (it.hasFocus) { focusedShelf = myIndex; inHero = false; focusedMeta = null } },
                             )
                         }
@@ -746,3 +789,11 @@ internal fun forgeHomeTvNew(
 /** "jutro 23:05 · TVP 1" */
 internal fun forgeTvNewSubtitle(alert: com.nuvio.tv.fork.tv.EpisodeAlert, channelName: String, nowMs: Long = System.currentTimeMillis()): String =
     com.nuvio.tv.skin.kicia.livetv.forgeDayLabel(alert.airing.startMs, nowMs) + " " + com.nuvio.tv.skin.kicia.livetv.forgeTvTime(alert.airing.startMs) + " · " + channelName
+
+
+/** forge fix 15.11: catalog entries that are addon actions, not titles (e.g. Torbox „Delete all files”, id „dltorbox”). */
+internal fun forgeIsAddonAction(id: String?, name: String?): Boolean {
+    val i = id.orEmpty().lowercase()
+    val n = name.orEmpty().lowercase()
+    return i.matches(Regex("dl[a-z]{2,12}")) || n.contains("delete all files") || n.contains("usuń wszystkie pliki")
+}

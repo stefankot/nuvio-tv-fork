@@ -121,9 +121,28 @@ internal fun ForgeGuideHeaderA(
         (favourites + recent).take(24)
     }
     val nowMs = clock.value
+    // makieta 7.7b H16: „Kontynuuj oglądanie” first — programmes left part way in the archive (still in it), newest first;
+    // OK = resume from where it was left. They lead the shelf (the separate row and its title come with the layout pass).
+    val resumeAll by TvStore.resume.collectAsStateWithLifecycle()
+    val resumes = remember(resumeAll, byUrl, nowMs / 60_000) {
+        // test 15.11 (JMGO): „resumes=0 of 6 (started=2)” — the channel is found by its guide key too, and the archive
+        // window is the channel's days counted on the device clock (the guide clock may run apart)
+        val deviceNow = System.currentTimeMillis()
+        resumeAll.filter { it.started }.distinctBy { it.channelUrl + "|" + it.title + "|" + it.episode }.mapNotNull { r -> // test 15.11: one card per programme
+            val ch = byUrl[r.channelUrl] ?: byGuide[r.guideKey]
+            val days = ch?.catchup?.days
+            val ok = ch != null && days != null && deviceNow - r.positionMs <= days * 86_400_000L + 86_400_000L
+            if (!ok) android.util.Log.i("TvStore", "shelf skip '${r.title}': channel=${ch != null} catchupDays=$days")
+            if (ok) r to ch!! else null
+        }.take(12).also { android.util.Log.i("TvStore", "shelf resumes=${it.size} of ${resumeAll.size} (started=${resumeAll.count { r -> r.started }})") }
+    }
     // A channel tile on Home asked for this channel: start it as soon as the list is here.
     val pendingPlay by ForgePendingPlay.request.collectAsStateWithLifecycle()
-    androidx.compose.runtime.LaunchedEffect(pendingPlay, byUrl) { ForgePendingPlay.take(byUrl)?.let { onPlay(it, null) } }
+    // makieta 7.7 G31: a resume from Home; test 15.11 (JMGO): it waits for the guide (before it the archive fell back to live)
+    androidx.compose.runtime.LaunchedEffect(pendingPlay, byUrl, uiState.isEpgLoading, uiState.currentProgrammes.isEmpty()) {
+        if (pendingPlay?.programme != null && (uiState.isEpgLoading || uiState.currentProgrammes.isEmpty())) return@LaunchedEffect
+        ForgePendingPlay.take(byUrl, byGuide = byGuide)?.let { onPlay(it, ForgePendingPlay.lastProgramme) }
+    }
     // Frames of what is on (owner 8.11): the recent row's channels first, then the guide rows around the focus.
     val frames by ForgeChannelSnapshots.frames.collectAsStateWithLifecycle()
     val snapChannels = remember(shown, guide.channels, guide.row) {
@@ -134,7 +153,7 @@ internal fun ForgeGuideHeaderA(
     // v7.4 (6.2, 6.7, W-68): ▼ from the shelf and ▲ from the grid land on the tool used last (default "Kategorie"), never on the days
     val searchTool = remember { androidx.compose.ui.focus.FocusRequester() }
     val categoriesTool = remember { androidx.compose.ui.focus.FocusRequester() }
-    var lastToolIsSearch by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    var lastToolIsSearch by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(true) } // v7.6: default "Szukaj programu"
     val lastTool = if (lastToolIsSearch) searchTool else categoriesTool
     val firstRecent = remember { androidx.compose.ui.focus.FocusRequester() }
     androidx.compose.runtime.SideEffect { ForgeGuideFocus.lastTool = lastTool }
@@ -142,14 +161,18 @@ internal fun ForgeGuideHeaderA(
     Column(modifier.fillMaxWidth()) {
         // v7.4 (06): content from y 68 (below the bar): title "Na żywo" y 76, cards y 110 (160x114, focus 180x128), tools y 252, programme header y 292, grid y 341.
         Spacer(Modifier.height(8.dp))
-        if (shown.isNotEmpty()) {
-            Text("Na żywo", style = ForgeText.shelfTitleInactive.copy(color = ForgeColors.Text, fontSize = 16.sp, lineHeight = 22.sp), modifier = Modifier.height(22.dp).fillMaxWidth().testTag("polka-tytul.0")) // v7.4 (06)
+        if (shown.isNotEmpty() || resumes.isNotEmpty()) {
+            // v7.6 (owner 13.11): no shelf title "Na żywo"; the cards say it with a blinking red dot
             Spacer(Modifier.height(5.dp))
+            // makieta 7.7b H16: a resume card added in front would sit left of the screen (the row keeps its first visible card)
+            val shelfState = androidx.compose.foundation.lazy.rememberLazyListState()
+            androidx.compose.runtime.LaunchedEffect(resumes.size) { if (resumes.isNotEmpty()) shelfState.scrollToItem(0) }
             LazyRow(
+                state = shelfState,
                 modifier = Modifier.height(128.dp).offset(x = (-10).dp) // v7.4: the first card at x 40, the focused one grows to x 30
                     // Owner 9.11: ↓ from the top bar lands on these previews, not straight in the guide grid.
                     .focusProperties {
-                        down = lastTool // v7.4 (6.2)
+                        gridFocus?.let { down = it } // v7.6 (owner 13.11): ▼ from the shelf goes straight to the guide; ▲ from the guide lands on "Szukaj programu"
                         @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
                         enter = { _ -> firstRecent } // v7.4 (6.1): ▼ z paska zawsze na pierwszą kartę, nie na najbliższą
                     }
@@ -157,6 +180,22 @@ internal fun ForgeGuideHeaderA(
                 horizontalArrangement = Arrangement.spacedBy(20.dp),
                 contentPadding = PaddingValues(start = 10.dp, end = 58.dp), // 10 dp = the focused card grows 10 dp to the left
             ) {
+                itemsIndexed(resumes, key = { _, it -> "resume|" + it.first.key }) { i, (r, channel) ->
+                    ForgeRecentProgrammeCard(
+                        show = RecentShow(
+                            key = r.key, title = r.title, channelName = channel.name + " · zostało " + r.leftMinutes + " min", channelUrl = channel.streamUrl,
+                            guideKey = channel.guideKey, logoUrl = channel.logoUrl, imageUrl = r.image, lastViewedMs = r.updatedMs,
+                        ),
+                        frame = r.image,
+                        channel = channel,
+                        live = false,
+                        nowMs = nowMs,
+                        progress = r.fraction,
+                        onClick = { onPlay(channel, LiveTvProgramme(r.title, r.positionMs, r.stopMs, image = r.image, episode = r.episode)) },
+                        onLongClick = { ForgeGuideDetail.open(channel, LiveTvProgramme(r.title, r.startMs, r.stopMs, image = r.image, episode = r.episode)) },
+                        modifier = Modifier.focusProperties { gridFocus?.let { down = it } }.then(if (i == 0) Modifier.focusRequester(firstRecent) else Modifier),
+                    )
+                }
                 itemsIndexed(shown, key = { _, it -> it.first.key }) { cardIndex, (show, channel) ->
                     val onNow = uiState.currentProgrammes[channel.guideKey]
                     val live = onNow != null && forgeSameTitle(onNow.title, show.title)
@@ -169,28 +208,28 @@ internal fun ForgeGuideHeaderA(
                         progress = if (live && onNow != null && onNow.stopEpochMs > onNow.startEpochMs) ((nowMs - onNow.startEpochMs).toFloat() / (onNow.stopEpochMs - onNow.startEpochMs)).coerceIn(0f, 1f) else 0f,
                         onClick = { onPlay(channel, null) },
                         onLongClick = { TvStore.remove(show.key) },
-                        modifier = Modifier.testTag("karta.$cardIndex").focusProperties { down = lastTool }.then(if (cardIndex == 0) Modifier.focusRequester(firstRecent) else Modifier), // v7.4 (06, 6.2: ▼ na ostatnie narzędzie)
+                        modifier = Modifier.testTag("karta.$cardIndex").focusProperties { gridFocus?.let { down = it } }.then(if (cardIndex == 0 && resumes.isEmpty()) Modifier.focusRequester(firstRecent) else Modifier), // v7.4 (06, 6.2: ▼ na ostatnie narzędzie)
                         badgeTag = "plakietka.$cardIndex",
                     )
                 }
             }
             Spacer(Modifier.height(21.dp))
         } else {
-            Spacer(Modifier.height(5.dp + 22.dp + 128.dp + 21.dp))
+            Spacer(Modifier.height(5.dp + 128.dp + 21.dp))
         }
         // [● Dziś, niedz. 8 lis ▾] [Wszystkie kanały]  info
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(com.nuvio.tv.skin.kicia.tokens.ForgeDims.PillSelectHeight).onFocusChanged { onToolsFocus?.invoke(it.hasFocus) }) { // v7.4 (6.2)
             // v7 (06, W-57/W-58): left "Szukaj" and "Kategorie: ...", the day button on the right.
             com.nuvio.tv.skin.kicia.components.ForgePillSelect(
-                text = "Szukaj", selected = false, modifier = Modifier.testTag("przycisk-maly.0"), // v7.4 (06)
+                text = "Szukaj programu", selected = false, bare = false, modifier = Modifier.testTag("przycisk-maly.0"), // v7.4 (06); v7.6: opens the programme view (search is its button)
                 focusRequester = searchTool, onFocusChange = { if (it) lastToolIsSearch = true }, // v7.4 (6.2)
                 icon = Icons.Filled.Search,
-                onOk = { searchOpen = true },
+                onOk = { ForgeProgrammeView.upcoming = false; ForgeProgrammeView.open(ForgeEpgCategories.PROG_ALL) },
             )
             Spacer(Modifier.width(12.dp))
             com.nuvio.tv.skin.kicia.components.ForgePillSelect(
-                text = "Kategorie: " + (ForgeProgrammeView.selection?.let(ForgeEpgCategories::nameOf) ?: forgeFilterLabel(filterKey, uiState)), // owner 13.11: the programme view names its category
-                selected = false, modifier = Modifier.testTag("przycisk-maly.1"), // v7.4 (06)
+                text = "Kategorie: " + forgeFilterLabel(filterKey, uiState), // v7.6: channel categories only (programmes: "Szukaj programu")
+                selected = false, bare = false, modifier = Modifier.testTag("przycisk-maly.1"), // v7.4 (06); owner 13.11: buttons with a fill like "Dziś" (mockup: przycisk-maly, --wyp-12)
                 focusRequester = categoriesTool, onFocusChange = { if (it) lastToolIsSearch = false }, // v7.4 (6.2)
                 icon = Icons.Outlined.FormatListBulleted, // v7.4: list icon, no chevron
                 onOk = { if (onFilter != null) filterSheet = true },
@@ -210,8 +249,9 @@ internal fun ForgeGuideHeaderA(
         }
         Spacer(Modifier.height(4.dp))
         // v7.4: header of the programme under the focus: title 20/700 + availability badge, then "hh:mm–hh:mm · description" (14, 70%)
-        val hChannel = guide.channel
-        val hProgramme = (if (gridFocused) guide.selected() else null) ?: hChannel?.guideKey?.let(uiState.currentProgrammes::get)
+        val tile = ForgeProgrammeView.focusedTile.takeIf { ForgeProgrammeView.active && ForgeProgrammeView.focused } // JMGO uwaga 2
+        val hChannel = tile?.first ?: guide.channel
+        val hProgramme = tile?.second ?: (if (gridFocused) guide.selected() else null) ?: hChannel?.guideKey?.let(uiState.currentProgrammes::get)
         if (hProgramme != null && hChannel != null) {
             val past = hProgramme.stopEpochMs <= nowMs
             val future = hProgramme.startEpochMs > nowMs
@@ -223,7 +263,8 @@ internal fun ForgeGuideHeaderA(
                     past -> "Niedostępne w archiwum" to com.nuvio.tv.skin.kicia.components.ForgeBadgeKind.Unavailable
                     else -> "Na żywo" to com.nuvio.tv.skin.kicia.components.ForgeBadgeKind.Live
                 }
-                com.nuvio.tv.skin.kicia.components.ForgeBadge(label, kind, Modifier.padding(start = 12.dp).testTag("opis-pl.0")) // v7.4 (06)
+                if (kind == com.nuvio.tv.skin.kicia.components.ForgeBadgeKind.Live) com.nuvio.tv.skin.kicia.components.ForgeLiveDot(Modifier.padding(start = 12.dp).testTag("opis-pl.0")) // v7.6: a dot instead of the badge
+                else com.nuvio.tv.skin.kicia.components.ForgeBadge(label, kind, Modifier.padding(start = 12.dp).testTag("opis-pl.0")) // v7.4 (06)
             }
             Text(
                 forgeTvSlot(hProgramme.startEpochMs, hProgramme.stopEpochMs).replace("—", "–") + (hProgramme.description?.takeIf { it.isNotBlank() }?.let { " · " + it.replace('\n', ' ') } ?: ""),
@@ -232,7 +273,8 @@ internal fun ForgeGuideHeaderA(
             )
         }
     }
-    if (searchOpen) ForgeTvSearch(channels = uiState.channels, onPlay = onPlay, onClose = { searchOpen = false })
+    if (searchOpen) ForgeTvSearch(channels = uiState.channels, onPlay = onPlay, onClose = { searchOpen = false }, host = "naglowek")
+    ForgeTvSearchReturn("naglowek") { searchOpen = true } // forge fix 14.11 (JMGO A3): back from the details or the player = the results again
     ForgeGuideDetailHost(onPlay)
     if (filterSheet && onFilter != null) ForgeFilterSheet(uiState, filterKey, onPick = onFilter, onDismiss = { filterSheet = false })
     if (daySheet) ForgeDaySheet(guide.anchorMs, nowMs, onPick = { offset ->
@@ -280,7 +322,7 @@ internal fun ForgeRecentProgrammeCard(
                 com.nuvio.tv.skin.kicia.components.ForgeLogoWithShadow(url = logo, contentDescription = channel.name, modifier = Modifier.align(Alignment.TopEnd).padding(top = 10.dp, end = 12.dp).size(54.dp, 28.dp))
             }
             Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.45f to Color.Transparent, 1f to Color.Black.copy(alpha = .78f))))
-            if (live) com.nuvio.tv.skin.kicia.components.ForgeBadge("Na żywo", com.nuvio.tv.skin.kicia.components.ForgeBadgeKind.Live, Modifier.padding(8.dp).then(if (badgeTag.isNotEmpty()) Modifier.testTag(badgeTag) else Modifier)) // v7.4
+            if (live) com.nuvio.tv.skin.kicia.components.ForgeLiveDot(Modifier.padding(10.dp).then(if (badgeTag.isNotEmpty()) Modifier.testTag(badgeTag) else Modifier)) // v7.6: blinking red dot// v7.4
             if (live) Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().height(4.dp).background(Color.White.copy(alpha = .24f))) { Box(Modifier.fillMaxWidth(progress).fillMaxHeight().background(Color.White)) }
             Column(Modifier.align(Alignment.BottomStart).padding(start = 8.dp, end = 8.dp, bottom = 12.dp)) {
                 Text(show.title, style = ForgeText.label.copy(fontSize = 14.sp, lineHeight = 20.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -353,11 +395,20 @@ internal fun forgeFilterRows(uiState: LiveTvUiState, programmes: Boolean, branch
 
 /** The list picker over the whole screen (its own window, so the guide's layout never clips it). */
 @Composable
-internal fun ForgeFilterSheet(uiState: LiveTvUiState, selected: String, onPick: (String) -> Unit, onDismiss: () -> Unit) {
+internal fun ForgeFilterSheet(
+    uiState: LiveTvUiState,
+    selected: String,
+    onPick: (String) -> Unit,
+    onDismiss: () -> Unit,
+    /** v7.6: opened from the Live TV search (its button „Kategoria: …”): the „Programy” tab first. */
+    startOnProgrammes: Boolean = false,
+    /** v7.6: a programme category goes here instead of opening the programme view (the search decides). */
+    onProgrammePick: ((String) -> Unit)? = null,
+) {
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss, properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         val firstRow = remember { androidx.compose.ui.focus.FocusRequester() }
-        val shownSelection = ForgeProgrammeView.selection ?: selected
-        var programmes by remember { androidx.compose.runtime.mutableStateOf(ForgeProgrammeView.selection != null) }
+        val shownSelection = if (onProgrammePick != null) selected else ForgeProgrammeView.selection ?: selected
+        var programmes by remember { androidx.compose.runtime.mutableStateOf(startOnProgrammes || ForgeProgrammeView.selection != null) }
         val branchOf = { key: String -> if ((ForgeEpgCategories.isKey(key) || ForgeEpgCategories.isProgrammeKey(key)) && '/' in key) key.substringBefore('/') else null }
         var branch by remember { androidx.compose.runtime.mutableStateOf(branchOf(shownSelection)) }
         var returnTo by remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
@@ -385,6 +436,7 @@ internal fun ForgeFilterSheet(uiState: LiveTvUiState, selected: String, onPick: 
                     ) {
                         when {
                             row.opens != null -> { returnTo = null; branch = row.opens }
+                            ForgeEpgCategories.isProgrammeKey(row.key) && onProgrammePick != null -> { onDismiss(); onProgrammePick(row.key) }
                             ForgeEpgCategories.isProgrammeKey(row.key) -> { ForgeProgrammeView.open(row.key); onDismiss() }
                             else -> { ForgeProgrammeView.close(); onPick(row.key); onDismiss() }
                         }
@@ -475,6 +527,7 @@ private fun ForgeGuideDetailHost(onPlay: (LiveTvChannel, LiveTvProgramme?) -> Un
             onWatchLive = { close(); onPlay(channel, null) },
             onWatchFromStart = if (channel.catchup != null && programme.startEpochMs < now) ({ close(); onPlay(channel, programme) }) else null,
             onDismiss = close,
+            onPlayAiring = { airing -> close(); onPlay(channel, airing) }, // forge fix 15.11 (JMGO): any archived episode plays
         )
     }
 }

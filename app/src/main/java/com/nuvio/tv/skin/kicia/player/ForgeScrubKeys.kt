@@ -56,12 +56,15 @@ fun rememberForgeScrub(
 }
 
 /**
- * Key rules of the bar: Left/Right step or hold, Up opens the preview marker, OK confirms the preview
+ * Key rules of the bar: Left/Right step or hold, Up passes through (to CC), OK confirms the preview
  * (or calls [onTogglePause] when there is none), Back cancels the preview. Down and everything else pass through.
  */
 fun Modifier.forgeScrubKeys(
     controller: ForgeScrubController,
     onTogglePause: () -> Unit,
+    // forge hook v7.5 (owner 13.11, test: one ▲ did not reach CC): explicit targets for ▲ and ▼; true = moved
+    onUp: (() -> Boolean)? = null,
+    onDown: (() -> Boolean)? = null,
 ): Modifier = onPreviewKeyEvent { event ->
     val code = event.key.nativeKeyCode
     val down = event.type == KeyEventType.KeyDown
@@ -77,7 +80,9 @@ fun Modifier.forgeScrubKeys(
             }
             true
         }
-        code == AndroidKeyEvent.KEYCODE_DPAD_UP -> if (down) controller.driver.up() else controller.state.inPreview
+        // forge hook v7.5 (owner 13.11): Up always leaves the bar for the CC / audio row (ZACHOWANIE 5.8); it no longer opens the preview marker.
+        code == AndroidKeyEvent.KEYCODE_DPAD_UP -> if (event.type == KeyEventType.KeyDown && onUp != null) onUp() else false
+        code == AndroidKeyEvent.KEYCODE_DPAD_DOWN && onDown != null -> if (event.type == KeyEventType.KeyDown) onDown() else false
         isOkKeyCode(code) -> {
             if (up) {
                 if (!controller.driver.ok()) onTogglePause()

@@ -12,6 +12,8 @@ import com.nuvio.tv.domain.repository.AddonRepository
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import com.nuvio.tv.domain.repository.StreamRepository
+import com.nuvio.tv.fork.sources.ReadyAudio
+import com.nuvio.tv.fork.sources.ReadyAudioKind
 import com.nuvio.tv.fork.sources.ReadyInfo
 import com.nuvio.tv.fork.sources.ReadyPick
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -38,6 +40,7 @@ class ForgeReadyViewModel @Inject constructor(
     private val playerSettings: PlayerSettingsDataStore,
     private val addons: AddonRepository,
     private val bingeGroups: BingeGroupCacheDataStore,
+    private val subtitles: com.nuvio.tv.domain.repository.SubtitleRepository,
 ) : ViewModel() {
     private val _info = MutableStateFlow<ReadyInfo?>(null)
     val info: StateFlow<ReadyInfo?> = _info.asStateFlow()
@@ -58,7 +61,11 @@ class ForgeReadyViewModel @Inject constructor(
             try {
                 streams.getStreamsFromAllAddons(type, videoId, season, episode).collectLatest { result ->
                     when (result) {
-                        is NetworkResult.Success -> _info.value = pick(result.data, contentId ?: videoId.substringBefore(":"), season, episode)
+                        is NetworkResult.Success -> {
+                            val id = contentId ?: videoId.substringBefore(":")
+                            _info.value = pick(result.data, id, season, episode)
+                            subtitleCheck(type, id, videoId)
+                        }
                         is NetworkResult.Error -> Unit
                         NetworkResult.Loading -> Unit
                     }
@@ -70,6 +77,43 @@ class ForgeReadyViewModel @Inject constructor(
             } finally {
                 _searching.value = false
             }
+        }
+    }
+
+    private var chosenStream: Stream? = null
+    private var subtitleJob: Job? = null
+    private var subtitleKey: String? = null
+
+    /**
+     * Owner 13.11 (M2): without audio in the viewer's language the line says "napisy PL" only when the subtitle
+     * addons have them for THIS file (asked with its name and size, as the player asks), otherwise "napisy AI".
+     * Runs beside the stream search and never holds Play.
+     */
+    private fun subtitleCheck(type: String, contentId: String, videoId: String) {
+        val current = _info.value ?: return
+        val stream = chosenStream ?: return
+        if (current.choices > 0) return
+        val kind = current.audio?.kind
+        if (kind == ReadyAudioKind.LEKTOR || kind == ReadyAudioKind.DUBBING || kind == ReadyAudioKind.LANGUAGE) return
+        val name = stream.behaviorHints?.filename
+        val size = stream.behaviorHints?.videoSize
+        val k = "$contentId|$videoId|$name|$size"
+        if (k == subtitleKey) return
+        subtitleKey = k
+        subtitleJob?.cancel()
+        subtitleJob = viewModelScope.launch {
+            val settings = playerSettings.playerSettings.first()
+            val lang = settings.subtitleStyle.preferredLanguage
+            val found = kotlinx.coroutines.withTimeoutOrNull(SUBTITLE_CHECK_MS) {
+                runCatching {
+                    subtitles.getSubtitles(type, contentId, videoId.takeIf { it != contentId }, stream.behaviorHints?.videoHash, size, name)
+                }.getOrNull()
+            } ?: return@launch // no answer in time: keep what the name said
+            val has = found.any { com.nuvio.tv.ui.screens.player.autosync.SubtitleLanguageMatching.matchesLanguageCode(it.lang, lang) }
+            val code = lang.trim().take(2).uppercase(java.util.Locale.ROOT)
+            val now = _info.value ?: return@launch
+            if (chosenStream !== stream) return@launch
+            _info.value = now.copy(audio = ReadyAudio(if (has) ReadyAudioKind.SUBTITLES else ReadyAudioKind.AI_SUBTITLES, code))
         }
     }
 
@@ -101,6 +145,12 @@ class ForgeReadyViewModel @Inject constructor(
             preferBingeGroupInSelection = bingeGroup != null,
             smartExpected = com.nuvio.tv.core.streams.smart.SmartTitleFacts.expected(contentId, season, episode),
         ) }
+        chosenStream = chosen
+        com.nuvio.tv.ui.screens.player.ForgeWarmUp.warm(viewModelScope, chosen) // forge M4c E (N10): ready address → its host's DNS
         return chosen?.let { ReadyPick.info(it) } ?: ReadyPick.choice(all)
+    }
+
+    private companion object {
+        const val SUBTITLE_CHECK_MS = 10_000L
     }
 }

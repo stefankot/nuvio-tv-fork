@@ -15,6 +15,7 @@ import java.io.File
 import java.text.Normalizer
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
+import com.nuvio.tv.reshaped.livetv.LiveTvCatchupLinks
 
 /**
  * Panel „Kategorie” of mockup v7.4 (06, W-68; owner 13.11: categories from the EPG, not the playlist groups), with the
@@ -144,6 +145,20 @@ object ForgeEpgCategories {
         }
     }
 
+    /**
+     * forge fix 13.11 (JMGO: Kategorie → Programy showed „Wszystkie programy 0”): categories are only met while the XMLTV
+     * file is read, and a start served by the saved programmes (guide_kept) never reads it, so a build that brought this
+     * file, or a lost file, left the tree empty until the next download. True once the start-up load found no file:
+     * the guide is then read again from its saved file.
+     */
+    fun needsGuideRead(): Boolean = loaded && programmeCats.isEmpty() && file?.exists() == false
+
+    /** After a full guide read: the file exists even when the guide has no categories, so it is not read again for them. */
+    fun markRead() {
+        val f = file ?: return
+        io.launch { runCatching { if (!f.exists()) f.createNewFile() } }
+    }
+
     /** Hook in LiveTvEpg: a kept programme of the guide (its channel's guide keys, start, first <category>). */
     fun record(keys: List<String>, start: Long, raw: String?) {
         val cat = raw?.trim()?.trimEnd('.', ',', ';')?.takeIf { it.isNotEmpty() && it.length <= 60 }?.lowercase() ?: return
@@ -191,20 +206,26 @@ object ForgeEpgCategories {
         return programmePlace(guideKey, p)?.let { keyMatches(it, sel) } == true
     }
 
-    /** Programy: programmes from now to 24 h ahead per branch and leaf (each guide channel once). */
+    /**
+     * Programy: per branch and leaf, how many programmes (one per title, like the programme view's tiles) can be
+     * played from the archive or air within 2 days (each guide channel once). forge fix 14.11 (JMGO): it counted
+     * airings of the next 24 h, and the view's header (Komedia • 394) disagreed with the tree (123).
+     */
     fun programmeTree(channels: List<LiveTvChannel>, nowMs: Long = LiveTvClock.nowEpochMs()): List<Node> {
-        val counts = HashMap<String, Int>()
+        val titles = HashMap<String, HashSet<String>>()
         val seen = HashSet<String>()
         channels.forEach { ch ->
             if (!seen.add(ch.guideKey)) return@forEach
             LiveTvRepository.schedule(ch.guideKey).forEach { p ->
-                if (p.stopEpochMs <= nowMs || p.startEpochMs > nowMs + 86_400_000) return@forEach
+                if (p.startEpochMs > nowMs + 2 * 86_400_000L) return@forEach
+                if (p.stopEpochMs <= nowMs && !LiveTvCatchupLinks.isPlayable(ch.catchup, p, nowMs)) return@forEach
                 val pl = programmePlace(ch.guideKey, p) ?: return@forEach
-                counts.merge(pl.branch, 1, Int::plus)
-                counts.merge(pl.branch + "/" + (pl.leaf ?: ""), 1, Int::plus)
+                val id = p.title.trim().lowercase()
+                titles.getOrPut(pl.branch) { HashSet() } += id
+                titles.getOrPut(pl.branch + "/" + (pl.leaf ?: "")) { HashSet() } += id
             }
         }
-        return buildTree(ForgeCategoryRules.PROGRAMMES, PROG_PREFIX, counts)
+        return buildTree(ForgeCategoryRules.PROGRAMMES, PROG_PREFIX, titles.mapValues { it.value.size })
     }
 
     /** Branch ids of the programme tree in the mockup's order, with names (for the rows of the programme view). */

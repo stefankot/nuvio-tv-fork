@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,12 +31,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
  * Any screen calls [ForgeToast.show]; one [ForgeToastHost] (in the scaffold) draws it.
  */
 object ForgeToast {
-    data class Message(val id: Long, val text: String, val top: Boolean)
+    data class Message(val id: Long, val text: String, val top: Boolean, val note: String? = null)
 
     internal val current = MutableStateFlow<Message?>(null)
     private var counter = 0L
 
-    fun show(text: String, top: Boolean = false) { current.value = Message(++counter, text, top) }
+    /** [note]: v7.6 — a plain-language explanation under the title, smaller. */
+    fun show(text: String, top: Boolean = false, note: String? = null) { current.value = Message(++counter, text, top, note) }
     const val DurationMs = 3_000L
 }
 
@@ -55,7 +57,7 @@ fun ForgeToastHost(modifier: Modifier = Modifier) {
             modifier = Modifier.align(if (m?.top == true) Alignment.TopCenter else Alignment.BottomCenter)
                 .padding(top = 76.dp, bottom = 40.dp), // y 76 (top) or y 464 (bottom: 540 - 40 - 36)
         ) {
-            ForgeToastPill(m?.text.orEmpty())
+            if (m?.note != null) ForgeToastCard(m.text, m.note) else ForgeToastPill(m?.text.orEmpty())
         }
     }
 }
@@ -67,6 +69,18 @@ fun ForgeToastPill(text: String, modifier: Modifier = Modifier) {
         text,
         style = ForgeText.label.copy(color = Color.White),
         maxLines = 1,
-        modifier = modifier.height(36.dp).clip(CircleShape).background(com.nuvio.tv.skin.kicia.tokens.ForgeColors.Sheet).padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier = modifier.height(36.dp).clip(CircleShape).background(com.nuvio.tv.skin.kicia.tokens.ForgeColors.Sheet).forgeEdge(CircleShape).padding(horizontal = 16.dp, vertical = 8.dp), // makieta 7.7 A8
     )
+}
+
+/** v7.6 Komunikat z wyjaśnieniem: tytuł 14/700 i pod nim 12 mniejszym fontem (po ludzku), max 2 linie wyjaśnienia. */
+@Composable
+fun ForgeToastCard(title: String, note: String, modifier: Modifier = Modifier) {
+    androidx.compose.foundation.layout.Column(
+        modifier.widthIn(max = 560.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+            .background(com.nuvio.tv.skin.kicia.tokens.ForgeColors.Sheet).forgeEdge(androidx.compose.foundation.shape.RoundedCornerShape(16.dp)).padding(horizontal = 16.dp, vertical = 8.dp), // makieta 7.7 A8
+    ) {
+        Text(title, style = ForgeText.label.copy(color = Color.White), maxLines = 1)
+        Text(note, style = ForgeText.caption.copy(color = com.nuvio.tv.skin.kicia.tokens.ForgeColors.Text3), maxLines = 2, modifier = Modifier.padding(top = 2.dp))
+    }
 }

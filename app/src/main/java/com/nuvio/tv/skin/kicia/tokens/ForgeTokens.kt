@@ -24,6 +24,8 @@ object ForgeColors {
     val Sheet = Color(0xF53A3A3C) // v7.4: panel rgba(58,58,60,.96); the blur behind it is added by the host
     val Ok = Color(0xFF3DD68C) // v7 archiwum
     val Live = Color(0xFFE5484D) // v7
+    val Shift = Color(0xFFF5C518) // makieta 7.7b H6: --przesuniecie (Plakietka „Z przesunięciem”)
+    val BadgeOnImage = Color(0x99000000) // makieta 7.7b H18: --plakietka-obraz rgba(0,0,0,.6)
     val Gold = Color(0xFFF6D365)
     val Accent = Color(0xFFA8C7FA)
     val AccentSoft = Color(0x4DA8C7FA) // .30, history pill of the guide

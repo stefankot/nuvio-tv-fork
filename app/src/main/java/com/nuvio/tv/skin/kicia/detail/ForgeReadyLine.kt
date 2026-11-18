@@ -78,15 +78,22 @@ fun ForgeReadyLine(meta: Meta, nextToWatch: NextToWatch?, modifier: Modifier = M
 internal fun forgeReadyParts(quality: String?, tags: List<String>, size: String?, audio: String? = null): List<String> =
     listOfNotNull(quality) + tags + listOfNotNull(size, audio)
 
+/** Switch on when the app translates subtitles itself; until then "napisy AI" is not shown. */
+internal const val FORGE_AI_SUBTITLES_READY = false
+
 /** "lektor PL" / "dubbing PL" / "PL" / "napisy PL"; nothing when the name does not say. */
 @Composable
-internal fun forgeReadyAudio(audio: com.nuvio.tv.fork.sources.ReadyAudio?): String? = audio?.let {
+internal fun forgeReadyAudio(audio: com.nuvio.tv.fork.sources.ReadyAudio?): String? = audio
+    // Owner 13.11: "napisy AI" = subtitles translated by the app, not built yet; the slot stays, the text waits for it.
+    ?.takeUnless { it.kind == com.nuvio.tv.fork.sources.ReadyAudioKind.AI_SUBTITLES && !FORGE_AI_SUBTITLES_READY }
+    ?.let {
     stringResource(
         when (it.kind) {
             com.nuvio.tv.fork.sources.ReadyAudioKind.LEKTOR -> R.string.forge_ready_audio_lektor
             com.nuvio.tv.fork.sources.ReadyAudioKind.DUBBING -> R.string.forge_ready_audio_dubbing
             com.nuvio.tv.fork.sources.ReadyAudioKind.LANGUAGE -> R.string.forge_ready_audio_language
             com.nuvio.tv.fork.sources.ReadyAudioKind.SUBTITLES -> R.string.forge_ready_audio_subtitles
+            com.nuvio.tv.fork.sources.ReadyAudioKind.AI_SUBTITLES -> R.string.forge_ready_audio_ai_subtitles
         },
         it.language,
     )

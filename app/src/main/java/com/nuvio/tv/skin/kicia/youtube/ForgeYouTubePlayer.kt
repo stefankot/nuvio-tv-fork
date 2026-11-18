@@ -48,7 +48,8 @@ class ForgeYouTubePanel internal constructor(internal val session: ForgeYouTubeS
     /** True when the key was used here (the panel opened). While the panel is open its own views take every key. */
     fun onPreviewKey(event: KeyEvent, controlsVisible: Boolean): Boolean {
         if (session == null || open) return false
-        if (event.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_DPAD_DOWN && !controlsVisible) {
+        // test 15.11 (JMGO, B-3): ▼ from the bar (makieta 7.7b H3) never reached the bar — the player took it first
+        if (event.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_DPAD_DOWN && (!controlsVisible || ForgeYouTubePanelRequests.barFocused)) {
             startHome = true
             open = true
             return true
@@ -102,6 +103,8 @@ fun ForgeYouTubePanelHost(panel: ForgeYouTubePanel, onSeekTo: (Long) -> Unit) {
 
 /** Asks the open player's YouTube panel to open on its action list (from the S12 controls). */
 object ForgeYouTubePanelRequests {
+    /** makieta 7.7b H3: the progress bar of the YouTube controls holds the focus (▼ there = the next videos). */
+    @Volatile var barFocused: Boolean = false
     internal val requests = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     fun open() { requests.tryEmit(Unit) }
 }
