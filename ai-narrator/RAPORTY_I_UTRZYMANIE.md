@@ -10,8 +10,8 @@ Porównanie gałęzi z bazowym `main` za pomocą GitHub Compare:
 |---|---:|---:|---:|
 | Pliki upstream zmienione | 1 | 5 | 0 |
 | Pliki forka zmienione | 1 | 4 | 0 |
-| Nowe pliki modułu i workflow | 14 | 1525 | 0 |
-| **Łącznie** | **16** | **1534** | **0** |
+| Nowe pliki modułu i workflow | 14 | 1528 | 0 |
+| **Łącznie** | **16** | **1537** | **0** |
 
 Jedyna zmiana istniejącego pliku z odtwarzaczem: `app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt` — wywołanie `NarratorOverlay` (5 wierszy). Własny `app/reshaped.gradle` otrzymał dwa wpisy źródeł (4 wiersze z komentarzem). **Bez zmian** w `app/build.gradle.kts`, `PlayerRuntimeController*`, mpv, ExoPlayer i obecnej synchronizacji.
 
