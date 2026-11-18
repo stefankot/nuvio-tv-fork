@@ -38,9 +38,9 @@ data class NarratorOptions(
 
 object NarratorText {
     private val htmlTags = Regex("<[^>]+>")
-    private val assTags = Regex("\\\\{\\\\\\\\[^}]*}")
-    private val whitespace = Regex("\\\\s+")
-    private val nonDialogue = Regex("^\\\\[[^]]+]$")
+    private val assTags = Regex("""\{\\[^}]*}""")
+    private val whitespace = Regex("""\s+""")
+    private val nonDialogue = Regex("""^\[[^]]+]$""")
 
     fun clean(raw: String): String = raw
         .replace(htmlTags, "")
