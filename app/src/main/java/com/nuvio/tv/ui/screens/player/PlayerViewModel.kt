@@ -310,6 +310,7 @@ class PlayerViewModel @Inject constructor(
 
     fun bindExoSubtitleView(subtitleView: androidx.media3.ui.SubtitleView?) {
         controller.bindExoSubtitleView(subtitleView)
+        if (subtitleView != null) com.nuvio.tv.fork.ai.subtitles.AiSubtitles.bind(controller) // Fork hook: ai-subtitles
     }
 
     fun consumePendingExitReason() {
@@ -318,6 +319,7 @@ class PlayerViewModel @Inject constructor(
 
     override fun onCleared() {
         postPlayRecommendationController.stop()
+        com.nuvio.tv.fork.ai.subtitles.AiSubtitles.unbind(controller) // Fork hook: ai-subtitles
         controller.onCleared()
         // Allow the trailer player to be re-created when returning to home screen.
         trailerPlayerPool.reclaim()

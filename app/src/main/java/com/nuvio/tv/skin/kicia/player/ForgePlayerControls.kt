@@ -182,6 +182,7 @@ fun ForgePlayerControls(
                 android.widget.Toast.makeText(ctx, com.nuvio.tv.fork.lektor.LektorController.toggle(ctx), android.widget.Toast.LENGTH_SHORT).show()
             }
             // W1 (19.11): test łącza KE na bieżącym filmie; wynik ustawia pobieranie wieloma połączeniami i limit w rankingu.
+            com.nuvio.tv.fork.ai.subtitles.AiSubtitlesMenuRows { moreOpen = false } // fork: AI napisy
             ForgeSheetRow(text = "Test łącza", detail = com.nuvio.tv.fork.net.KeNetwork.status.ifEmpty { null }) {
                 moreOpen = false
                 val url = com.nuvio.tv.fork.sources.PlayerBridge.streamUrl()
