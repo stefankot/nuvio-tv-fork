@@ -71,5 +71,5 @@ internal fun LazyListScope.echoPlaybackSettingsItems() {
     }
     echoSwitch("echo_source_fallback", "Echo: następne źródło po błędzie", "Własny mechanizm Echo obok mechanizmu Reshaped")
     echoSwitch("echo_audio_menu", "Echo: menu języka audio", "Języki ze wszystkich źródeł")
-    echoSwitch("echo_playback_intro", "Echo: intro przed odtwarzaniem", "Krótkie animowane intro")
+    // intro Echo usunięte (właściciel 19.11)
 }

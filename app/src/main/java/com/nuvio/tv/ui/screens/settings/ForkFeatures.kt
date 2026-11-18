@@ -42,7 +42,7 @@ object ForkFeatures {
         com.nuvio.tv.fork.sources.StartupChecks.KEY, com.nuvio.tv.fork.sources.MpvContainers.KEY,
         // Echo
         com.nuvio.tv.fork.echo.FastStart.KEY,
-        "echo_source_fallback", "echo_auto_quality", "echo_hot_swap", "echo_race", "echo_audio_menu", "echo_playback_intro",
+        "echo_source_fallback", "echo_auto_quality", "echo_hot_swap", "echo_race", "echo_audio_menu",
         // YouTube, katalog KE
         "fork_youtube", "fork_ke_catalog",
         // Moduły rejestru wyłączone domyślnie przez autora

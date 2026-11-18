@@ -75,18 +75,20 @@ object ForkHooks {
         return skin.PlayerChrome(uiState, onEvent, args)
     }
 
-    /** NuvioNavHost: intro odtwarzania (Echo A6) rysowane nad aplikacją; Wstecz je pomija. Wyłączone = sama treść. */
+    // Właściciel 19.11: „usuń lub wyłącz intro w całości” — intro Echo (A6) wyłączone na stałe, trzy hooki nic nie robią
+    // (EchoIntroHook i kopie PlaybackIntro* zostają nieużywane; przełącznik usunięty z ustawień).
+    /** NuvioNavHost: intro odtwarzania (Echo A6) — WYŁĄCZONE, sama treść. */
     @Composable
-    fun introWrap(content: @Composable () -> Unit) = com.nuvio.tv.fork.echo.EchoIntroHook.Wrap(content)
+    fun introWrap(content: @Composable () -> Unit) = content()
 
     /** StreamScreen: autoodtwarzanie wchodzi od razu w intro. */
     @Composable
-    fun introBeforePlayer(uiState: com.nuvio.tv.ui.screens.stream.StreamScreenUiState) =
-        com.nuvio.tv.fork.echo.EchoIntroHook.BeforePlayer(uiState.autoPlayDecided, uiState.showDirectAutoPlayOverlay)
+    @Suppress("UNUSED_PARAMETER")
+    fun introBeforePlayer(uiState: com.nuvio.tv.ui.screens.stream.StreamScreenUiState) = Unit
 
     /** PlayerScreen: ręczne otwarcie źródła też pokazuje intro. */
     @Composable
-    fun introOnPlayerOpen() = com.nuvio.tv.fork.echo.EchoIntroHook.OnPlayerOpen()
+    fun introOnPlayerOpen() = Unit
 
     /** PlayerRuntimeController: obowiązujący poziom trybu nocnego (harmonogram) zamiast surowego ustawienia (B05-6). */
     fun effectiveNight(mode: com.nuvio.tv.data.local.NightMode): com.nuvio.tv.data.local.NightMode {
