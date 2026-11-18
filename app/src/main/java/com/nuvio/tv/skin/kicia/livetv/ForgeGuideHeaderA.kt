@@ -199,7 +199,7 @@ internal fun ForgeGuideHeaderA(
                         modifier = Modifier.focusProperties { gridFocus?.let { down = it } }.then(if (i == 0) Modifier.focusRequester(firstRecent) else Modifier),
                     )
                 }
-                itemsIndexed(forYou, key = { _, it -> "foryou|" + it.item.programKey + "|" + it.item.guideKey }) { i, r ->
+                itemsIndexed(forYou, key = { i, it -> "foryou|$i|" + it.item.programKey + "|" + it.item.guideKey }) { i, r ->
                     val p = r.programme
                     ForgeRecentProgrammeCard(
                         show = RecentShow(

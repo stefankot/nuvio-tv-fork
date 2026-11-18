@@ -54,6 +54,8 @@ object EchoIntroHook {
     @Composable
     fun OnPlayerOpen() {
         val on = enabled()
-        LaunchedEffect(Unit) { if (on) PlaybackIntroState.startOnPlayerOpen() }
+        // Właściciel 19.11: bez intro (ekranu powitalnego) przy starcie kanału IPTV — kanał wołał TvBridge.onPlay przed chwilą.
+        val liveTv = android.os.SystemClock.elapsedRealtime() - com.nuvio.tv.fork.tv.most.TvBridge.lastChannelPlayAtMs < 10_000L
+        LaunchedEffect(Unit) { if (on && !liveTv) PlaybackIntroState.startOnPlayerOpen() }
     }
 }

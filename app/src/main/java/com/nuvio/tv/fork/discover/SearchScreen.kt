@@ -1,5 +1,6 @@
 package com.nuvio.tv.fork.discover
 
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -53,16 +54,16 @@ fun TvSearchScreen() {
         )
         LazyColumn {
             if (r.channels.isNotEmpty()) item { Text("Kanały", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 12.dp)) }
-            items(r.channels, key = { "c" + it.key }) { c ->
+            itemsIndexed(r.channels, key = { i, it -> "c$i|" + it.key }) { _, c ->
                 Card(onClick = {
                     channels.firstOrNull { it.guideKey == c.key }?.let { PendingPlay.ask(it.streamUrl) }
                     ForkFeatures.open?.invoke(LIVE_TV_ROUTE)
                 }, modifier = Modifier.padding(vertical = 4.dp).then(if (firstId == "c" + c.key) Modifier.focusRequester(first) else Modifier)) { Text(c.name, Modifier.padding(12.dp)) }
             }
             if (r.nowAndSoon.isNotEmpty()) item { Text("Teraz i wkrótce", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 12.dp)) }
-            items(r.nowAndSoon, key = { "n" + it.programKey }) { a -> programCard(a, if (firstId == "n" + a.programKey) Modifier.focusRequester(first) else Modifier) }
+            itemsIndexed(r.nowAndSoon, key = { i, it -> "n$i|" + it.programKey }) { _, a -> programCard(a, if (firstId == "n" + a.programKey) Modifier.focusRequester(first) else Modifier) }
             if (r.archive.isNotEmpty()) item { Text("W archiwum", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 12.dp)) }
-            items(r.archive, key = { "a" + it.programKey }) { a -> programCard(a, if (firstId == "a" + a.programKey) Modifier.focusRequester(first) else Modifier) }
+            itemsIndexed(r.archive, key = { i, it -> "a$i|" + it.programKey }) { _, a -> programCard(a, if (firstId == "a" + a.programKey) Modifier.focusRequester(first) else Modifier) }
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.nuvio.tv.fork.discover
 
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -89,7 +90,8 @@ object DiscoverModule : ForkModule {
             Column(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
                 Text(row.title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 6.dp))
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(end = 24.dp)) {
-                    items(row.cards, key = { it.programKey + "|" + it.startMs }) { card ->
+                    // Właściciel 19.11: „Odkrywaj” zamykało aplikację — ten sam program o tej samej godzinie na dwóch kanałach dawał zdublowany klucz.
+                    itemsIndexed(row.cards, key = { i, it -> "$i|" + it.programKey + "|" + it.startMs }) { _, card ->
                         Card(onClick = { ForkFeatures.open?.invoke("fork_program/" + android.net.Uri.encode(card.programKey)) }, modifier = Modifier.width(200.dp)) {
                             Column(Modifier.padding(12.dp)) {
                                 card.badge?.let { Text(it, style = MaterialTheme.typography.labelSmall) }

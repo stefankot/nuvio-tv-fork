@@ -98,6 +98,9 @@ object PicksModule : ForkModule {
         var status by remember { mutableStateOf("") }
         Column(Modifier.fillMaxSize().padding(48.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("Na co masz ochotę?", style = MaterialTheme.typography.headlineMedium)
+            // Właściciel 19.11: ekran był pusty — ta wersja nie ma wbudowanego klucza TMDB (local.properties: TMDB_API_KEY).
+            if (BuildConfig.TMDB_API_KEY.isBlank()) Text("Polecenia nie działają: ta wersja aplikacji nie ma klucza TMDB. Po dodaniu klucza i nowym buildzie pojawią się filmy.")
+            if (moods.isEmpty()) Text("Brak listy nastrojów (plik fork/moods.json)")
             LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(moods, key = { it.id }) { m ->
                     Button(onClick = {

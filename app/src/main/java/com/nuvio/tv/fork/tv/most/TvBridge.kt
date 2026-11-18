@@ -59,7 +59,11 @@ object TvBridge {
         }
     }
 
+    /** Kiedy ostatnio włączono kanał IPTV (uptime); intro Echo pomija start kanału (właściciel 19.11). */
+    @Volatile var lastChannelPlayAtMs = 0L
+
     fun onPlay(channel: LiveTvChannel, programme: LiveTvProgramme?) {
+        lastChannelPlayAtMs = android.os.SystemClock.elapsedRealtime()
         if (!enabled) return
         TvStore.onWatched(channel, programme)
         data?.onPlay(channel.guideKey, programme?.toGuide(), System.currentTimeMillis())

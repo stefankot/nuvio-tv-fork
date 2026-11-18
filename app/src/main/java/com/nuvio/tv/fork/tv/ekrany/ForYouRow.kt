@@ -2,6 +2,7 @@
 
 package com.nuvio.tv.fork.tv.ekrany
 
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -53,7 +54,7 @@ fun ForYouRow(onPlay: (LiveTvChannel, LiveTvProgramme?) -> Unit) {
     Column(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
         Text("Dla Ciebie", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 6.dp))
         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(end = 24.dp)) {
-            items(items, key = { it.item.programKey + "|" + it.item.guideKey }) { r ->
+            itemsIndexed(items, key = { i, it -> "$i|" + it.item.programKey + "|" + it.item.guideKey }) { _, r ->
                 Card(onClick = { onPlay(r.channel, r.programme) }, onLongClick = { ForkFeatures.open?.invoke("fork_program/" + android.net.Uri.encode(r.item.programKey)) }, modifier = Modifier.width(220.dp)) {
                     Column(Modifier.padding(12.dp)) {
                         Text(badgeLabel(r.item.badge), style = MaterialTheme.typography.labelSmall)
