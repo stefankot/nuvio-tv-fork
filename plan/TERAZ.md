@@ -34,7 +34,11 @@ Ostatnia aktualizacja: 19.11.2026 ok. 02:40 (koniec wątku 5).
 - OK na „Kontynuuj oglądanie” od razu odtwarza (Podziemny krąg od 8:09, polskie napisy „Dopasowuję napisy…”). Długie OK na karcie nic nie otwiera.
 - TMDB działa: szczegóły „Ludzkie dzieci” (z Biblioteki) mają polski tytuł i opis, reżyserię, scenariusz, obsadę z rolami. Obsada w skórce Kicii = sam tekst (bez zdjęć; zdjęć nie sprawdzano, testy tylko tekstem).
 - Wypchnięte na GitHuba (prośba właściciela): `hybryda-zrodel` aktualna, `arc-remote` → `main` (+4 stare commity).
-- Dalej: punkt 4 (a) „Na co masz ochotę?”, (b) półki Szukaj, (c) kanał IPTV bez intro, (d) opóźnienie „Odkrywaj”; potem W8.
+- „Na co masz ochotę?” DZIAŁA (Lekkie na dziś → lista filmów 2026 z ocenami).
+- Szukaj: wpisanie „tvn” = ANR (zawieszenie 6+ s, system zamknął aplikację). Przyczyna: `TvSearchIndex` budowany w głównym wątku (normalizacja całego EPG). NAPRAWIONE w kodzie (7ac71be23, `fork/discover/TvSearchIndexCache.kt`: budowa w tle, w pamięci 10 min), NIEZBUDOWANE. Ślady ANR: `plan/raporty/anr-szukaj-tvn.txt`.
+- Intro Echo WYŁĄCZONE W CAŁOŚCI na prośbę właściciela (bd028815d): hooki puste, przełącznik usunięty. Punkt (c) nieaktualny.
+- „Odkrywaj” z Live TV (dotknięcie przycisku): ekran pojawił się dopiero po ok. 70 s — do naprawy w ramach wydajności.
+- NOWE ZADANIE właściciela (19.11 ok. 03:00, NADRZĘDNE): „wydajność forka zła; skopiuj rozwiązania z Kicii (IPTV i rysowanie ekranów, nawigacja się zacina); kategorie w IPTV jak w Kicii — teraz nie wyświetla się żadna kategoria”.
 
 ## NAJPIERW (wątek 6): co robić po „kontynuuj”
 1. `cd "/Users/milajovovich/Desktop/nuvio 2/NuvioFork" && git status --short && git branch --show-current` (gałąź `hybryda-zrodel`, wypchnięta).
