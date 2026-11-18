@@ -256,7 +256,8 @@ class CalendarRepository @Inject constructor(
 
     private fun isSeries(type: String?) = type.equals("series", ignoreCase = true) || type.equals("tv", ignoreCase = true)
 
-    private fun isStale(show: CalendarShow?, now: Long) = show == null || now - show.fetchedAt > STALE_MS
+    private fun isStale(show: CalendarShow?, now: Long) = show == null || now - show.fetchedAt > STALE_MS ||
+        (hasTmdb && show.tmdbId == null && now - show.fetchedAt > RETRY_MS) // Fork 19.11: pobrane bez klucza TMDB (bez obrazów) — zapytaj TMDB ponownie
 
     private fun placeholder(f: Followed) = CalendarShow(
         id = f.id, title = f.title, poster = f.poster, backdrop = f.background, status = CalendarStatus.UNKNOWN,
