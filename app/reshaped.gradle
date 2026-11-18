@@ -71,3 +71,7 @@ dependencies {
 // AI Narrator: independent sources; never modify upstream app/build.gradle.kts.
 android.sourceSets.getByName("main").java.srcDir("$rootDir/ai-narrator/src/main/kotlin")
 android.sourceSets.getByName("test").java.srcDir("$rootDir/ai-narrator/src/test/kotlin")
+
+// Optional on-device ZONOS3 native worker. The APK remains buildable without it,
+// and UI explicitly blocks synthesis when ARM64 worker is absent.
+android.sourceSets.getByName("main").jniLibs.srcDir("$rootDir/ai-narrator/jniLibs")
