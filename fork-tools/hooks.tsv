@@ -53,5 +53,5 @@ app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt	fallba
 app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt	import com.nuvio.tv.core.player.fallbackWhenPreferredSourcesEmpty	import	echo	import fallbacku Echo	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerAutoSourceRecovery.kt	StartupChecks.Session()	private enum class NextResult	sources	Kicia: kontrole otwartego pliku (sesja)	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerAutoSourceRecovery.kt	forkChecks.verdict(player)	val progressing	sources	Kicia: zły czas trwania / brak dźwięku	
-app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerAutoSourceRecovery.kt	forkChecks.onLeaving()	showSwitchNotice(noticeReason)	sources	Kicia: pamięć złych źródeł	
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerAutoSourceRecovery.kt	forkChecks.onLeaving(	showSwitchNotice(noticeReason)	sources	Kicia: pamięć złych źródeł	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerAutoSourceRecovery.kt	forkChecks.attempt(next)	attempted += recoverySourceKey(next)	sources	Kicia: nowa próba	

@@ -104,7 +104,7 @@ internal class PlayerAutoSourceRecovery(
                             val noticeReason = failureReason ?: state.error
                                 ?: player.context.getString(R.string.player_auto_source_recovery_timeout)
                             showSwitchNotice(noticeReason)
-                            forkChecks.onLeaving() // Fork hook: kicia-checks (pamięć złych źródeł)
+                            forkChecks.onLeaving(player) // Fork hook: kicia-checks (pamięć złych źródeł)
                             stopAttempt()
                             if (!policy.beginNextAttempt(now)) { showPicker(); break }
                             definitiveFailure = false

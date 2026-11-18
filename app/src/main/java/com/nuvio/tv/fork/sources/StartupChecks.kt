@@ -125,11 +125,16 @@ object StartupChecks {
             return Verdict.Bad(reason.name)
         }
 
-        /** Próba się skończyła bez potwierdzonego startu: zapamiętaj źródło (powód z kontroli albo „nie wystartowało”). */
-        fun onLeaving() {
+        /**
+         * Próba się skończyła bez potwierdzonego startu: zapamiętaj źródło. Powód: z kontroli; błąd dekodera/kontenera
+         * (Kicia FileInherentFailure) = zły plik, odkładany 24 h u każdego dodatku; inaczej „nie wystartowało” (30 min).
+         */
+        fun onLeaving(player: PlayerRuntimeController) {
             if (!on) return
             val source = current ?: return
-            runCatching { SmartBadSources.mark(source, badReason ?: BadReason.NO_START) }
+            val code = player.lastPlaybackIssueError?.errorCode
+            val reason = badReason ?: if (code != null && com.nuvio.tv.fork.sources.kicia.isFileInherentPlaybackError(code)) BadReason.DECODER else BadReason.NO_START
+            runCatching { SmartBadSources.mark(source, reason) }
         }
 
         /** Czas tytułu z metadanych w pamięci (bez zapytań): film = runtime, odcinek = runtime odcinka. */
