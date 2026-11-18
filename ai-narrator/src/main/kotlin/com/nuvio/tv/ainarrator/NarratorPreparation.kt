@@ -163,7 +163,7 @@ internal class NarratorPreparer(
             var synthesized = 0
             var watchdog: Job? = null
             try {
-                val memory = guard.check(starting = true)
+                val memory = guard.check(starting = true, offline = true)
                 if (!memory.allowed) throw IllegalStateException("Za mało wolnej RAM: " + memory.decision)
                 watchdog = scope.launch {
                     while (isActive) {
