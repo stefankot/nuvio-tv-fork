@@ -47,7 +47,8 @@ object DiscoverModule : ForkModule {
         val groupOf = state.channels.associate { it.guideKey to it.group }
         val catchup = state.channels.filter { it.catchup != null }.associate { it.guideKey to 7 }
         val input = DiscoverInput(
-            log = data.episodeLog(), records = data.records(), followed = data.followedList(),
+            // Audyt UI p. 4: cały przewodnik, nie tylko archiwum (rzędy archiwum i tak filtrują po dniach archiwum kanału).
+            log = (data.episodeLog() + TvBridge.guideAirings()).distinctBy { it.guideKey to it.startMs }, records = data.records(), followed = data.followedList(),
             yourChannels = ChannelStats.yourChannels(data.sessions(), now).toSet(), catchupDays = catchup,
             bucketOf = { e -> buckets.bucketOf(emptyList(), groupOf[e.guideKey]) }, nowMs = now,
         )

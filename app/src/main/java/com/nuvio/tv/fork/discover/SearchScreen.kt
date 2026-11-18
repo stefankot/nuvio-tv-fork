@@ -37,7 +37,8 @@ fun TvSearchScreen() {
     val index = remember {
         TvSearchIndex(
             channels.map { SearchChannel(it.guideKey, it.name, it.group) },
-            TvBridge.data?.episodeLog().orEmpty().map { SearchAiring(it.programKey, it.title, it.guideKey, it.startMs, it.startMs + it.durMs) },
+            (TvBridge.data?.episodeLog().orEmpty() + TvBridge.guideAirings()).distinctBy { it.guideKey to it.startMs }
+                .map { SearchAiring(it.programKey, it.title, it.guideKey, it.startMs, it.startMs + it.durMs) },
         )
     }
     var q by remember { mutableStateOf("") }

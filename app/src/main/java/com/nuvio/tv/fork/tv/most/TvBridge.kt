@@ -48,6 +48,17 @@ object TvBridge {
         data?.onGuide(days.keys.associateWith { k -> kept[k].orEmpty().map { it.toGuide() } }, days, nowMs)
     }
 
+    /**
+     * Audyt UI p. 4: cały przewodnik (wszystkie kanały, także bez archiwum) dla Szukaj w telewizji, w kształcie wpisów
+     * archiwum (ten sam klucz programu: ShowIdentity.normalizeTitle), żeby strona programu działała tak samo.
+     */
+    fun guideAirings(): List<com.nuvio.tv.fork.tv.LogEntry> = lastKept.flatMap { (guideKey, list) ->
+        list.mapNotNull { p ->
+            val key = com.nuvio.tv.fork.tv.ShowIdentity.normalizeTitle(p.title).takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+            com.nuvio.tv.fork.tv.LogEntry(key, guideKey, p.startEpochMs, p.stopEpochMs - p.startEpochMs, p.episode.orEmpty(), p.title.take(80))
+        }
+    }
+
     fun onPlay(channel: LiveTvChannel, programme: LiveTvProgramme?) {
         if (!enabled) return
         TvStore.onWatched(channel, programme)
