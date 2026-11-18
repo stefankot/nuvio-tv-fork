@@ -9,24 +9,22 @@ for symbol in 'commitPreparedSidecarSubtitle' 'expectedCurrentUrl' 'expectedGene
     grep -q "$symbol" "$SIDE" || { echo "Missing sidecar contract: $symbol" >&2; exit 3; }
 done
 grep -q 'object ForkHooks' "$FORK" || { echo "ForkHooks contract not found" >&2; exit 3; }
-BASE_SHA="$(python3 - <<'PY'
-import json
-print(json.load(open('docs/agent/ai-subtitles/UPSTREAM_LOCK.json'))['target']['integration_sha'])
-PY
-)"
-git cat-file -e "${BASE_SHA}^{commit}" || { echo "Pinned base absent: $BASE_SHA" >&2; exit 4; }
-# Fail closed: no inherited code may be changed by this module without a separate per-file audit.
-changed="$(git diff --name-only "$BASE_SHA" HEAD; git diff --name-only; git ls-files --others --exclude-standard)"
-while IFS= read -r path; do
-    [[ -n "$path" ]] || continue
-    case "$path" in
-       app/src/main/java/com/nuvio/tv/fork/ai/subtitles/*|\
-       app/src/test/java/com/nuvio/tv/fork/ai/subtitles/*|\
-       tools/ai-subtitles-tests/*|\
-       docs/agent/ai-subtitles/*|\
-       scripts/ai-subtitles/*) ;;
-       *) echo "Unreviewed out-of-scope modification: $path" >&2; exit 5 ;;
-    esac
-done <<< "$changed"
-git diff --check
+# Fail closed: no commit of this module may touch inherited code. Checked per commit, so the
+# check stays valid after the module is merged into a working branch with other history.
+SCOPE=(app/src/main/java/com/nuvio/tv/fork/ai/subtitles app/src/test/java/com/nuvio/tv/fork/ai/subtitles
+       tools/ai-subtitles-tests docs/agent/ai-subtitles scripts/ai-subtitles)
+for commit in $(git log --no-merges --format=%H -- "${SCOPE[@]}"); do
+    while IFS= read -r path; do
+        [[ -n "$path" ]] || continue
+        case "$path" in
+           app/src/main/java/com/nuvio/tv/fork/ai/subtitles/*|\
+           app/src/test/java/com/nuvio/tv/fork/ai/subtitles/*|\
+           tools/ai-subtitles-tests/*|\
+           docs/agent/ai-subtitles/*|\
+           scripts/ai-subtitles/*) ;;
+           *) echo "AI-subtitles commit ${commit:0:9} touches out-of-scope file: $path" >&2; exit 5 ;;
+        esac
+    done < <(git diff-tree --no-commit-id --name-only -r "$commit")
+done
+git diff --check -- "${SCOPE[@]}"
 printf 'AI-subtitles contracts present; no inherited source touched.\n'

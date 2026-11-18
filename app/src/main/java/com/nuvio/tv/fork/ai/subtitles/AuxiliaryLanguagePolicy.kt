@@ -25,8 +25,39 @@ object AuxiliaryLanguagePolicy {
     private val slavicLanguages = defaultSlavicPriority.toSet()
     val westernLanguages = setOf("en", "de", "fr", "es", "it", "nl", "pt")
 
-    fun primaryLanguage(tag: String): String =
-        tag.trim().lowercase(java.util.Locale.ROOT).substringBefore('-').substringBefore('_')
+    /**
+     * Subtitle add-ons deliver ISO 639-1 ("ru"), ISO 639-2/B or /T ("rus", "ger", "deu") or
+     * English names ("Russian"); all of them must land in the same category, otherwise the
+     * original language or Polish slips through as an auxiliary source.
+     */
+    fun primaryLanguage(tag: String): String {
+        val base = tag.trim().lowercase(java.util.Locale.ROOT).substringBefore('-').substringBefore('_')
+            .substringBefore(' ').substringBefore('(')
+        return aliases[base] ?: base
+    }
+
+    private val aliases: Map<String, String> = buildMap {
+        fun alias(code: String, vararg names: String) = names.forEach { put(it, code) }
+        alias("pl", "pol", "polish", "polski")
+        alias("ru", "rus", "russian")
+        alias("uk", "ukr", "ukrainian")
+        alias("cs", "ces", "cze", "czech")
+        alias("sk", "slk", "slo", "slovak")
+        alias("bg", "bul", "bulgarian")
+        alias("sr", "srp", "scc", "serbian")
+        alias("hr", "hrv", "scr", "croatian")
+        alias("bs", "bos", "bosnian")
+        alias("sl", "slv", "slovenian", "slovene")
+        alias("mk", "mkd", "mac", "macedonian")
+        alias("be", "bel", "belarusian")
+        alias("en", "eng", "english")
+        alias("de", "deu", "ger", "german")
+        alias("fr", "fra", "fre", "french")
+        alias("es", "spa", "spanish")
+        alias("it", "ita", "italian")
+        alias("nl", "nld", "dut", "dutch")
+        alias("pt", "por", "pob", "portuguese")
+    }
 
     fun chooseForPolish(
         originalLanguage: String,

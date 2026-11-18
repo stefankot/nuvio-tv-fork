@@ -6,9 +6,8 @@ import java.io.DataOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.io.IOException
 import java.io.RandomAccessFile
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 import java.security.MessageDigest
 import java.util.UUID
 
@@ -29,6 +28,13 @@ data class AudioSnippet(
     }
 }
 
+/** The 60 s limit for this material is used up (expected, not an error). */
+class AudioBudgetExhaustedException(message: String) : IllegalStateException(message)
+
+/** The ledger cannot be trusted; uploads stay blocked for this material (fail closed). */
+class AudioBudgetCorruptedException(message: String, cause: Throwable? = null) :
+    IllegalStateException(message, cause)
+
 enum class AudioTransmissionState { RESERVED, SENT, DEFINITELY_NOT_SENT }
 data class AudioBudgetEntry(val snippet: AudioSnippet, val state: AudioTransmissionState)
 data class AudioBudgetSnapshot(val accountedMs: Long, val entries: List<AudioBudgetEntry>) {
@@ -36,7 +42,10 @@ data class AudioBudgetSnapshot(val accountedMs: Long, val entries: List<AudioBud
 }
 
 /**
- * Dedicated cross-process file lock and fsync + atomic replacement on the same filesystem.
+ * Dedicated cross-process file lock and fsync + atomic rename on the same filesystem.
+ * The parent directory is not fsynced (no portable API before Android 26): a power cut right
+ * after a write may lose that single latest change (worst case one sample, at most 20 s, over).
+ * Process crashes and kills never lose or half-write the ledger.
  * The caller MUST reserve before *every* transmission, including retries or a second model.
  * Never reuse a requestId: even the same audio range sent twice consumes two reservations.
  * A timeout/unknown result remains RESERVED; only proof that no bytes were sent allows release.
@@ -50,8 +59,8 @@ class OrdinaryAudioBudget(private val directory: File) {
         require(entries.none { it.snippet.requestId == snippet.requestId }) {
             "Each physical upload attempt requires a fresh requestId and a new reservation"
         }
-        check(accountedMs(entries) + snippet.durationMs <= MAX_BUDGET_MS) {
-            "60-second ordinary-audio limit exhausted"
+        if (accountedMs(entries) + snippet.durationMs > MAX_BUDGET_MS) {
+            throw AudioBudgetExhaustedException("60-second ordinary-audio limit exhausted")
         }
         entries += AudioBudgetEntry(snippet, AudioTransmissionState.RESERVED)
         true
@@ -70,7 +79,7 @@ class OrdinaryAudioBudget(private val directory: File) {
     /** Call ONLY when the sending layer can establish that no transmission occurred. */
     fun markDefinitelyNotSent(materialKey: String, requestId: String): AudioBudgetSnapshot = modify(materialKey) { entries ->
         val index = entries.indexOfFirst { it.snippet.requestId == requestId }
-        require(index >= 0)
+        require(index >= 0) { "Cannot release unreserved request" }
         check(entries[index].state == AudioTransmissionState.RESERVED) {
             "Already transmitted audio must never be released"
         }
@@ -100,9 +109,10 @@ class OrdinaryAudioBudget(private val directory: File) {
         return synchronized(stripe) {
             RandomAccessFile(lockFile, "rw").use { raf ->
                 raf.channel.lock().use {
+                    deleteStaleTemps(ledger)
                     val entries = read(ledger)
-                    check(accountedMs(entries) <= MAX_BUDGET_MS) {
-                        "Persisted ordinary-audio limit violated"
+                    if (accountedMs(entries) > MAX_BUDGET_MS) {
+                        throw AudioBudgetCorruptedException("Persisted ordinary-audio limit violated")
                     }
                     val changed = edit(entries)
                     val charged = accountedMs(entries)
@@ -124,8 +134,29 @@ class OrdinaryAudioBudget(private val directory: File) {
         return total
     }
 
+    /** Temp files of a writer killed before rename; safe to drop while holding the lock. */
+    private fun deleteStaleTemps(ledger: File) {
+        val prefix = "${ledger.name}."
+        directory.listFiles { _, name -> name.startsWith(prefix) && name.endsWith(".tmp") }
+            ?.forEach { it.delete() }
+    }
+
     private fun read(file: File): MutableList<AudioBudgetEntry> {
         if (!file.exists()) return mutableListOf()
+        return try {
+            readUnchecked(file)
+        } catch (e: AudioBudgetCorruptedException) {
+            throw e
+        } catch (e: IOException) {
+            throw AudioBudgetCorruptedException("Unreadable audio budget — fail closed", e)
+        } catch (e: IllegalStateException) {
+            throw AudioBudgetCorruptedException(e.message ?: "Corrupted audio budget — fail closed", e)
+        } catch (e: IllegalArgumentException) {
+            throw AudioBudgetCorruptedException("Invalid audio budget entry — fail closed", e)
+        }
+    }
+
+    private fun readUnchecked(file: File): MutableList<AudioBudgetEntry> {
         return DataInputStream(FileInputStream(file).buffered()).use { input ->
             check(input.readInt() == FILE_MAGIC) { "Corrupted audio budget header — fail closed" }
             val count = input.readInt()
@@ -167,11 +198,10 @@ class OrdinaryAudioBudget(private val directory: File) {
                 // Flush the same live descriptor before atomic rename.
                 stream.fd.sync()
             }
-            // Fail closed if the filesystem cannot guarantee atomic replacement.
-            Files.move(
-                temp.toPath(), file.toPath(),
-                StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING,
-            )
+            // File.renameTo is rename(2) on Android/Linux: atomic replacement within one
+            // filesystem and available on API 24-25, unlike java.nio.file.Files (API 26+,
+            // not covered by desugar_jdk_libs). Fail closed when it does not succeed.
+            if (!temp.renameTo(file)) throw IOException("Atomic ledger replacement failed")
         } finally {
             if (temp.exists()) temp.delete()
         }
