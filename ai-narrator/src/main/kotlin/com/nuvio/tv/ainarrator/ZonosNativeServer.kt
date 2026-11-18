@@ -23,6 +23,7 @@ internal class ZonosNativeServer(context: Context, private val memory: ZonosMemo
     private val executable = File(context.applicationInfo.nativeLibraryDir, "libzonos3_server.so")
     private val log = File(context.applicationContext.cacheDir, "zonos3-local.log")
     private val api = LocalZonosTts()
+    private val accessToken = java.util.UUID.randomUUID().toString() + java.util.UUID.randomUUID().toString()
 
     @Volatile private var process: Process? = null
     @Volatile private var endpoint: String? = null
@@ -46,10 +47,11 @@ internal class ZonosNativeServer(context: Context, private val memory: ZonosMemo
             "--cpu", "--batch", "1", "--zac-threads", "1",
             "--host", "127.0.0.1", "--port", port.toString()
         )
-        val candidate = ProcessBuilder(args)
+        val builder = ProcessBuilder(args)
             .redirectErrorStream(true)
             .redirectOutput(log)
-            .start()
+        builder.environment()["ZONOS3_ACCESS_TOKEN"] = accessToken
+        val candidate = builder.start()
         synchronized(this@ZonosNativeServer) {
             process = candidate
             endpoint = candidateUrl
@@ -72,7 +74,7 @@ internal class ZonosNativeServer(context: Context, private val memory: ZonosMemo
 
     suspend fun synthesize(paths: ZonosModelPaths, text: String): ByteArray {
         val localUrl = ensureStarted(paths)
-        val wav = api.synthesize(localUrl, "", "", text)
+        val wav = api.synthesize(localUrl, accessToken, "", text)
         if (!memory.check(starting = false, offline = true).allowed) {
             stop()
             throw IOException("Synteza zatrzymana: systemowi brakuje pamięci")
@@ -85,6 +87,7 @@ internal class ZonosNativeServer(context: Context, private val memory: ZonosMemo
         connection.connectTimeout = 200
         connection.readTimeout = 200
         connection.instanceFollowRedirects = false
+        connection.setRequestProperty("Authorization", "Bearer " + accessToken)
         try { connection.responseCode in 200..299 } finally { connection.disconnect() }
     }.getOrDefault(false)
 
