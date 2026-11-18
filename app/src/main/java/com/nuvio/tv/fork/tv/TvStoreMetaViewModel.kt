@@ -19,10 +19,17 @@ class TvStoreMetaViewModel @Inject constructor(
     val meta: StateFlow<TvMeta?> = _meta.asStateFlow()
     private var asked: String? = null
 
-    fun load(title: String, year: Int? = null) {
-        if (asked == title) return
-        asked = title
+    fun load(title: String, year: Int? = null, episode: String? = null) {
+        val key = title + "|" + episode
+        if (asked == key) return
+        asked = key
         _meta.value = null
-        viewModelScope.launch { _meta.value = tmdb.lookup(title, year) ?: com.nuvio.tv.fork.tvdb.Tvdb.lookup(context, title, year) } // W8: TVDB, gdy TMDB nie zna programu
+        viewModelScope.launch {
+            // W8: TVDB, gdy TMDB nie zna programu; zdjęcie i opis ODCINKA z TVDB (numer z przewodnika) w miejsce tła i opisu.
+            val base = tmdb.lookup(title, year) ?: com.nuvio.tv.fork.tvdb.Tvdb.lookup(context, title, year)
+            _meta.value = base
+            val ep = runCatching { com.nuvio.tv.fork.tvdb.Tvdb.episode(context, title, episode, year) }.getOrNull() ?: return@launch
+            if (asked == key && base != null) _meta.value = base.copy(backdropUrl = ep.image ?: base.backdropUrl, overview = ep.overview ?: base.overview)
+        }
     }
 }

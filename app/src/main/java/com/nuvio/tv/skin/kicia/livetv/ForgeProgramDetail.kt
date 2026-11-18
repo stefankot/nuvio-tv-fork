@@ -121,7 +121,7 @@ private fun ForgeProgramCard(
     val liveTv by LiveTvRepository.uiState.collectAsState()
     val metaVm: com.nuvio.tv.fork.tv.TvStoreMetaViewModel = androidx.hilt.navigation.compose.hiltViewModel()
     val extra = remember(programme) { com.nuvio.tv.fork.tv.EpgExtras.get(programme.title, programme.startEpochMs) }
-    LaunchedEffect(programme.title) { metaVm.load(programme.title, extra?.year) }
+    LaunchedEffect(programme.title, programme.episode) { metaVm.load(programme.title, extra?.year, programme.episode ?: extra?.episode) } // fork W8: odcinek z TVDB
     val tmdb by metaVm.meta.collectAsState()
     val favorite = channel.streamUrl in liveTv.favoriteUrls
     LaunchedEffect(Unit) { com.nuvio.tv.fork.tv.Reminders.load(ctx.applicationContext) }
@@ -366,7 +366,7 @@ private fun ForgeProgramDetailV6(
     val metaVm: com.nuvio.tv.fork.tv.TvStoreMetaViewModel = androidx.hilt.navigation.compose.hiltViewModel()
     // What the guide itself knows beyond the description (episode, age, year, categories, credits), filled while the EPG is read.
     val extra = remember(programme) { com.nuvio.tv.fork.tv.EpgExtras.get(programme.title, programme.startEpochMs) }
-    LaunchedEffect(programme.title) { metaVm.load(programme.title, extra?.year) }
+    LaunchedEffect(programme.title, programme.episode) { metaVm.load(programme.title, extra?.year, programme.episode ?: extra?.episode) } // fork W8: odcinek z TVDB
     val tmdb by metaVm.meta.collectAsState()
     val favorite = channel.streamUrl in liveTv.favoriteUrls
     Box(Modifier.fillMaxSize().background(ForgeColors.Bg)) {

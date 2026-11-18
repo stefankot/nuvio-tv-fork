@@ -464,6 +464,7 @@ fun ForgeHomeContent(
                             com.nuvio.tv.skin.kicia.livetv.ForgeRecentProgrammeCard(
                                 show = show,
                                 frame = onNow?.image?.takeIf { it.isNotBlank() } ?: liveFrames[channel.guideKey]?.second, // owner 9.11: EPG picture first, a stream frame only when missing
+                                episode = onNow?.episode, // fork W8
                                 channel = channel,
                                 live = onNow != null && com.nuvio.tv.skin.kicia.livetv.forgeSameTitle(onNow.title, show.title),
                                 nowMs = System.currentTimeMillis(),

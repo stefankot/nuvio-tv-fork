@@ -191,6 +191,7 @@ internal fun ForgeGuideHeaderA(
                             guideKey = channel.guideKey, logoUrl = channel.logoUrl, imageUrl = r.image, lastViewedMs = r.updatedMs,
                         ),
                         frame = r.image,
+                        episode = r.episode, // fork W8
                         channel = channel,
                         live = false,
                         nowMs = nowMs,
@@ -210,6 +211,7 @@ internal fun ForgeGuideHeaderA(
                             imageUrl = p?.image, lastViewedMs = r.item.startMs,
                         ),
                         frame = p?.image?.takeIf { it.isNotBlank() } ?: frames[r.channel.guideKey]?.second,
+                        episode = p?.episode, // fork W8
                         channel = r.channel,
                         live = r.item.badge == com.nuvio.tv.fork.tv.Badge.LIVE,
                         nowMs = nowMs,
@@ -224,6 +226,7 @@ internal fun ForgeGuideHeaderA(
                     ForgeRecentProgrammeCard(
                         show = show,
                         frame = onNow?.image?.takeIf { it.isNotBlank() } ?: frames[channel.guideKey]?.second, // owner 9.11: the EPG's picture first, a stream frame only when the EPG has none
+                        episode = onNow?.episode, // fork W8
                         channel = channel,
                         live = live,
                         nowMs = nowMs,
@@ -317,6 +320,7 @@ internal fun ForgeGuideHeaderA(
 internal fun ForgeRecentProgrammeCard(
     show: RecentShow,
     frame: Any?,
+    episode: String? = null, // fork W8: obraz odcinka z TVDB, gdy przewodnik go nie ma
     channel: LiveTvChannel,
     live: Boolean,
     nowMs: Long,
@@ -340,7 +344,7 @@ internal fun ForgeRecentProgrammeCard(
         border = CardDefaults.border(focusedBorder = Border.None), // v7.4: focus is never an outline (scale 1.125 + shadow)
     ) {
         Box(Modifier.fillMaxSize()) {
-            val image: Any? = frame ?: show.imageUrl?.takeIf { it.isNotBlank() }
+            val image: Any? = frame ?: show.imageUrl?.takeIf { it.isNotBlank() } ?: com.nuvio.tv.fork.tvdb.rememberTvdbCardImage(show.title, episode) // fork W8
             if (image != null) {
                 AsyncImage(model = image, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             }

@@ -1886,11 +1886,16 @@ object LiveTvRepository {
                                 val shownLogos = if (failed || partial) HashMap(previousLogos).apply { putAll(logos) } else logos
                                 publishGuide(schedule, shownLogos, nowMs, failedLinks)
                                 // A guide that broke off part way is not saved as the kept programmes.
-                                if (!failed && !partial && loaded.isNotEmpty() && epgGeneration == generation) {
-                                    val entry = LiveTvGuideCache.Entry(loaded, logos, nextReadAtMs)
+                                // Fork patch: zapis-czesciowy (JMGO 19.11: epg.team zrywał pobieranie, więc nic nie było zapisywane
+                                // i KAŻDY start czytał cały XMLTV, ok. 90 s): gdy inne przewodniki przyszły, zapis zostaje z poprzednimi
+                                // programami brakującego i krótkim terminem ponownej próby (nextReadAtMs), która dociąga resztę w tle.
+                                if (loaded.isNotEmpty() && epgGeneration == generation) { // Fork patch: zapis-czesciowy
+                                    val keep = if (failed || partial) schedule else loaded // Fork patch: zapis-czesciowy
+                                    val keepLogos = if (failed || partial) shownLogos else logos // Fork patch: zapis-czesciowy
+                                    val entry = LiveTvGuideCache.Entry(keep, keepLogos, nextReadAtMs) // Fork patch: zapis-czesciowy
                                     withContext(Dispatchers.IO) {
                                         LiveTvGuideCache.write(cacheFile, cacheKey, guideFiles, entry)
-                                        LiveTvGuideCache.writeNow(nowFile, cacheKey, guideFiles, loaded, logos, nowMs) // Fork patch: kicia-epg
+                                        LiveTvGuideCache.writeNow(nowFile, cacheKey, guideFiles, keep, keepLogos, nowMs) // Fork patch: kicia-epg, zapis-czesciowy
                                     }
                                     com.nuvio.tv.skin.kicia.livetv.ForgeEpgCategories.markRead() // Fork patch: kicia-kategorie
                                 }

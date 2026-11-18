@@ -34,6 +34,9 @@ object Tvdb {
     private const val FOUND_TTL_MS = 7L * 86_400_000
     private const val MISS_TTL_MS = 86_400_000L
     private const val MAX_ROWS = 1500
+    private const val EP_TTL_MS = 3L * 86_400_000
+    private const val ART = "https://artworks.thetvdb.com"
+    private val SEASON_SUFFIX = Regex("^(.*\\S)\\s+(\\d{1,2})$")
 
     val hasKey: Boolean get() = BuildConfig.TVDB_API_KEY.isNotBlank()
 
@@ -55,19 +58,95 @@ object Tvdb {
         val key = wanted + "|" + (year ?: 0)
         return withContext(Dispatchers.IO) {
             lock.withLock {
-                val cache = cache(c)
-                cache.optJSONObject(key)?.let { row ->
-                    val ttl = if (row.has("m")) FOUND_TTL_MS else MISS_TTL_MS
-                    if (System.currentTimeMillis() - row.optLong("t") < ttl) return@withLock row.optJSONObject("m")?.let(::fromJson)
-                }
-                val found = runCatching { fetch(c, title, wanted, year) }
-                    .onFailure { status = "błąd: ${it.message?.take(60)}"; Log.w(TAG, "lookup '$title': ${it.message}") }
-                    .getOrElse { return@withLock null } // błąd sieci nie zapisuje „nie znaleziono”
-                cache.put(key, JSONObject().put("t", System.currentTimeMillis()).apply { found?.let { put("m", toJson(it)) } })
-                save(c, cache)
-                found
+                seriesLocked(c, title, wanted, year, key)?.second
             }
         }
+    }
+
+    /** Pod [lock]: (id serialu w TVDB, dane) z pamięci albo z TVDB; null = nie znaleziono / błąd. */
+    private fun seriesLocked(c: Context, title: String, wanted: String, year: Int?, key: String): Pair<Long, TvMeta>? {
+        val cache = cache(c)
+        cache.optJSONObject(key)?.let { row ->
+            val ttl = if (row.has("m")) FOUND_TTL_MS else MISS_TTL_MS
+            if (System.currentTimeMillis() - row.optLong("t") < ttl) {
+                val m = row.optJSONObject("m") ?: return null
+                return row.optLong("id") to fromJson(m)
+            }
+        }
+        val found = runCatching {
+            fetch(c, title, wanted, year)
+                // „Klangor 2”, „Castle 3”: polski przewodnik dopisuje numer sezonu do tytułu
+                ?: SEASON_SUFFIX.find(title.trim())?.let { m -> val base = m.groupValues[1]; fetch(c, base, norm(base), null) }
+        }.onFailure { status = "błąd: ${it.message?.take(60)}"; Log.w(TAG, "lookup '$title': ${it.message}") }
+            .getOrElse { return null } // błąd sieci nie zapisuje „nie znaleziono”
+        cache.put(key, JSONObject().put("t", System.currentTimeMillis()).apply { found?.let { put("id", it.first); put("m", toJson(it.second)) } })
+        save(c, cache)
+        return found
+    }
+
+    /** Odcinek z TVDB dla programu z przewodnika: [label] z EPG (S3E168, 3x168, E12, xmltv_ns „2.167.0/1”) albo numer w tytule. */
+    data class Episode(val name: String?, val overview: String?, val image: String?)
+
+    suspend fun episode(c: Context, title: String, label: String?, year: Int? = null): Episode? {
+        if (!enabled(c)) return null
+        val wanted = norm(title)
+        if (wanted.length < 3) return null
+        val (season0, number) = parseLabel(label) ?: return null
+        val season = season0 ?: SEASON_SUFFIX.find(title.trim())?.groupValues?.get(2)?.toIntOrNull()
+        return withContext(Dispatchers.IO) {
+            lock.withLock {
+                val (id, _) = seriesLocked(c, title, wanted, year, wanted + "|" + (year ?: 0)) ?: return@withLock null
+                val eps = episodesLocked(c, id) ?: return@withLock null
+                val hit = if (season != null) eps.firstOrNull { it.optInt("s") == season && it.optInt("e") == number }
+                else eps.filter { it.optInt("s") > 0 && it.optInt("e") == number }.singleOrNull() ?: eps.firstOrNull { it.optInt("a") == number }
+                hit?.let { Episode(it.optString("n").takeIf { n -> n.isNotBlank() }, it.optString("o").takeIf { o -> o.isNotBlank() }, it.optString("i").takeIf { i -> i.startsWith("http") }) }
+            }
+        }
+    }
+
+    /** Obraz na kartę półki, gdy przewodnik go nie ma: zdjęcie odcinka, inaczej tło albo plakat serialu. */
+    suspend fun cardImage(c: Context, title: String, label: String?): String? {
+        if (!enabled(c)) return null
+        episode(c, title, label)?.image?.let { return it }
+        val m = lookup(c, title) ?: SEASON_SUFFIX.find(title.trim())?.let { lookup(c, it.groupValues[1]) }
+        return m?.backdropUrl ?: m?.posterUrl
+    }
+
+    private fun episodesLocked(c: Context, id: Long): List<JSONObject>? {
+        val f = File(c.applicationContext.filesDir, "tvdb/ep_$id.json")
+        runCatching { JSONObject(f.readText()) }.getOrNull()?.let { o ->
+            if (System.currentTimeMillis() - o.optLong("t") < EP_TTL_MS) return o.optJSONArray("e")?.let { a -> (0 until a.length()).mapNotNull { a.optJSONObject(it) } }
+        }
+        val out = JSONArray()
+        runCatching {
+            var page = 0
+            while (page < 10) {
+                val d = get(c, "$BASE/series/$id/episodes/default/pol?page=$page")
+                val eps = d.optJSONObject("data")?.optJSONArray("episodes") ?: break
+                for (i in 0 until eps.length()) {
+                    val e = eps.optJSONObject(i) ?: continue
+                    val img = e.optString("image").takeIf { it.isNotBlank() && it != "null" }?.let { if (it.startsWith("http")) it else ART + it }
+                    out.put(JSONObject().put("s", e.optInt("seasonNumber")).put("e", e.optInt("number")).put("a", e.optInt("absoluteNumber"))
+                        .put("n", e.optString("name").takeIf { it != "null" }).put("o", e.optString("overview").takeIf { it != "null" }?.take(600)).put("i", img))
+                }
+                if (d.optJSONObject("links")?.optString("next").let { it.isNullOrBlank() || it == "null" }) break
+                page++
+            }
+        }.onFailure { Log.w(TAG, "episodes $id: ${it.message}"); return null }
+        runCatching { f.parentFile?.mkdirs(); f.writeText(JSONObject().put("t", System.currentTimeMillis()).put("e", out).toString()) }
+        return (0 until out.length()).mapNotNull { out.optJSONObject(it) }
+    }
+
+    /** (sezon albo null, numer odcinka) z etykiety EPG. */
+    internal fun parseLabel(raw: String?): Pair<Int?, Int>? {
+        val t = raw?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        Regex("(?i)s\\s*(\\d+)\\s*e\\s*(\\d+)").find(t)?.let { return it.groupValues[1].toInt() to it.groupValues[2].toInt() }
+        Regex("^(\\d+)\\s*x\\s*(\\d+)").find(t)?.let { return it.groupValues[1].toInt() to it.groupValues[2].toInt() }
+        Regex("(?i)^e\\s*(\\d+)").find(t)?.let { return null to it.groupValues[1].toInt() }
+        Regex("^(\\d*)\\s*\\.\\s*(\\d+)").find(t)?.let { m -> // xmltv_ns: liczone od zera
+            return m.groupValues[1].toIntOrNull()?.plus(1) to (m.groupValues[2].toInt() + 1)
+        }
+        return t.takeIf { it.all(Char::isDigit) }?.let { null to it.toInt() }
     }
 
     /** Ustawienia: logowanie na próbę, wynik do [status]. */
@@ -79,7 +158,7 @@ object Tvdb {
 
     // ---- TheTVDB ----
 
-    private fun fetch(c: Context, title: String, wanted: String, year: Int?): TvMeta? {
+    private fun fetch(c: Context, title: String, wanted: String, year: Int?): Pair<Long, TvMeta>? {
         val search = get(c, "$BASE/search?query=" + android.net.Uri.encode(title.trim()) + "&type=series&limit=20")
         val hits = search.optJSONArray("data") ?: JSONArray()
         val exact = (0 until hits.length()).mapNotNull { hits.optJSONObject(it) }.filter { h -> names(h).any { norm(it) == wanted } }
@@ -101,7 +180,7 @@ object Tvdb {
         val directors = people.filter { it.optInt("type") == 1 || it.optString("peopleType").equals("Director", true) }.take(3)
             .mapNotNull { p -> p.optString("personName").takeIf { it.isNotBlank() }?.let { TvPerson(null, it, "Reżyseria", null) } }
         status = "zalogowano"
-        return TvMeta(
+        return id to TvMeta(
             tmdbId = 0, isTv = true,
             title = plName ?: d.optString("name").ifBlank { title },
             overview = (plOverview ?: d.optString("overview")).takeIf { it.isNotBlank() && it != "null" },
