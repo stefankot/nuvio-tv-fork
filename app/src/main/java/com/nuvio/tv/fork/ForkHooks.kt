@@ -2,6 +2,7 @@ package com.nuvio.tv.fork
 
 import android.app.Activity
 import android.view.KeyEvent
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
@@ -23,7 +24,36 @@ import com.nuvio.tv.ui.screens.player.PlayerUiState
 /** Jedyne punkty wpięcia forka w pliki rdzenia. Każda funkcja wraca natychmiast, gdy funkcja jest wyłączona. */
 object ForkHooks {
     /** MainActivity.dispatchKeyEvent: pilot Arc poza odtwarzaczem. true = klawisz obsłużony. */
-    fun onGlobalKey(activity: Activity, event: KeyEvent): Boolean = RemoteGlobalHook.onKey(activity, event)
+    fun onGlobalKey(activity: Activity, event: KeyEvent): Boolean {
+        // Skórka Kicia: jej pilot (Esc = Wstecz, odzyskanie fokusu odtwarzacza, przycisk głosu dla ekranu Szukaj).
+        if (com.nuvio.tv.skin.kicia.ForgeUi.ON && com.nuvio.tv.skin.kicia.input.ForgeRemoteHook.onKey(event, activity::dispatchKeyEvent)) return true
+        // Audyt UI p. 1: przycisk Szukaj/Asystent na pilocie = nasłuch poleceń (moduł głosu), gdy żaden ekran go nie przejął.
+        if (event.keyCode in VOICE_KEYS && com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(activity, "module_voice", true)) {
+            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) com.nuvio.tv.fork.voice.VoiceTrigger.fire()
+            return true
+        }
+        return RemoteGlobalHook.onKey(activity, event)
+    }
+    /** MainActivity: YouTube jako pozycja menu (audyt UI p. 5), gdy włączony. */
+    fun youTubeInMenu(c: Context): Boolean = com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(c, "fork_youtube", true)
+
+    /**
+     * MainActivity: lista menu. Dodaje YouTube; przy skórce Kicia kolejność z makiety Kicii (34c80c6): Szukaj, Główna,
+     * Odkrywaj, YouTube, Live TV, Biblioteka, reszta, Ustawienia.
+     */
+    fun drawerOrder(c: Context, items: List<com.nuvio.tv.DrawerItem>): List<com.nuvio.tv.DrawerItem> {
+        val all = if (!youTubeInMenu(c) || items.any { it.route == "youtube" }) items else {
+            val i = items.indexOfFirst { it.route == "library" }.let { if (it < 0) items.size else it + 1 }
+            items.toMutableList().apply { add(i, com.nuvio.tv.DrawerItem(route = "youtube", label = "YouTube", icon = androidx.compose.material.icons.Icons.Default.PlayArrow)) }
+        }
+        if (!com.nuvio.tv.skin.kicia.ForgeUi.ON) return all
+        val order = listOf("search", "home", "discover", "youtube", com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE, "library")
+        val first = order.mapNotNull { r -> all.firstOrNull { it.route == r } }
+        val settings = all.filter { it.route == "settings" }
+        return first + all.filter { it !in first && it !in settings } + settings
+    }
+
+    private val VOICE_KEYS = setOf(KeyEvent.KEYCODE_SEARCH, KeyEvent.KEYCODE_VOICE_ASSIST, KeyEvent.KEYCODE_ASSIST)
 
     /** HomeScreen / trasy: true = aktywny skin narysował ekran tej trasy. */
     @Composable

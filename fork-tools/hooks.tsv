@@ -56,3 +56,6 @@ app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerAutoSourceRecovery.kt	for
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerAutoSourceRecovery.kt	forkChecks.onLeaving(	showSwitchNotice(noticeReason)	sources	Kicia: pamięć złych źródeł	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerAutoSourceRecovery.kt	forkChecks.attempt(next)	attempted += recoverySourceKey(next)	sources	Kicia: nowa próba	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerInitialization.kt	MpvContainers.needsMpv(	currentInternalPlayerEngine = effectiveInternalPlayerEngine	sources	Kicia: AVI/WMV/ASF w mpv	
+app/src/main/java/com/nuvio/tv/MainActivity.kt	ForkHooks.youTubeInMenu(	add(Screen.Discover.route)	menu	YouTube w menu (trasa główna)	
+app/src/main/java/com/nuvio/tv/MainActivity.kt	ForkHooks.drawerOrder(	sidebar_settings	menu	YouTube w menu, kolejność zakładek Kicii	
+app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	ForgeTabBackToBar()	LIVE_TV_ROUTE	skin	Kicia: Wstecz z Live TV na pasek	

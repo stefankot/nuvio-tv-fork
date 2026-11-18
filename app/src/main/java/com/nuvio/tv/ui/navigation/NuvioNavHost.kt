@@ -1345,6 +1345,7 @@ private fun PlaybackNavHost(
         }
 
         rootComposable(com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE) { // Nuvio RS hook: Live TV
+            com.nuvio.tv.skin.kicia.nav.ForgeTabBackToBar() // Fork hook: skin (Kicia: Wstecz z Live TV → pasek; poza paskiem Kicii nic nie robi)
             com.nuvio.tv.ui.reshaped.livetv.LiveTvScreen(onPlay = { navController.navigate(it) }, showBuiltInHeader = !hideBuiltInHeaders)
         }
 

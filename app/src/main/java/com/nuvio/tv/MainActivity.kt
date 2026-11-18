@@ -1115,6 +1115,7 @@ open class MainActivity : ComponentActivity() {
                             if (discoverLocation == DiscoverLocation.IN_SIDEBAR) {
                                 add(Screen.Discover.route)
                             }
+                            if (com.nuvio.tv.fork.ForkHooks.youTubeInMenu(this@MainActivity)) add(Screen.YouTube.route) // Fork hook: menu
                         }
                     }
 
@@ -1175,6 +1176,7 @@ open class MainActivity : ComponentActivity() {
                                 )
                             )
                         }
+                            .let { com.nuvio.tv.fork.ForkHooks.drawerOrder(this@MainActivity, it) } // Fork hook: menu (YouTube, kolejność Kicii)
                     }
                     val selectedDrawerRoute = drawerItems.firstOrNull { item ->
                         currentRoute == item.route || currentRoute?.startsWith("${item.route}/") == true

@@ -83,6 +83,7 @@ fun ForgeSearchScreen(
     onNavigateToDetail: (String, String, String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    com.nuvio.tv.skin.kicia.nav.ForgeTabBackToBar() // Kicia v7.4: Wstecz z treści → pasek (własne BackHandlery niżej wygrywają)
     val state by viewModel.uiState.collectAsState()
     var keyboardOpen by remember { mutableStateOf(false) }
     var sheet by remember { mutableStateOf<DiscoverSheet?>(null) }
