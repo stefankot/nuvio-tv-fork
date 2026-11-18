@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Run inside a checked-out, isolated target-repository worktree, not on another agent's tree.
+set -euo pipefail
+cd "$(dirname "$0")/../.."
+SIDE="app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerSidecarSubtitles.kt"
+FORK="app/src/main/java/com/nuvio/tv/fork/ForkHooks.kt"
+[[ -f "$SIDE" && -f "$FORK" ]] || { echo "Missing required Exo/Fork hook files" >&2; exit 2; }
+for symbol in 'commitPreparedSidecarSubtitle' 'expectedCurrentUrl' 'expectedGeneration' 'currentSidecarGenerationFor' 'renderSidecarCuesAtCurrentPosition'; do
+    grep -q "$symbol" "$SIDE" || { echo "Missing sidecar contract: $symbol" >&2; exit 3; }
+done
+grep -q 'object ForkHooks' "$FORK" || { echo "ForkHooks contract not found" >&2; exit 3; }
+BASE_SHA="$(python3 - <<'PY'
+import json
+print(json.load(open('docs/agent/ai-subtitles/UPSTREAM_LOCK.json'))['target']['integration_sha'])
+PY
+)"
+git cat-file -e "${BASE_SHA}^{commit}" || { echo "Pinned base absent: $BASE_SHA" >&2; exit 4; }
+# Fail closed: no inherited code may be changed by this module without a separate per-file audit.
+changed="$(git diff --name-only "$BASE_SHA" HEAD; git diff --name-only; git ls-files --others --exclude-standard)"
+while IFS= read -r path; do
+    [[ -n "$path" ]] || continue
+    case "$path" in
+       app/src/main/java/com/nuvio/tv/fork/ai/subtitles/*|\
+       app/src/test/java/com/nuvio/tv/fork/ai/subtitles/*|\
+       tools/ai-subtitles-tests/*|\
+       docs/agent/ai-subtitles/*|\
+       scripts/ai-subtitles/*) ;;
+       *) echo "Unreviewed out-of-scope modification: $path" >&2; exit 5 ;;
+    esac
+done <<< "$changed"
+git diff --check
+printf 'AI-subtitles contracts present; no inherited source touched.\n'

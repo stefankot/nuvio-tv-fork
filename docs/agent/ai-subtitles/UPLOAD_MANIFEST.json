@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "branch": "feature/ai-subtitles/review-464b04df-20261118-2014",
+  "base_sha": "464b04df900738a24733a274c9c0daa601fc51cb",
+  "note": "Independent prototype only, no Android integration and no merging",
+  "source_paths": [
+    {
+      "path": "app/src/main/java/com/nuvio/tv/fork/ai/subtitles/AuxiliaryLanguagePolicy.kt",
+      "sha256": "f301b94ca582d0588c26f582c63ee51918d226d68c7c8b8f0cd6f7ae68134d17"
+    },
+    {
+      "path": "app/src/main/java/com/nuvio/tv/fork/ai/subtitles/OrdinaryAudioBudget.kt",
+      "sha256": "60485cb6b6d1f0bb20ec6dc2c28277b3e35ffbe07cda22204fefaafc9ef34f7d"
+    },
+    {
+      "path": "app/src/main/java/com/nuvio/tv/fork/ai/subtitles/SubtitleExport.kt",
+      "sha256": "04ab21a7e4948814d0e70fd8bfe9d079806a96b76319c911313f11f0d22e59ad"
+    },
+    {
+      "path": "app/src/main/java/com/nuvio/tv/fork/ai/subtitles/TranslationOutputContract.kt",
+      "sha256": "896a1db5cd0cc3f64ec0b6693913e9b99902a4e6eadf92da9156f799517a407b"
+    },
+    {
+      "path": "app/src/test/java/com/nuvio/tv/fork/ai/subtitles/AiSubtitleContractsTest.kt",
+      "sha256": "5dc55e7352ad6bd3d0eaf9021f36e100e00f084bb3a6dd026feece9972d1f854"
+    },
+    {
+      "path": "docs/agent/ai-subtitles/CORE_README.md",
+      "sha256": "29a874c67508d33985151a061fa9f544337956f698a5b18940e73a2093276e01"
+    },
+    {
+      "path": "docs/agent/ai-subtitles/OPTIMIZATION_REPORT.md",
+      "sha256": "8f3c18081c64053e080882bb12f2cc3ed3b199eeb5328a16a47132a6d887e509"
+    },
+    {
+      "path": "docs/agent/ai-subtitles/REVIEW_PROMPT.md",
+      "sha256": "addf30f28d8cea4e423e513ea126810441b077c5a9f884656fe7a4124b6f4299"
+    },
+    {
+      "path": "docs/agent/ai-subtitles/STANDALONE_JVM_TEST_LOG.txt",
+      "sha256": "b5e380bade1cf6575578ce81453aaa42b0e6b862a92bba162363223b8af05077"
+    },
+    {
+      "path": "docs/agent/ai-subtitles/STATE.md",
+      "sha256": "f1c6efbaf43729d9284d7e41c9eef5c7ed4616c2beb20571f1e05209e938ffc8"
+    },
+    {
+      "path": "docs/agent/ai-subtitles/UPSTREAM_LOCK.json",
+      "sha256": "045b2ea2fec7395ec2869e852bc18ce37a0310206712fca1f309a95776357c5f"
+    },
+    {
+      "path": "scripts/ai-subtitles/check-ai-subtitles-hooks",
+      "sha256": "b86aa4dfc6439aaad76425c90aea8428ba1cb7ca8a1234cef0251155b647544f"
+    },
+    {
+      "path": "scripts/ai-subtitles/check-upstreams",
+      "sha256": "d24032be460eac38626dd4dc8d13b5a13c5c5340f234b3ba453cd8b58d3f2b58"
+    },
+    {
+      "path": "tools/ai-subtitles-tests/Benchmark.kt",
+      "sha256": "52ed6f22655af35ba3b1bac9cb15d7bd061d5775a92a52435a5817e2ed4fa8a6"
+    },
+    {
+      "path": "tools/ai-subtitles-tests/CoreContractTests.kt",
+      "sha256": "e366668f6a6b54777fd2ff7af1121db473f6ed0f5ac2dec38a6bc49c4130d936"
+    },
+    {
+      "path": "tools/ai-subtitles-tests/benchmark.sh",
+      "sha256": "171c3003e2d35bac18ce3b079d29b1e1060a4e4711f29895ce30da020cad0229"
+    },
+    {
+      "path": "tools/ai-subtitles-tests/run.sh",
+      "sha256": "4c51a2b67455666f9076bd312f9b1f4fb9593dffe9cc9423dea970c40365c51a"
+    }
+  ]
+}

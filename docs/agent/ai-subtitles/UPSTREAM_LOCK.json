@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "checked_date": "2026-11-18",
+  "target": {
+    "repository": "stefankot/nuvio-tv-fork",
+    "integration_branch": "final",
+    "integration_sha": "464b04df900738a24733a274c9c0daa601fc51cb",
+    "main_sha_at_check": "01ea2ed1860616d758d575154ee08cbad7b43520",
+    "license": null,
+    "license_verified": false,
+    "adopted_upstream_files": [],
+    "upstream_file_modifications": [],
+    "contract_hooks_to_check": [
+      "app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerSidecarSubtitles.kt",
+      "app/src/main/java/com/nuvio/tv/fork/ForkHooks.kt"
+    ]
+  },
+  "sources": [
+    {
+      "repository": "Hossam-Ali/NuvioTVEnhanced",
+      "branch": "upstream-pr/ai-subtitle-translation",
+      "sha": "0984180957ca4fbf7b358df5ca815c4e82f2b316",
+      "version": null,
+      "license": null,
+      "license_verified": false,
+      "reference_only": true,
+      "copied_paths": [],
+      "copied_file_checksums": {},
+      "adapter_or_hook": null
+    },
+    {
+      "repository": "NuvioMedia/NuvioTV",
+      "branch": "dev",
+      "sha": "15286b68c48b1afc5632aa309ed3d4afc3b5a4d7",
+      "version": null,
+      "license": null,
+      "license_verified": false,
+      "reference_only": true,
+      "copied_paths": [],
+      "copied_file_checksums": {},
+      "adapter_or_hook": null
+    }
+  ]
+}
