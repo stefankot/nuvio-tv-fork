@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.asStateFlow
 object VoiceTrigger {
     private val _count = MutableStateFlow(0)
     val count: StateFlow<Int> = _count.asStateFlow()
+    /** Ostatni obsłużony licznik (nakładka „Słucham…”), żeby nowa kompozycja nie słuchała drugi raz. */
+    @Volatile var handled = 0
     fun fire() { _count.value = _count.value + 1 }
 }
 

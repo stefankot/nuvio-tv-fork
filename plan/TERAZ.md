@@ -2,6 +2,14 @@
 
 Ostatnia aktualizacja: 18.11.2026 ok. 22:45 (koniec wątku 3).
 
+## STAN WĄTKU 4 (18.11, popołudnie)
+- Paczka w kodzie (commit a72d3ce37): P2 = `FirstRunDefaults.autoSource` (raz na profil: tryb MANUAL → „pierwsze źródło” z rankingiem KE); P3/P9 = `fork/lektor/LektorVoice.kt` (sprawdza w tle, czy jest silnik TTS z polskim: log `LektorVoice polish_tts=`), lektor auto i ręczny przy braku głosu pokazują komunikat „Zainstaluj Google Mowa” zamiast niemego lektora; ranking (`KeRanking.polishTier`): gdy głos działa i napisy = PL, źródło z polskimi napisami w nazwie liczy się jak polski dźwięk; P7 = klawisz Szukaj/Asystent → nasłuch forka PRZED skórką Kicia (`ForkHooks.onGlobalKey`), usługa klawisza loguje każdy klawisz (`ForkVoiceKey key=`), w ustawieniach głosu 3 nowe akcje: „Przycisk mikrofonu: włącz usługę Nuvio”, „…: naucz przycisk” (15 s, `VoiceKeyLearn`), „Ustaw Nuvio jako asystenta”.
+- Raport lektora w chmurze: `plan/raporty/tts-porownanie.md` (rekomendacja: Google Chirp 3 HD, ok. 12 filmów/mies. za darmo).
+- Build69 (armeabi-v7a, bez lint, `/tmp/build69.log`, czasy w `/tmp/build69.start`): wynik niżej w STATUS.md.
+- Build69 OK: 5 min 18 s (ciepły demon, bez lint, armeabi-v7a); APK zainstalowane na JMGO, skrót zgodny. JMGO: `LektorVoice polish_tts=false` (poprawnie), KEYCODE_SEARCH → nakładka „Słucham…” forka (P7b działa). Znaleziony błąd: po ponownym utworzeniu ekranu nasłuch włączał się sam — naprawione w kodzie (`VoiceTrigger.handled`), NIEZBUDOWANE. Test lektora auto (komunikat zamiast niemego) i P2 na JMGO nieukończony (intent route wraca do ekranu profili).
+- NASTĘPNIE: Xiaomi — właściciel poda IP:port debugowania bezprzewodowego (Android 14, port losowy; ewentualnie parowanie `adb pair`). Wtedy: build69 nie pasuje (brak poprawki nasłuchu) → nowy build armeabi-v7a, instalacja, test lektora z polskim TTS (3× dźwięk, pytanie o jakość).
+- Xiaomi (192.168.31.183) odpowiada na ping, ale ADB `:35313` i `:5555` nie łączy (debugowanie bezprzewodowe wyłączone albo nowy port) — potrzebny właściciel.
+
 ## NAJPIERW (wątek 4): co robić po „kontynuuj”
 1. `cd "/Users/milajovovich/Desktop/nuvio 2/NuvioFork" && git status --short && git branch --show-current` (gałąź `hybryda-zrodel`, wypchnięta na GitHub `origin`).
 2. Przeczytaj sekcję „Lektor / synteza mowy” (decyzje właściciela). Zrób **paczkę poprawek** (niżej; P1 i P8 już zrobione i przetestowane, P4 ikona w buildzie) naraz, BEZ kompilowania pojedynczych poprawek. Potem JEDEN build w zakładce terminala (zasady w `../CLAUDE.md`: `-PforkAbi=armeabi-v7a` dla JMGO, `--console=rich | tee /tmp/buildN.log`, w trakcie builda pisz dalej kod; nie zabijaj ciepłego demona Gradle między buildami; spróbuj `-x lintVitalAnalyzeFullDebug -x lintVitalReportFullDebug -x lintVitalFullDebug`, zmierz czas).

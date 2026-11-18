@@ -105,7 +105,9 @@ object VoiceModule : ForkModule {
         var shown by remember { mutableStateOf("") }
         val permission = androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { }
         LaunchedEffect(count) {
-            if (count == 0) return@LaunchedEffect
+            // Test JMGO 18.11: po ponownym utworzeniu ekranu (np. intent) stary licznik uruchamiał nasłuch sam.
+            if (count <= VoiceTrigger.handled) return@LaunchedEffect
+            VoiceTrigger.handled = count
             if (androidx.core.content.ContextCompat.checkSelfPermission(c, android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED) { shown = "Zezwól na mikrofon i powtórz polecenie"; permission.launch(android.Manifest.permission.RECORD_AUDIO); return@LaunchedEffect }
             if (!(com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(c, "voice_whisper", false) && WhisperListen.available(c)) && !SpeechRecognizer.isRecognitionAvailable(c)) { shown = "Brak rozpoznawania mowy w systemie"; return@LaunchedEffect }
             shown = "Słucham…"
