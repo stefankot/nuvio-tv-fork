@@ -10,6 +10,7 @@ import com.nuvio.tv.ui.screens.settings.ForkFeatures
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.flow.first
 import dagger.hilt.components.SingletonComponent
 
 /** Domyślne wartości pierwszego uruchomienia profilu. Nie zmienia tego, co użytkownik już zapisał. */
@@ -32,9 +33,19 @@ object FirstRunDefaults {
         ForkFeatures.set(app, "fork_defaults_v1_done", true)
     }
 
+    /** Raz (także na istniejącej instalacji): napisy po polsku, gdy język napisów to wciąż domyślny angielski (właściciel 18.11). */
+    private suspend fun polishSubtitles(app: Context) {
+        if (ForkFeatures.enabled(app, "fork_defaults_v2_done")) return
+        val store = EntryPointAccessors.fromApplication(app, com.nuvio.tv.fork.sources.SourceChoice.Deps::class.java).player()
+        val s = store.playerSettings.first()
+        if (s.subtitleStyle.preferredLanguage == "en") store.setSubtitlePreferredLanguage("pl")
+        ForkFeatures.set(app, "fork_defaults_v2_done", true)
+    }
+
     suspend fun run(c: Context) {
         val app = c.applicationContext
         reshapedOn(app)
+        runCatching { polishSubtitles(app) }
         val d = EntryPointAccessors.fromApplication(app, Deps::class.java)
         val pid = d.profiles().activeProfileId.value
         val flag = "first_run_done_$pid"

@@ -11,12 +11,6 @@ import androidx.compose.material.icons.filled.Language
  * karta diagnostyki). Nie kopiujemy KE; ten wiersz tylko wskazuje, gdzie to jest.
  */
 internal fun LazyListScope.deviceTestSettingsItems() {
-    item(key = "fork_device_test") {
-        NavigationSettingsItem(
-            Icons.Default.Language,
-            "Test łącza i raport sprzętu",
-            "Ustawienia → Zaawansowane (Advanced): test prędkości połączenia i raport o sprzęcie",
-            onClick = { }
-        )
-    }
+    // Wiersz usunięty 18.11: był martwy (onClick pusty); test prędkości jest w tej samej sekcji (connectionSpeedSettingsItems).
+    // Test łącza KE (per usługa, limit łącza): plan/TERAZ.md W1.
 }
