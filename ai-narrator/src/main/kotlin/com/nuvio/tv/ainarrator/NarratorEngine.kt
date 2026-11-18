@@ -3,40 +3,47 @@ package com.nuvio.tv.ainarrator
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
+import android.os.SystemClock
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import java.io.File
 import java.time.YearMonth
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.math.abs
 
-/** A separate Android audio stream. Neither ExoPlayer nor mpv output pipeline is modified. */
+/** Independent system audio stream: no modifications to ExoPlayer or mpv. */
 internal class NarratorAudio {
     private var player: MediaPlayer? = null
     private var currentKey: String? = null
-    fun isCurrent(key: String) = currentKey == key
+    private var paused = false
+
+    fun isCurrent(key: String) = currentKey == key && player != null
 
     fun play(key: String, file: File, volume: Float) {
         stop()
         val next = MediaPlayer()
         currentKey = key
         player = next
+        paused = false
         try {
-            next.setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build())
+            next.setAudioAttributes(
+                AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build()
+            )
             next.setDataSource(file.absolutePath)
             next.setVolume(volume, volume)
-            next.setOnPreparedListener { prepared ->
-                if (player === prepared && currentKey == key) prepared.start()
+            next.setOnPreparedListener { ready ->
+                if (player === ready && currentKey == key && !paused) {
+                    runCatching { ready.start() }
+                }
             }
             next.setOnCompletionListener { if (player === it) stop() }
             next.setOnErrorListener { source, _, _ ->
@@ -49,82 +56,133 @@ internal class NarratorAudio {
         }
     }
 
-    fun pause() { runCatching { if (player?.isPlaying == true) player?.pause() } }
-    fun resume() { runCatching { if (player?.isPlaying == false) player?.start() } }
-    fun setVolume(value: Float) { runCatching { player?.setVolume(value, value) } }
+    fun pause() {
+        paused = true
+        runCatching { if (player?.isPlaying == true) player?.pause() }
+    }
+
+    fun resume() {
+        paused = false
+        // An async prepare listener will start playback only when preparation is complete.
+        runCatching {
+            val active = player ?: return@runCatching
+            if (!active.isPlaying) active.start()
+        }
+    }
+
+    fun setVolume(value: Float) {
+        runCatching { player?.setVolume(value, value) }
+    }
+
     fun stop() {
         val old = player
         player = null
         currentKey = null
+        paused = false
         if (old != null) runCatching { old.reset(); old.release() }
     }
 }
 
+/**
+ * Pure input contract: NarratorFrame + NarratorOptions. All network requests execute on IO.
+ * Backend changes, seeking, disabling and switching media cancel obsolete prefetch jobs.
+ */
 internal class NarratorEngine(context: Context) {
     private val prefs = NarratorPreferences(context)
     private val cache = NarratorAudioCache(File(context.applicationContext.cacheDir, "ai-narrator"))
-    private val synthesis = GeminiNarratorTts()
+    private val gemini = GeminiNarratorTts()
+    private val zonos = LocalZonosTts()
     private val workScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val gate = Semaphore(2)
+    private val geminiSlots = Semaphore(2)
+    private val localSlots = Semaphore(1)
     private val pending = ConcurrentHashMap<String, Job>()
     private val retryAfter = ConcurrentHashMap<String, Long>()
     private val audio = NarratorAudio()
-    private val alreadySpoken = mutableSetOf<String>()
+    private val played = HashSet<String>()
     private val mutableStatus = MutableStateFlow("Wyłączony")
     val status: StateFlow<String> = mutableStatus
 
-    private var lastMediaId: String = ""
-    private var lastPosition: Long = -1L
-    private var lastVisibleText: String = ""
-    private var liveLine: NarratorLine? = null
-    private var confirmedTimeline: Boolean = false
-    private var spokenCueId: String? = null
+    private var lastMedia = ""
+    private var lastPosition = -1L
+    private var lastClock = -1L
+    private var lastText = ""
+    private var currentLiveLine: NarratorLine? = null
+    private var confirmedTimeline = false
+    private var playingCueId: String? = null
+    private var configIdentity = ""
+    private var active = false
 
-    /** Called on the UI thread; synthesis runs solely on Dispatchers.IO. */
-    fun tick(frame: NarratorFrame, options: NarratorOptions, apiKey: String) {
-        if (!options.enabled || apiKey.isBlank() || frame.mediaId.isEmpty()) {
-            audio.stop()
-            mutableStatus.value = if (options.enabled && apiKey.isBlank()) "Brak klucza Gemini API" else "Wyłączony"
+    /** Call on the UI thread, at regular intervals while enabled. */
+    fun tick(frame: NarratorFrame, options: NarratorOptions, geminiKey: String, localToken: String = "") {
+        val ready = when (options.backend) {
+            NarratorBackend.GEMINI -> geminiKey.isNotBlank()
+            NarratorBackend.ZONOS_LOCAL -> options.localEndpoint.isNotBlank()
+        }
+        if (!options.enabled || !ready || frame.mediaId.isBlank()) {
+            if (active) {
+                resetPlayback()
+                active = false
+            }
+            mutableStatus.value = when {
+                !options.enabled -> "Wyłączony"
+                !ready && options.backend == NarratorBackend.GEMINI -> "Brak klucza Gemini API"
+                !ready -> "Skonfiguruj adres lokalnego ZONOS3"
+                else -> "Brak aktywnego filmu"
+            }
             return
         }
-        if (frame.mediaId != lastMediaId || (lastPosition >= 0 && abs(frame.positionMs - lastPosition) > 3500)) {
+        active = true
+        val configuration = backendIdentity(options)
+        val now = SystemClock.elapsedRealtime()
+        val elapsed = if (lastClock < 0L) 0L else (now - lastClock).coerceAtLeast(0L)
+        if (configuration != configIdentity || frame.mediaId != lastMedia ||
+            NarratorPlanner.isDiscontinuity(lastPosition, frame.positionMs, elapsed)) {
             resetPlayback()
-            lastMediaId = frame.mediaId
+            configIdentity = configuration
+            lastMedia = frame.mediaId
         }
+        lastClock = now
         lastPosition = frame.positionMs
+
         val visible = NarratorText.clean(frame.visibleText)
-        if (visible != lastVisibleText) {
-            lastVisibleText = visible
-            liveLine = if (NarratorText.eligible(visible)) {
-                NarratorLine(frame.positionMs.coerceAtLeast(0), frame.positionMs.coerceAtLeast(0) + 6000L, visible)
+        if (visible != lastText) {
+            lastText = visible
+            currentLiveLine = if (NarratorText.eligible(visible)) {
+                val start = frame.positionMs.coerceAtLeast(0L)
+                NarratorLine(start, start + 6_000L, visible)
             } else null
         }
-        val timedCurrent = NarratorPlanner.current(frame.timedLines, frame.positionMs)
-        if (visible.isNotBlank() && timedCurrent != null &&
-            NarratorText.clean(timedCurrent.text) == visible) confirmedTimeline = true
-        if (confirmedTimeline && visible.isNotBlank() && timedCurrent != null &&
-            NarratorText.clean(timedCurrent.text) != visible) confirmedTimeline = false
+
+        val matched = NarratorPlanner.current(frame.timedLines, frame.positionMs)
+        if (visible.isNotEmpty() && matched != null) {
+            confirmedTimeline = NarratorText.clean(matched.text) == visible
+        }
         val useTimeline = confirmedTimeline && frame.timedLines.isNotEmpty()
-        val planned = if (useTimeline) NarratorPlanner.upcoming(frame.timedLines, frame.positionMs, options.prefetchMs)
-            else listOfNotNull(liveLine).filter { it.endMs > frame.positionMs }
+        val upcoming = if (useTimeline) {
+            NarratorPlanner.upcoming(frame.timedLines, frame.positionMs, options.prefetchMs)
+        } else {
+            listOfNotNull(currentLiveLine).filter { it.endMs > frame.positionMs }
+        }
 
         if (frame.isPlaying && !frame.isBuffering) {
-            planned.forEach { line ->
-                val style = styleFor(line, frame.timedLines)
-                val key = cacheKey(options, line, style)
+            val maxPending = if (options.backend == NarratorBackend.ZONOS_LOCAL) 3 else 6
+            for (line in upcoming) {
+                if (pending.size >= maxPending) break
+                val style = styleFor(options, line, frame.timedLines)
+                val key = cacheKey(configuration, line.text, style)
                 if (cache.find(key) == null && !pending.containsKey(key) &&
-                    System.currentTimeMillis() >= (retryAfter[key] ?: 0L)) {
-                    schedule(key, line.text, style, options, apiKey)
+                    SystemClock.elapsedRealtime() >= (retryAfter[key] ?: 0L)) {
+                    startSynthesis(key, line.text, style, options, geminiKey, localToken)
                 }
             }
         }
 
-        val current = if (useTimeline) timedCurrent else liveLine?.takeIf {
-            visible.isNotBlank() && it.text == visible && NarratorPlanner.stillAudible(it, frame.positionMs)
+        val current = if (useTimeline) matched else currentLiveLine?.takeIf {
+            visible.isNotEmpty() && it.text == visible
         }
         if (current == null || !NarratorPlanner.stillAudible(current, frame.positionMs)) {
             audio.stop()
-            spokenCueId = null
+            playingCueId = null
             return
         }
         val id = "${frame.mediaId}:${current.startMs}:${current.endMs}:${current.text}"
@@ -132,71 +190,103 @@ internal class NarratorEngine(context: Context) {
             audio.pause()
             return
         }
-        if (spokenCueId == id && audio.isCurrent(id)) {
+        if (playingCueId == id && audio.isCurrent(id)) {
             audio.resume()
             audio.setVolume(options.narratorVolume)
             return
         }
         audio.stop()
-        if (id in alreadySpoken) return
-        val style = styleFor(current, frame.timedLines)
-        val path = cache.find(cacheKey(options, current, style)) ?: return
-        // Never begin a delayed narration after most of a subtitle has elapsed.
-        if (current.endMs - frame.positionMs < 550L) return
-        spokenCueId = id
-        alreadySpoken.add(id)
-        audio.play(id, path, options.narratorVolume)
+        if (id in played) return
+        val style = styleFor(options, current, frame.timedLines)
+        val wav = cache.find(cacheKey(configuration, current.text, style), touch = true) ?: return
+        if (current.endMs - frame.positionMs < 750L) return
+        played.add(id)
+        playingCueId = id
+        audio.play(id, wav, options.narratorVolume)
         mutableStatus.value = "Odtwarzanie"
     }
 
-    private fun styleFor(line: NarratorLine, lines: List<NarratorLine>): String {
+    private fun backendIdentity(options: NarratorOptions): String = when (options.backend) {
+        NarratorBackend.GEMINI -> "gemini:${options.model.apiId}:${options.voice}"
+        NarratorBackend.ZONOS_LOCAL -> "zonos3:${options.localEndpoint.trimEnd('/')}:${options.localSpeakerId}"
+    }
+
+    private fun styleFor(options: NarratorOptions, line: NarratorLine, lines: List<NarratorLine>): String {
+        if (options.backend == NarratorBackend.ZONOS_LOCAL) return ""
         val index = lines.indexOfFirst { it.startMs == line.startMs && it.text == line.text }
         return NarratorText.style(line.text, lines.getOrNull(index - 1)?.text)
     }
-    private fun cacheKey(options: NarratorOptions, line: NarratorLine, style: String): String =
-        NarratorText.fingerprint(options.model, options.voice, NarratorText.clean(line.text), style)
 
-    private fun schedule(key: String, text: String, style: String, options: NarratorOptions, apiKey: String) {
+    private fun cacheKey(identity: String, text: String, style: String): String =
+        NarratorText.fingerprint(identity, NarratorText.clean(text), style)
+
+    private fun startSynthesis(
+        key: String,
+        text: String,
+        style: String,
+        options: NarratorOptions,
+        geminiKey: String,
+        localToken: String
+    ) {
+        // LAZY + putIfAbsent means the same request is never submitted twice by a fast UI tick.
         val job = workScope.launch(start = CoroutineStart.LAZY) {
             try {
-                gate.withPermit {
+                val slots = if (options.backend == NarratorBackend.ZONOS_LOCAL) localSlots else geminiSlots
+                slots.withPermit {
                     if (cache.find(key) != null) return@withPermit
-                    val now = YearMonth.now()
-                    val estimatedSeconds = (text.length / 9.0).coerceIn(1.5, 25.0)
-                    val conservative = NarratorPrices.estimatedUsd(
-                        options.model, text.length, estimatedSeconds * 1.8, now.year, now.monthValue
-                    )
-                    if (!prefs.reserve(conservative, options.monthlyUsdLimit)) {
-                        retryAfter[key] = System.currentTimeMillis() + 3_600_000L
-                        mutableStatus.value = "Osiągnięto miesięczny limit kosztów"
-                        return@withPermit
+                    val audioBytes = when (options.backend) {
+                        NarratorBackend.ZONOS_LOCAL -> {
+                            mutableStatus.value = "Lokalna synteza ZONOS3"
+                            zonos.synthesize(options.localEndpoint, localToken, options.localSpeakerId, NarratorText.clean(text))
+                        }
+                        NarratorBackend.GEMINI -> {
+                            val month = YearMonth.now()
+                            val seconds = (text.length / 9.0).coerceIn(1.5, 25.0)
+                            val estimated = NarratorPrices.estimatedUsd(
+                                options.model, text.length, seconds * 1.8, month.year, month.monthValue
+                            )
+                            if (!prefs.reserve(estimated, options.monthlyUsdLimit)) {
+                                retryAfter[key] = SystemClock.elapsedRealtime() + 3_600_000L
+                                mutableStatus.value = "Osiągnięto limit szacowanych kosztów"
+                                return@withPermit
+                            }
+                            mutableStatus.value = "Synteza Gemini"
+                            gemini.synthesize(geminiKey, options.model, options.voice, NarratorText.clean(text), style)
+                        }
                     }
-                    mutableStatus.value = "Synteza mowy"
-                    val wav = synthesis.synthesize(apiKey, options.model, options.voice, NarratorText.clean(text), style)
-                    cache.store(key, wav)
+                    cache.store(key, audioBytes)
                     mutableStatus.value = "Gotowy"
                 }
             } catch (_: Exception) {
-                retryAfter[key] = System.currentTimeMillis() + 180_000L
-                mutableStatus.value = "Błąd syntezy — sprawdź model, klucz i połączenie"
+                retryAfter[key] = SystemClock.elapsedRealtime() + 180_000L
+                mutableStatus.value = when (options.backend) {
+                    NarratorBackend.GEMINI -> "Błąd Gemini — sprawdź klucz, model i połączenie"
+                    NarratorBackend.ZONOS_LOCAL -> "Błąd ZONOS3 — sprawdź serwer, głos i token"
+                }
             } finally {
                 pending.remove(key)
             }
         }
-        pending[key] = job
-        job.start()
+        val existing = pending.putIfAbsent(key, job)
+        if (existing == null) job.start() else job.cancel()
     }
 
     private fun resetPlayback() {
         audio.stop()
-        alreadySpoken.clear()
-        spokenCueId = null
+        pending.values.forEach { it.cancel() }
+        pending.clear()
+        played.clear()
+        playingCueId = null
         confirmedTimeline = false
-        lastVisibleText = ""
-        liveLine = null
+        lastText = ""
+        currentLiveLine = null
+        lastClock = -1L
+        lastPosition = -1L
+        retryAfter.clear()
     }
 
     fun clearCache() = cache.clear()
+
     fun close() {
         resetPlayback()
         workScope.cancel()
