@@ -10,8 +10,8 @@ Porównanie gałęzi z bazowym `main` za pomocą GitHub Compare:
 |---|---:|---:|---:|
 | Pliki upstream zmienione | 1 | 5 | 0 |
 | Pliki forka zmienione | 1 | 8 | 0 |
-| Nowe pliki modułu i workflow | 21 | 2429 | 0 |
-| **Łącznie** | **23** | **2442** | **0** |
+| Nowe pliki modułu i workflow | 21 | 2437 | 0 |
+| **Łącznie** | **23** | **2450** | **0** |
 
 Jedyna zmiana istniejącego pliku z odtwarzaczem: `app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt` — wywołanie `NarratorOverlay` (5 wierszy). Własny `app/reshaped.gradle` otrzymał deklaracje źródeł oraz opcjonalnego katalogu JNI (8 dodanych wierszy). **Bez zmian** w `app/build.gradle.kts`, `PlayerRuntimeController*`, mpv, ExoPlayer i obecnej synchronizacji.
 
@@ -76,3 +76,8 @@ Dodano pobieranie modeli GGUF (~1,12 GB) po kliknięciu, SHA-256, wznowienie, ko
 **Blokery odbioru:** brak skompilowanego i uruchomionego na Androidzie natywnego silnika ZONOS3 ARM64; brak potwierdzenia, że zwykłe napisy SRT/VTT są dostępne jako kompletna lista czasowa; brak benchmarku, czy połowa filmu powstaje w 15 minut; brak udanej kompilacji Gradle. Dodany eksperymentalny skrypt NDK nie jest dowodem działania. Wynik GitHub Actions nadal failure bez szczegółowych kroków: https://github.com/stefankot/nuvio-tv-fork/actions/runs/44395987767 .
 
 Przygotowanie dotyczy syntezy polskich napisów, **nie ich tłumaczenia z innych języków**. Pliki zostają lokalnie po zamknięciu aplikacji, ale zachowanie w praktyce nie zostało zweryfikowane na Android TV.
+
+### Aktualny wynik CI (18.11.2026)
+[Uruchomienie #44396760322](https://github.com/stefankot/nuvio-tv-fork/actions/runs/44396760322): failure. Nie uzyskano prawidłowego raportu kompilacji ani wykonanych testów z tego workflow.
+
+**Luka sprzętowa:** tryb przygotowania wymaga otwartego odtwarzacza z dostępnymi napisami. Samo wstrzymanie filmu może pozostawić w pamięci dekoder wideo. Na 2 GB RAM w dalszym ciągu może wystąpić blokada uruchomienia natywnego ZONOS3; optymalizacja „całkowicie przed inicjalizacją filmu” wymaga nowej ścieżki pozyskiwania pełnych napisów bez tworzenia odtwarzacza.
