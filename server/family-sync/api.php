@@ -34,7 +34,10 @@ function db() {
     last_seen INTEGER NOT NULL, PRIMARY KEY (family_id, device))');
   $pdo->exec('CREATE TABLE IF NOT EXISTS family_events (family_id TEXT NOT NULL, device TEXT NOT NULL, ts INTEGER NOT NULL, ev TEXT NOT NULL)');
   $pdo->exec('CREATE INDEX IF NOT EXISTS family_events_i ON family_events (family_id, ts)');
-  foreach (['ALTER TABLE family_blobs ADD COLUMN src TEXT', "ALTER TABLE family_pairs ADD COLUMN kind TEXT DEFAULT 'device'"] as $q) {
+  foreach (['ALTER TABLE family_blobs ADD COLUMN src TEXT', "ALTER TABLE family_pairs ADD COLUMN kind TEXT DEFAULT 'device'",
+    'ALTER TABLE family_blobs ADD COLUMN epoch INTEGER DEFAULT 0', 'ALTER TABLE family_devices ADD COLUMN box TEXT',
+    'ALTER TABLE family_devices ADD COLUMN box_epoch INTEGER', 'ALTER TABLE family_devices ADD COLUMN wrap TEXT',
+    'ALTER TABLE family_devices ADD COLUMN removed INTEGER DEFAULT 0'] as $q) {
     try { $pdo->exec($q); } catch (PDOException $e) {}
   }
   return $pdo;
@@ -59,12 +62,12 @@ if ($a === 'get') {
   if (count_rate('miss') >= MISS_LIMIT) out(429, ['error' => 'too_many']);
   $id = $_GET['id'] ?? '';
   if (!validId($id)) out(400, ['error' => 'bad_id']);
-  $st = db()->prepare('SELECT version, data, updated, src FROM family_blobs WHERE id=?');
+  $st = db()->prepare('SELECT version, data, updated, src, epoch FROM family_blobs WHERE id=?');
   $st->execute([$id]);
   $row = $st->fetch(PDO::FETCH_ASSOC);
   if (!$row) { note('miss'); out(404, ['error' => 'not_found']); }
   $since = (int)($_GET['since'] ?? -1);
-  $meta = ['version' => (int)$row['version'], 'updated' => (int)$row['updated'], 'src' => $row['src'] ?: 'tv'];
+  $meta = ['version' => (int)$row['version'], 'updated' => (int)$row['updated'], 'src' => $row['src'] ?: 'tv', 'epoch' => (int)$row['epoch']];
   if ($since === (int)$row['version']) out(200, $meta);
   out(200, $meta + ['data' => $row['data']]);
 }
@@ -88,7 +91,7 @@ if ($a === 'put' || $a === 'delete' || $a === 'pair') {
   $id = $in['id'] ?? ''; $owner = $in['owner'] ?? '';
   if (!validId($id) || !is_string($owner) || strlen($owner) < 32) out(400, ['error' => 'bad_request']);
   $ownerHash = hash('sha256', 'nuvio-owner:' . $owner);
-  $st = db()->prepare('SELECT owner_hash, version FROM family_blobs WHERE id=?');
+  $st = db()->prepare('SELECT owner_hash, version, epoch FROM family_blobs WHERE id=?');
   $st->execute([$id]);
   $row = $st->fetch(PDO::FETCH_ASSOC);
   if ($row && !hash_equals($row['owner_hash'], $ownerHash)) { note('miss'); out(403, ['error' => 'not_owner']); }
@@ -120,6 +123,8 @@ if ($a === 'put' || $a === 'delete' || $a === 'pair') {
   }
   // Panel wysyła base = wersję, którą edytował; jeśli w międzyczasie telewizor wysłał nowszą, panel musi ją wczytać.
   if (isset($in['base']) && (int)$in['base'] !== (int)$row['version']) out(409, ['error' => 'newer', 'version' => (int)$row['version']]);
+  // Po wymianie klucza zapis starym kluczem zepsułby ustawienia rodzinie: telewizor musi najpierw pobrać nowy klucz.
+  if ((int)$row['epoch'] !== (int)($in['epoch'] ?? 0)) out(409, ['error' => 'rekey', 'epoch' => (int)$row['epoch']]);
   $src = ($in['src'] ?? '') === 'panel' ? 'panel' : 'tv';
   $v = (int)$row['version'] + 1;
   db()->prepare('UPDATE family_blobs SET version=?, data=?, updated=?, src=? WHERE id=?')->execute([$v, $data, time(), $src, $id]);

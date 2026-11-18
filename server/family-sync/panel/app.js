@@ -78,6 +78,7 @@ function linkView() {
     if (r.status !== 200) { $('#msg').textContent = r.status === 429 ? 'Za dużo prób, spróbuj za godzinę.' : 'Zły albo wygasły kod. Pokaż nowy na telewizorze.'; return; }
     try {
       family = JSON.parse(td.decode(await dec(await codeKey(code), unb64(r.wrapped))));
+      family.epoch = family.epoch || 0; family.keys = { [family.epoch]: family.key };
       await saveFamily(family); snap = null; toast('Połączono z rodziną'); route('home');
     } catch { $('#msg').textContent = 'Kod nie pasuje. Pokaż nowy na telewizorze.'; }
   };
@@ -109,7 +110,7 @@ async function homeView() {
       <p class="muted">${h`${info.model || ''} · Android ${info.android || '?'} · ${info.app || ''}`}<br>Widziany ${ago(r.now, d.last_seen)}</p>
       ${avg ? `<p>Start filmu średnio ${avg} s</p><div class="bars" aria-label="Czasy startu ostatnich filmów">${plays.map(p => `<span style="height:${Math.max(4, p.ms / max * 100)}%" title="${(p.ms / 1000).toFixed(1)} s"></span>`).join('')}</div>` : '<p class="muted">Brak odtworzeń</p>'}
       ${errs.slice(0, 3).map(e => `<p class="muted">${hhmm(e.ts)}: ${h`${label(e)}`}</p>`).join('')}
-      <div class="row"><button data-name="${d.device}">Zmień nazwę</button><button data-forget="${d.device}">Usuń z listy</button></div>
+      <div class="row"><button data-name="${d.device}">Zmień nazwę</button><button data-forget="${d.device}">Usuń z listy</button><button data-remove="${d.device}">Odbierz dostęp</button></div>
     </article>`;
   }).join('');
   // problemy wspólne: to samo źródło zawodzi na kilku telewizorach
@@ -131,6 +132,7 @@ async function homeView() {
     if (!confirm('Usunąć ten telewizor z listy i jego statystyki? (Ustawienia na nim zostają; wróci na listę, jeśli znów się zgłosi.)')) return;
     await api('device_forget', { id: family.id, device: b.dataset.forget }); homeView();
   });
+  app.querySelectorAll('[data-remove]').forEach(b => b.onclick = () => removeFromFamily(b.dataset.remove, devs));
   $('#clear').onclick = async () => { if (confirm('Wyczyścić wszystkie statystyki?')) { await api('events_clear', { id: family.id }); homeView(); } };
 }
 function label(e) {
@@ -217,19 +219,61 @@ async function send(items) {
       p.value = p.type === 'long' ? v : Number(v.replace(',', '.'));
     } else p.value = el.value;
   }
-  const changed = snap.files.filter(f => f.prefs && JSON.stringify(f.prefs) !== f.orig);
-  if (!changed.length) { msg.textContent = 'Nic nie zmieniono.'; return; }
+  // Lista zmian (plik, klucz, wartość): przy kolizji z telewizorem nakładana na nowszą wersję.
+  const edits = [];
+  for (const f of snap.files) {
+    if (!f.prefs) continue;
+    const orig = JSON.parse(f.orig);
+    f.prefs.forEach((p, i) => { if (JSON.stringify(p) !== JSON.stringify(orig[i])) edits.push({ file: f.name, ...p }); });
+  }
+  if (!edits.length) { msg.textContent = 'Nic nie zmieniono.'; return; }
   msg.textContent = 'Szyfruję i wysyłam…';
-  const entries = snap.files.map(f => {
-    if (!changed.includes(f)) return f.entry; // nieruszone: bajt w bajt
-    return { name: f.name, data: f.kind === 'pb' ? encodePrefs(f.prefs) : encodeXml(f.prefs) };
-  });
-  const data = b64(await enc(await aesKey(unb64(family.key)), await zip(entries)));
-  const r = await api('put', { id: family.id, owner: family.owner, data, base: snap.version, src: 'panel' });
-  if (r.status === 409) { msg.textContent = 'W międzyczasie telewizor wysłał nowsze ustawienia. Wczytałem je; wprowadź zmianę jeszcze raz.'; snap = null; setTimeout(settingsView, 2500); return; }
-  if (r.status !== 200) { msg.textContent = 'Nie udało się wysłać (serwer: ' + (r.error || r.status) + '). Spróbuj ponownie.'; return; }
+  let r = await upload(edits), merged = false;
+  if (r.status === 409) {
+    // Telewizor wysłał w międzyczasie nowsze ustawienia: wczytaj je i nałóż tylko zmiany z panelu (scalanie).
+    try { await loadSnap(); } catch (e) { msg.textContent = e.message; return; }
+    r = await upload(edits); merged = true;
+  }
+  if (r.status !== 200) { msg.textContent = r.status === 409 ? 'Telewizor właśnie wysyła ustawienia. Spróbuj za minutę.' : 'Nie udało się wysłać (serwer: ' + (r.error || r.status) + '). Spróbuj ponownie.'; return; }
   const n = (await api('devices', null, '&id=' + family.id)).devices?.length || 0;
-  snap = null; toast(`Wysłano. Telewizory pobiorą zmiany w ciągu 15 minut${n ? ` (${n} na liście)` : ''}.`); settingsView();
+  snap = null; toast(`Wysłano${merged ? ' (połączone z nowszymi zmianami z telewizora)' : ''}. Telewizory pobiorą zmiany w ciągu 15 minut${n ? ` (${n} na liście)` : ''}.`); settingsView();
+}
+
+async function upload(edits) {
+  for (const e of edits) {
+    const f = snap.files.find(x => x.name === e.file && x.prefs); if (!f) continue;
+    const p = f.prefs.find(x => x.key === e.key);
+    if (p) { p.value = e.value; p.type = e.type; } else f.prefs.push({ key: e.key, type: e.type, value: e.value });
+  }
+  const entries = snap.files.map(f => f.prefs && JSON.stringify(f.prefs) !== f.orig
+    ? { name: f.name, data: f.kind === 'pb' ? encodePrefs(f.prefs) : encodeXml(f.prefs) }
+    : f.entry); // nieruszone: bajt w bajt
+  const data = b64(await enc(await aesKey(unb64(family.key)), await zip(entries)));
+  return api('put', { id: family.id, owner: family.owner, data, base: snap.version, src: 'panel', epoch: family.epoch || 0 });
+}
+
+// ---------- odebranie dostępu: nowy klucz rodziny dla wszystkich oprócz usuniętego ----------
+async function removeFromFamily(dev, devs) {
+  if (!confirm('Odebrać temu telewizorowi dostęp do ustawień rodziny? Pozostałe telewizory dostaną nowy klucz automatycznie.')) return;
+  const r = await api('get', null, '&id=' + family.id);
+  if (r.status !== 200 || !r.data) { toast('Brak połączenia z serwerem.'); return; }
+  if ((r.epoch || 0) !== (family.epoch || 0)) { toast('Klucz w tej przeglądarce jest nieaktualny. Połącz panel ponownie kodem z telewizora.'); return; }
+  const plain = await dec(await aesKey(unb64(family.key)), unb64(r.data));
+  const newRaw = crypto.getRandomValues(new Uint8Array(32)), newKey = b64(newRaw), epoch = (family.epoch || 0) + 1;
+  const keys = family.keys || { [family.epoch || 0]: family.key };
+  const wraps = {}, lost = [];
+  for (const d of devs) {
+    if (d.device === dev) continue;
+    try {
+      const { dkey } = JSON.parse(td.decode(await dec(await aesKey(unb64(keys[d.box_epoch])), unb64(d.box))));
+      wraps[d.device] = b64(await enc(await aesKey(unb64(dkey)), te.encode(JSON.stringify({ key: newKey, epoch }))));
+    } catch { lost.push(d.name || JSON.parse(d.info || '{}').model || d.device.slice(0, 6)); }
+  }
+  if (lost.length && !confirm(`Te telewizory też stracą dostęp (stara wersja aplikacji albo dawno się nie zgłaszały): ${lost.join(', ')}. Później połączysz je nowym kodem. Kontynuować?`)) return;
+  const res = await api('rotate', { id: family.id, owner: family.owner, data: b64(await enc(await aesKey(newRaw), plain)), epoch, wraps, remove: [dev], base: r.version });
+  if (res.status !== 200) { toast(res.status === 409 ? 'Telewizor właśnie wysłał zmiany. Spróbuj ponownie.' : 'Nie udało się (serwer: ' + (res.error || res.status) + ').'); return; }
+  family.key = newKey; family.epoch = epoch; family.keys = { ...keys, [epoch]: newKey }; await saveFamily(family);
+  snap = null; toast('Dostęp odebrany. Pozostałe telewizory dostaną nowy klucz w ciągu 15 minut.'); homeView();
 }
 
 start();

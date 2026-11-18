@@ -94,9 +94,16 @@ if ($a === 'report') {
   $st = db()->prepare('SELECT 1 FROM family_blobs WHERE id=?');
   $st->execute([$id]);
   if (!$st->fetchColumn()) { note('miss'); out(404, ['error' => 'no_family']); }
+  $st = db()->prepare('SELECT removed FROM family_devices WHERE family_id=? AND device=?');
+  $st->execute([$id, $dev]);
+  if ((int)$st->fetchColumn() === 1) out(200, ['removed' => true]);
   $info = json_encode(array_slice((array)($in['info'] ?? []), 0, 20));
-  db()->prepare('INSERT INTO family_devices (family_id, device, info, last_seen) VALUES (?,?,?,?)
-    ON CONFLICT(family_id, device) DO UPDATE SET info=excluded.info, last_seen=excluded.last_seen')->execute([$id, $dev, $info, time()]);
+  // box = klucz urządzenia zaszyfrowany kluczem rodziny (serwer go nie odczyta); panel używa go przy wymianie klucza.
+  $box = is_string($in['box'] ?? null) && strlen($in['box']) < 512 ? $in['box'] : null;
+  db()->prepare('INSERT INTO family_devices (family_id, device, info, last_seen, box, box_epoch) VALUES (?,?,?,?,?,?)
+    ON CONFLICT(family_id, device) DO UPDATE SET info=excluded.info, last_seen=excluded.last_seen,
+    box=COALESCE(excluded.box, box), box_epoch=COALESCE(excluded.box_epoch, box_epoch)')
+    ->execute([$id, $dev, $info, time(), $box, $box ? (int)($in['epoch'] ?? 0) : null]);
   $ins = db()->prepare('INSERT INTO family_events (family_id, device, ts, ev) VALUES (?,?,?,?)');
   foreach (array_slice((array)($in['events'] ?? []), 0, 200) as $e) {
     $ts = min(time(), max(time() - EVENT_DAYS * 86400, (int)(($e['t'] ?? 0) / 1000) ?: time()));
@@ -109,13 +116,13 @@ if ($a === 'report') {
 // ---------- dane dla panelu ----------
 if ($a === 'families') {
   need_session();
-  $rows = db()->query('SELECT f.family_id AS id, b.version, b.updated, b.src FROM admin_families f LEFT JOIN family_blobs b ON b.id=f.family_id')->fetchAll(PDO::FETCH_ASSOC);
+  $rows = db()->query('SELECT f.family_id AS id, b.version, b.updated, b.src, b.epoch FROM admin_families f LEFT JOIN family_blobs b ON b.id=f.family_id')->fetchAll(PDO::FETCH_ASSOC);
   out(200, ['families' => $rows]);
 }
 if ($a === 'devices') {
   need_session();
   $id = $_GET['id'] ?? ''; admin_family($id);
-  $st = db()->prepare('SELECT device, name, info, last_seen FROM family_devices WHERE family_id=? ORDER BY last_seen DESC');
+  $st = db()->prepare('SELECT device, name, info, last_seen, box, box_epoch FROM family_devices WHERE family_id=? AND COALESCE(removed,0)=0 ORDER BY last_seen DESC');
   $st->execute([$id]);
   $devs = $st->fetchAll(PDO::FETCH_ASSOC);
   $st = db()->prepare('SELECT device, ts, ev FROM family_events WHERE family_id=? AND ts>? ORDER BY ts DESC LIMIT 3000');
@@ -142,4 +149,40 @@ if ($a === 'events_clear') {
   $in = body(); admin_family($in['id'] ?? '');
   db()->prepare('DELETE FROM family_events WHERE family_id=?')->execute([$in['id']]);
   out(200, ['ok' => true]);
+}
+
+// ---------- wymiana klucza rodziny (usunięcie telewizora z rodziny) ----------
+// Telewizor: nowa epoka w a=get → a=rekey → dostaje nowy klucz zaszyfrowany swoim kluczem urządzenia.
+if ($a === 'rekey') {
+  $in = body(); $id = $in['id'] ?? ''; $dev = $in['device'] ?? '';
+  if (!validId($id) || !is_string($dev)) out(400, ['error' => 'bad_request']);
+  $st = db()->prepare('SELECT d.wrap, d.removed, b.epoch FROM family_devices d JOIN family_blobs b ON b.id=d.family_id WHERE d.family_id=? AND d.device=?');
+  $st->execute([$id, $dev]);
+  $row = $st->fetch(PDO::FETCH_ASSOC);
+  if (!$row) { note('miss'); out(404, ['error' => 'unknown_device']); }
+  if ((int)$row['removed'] === 1) out(403, ['error' => 'removed']);
+  if (!$row['wrap']) out(404, ['error' => 'no_wrap']);
+  out(200, ['epoch' => (int)$row['epoch'], 'wrap' => $row['wrap']]);
+}
+// Panel: nowy blok zaszyfrowany nowym kluczem + nowy klucz dla każdego zostającego telewizora; usunięte tracą dostęp.
+if ($a === 'rotate') {
+  need_session();
+  $in = body(MAX_BLOB + 65536); $id = $in['id'] ?? ''; admin_family($id);
+  $st = db()->prepare('SELECT owner_hash, version, epoch FROM family_blobs WHERE id=?');
+  $st->execute([$id]);
+  $row = $st->fetch(PDO::FETCH_ASSOC);
+  if (!$row || !hash_equals($row['owner_hash'], hash('sha256', 'nuvio-owner:' . ($in['owner'] ?? '')))) out(403, ['error' => 'not_owner']);
+  $epoch = (int)($in['epoch'] ?? 0); $data = $in['data'] ?? '';
+  if ($epoch !== (int)$row['epoch'] + 1 || !is_string($data) || $data === '' || strlen($data) > MAX_BLOB) out(400, ['error' => 'bad_request']);
+  if (isset($in['base']) && (int)$in['base'] !== (int)$row['version']) out(409, ['error' => 'newer', 'version' => (int)$row['version']]);
+  $pdo = db(); $pdo->beginTransaction();
+  $pdo->prepare("UPDATE family_blobs SET version=version+1, data=?, updated=?, src='panel', epoch=? WHERE id=?")->execute([$data, time(), $epoch, $id]);
+  $pdo->prepare('UPDATE family_devices SET wrap=NULL WHERE family_id=?')->execute([$id]);
+  $w = $pdo->prepare('UPDATE family_devices SET wrap=? WHERE family_id=? AND device=?');
+  foreach ((array)($in['wraps'] ?? []) as $dev => $wrap) if (is_string($wrap) && strlen($wrap) < 512) $w->execute([$wrap, $id, (string)$dev]);
+  $r = $pdo->prepare('UPDATE family_devices SET removed=1, wrap=NULL WHERE family_id=? AND device=?');
+  foreach ((array)($in['remove'] ?? []) as $dev) $r->execute([$id, (string)$dev]);
+  $pdo->prepare('DELETE FROM family_pairs WHERE family_id=?')->execute([$id]); // stare kody zawierały stary klucz
+  $pdo->commit();
+  out(200, ['version' => (int)$row['version'] + 1, 'epoch' => $epoch]);
 }

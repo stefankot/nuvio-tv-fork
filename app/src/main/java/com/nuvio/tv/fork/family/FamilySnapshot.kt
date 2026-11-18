@@ -42,15 +42,30 @@ internal object FamilySnapshot {
         return out.toByteArray()
     }
 
-    /** Zapisuje pliki z zrzutu (przez plik tymczasowy). Ścieżki tylko w [dirs]. Zwraca liczbę plików. */
-    fun apply(context: Context, zipBytes: ByteArray): Int {
+    fun sha(b: ByteArray): String = FamilyCrypto.hex(java.security.MessageDigest.getInstance("SHA-256").digest(b))
+
+    /** Pliki zrzutu: ścieżka → zawartość. */
+    fun entries(zipBytes: ByteArray): Map<String, ByteArray> {
+        val out = LinkedHashMap<String, ByteArray>()
+        ZipInputStream(ByteArrayInputStream(zipBytes)).use { zip ->
+            while (true) { val e = zip.nextEntry ?: break; if (!e.isDirectory) out[e.name] = zip.readBytes() }
+        }
+        return out
+    }
+
+    /** Stan plików na tym telewizorze: ścieżka → (skrót, czas zmiany). Do scalania z panelem. */
+    fun localState(context: Context): Map<String, Pair<String, Long>> =
+        files(context).associate { (rel, f) -> rel to (sha(f.readBytes()) to f.lastModified()) }
+
+    /** Zapisuje pliki z zrzutu (przez plik tymczasowy). Ścieżki tylko w [dirs]; [only] = tylko te pliki. Zwraca liczbę plików. */
+    fun apply(context: Context, zipBytes: ByteArray, only: Set<String>? = null): Int {
         val root = File(context.applicationInfo.dataDir).canonicalFile
         var n = 0
         ZipInputStream(ByteArrayInputStream(zipBytes)).use { zip ->
             while (true) {
                 val e = zip.nextEntry ?: break
                 val rel = e.name
-                if (e.isDirectory || dirs.none { rel.startsWith("$it/") } || !wanted(rel)) continue
+                if (e.isDirectory || dirs.none { rel.startsWith("$it/") } || !wanted(rel) || (only != null && rel !in only)) continue
                 val target = File(root, rel).canonicalFile
                 if (!target.path.startsWith(root.path + File.separator)) continue
                 target.parentFile?.mkdirs()

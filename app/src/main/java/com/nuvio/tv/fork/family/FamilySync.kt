@@ -85,9 +85,13 @@ object FamilySync {
             val hash = FamilyCrypto.sha256Hex(FamilyCrypto.b64(zip))
             if (!force && hash == p.getString("hash", "")) return "Ustawienia rodziny aktualne"
             val data = FamilyCrypto.b64(FamilyCrypto.encrypt(FamilyCrypto.unb64(p.getString("key", "")!!), zip))
-            val (code, json) = http("POST", "a=put", JSONObject().put("id", p.getString("id", "")).put("owner", p.getString("owner", "")).put("data", data))
+            val (code, json) = http("POST", "a=put", JSONObject().put("id", p.getString("id", "")).put("owner", p.getString("owner", ""))
+                .put("data", data).put("epoch", p.getInt("epoch", 0)))
+            if (code == 409 && json?.optString("error") == "rekey") { syncKey(c); return "Nowy klucz rodziny — wyślę przy następnej okazji" }
             if (code != 200) return "Nie udało się wysłać ustawień (serwer: $code ${json?.optString("error").orEmpty()})"
-            p.edit().putString("hash", hash).putInt("version", json?.optInt("version") ?: 0).apply()
+            // Baza do scalania: skróty plików, które są teraz na serwerze.
+            val files = JSONObject(); FamilySnapshot.entries(zip).forEach { (rel, b) -> files.put(rel, FamilySnapshot.sha(b)) }
+            p.edit().putString("hash", hash).putInt("version", json?.optInt("version") ?: 0).putString("files", files.toString()).apply()
             Log.i(TAG, "uploaded v=${json?.optInt("version")} bytes=${zip.size}")
             "Ustawienia wysłane do rodziny"
         }.getOrElse { Log.w(TAG, "upload failed: ${it.javaClass.simpleName}"); "Brak połączenia z serwerem rodziny" }
@@ -108,7 +112,7 @@ object FamilySync {
         val msg = runCatching {
             repeat(3) {
                 val code = FamilyCrypto.pairCode()
-                val payload = JSONObject().put("id", p.getString("id", "")).put("key", p.getString("key", "")).toString().toByteArray()
+                val payload = JSONObject().put("id", p.getString("id", "")).put("key", p.getString("key", "")).put("epoch", p.getInt("epoch", 0)).toString().toByteArray()
                 val wrapped = FamilyCrypto.b64(FamilyCrypto.encrypt(FamilyCrypto.codeKey(code), payload))
                 val (status, _) = http("POST", "a=pair", JSONObject().put("id", p.getString("id", "")).put("owner", p.getString("owner", ""))
                     .put("lookup", FamilyCrypto.pairLookup(code)).put("wrapped", wrapped))
@@ -130,7 +134,7 @@ object FamilySync {
         upload(c, force = false)
         val msg = runCatching {
             val code = FamilyCrypto.pairCode()
-            val payload = JSONObject().put("id", p.getString("id", "")).put("key", p.getString("key", "")).put("owner", p.getString("owner", "")).toString().toByteArray()
+            val payload = JSONObject().put("id", p.getString("id", "")).put("key", p.getString("key", "")).put("owner", p.getString("owner", "")).put("epoch", p.getInt("epoch", 0)).toString().toByteArray()
             val wrapped = FamilyCrypto.b64(FamilyCrypto.encrypt(FamilyCrypto.codeKey(code), payload))
             val (status, _) = http("POST", "a=pair", JSONObject().put("id", p.getString("id", "")).put("owner", p.getString("owner", ""))
                 .put("lookup", FamilyCrypto.sha256Hex("nuvio-panel:v1:$code")).put("wrapped", wrapped).put("kind", "panel"))
@@ -161,7 +165,7 @@ object FamilySync {
             if (status != 200) return@runCatching "Zły albo wygasły kod"
             val payload = JSONObject(String(FamilyCrypto.decrypt(FamilyCrypto.codeKey(clean), FamilyCrypto.unb64(json!!.getString("wrapped")))))
             prefs(c).edit().putString("role", Role.MEMBER.name).putString("id", payload.getString("id"))
-                .putString("key", payload.getString("key")).putInt("version", 0).commit()
+                .putString("key", payload.getString("key")).putInt("epoch", payload.optInt("epoch", 0)).putInt("version", 0).commit()
             pull(activity, announce = true) ?: "Dołączono do rodziny"
         }.getOrElse { Log.w(TAG, "join failed: ${it.javaClass.simpleName}"); "Nie udało się dołączyć (sprawdź kod i internet)" }
         refresh(c, msg)
@@ -171,7 +175,8 @@ object FamilySync {
     private fun pull(activity: Activity, announce: Boolean, now: Boolean = true): String? {
         val c = activity.applicationContext
         val p = prefs(c)
-        if (role(c) == Role.NONE || (role(c) == Role.OWNER && !panelNewer(c))) return null
+        if (role(c) == Role.NONE) return null
+        if (role(c) == Role.OWNER) return if (panelNewer(c)) ownerMerge(activity, now) else null
         val (status, json) = http("GET", "a=get&id=${p.getString("id", "")}&since=${p.getInt("version", 0)}")
         if (status != 200 || json == null) return if (status == 404) "Rodzina nie udostępnia już ustawień" else null
         val v = json.optInt("version"); val data = json.optString("data", "")
@@ -184,6 +189,68 @@ object FamilySync {
         Log.i(TAG, "applied v=$v files=$n")
         restart(activity, if (announce) "Pobrano ustawienia rodziny" else "Zaktualizowano ustawienia rodziny")
         return "Pobrano ustawienia rodziny"
+    }
+
+    /**
+     * Właściciel + nowsza wersja z panelu: scalanie po plikach. Plik zmieniony tylko w panelu → z panelu; zmieniony tylko
+     * na telewizorze → zostaje; zmieniony w obu → nowszy wygrywa (czas zapisu w panelu vs czas zmiany pliku). Potem
+     * restart (gdy coś wgrano) i wysłanie połączonego stanu.
+     */
+    private fun ownerMerge(activity: Activity, now: Boolean): String? {
+        val c = activity.applicationContext
+        val p = prefs(c)
+        val (status, json) = http("GET", "a=get&id=${p.getString("id", "")}")
+        if (status != 200 || json == null) return null
+        val v = json.optInt("version"); val data = json.optString("data", "")
+        if (data.isEmpty() || v <= p.getInt("version", 0)) return null
+        if (!now) { toast(activity, "Nowe ustawienia z panelu — uruchom aplikację ponownie"); return null }
+        val zip = FamilyCrypto.decrypt(FamilyCrypto.unb64(p.getString("key", "")!!), FamilyCrypto.unb64(data))
+        val server = FamilySnapshot.entries(zip).mapValues { FamilySnapshot.sha(it.value) }
+        val baseJson = runCatching { JSONObject(p.getString("files", "{}")!!) }.getOrDefault(JSONObject())
+        val local = FamilySnapshot.localState(c)
+        val serverMs = json.optLong("updated") * 1000
+        val take = server.filter { (rel, sh) ->
+            val base = baseJson.optString(rel, ""); val l = local[rel]
+            sh != base && l?.first != sh && (l == null || l.first == base || serverMs > l.second)
+        }.keys
+        if (take.isNotEmpty()) FamilySnapshot.apply(c, zip, take)
+        val files = JSONObject(); server.forEach { (rel, h) -> files.put(rel, h) }
+        p.edit().putInt("version", v).putString("hash", "").putString("files", files.toString()).commit()
+        Log.i(TAG, "merged v=$v from_panel=${take.size} of=${server.size}")
+        if (take.isEmpty()) { upload(c, force = true); return null }
+        restart(activity, "Pobrano zmiany z panelu")
+        return "Pobrano zmiany z panelu"
+    }
+
+    /** Klucz urządzenia (do wymiany klucza rodziny przez panel): identyfikator + 256 bit, tylko na tym telewizorze. */
+    private fun device(c: Context): Pair<String, String> {
+        val p = prefs(c)
+        val d = p.getString("device", null) ?: FamilyCrypto.hex(FamilyCrypto.random(16))
+        val k = p.getString("dkey", null) ?: FamilyCrypto.b64(FamilyCrypto.random(32))
+        if (!p.contains("device") || !p.contains("dkey")) p.edit().putString("device", d).putString("dkey", k).commit()
+        return d to k
+    }
+
+    /** Panel wymienił klucz rodziny (nowa epoka) → pobierz nowy. false = ten telewizor usunięto z rodziny. */
+    private fun syncKey(c: Context): Boolean {
+        if (role(c) == Role.NONE) return true
+        val p = prefs(c)
+        val (st, json) = http("GET", "a=get&id=${p.getString("id", "")}&since=${p.getInt("version", 0)}")
+        if (st != 200 || json == null || json.optInt("epoch") <= p.getInt("epoch", 0)) return true
+        val (dev, dkey) = device(c)
+        val (rs, rj) = http("POST", "a=rekey", JSONObject().put("id", p.getString("id", "")).put("device", dev))
+        if (rs == 403) { removed(c); return false }
+        if (rs != 200 || rj == null) { Log.w(TAG, "rekey failed $rs"); return true }
+        val payload = JSONObject(String(FamilyCrypto.decrypt(FamilyCrypto.unb64(dkey), FamilyCrypto.unb64(rj.getString("wrap")))))
+        p.edit().putString("key", payload.getString("key")).putInt("epoch", payload.getInt("epoch")).putString("hash", "").commit()
+        Log.i(TAG, "rekeyed epoch=${payload.getInt("epoch")}")
+        return true
+    }
+
+    private fun removed(c: Context) {
+        prefs(c).edit().clear().commit()
+        _state.value = State(message = "Ten telewizor odłączono od rodziny (zrobił to właściciel w panelu)")
+        Log.i(TAG, "removed from family")
     }
 
     /** Wgrane pliki ustawień czyta dopiero nowy proces: uruchom aplikację od nowa (aplikacja jest na ekranie, więc wolno). */
@@ -212,7 +279,7 @@ object FamilySync {
         poll = scope.launch {
             var now = first
             while (true) {
-                runCatching {
+                if (runCatching { syncKey(activity.applicationContext) }.getOrDefault(true)) runCatching {
                     if (role(activity) == Role.OWNER && !panelNewer(activity)) upload(activity.applicationContext, force = false)
                     else pull(activity, announce = false, now = now)
                 }
@@ -232,13 +299,18 @@ object FamilySync {
     private fun report(c: Context) {
         if (role(c) == Role.NONE) return
         val p = prefs(c)
-        val dev = p.getString("device", null) ?: FamilyCrypto.hex(FamilyCrypto.random(16)).also { p.edit().putString("device", it).apply() }
+        val (dev, dkey) = device(c)
         val events = FamilyStats.take(c)
         val ok = runCatching {
             val ver = runCatching { c.packageManager.getPackageInfo(c.packageName, 0).versionName }.getOrNull().orEmpty()
             val info = JSONObject().put("model", "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}").put("android", android.os.Build.VERSION.RELEASE)
                 .put("app", ver).put("role", role(c).name.lowercase())
-            http("POST", "a=report", JSONObject().put("id", p.getString("id", "")).put("device", dev).put("info", info).put("events", events)).first == 200
+            // box: klucz urządzenia zaszyfrowany kluczem rodziny — tylko panel (z kluczem rodziny) go odczyta.
+            val box = FamilyCrypto.b64(FamilyCrypto.encrypt(FamilyCrypto.unb64(p.getString("key", "")!!), JSONObject().put("dkey", dkey).toString().toByteArray()))
+            val (st, json) = http("POST", "a=report", JSONObject().put("id", p.getString("id", "")).put("device", dev).put("info", info)
+                .put("events", events).put("box", box).put("epoch", p.getInt("epoch", 0)))
+            if (json?.optBoolean("removed") == true) { removed(c); return }
+            st == 200
         }.getOrDefault(false)
         if (!ok) FamilyStats.restore(c, events)
     }
