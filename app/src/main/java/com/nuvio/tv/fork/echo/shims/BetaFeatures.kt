@@ -10,7 +10,8 @@ object BetaFeatures {
         raceAutoPlaySources = ForkFeatures.enabled(context, "echo_race"),
         sourceFallback = ForkFeatures.enabled(context, "echo_source_fallback"),
         sourceSwitchTimeoutSeconds = 8,
-        autoQuality = ForkFeatures.enabled(context, "echo_auto_quality"),
+        // Oszczędzanie łącza (właściciel 18.11): bez automatycznego podnoszenia jakości w trakcie filmu.
+        autoQuality = ForkFeatures.enabled(context, "echo_auto_quality") && !ForkFeatures.enabled(context, com.nuvio.tv.fork.sources.KeRanking.SAVER_KEY),
         autoQualityHotSwap = ForkFeatures.enabled(context, "echo_hot_swap"),
         playbackIntro = ForkFeatures.enabled(context, "echo_playback_intro"),
         audioLanguageMenu = ForkFeatures.enabled(context, "echo_audio_menu"),
