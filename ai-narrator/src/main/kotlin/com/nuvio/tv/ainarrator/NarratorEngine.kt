@@ -79,7 +79,10 @@ internal class NarratorAudio {
         player = null
         currentKey = null
         paused = false
-        if (old != null) runCatching { old.reset(); old.release() }
+        if (old != null) {
+            runCatching { old.reset() }
+            runCatching { old.release() }
+        }
     }
 }
 
