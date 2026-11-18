@@ -70,12 +70,16 @@ Validate on physical Android TV devices, with Polish subtitles and at least 20 s
 
 **Acceptance is currently not achieved:** no real-device or remote API execution results exist.
 
-## Local ZONOS3-Mini backend (2026-11-18)
+## ZONOS3-Mini: on-device, offline pre-render (updated 2026-11-18)
 
-A second backend now uses Zyphra's local `POST /v2/generate` API with `language=pl`, WAV output and an optional LAN-server access token. Choose **ZONOS3 (lokalnie)** in the narrator overlay; the default remains Gemini and the narrator remains disabled until explicitly enabled. Configuring the local backend does **not** silently fall back to cloud synthesis. The local adapter rejects public hosts and redirects, reuses a default speaker ID, limits parallel local inference to one job, and keeps local/API cloud cache identities separate. Existing original-player sources are untouched by this addition.
+The previously described LAN-hosted ZONOS3 mode is **retired**. The ZONOS3 choice now means inference executed directly on Android TV, via a private loopback subprocess, never a computer on the local network. Inference is intentionally **disabled while playback is running**: the player reads only pre-generated WAVs.
 
-**Local inference means inference on the user's home computer/server, not inside Android TV.** The Hugging Face Space link is a showcase, not an API used by the app. See [ZONOS3_LOCAL.md](ZONOS3_LOCAL.md) for exact install steps, security and limitations. The model supports Polish; model weights are Apache 2.0 and the original native runtime is MIT.
+- **User-triggered model acquisition**: ZonosOnDeviceModels downloads the two pinned, SHA-256-verified GGUF files (~1.12 GB) into Android private persistent storage. Partial downloads can resume, and deletion is explicit.
+- **Offline first/second-half preparation**: NarratorPreparationPlan validates that the subtitle timeline covers the film; NarratorPreparer processes one cue at a time while playback is paused, shows progress, stops after a 15-minute session and retains all successfully generated WAVs. More sessions may be necessary.
+- **Permanent audio reuse**: NarratorPersistentAudio keeps already-made WAVs in filesDir, not cacheDir. No silent eviction; a 2 GiB audio limit and 500 MiB free-space reserve prevent unbounded growth.
+- **2/3/4 GB memory guard**: ZonosMemoryGuard uses actual available system memory, low-memory signals and process metrics before and during inference. A 2 GB Android TV device may be refused if insufficient free RAM; operating a 1.12 GB model on that class is not proven safe.
+- **Missing native dependency**: ZonosNativeServer requires a tested Android ARM64 PIE binary packaged as libzonos3_server.so in the APK native library directory. The repository adds an experimental NDK build script but **does not contain a built or validated native binary**. Therefore end-to-end ZONOS3 speech generation is currently BLOCKED, not implemented-and-verified.
 
-Optimization: inactive playback no longer polls player data at full rate; subtitle timeline conversion and stream URL hashes are reused; stale requests are cancelled on seek, stop or source/backend switch; local jobs are serialized; cache is validated before storage and avoids mtime writes on every UI tick. A retry cooldown prevents tight loops after local or cloud failures.
+See [ZONOS3_LOCAL.md](ZONOS3_LOCAL.md) for architecture, UI, memory thresholds, native build blocker and acceptance tests. A complete timed subtitle track must be exposed by Nuvio for first/second-half preparation; subtitleAutoSyncCues alone may not contain it for normal tracks. There is no translation engine: spoken language depends on preexisting Polish subtitles.
 
-**Important:** This is not proof of a successful compile, real-device playback or ZONOS3 serving test. The existing GitHub Actions runner has been failing with no job-step logs.
+No successful Gradle build, native ARM64 execution or real-device memory/performance tests are available. Do not claim a 15-minute full-half completion or 2 GB compatibility until benchmarked.
