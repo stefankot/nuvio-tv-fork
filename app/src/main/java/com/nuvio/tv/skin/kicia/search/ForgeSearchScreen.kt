@@ -86,6 +86,7 @@ fun ForgeSearchScreen(
 ) {
     com.nuvio.tv.skin.kicia.nav.ForgeTabBackToBar() // Kicia v7.4: Wstecz z treści → pasek (własne BackHandlery niżej wygrywają)
     val state by viewModel.uiState.collectAsState()
+    val forkPicksOn = com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(androidx.compose.ui.platform.LocalContext.current, "module_picks", true) // fork 19.11
     var keyboardOpen by remember { mutableStateOf(false) }
     var sheet by remember { mutableStateOf<DiscoverSheet?>(null) }
     val fieldFocus = remember { FocusRequester() }
@@ -157,7 +158,7 @@ fun ForgeSearchScreen(
 
             if (query.isBlank()) {
                 // Fork 19.11: „Na co masz ochotę?” (nastroje, fork/picks) przeniesione z „Narzędzi”.
-                if (com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(androidx.compose.ui.platform.LocalContext.current, "module_picks", true)) item(key = "fork_picks") {
+                if (forkPicksOn) item(key = "fork_picks") {
                     Row(Modifier.padding(horizontal = ForgeDims.ContentStart)) {
                         ForgePillSelect(text = "Na co masz ochotę?", selected = false, bare = false, icon = Icons.Outlined.Mood,
                             onOk = { com.nuvio.tv.ui.screens.settings.ForkFeatures.open?.invoke(com.nuvio.tv.fork.picks.PicksModule.ROUTE) })

@@ -30,6 +30,14 @@ Ostatnia aktualizacja: 19.11.2026 (wątek 5, etap 1 W1 kompiluje się).
 - NAJBLIŻSZY KROK: etap 2 (d) wybór zawczasu następnego odcinka (PrefetchSelectionSupplier/StreamPrefetchCache usunięte w etapie 1, zależą od rankingu KE) — ocenić koszt; jeśli duży, pominąć i przejść do DUŻEGO buildu APK arm64 (`:app:assembleFullDebug -PforkAbi=arm64-v8a -x lintVitalAnalyzeFullDebug -x lintVitalReportFullDebug -x lintVitalFullDebug`) + test na emulatorze Google TV: Ustawienia → Moduły → Test łącza; odtwarzacz Kicia → Więcej → Test łącza; log `StreamSweepEngine`; potem ranking z limitem (źródła ponad łącze na końcu).
 - Etap 2 (do zrobienia): wybór zawczasu (PrefetchSelectionSupplier/StreamPrefetchCache → następny odcinek, wpięcie przez ForkHooks), FailedReleases w KeRanking, test łącza automatycznie raz na usługę (KE PerPlayNetwork), wejście „Test łącza” także w skórce Nuvio i w ustawieniach. Potem DUŻY build arm64 + test na emulatorze Google TV (AVD `nuvio_tv`? sprawdzić, czy to obraz Google TV; jeśli nie — utworzyć AVD z obrazem google_atv).
 
+## TEST JMGO 19.11 ok. 02:00 (build81 armeabi-v7a, 8 min 9 s, skrót zgodny; arm64 build79 7 min 43 s na emulatorze GTV `nuvio_tv` — brak kanałów IPTV, więc testy TV tylko na JMGO)
+- Zakładka „Narzędzia” zniknęła z paska (OK). Live TV (Kicia): przyciski „Szukaj programu | Kategorie | Odkrywaj | Dziś” widoczne (OK).
+- EPG: pierwszy start po instalacji 77 s (nowy zapis na profil jeszcze nie istniał), drugi start: przewodnik ok. 11 s od wejścia w Live TV. Logi `LiveTvEpg` na JMGO giną w szumie systemowym (bufor) — mierzone z ekranu.
+- „Odkrywaj” z Live TV: otwiera się z danymi (Oglądaj dalej, Dziś wieczorem, Filmy w archiwum), BEZ awarii (OK), ale pojawia się z opóźnieniem, dopiero po wyjściu fokusu z Live TV — do zbadania (Live TV Kicii trzyma ekran?).
+- Szukaj: „Na co masz ochotę?” widoczne na ekranie Szukaj (OK). Półki „Telewizja”/„YouTube” NIESPRAWDZONE (wpisanie „tvn” klawiaturą Kicii przez ADB działa: `$TMPDIR/type.sh`, ale listy nie da się przewinąć do wyników) — poprosić właściciela o sprawdzenie.
+- TMDB: `BuildConfig.TMDB_API_KEY` w zbudowanym APK ma długość 0 → brak zdjęć aktorów, części miniatur, „Na co masz ochotę”. Właściciel: „tmdb jest podłączone” (prawdopodobnie przełącznik w ustawieniach) — potrzebny klucz w `NuvioFork/local.properties` (`TMDB_API_KEY=`), wpisuje WŁAŚCICIEL albo zgoda na skopiowanie z jego innego projektu.
+- Uwaga testowa: dwa razy Wstecz z paska wychodzi z aplikacji do launchera JMGO.
+
 ## PACZKA 19.11 (wątek 5) — w kodzie, NIEZBUDOWANA do APK (właściciel: „najpierw więcej poprawek”)
 1. IPTV Kicia: „Dla Ciebie” w półce nagłówka (przyciski Szukaj/Kategorie/Dziś znów widoczne).
 2. Intent debug `com.nuvio.fork.OPEN`: `ForkFeatures.openDebug` + `bind(navController)` (hook NuvioNavHost); trasa trafia też do nawigatora po wyborze profilu.

@@ -43,13 +43,13 @@ fun SearchExtras(query: String, modifier: Modifier = Modifier) {
     val r = remember(q, index) { runCatching { index.search(q, LiveTvClock.nowEpochMs()) }.getOrNull() }
     val names = remember(channels) { channels.associate { it.guideKey to it.name } }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        val tvCards = buildList {
+        val tvCards = buildList<Triple<String, String, () -> Unit>> {
             r?.channels?.take(8)?.forEach { ch -> add(Triple("Kanał", ch.name) {
                 channels.firstOrNull { it.guideKey == ch.key }?.let { PendingPlay.ask(it.streamUrl) }
-                ForkFeatures.open?.invoke(LIVE_TV_ROUTE)
+                ForkFeatures.open?.invoke(LIVE_TV_ROUTE); Unit
             }) }
             (r?.nowAndSoon.orEmpty().take(10) + r?.archive.orEmpty().take(10)).forEach { a -> add(Triple(names[a.channelKey] ?: "Program", a.title) {
-                ForkFeatures.open?.invoke("fork_program/" + android.net.Uri.encode(a.programKey))
+                ForkFeatures.open?.invoke("fork_program/" + android.net.Uri.encode(a.programKey)); Unit
             }) }
         }
         if (tvCards.isNotEmpty()) Column {
