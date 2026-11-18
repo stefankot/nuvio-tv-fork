@@ -1,8 +1,11 @@
 package com.nuvio.tv.ainarrator
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -137,7 +140,8 @@ fun NarratorOverlay(controller: PlayerRuntimeController, visible: Boolean, modif
     if (showDialog) {
         Dialog(onDismissRequest = { showDialog = false }) {
             Column(
-                modifier = Modifier.width(480.dp).background(Color(0xFF202126)).padding(20.dp),
+                modifier = Modifier.width(480.dp).heightIn(max = 640.dp)
+                    .background(Color(0xFF202126)).verticalScroll(rememberScrollState()).padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(9.dp)
             ) {
                 Text("Lektor AI — ustawienia")
@@ -254,8 +258,7 @@ fun NarratorOverlay(controller: PlayerRuntimeController, visible: Boolean, modif
                     if (confirmDeleteAudio) {
                         Text("Potwierdź: usunąć wszystkie trwale zapisane kwestie lektora?")
                         Button(onClick = {
-                            preparation.pause()
-                            engine.deletePreparedAudioOnUserRequest()
+                            preparation.deleteAudioOnUserRequest()
                             confirmDeleteAudio = false
                         }) { Text("Potwierdź usunięcie WAV") }
                     }
