@@ -1,3 +1,8 @@
+## 18.11.2026 (wątek 3) — hybryda-zrodel kompiluje się, APK zbudowane
+- Gałąź `hybryda-zrodel`, commit d3a4d7f0c: `compileFullDebugKotlin` OK, `assembleFullDebug` OK (arm64 108 MB). Nie uruchamiane na emulatorze.
+- Nowe: kontrole pliku Kicii (czas/dźwięk), pamięć złych źródeł, „Spróbuj innego źródła”, AVI/WMV w mpv, YouTube w menu, przycisk głosu pilota, rzędy modułów w Modern, Szukaj/Odkrywaj na całym przewodniku, naprawa zapamiętywania ręcznego wyboru źródła.
+- Wstrzymane do decyzji właściciela: W1 (test/limit łącza KE), przenoszenie z forka kitty/Codex (raport: plan/raporty/kitty-funkcje.md).
+
 # Stan prac: fork Nuvio Android TV (16.11.2026)
 
 Baza: oficjalny NuvioTV, gałąź `dev`, commit `2c853c1` (w gicie: "Baseline NuvioTV 2c853c1", `85f9010aa`).
