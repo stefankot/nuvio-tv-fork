@@ -57,7 +57,7 @@ class ForkKeyService : AccessibilityService() {
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
         val chosen = getSharedPreferences("fork_features", MODE_PRIVATE).getString("voice_key", KeyFilter.KEYCODE_ASSIST.toString())?.toIntOrNull() ?: KeyFilter.KEYCODE_ASSIST
-        val enabled = getSharedPreferences("fork_features", MODE_PRIVATE).getBoolean("voice_key_service", false)
+        val enabled = com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(this, "voice_key_service")
         if (!KeyFilter.shouldIntercept(event.keyCode, chosen, enabled)) return false
         if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
             startActivity(openApp(this)); VoiceTrigger.fire()

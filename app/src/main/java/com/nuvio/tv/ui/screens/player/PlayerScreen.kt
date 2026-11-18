@@ -1653,7 +1653,7 @@ fun PlayerScreen(
             modifier = playerControlsDim
         ) {
             val context = LocalContext.current
-            if (com.nuvio.tv.fork.ForkHooks.skinPlayerChrome(uiState) { viewModel.onEvent(it) }) { /* Fork hook: skin */ } else PlayerControlsOverlay(
+            if (com.nuvio.tv.fork.ForkHooks.skinPlayerChrome(uiState, mapOf("viewModel" to viewModel, "playPause" to playPauseFocusRequester, "progressBar" to progressBarFocusRequester, "clearance" to { px: Float -> if (latestPlayerControlsVisible) subtitleControlsClearancePx = px })) { viewModel.onEvent(it) }) { /* Fork hook: skin */ } else PlayerControlsOverlay(
                 uiState = uiState,
                 playerBadges = playerBadges,
                 viewModel = viewModel,

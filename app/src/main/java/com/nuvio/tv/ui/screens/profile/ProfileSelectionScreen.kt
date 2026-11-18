@@ -215,6 +215,8 @@ fun ProfileSelectionScreen(
     onBackPress: (() -> Unit)? = null,
     viewModel: ProfileSelectionViewModel = hiltViewModel()
 ) {
+    var forkAddProfile by remember { mutableStateOf(false) } // Fork hook: skin („Dodaj profil” otwiera okno Nuvio)
+    if (screenMode == ProfileSelectionMode.Selection && !forkAddProfile && com.nuvio.tv.fork.ForkHooks.skinScreen("profiles", mapOf("viewModel" to viewModel, "onAddProfile" to { forkAddProfile = true }, "onProfileSelected" to onProfileSelected, "onProfileClicked" to onProfileClicked, "onProfileSelectionFailed" to onProfileSelectionFailed, "onProfileFocusChanged" to onProfileFocusChanged))) return // Fork hook: skin
     val context = LocalContext.current
     val profiles by viewModel.profiles.collectAsState()
     val activeProfileId by viewModel.activeProfileId.collectAsState()

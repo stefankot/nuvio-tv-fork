@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="forge_tv_browse">Przeglądaj</string>
+    <string name="forge_tv_guide">Przewodnik TV</string>
+    <string name="forge_tv_new_episodes">Nowe odcinki Twoich programów</string>
+    <string name="forge_tv_new_episodes_note">z przewodnika</string>
+    <string name="forge_tv_recent_channels">Ostatnio oglądane kanały</string>
+    <string name="forge_tv_recent_programmes">Ostatnio oglądane programy</string>
+    <string name="forge_tv_recent_programmes_note">przytrzymaj OK, aby usunąć</string>
+    <string name="forge_tv_badge_new">NOWY ODCINEK</string>
+    <string name="forge_tv_badge_archive">W ARCHIWUM</string>
+    <string name="forge_tv_badge_upcoming">NAJBLIŻSZA EMISJA</string>
+    <string name="forge_tv_empty_title">Na razie pusto</string>
+    <string name="forge_tv_empty_body">Kanały i programy, które obejrzysz, pojawią się tutaj razem z informacją o nowych odcinkach.</string>
+    <string name="forge_ready_ready">Gotowe</string>
+    <string name="forge_ready_choices">źródła do wyboru: %1$d</string>
+    <string name="forge_ready_found">Znaleziono źródło</string>
+    <string name="forge_settings_youtube" translatable="false">YouTube</string>
+</resources>

@@ -40,3 +40,8 @@ app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	// Fork hook: setti
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerInitialization.kt	// Fork hook: night	nightModeAudioProcessor.setMode	night	obowiązujący poziom nocny (start)	nightModeAudioProcessor.setMode(playerSettings.nightMode)
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerPlaybackEvents.kt	// Fork hook: night	nightModeAudioProcessor.setMode	night	obowiązujący poziom nocny (zmiana)	nightModeAudioProcessor.setMode(mode)
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerInitialization.kt	// Fork hook: lektor	.setAudioProcessors	lektor	procesor dźwięku lektora (miks, ściszanie)	.setAudioProcessors(arrayOf(gainAudioProcessor, nightModeAudioProcessor))
+app/src/main/java/com/nuvio/tv/ui/screens/ExperienceModeSelectionScreen.kt	// Fork hook: skin	fun choose	skin	skin: kreator krok 1	
+app/src/main/java/com/nuvio/tv/ui/screens/profile/ProfileSelectionScreen.kt	// Fork hook: skin	viewModel: ProfileSelectionViewModel	skin	skin: wybór profilu	
+app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	"search", mapOf(	SearchScreen(	skin	skin: Szukaj	
+app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	"library", mapOf(	LibraryScreen(	skin	skin: Biblioteka	
+app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	"youtube", mapOf(	YouTubeScreen(	skin	skin: YouTube	

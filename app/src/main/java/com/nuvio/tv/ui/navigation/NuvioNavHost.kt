@@ -1260,6 +1260,7 @@ private fun PlaybackNavHost(
         }
 
         composable(Screen.YouTube.route) { // Nuvio One hook: YouTube
+            if (com.nuvio.tv.fork.ForkHooks.skinScreen("youtube", mapOf("onPlay" to { v: com.nuvio.tv.youtube.YtPlayable -> navController.navigate(youtubePlayerRoute(v)) }))) return@composable // Fork hook: skin
             com.nuvio.tv.youtube.YouTubeScreen(
                 onOpenSettings = { navController.navigate(Screen.Settings.route) { launchSingleTop = true } },
                 onPlay = { v -> navController.navigate(youtubePlayerRoute(v)) }
@@ -1269,6 +1270,7 @@ private fun PlaybackNavHost(
         rootComposable(Screen.Search.route) { backStackEntry ->
             val searchViewModel: com.nuvio.tv.ui.screens.search.SearchViewModel =
                 androidx.hilt.navigation.compose.hiltViewModel(backStackEntry)
+            if (com.nuvio.tv.fork.ForkHooks.skinScreen("search", mapOf("viewModel" to searchViewModel, "onNavigateToDetail" to { id: String, type: String, url: String -> navController.navigate(Screen.Detail.createRoute(itemId = id, itemType = type, addonBaseUrl = url, heroBackdropUrl = HeroBackdropState.consumeAndClear())) }))) return@rootComposable // Fork hook: skin
             SearchScreen(
                 viewModel = searchViewModel,
                 onNavigateToDetail = { itemId, itemType, addonBaseUrl ->
@@ -1309,6 +1311,7 @@ private fun PlaybackNavHost(
         }
 
         rootComposable(Screen.Library.route) {
+            if (com.nuvio.tv.fork.ForkHooks.skinScreen("library", mapOf("onNavigateToDetail" to { id: String, type: String, url: String? -> navController.navigate(Screen.Detail.createRoute(id, type, url)) }))) return@rootComposable // Fork hook: skin
             LibraryScreen(
                 showBuiltInHeader = !hideBuiltInHeaders,
                 onNavigateToDetail = { itemId, itemType, addonBaseUrl ->

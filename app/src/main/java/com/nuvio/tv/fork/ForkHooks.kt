@@ -34,9 +34,9 @@ object ForkHooks {
 
     /** PlayerScreen: true = aktywny skin narysował nakładkę (sterowanie i panele) odtwarzacza. */
     @Composable
-    fun skinPlayerChrome(uiState: PlayerUiState, onEvent: (PlayerEvent) -> Unit): Boolean {
+    fun skinPlayerChrome(uiState: PlayerUiState, args: Map<String, Any?> = emptyMap(), onEvent: (PlayerEvent) -> Unit): Boolean {
         val skin = SkinRegistry.skinFor(rememberSkinId()) ?: return false
-        return skin.PlayerChrome(uiState, onEvent)
+        return skin.PlayerChrome(uiState, onEvent, args)
     }
 
     /** NuvioNavHost: intro odtwarzania (Echo A6) rysowane nad aplikacją; Wstecz je pomija. Wyłączone = sama treść. */

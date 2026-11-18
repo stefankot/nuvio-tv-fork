@@ -19,8 +19,22 @@ object FirstRunDefaults {
 
     const val LEVEL_KEY = "fork_settings_level"
 
+    /**
+     * Raz na instalację (także istniejącą): funkcje Reshaped, które autor ma domyślnie wyłączone, a właściciel chce
+     * mieć od razu (18.11). Ustawiane tylko, gdy użytkownik nie zapisał wyboru. Funkcje forka: ForkFeatures.ON_BY_DEFAULT.
+     */
+    private fun reshapedOn(app: Context) {
+        if (ForkFeatures.enabled(app, "fork_defaults_v1_done")) return
+        if (!app.getSharedPreferences("nuvio_live_tv_menu", Context.MODE_PRIVATE).contains("live_tv_enabled"))
+            com.nuvio.tv.reshaped.livetv.LiveTvPreferences.setEnabled(app, true)
+        if (!app.getSharedPreferences("nuvio_tv_autosync", Context.MODE_PRIVATE).contains("automatic_subtitle_sync_enabled"))
+            com.nuvio.tv.ui.screens.player.autosync.AutoSyncPreferences.setEnabled(app, true)
+        ForkFeatures.set(app, "fork_defaults_v1_done", true)
+    }
+
     suspend fun run(c: Context) {
         val app = c.applicationContext
+        reshapedOn(app)
         val d = EntryPointAccessors.fromApplication(app, Deps::class.java)
         val pid = d.profiles().activeProfileId.value
         val flag = "first_run_done_$pid"

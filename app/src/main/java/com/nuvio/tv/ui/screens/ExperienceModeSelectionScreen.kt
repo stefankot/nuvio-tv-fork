@@ -80,6 +80,7 @@ fun ExperienceModeSelectionScreen(
             onContinue(mode)
         }
     }
+    if (com.nuvio.tv.fork.ForkHooks.skinScreen("wizard_mode", mapOf("focus" to essentialFocusRequester, "onEssential" to { choose(ExperienceMode.ESSENTIAL) }, "onAdvanced" to { choose(ExperienceMode.ADVANCED) }))) return // Fork hook: skin
 
     Box(
         modifier = Modifier

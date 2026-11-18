@@ -19,5 +19,5 @@ interface Skin {
 
     /** Nakładka odtwarzacza (sterowanie + panele): UiState wchodzi, PlayerEvent wychodzi. true = narysowano. */
     @Composable
-    fun PlayerChrome(uiState: PlayerUiState, onEvent: (PlayerEvent) -> Unit): Boolean = false
+    fun PlayerChrome(uiState: PlayerUiState, onEvent: (PlayerEvent) -> Unit, args: Map<String, Any?> = emptyMap()): Boolean = false
 }

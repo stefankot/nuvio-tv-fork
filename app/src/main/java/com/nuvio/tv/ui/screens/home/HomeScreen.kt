@@ -375,7 +375,7 @@ fun HomeScreen(
                         }
                     ) {
                         // Nuvio RS hook: Netflix-style Home (purely visual, off by default)
-                        if (com.nuvio.tv.fork.ForkHooks.skinScreen("home", mapOf("viewModel" to viewModel, "uiState" to uiState, "onNavigateToDetail" to onNavigateToDetailStable))) { /* Fork hook: skin */ } else if (com.nuvio.tv.ui.reshaped.netflix.rememberNetflixUiEnabled()) {
+                        if (com.nuvio.tv.fork.ForkHooks.skinScreen("home", mapOf("viewModel" to viewModel, "uiState" to uiState, "onNavigateToDetail" to onNavigateToDetailStable, "onContinueWatchingClick" to onContinueWatchingClickStable, "onCatalogItemLongPress" to onCatalogItemLongPress))) { /* Fork hook: skin */ } else if (com.nuvio.tv.ui.reshaped.netflix.rememberNetflixUiEnabled()) {
                             com.nuvio.tv.ui.reshaped.netflix.NetflixHomeRoute(
                                 viewModel = viewModel,
                                 uiState = uiState,

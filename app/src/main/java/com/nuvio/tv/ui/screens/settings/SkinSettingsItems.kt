@@ -15,7 +15,7 @@ internal fun LazyListScope.skinSettingsItems() {
     item(key = "fork_skin") {
         val context = LocalContext.current
         val current = rememberSkinId()
-        val name = when (current) { SkinId.NUVIO -> "Nuvio"; SkinId.NETFLIX -> "Netflix"; SkinId.KIT -> "Mój projekt" }
+        val name = when (current) { SkinId.NUVIO -> "Nuvio"; SkinId.NETFLIX -> "Netflix"; SkinId.KIT -> "Mój projekt"; SkinId.KICIA -> "Kicia" }
         NavigationSettingsItem(
             Icons.Default.Palette,
             "Wygląd: $name",
