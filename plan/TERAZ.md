@@ -1,6 +1,6 @@
 # TERAZ — stan pracy i instrukcja „kontynuuj” (aktualizuj po każdym kroku)
 
-Ostatnia aktualizacja: 19.11.2026 (wątek 5, etap 1 W1 kompiluje się).
+Ostatnia aktualizacja: 19.11.2026 ok. 02:40 (koniec wątku 5).
 
 ## PANEL „NUVIO RODZINA” (19.11, wersja minimalna dla kilku osób; decyzja właściciela)
 - Wdrożony: https://nuviosync.caring.design/panel/ (pliki: `server/family-sync/{api.php,panel_api.php,.htaccess,panel/*}`; wgrywanie: menedżer plików DirectAdmin `panel-s7.zenbox.pl/CMD_FILE_MANAGER/...` przez POST `action=edit` z poziomu strony, właściciel zalogowany do panelu klienta zenbox → „Manager plików”).
@@ -29,6 +29,13 @@ Ostatnia aktualizacja: 19.11.2026 (wątek 5, etap 1 W1 kompiluje się).
 - build75 OK (4 min 30 s). Zgłoszenie właściciela 19.11: w IPTV (skórka Kicia) pod kartami nie widać przycisków „Szukaj programu / Kategorie / Dziś”. Przyczyna: osobny rząd forka „Dla Ciebie” pod sztywnym nagłówkiem Kicii zabierał mu miejsce. Poprawka (kompiluje się, build76; NIEZBUDOWANA do APK, wchodzi do paczki): w Kicii karty „Dla Ciebie” w półce nagłówka (`ForgeGuideHeaderA`, plakietka w podpisie: Wznów / Nowy odcinek / Na żywo), osobny rząd tylko w skórce Nuvio (`LiveTvScreen`: `if (forgeBrowseB)`); wspólne `rememberForYouItems()` w `fork/tv/ekrany/ForYouRow.kt`. Do sprawdzenia na TV: przyciski widoczne, ▼ z półki do przewodnika.
 - NAJBLIŻSZY KROK: etap 2 (d) wybór zawczasu następnego odcinka (PrefetchSelectionSupplier/StreamPrefetchCache usunięte w etapie 1, zależą od rankingu KE) — ocenić koszt; jeśli duży, pominąć i przejść do DUŻEGO buildu APK arm64 (`:app:assembleFullDebug -PforkAbi=arm64-v8a -x lintVitalAnalyzeFullDebug -x lintVitalReportFullDebug -x lintVitalFullDebug`) + test na emulatorze Google TV: Ustawienia → Moduły → Test łącza; odtwarzacz Kicia → Więcej → Test łącza; log `StreamSweepEngine`; potem ranking z limitem (źródła ponad łącze na końcu).
 - Etap 2 (do zrobienia): wybór zawczasu (PrefetchSelectionSupplier/StreamPrefetchCache → następny odcinek, wpięcie przez ForkHooks), FailedReleases w KeRanking, test łącza automatycznie raz na usługę (KE PerPlayNetwork), wejście „Test łącza” także w skórce Nuvio i w ustawieniach. Potem DUŻY build arm64 + test na emulatorze Google TV (AVD `nuvio_tv`? sprawdzić, czy to obraz Google TV; jeśli nie — utworzyć AVD z obrazem google_atv).
+
+## NAJPIERW (wątek 6): co robić po „kontynuuj”
+1. `cd "/Users/milajovovich/Desktop/nuvio 2/NuvioFork" && git status --short && git branch --show-current` (gałąź `hybryda-zrodel`, wypchnięta).
+2. Build82 (armeabi-v7a, 9 min 26 s, z kluczem TMDB) leży w `app/build/outputs/apk/full/debug/app-full-armeabi-v7a-debug.apk` — NIEZAINSTALOWANY. Klucze TMDB i TVDB są w `local.properties` (ignorowany przez git; NIGDY nie commitować ani nie wypisywać). TVDB: żaden kod go nie używa (Plex czyta tylko numery tvdb). Jeśli APK zniknął: zbuduj ponownie (`-PforkAbi=armeabi-v7a`, zakładka terminala, `--console=rich | tee`).
+3. JMGO: `adb kill-server; adb connect 192.168.31.252:5555` (przy „No route to host” restart serwera ADB pomaga), `export ANDROID_SERIAL=192.168.31.252:5555`, instalacja + porównanie skrótu, profil „Stef+Patryk” (OK na pierwszym kafelku).
+4. Testy po kolei: (a) TMDB: szczegóły filmu (np. Fight Club z „Kontynuuj oglądanie”) → zdjęcia aktorów i miniatury; „Na co masz ochotę?” (ekran Szukaj) → lista filmów po nastroju; (b) Szukaj: półki „Telewizja” i „YouTube” pod wynikami (pisanie klawiaturą Kicii: skrypt `fork-tools/test/type.sh SŁOWO` — klawiatura 6 kolumn a..z, liczyć wiersz/kolumnę, fokus z `fork-tools/test/focus.sh`); (c) start kanału IPTV bez intro; (d) „Odkrywaj” z Live TV pojawia się z opóźnieniem — zbadać (ForkFeatures.open z ekranu Live TV Kicii).
+5. Wstecz 2× z paska wychodzi z aplikacji do launchera JMGO — w testach używać tylko jednego Wstecz.
 
 ## TEST JMGO 19.11 ok. 02:00 (build81 armeabi-v7a, 8 min 9 s, skrót zgodny; arm64 build79 7 min 43 s na emulatorze GTV `nuvio_tv` — brak kanałów IPTV, więc testy TV tylko na JMGO)
 - Zakładka „Narzędzia” zniknęła z paska (OK). Live TV (Kicia): przyciski „Szukaj programu | Kategorie | Odkrywaj | Dziś” widoczne (OK).
