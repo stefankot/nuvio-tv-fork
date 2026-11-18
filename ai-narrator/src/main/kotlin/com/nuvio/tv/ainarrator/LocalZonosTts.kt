@@ -28,17 +28,20 @@ internal class LocalZonosTts {
         require(text.isNotBlank() && text.length <= 380)
         // Never send subtitles to arbitrary public hosts or follow server redirects.
         require(ZonosEndpoint.isPrivateHost(base)) { "Serwer musi być w sieci lokalnej" }
-        val effectiveSpeaker = speakerId.trim().takeIf { it.isNotEmpty() }
-            ?: automaticSpeakers[base.toString()]
-            ?: fetchFirstSpeaker(base, accessToken).also { automaticSpeakers[base.toString()] = it }
+        // On-device neutral TTS needs no speaker asset; speaker ID is optional in the API.
+        val effectiveSpeaker = if (base.host == "127.0.0.1") speakerId.trim() else {
+            speakerId.trim().takeIf { it.isNotEmpty() }
+                ?: automaticSpeakers[base.toString()]
+                ?: fetchFirstSpeaker(base, accessToken).also { automaticSpeakers[base.toString()] = it }
+        }
         val body = JSONObject()
             .put("text", text)
             .put("language", "pl")
             .put("text_normalization", true)
-            .put("speaker_embedding_id", effectiveSpeaker)
             .put("short_text", "off")
             .put("stream", false)
             .put("format", "wav")
+        if (effectiveSpeaker.isNotEmpty()) body.put("speaker_embedding_id", effectiveSpeaker)
         val request = open(base.resolve("/v2/generate").toURL(), accessToken, "POST")
         try {
             request.setRequestProperty("Content-Type", "application/json; charset=utf-8")
