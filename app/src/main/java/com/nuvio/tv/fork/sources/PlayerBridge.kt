@@ -43,7 +43,12 @@ object PlayerBridge {
     fun position(posMs: Long, playing: Boolean) = com.nuvio.tv.fork.lektor.LektorEngine.updatePosition(posMs, playing)
     fun clear() { state = null; send = null; queue = null; autoTried = false; TryAnotherSource.reset() }
     val active: Boolean get() = send != null
-    fun send(e: PlayerEvent) { send?.invoke(e) }
+    private val main = android.os.Handler(android.os.Looper.getMainLooper())
+    /** Zdarzenia do odtwarzacza zawsze na wątku głównym (ExoPlayer: „Player is accessed on the wrong thread” — awaria lektora, JMGO 18.11). */
+    fun send(e: PlayerEvent) {
+        val f = send ?: return
+        if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) f(e) else main.post { send?.invoke(e) }
+    }
     /** Lektor czyta napisy z synchronizacji: wybierz polskie napisy z dodatku, jeśli żadne nie jest wybrane. */
     fun ensurePolishSubtitle() {
         val s = state ?: return
@@ -57,7 +62,8 @@ object PlayerBridge {
     /** „Napisy nie pasują”: następny plik napisów w tym samym języku i ponowna synchronizacja. Zwraca komunikat dla użytkownika albo null (brak odtwarzacza). */
     fun subtitleMismatch(): String? {
         val s = state ?: return null
-        val emit = send ?: return null
+        if (send == null) return null
+        val emit: (PlayerEvent) -> Unit = { send(it) }
         val current = s.selectedAddonSubtitle
         val lang = current?.lang ?: s.addonSubtitles.firstOrNull { it.lang.startsWith("pl", true) || it.lang.startsWith("pol", true) }?.lang ?: s.addonSubtitles.firstOrNull()?.lang
         val same = s.addonSubtitles.filter { it.lang == lang }
