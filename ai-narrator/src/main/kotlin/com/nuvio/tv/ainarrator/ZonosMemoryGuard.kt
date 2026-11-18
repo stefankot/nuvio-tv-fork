@@ -80,7 +80,7 @@ internal class ZonosMemoryGuard(private val context: Context) {
     private var lastSampleMs: Long = -1L
     private var cached: ZonosMemoryVerdict? = null
 
-    fun check(starting: Boolean): ZonosMemoryVerdict {
+    fun check(starting: Boolean, offline: Boolean = false): ZonosMemoryVerdict {
         val now = SystemClock.elapsedRealtime()
         if (!starting && cached != null && lastSampleMs >= 0 && now - lastSampleMs < 1_500L) {
             return cached!!
@@ -96,7 +96,7 @@ internal class ZonosMemoryGuard(private val context: Context) {
                 // Debug.getPss() returns KiB. Include native and mapped GGUF pages in this process.
                 applicationPssBytes = Debug.getPss().toLong() * 1024L
             ),
-            starting = starting
+            starting = starting, offline = offline
         )
         cached = verdict
         lastSampleMs = now
