@@ -168,6 +168,15 @@ fun ForgePlayerControls(
                 moreOpen = false
                 android.widget.Toast.makeText(ctx, com.nuvio.tv.fork.sources.TryAnotherSource.run(), android.widget.Toast.LENGTH_SHORT).show()
             }
+            // Audyt UI p. 2: wejścia do modułów forka, które wcześniej miały tylko głos.
+            ForgeSheetRow(text = "Napisy nie pasują") {
+                moreOpen = false
+                android.widget.Toast.makeText(ctx, com.nuvio.tv.fork.sources.PlayerBridge.subtitleMismatch() ?: "Brak napisów", android.widget.Toast.LENGTH_SHORT).show()
+            }
+            if (com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctx, "module_lektor")) ForgeSheetRow(text = "Lektor (czyta polskie napisy)", detail = if (com.nuvio.tv.fork.lektor.LektorEngine.enabled) "Włączony" else "Wyłączony") {
+                moreOpen = false
+                android.widget.Toast.makeText(ctx, com.nuvio.tv.fork.lektor.LektorController.toggle(ctx), android.widget.Toast.LENGTH_SHORT).show()
+            }
             if (series) ForgeSheetRow(text = "Odcinki") { moreOpen = false; onShowEpisodesPanel() }
             ForgeSheetRow(text = "Informacje") { moreOpen = false; onShowStreamInfo() }
             ForgeSheetRow(text = "Szybkość", detail = forgeSpeed(uiState.playbackSpeed)) { moreOpen = false; onShowSpeedDialog() }
