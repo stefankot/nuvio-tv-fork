@@ -1,3 +1,9 @@
+## 18.11.2026 test emulatora (AVD nuvio_tv, Android TV 14 arm64, APK b5da5916 = skrót zgodny)
+- Start bez awarii (bufor crash pusty), 159 MB PSS. Logowanie: „Continue without account” → kreator 3 kroków → ekran główny Kicii.
+- Menu: Szukaj, Home, Live TV, YouTube, Biblioteka, Kalendarz, Narzędzia (YouTube w menu i kolejność Kicii działają). Ustawienia podstawowe: pytanie „po polsku / jakość” widoczne. Narzędzia: hub z 6 pozycjami.
+- Nie sprawdzone (brak dodatków/źródeł i playlisty na emulatorze): odtwarzanie, kontrole pliku, „Spróbuj innego źródła”, ranking KE, Live TV.
+- Dotyk: pasek górny reaguje; przyciski/karty `androidx.tv` tylko pilotem.
+
 ## 18.11.2026 (wątek 3) — hybryda-zrodel kompiluje się, APK zbudowane
 - Gałąź `hybryda-zrodel`, commit d3a4d7f0c: `compileFullDebugKotlin` OK, `assembleFullDebug` OK (arm64 108 MB). Nie uruchamiane na emulatorze.
 - Nowe: kontrole pliku Kicii (czas/dźwięk), pamięć złych źródeł, „Spróbuj innego źródła”, AVI/WMV w mpv, YouTube w menu, przycisk głosu pilota, rzędy modułów w Modern, Szukaj/Odkrywaj na całym przewodniku, naprawa zapamiętywania ręcznego wyboru źródła.
