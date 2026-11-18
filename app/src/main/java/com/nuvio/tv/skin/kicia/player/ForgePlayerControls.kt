@@ -97,7 +97,6 @@ fun ForgePlayerControls(
         runCatching { rowFocus[index].requestFocus() }
     }
     var moreOpen by remember { mutableStateOf(false) }
-    var sourceBubble by remember { mutableStateOf(false) } // makieta 7.7 B1
     var controlsTopPx by remember { mutableFloatStateOf(0f) }
     var rootHeightPx by remember { mutableFloatStateOf(0f) }
     LaunchedEffect(controlsTopPx, rootHeightPx) {
@@ -153,24 +152,16 @@ fun ForgePlayerControls(
             ) { // v7.4 (05): Przyciski małe z ikoną, y 460
                 com.nuvio.tv.skin.kicia.components.ForgeButton(text = "Informacje", icon = Icons.Outlined.Info, small = true, focusRequester = firstButtonFocus, onOk = { ForgeControlsReturn.index = 0; onShowStreamInfo(); onResetHideTimer() })
                 if (series) com.nuvio.tv.skin.kicia.components.ForgeButton(text = "Odcinki", icon = Icons.Outlined.VideoLibrary, small = true, focusRequester = rowFocus[1], onOk = { ForgeControlsReturn.index = 1; onShowEpisodesPanel(); onResetHideTimer() })
-                // forge hook v7.5 (05, owner 13.11): ONE button for the source and the quality level; „Inne źródło” lives in its panel
-                com.nuvio.tv.skin.kicia.components.ForgeButton(text = "Źródło i jakość", icon = Icons.Outlined.Layers, small = true, focusRequester = rowFocus[2],
-                    onLongOk = { ForgeControlsReturn.index = 2; onShowSourcesPanel(); onResetHideTimer() }, // makieta 7.7 B1: long OK = the 7.6 panel
-                    onOk = { sourceBubble = true; onResetHideTimer() }) // makieta 7.7 B1: short OK = the bubble
+                // Nowy fork (właściciel 18.11): wybór tylko rozdzielczości jak w Echo (lista jakości), kodek i rozmiar automatycznie;
+                // długie OK = pełna lista źródeł. Presety Kicii (Oszczędny/Zbalansowany/Najlepsza) usunięte.
+                com.nuvio.tv.skin.kicia.components.ForgeButton(text = "Jakość", icon = Icons.Outlined.Layers, small = true, focusRequester = rowFocus[2],
+                    onLongOk = { ForgeControlsReturn.index = 2; onShowSourcesPanel(); onResetHideTimer() },
+                    onOk = { ForgeControlsReturn.index = 2; viewModel.onEvent(com.nuvio.tv.ui.screens.player.PlayerEvent.OnShowQualityOverlay); onResetHideTimer() })
                 com.nuvio.tv.skin.kicia.components.ForgeButton(text = "Szybkość", icon = Icons.Outlined.Speed, small = true, focusRequester = rowFocus[3], onOk = { ForgeControlsReturn.index = 3; onShowSpeedDialog(); onResetHideTimer() })
             }
         }
-        if (sourceBubble) ForgeSourcePopover( // makieta 7.7 B1/H1: over the „Źródło i jakość” button
-            viewModel = viewModel,
-            onClose = { sourceBubble = false; runCatching { rowFocus[2].requestFocus() } },
-            onOpenPanel = { ForgeControlsReturn.index = 2; onShowSourcesPanel() },
-            modifier = Modifier.align(Alignment.BottomStart).padding(start = 220.dp, bottom = 112.dp),
-        )
         ForgeSideSheet(visible = moreOpen, onDismiss = { moreOpen = false }, title = "Więcej") {
             ForgeSheetRow(text = "Źródła") { moreOpen = false; onShowSourcesPanel() }
-            if (uiState.canTryAnotherSource) ForgeSheetRow(text = "Spróbuj innego źródła") { // forge M3b (N3)
-                moreOpen = false; viewModel.onEvent(com.nuvio.tv.ui.screens.player.PlayerEvent.OnTryAnotherSource)
-            }
             if (series) ForgeSheetRow(text = "Odcinki") { moreOpen = false; onShowEpisodesPanel() }
             ForgeSheetRow(text = "Informacje") { moreOpen = false; onShowStreamInfo() }
             ForgeSheetRow(text = "Szybkość", detail = forgeSpeed(uiState.playbackSpeed)) { moreOpen = false; onShowSpeedDialog() }

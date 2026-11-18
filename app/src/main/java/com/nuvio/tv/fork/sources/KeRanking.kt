@@ -30,6 +30,9 @@ import kotlinx.coroutines.launch
  */
 object KeRanking {
     const val KEY = "ke_ranking"
+    /** Jedyny wybór jakości w ustawieniach (właściciel 18.11): oszczędzanie łącza. */
+    const val SAVER_KEY = "data_saver"
+    @Volatile private var saver = false
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     @Volatile private var enabled = true
@@ -92,9 +95,11 @@ object KeRanking {
     fun warm(context: Context) {
         val app = context.applicationContext
         enabled = ForkFeatures.enabled(app, KEY, true)
+        saver = ForkFeatures.enabled(app, SAVER_KEY, false)
         val answer = SourceChoice.answer(app)
         polishRules = SourceChoice.presets(app).firstOrNull { it.id == answer }
             ?.let { preset -> preset.copy(rules = preset.rules.filter { "lektor" in it }) }?.takeIf { it.rules.isNotEmpty() }
+        com.nuvio.tv.skin.kicia.KiciaSkin.audioLanguage = if (polishRules != null) "pl" else null
         // Dawniej odpowiedź włączała tryb Regex, który omija ranking KE: jednorazowo przestaw na „pierwsze źródło”.
         if (answer.isNotEmpty() && answer != SourcePresets.CUSTOM) scope.launch { runCatching { SourceChoice.useRanking(app) } }
         tvCap = tvMaxResolution(app)
@@ -114,7 +119,9 @@ object KeRanking {
                 dc.verdict(facts) != DecodeVerdict.SOFTWARE && (cap == null || !isOverResolutionCap(facts.resolution, cap))
             }
             // Polski dźwięk według odpowiedzi właściciela przed jakością; w obrębie szczebla zostaje kolejność KE (stabilne).
-            val ordered = (fits + demoted).let { list -> if (polishRules == null) list else list.sortedBy(::polishTier) }
+            // Oszczędzanie łącza: w obrębie dekodowanych sprzętowo najpierw najlepszy kodek (AV1 > HEVC > AVC), potem najmniejszy plik.
+            val fitsOrdered = if (!saver) fits else fits.sortedWith(compareBy<Stream>({ ReleaseFactsParser.factsFor(it).encode.ordinal }, { ReleaseFactsParser.factsFor(it).size ?: Long.MAX_VALUE }))
+            val ordered = (fitsOrdered + demoted).let { list -> if (polishRules == null) list else list.sortedBy(::polishTier) }
             preferred?.preferredFirst(ordered)?.first ?: ordered
         }.getOrDefault(streams)
     }

@@ -21,6 +21,9 @@ import com.nuvio.tv.ui.screens.player.PlayerViewModel
 object KiciaSkin : Skin {
     override val id = SkinId.KICIA
 
+    /** Język dźwięku dla plakietek („lektor PL”): „pl”, gdy odpowiedź na pytanie o polski dźwięk go wybiera. */
+    @Volatile var audioLanguage: String? = null
+
     override fun screen(route: String): SkinScreen? = when (route) {
         "home" -> SkinScreen { a -> Home(a); true }
         "search" -> SkinScreen { a ->

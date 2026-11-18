@@ -51,7 +51,7 @@ fun ForgeStreamCard(
     val files = androidx.compose.runtime.remember(stream) { forgeFileBadgesFor(stream) }
     val (oldTop, oldBottom) = forgeStreamLines(stream.quality, stream.badges.map { it.name }, stream.behaviorHints?.videoSize, stream.addonName, fallbackName)
     val top = files.type ?: oldTop
-    val size = stream.behaviorHints?.videoSize ?: com.nuvio.tv.core.streams.smart.SmartStreamRanking.candidate(stream).sizeBytes
+    val size = stream.behaviorHints?.videoSize ?: com.nuvio.tv.core.stream.StreamTextSizeParser.effectiveSizeBytes(stream) // nowy fork: rozmiar z parsera KE
     val bottom = when {
         files.type == null -> oldBottom
         wide -> listOfNotNull(size?.takeIf { it > 0 }?.let { ReadyPick.sizeText(it) }, stream.addonName.takeIf { it.isNotBlank() }).joinToString(" · ")
@@ -94,12 +94,14 @@ internal fun forgeStreamLines(quality: String?, badges: List<String>, sizeBytes:
 
 /** The file's badges for the source list, with the title's length from the stream screen (for the bitrate). */
 internal fun forgeFileBadgesFor(stream: Stream): FileBadges {
-    val candidate = com.nuvio.tv.core.streams.smart.SmartStreamRanking.candidate(stream)
-    val info = com.nuvio.tv.core.streams.smart.ReleaseParser.parse(candidate.text, candidate.sizeBytes)
-    val size = candidate.sizeBytes ?: info.textSizeBytes
-    val t = ForgeFileBadges.title
-    val duration = t?.let { com.nuvio.tv.core.streams.smart.SmartTitleFacts.expected(it.first, it.second, it.third).durationSec }
-    val lang = com.nuvio.tv.core.streams.smart.SmartPolicyHolder.current.audioLanguage
+    // Nowy fork: tekst jak SmartStreamRanking.candidate w Kicii; rozmiar z parsera KE; długość tytułu nieznana (bez Mb/s);
+    // język z odpowiedzi „polski dźwięk czy jakość” (fork/sources/SourceChoice).
+    val text = listOf(stream.name, stream.title, stream.description, stream.quality, stream.behaviorHints?.filename, stream.clientResolve?.filename).joinToString("\n") { it.orEmpty() }
+    val sizeBytes = stream.behaviorHints?.videoSize ?: com.nuvio.tv.core.stream.StreamTextSizeParser.effectiveSizeBytes(stream)
+    val info = com.nuvio.tv.core.streams.smart.ReleaseParser.parse(text, sizeBytes)
+    val size = sizeBytes ?: info.textSizeBytes
+    val duration: Long? = null
+    val lang = com.nuvio.tv.skin.kicia.KiciaSkin.audioLanguage
     return ForgeFileBadges.of(info, size, duration, lang, lang)
 }
 

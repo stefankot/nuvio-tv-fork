@@ -143,10 +143,8 @@ class ForgeReadyViewModel @Inject constructor(
             selectedPlugins = settings.streamAutoPlaySelectedPlugins,
             preferredBingeGroup = bingeGroup,
             preferBingeGroupInSelection = bingeGroup != null,
-            smartExpected = com.nuvio.tv.core.streams.smart.SmartTitleFacts.expected(contentId, season, episode),
         ) }
         chosenStream = chosen
-        com.nuvio.tv.ui.screens.player.ForgeWarmUp.warm(viewModelScope, chosen) // forge M4c E (N10): ready address → its host's DNS
         return chosen?.let { ReadyPick.info(it) } ?: ReadyPick.choice(all)
     }
 
