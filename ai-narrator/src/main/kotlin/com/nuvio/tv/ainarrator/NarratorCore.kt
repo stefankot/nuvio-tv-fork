@@ -37,17 +37,22 @@ data class NarratorOptions(
 )
 
 object NarratorText {
+    private val htmlTags = Regex("<[^>]+>")
+    private val assTags = Regex("\\\\{\\\\\\\\[^}]*}")
+    private val whitespace = Regex("\\\\s+")
+    private val nonDialogue = Regex("^\\\\[[^]]+]$")
+
     fun clean(raw: String): String = raw
-        .replace(Regex("<[^>]+>"), "")
-        .replace(Regex("\\{\\\\[^}]*}"), "")
-        .replace(Regex("\\s+"), " ")
+        .replace(htmlTags, "")
+        .replace(assTags, "")
+        .replace(whitespace, " ")
         .trim()
         .take(380)
 
     fun eligible(text: String): Boolean {
         val value = clean(text)
         return value.isNotBlank() && value.any(Char::isLetter) &&
-            !Regex("^\\[[^]]+]$").matches(value) &&
+            !nonDialogue.matches(value) &&
             value.count(Char::isLetter) >= 2
     }
 
