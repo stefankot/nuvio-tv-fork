@@ -63,8 +63,7 @@ internal class GeminiNarratorTts {
                     }
                 }
                 val result = wav ?: throw IllegalStateException("No audio in TTS response")
-                if (result.size !in 44..8_000_000 || String(result, 0, 4, Charsets.US_ASCII) != "RIFF" ||
-                    String(result, 8, 4, Charsets.US_ASCII) != "WAVE") {
+                if (!WavValidation.isWav(result)) {
                     throw IllegalStateException("Unsupported TTS output; expected WAV")
                 }
                 result
@@ -76,18 +75,28 @@ internal class GeminiNarratorTts {
 
 internal class NarratorAudioCache(private val directory: File, private val maxBytes: Long = 96L * 1024 * 1024) {
     init { directory.mkdirs() }
-    fun find(key: String): File? = File(directory, "$key.wav")
-        .takeIf { key.matches(Regex("[a-f0-9]{64}")) && it.isFile && it.length() > 44 }
-        ?.also { it.setLastModified(System.currentTimeMillis()) }
+    private val sha256Key = Regex("[a-f0-9]{64}")
+
+    fun find(key: String, touch: Boolean = false): File? {
+        if (!sha256Key.matches(key)) return null
+        return File(directory, "$key.wav")
+            .takeIf { it.isFile && it.length() > 44 }
+            ?.also { if (touch) it.setLastModified(System.currentTimeMillis()) }
+    }
 
     @Synchronized fun store(key: String, audio: ByteArray): File {
-        require(key.matches(Regex("[a-f0-9]{64}")))
+        require(sha256Key.matches(key))
+        require(WavValidation.isWav(audio)) { "Invalid WAV cache payload" }
         val dest = File(directory, "$key.wav")
-        val temp = File(directory, "$key.tmp")
-        temp.writeBytes(audio)
-        if (!temp.renameTo(dest)) {
+        if (dest.isFile && dest.length() > 44) return dest
+        val temp = File.createTempFile("$key.", ".tmp", directory)
+        try {
+            temp.writeBytes(audio)
+            if (!temp.renameTo(dest)) {
+                if (!dest.isFile) throw IllegalStateException("Unable to commit narrator cache")
+            }
+        } finally {
             temp.delete()
-            throw IllegalStateException("Unable to write narrator cache")
         }
         trim()
         return dest
@@ -103,7 +112,7 @@ internal class NarratorAudioCache(private val directory: File, private val maxBy
         }
     }
 
-    fun clear() {
+    @Synchronized fun clear() {
         directory.listFiles()?.filter { it.isFile && (it.extension == "wav" || it.extension == "tmp") }
             ?.forEach(File::delete)
     }
