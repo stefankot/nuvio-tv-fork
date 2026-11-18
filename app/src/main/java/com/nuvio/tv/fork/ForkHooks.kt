@@ -126,7 +126,7 @@ object ForkHooks {
         var tries = 0
         fun attempt() {
             val open = com.nuvio.tv.ui.screens.settings.ForkFeatures.open
-            if (open != null) open(route) else if (tries++ < 40) handler.postDelayed({ attempt() }, 500)
+            if (open != null) open(route) else if (tries++ < 240) handler.postDelayed({ attempt() }, 500)
         }
         attempt()
     }

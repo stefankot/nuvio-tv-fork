@@ -53,6 +53,9 @@ object VoiceModule : ForkModule {
             "Otwiera Ułatwienia dostępu: wybierz „Nuvio Debug” i włącz. Usługa przechwytuje tylko przycisk głosu") { c ->
             com.nuvio.tv.ui.screens.settings.ForkFeatures.set(c, "voice_key_service", true)
             if (VoiceKeyLearn.serviceOn(c)) toast(c, "Usługa Nuvio jest już włączona. Teraz „Naucz przycisk mikrofonu”.")
+            else if (Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS).resolveActivity(c.packageManager) == null)
+                // Test JMGO 18.11: własne ustawienia producenta bez ekranu ułatwień dostępu.
+                toast(c, "Ten telewizor nie ma ekranu ułatwień dostępu, więc przycisku mikrofonu nie da się przejąć. Użyj przycisku Szukaj na pilocie.")
             else { toast(c, "Wybierz „Nuvio Debug” na liście i włącz. Potem wróć i użyj „Naucz przycisk mikrofonu”."); openSettings(c, android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS) }
         },
         com.nuvio.tv.fork.registry.ModuleAction("Przycisk mikrofonu: naucz przycisk", SettingsLevel.SIMPLE,

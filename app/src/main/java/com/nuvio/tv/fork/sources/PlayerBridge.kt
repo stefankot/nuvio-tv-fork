@@ -41,6 +41,9 @@ object PlayerBridge {
         if (com.nuvio.tv.fork.lektor.LektorRules.step(wantsPl, hasPlAudio, hasPlSubs, true) != com.nuvio.tv.fork.lektor.LektorRules.Step.LEKTOR) return
         // P3/P9: bez silnika mowy z polskim głosem lektor byłby niemy (JMGO 18.11) — zamiast włączać, powiedz, co zrobić.
         if (com.nuvio.tv.fork.lektor.LektorVoice.ready == false) {
+            // Test JMGO 18.11: przy zmianie źródła komunikat pokazywał się dwa razy — raz na uruchomienie aplikacji.
+            if (com.nuvio.tv.fork.lektor.LektorVoice.notified) return
+            com.nuvio.tv.fork.lektor.LektorVoice.notified = true
             android.widget.Toast.makeText(c.applicationContext, com.nuvio.tv.fork.lektor.LektorVoice.MISSING_MSG, android.widget.Toast.LENGTH_LONG).show()
             return
         }

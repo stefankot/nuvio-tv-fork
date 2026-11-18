@@ -12,6 +12,8 @@ object LektorVoice {
     @Volatile var ready: Boolean? = null
         private set
     @Volatile private var started = false
+    /** Komunikat o braku głosu przy lektorze auto już pokazany (raz na uruchomienie). */
+    @Volatile var notified = false
 
     const val MISSING_MSG = "Brak głosu lektora na tym telewizorze. Zainstaluj „Google Mowa” (Speech Services by Google) ze Sklepu Play i pobierz język polski."
 
