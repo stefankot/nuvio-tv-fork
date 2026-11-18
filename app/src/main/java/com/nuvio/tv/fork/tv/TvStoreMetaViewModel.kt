@@ -13,6 +13,7 @@ import javax.inject.Inject
 @HiltViewModel
 class TvStoreMetaViewModel @Inject constructor(
     private val tmdb: TvTmdb,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context, // W8: TVDB
 ) : ViewModel() {
     private val _meta = MutableStateFlow<TvMeta?>(null)
     val meta: StateFlow<TvMeta?> = _meta.asStateFlow()
@@ -22,6 +23,6 @@ class TvStoreMetaViewModel @Inject constructor(
         if (asked == title) return
         asked = title
         _meta.value = null
-        viewModelScope.launch { _meta.value = tmdb.lookup(title, year) }
+        viewModelScope.launch { _meta.value = tmdb.lookup(title, year) ?: com.nuvio.tv.fork.tvdb.Tvdb.lookup(context, title, year) } // W8: TVDB, gdy TMDB nie zna programu
     }
 }
