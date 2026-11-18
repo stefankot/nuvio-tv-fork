@@ -27,28 +27,29 @@ internal enum class ModelPhase { CHECKING, MISSING, DOWNLOADING, READY, ERROR }
 internal data class ModelDownloadStatus(
     val phase: ModelPhase,
     val downloadedBytes: Long = 0L,
-    val expectedBytes: Long = 1_115_000_000L,
+    val expectedBytes: Long = 1_115_476_064L,
     val message: String = ""
 )
 
 internal data class ZonosModelPaths(val backbone: File, val decoder: File)
 
 internal data class ZonosModelSpec(val name: String, val sha256: String, val maxBytes: Long) {
-    val url: String get() = "https://huggingface.co/Zyphra/ZONOS3-Mini/resolve/main/gguf/" + name
+    val url: String get() = "https://huggingface.co/Zyphra/ZONOS3-Mini/resolve/7146a686b62bcb0661528fa300984e815e10152b/gguf/" + name
 }
 
 /** Exact upstream SHA-256 digests. Only the minimal backbone and audio decoder are downloaded. */
 internal object ZonosModelManifest {
     val files = listOf(
         ZonosModelSpec("backbone-ptq.gguf",
-            "66fceb6d73a8c30bde80249e4112bb308380ab7f3384fa11c8e4048115e4ceec", 780_000_000L),
+            "66fceb6d73a8c30bde80249e4112bb308380ab7f3384fa11c8e4048115e4ceec", 663_150_624L),
         ZonosModelSpec("zac-keep2.gguf",
-            "834e5b70b88294afc3c702a478487e0664dcc6b574c16fc6167d72444aabeafd", 540_000_000L)
+            "834e5b70b88294afc3c702a478487e0664dcc6b574c16fc6167d72444aabeafd", 452_325_440L)
     )
     fun allowDownloadUrl(url: URL): Boolean {
         val host = url.host.lowercase(Locale.ROOT)
         return url.protocol.equals("https", ignoreCase = true) && url.userInfo == null &&
-            (host == "huggingface.co" || host.endsWith(".hf.co"))
+            (host == "huggingface.co" || host.endsWith(".hf.co") ||
+                host.endsWith(".xethub.hf.co"))
     }
 }
 
