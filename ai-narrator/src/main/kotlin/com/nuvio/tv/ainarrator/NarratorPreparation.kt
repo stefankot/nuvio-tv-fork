@@ -157,6 +157,8 @@ internal class NarratorPreparer(
         }
 
         stopped.set(false)
+        mutableStatus.value = PreparationStatus(PreparationPhase.WORKING, total = toPrepare.size,
+            message = "Ładowanie modelu i przygotowanie audio")
         job = scope.launch {
             val started = SystemClock.elapsedRealtime()
             var completed = 0
@@ -212,9 +214,13 @@ internal class NarratorPreparer(
                     completed, toPrepare.size, cacheHits, message = "Anulowano, audio zachowane")
                 throw e
             } catch (error: Exception) {
-                mutableStatus.value = PreparationStatus(PreparationPhase.ERROR,
+                mutableStatus.value = PreparationStatus(
+                    if (stopped.get() || isVideoPlaying()) PreparationPhase.PAUSED
+                    else PreparationPhase.ERROR,
                     completed, toPrepare.size, cacheHits,
-                    message = error.message ?: "Błąd przygotowania")
+                    message = if (stopped.get() || isVideoPlaying())
+                        "Przerwano dla bezpieczeństwa pamięci lub wznowienia filmu; WAV zachowane"
+                    else error.message ?: "Błąd przygotowania")
             } finally {
                 watchdog?.cancel()
                 runtime.stop()
