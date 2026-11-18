@@ -85,6 +85,12 @@ object KeRanking {
      */
     @Volatile private var polishRules: SourcePreset? = null
 
+    /** Język napisów = polski (ustawienia odtwarzacza): źródła z polskimi napisami w nazwie wyżej, po polskim dźwięku (W4). */
+    @Volatile private var polishSubs = false
+    private val PL_SUBS = Regex("""(?i)\b(?:pl[ ._-]?subs?|subs?[ ._-]?pl|napisy(?:[ ._-]?pl)?|plsub)\b""")
+    private fun subsTier(s: Stream): Int =
+        if (!polishSubs) 0 else if (PL_SUBS.containsMatchIn(listOfNotNull(s.name, s.title, s.description).joinToString(" "))) 0 else 1
+
     private fun polishTier(s: Stream): Int {
         val p = polishRules ?: return 0
         val text = listOfNotNull(s.name, s.title, s.description).joinToString(" ")
@@ -100,6 +106,11 @@ object KeRanking {
         polishRules = SourceChoice.presets(app).firstOrNull { it.id == answer }
             ?.let { preset -> preset.copy(rules = preset.rules.filter { "lektor" in it }) }?.takeIf { it.rules.isNotEmpty() }
         com.nuvio.tv.skin.kicia.KiciaSkin.audioLanguage = if (polishRules != null) "pl" else null
+        scope.launch {
+            polishSubs = runCatching {
+                dagger.hilt.android.EntryPointAccessors.fromApplication(app, SourceChoice.Deps::class.java).player().playerSettings.first().subtitleStyle.preferredLanguage == "pl"
+            }.getOrDefault(false)
+        }
         // Dawniej odpowiedź włączała tryb Regex, który omija ranking KE: jednorazowo przestaw na „pierwsze źródło”.
         if (answer.isNotEmpty() && answer != SourcePresets.CUSTOM) scope.launch { runCatching { SourceChoice.useRanking(app) } }
         tvCap = tvMaxResolution(app)
@@ -121,7 +132,7 @@ object KeRanking {
             // Polski dźwięk według odpowiedzi właściciela przed jakością; w obrębie szczebla zostaje kolejność KE (stabilne).
             // Oszczędzanie łącza: w obrębie dekodowanych sprzętowo najpierw najlepszy kodek (AV1 > HEVC > AVC), potem najmniejszy plik.
             val fitsOrdered = if (!saver) fits else fits.sortedWith(compareBy<Stream>({ ReleaseFactsParser.factsFor(it).encode.ordinal }, { ReleaseFactsParser.factsFor(it).size ?: Long.MAX_VALUE }))
-            val ordered = (fitsOrdered + demoted).let { list -> if (polishRules == null) list else list.sortedBy(::polishTier) }
+            val ordered = (fitsOrdered + demoted).let { list -> if (polishRules == null && !polishSubs) list else list.sortedWith(compareBy(::polishTier, ::subsTier)) }
             preferred?.preferredFirst(ordered)?.first ?: ordered
         }.getOrDefault(streams)
     }
