@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -225,6 +226,15 @@ internal class NarratorPreparer(
         stopped.set(true)
         job?.cancel()
         runtime.stop()
+    }
+
+    fun deleteAudioOnUserRequest() {
+        pause()
+        scope.launch {
+            job?.cancelAndJoin()
+            audio.deleteOnUserRequest()
+            mutableStatus.value = PreparationStatus(message = "Usunięto zapisane nagrania")
+        }
     }
 
     fun close() {
