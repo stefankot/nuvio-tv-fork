@@ -46,12 +46,14 @@ object DiscoverModule : ForkModule {
         val buckets = GenreBuckets(genreText)
         val state = LiveTvRepository.uiState.value
         val groupOf = state.channels.associate { it.guideKey to it.group }
+        val bucketByGroup = HashMap<String?, String?>()
         val catchup = state.channels.filter { it.catchup != null }.associate { it.guideKey to 7 }
         val input = DiscoverInput(
             // Audyt UI p. 4: cały przewodnik, nie tylko archiwum (rzędy archiwum i tak filtrują po dniach archiwum kanału).
             log = (data.episodeLog() + TvBridge.guideAirings()).distinctBy { it.guideKey to it.startMs }, records = data.records(), followed = data.followedList(),
             yourChannels = ChannelStats.yourChannels(data.sessions(), now).toSet(), catchupDays = catchup,
-            bucketOf = { e -> buckets.bucketOf(emptyList(), groupOf[e.guideKey]) }, nowMs = now,
+            // fork 19.11 (ANR na JMGO): koszyk liczony raz na grupę kanału, nie dla każdej emisji z całego przewodnika.
+            bucketOf = { e -> val g = groupOf[e.guideKey]; if (g in bucketByGroup) bucketByGroup[g] else buckets.bucketOf(emptyList(), g).also { bucketByGroup[g] = it } }, nowMs = now,
         )
         val hidden = DiscoverRows.DEFAULT_ORDER.filterNot { ForkFeatures.enabled(context, "discover_show_$it", true) }.toSet()
         return DiscoverRows.build(input, hiddenRows = hidden)
@@ -82,7 +84,7 @@ object DiscoverModule : ForkModule {
     private fun Rows() {
         val c = LocalContext.current
         var rows by remember { mutableStateOf<List<DiscoverRow>>(emptyList()) }
-        LaunchedEffect(Unit) { while (true) { rows = runCatching { build(c) }.getOrDefault(emptyList()); delay(120_000L) } }
+        LaunchedEffect(Unit) { while (true) { rows = runCatching { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { build(c) } }.getOrDefault(emptyList()) /* fork 19.11: ANR na JMGO — liczone w tle */; delay(120_000L) } }
         Card(onClick = { ForkFeatures.open?.invoke("fork_tv_search") }, modifier = Modifier.padding(bottom = 8.dp).width(240.dp)) {
             Text("Szukaj w telewizji", Modifier.padding(12.dp), style = MaterialTheme.typography.titleSmall)
         }

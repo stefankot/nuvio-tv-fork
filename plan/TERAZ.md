@@ -40,6 +40,16 @@ Ostatnia aktualizacja: 19.11.2026 ok. 02:40 (koniec wątku 5).
 - „Odkrywaj” z Live TV (dotknięcie przycisku): ekran pojawił się dopiero po ok. 70 s — do naprawy w ramach wydajności.
 - NOWE ZADANIE właściciela (19.11 ok. 03:00, NADRZĘDNE): „wydajność forka zła; skopiuj rozwiązania z Kicii (IPTV i rysowanie ekranów, nawigacja się zacina); kategorie w IPTV jak w Kicii — teraz nie wyświetla się żadna kategoria”.
 
+## WYDAJNOŚĆ I KATEGORIE IPTV (19.11 ok. 03:30, wątek 6; zadanie właściciela)
+- Pomiar JMGO (`fork-tools/test/step.sh PAKIET KIERUNEK N`: p90/p99 czasu klatki po każdym kroku, `dumpsys gfxinfo`), fork build82 vs Kicia `app.nuvioforge.tv.debug` (15.11):
+  - karty „Kontynuuj oglądanie”: oba ok. 70 ms p90 — bez różnicy;
+  - pasek, 10 przejść: Kicia p90 73 ms, fork 200 ms; wejście w Live TV: Kicia 150 ms, fork 700 ms; Biblioteka 69 vs 150 ms; fork ma zakładkę Calendar (350 ms), Kicia jej nie pokazuje.
+- Kod wydajności Kicii (WY-307/308/309/314, wycinek EPG „teraz”, okno EPG, rozgrzewka Live TV) JUŻ jest w forku (skórka = Kicia 34c80c6; nowszych poprawek wydajności w gałęziach Kicii brak).
+- Przyczyny zacinania = dodatki forka liczone w wątku głównym (wszystkie 7 ANR z JMGO, `plan/raporty/anr-szukaj-tvn.txt`): indeks Szukaj (`TvSearchIndex`), „Odkrywaj” (`DiscoverModule.build`, koszyk gatunku dla każdej emisji; także rząd na Home co 2 min), „Dla Ciebie” w nagłówku Live TV (`TvQueue.build` co minutę). NAPRAWIONE w kodzie: wszystko w `Dispatchers.Default`, indeks TV w pamięci 10 min, koszyk raz na grupę, `Text.norm` bez kompilacji regex.
+- Kategorie IPTV: pliki Kicii (`ForgeEpgCategories`, `ForgeCategoryRules`, `ForgeProgrammeView`) były identyczne, ale BRAKOWAŁO 3 wpięć z Kicii → drzewo kategorii programów puste. Dodane (łatki `fork-tools/patches/dostawca/{LiveTvEpg,LiveTvRepository}/06-kicia-kategorie.patch`): `<category>` czytane dla każdego programu, `ForgeEpgCategories.record(...)`, `needsGuideRead()` (pierwszy start po instalacji czyta cały XMLTV raz), `markRead()`.
+- Do decyzji właściciela: (1) wariant z R8 (Kicia na JMGO szła z wydań CI `assembleFullRelease`; fork instaluje debug bez R8) — wymaga reguł proguard dla modułów forka; (2) ukryć zakładkę Calendar z paska jak w Kicii.
+- Wszystko NIEZBUDOWANE do APK (kompilacja kontrolna build83). Po buildzie: powtórzyć `step.sh` na pasku i Live TV, Kategorie → Programy (lista kategorii), Szukaj „tvn”, Odkrywaj z Live TV.
+
 ## NAJPIERW (wątek 6): co robić po „kontynuuj”
 1. `cd "/Users/milajovovich/Desktop/nuvio 2/NuvioFork" && git status --short && git branch --show-current` (gałąź `hybryda-zrodel`, wypchnięta).
 2. Build82 (armeabi-v7a, 9 min 26 s, z kluczem TMDB) leży w `app/build/outputs/apk/full/debug/app-full-armeabi-v7a-debug.apk` — ZAINSTALOWANY na JMGO 19.11 (skrót zgodny 90031dd2…); od razu testy z punktu 4. Klucze TMDB i TVDB są w `local.properties` (ignorowany przez git; NIGDY nie commitować ani nie wypisywać). TVDB: żaden kod go nie używa (Plex czyta tylko numery tvdb). Jeśli APK zniknął: zbuduj ponownie (`-PforkAbi=armeabi-v7a`, zakładka terminala, `--console=rich | tee`).

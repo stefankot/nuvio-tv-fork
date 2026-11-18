@@ -1,0 +1,21 @@
+diff --git a/app/src/main/java/com/nuvio/tv/reshaped/livetv/LiveTvEpg.kt b/app/src/main/java/com/nuvio/tv/reshaped/livetv/LiveTvEpg.kt
+index f8746bd2b..b172beffd 100644
+--- a/app/src/main/java/com/nuvio/tv/reshaped/livetv/LiveTvEpg.kt
++++ b/app/src/main/java/com/nuvio/tv/reshaped/livetv/LiveTvEpg.kt
+@@ -297,6 +297,7 @@ private fun readGuide(input: InputStream, builder: LiveTvScheduleBuilder, parser
+                             if (title != null) {
+                                 builder.programme(channelId, start, stop, title, programme.description, programme.image, programme.episode) // Fork patch: dostawca #6
+                                 if (builder.wantsDetails(keys, start, stop ?: start + LAST_PROGRAMME_MS)) programme.extra?.let { com.nuvio.tv.fork.tv.most.ForkTvHooks.onProgrammeRead(title, start, it) } // Fork patch: dostawca #7
++                                com.nuvio.tv.skin.kicia.livetv.ForgeEpgCategories.record(keys, start, programme.extra?.categories?.firstOrNull()) // Fork patch: kicia-kategorie (Kategorie → Programy)
+                             }
+                         }
+                     }
+@@ -444,7 +445,7 @@ private fun XmlPullParser.readProgramme(details: Boolean): ProgrammeText {
+                 details && depth == 1 && subTitle == null && name.equals("sub-title", ignoreCase = true) -> subTitle = readText().trim().takeIf(String::isNotBlank) // Fork patch: dostawca #7
+                 details && depth == 1 && year == null && name.equals("date", ignoreCase = true) -> year = readText().trim().take(4).toIntOrNull()
+                 details && depth == 1 && country == null && name.equals("country", ignoreCase = true) -> country = readText().trim().takeIf(String::isNotBlank)
+-                details && depth == 1 && name.equals("category", ignoreCase = true) -> readText().trim().takeIf { it.isNotBlank() && categories.size < 4 }?.let { categories.add(it) }
++                depth == 1 && name.equals("category", ignoreCase = true) -> readText().trim().takeIf { it.isNotBlank() && categories.size < 4 }?.let { categories.add(it) } // Fork patch: kicia-kategorie (każdy program)
+                 details && depth == 1 && age == null && name.equals("rating", ignoreCase = true) -> age = readChildTexts().firstOrNull { it.first.equals("value", true) }?.second
+                 details && depth == 1 && name.equals("credits", ignoreCase = true) -> credits.addAll(readChildTexts().take(14 - credits.size))
+                 details && depth == 1 && text.image == null && name.equals("icon", ignoreCase = true) -> {

@@ -1762,7 +1762,10 @@ object LiveTvRepository {
                             if (quick != null) publishGuide(quick.schedule, quick.logos, nowMs, emptySet())
                         }
                         // Opening again: the programmes kept by the last full read, while still good.
-                        val saved = if (firstRead && !force) {
+                        // Fork patch: kicia-kategorie (Kicia 617300c5f): not while the programme categories are missing (only the XMLTV read gives them).
+                        val needsCategories = com.nuvio.tv.skin.kicia.livetv.ForgeEpgCategories.needsGuideRead() // Fork patch: kicia-kategorie
+                        if (needsCategories) android.util.Log.i(LiveTvEpgTrace.TAG, "programme categories missing: reading the guides") // Fork patch: kicia-kategorie
+                        val saved = if (firstRead && !force && !needsCategories) { // Fork patch: kicia-kategorie
                             withContext(Dispatchers.IO) { LiveTvGuideCache.read(cacheFile, cacheKey, guideFiles, nowMs, EPG_DOWNLOAD_MS) }
                         } else {
                             null
@@ -1889,6 +1892,7 @@ object LiveTvRepository {
                                         LiveTvGuideCache.write(cacheFile, cacheKey, guideFiles, entry)
                                         LiveTvGuideCache.writeNow(nowFile, cacheKey, guideFiles, loaded, logos, nowMs) // Fork patch: kicia-epg
                                     }
+                                    com.nuvio.tv.skin.kicia.livetv.ForgeEpgCategories.markRead() // Fork patch: kicia-kategorie
                                 }
                                 if (spills != null && loaded.isNotEmpty() && epgGeneration == generation) {
                                     val taken = chosenSpills.filterValues { !it.failed }

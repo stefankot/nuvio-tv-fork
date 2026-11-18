@@ -40,7 +40,7 @@ fun rememberForYouItems(): List<ResolvedItem> {
     val context = LocalContext.current
     if (!ForkFeatures.enabled(context, "module_tv", true) || !ForkFeatures.enabled(context, "tv_for_you_row", true)) return emptyList()
     var items by remember { mutableStateOf<List<ResolvedItem>>(emptyList()) }
-    LaunchedEffect(Unit) { while (true) { items = runCatching { TvQueue.build() }.getOrDefault(emptyList()); delay(60_000L) } }
+    LaunchedEffect(Unit) { while (true) { items = runCatching { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { TvQueue.build() } }.getOrDefault(emptyList()) /* fork 19.11: ANR na JMGO — liczone w tle */; delay(60_000L) } }
     return items
 }
 
