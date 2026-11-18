@@ -11,6 +11,8 @@ object ForkFeatures {
      * podaną w miejscu odczytu. Zapisany wybór użytkownika zawsze ma pierwszeństwo.
      */
     val ON_BY_DEFAULT = setOf(
+        // Kicia: kontrole otwartego pliku i pamięć złych źródeł
+        com.nuvio.tv.fork.sources.StartupChecks.KEY,
         // Echo
         "echo_source_fallback", "echo_auto_quality", "echo_hot_swap", "echo_race", "echo_audio_menu", "echo_playback_intro",
         // YouTube, katalog KE

@@ -17,14 +17,6 @@ index b16729e7c..0a6897acf 100644
      private val contentName: String? = savedStateHandle.getOptionalString("contentName")
      private val contentLanguage: String? = savedStateHandle.getOptionalString("contentLanguage")
      private val playbackProfileId: Int = savedStateHandle.get<String>("profileId")?.toIntOrNull()
-@@ -340,6 +342,7 @@ class StreamScreenViewModel @Inject constructor(
-             is StreamScreenEvent.OnAddonFilterSelected -> filterByAddon(event.addonName)
-             is StreamScreenEvent.OnStreamSelected -> {
-                 cancelStreamsLoad()
-+                if (season != null) com.nuvio.tv.fork.sources.KeRanking.rememberManualPick(context, contentId ?: videoId.substringBefore(":"), event.stream) // Fork hook: ke-rank (preferowane źródło serialu)
-             }
-             StreamScreenEvent.OnAutoPlayConsumed -> {
-                 if (autoPlayHandledForSession &&
 @@ -403,10 +406,12 @@ class StreamScreenViewModel @Inject constructor(
          playerPreference: PlayerPreference,
          streamAutoPlayMode: StreamAutoPlayMode

@@ -39,6 +39,7 @@ internal class PlayerAutoSourceRecovery(
     private var switchNotice: Toast? = null
     private var refreshedCandidates = false
     private enum class NextResult { Started, Failed, Empty }
+    private val forkChecks = com.nuvio.tv.fork.sources.StartupChecks.Session().also { it.attempt(plan.initialSource) } // Fork hook: kicia-checks
 
     fun remainingMs(): Long = policy.remainingMs(SystemClock.elapsedRealtime())
 
@@ -75,7 +76,11 @@ internal class PlayerAutoSourceRecovery(
                     val readyToConfirm = player.isPlaybackCurrentlyPlaying() &&
                         (player.hasRenderedFirstFrame || !player.currentStreamHasVideoTrack)
                     val previous = previousPosition
-                    val progressing = readyToConfirm && previous != null && position != null && position - previous >= 250L
+                    // Fork hook: kicia-checks — zły czas trwania / brak dźwięku = nieudana próba; „czekaj” wstrzymuje potwierdzenie startu.
+                    val forkVerdict = forkChecks.verdict(player)
+                    if (forkVerdict is com.nuvio.tv.fork.sources.StartupChecks.Verdict.Bad && !definitiveFailure) { definitiveFailure = true; failureReason = forkVerdict.reason }
+                    val progressing = readyToConfirm && previous != null && position != null && position - previous >= 250L &&
+                        forkVerdict == com.nuvio.tv.fork.sources.StartupChecks.Verdict.Ok
                     // Seed only after playback is active: a restored seek position is not progress.
                     previousPosition = if (readyToConfirm) position else null
                     val state = player._uiState.value
@@ -99,6 +104,7 @@ internal class PlayerAutoSourceRecovery(
                             val noticeReason = failureReason ?: state.error
                                 ?: player.context.getString(R.string.player_auto_source_recovery_timeout)
                             showSwitchNotice(noticeReason)
+                            forkChecks.onLeaving() // Fork hook: kicia-checks (pamięć złych źródeł)
                             stopAttempt()
                             if (!policy.beginNextAttempt(now)) { showPicker(); break }
                             definitiveFailure = false
@@ -163,6 +169,7 @@ internal class PlayerAutoSourceRecovery(
         }
         val next = candidate ?: return NextResult.Empty
         attempted += recoverySourceKey(next)
+        forkChecks.attempt(next) // Fork hook: kicia-checks
         // One chosen candidate consumes one attempt, even if URL resolution fails.
         val resolved = if (next.youTubeIdToResolve() != null) player.resolveYouTubeStream(next)
             else player.resolveDirectDebridStreamIfNeeded(next, player.currentSeason, player.currentEpisode)

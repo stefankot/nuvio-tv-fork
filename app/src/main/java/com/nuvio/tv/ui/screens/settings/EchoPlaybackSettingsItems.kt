@@ -58,6 +58,14 @@ internal fun LazyListScope.echoPlaybackSettingsItems() {
     echoSwitch("echo_hot_swap", "Echo: hot swap", "Zmiana jakości bez ekranu ładowania")
     echoSwitch(com.nuvio.tv.fork.sources.KeRanking.SAVER_KEY, "Oszczędzanie łącza", "Najmniejszy plik przy najlepszym kodeku, jaki telewizor dekoduje sprzętowo")
     echoSwitch("echo_race", "Echo: wyścig źródeł na starcie", "Startuje pierwsze źródło, które zacznie grać")
+    echoSwitch(com.nuvio.tv.fork.sources.StartupChecks.KEY, "Kontrola otwartego pliku", "Zły czas trwania albo brak dźwięku = od razu następne źródło; źródła, które nie zadziałały, idą na koniec listy (30 min, zły plik 24 h)")
+    item(key = "fork_bad_sources_clear") {
+        var count by remember { mutableStateOf(com.nuvio.tv.fork.sources.StartupChecks.badCount()) }
+        NavigationSettingsItem(
+            Icons.Default.Tune, "Zapomnij odłożone źródła ($count)", "Źródła odłożone przez kontrolę pliku wracają na zwykłe miejsce",
+            onClick = { com.nuvio.tv.fork.sources.StartupChecks.clearAll(); count = com.nuvio.tv.fork.sources.StartupChecks.badCount() }
+        )
+    }
     echoSwitch("echo_source_fallback", "Echo: następne źródło po błędzie", "Własny mechanizm Echo obok mechanizmu Reshaped")
     echoSwitch("echo_audio_menu", "Echo: menu języka audio", "Języki ze wszystkich źródeł")
     echoSwitch("echo_playback_intro", "Echo: intro przed odtwarzaniem", "Krótkie animowane intro")

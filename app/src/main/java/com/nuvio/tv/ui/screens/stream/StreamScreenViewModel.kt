@@ -342,7 +342,6 @@ class StreamScreenViewModel @Inject constructor(
             is StreamScreenEvent.OnAddonFilterSelected -> filterByAddon(event.addonName)
             is StreamScreenEvent.OnStreamSelected -> {
                 cancelStreamsLoad()
-                if (season != null) com.nuvio.tv.fork.sources.KeRanking.rememberManualPick(context, contentId ?: videoId.substringBefore(":"), event.stream) // Fork hook: ke-rank (preferowane źródło serialu)
             }
             StreamScreenEvent.OnAutoPlayConsumed -> {
                 if (autoPlayHandledForSession &&
@@ -1809,6 +1808,7 @@ class StreamScreenViewModel @Inject constructor(
     }
 
     fun persistBingeGroupForStream(stream: Stream) {
+        com.nuvio.tv.fork.sources.KeRanking.onManualPick(context, if (season != null) contentId ?: videoId.substringBefore(":") else null, stream) // Fork hook: ke-rank (ręczny wybór: preferowane źródło serialu, zdjęcie blokady złego źródła)
         val cid = contentId?.takeIf { it.isNotBlank() } ?: return
         val bg = stream.behaviorHints?.bingeGroup
         val fn = stream.behaviorHints?.filename

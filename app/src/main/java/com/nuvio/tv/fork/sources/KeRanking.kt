@@ -67,6 +67,12 @@ object KeRanking {
         }
     }
 
+    /** Ręczny wybór źródła na ekranie źródeł: zdejmij blokadę złego źródła; w serialu zapamiętaj je jako preferowane. */
+    fun onManualPick(context: Context, showId: String?, stream: Stream) {
+        StartupChecks.clearFor(stream)
+        rememberManualPick(context, showId, stream)
+    }
+
     /** Ręczny wybór źródła (długie OK / panel): zapamiętaj je jako preferowane dla serialu (KE PreferredSource.of). */
     fun rememberManualPick(context: Context, showId: String?, stream: Stream) {
         if (showId.isNullOrBlank()) return
@@ -114,6 +120,7 @@ object KeRanking {
         // Dawniej odpowiedź włączała tryb Regex, który omija ranking KE: jednorazowo przestaw na „pierwsze źródło”.
         if (answer.isNotEmpty() && answer != SourcePresets.CUSTOM) scope.launch { runCatching { SourceChoice.useRanking(app) } }
         tvCap = tvMaxResolution(app)
+        StartupChecks.warm(app)
         scope.launch { decode = runCatching { DecodeCapability.current(app) }.getOrDefault(DecodeCapability.UNKNOWN) }
     }
 
@@ -133,7 +140,9 @@ object KeRanking {
             // Oszczędzanie łącza: w obrębie dekodowanych sprzętowo najpierw najlepszy kodek (AV1 > HEVC > AVC), potem najmniejszy plik.
             val fitsOrdered = if (!saver) fits else fits.sortedWith(compareBy<Stream>({ ReleaseFactsParser.factsFor(it).encode.ordinal }, { ReleaseFactsParser.factsFor(it).size ?: Long.MAX_VALUE }))
             val ordered = (fitsOrdered + demoted).let { list -> if (polishRules == null && !polishSubs) list else list.sortedWith(compareBy(::polishTier, ::subsTier)) }
-            preferred?.preferredFirst(ordered)?.first ?: ordered
+            // Kicia: źródła, które niedawno nie wystartowały albo nie przeszły kontroli pliku, na koniec (StartupChecks).
+            val withBad = StartupChecks.demoteBad(ordered)
+            preferred?.preferredFirst(withBad)?.first ?: withBad
         }.getOrDefault(streams)
     }
 }
