@@ -88,7 +88,10 @@ internal class NarratorPersistentAudio(context: Context) {
         val partial = File.createTempFile("narrator-", ".part", directory)
         try {
             partial.writeBytes(wav)
-            if (!partial.renameTo(target) && !target.exists()) {
+            if (target.exists() && !target.delete()) {
+                throw IOException("Nie można zastąpić uszkodzonego audio")
+            }
+            if (!partial.renameTo(target)) {
                 throw IOException("Nie udało się zachować syntezy")
             }
         } finally { partial.delete() }
