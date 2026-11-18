@@ -1,0 +1,24 @@
+diff --git a/app/src/main/java/com/nuvio/tv/reshaped/livetv/LiveTvRepository.kt b/app/src/main/java/com/nuvio/tv/reshaped/livetv/LiveTvRepository.kt
+index 29c7639d5..fc27b6d40 100644
+--- a/app/src/main/java/com/nuvio/tv/reshaped/livetv/LiveTvRepository.kt
++++ b/app/src/main/java/com/nuvio/tv/reshaped/livetv/LiveTvRepository.kt
+@@ -1766,7 +1766,7 @@ object LiveTvRepository {
+                         val needsCategories = com.nuvio.tv.skin.kicia.livetv.ForgeEpgCategories.needsGuideRead() // Fork patch: kicia-kategorie
+                         if (needsCategories) android.util.Log.i(LiveTvEpgTrace.TAG, "programme categories missing: reading the guides") // Fork patch: kicia-kategorie
+                         val saved = if (firstRead && !force && !needsCategories) { // Fork patch: kicia-kategorie
+-                            withContext(Dispatchers.IO) { LiveTvGuideCache.read(cacheFile, cacheKey, guideFiles, nowMs, EPG_DOWNLOAD_MS) }
++                            withContext(Dispatchers.IO) { LiveTvGuideCache.read(cacheFile, cacheKey, guideFiles, nowMs, EPG_DOWNLOAD_MS, checkGuides = !File(cacheFile.path + ".partial").exists()) } // Fork patch: zapis-czesciowy
+                         } else {
+                             null
+                         }
+@@ -1892,8 +1892,9 @@ object LiveTvRepository {
+                                 if (loaded.isNotEmpty() && epgGeneration == generation) { // Fork patch: zapis-czesciowy
+                                     val keep = if (failed || partial) schedule else loaded // Fork patch: zapis-czesciowy
+                                     val keepLogos = if (failed || partial) shownLogos else logos // Fork patch: zapis-czesciowy
+-                                    val entry = LiveTvGuideCache.Entry(keep, keepLogos, nextReadAtMs) // Fork patch: zapis-czesciowy
++                                    val entry = LiveTvGuideCache.Entry(keep, keepLogos, if (failed || partial) regular else nextReadAtMs) // Fork patch: zapis-czesciowy (ponowna próba w tle i tak)
+                                     withContext(Dispatchers.IO) {
++                                        File(cacheFile.path + ".partial").let { mark -> if (failed || partial) mark.createNewFile() else mark.delete() } // Fork patch: zapis-czesciowy
+                                         LiveTvGuideCache.write(cacheFile, cacheKey, guideFiles, entry)
+                                         LiveTvGuideCache.writeNow(nowFile, cacheKey, guideFiles, keep, keepLogos, nowMs) // Fork patch: kicia-epg, zapis-czesciowy
+                                     }
