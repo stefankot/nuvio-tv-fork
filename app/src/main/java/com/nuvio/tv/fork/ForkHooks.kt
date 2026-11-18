@@ -122,13 +122,7 @@ object ForkHooks {
         if (intent.hasExtra("previews")) com.nuvio.tv.reshaped.livetv.LiveTvPreferences.setPreviews(c, intent.getBooleanExtra("previews", true))
         intent.getStringExtra("module")?.let { c.getSharedPreferences("fork_features", Context.MODE_PRIVATE).edit().putBoolean("module_$it", intent.getBooleanExtra("on", true)).apply() }
         val route = intent.getStringExtra("route") ?: return
-        val handler = android.os.Handler(android.os.Looper.getMainLooper())
-        var tries = 0
-        fun attempt() {
-            val open = com.nuvio.tv.ui.screens.settings.ForkFeatures.open
-            if (open != null) open(route) else if (tries++ < 240) handler.postDelayed({ attempt() }, 500)
-        }
-        attempt()
+        com.nuvio.tv.ui.screens.settings.ForkFeatures.openDebug(route)
     }
 
     // --- Rejestr modułów (B00) ---

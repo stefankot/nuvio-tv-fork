@@ -54,6 +54,7 @@ internal fun LazyListScope.echoPlaybackSettingsItems() {
     echoCycle("echo_ap_codec", "Auto-play: kodek", "Kliknij, aby zmienić: dowolny → AVC (H.264) → HEVC (H.265)",
         listOf("" to "dowolny", "avc" to "AVC", "hevc" to "HEVC"))
     echoSwitch(com.nuvio.tv.fork.net.KeNetwork.KEY, "KE: limit łącza", "Źródła szybsze niż zmierzone łącze na koniec listy (test łącza: odtwarzacz → Więcej → Test łącza)")
+    echoSwitch(com.nuvio.tv.fork.echo.FastStart.KEY, "Echo: szybszy start", "Odtwarzanie rusza po 1,5 s bufora zamiast 5 s (gdy bufor startowy nie był zmieniany ręcznie)")
     echoSwitch("echo_quality_menu", "Echo: przełączanie źródła w odtwarzaczu", "Menu jakości (przycisk pilota „Quality”) i zmiana źródła z zachowaniem pozycji")
     echoSwitch("echo_auto_quality", "Echo: Auto Quality", "Sam dobiera jakość do łącza (potrzebuje przełączania źródła)")
     echoSwitch("echo_hot_swap", "Echo: hot swap", "Zmiana jakości bez ekranu ładowania")

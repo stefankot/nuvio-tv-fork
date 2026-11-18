@@ -2,7 +2,7 @@ file	marker	anchor	module	purpose	original
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	// Arc hook: remote buttons (player and Live TV)	onPreviewKeyEvent	arc	pilot w odtwarzaczu
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	RemotePlayerHook(	val containerFocusRequester	arc	stan pilota
 app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	// Nuvio One hook: YouTube	composable(Screen	one	trasa YouTube
-app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	ForkFeatures.open = 	fun NuvioNavHost	fork	otwieranie tras z ustawień
+app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	ForkFeatures.bind(navController)	fun NuvioNavHost	fork	otwieranie tras z ustawień
 app/src/main/java/com/nuvio/tv/ui/navigation/Screen.kt	// Nuvio One hook	data object	one	Screen.YouTube
 app/src/main/java/com/nuvio/tv/MainActivity.kt	// Fork hook: arc-remote	override fun dispatchKeyEvent	arc	pilot poza odtwarzaczem
 app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.kt	// Fork hook: settings-search	var allowDetailAutofocus	one	wyszukiwarka ustawień (stan, overlay, 2 wiersze)
@@ -61,3 +61,4 @@ app/src/main/java/com/nuvio/tv/MainActivity.kt	ForkHooks.drawerOrder(	sidebar_se
 app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	ForgeTabBackToBar()	LIVE_TV_ROUTE	skin	Kicia: Wstecz z Live TV na pasek	
 app/src/main/java/com/nuvio/tv/ui/screens/home/ModernHomeRowsList.kt	ForkHooks.HomeModuleRows()	itemsIndexed(	registry	rzędy modułów w układzie Modern	
 app/src/main/java/com/nuvio/tv/ui/screens/account/AuthQrSignInScreen.kt	ForkHooks.FamilyStartButton()	auth_qr_back	family	ekran startowy: ustawienia od rodziny	
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerInitialization.kt	// Fork hook: echo-fast-start	BitrateAwareLoadControl(	echo	W7 szybszy start (bufor 1,5 s)	bufferForPlaybackMs = bufferSettings.bufferForPlaybackMs,

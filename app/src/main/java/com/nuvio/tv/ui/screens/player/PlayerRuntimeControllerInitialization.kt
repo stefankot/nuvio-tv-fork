@@ -586,7 +586,7 @@ internal fun PlayerRuntimeController.initializePlayer(
                 BitrateAwareLoadControl(
                     minBufferMs = bufferSettings.minBufferMs,
                     maxBufferMs = bufferSettings.maxBufferMs,
-                    bufferForPlaybackMs = bufferSettings.bufferForPlaybackMs,
+                    bufferForPlaybackMs = com.nuvio.tv.fork.echo.FastStart.startBufferMs(context, bufferSettings.bufferForPlaybackMs), // Fork hook: echo-fast-start
                     bufferForPlaybackAfterRebufferMs = bufferSettings.bufferForPlaybackAfterRebufferMs,
                     // Allow buffering past the byte budget until the minimum time threshold is
                     // met. Without this, high-bitrate remux files (e.g. 100+ Mbps UHD MKV with

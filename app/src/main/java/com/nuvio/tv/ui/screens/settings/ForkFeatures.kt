@@ -5,6 +5,31 @@ import android.content.Context
 object ForkFeatures {
     /** Set by NuvioNavHost; opens a route. */
     var open: ((String) -> Unit)? = null
+
+    // Debug `com.nuvio.fork.OPEN` (TERAZ P4, 19.11): trasa dana nawigatorowi sprzed wyboru profilu przepadała.
+    // Pamiętamy, który nawigator ją dostał; nowy nawigator (po wyborze profilu) w ciągu 2 min dostaje ją jeszcze raz.
+    private var nav: androidx.navigation.NavHostController? = null
+    private var pendingRoute: String? = null
+    private var pendingNav: androidx.navigation.NavHostController? = null
+    private var pendingUntilMs = 0L
+
+    /** NuvioNavHost (hook): każda kompozycja. */
+    fun bind(navController: androidx.navigation.NavHostController) {
+        open = { r -> navController.navigate(r) }
+        if (nav === navController) return
+        nav = navController
+        val r = pendingRoute ?: return
+        if (pendingNav !== navController && android.os.SystemClock.uptimeMillis() < pendingUntilMs) {
+            pendingRoute = null
+            android.os.Handler(android.os.Looper.getMainLooper()).post { runCatching { navController.navigate(r) } }
+        }
+    }
+
+    /** Tylko debug: otwórz [route] teraz (jeśli jest nawigator) i jeszcze raz w nowym nawigatorze, gdy powstanie w ciągu 2 min. */
+    fun openDebug(route: String) {
+        pendingRoute = route; pendingNav = nav; pendingUntilMs = android.os.SystemClock.uptimeMillis() + 120_000L
+        nav?.let { n -> runCatching { n.navigate(route) } }
+    }
     private fun prefs(c: Context) = c.getSharedPreferences("fork_features", Context.MODE_PRIVATE)
     /**
      * Funkcje forków włączone od pierwszego uruchomienia (polecenie właściciela 18.11): wygrywa z domyślną wartością
@@ -14,6 +39,7 @@ object ForkFeatures {
         // Kicia: kontrole otwartego pliku i pamięć złych źródeł
         com.nuvio.tv.fork.sources.StartupChecks.KEY, com.nuvio.tv.fork.sources.MpvContainers.KEY,
         // Echo
+        com.nuvio.tv.fork.echo.FastStart.KEY,
         "echo_source_fallback", "echo_auto_quality", "echo_hot_swap", "echo_race", "echo_audio_menu", "echo_playback_intro",
         // YouTube, katalog KE
         "fork_youtube", "fork_ke_catalog",
