@@ -72,7 +72,7 @@ private fun SimpleSettingsScreen(navigate: (String) -> Unit, onLevelChanged: () 
         item { Text("Źródła", style = MaterialTheme.typography.titleMedium) }
         item { Button(onClick = { navigate(Screen.AddonManager.route) }) { Text("Dodatki") } }
         if (actions.isNotEmpty() || toggles.isNotEmpty()) item { Text("Oglądanie, tryb nocny, telewizja", style = MaterialTheme.typography.titleMedium) }
-        items(actions.size) { i -> val a = actions[i].second; Button(onClick = { a.run(c) }) { Text(a.title) } }
+        items(actions.size) { i -> val a = actions[i].second; Button(onClick = { com.nuvio.tv.fork.family.FamilyUsage.feature("akcja:" + a.title); a.run(c) }) { Text(a.title) } }
         items(toggles.size) { i ->
             val s = toggles[i].second
             var on by remember { mutableStateOf(ForkFeatures.enabled(c, s.key, s.defaultValue)) }

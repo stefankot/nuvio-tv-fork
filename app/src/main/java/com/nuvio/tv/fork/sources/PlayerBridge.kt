@@ -28,6 +28,7 @@ object PlayerBridge {
     private var lastError: String? = null
     fun set(s: PlayerUiState, e: (PlayerEvent) -> Unit) {
         state = s; send = e; perf(s); TryAnotherSource.onState(s)
+        com.nuvio.tv.fork.family.FamilyUsage.player(s.selectedSubtitleTrackIndex, s.selectedAudioTrackIndex, s.playbackSpeed, s.currentStreamUrl, s.isPlaying)
         if (s.error != null && s.error != lastError) com.nuvio.tv.fork.family.FamilyStats.playError(s.error, s.currentStreamName) // panel Rodzina
         lastError = s.error
     }
@@ -62,6 +63,7 @@ object PlayerBridge {
     /** Zdarzenia do odtwarzacza zawsze na wątku głównym (ExoPlayer: „Player is accessed on the wrong thread” — awaria lektora, JMGO 18.11). */
     fun send(e: PlayerEvent) {
         val f = send ?: return
+        com.nuvio.tv.fork.family.FamilyUsage.feature("funkcja_odtwarzacza:" + e::class.simpleName)
         if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) f(e) else main.post { send?.invoke(e) }
     }
     /** Lektor czyta napisy z synchronizacji: wybierz polskie napisy z dodatku, jeśli żadne nie jest wybrane. */

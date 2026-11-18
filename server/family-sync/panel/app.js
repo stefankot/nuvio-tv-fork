@@ -53,7 +53,7 @@ async function start() {
   route(family ? 'home' : 'link');
 }
 document.addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b) route(b.dataset.go); });
-function route(r) { ({ home: homeView, settings: settingsView, link: linkView })[r](); }
+function route(r) { ({ home: homeView, usage: usageView, settings: settingsView, link: linkView })[r](); }
 
 function loginView() {
   app.innerHTML = `<h2>Zaloguj się</h2><p>Wyślę link logowania na adres właściciela.</p>
@@ -148,6 +148,55 @@ function label(e) {
   if (e.k === 'bad') return `złe źródło odłożone${e.src ? ' (' + e.src + ')' : ''}: ${e.reason || ''}`;
   if (e.k === 'crash') return `aplikacja zamknęła się z błędem (${e.cls || ''})`;
   return e.k;
+}
+
+// ---------- użycie (UX/UI): ekrany, przyciski pilota, funkcje ----------
+const SCREENS = { home: 'Ekran główny', detail: 'Szczegóły filmu', stream: 'Wybór źródła', player: 'Odtwarzacz', search: 'Szukaj',
+  youtube: 'YouTube', calendar: 'Kalendarz', discover: 'Odkrywaj', library: 'Biblioteka', settings: 'Ustawienia', trakt: 'Trakt',
+  addon_manager: 'Dodatki', account: 'Konto', profile_selection: 'Wybór profilu', manage_profiles: 'Profile', catalog_see_all: 'Cały katalog',
+  collections: 'Kolekcje', cast_detail: 'Aktor', playback_settings: 'Ustawienia odtwarzania', layout_settings: 'Układ', theme_settings: 'Wygląd',
+  fork_family: 'Rodzina', fork_modules: 'Moduły', live_tv: 'Live TV', start: 'Start aplikacji' };
+const screenName = r => SCREENS[r.split('/')[0]] || SCREENS[r] || r.split('/')[0].replace(/_/g, ' ');
+const featName = f => f.replace(/^akcja:/, 'Ustawienia → ').replace(/^przełącznik:/, 'Przełącznik ').replace(/^funkcja_odtwarzacza:/, 'Odtwarzacz (forka): ')
+  .replace(/^player:/, 'Odtwarzacz: ').replace(/_/g, ' ');
+
+async function usageView() {
+  if (!family) return linkView();
+  app.innerHTML = '<p class="muted">Liczę…</p>';
+  const r = await api('devices', null, '&id=' + family.id);
+  const devs = r.devices || [];
+  const pick = usageView.dev || '';
+  const sum = {};
+  for (const e of r.events || []) {
+    if (pick && e.device !== pick) continue;
+    const ev = JSON.parse(e.ev); if (ev.k !== 'usage') continue;
+    for (const [k, v] of Object.entries(ev.c || {})) sum[k] = (sum[k] || 0) + v;
+  }
+  const screens = {};
+  for (const [k, v] of Object.entries(sum)) {
+    const [t, scr, key] = k.split('|'); if (t === 'f') continue;
+    const name = screenName(scr || '?'); const s = screens[name] ??= { views: 0, ms: 0, ok: 0, back: 0, dpad: 0, media: 0, other: 0, voice: 0, menu: 0 };
+    if (t === 's') s.views += v; else if (t === 't') s.ms += v; else if (t === 'k') s[key] = (s[key] || 0) + v;
+  }
+  const rows = Object.entries(screens).filter(([, s]) => s.views > 0).sort((a, b) => b[1].views - a[1].views);
+  const per = (s, x) => (s[x] / Math.max(1, s.views)).toFixed(1);
+  const feats = Object.entries(sum).filter(([k]) => k.startsWith('f|')).map(([k, v]) => [featName(k.slice(2)), v]).sort((a, b) => b[1] - a[1]);
+  // podpowiedzi: dużo strzałek na wejście = cel daleko; szybkie wyjście = ekran nie daje tego, czego szukano
+  const hints = [];
+  for (const [n, s] of rows) {
+    if (s.views < 3) continue;
+    if (s.dpad / s.views > 15) hints.push(`„${n}”: średnio ${per(s, 'dpad')} naciśnięć strzałek na wejście. Najczęściej używane rzeczy warto przesunąć bliżej startowego fokusu.`);
+    if (s.back / s.views > 0.8 && s.ms / s.views < 8000) hints.push(`„${n}”: zwykle wyjście Wstecz po ${(s.ms / s.views / 1000).toFixed(0)} s. Ekran chyba nie daje tego, czego szukano.`);
+  }
+  const fmt = ms => ms > 3600000 ? (ms / 3600000).toFixed(1) + ' godz.' : Math.round(ms / 60000) + ' min';
+  app.innerHTML = `<h2>Jak używają aplikacji (30 dni)</h2>
+    <div class="row"><label for="dev">Telewizor</label><select id="dev"><option value="">Wszystkie</option>${devs.map(d => `<option value="${d.device}" ${d.device === pick ? 'selected' : ''}>${h`${d.name || JSON.parse(d.info || '{}').model || d.device.slice(0, 6)}`}</option>`).join('')}</select></div>
+    ${rows.length ? '' : '<p>Brak danych. Telewizory wysyłają je po aktualizacji aplikacji, co 15 minut (można wyłączyć: Ustawienia → Rodzina → „Statystyki używania”).</p>'}
+    ${hints.length ? `<h3>Co poprawić</h3><ul class="problems">${hints.map(x => `<li>${h`${x}`}</li>`).join('')}</ul>` : ''}
+    ${rows.length ? `<h3>Ekrany</h3><div style="overflow-x:auto"><table><thead><tr><th>Ekran</th><th>Wejścia</th><th>Czas</th><th>Strzałki / wejście</th><th>OK / wejście</th><th>Wstecz / wejście</th></tr></thead><tbody>
+      ${rows.map(([n, s]) => `<tr><td>${h`${n}`}</td><td>${s.views}</td><td>${fmt(s.ms)}</td><td>${per(s, 'dpad')}</td><td>${per(s, 'ok')}</td><td>${per(s, 'back')}</td></tr>`).join('')}</tbody></table></div>` : ''}
+    ${feats.length ? `<h3>Funkcje i przyciski</h3><ul>${feats.slice(0, 40).map(([n, v]) => `<li>${h`${n}`}: ${v}×</li>`).join('')}</ul>` : ''}`;
+  $('#dev').onchange = e => { usageView.dev = e.target.value; usageView(); };
 }
 
 // ---------- ustawienia ----------

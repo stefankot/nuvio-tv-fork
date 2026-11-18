@@ -47,3 +47,7 @@ summary { cursor: pointer; padding: 12px 14px; min-height: 44px; font-weight: 60
 #toast.on { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { #toast { transition: none; } }
 @media (max-width: 520px) { .pref { grid-template-columns: 1fr; } }
+table { border-collapse: collapse; width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+th, td { text-align: left; padding: 8px 10px; border-top: 1px solid var(--line); white-space: nowrap; }
+th { font-weight: 600; border-top: 0; }
+td + td, th + th { text-align: right; }

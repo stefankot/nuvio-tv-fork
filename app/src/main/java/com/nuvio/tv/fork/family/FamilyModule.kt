@@ -42,6 +42,10 @@ object FamilyModule : ForkModule {
     override fun actions() = listOf(
         ModuleAction("Rodzina: wspólne ustawienia", SettingsLevel.SIMPLE, "Udostępnij ustawienia albo dołącz kodem 6 cyfr") { ForkFeatures.open?.invoke(ROUTE) },
     )
+    override fun settings() = listOf(
+        com.nuvio.tv.fork.registry.ModuleSetting(FamilyUsage.KEY, SettingsLevel.SIMPLE, "Rodzina", "Statystyki używania dla panelu",
+            "Anonimowe liczniki ekranów, przycisków i funkcji (bez tytułów) — pomagają ulepszać wygląd i obsługę", defaultValue = true),
+    )
     override fun routes() = listOf(ModuleRoute(ROUTE) { composable(ROUTE) { FamilyScreen() } })
 }
 

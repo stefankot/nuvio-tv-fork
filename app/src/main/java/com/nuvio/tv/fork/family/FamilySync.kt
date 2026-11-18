@@ -314,6 +314,7 @@ object FamilySync {
         val p = prefs(c)
         val (dev, dkey) = device(c)
         val events = FamilyStats.take(c)
+        FamilyUsage.drain(c)?.let { events.put(JSONObject().put("k", "usage").put("t", System.currentTimeMillis()).put("c", it)) }
         val ok = runCatching {
             val ver = runCatching { c.packageManager.getPackageInfo(c.packageName, 0).versionName }.getOrNull().orEmpty()
             val info = JSONObject().put("model", "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}").put("android", android.os.Build.VERSION.RELEASE)

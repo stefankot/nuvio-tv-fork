@@ -25,6 +25,7 @@ import com.nuvio.tv.ui.screens.player.PlayerUiState
 object ForkHooks {
     /** MainActivity.dispatchKeyEvent: pilot Arc poza odtwarzaczem. true = klawisz obsłużony. */
     fun onGlobalKey(activity: Activity, event: KeyEvent): Boolean {
+        com.nuvio.tv.fork.family.FamilyUsage.key(event) // statystyki używania (panel Rodzina)
         // P7 (18.11): przycisk Szukaj/Asystent na pilocie = nasłuch poleceń forka (moduł głosu) PRZED skórką Kicia,
         // która otwierała ekran Szukaj z systemowym rozpoznawaniem Google (na JMGO zamykało się od razu).
         if (event.keyCode in VOICE_KEYS && com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(activity, "module_voice", true)) {

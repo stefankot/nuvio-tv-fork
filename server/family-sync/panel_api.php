@@ -107,7 +107,9 @@ if ($a === 'report') {
   $ins = db()->prepare('INSERT INTO family_events (family_id, device, ts, ev) VALUES (?,?,?,?)');
   foreach (array_slice((array)($in['events'] ?? []), 0, 200) as $e) {
     $ts = min(time(), max(time() - EVENT_DAYS * 86400, (int)(($e['t'] ?? 0) / 1000) ?: time()));
-    $ins->execute([$id, $dev, $ts, substr(json_encode($e), 0, 1000)]);
+    $j = json_encode($e);
+    if (strlen($j) > ((($e['k'] ?? '') === 'usage') ? 60000 : 1000)) continue; // za duże: pomiń (obcięty JSON byłby zepsuty)
+    $ins->execute([$id, $dev, $ts, $j]);
   }
   if (mt_rand(0, 20) === 0) db()->prepare('DELETE FROM family_events WHERE ts<?')->execute([time() - EVENT_DAYS * 86400]);
   out(200, ['ok' => true]);

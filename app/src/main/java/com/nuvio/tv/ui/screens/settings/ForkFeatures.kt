@@ -16,6 +16,7 @@ object ForkFeatures {
     /** NuvioNavHost (hook): każda kompozycja. */
     fun bind(navController: androidx.navigation.NavHostController) {
         open = { r -> navController.navigate(r) }
+        com.nuvio.tv.fork.family.FamilyUsage.watch(navController) // statystyki używania (panel Rodzina)
         if (nav === navController) return
         nav = navController
         val r = pendingRoute ?: return
@@ -36,6 +37,7 @@ object ForkFeatures {
      * podaną w miejscu odczytu. Zapisany wybór użytkownika zawsze ma pierwszeństwo.
      */
     val ON_BY_DEFAULT = setOf(
+        "family_usage_stats",
         // Kicia: kontrole otwartego pliku i pamięć złych źródeł
         com.nuvio.tv.fork.sources.StartupChecks.KEY, com.nuvio.tv.fork.sources.MpvContainers.KEY,
         // Echo
@@ -53,7 +55,10 @@ object ForkFeatures {
         com.nuvio.tv.fork.net.KeNetwork.KEY,
     )
     fun enabled(c: Context, key: String, default: Boolean = false) = prefs(c).getBoolean(key, default || key in ON_BY_DEFAULT)
-    fun set(c: Context, key: String, v: Boolean) = prefs(c).edit().putBoolean(key, v).apply()
+    fun set(c: Context, key: String, v: Boolean) {
+        com.nuvio.tv.fork.family.FamilyUsage.feature("przełącznik:$key=" + if (v) "wł" else "wył")
+        prefs(c).edit().putBoolean(key, v).apply()
+    }
     fun str(c: Context, key: String, default: String = "") = prefs(c).getString(key, default) ?: default
     fun setStr(c: Context, key: String, v: String) = prefs(c).edit().putString(key, v).apply()
 }

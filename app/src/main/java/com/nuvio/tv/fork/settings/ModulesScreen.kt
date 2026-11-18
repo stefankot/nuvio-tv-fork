@@ -39,7 +39,7 @@ fun ModulesScreen() {
                     Button(onClick = { on = !on; ForkFeatures.set(c, s.key, on) }) { Text("   " + s.title + ": " + if (on) "włączone" else "wyłączone") }
                 }
             }
-            m.actions().forEach { a -> item(key = "a_" + m.id + a.title) { Button(onClick = { a.run(c) }) { Text("   " + a.title) } } }
+            m.actions().forEach { a -> item(key = "a_" + m.id + a.title) { Button(onClick = { com.nuvio.tv.fork.family.FamilyUsage.feature("akcja:" + a.title); a.run(c) }) { Text("   " + a.title) } } }
         }
     }
 }
