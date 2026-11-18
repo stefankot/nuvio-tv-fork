@@ -262,6 +262,7 @@ internal fun PlayerRuntimeController.initializePlayer(
             } else if (overrideInternalPlayerEngine != null) {
                 resolvedAutoPlayerEngine = null
             }
+            if (overrideInternalPlayerEngine == null && com.nuvio.tv.fork.sources.MpvContainers.needsMpv(url, currentFilename)) effectiveInternalPlayerEngine = InternalPlayerEngine.MVP_PLAYER // Fork hook: kicia-mpv (AVI/WMV/ASF w mpv)
             currentInternalPlayerEngine = effectiveInternalPlayerEngine
             playbackAnalyticsDiagnostics.setTraceContext(
                 host = url.safeHost(),

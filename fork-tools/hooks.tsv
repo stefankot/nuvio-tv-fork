@@ -55,3 +55,4 @@ app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerAutoSourceRecovery.kt	Sta
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerAutoSourceRecovery.kt	forkChecks.verdict(player)	val progressing	sources	Kicia: zły czas trwania / brak dźwięku	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerAutoSourceRecovery.kt	forkChecks.onLeaving(	showSwitchNotice(noticeReason)	sources	Kicia: pamięć złych źródeł	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerAutoSourceRecovery.kt	forkChecks.attempt(next)	attempted += recoverySourceKey(next)	sources	Kicia: nowa próba	
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerInitialization.kt	MpvContainers.needsMpv(	currentInternalPlayerEngine = effectiveInternalPlayerEngine	sources	Kicia: AVI/WMV/ASF w mpv	

@@ -121,6 +121,7 @@ object KeRanking {
         if (answer.isNotEmpty() && answer != SourcePresets.CUSTOM) scope.launch { runCatching { SourceChoice.useRanking(app) } }
         tvCap = tvMaxResolution(app)
         StartupChecks.warm(app)
+        MpvContainers.warm(app)
         scope.launch { decode = runCatching { DecodeCapability.current(app) }.getOrDefault(DecodeCapability.UNKNOWN) }
     }
 

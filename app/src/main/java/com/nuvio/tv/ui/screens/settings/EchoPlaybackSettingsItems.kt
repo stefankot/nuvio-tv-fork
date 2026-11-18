@@ -59,6 +59,7 @@ internal fun LazyListScope.echoPlaybackSettingsItems() {
     echoSwitch(com.nuvio.tv.fork.sources.KeRanking.SAVER_KEY, "Oszczędzanie łącza", "Najmniejszy plik przy najlepszym kodeku, jaki telewizor dekoduje sprzętowo")
     echoSwitch("echo_race", "Echo: wyścig źródeł na starcie", "Startuje pierwsze źródło, które zacznie grać")
     echoSwitch(com.nuvio.tv.fork.sources.StartupChecks.KEY, "Kontrola otwartego pliku", "Zły czas trwania albo brak dźwięku = od razu następne źródło; źródła, które nie zadziałały, idą na koniec listy (30 min, zły plik 24 h)")
+    echoSwitch(com.nuvio.tv.fork.sources.MpvContainers.KEY, "AVI/WMV w odtwarzaczu mpv", "Pliki, których wbudowany odtwarzacz nie czyta (AVI, WMV, ASF), same otwierają się w mpv")
     item(key = "fork_bad_sources_clear") {
         var count by remember { mutableStateOf(com.nuvio.tv.fork.sources.StartupChecks.badCount()) }
         NavigationSettingsItem(
