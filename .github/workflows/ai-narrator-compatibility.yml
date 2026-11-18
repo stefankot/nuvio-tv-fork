@@ -42,7 +42,7 @@ jobs:
       - name: Compile and unit tests
         run: |
           ./gradlew :app:compileFullDebugKotlin --no-daemon
-          ./gradlew :app:testFullDebugUnitTest --tests '*NarratorCoreTest*' --no-daemon
+          ./gradlew :app:testFullDebugUnitTest --tests '*Narrator*Test*' --no-daemon
       - name: Isolated upstream merge and compile (manual request only)
         if: github.event_name == 'workflow_dispatch' && inputs.upstream_tag != ''
         env:
