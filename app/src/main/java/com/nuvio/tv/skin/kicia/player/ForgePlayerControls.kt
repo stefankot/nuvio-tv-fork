@@ -162,6 +162,8 @@ fun ForgePlayerControls(
                 com.nuvio.tv.skin.kicia.components.ForgeButton(text = "Więcej", icon = Icons.Outlined.MoreHoriz, small = true, onOk = { moreOpen = true; onResetHideTimer() })
             }
         }
+        androidx.compose.runtime.SideEffect { ForgeSheetOpen.open = moreOpen } // fork 19.11: odtwarzacz nie zabiera ▲ oknu „Więcej”
+        androidx.compose.runtime.DisposableEffect(Unit) { onDispose { ForgeSheetOpen.open = false } }
         ForgeSideSheet(visible = moreOpen, onDismiss = { moreOpen = false }, title = "Więcej") {
             ForgeSheetRow(text = "Źródła") { moreOpen = false; onShowSourcesPanel() }
             val ctx = androidx.compose.ui.platform.LocalContext.current
@@ -195,6 +197,9 @@ fun ForgePlayerControls(
         }
     }
 }
+
+/** fork 19.11: okno „Więcej” otwarte — PlayerScreen (panelOrDialogOpen) zostawia wtedy klawisze oknu. */
+object ForgeSheetOpen { @Volatile var open: Boolean = false }
 
 /** forge fix 14.11: the row button a panel was opened from (-1 = none), kept outside the composition the panel may replace. */
 internal object ForgeControlsReturn { @Volatile var index: Int = -1 }

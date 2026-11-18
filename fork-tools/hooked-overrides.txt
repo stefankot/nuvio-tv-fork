@@ -16,3 +16,4 @@ app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerMpv.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerTracks.kt
 app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreen.kt
 app/src/main/java/com/nuvio/tv/core/player/StreamAutoPlaySelector.kt
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerSidecarSubtitles.kt

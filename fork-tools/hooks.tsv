@@ -63,3 +63,6 @@ app/src/main/java/com/nuvio/tv/ui/screens/home/ModernHomeRowsList.kt	ForkHooks.H
 app/src/main/java/com/nuvio/tv/ui/screens/account/AuthQrSignInScreen.kt	ForkHooks.FamilyStartButton()	auth_qr_back	family	ekran startowy: ustawienia od rodziny	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerInitialization.kt	// Fork hook: echo-fast-start	BitrateAwareLoadControl(	echo	W7 szybszy start (bufor 1,5 s)	bufferForPlaybackMs = bufferSettings.bufferForPlaybackMs,
 app/build.gradle.kts	// Fork hook: W8 TVDB	TMDB_API_KEY	tvdb	klucz TVDB do BuildConfig
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	// fork hook: okno „Więcej”	panelOrDialogOpen	fork	klawisze dla okna Więcej Kicii
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerSidecarSubtitles.kt	// fork hook: MPL2/MicroDVD	downloadSubtitleBody	fork	polskie napisy MPL2/MicroDVD na SRT	val rawBody = rawBodyLoader?.invoke()
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerSidecarSubtitles.kt	// fork hook: MPL2/MicroDVD	downloadSubtitleBody	fork	polskie napisy MPL2/MicroDVD na SRT	?: downloadSubtitleBody(subtitle.url, subtitle.lang, subtitle.headers)

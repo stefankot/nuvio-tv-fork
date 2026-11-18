@@ -876,6 +876,7 @@ fun PlayerScreen(
                         uiState.error != null ||
                         liveTvPlayer.panelOpen // Nuvio RS hook: Live TV channel list
                 if (panelOrDialogOpen) return@onKeyEvent false
+                if (com.nuvio.tv.skin.kicia.player.ForgeSheetOpen.open) return@onKeyEvent false // fork hook: okno „Więcej” skórki Kicia (▲ działało jak na pasku)
 
                 if (keyEvent.nativeKeyEvent.action == KeyEvent.ACTION_UP) {
                     when (keyEvent.nativeKeyEvent.keyCode) {

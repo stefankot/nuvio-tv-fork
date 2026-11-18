@@ -56,6 +56,7 @@ object KeRanking {
     /** Ekran źródeł: początek szukania źródeł dla tytułu (wpięcie `Fork hook: ke-rank` w StreamScreenViewModel.loadStreams). */
     fun begin(context: Context, type: String?, title: String?, year: String?, season: Int?, episode: Int?, videoId: String?, showId: String?) {
         identityRaw = ContentIdentity.of(type, title, year, season, episode, videoId)
+        ForeignDub.setTitle(title) // fork 19.11: słowa tytułu nie są językiem dubbingu
         preferredRaw = null
         setAtMs = android.os.SystemClock.elapsedRealtime()
         val app = context.applicationContext
@@ -133,6 +134,16 @@ object KeRanking {
         scope.launch { decode = runCatching { DecodeCapability.current(app) }.getOrDefault(DecodeCapability.UNKNOWN) }
     }
 
+    /** Fork 19.11: dlaczego wygrało dane źródło (logcat `ForkRanking`), pierwsze 6 pozycji z powodami. */
+    private fun logTop(list: List<Stream>) = runCatching {
+        android.util.Log.i("ForkRanking", "order: ${list.size} źródeł, polski=${polishRules?.id ?: "-"} napisyPL=$polishSubs oszczędz=$saver preferowane=${preferred != null}")
+        list.take(6).forEachIndexed { i, st ->
+            val f = ReleaseFactsParser.factsFor(st)
+            android.util.Log.i("ForkRanking", "#$i ${st.addonName} | ${f.resolution} | gotowe=${SourceReady.tier(st) == 0} obcyDub=${ForeignDub.tier(st) == 1} pl=${polishTier(st)} pref=${preferred?.matches(st) == true} | " +
+                listOfNotNull(st.name, st.title).joinToString(" ").replace('\n', ' ').take(140))
+        }
+    }
+
     fun order(streams: List<Stream>): List<Stream> {
         if (!enabled || streams.size < 2) return streams
         return runCatching {
@@ -154,7 +165,11 @@ object KeRanking {
             val ordered = (fitsOrdered + demoted).let { list -> if (polishRules == null && !polishSubs) list else list.sortedWith(compareBy(::polishTier, ::subsTier)) }
             // Kicia: źródła, które niedawno nie wystartowały albo nie przeszły kontroli pliku, na koniec (StartupChecks).
             val withBad = StartupChecks.demoteBad(ordered)
-            preferred?.preferredFirst(withBad)?.first ?: withBad
+            // Fork 19.11 (JMGO: hiszpańskie „Castellano” 720p wygrało z angielskim 1080p, potem niegotowy plik TB⬇️):
+            // zapamiętany ręczny wybór (dodatek + rozdzielczość) nie może przebić języka ani gotowości pliku —
+            // niegotowe (SourceReady) i obcy dubbing (ForeignDub) zawsze na koniec, kolejność w środku zostaje.
+            val picked = preferred?.preferredFirst(withBad)?.first ?: withBad
+            picked.sortedWith(compareBy(SourceReady::tier, ForeignDub::tier)).also { logTop(it) }
         }.getOrDefault(streams)
     }
 }

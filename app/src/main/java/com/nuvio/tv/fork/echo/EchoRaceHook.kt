@@ -57,12 +57,17 @@ object EchoRaceHook {
     /** Linki do wyścigu dla wyboru [pick]; null = gra sam. */
     fun field(c: Context, pick: Stream?, streams: List<Stream>, s: PlayerSettings, installed: Set<String>, binge: String?): List<Stream>? {
         if (pick == null || !on(c)) return null
-        return AutoPlayRace.fieldFor(
+        val field = AutoPlayRace.fieldFor(
             pick = pick, streams = streams, mode = modeFor(c, s.streamAutoPlayMode), regexPattern = s.streamAutoPlayRegex,
             preferences = prefs(c), source = s.streamAutoPlaySource,
             installedAddonNames = installed, selectedAddons = s.streamAutoPlaySelectedAddons,
             selectedPlugins = s.streamAutoPlaySelectedPlugins, bingeGroup = binge
-        )
+        ) ?: return null
+        // Fork 19.11 (JMGO: wyścig wygrywał najszybszy link, także gorszy — hiszpański 720p zamiast angielskiego 1080p):
+        // ścigają się tylko źródła równe pierwszemu z rankingu (ta sama rozdzielczość, gotowość pliku i język).
+        fun cls(x: Stream) = Triple(com.nuvio.tv.core.stream.ReleaseFactsParser.resolutionOf(x), com.nuvio.tv.fork.sources.SourceReady.tier(x), com.nuvio.tv.fork.sources.ForeignDub.tier(x))
+        val want = cls(pick)
+        return field.filter { cls(it) == want }.takeIf { it.size > 1 }
     }
 
     /** Uruchamia wyścig; zwycięzcę oddaje przez [onWinner], chyba że autoodtwarzanie wstrzymano. */
