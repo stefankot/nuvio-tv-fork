@@ -38,7 +38,13 @@ object PlayerBridge {
         val hasPlAudio = AudioCheck.hasPolish(s.audioTracks.map { it.language })
         val hasPlSubs = s.addonSubtitles.any { it.lang.startsWith("pl", true) || it.lang.startsWith("pol", true) }
         val wantsPl = SourceChoice.answer(c).let { it == "pl_always" || it == "pl_if_good" }
-        if (com.nuvio.tv.fork.lektor.LektorRules.step(wantsPl, hasPlAudio, hasPlSubs, true) == com.nuvio.tv.fork.lektor.LektorRules.Step.LEKTOR) com.nuvio.tv.fork.lektor.LektorController.start(c)
+        if (com.nuvio.tv.fork.lektor.LektorRules.step(wantsPl, hasPlAudio, hasPlSubs, true) != com.nuvio.tv.fork.lektor.LektorRules.Step.LEKTOR) return
+        // P3/P9: bez silnika mowy z polskim głosem lektor byłby niemy (JMGO 18.11) — zamiast włączać, powiedz, co zrobić.
+        if (com.nuvio.tv.fork.lektor.LektorVoice.ready == false) {
+            android.widget.Toast.makeText(c.applicationContext, com.nuvio.tv.fork.lektor.LektorVoice.MISSING_MSG, android.widget.Toast.LENGTH_LONG).show()
+            return
+        }
+        com.nuvio.tv.fork.lektor.LektorController.start(c)
     }
     fun position(posMs: Long, playing: Boolean) = com.nuvio.tv.fork.lektor.LektorEngine.updatePosition(posMs, playing)
     fun clear() { state = null; send = null; queue = null; autoTried = false; TryAnotherSource.reset() }

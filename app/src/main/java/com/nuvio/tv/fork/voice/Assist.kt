@@ -56,6 +56,9 @@ class ForkKeyService : AccessibilityService() {
     override fun onInterrupt() {}
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
+        // P7 (18.11): diagnostyka JMGO (mikrofon pilota nie dociera do aplikacji) i „Naucz przycisk mikrofonu”.
+        if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) android.util.Log.i("ForkVoiceKey", "key=${event.keyCode} scan=${event.scanCode} device=${event.deviceId}")
+        if (VoiceKeyLearn.consume(this, event)) return true
         val chosen = getSharedPreferences("fork_features", MODE_PRIVATE).getString("voice_key", KeyFilter.KEYCODE_ASSIST.toString())?.toIntOrNull() ?: KeyFilter.KEYCODE_ASSIST
         val enabled = com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(this, "voice_key_service")
         if (!KeyFilter.shouldIntercept(event.keyCode, chosen, enabled)) return false
@@ -63,5 +66,31 @@ class ForkKeyService : AccessibilityService() {
             startActivity(openApp(this)); VoiceTrigger.fire()
         }
         return true
+    }
+}
+
+/** „Naucz przycisk mikrofonu”: następny naciśnięty klawisz (poza strzałkami, OK, Wstecz, Home) zostaje przyciskiem głosu. */
+object VoiceKeyLearn {
+    @Volatile var armedUntil = 0L
+    private val IGNORED = setOf(KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT,
+        KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_HOME)
+
+    fun arm() { armedUntil = android.os.SystemClock.elapsedRealtime() + 15_000 }
+
+    fun consume(c: Context, event: KeyEvent): Boolean {
+        if (android.os.SystemClock.elapsedRealtime() > armedUntil || event.keyCode in IGNORED) return false
+        if (event.action != KeyEvent.ACTION_DOWN) return true
+        armedUntil = 0L
+        com.nuvio.tv.ui.screens.settings.ForkFeatures.setStr(c, "voice_key", event.keyCode.toString())
+        com.nuvio.tv.ui.screens.settings.ForkFeatures.set(c, "voice_key_service", true)
+        android.os.Handler(android.os.Looper.getMainLooper()).post {
+            android.widget.Toast.makeText(c, "Zapamiętano przycisk głosu (kod ${event.keyCode})", android.widget.Toast.LENGTH_LONG).show()
+        }
+        return true
+    }
+
+    fun serviceOn(c: Context): Boolean {
+        val list = android.provider.Settings.Secure.getString(c.contentResolver, android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES).orEmpty()
+        return list.contains(c.packageName + "/") && list.contains("ForkKeyService")
     }
 }

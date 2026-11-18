@@ -100,7 +100,11 @@ object KeRanking {
     private fun polishTier(s: Stream): Int {
         val p = polishRules ?: return 0
         val text = listOfNotNull(s.name, s.title, s.description).joinToString(" ")
-        return SourcePresets.tierOf(p, text) ?: Int.MAX_VALUE
+        val audio = SourcePresets.tierOf(p, text) ?: Int.MAX_VALUE
+        // P3 (18.11): działa polski głos lektora i napisy mają być po polsku → źródło z polskimi napisami równie dobre
+        // jak polski dźwięk (lektor przeczyta). Brak głosu (JMGO) → zostaje sam polski dźwięk.
+        if (polishSubs && com.nuvio.tv.fork.lektor.LektorVoice.ready == true && PL_SUBS.containsMatchIn(text)) return 0
+        return audio
     }
 
     /** Raz po starcie i po każdej zmianie odpowiedzi: przełącznik, język, dekodery urządzenia, rozdzielczość telewizora. */
@@ -120,6 +124,7 @@ object KeRanking {
         // Dawniej odpowiedź włączała tryb Regex, który omija ranking KE: jednorazowo przestaw na „pierwsze źródło”.
         if (answer.isNotEmpty() && answer != SourcePresets.CUSTOM) scope.launch { runCatching { SourceChoice.useRanking(app) } }
         tvCap = tvMaxResolution(app)
+        com.nuvio.tv.fork.lektor.LektorVoice.probe(app)
         StartupChecks.warm(app)
         MpvContainers.warm(app)
         scope.launch { decode = runCatching { DecodeCapability.current(app) }.getOrDefault(DecodeCapability.UNKNOWN) }

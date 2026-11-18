@@ -25,13 +25,14 @@ import com.nuvio.tv.ui.screens.player.PlayerUiState
 object ForkHooks {
     /** MainActivity.dispatchKeyEvent: pilot Arc poza odtwarzaczem. true = klawisz obsłużony. */
     fun onGlobalKey(activity: Activity, event: KeyEvent): Boolean {
-        // Skórka Kicia: jej pilot (Esc = Wstecz, odzyskanie fokusu odtwarzacza, przycisk głosu dla ekranu Szukaj).
-        if (com.nuvio.tv.skin.kicia.ForgeUi.ON && com.nuvio.tv.skin.kicia.input.ForgeRemoteHook.onKey(event, activity::dispatchKeyEvent)) return true
-        // Audyt UI p. 1: przycisk Szukaj/Asystent na pilocie = nasłuch poleceń (moduł głosu), gdy żaden ekran go nie przejął.
+        // P7 (18.11): przycisk Szukaj/Asystent na pilocie = nasłuch poleceń forka (moduł głosu) PRZED skórką Kicia,
+        // która otwierała ekran Szukaj z systemowym rozpoznawaniem Google (na JMGO zamykało się od razu).
         if (event.keyCode in VOICE_KEYS && com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(activity, "module_voice", true)) {
             if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) com.nuvio.tv.fork.voice.VoiceTrigger.fire()
             return true
         }
+        // Skórka Kicia: jej pilot (Esc = Wstecz, odzyskanie fokusu odtwarzacza).
+        if (com.nuvio.tv.skin.kicia.ForgeUi.ON && com.nuvio.tv.skin.kicia.input.ForgeRemoteHook.onKey(event, activity::dispatchKeyEvent)) return true
         return RemoteGlobalHook.onKey(activity, event)
     }
     /** MainActivity: YouTube jako pozycja menu (audyt UI p. 5), gdy włączony. */

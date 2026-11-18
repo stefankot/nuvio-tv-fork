@@ -23,6 +23,7 @@ object LektorController {
 
     fun start(context: Context): String {
         if (!PlayerBridge.active) return "Lektor działa tylko podczas odtwarzania"
+        if (LektorVoice.ready == false) return LektorVoice.MISSING_MSG
         val app = context.applicationContext
         job?.cancel()
         PlayerBridge.ensurePolishSubtitle()

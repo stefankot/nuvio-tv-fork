@@ -42,12 +42,26 @@ object FirstRunDefaults {
         ForkFeatures.set(app, "fork_defaults_v2_done", true)
     }
 
+    /**
+     * Raz na profil (także istniejący, właściciel 18.11 P2): automatyczny wybór źródła = tryb „pierwsze źródło”
+     * z rankingiem KE (KeRanking) zamiast ręcznej listy. Zmienia tylko tryb MANUAL; Regex i inne zostają.
+     */
+    private suspend fun autoSource(app: Context, pid: Int) {
+        val flag = "fork_defaults_v3_done_$pid"
+        if (ForkFeatures.enabled(app, flag)) return
+        val store = EntryPointAccessors.fromApplication(app, com.nuvio.tv.fork.sources.SourceChoice.Deps::class.java).player()
+        if (store.playerSettings.first().streamAutoPlayMode == com.nuvio.tv.data.local.StreamAutoPlayMode.MANUAL)
+            store.setStreamAutoPlayMode(com.nuvio.tv.data.local.StreamAutoPlayMode.FIRST_STREAM)
+        ForkFeatures.set(app, flag, true)
+    }
+
     suspend fun run(c: Context) {
         val app = c.applicationContext
         reshapedOn(app)
         runCatching { polishSubtitles(app) }
         val d = EntryPointAccessors.fromApplication(app, Deps::class.java)
         val pid = d.profiles().activeProfileId.value
+        runCatching { autoSource(app, pid) }
         val flag = "first_run_done_$pid"
         if (ForkFeatures.enabled(app, flag)) return
         val en = booleanPreferencesKey("tmdb_enabled"); val lang = stringPreferencesKey("tmdb_language")

@@ -41,7 +41,30 @@ object VoiceModule : ForkModule {
 
     override fun routes() = listOf(com.nuvio.tv.fork.registry.ModuleRoute(VOICE_HELP_ROUTE) { composable(VOICE_HELP_ROUTE) { VoiceHelpScreen() } })
 
+    private fun toast(c: android.content.Context, m: String) = android.widget.Toast.makeText(c, m, android.widget.Toast.LENGTH_LONG).show()
+    private fun openSettings(c: android.content.Context, vararg actions: String) {
+        for (a in actions) if (runCatching { c.startActivity(Intent(a).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.isSuccess) return
+        toast(c, "Ten telewizor nie ma takiego ekranu ustawień")
+    }
+
     override fun actions() = listOf(
+        // P7 (18.11): mikrofon pilota (np. JMGO) nie wysyła klawisza do aplikacji; trzy drogi do włączenia przycisku głosu.
+        com.nuvio.tv.fork.registry.ModuleAction("Przycisk mikrofonu: włącz usługę Nuvio", SettingsLevel.SIMPLE,
+            "Otwiera Ułatwienia dostępu: wybierz „Nuvio Debug” i włącz. Usługa przechwytuje tylko przycisk głosu") { c ->
+            com.nuvio.tv.ui.screens.settings.ForkFeatures.set(c, "voice_key_service", true)
+            if (VoiceKeyLearn.serviceOn(c)) toast(c, "Usługa Nuvio jest już włączona. Teraz „Naucz przycisk mikrofonu”.")
+            else { toast(c, "Wybierz „Nuvio Debug” na liście i włącz. Potem wróć i użyj „Naucz przycisk mikrofonu”."); openSettings(c, android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS) }
+        },
+        com.nuvio.tv.fork.registry.ModuleAction("Przycisk mikrofonu: naucz przycisk", SettingsLevel.SIMPLE,
+            "Po wybraniu naciśnij w ciągu 15 s przycisk mikrofonu (albo inny) na pilocie") { c ->
+            if (!VoiceKeyLearn.serviceOn(c)) toast(c, "Najpierw „Przycisk mikrofonu: włącz usługę Nuvio”.")
+            else { VoiceKeyLearn.arm(); toast(c, "Naciśnij teraz przycisk na pilocie, który ma włączać sterowanie głosem") }
+        },
+        com.nuvio.tv.fork.registry.ModuleAction("Ustaw Nuvio jako asystenta", SettingsLevel.SIMPLE,
+            "Przycisk asystenta otworzy nasłuch Nuvio zamiast asystenta systemu (Android 12+)") { c ->
+            toast(c, "Wybierz „Nuvio” jako asystenta / aplikację asystującą")
+            openSettings(c, android.provider.Settings.ACTION_VOICE_INPUT_SETTINGS, android.provider.Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS, android.provider.Settings.ACTION_SETTINGS)
+        },
         com.nuvio.tv.fork.registry.ModuleAction("Sterowanie głosem: przykłady poleceń", SettingsLevel.SIMPLE, "Lista tego, co można powiedzieć") { com.nuvio.tv.ui.screens.settings.ForkFeatures.open?.invoke(VOICE_HELP_ROUTE) },
     )
 
