@@ -10,8 +10,8 @@ Porównanie gałęzi z bazowym `main` za pomocą GitHub Compare:
 |---|---:|---:|---:|
 | Pliki upstream zmienione | 1 | 5 | 0 |
 | Pliki forka zmienione | 1 | 4 | 0 |
-| Nowe pliki modułu i workflow | 10 | 915 | 0 |
-| **Łącznie** | **12** | **924** | **0** |
+| Nowe pliki modułu i workflow | 11 | 981 | 0 |
+| **Łącznie** | **13** | **990** | **0** |
 
 Jedyna zmiana istniejącego pliku z odtwarzaczem: `app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt` — wywołanie `NarratorOverlay` (5 wierszy). Własny `app/reshaped.gradle` otrzymał dwa wpisy źródeł (4 wiersze z komentarzem). **Bez zmian** w `app/build.gradle.kts`, `PlayerRuntimeController*`, mpv, ExoPlayer i obecnej synchronizacji.
 
@@ -26,6 +26,8 @@ Jedyna zmiana istniejącego pliku z odtwarzaczem: `app/src/main/java/com/nuvio/t
 ## 3. Upstream compatibility test
 
 **Wykonano:** odczyt i porównanie struktury GitHub, weryfikację obecności 9 wymaganych kontraktów w 6 plikach integracyjnych — **9/9 zgodnych**. Potwierdzono także schemat `speechMetadata` i `prebuiltVoiceConfig.voiceName` w kodzie klienta.
+
+**GitHub Actions:** przebieg [AI narrator compatibility #44382299088](https://github.com/stefankot/nuvio-tv-fork/actions/runs/44382299088) zakończył się `failure` w obu próbach; GitHub nie zwrócił kroków ani logów zadania. Przyczyna nieznana, **brak potwierdzonej kompilacji lub testów**. Nie jest to wynik pozytywny.
 
 **Nie wykonano:** kompilacji Gradle, testów jednostkowych JVM na rzeczywistej gałęzi, testowego scalania oficjalnego tagu oraz testów ExoPlayer/mpv na urządzeniu. Środowisko sesji nie ma dostępu Git do prywatnego klonu, więc nie powstał lokalny worktree. **Liczba faktycznych konfliktów z nową aktualizacją: brak danych, nie 0.**
 
