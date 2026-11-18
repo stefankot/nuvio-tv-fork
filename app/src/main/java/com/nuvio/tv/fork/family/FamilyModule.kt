@@ -74,9 +74,10 @@ fun FamilyScreen() {
                 if (st.code != null && left > 0) item {
                     Column {
                         Text(st.code!!.chunked(3).joinToString(" "), fontSize = 64.sp)
-                        Text("Wpisz ten kod na telewizorze rodziny. Ważny jeszcze ${left / 60}:${"%02d".format(left % 60)}, jeden raz.")
+                        Text((if (st.panelCode) "Wpisz ten kod w panelu nuviosync.caring.design/panel." else "Wpisz ten kod na telewizorze rodziny.") + " Ważny jeszcze ${left / 60}:${"%02d".format(left % 60)}, jeden raz.")
                     }
                 }
+                item { Button(onClick = { FamilySync.newPanelCode(c) }) { Text("Połącz panel w przeglądarce (pokaż kod)") } }
                 item { Button(onClick = { FamilySync.share(c) }) { Text("Wyślij zmiany teraz") } }
                 item { Button(onClick = { FamilySync.stopSharing(c) }) { Text("Przestań udostępniać (rodzina zachowa obecne ustawienia)") } }
             }

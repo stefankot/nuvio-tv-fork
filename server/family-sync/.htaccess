@@ -1,5 +1,11 @@
-# Tylko api.php jest dostępny z internetu; baza (data/) i inne pliki są zablokowane.
+# Z internetu dostępne tylko api.php i katalog panel/; baza (data/) i pozostałe pliki zablokowane.
 Options -Indexes
-<FilesMatch "^(?!api\.php$).*$">
+RewriteEngine On
+RewriteRule ^panel$ panel/ [R=301,L]
+RewriteRule !^(api\.php$|panel/) - [F,L]
+<FilesMatch "\.(sqlite|sqlite-wal|sqlite-shm|db|log|md|inc)$">
   Require all denied
 </FilesMatch>
+<Files "panel_api.php">
+  Require all denied
+</Files>

@@ -122,6 +122,7 @@ object StartupChecks {
         private fun bad(reason: BadReason, log: String): Verdict {
             badReason = reason
             Log.i(TAG, "${reason.name} $log")
+            com.nuvio.tv.fork.family.FamilyStats.badSource(reason.name, PlayerBridge.current()?.currentStreamName) // panel Rodzina
             return Verdict.Bad(reason.name)
         }
 

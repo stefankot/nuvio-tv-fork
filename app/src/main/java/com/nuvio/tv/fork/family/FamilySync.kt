@@ -33,7 +33,7 @@ object FamilySync {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     enum class Role { NONE, OWNER, MEMBER }
-    data class State(val role: Role = Role.NONE, val version: Int = 0, val message: String = "", val code: String? = null, val codeUntilMs: Long = 0)
+    data class State(val role: Role = Role.NONE, val version: Int = 0, val message: String = "", val code: String? = null, val codeUntilMs: Long = 0, val panelCode: Boolean = false)
 
     private val _state = MutableStateFlow(State())
     val state: StateFlow<State> = _state.asStateFlow()
@@ -79,6 +79,7 @@ object FamilySync {
     private fun upload(c: Context, force: Boolean): String {
         val p = prefs(c)
         if (role(c) != Role.OWNER) return ""
+        if (panelNewer(c)) return "Nowe ustawienia z panelu — uruchom aplikację ponownie"
         return runCatching {
             val zip = FamilySnapshot.pack(c)
             val hash = FamilyCrypto.sha256Hex(FamilyCrypto.b64(zip))
@@ -91,6 +92,13 @@ object FamilySync {
             "Ustawienia wysłane do rodziny"
         }.getOrElse { Log.w(TAG, "upload failed: ${it.javaClass.simpleName}"); "Brak połączenia z serwerem rodziny" }
     }
+
+    /** Właściciel: panel zapisał nowszą wersję → nie nadpisuj jej; wgraj przy najbliższym starcie aplikacji. */
+    private fun panelNewer(c: Context): Boolean = runCatching {
+        val p = prefs(c)
+        val (status, json) = http("GET", "a=get&id=${p.getString("id", "")}&since=${p.getInt("version", 0)}")
+        status == 200 && json != null && json.optInt("version") > p.getInt("version", 0) && json.optString("src") == "panel"
+    }.getOrDefault(false)
 
     /** Kod 6 cyfr dla nowego urządzenia rodziny (10 minut). */
     fun newDeviceCode(c: Context) = scope.launch {
@@ -105,12 +113,30 @@ object FamilySync {
                 val (status, _) = http("POST", "a=pair", JSONObject().put("id", p.getString("id", "")).put("owner", p.getString("owner", ""))
                     .put("lookup", FamilyCrypto.pairLookup(code)).put("wrapped", wrapped))
                 if (status == 200) {
-                    _state.value = _state.value.copy(code = code, codeUntilMs = System.currentTimeMillis() + 10 * 60_000L)
+                    _state.value = _state.value.copy(code = code, codeUntilMs = System.currentTimeMillis() + 10 * 60_000L, panelCode = false)
                     return@runCatching "Kod ważny 10 minut"
                 }
                 if (status != 409) return@runCatching "Serwer odrzucił kod ($status)"
             }
             "Spróbuj ponownie"
+        }.getOrElse { "Brak połączenia z serwerem rodziny" }
+        refresh(c, msg)
+    }
+
+    /** Kod 6 cyfr dla panelu w przeglądarce (19.11): panel dostaje identyfikator, klucz i sekret właściciela. */
+    fun newPanelCode(c: Context) = scope.launch {
+        val p = prefs(c)
+        if (role(c) != Role.OWNER) { refresh(c, "Najpierw „Udostępnij ustawienia rodzinie”"); return@launch }
+        upload(c, force = false)
+        val msg = runCatching {
+            val code = FamilyCrypto.pairCode()
+            val payload = JSONObject().put("id", p.getString("id", "")).put("key", p.getString("key", "")).put("owner", p.getString("owner", "")).toString().toByteArray()
+            val wrapped = FamilyCrypto.b64(FamilyCrypto.encrypt(FamilyCrypto.codeKey(code), payload))
+            val (status, _) = http("POST", "a=pair", JSONObject().put("id", p.getString("id", "")).put("owner", p.getString("owner", ""))
+                .put("lookup", FamilyCrypto.sha256Hex("nuvio-panel:v1:$code")).put("wrapped", wrapped).put("kind", "panel"))
+            if (status != 200) return@runCatching "Serwer odrzucił kod ($status)"
+            _state.value = _state.value.copy(code = code, codeUntilMs = System.currentTimeMillis() + 10 * 60_000L, panelCode = true)
+            "Wpisz kod w panelu: nuviosync.caring.design/panel"
         }.getOrElse { "Brak połączenia z serwerem rodziny" }
         refresh(c, msg)
     }
@@ -142,17 +168,19 @@ object FamilySync {
     }
 
     /** Pobiera nowszą wersję ustawień; po wgraniu uruchamia aplikację ponownie. Zwraca komunikat albo null (bez zmian). */
-    private fun pull(activity: Activity, announce: Boolean): String? {
+    private fun pull(activity: Activity, announce: Boolean, now: Boolean = true): String? {
         val c = activity.applicationContext
         val p = prefs(c)
-        if (role(c) != Role.MEMBER) return null
+        if (role(c) == Role.NONE || (role(c) == Role.OWNER && !panelNewer(c))) return null
         val (status, json) = http("GET", "a=get&id=${p.getString("id", "")}&since=${p.getInt("version", 0)}")
         if (status != 200 || json == null) return if (status == 404) "Rodzina nie udostępnia już ustawień" else null
         val v = json.optInt("version"); val data = json.optString("data", "")
         if (data.isEmpty() || v == p.getInt("version", 0)) return null
+        // W trakcie pracy (co 15 min) nie restartuj: wgra się przy następnym starcie.
+        if (!now) { toast(activity, "Nowe ustawienia od rodziny — uruchom aplikację ponownie"); return null }
         val zip = FamilyCrypto.decrypt(FamilyCrypto.unb64(p.getString("key", "")!!), FamilyCrypto.unb64(data))
         val n = FamilySnapshot.apply(c, zip)
-        p.edit().putInt("version", v).commit()
+        p.edit().putInt("version", v).putString("hash", FamilyCrypto.sha256Hex(FamilyCrypto.b64(zip))).commit()
         Log.i(TAG, "applied v=$v files=$n")
         restart(activity, if (announce) "Pobrano ustawienia rodziny" else "Zaktualizowano ustawienia rodziny")
         return "Pobrano ustawienia rodziny"
@@ -176,19 +204,49 @@ object FamilySync {
     /** Raz na proces, gdy aplikacja jest na ekranie: właściciel wysyła zmiany, rodzina pobiera nowszą wersję. */
     fun onAppVisible(activity: Activity) {
         refresh(activity)
-        if (started) return
+        FamilyStats.install(activity)
+        poll?.cancel()
+        val first = !started
         started = true
-        scope.launch {
-            when (role(activity)) {
-                Role.OWNER -> upload(activity.applicationContext, force = false)
-                Role.MEMBER -> runCatching { pull(activity, announce = false) }
-                Role.NONE -> Unit
+        // Przy starcie od razu, potem co 15 minut, dopóki aplikacja jest na ekranie (panel zmienia ustawienia zdalnie).
+        poll = scope.launch {
+            var now = first
+            while (true) {
+                runCatching {
+                    if (role(activity) == Role.OWNER && !panelNewer(activity)) upload(activity.applicationContext, force = false)
+                    else pull(activity, announce = false, now = now)
+                }
+                report(activity.applicationContext)
+                now = false
+                kotlinx.coroutines.delay(15 * 60_000L)
             }
         }
+    }
+    @Volatile private var poll: kotlinx.coroutines.Job? = null
+
+    private fun toast(activity: Activity, msg: String) = activity.runOnUiThread {
+        android.widget.Toast.makeText(activity, msg, android.widget.Toast.LENGTH_LONG).show()
+    }
+
+    /** Raport dla panelu: urządzenie (model, Android, wersja) i kolejka zdarzeń FamilyStats. Tylko w rodzinie. */
+    private fun report(c: Context) {
+        if (role(c) == Role.NONE) return
+        val p = prefs(c)
+        val dev = p.getString("device", null) ?: FamilyCrypto.hex(FamilyCrypto.random(16)).also { p.edit().putString("device", it).apply() }
+        val events = FamilyStats.take(c)
+        val ok = runCatching {
+            val ver = runCatching { c.packageManager.getPackageInfo(c.packageName, 0).versionName }.getOrNull().orEmpty()
+            val info = JSONObject().put("model", "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}").put("android", android.os.Build.VERSION.RELEASE)
+                .put("app", ver).put("role", role(c).name.lowercase())
+            http("POST", "a=report", JSONObject().put("id", p.getString("id", "")).put("device", dev).put("info", info).put("events", events)).first == 200
+        }.getOrDefault(false)
+        if (!ok) FamilyStats.restore(c, events)
     }
 
     /** Wyjście z aplikacji: właściciel wysyła zmiany zrobione w tej sesji. */
     fun onAppHidden(c: Context) {
+        poll?.cancel(); poll = null
         if (role(c) == Role.OWNER) scope.launch { upload(c.applicationContext, force = false) }
+        if (role(c) != Role.NONE) scope.launch { report(c.applicationContext) }
     }
 }

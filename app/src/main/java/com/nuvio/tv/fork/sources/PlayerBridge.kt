@@ -22,9 +22,15 @@ object PlayerBridge {
             val now = android.os.SystemClock.elapsedRealtime()
             val host = runCatching { android.net.Uri.parse(u).host }.getOrNull()
             android.util.Log.i("ForkPerf", "first_play start_to_play_ms=${now - perfStart} key_to_play_ms=${if (lastKeyMs > 0) now - lastKeyMs else -1} host=$host")
+            com.nuvio.tv.fork.family.FamilyStats.play(now - perfStart, s.currentStreamName)
         }
     }
-    fun set(s: PlayerUiState, e: (PlayerEvent) -> Unit) { state = s; send = e; perf(s); TryAnotherSource.onState(s) }
+    private var lastError: String? = null
+    fun set(s: PlayerUiState, e: (PlayerEvent) -> Unit) {
+        state = s; send = e; perf(s); TryAnotherSource.onState(s)
+        if (s.error != null && s.error != lastError) com.nuvio.tv.fork.family.FamilyStats.playError(s.error, s.currentStreamName) // panel Rodzina
+        lastError = s.error
+    }
     fun current(): PlayerUiState? = state
     /** Kontekst aplikacji do komunikatów modułów (ustawiany przez ForkHooks.playerBridge). */
     @Volatile var appContext: android.content.Context? = null

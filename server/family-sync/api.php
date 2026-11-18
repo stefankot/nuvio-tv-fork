@@ -27,6 +27,16 @@ function db() {
     wrapped TEXT NOT NULL, expires INTEGER NOT NULL)');
   $pdo->exec('CREATE TABLE IF NOT EXISTS family_rate (ip_hash TEXT NOT NULL, kind TEXT NOT NULL, ts INTEGER NOT NULL)');
   $pdo->exec('CREATE INDEX IF NOT EXISTS family_rate_i ON family_rate (ip_hash, kind, ts)');
+  // Panel (19.11): logowanie linkiem, rodziny panelu, raporty telewizorów.
+  $pdo->exec('CREATE TABLE IF NOT EXISTS admin_tokens (h TEXT PRIMARY KEY, expires INTEGER NOT NULL, kind TEXT NOT NULL)');
+  $pdo->exec('CREATE TABLE IF NOT EXISTS admin_families (family_id TEXT PRIMARY KEY, added INTEGER NOT NULL)');
+  $pdo->exec('CREATE TABLE IF NOT EXISTS family_devices (family_id TEXT NOT NULL, device TEXT NOT NULL, name TEXT, info TEXT,
+    last_seen INTEGER NOT NULL, PRIMARY KEY (family_id, device))');
+  $pdo->exec('CREATE TABLE IF NOT EXISTS family_events (family_id TEXT NOT NULL, device TEXT NOT NULL, ts INTEGER NOT NULL, ev TEXT NOT NULL)');
+  $pdo->exec('CREATE INDEX IF NOT EXISTS family_events_i ON family_events (family_id, ts)');
+  foreach (['ALTER TABLE family_blobs ADD COLUMN src TEXT', "ALTER TABLE family_pairs ADD COLUMN kind TEXT DEFAULT 'device'"] as $q) {
+    try { $pdo->exec($q); } catch (PDOException $e) {}
+  }
   return $pdo;
 }
 function ipHash() { return hash('sha256', 'nuvio-rate:' . ($_SERVER['REMOTE_ADDR'] ?? '')); }
@@ -49,13 +59,14 @@ if ($a === 'get') {
   if (count_rate('miss') >= MISS_LIMIT) out(429, ['error' => 'too_many']);
   $id = $_GET['id'] ?? '';
   if (!validId($id)) out(400, ['error' => 'bad_id']);
-  $st = db()->prepare('SELECT version, data FROM family_blobs WHERE id=?');
+  $st = db()->prepare('SELECT version, data, updated, src FROM family_blobs WHERE id=?');
   $st->execute([$id]);
   $row = $st->fetch(PDO::FETCH_ASSOC);
   if (!$row) { note('miss'); out(404, ['error' => 'not_found']); }
   $since = (int)($_GET['since'] ?? -1);
-  if ($since === (int)$row['version']) out(200, ['version' => (int)$row['version']]);
-  out(200, ['version' => (int)$row['version'], 'data' => $row['data']]);
+  $meta = ['version' => (int)$row['version'], 'updated' => (int)$row['updated'], 'src' => $row['src'] ?: 'tv'];
+  if ($since === (int)$row['version']) out(200, $meta);
+  out(200, $meta + ['data' => $row['data']]);
 }
 
 if ($a === 'redeem') {
@@ -64,7 +75,7 @@ if ($a === 'redeem') {
   $lookup = $in['lookup'] ?? '';
   if (!validId($lookup)) out(400, ['error' => 'bad_request']);
   db()->prepare('DELETE FROM family_pairs WHERE expires<?')->execute([time()]);
-  $st = db()->prepare('SELECT wrapped FROM family_pairs WHERE lookup=?');
+  $st = db()->prepare("SELECT wrapped FROM family_pairs WHERE lookup=? AND COALESCE(kind,'device')='device'");
   $st->execute([$lookup]);
   $w = $st->fetchColumn();
   if ($w === false) { note('miss'); out(404, ['error' => 'bad_code']); }
@@ -85,10 +96,11 @@ if ($a === 'put' || $a === 'delete' || $a === 'pair') {
     if (!$row) out(404, ['error' => 'no_family']);
     $lookup = $in['lookup'] ?? ''; $wrapped = $in['wrapped'] ?? '';
     if (!validId($lookup) || !is_string($wrapped) || strlen($wrapped) > 2048) out(400, ['error' => 'bad_request']);
-    db()->prepare('DELETE FROM family_pairs WHERE family_id=? OR expires<?')->execute([$id, time()]);
+    $kind = ($in['kind'] ?? '') === 'panel' ? 'panel' : 'device';
+    db()->prepare("DELETE FROM family_pairs WHERE (family_id=? AND COALESCE(kind,'device')=?) OR expires<?")->execute([$id, $kind, time()]);
     try {
-      db()->prepare('INSERT INTO family_pairs (lookup, family_id, wrapped, expires) VALUES (?,?,?,?)')
-        ->execute([$lookup, $id, $wrapped, time() + PAIR_TTL]);
+      db()->prepare('INSERT INTO family_pairs (lookup, family_id, wrapped, expires, kind) VALUES (?,?,?,?,?)')
+        ->execute([$lookup, $id, $wrapped, time() + PAIR_TTL, $kind]);
     } catch (PDOException $e) { out(409, ['error' => 'code_taken']); }
     out(200, ['expires_in' => PAIR_TTL]);
   }
@@ -106,8 +118,12 @@ if ($a === 'put' || $a === 'delete' || $a === 'pair') {
       ->execute([$id, $ownerHash, 1, $data, time()]);
     out(200, ['version' => 1]);
   }
+  // Panel wysyła base = wersję, którą edytował; jeśli w międzyczasie telewizor wysłał nowszą, panel musi ją wczytać.
+  if (isset($in['base']) && (int)$in['base'] !== (int)$row['version']) out(409, ['error' => 'newer', 'version' => (int)$row['version']]);
+  $src = ($in['src'] ?? '') === 'panel' ? 'panel' : 'tv';
   $v = (int)$row['version'] + 1;
-  db()->prepare('UPDATE family_blobs SET version=?, data=?, updated=? WHERE id=?')->execute([$v, $data, time(), $id]);
+  db()->prepare('UPDATE family_blobs SET version=?, data=?, updated=?, src=? WHERE id=?')->execute([$v, $data, time(), $src, $id]);
   out(200, ['version' => $v]);
 }
+require __DIR__ . '/panel_api.php';
 out(400, ['error' => 'bad_action']);
