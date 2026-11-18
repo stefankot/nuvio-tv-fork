@@ -94,7 +94,7 @@ internal class NarratorEngine(context: Context) {
     private val prefs = NarratorPreferences(context)
     private val cache = NarratorAudioCache(File(context.applicationContext.cacheDir, "ai-narrator"))
     private val gemini = GeminiNarratorTts()
-    private val zonos = LocalZonosTts()
+    private val preparedAudio = NarratorPersistentAudio(context)
     private val workScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val geminiSlots = Semaphore(2)
     private val localSlots = Semaphore(1)
@@ -119,7 +119,7 @@ internal class NarratorEngine(context: Context) {
     fun tick(frame: NarratorFrame, options: NarratorOptions, geminiKey: String, localToken: String = "") {
         val ready = when (options.backend) {
             NarratorBackend.GEMINI -> geminiKey.isNotBlank()
-            NarratorBackend.ZONOS_LOCAL -> options.localEndpoint.isNotBlank()
+            NarratorBackend.ZONOS_LOCAL -> true
         }
         if (!options.enabled || !ready || frame.mediaId.isBlank()) {
             if (active) {
@@ -129,7 +129,7 @@ internal class NarratorEngine(context: Context) {
             mutableStatus.value = when {
                 !options.enabled -> "Wyłączony"
                 !ready && options.backend == NarratorBackend.GEMINI -> "Brak klucza Gemini API"
-                !ready -> "Skonfiguruj adres lokalnego ZONOS3"
+                !ready -> "Przygotuj model ZONOS3 w aplikacji"
                 else -> "Brak aktywnego filmu"
             }
             return
@@ -167,7 +167,7 @@ internal class NarratorEngine(context: Context) {
             listOfNotNull(currentLiveLine).filter { it.endMs > frame.positionMs }
         }
 
-        if (frame.isPlaying && !frame.isBuffering) {
+        if (frame.isPlaying && !frame.isBuffering && options.backend == NarratorBackend.GEMINI) {
             val maxPending = if (options.backend == NarratorBackend.ZONOS_LOCAL) 3 else 6
             for (line in upcoming) {
                 if (pending.size >= maxPending) break
@@ -180,7 +180,9 @@ internal class NarratorEngine(context: Context) {
             }
         }
 
-        val current = if (useTimeline) matched else currentLiveLine?.takeIf {
+        val current = if (options.backend == NarratorBackend.ZONOS_LOCAL) {
+            NarratorPlanner.current(frame.timedLines, frame.positionMs)
+        } else if (useTimeline) matched else currentLiveLine?.takeIf {
             visible.isNotEmpty() && it.text == visible
         }
         if (current == null || !NarratorPlanner.stillAudible(current, frame.positionMs)) {
@@ -201,7 +203,16 @@ internal class NarratorEngine(context: Context) {
         audio.stop()
         if (id in played) return
         val style = styleFor(options, current, frame.timedLines)
-        val wav = cache.find(cacheKey(configuration, current.text, style), touch = true) ?: return
+        val wav = if (options.backend == NarratorBackend.ZONOS_LOCAL) {
+            preparedAudio.find(NarratorPreparationPlan.key(current))
+        } else {
+            cache.find(cacheKey(configuration, current.text, style), touch = true)
+        } ?: run {
+            if (options.backend == NarratorBackend.ZONOS_LOCAL) {
+                mutableStatus.value = "Brak przygotowanej kwestii — przygotuj audio z pełnych napisów"
+            }
+            return
+        }
         if (current.endMs - frame.positionMs < 750L) return
         played.add(id)
         playingCueId = id
@@ -211,7 +222,7 @@ internal class NarratorEngine(context: Context) {
 
     private fun backendIdentity(options: NarratorOptions): String = when (options.backend) {
         NarratorBackend.GEMINI -> "gemini:${options.model.apiId}:${options.voice}"
-        NarratorBackend.ZONOS_LOCAL -> "zonos3:${options.localEndpoint.trimEnd('/')}:${options.localSpeakerId}"
+        NarratorBackend.ZONOS_LOCAL -> NarratorPreparationPlan.identity()
     }
 
     private fun styleFor(options: NarratorOptions, line: NarratorLine, lines: List<NarratorLine>): String {
@@ -239,8 +250,8 @@ internal class NarratorEngine(context: Context) {
                     if (cache.find(key) != null) return@withPermit
                     val audioBytes = when (options.backend) {
                         NarratorBackend.ZONOS_LOCAL -> {
-                            mutableStatus.value = "Lokalna synteza ZONOS3"
-                            zonos.synthesize(options.localEndpoint, localToken, options.localSpeakerId, NarratorText.clean(text))
+                            // Never invoke on-device inference while decoding a movie.
+                            throw IllegalStateException("ZONOS3 requires pre-rendered audio")
                         }
                         NarratorBackend.GEMINI -> {
                             val month = YearMonth.now()
@@ -289,6 +300,7 @@ internal class NarratorEngine(context: Context) {
     }
 
     fun clearCache() = cache.clear()
+    fun deletePreparedAudioOnUserRequest() = preparedAudio.deleteOnUserRequest()
 
     fun close() {
         resetPlayback()
