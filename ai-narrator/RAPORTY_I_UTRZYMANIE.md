@@ -47,7 +47,7 @@ Przygotowano `ai-narrator/tools/check_contracts.py` i `merge_dry_run.sh` oraz os
 3. Na gałęzi `feature/ai-narrator` uruchomić **AI narrator compatibility** dla dokładnego nowego tagu NuvioTV. Raport zawiera ścieżki konfliktów. Dla źródeł Echo/Reshaped najpierw określić rzeczywisty fork i rewizję.
 4. Wymagać kompilacji `compileFullDebugKotlin`, testów `testFullDebugUnitTest`, kontroli kontraktów oraz ręcznej weryfikacji obydwu silników.
 5. Przy konflikcie nie wykonywać automatycznie `ours`/`theirs` na `PlayerScreen.kt`. Przenieść pojedyncze wywołanie adaptera do nowego miejsca i uruchomić testy ponownie.
-6. Dopiero po dodatnim raporcie kompatybilności, testach odsłuchowych, pomiarach opóźnień i kontroli kosztów rozważać ręczną integrację. **Nigdy bez automatycznego merge do `main`.**
+6. Dopiero po dodatnim raporcie kompatybilności, testach odsłuchowych, pomiarach opóźnień i kontroli kosztów rozważać ręczną integrację. **Nigdy nie włączać automatycznego merge do `main`.**
 
 ## Ograniczenia odbioru
 
