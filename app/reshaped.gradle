@@ -67,3 +67,7 @@ dependencies {
     // The audio sync tests use kotlin.test.
     testImplementation "org.jetbrains.kotlin:kotlin-test:${kotlin.coreLibrariesVersion}"
 }
+
+// AI Narrator: independent sources; never modify upstream app/build.gradle.kts.
+android.sourceSets.getByName("main").java.srcDir("$rootDir/ai-narrator/src/main/kotlin")
+android.sourceSets.getByName("test").java.srcDir("$rootDir/ai-narrator/src/test/kotlin")

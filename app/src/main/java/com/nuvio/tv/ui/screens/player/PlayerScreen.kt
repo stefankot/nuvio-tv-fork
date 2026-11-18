@@ -2218,6 +2218,11 @@ fun PlayerScreen(
         }
 
         com.nuvio.tv.ui.reshaped.livetv.LiveTvPlayerOverlay(liveTvPlayer, uiState) // Nuvio RS hook: Live TV
+        com.nuvio.tv.ainarrator.NarratorOverlay(
+            viewModel.controller,
+            visible = uiState.showControls && uiState.error == null,
+            modifier = Modifier.align(Alignment.TopEnd).zIndex(2.7f)
+        ) // AI narrator isolated extension hook
 
         if (uiState.showSpeedDialog) {
             SpeedSelectionDialog(
