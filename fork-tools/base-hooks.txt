@@ -22,3 +22,4 @@ app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsDesignSystem.kt
 app/src/main/java/com/nuvio/tv/ui/theme/Color.kt
 app/src/main/java/com/nuvio/tv/ui/theme/ShapeTokens.kt
 app/src/main/java/com/nuvio/tv/ui/theme/Type.kt
+app/src/main/java/com/nuvio/tv/ui/screens/home/ModernHomeRowsList.kt

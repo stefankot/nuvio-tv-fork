@@ -480,6 +480,7 @@ internal fun ModernHomeRowsList(
                     }
                 )
             }
+            item(key = "fork_module_rows", contentType = "fork_module_rows") { com.nuvio.tv.fork.ForkHooks.HomeModuleRows() } // Fork hook: registry (rzędy modułów także w układzie Modern)
         }
     }
 }

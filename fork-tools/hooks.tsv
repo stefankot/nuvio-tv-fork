@@ -59,3 +59,4 @@ app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerInitiali
 app/src/main/java/com/nuvio/tv/MainActivity.kt	ForkHooks.youTubeInMenu(	add(Screen.Discover.route)	menu	YouTube w menu (trasa główna)	
 app/src/main/java/com/nuvio/tv/MainActivity.kt	ForkHooks.drawerOrder(	sidebar_settings	menu	YouTube w menu, kolejność zakładek Kicii	
 app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	ForgeTabBackToBar()	LIVE_TV_ROUTE	skin	Kicia: Wstecz z Live TV na pasek	
+app/src/main/java/com/nuvio/tv/ui/screens/home/ModernHomeRowsList.kt	ForkHooks.HomeModuleRows()	itemsIndexed(	registry	rzędy modułów w układzie Modern	
