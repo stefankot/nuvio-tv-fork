@@ -108,6 +108,7 @@ private tailrec fun android.content.Context.findActivity(): Activity? = when (th
 fun FamilyStartButton() {
     val c = LocalContext.current
     var open by remember { mutableStateOf(false) }
+    androidx.compose.foundation.layout.Spacer(Modifier.padding(top = 12.dp))
     Button(onClick = { open = true }) { Text("Mam kod od rodziny") }
     if (!open) return
     val st by FamilySync.state.collectAsState()
