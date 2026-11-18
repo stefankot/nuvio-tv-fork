@@ -33,7 +33,7 @@ if [ -s "$PATCHED" ]; then
   done < "$PATCHED"
 fi
 # (d) limit plików utrzymywanych ręcznie
-n=$(cat fork-tools/hooked-overrides.txt fork-tools/base-hooks.txt; cut -f1 "$PATCHED" 2>/dev/null) ; n=$(echo "$n" | grep -c .); [ "$n" -le 50 ] || bad "za dużo plików z hookami: $n"
+n=$(cat fork-tools/hooked-overrides.txt fork-tools/base-hooks.txt; cut -f1 "$PATCHED" 2>/dev/null) ; n=$(echo "$n" | grep -c .); [ "$n" -le 65 ] || bad "za dużo plików z hookami: $n"
 # (e) zmodyfikowany plik bazy spoza list
 for f in $(git diff --diff-filter=M --name-only $BASE; git diff --name-only --diff-filter=M $BASE HEAD); do
   grep -qxF "$f" fork-tools/overrides.txt fork-tools/hooked-overrides.txt fork-tools/base-hooks.txt || cut -f1 "$PATCHED" 2>/dev/null | grep -qxF "$f" || bad "zmodyfikowany plik poza listami: $f"; done

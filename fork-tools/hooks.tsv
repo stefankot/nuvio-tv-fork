@@ -46,3 +46,4 @@ app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	"search", mapOf(	Se
 app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	"library", mapOf(	LibraryScreen(	skin	skin: Biblioteka	
 app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	"youtube", mapOf(	YouTubeScreen(	skin	skin: YouTube	
 app/src/main/java/com/nuvio/tv/ui/screens/LayoutSelectionScreen.kt	// Fork hook: skin	continueFocusRequester.requestFocus	skin	skin: kreator krok 2	
+app/src/main/java/com/nuvio/tv/core/player/StreamAutoPlaySelector.kt	// Fork hook: ke-rank	StreamAutoPlayMode.FIRST_STREAM	sources	hybryda: ranking KE	StreamAutoPlayMode.FIRST_STREAM -> candidateStreams.firstOrNull { isPlayable(it) }

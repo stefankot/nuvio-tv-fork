@@ -190,7 +190,7 @@ object StreamAutoPlaySelector {
 
         return when (mode) {
             StreamAutoPlayMode.MANUAL -> null
-            StreamAutoPlayMode.FIRST_STREAM -> candidateStreams.firstOrNull { isPlayable(it) }
+            StreamAutoPlayMode.FIRST_STREAM -> com.nuvio.tv.fork.sources.KeRanking.order(candidateStreams).firstOrNull { isPlayable(it) } // Fork hook: ke-rank
             StreamAutoPlayMode.REGEX_MATCH -> {
                 if (rankedRegexPatterns.isNotEmpty()) {
                     return StreamRegexRanking.rank(

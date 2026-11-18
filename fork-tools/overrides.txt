@@ -9,7 +9,6 @@ app/src/main/java/com/nuvio/tv/core/player/DoviBridge.kt
 app/src/main/java/com/nuvio/tv/core/player/HevcDvRpuStripper.kt
 app/src/main/java/com/nuvio/tv/core/player/HevcHdr10PlusStripper.kt
 app/src/main/java/com/nuvio/tv/core/player/StreamAutoPlayPolicy.kt
-app/src/main/java/com/nuvio/tv/core/player/StreamAutoPlaySelector.kt
 app/src/main/java/com/nuvio/tv/core/player/dvmkv/MatroskaExtractor.java
 app/src/main/java/com/nuvio/tv/data/local/PlayerSettingsDataStore.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/AudioOutputRouteDetector.kt
