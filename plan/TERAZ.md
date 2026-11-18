@@ -9,6 +9,12 @@ Ostatnia aktualizacja: 18.11.2026 ok. 22:20 (wątek 3, koniec przy ~95% kontekst
 4. Okno testów na JMGO od właściciela: 2 h od 22:04 18.11; potem testy na emulatorze na Macu (AVD `nuvio_tv`, `-PforkAbi=arm64-v8a`).
 5. Test rodziny, strona członka: na emulatorze (świeża instalacja) ekran startowy → „Mam kod od rodziny” → kod z JMGO (Ustawienia → Rodzina → „Dodaj telewizor rodziny”, ważny 10 min). Sprawdź: pobrane dodatki, IPTV, konto, profil po restarcie.
 
+## Następna runda testów: sterowanie głosowe (prośba właściciela 18.11)
+- Na JMGO: przycisk Szukaj/Asystent na pilocie (`KEYCODE_SEARCH`, `VOICE_ASSIST`, `ASSIST`) ma otwierać nasłuch poleceń w całej aplikacji (`ForkHooks.onGlobalKey` → `VoiceTrigger`); sprawdź nakładkę „Słucham…” w uiautomator (np. `adb shell input keyevent KEYCODE_SEARCH`).
+- Polecenia do sprawdzenia: „pauza”, „przewiń o minutę”, „włącz TVN” (kanał z IPTV), „inne źródło” (`TryAnotherSource`), „napisy nie pasują”, „lektor”, „tryb nocny”, „szukaj Fight Club”.
+- Gdy trzeba, żeby właściciel powiedział coś do pilota: najpierw ZAGRAJ 3× GŁOŚNY DŹWIĘK (`for i in 1 2 3; do afplay -v 10 /System/Library/Sounds/Sosumi.aiff; done`), potem napisz dokładnie, co ma powiedzieć, i czekaj na potwierdzenie. Wynik czytaj z logów (`adb logcat | grep -iE "Voice|Whisper|Assist"`) i z uiautomator.
+- Sprawdź model mowy (Whisper offline vs systemowe rozpoznawanie) i czas od końca mowy do akcji.
+
 ## Paczka poprawek (z testu JMGO 18.11)
 - P1. Odtwarzacz skórki Kicia (`skin/kicia/player/ForgePlayerControls.kt`): brak przycisku „Więcej” → okno z „Spróbuj innego źródła”, „Napisy nie pasują”, „Lektor” nieosiągalne (`moreOpen` nigdy true). Dodaj przycisk „Więcej” w rzędzie po „Szybkość”.
 - P2. Właściciel: WSZYSTKIE funkcje forka spoza bazy Nuvio domyślnie włączone (lektor, sterowanie głosem, automatyczny wybór źródła = tryb „pierwsze źródło” z rankingiem KE zamiast ręcznej listy, kontrole pliku, itd.). Miejsca: `ForkFeatures.ON_BY_DEFAULT`, `fork/settings/FirstRunDefaults`, domyślny `StreamAutoPlayMode` (profil JMGO dziś = ręczna lista).
