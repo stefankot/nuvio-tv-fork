@@ -74,7 +74,7 @@ object ForkHooks {
     @Composable
     fun playerBridge(uiState: PlayerUiState, timeline: kotlinx.coroutines.flow.StateFlow<com.nuvio.tv.ui.screens.player.PlaybackTimelineState>, onEvent: (PlayerEvent) -> Unit) {
         val ctx = androidx.compose.ui.platform.LocalContext.current
-        androidx.compose.runtime.SideEffect { com.nuvio.tv.fork.sources.PlayerBridge.set(uiState, onEvent) }
+        androidx.compose.runtime.SideEffect { com.nuvio.tv.fork.sources.PlayerBridge.appContext = ctx.applicationContext; com.nuvio.tv.fork.sources.PlayerBridge.set(uiState, onEvent) }
         androidx.compose.runtime.LaunchedEffect(uiState.audioTracks.size, uiState.isPlaying) { com.nuvio.tv.fork.sources.PlayerBridge.maybeAutoLektor(ctx) }
         androidx.compose.runtime.LaunchedEffect(timeline) { timeline.collect { com.nuvio.tv.fork.sources.PlayerBridge.position(it.currentPosition, uiState.isPlaying) } }
         androidx.compose.runtime.DisposableEffect(Unit) { onDispose { com.nuvio.tv.fork.sources.PlayerBridge.clear(); com.nuvio.tv.fork.lektor.LektorController.stop() } }

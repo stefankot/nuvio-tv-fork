@@ -55,6 +55,9 @@ object VoiceActions {
             com.nuvio.tv.fork.tv.ekrany.PendingPlay.ask(ch.streamUrl)
             ForkFeatures.open?.invoke(com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE); lastMessage = ch.name; return true
         }
+        if (call.id == "source.other") {
+            lastMessage = com.nuvio.tv.fork.sources.TryAnotherSource.run(); return true
+        }
         if (call.id == "subs.mismatch") {
             val msg = com.nuvio.tv.fork.sources.PlayerBridge.subtitleMismatch() ?: return false
             lastMessage = msg; return true

@@ -162,6 +162,12 @@ fun ForgePlayerControls(
         }
         ForgeSideSheet(visible = moreOpen, onDismiss = { moreOpen = false }, title = "Więcej") {
             ForgeSheetRow(text = "Źródła") { moreOpen = false; onShowSourcesPanel() }
+            val ctx = androidx.compose.ui.platform.LocalContext.current
+            // Kicia „Spróbuj innego źródła” (fork/sources/TryAnotherSource): następne z rankingu, obecne odłożone na 30 min.
+            ForgeSheetRow(text = "Spróbuj innego źródła") {
+                moreOpen = false
+                android.widget.Toast.makeText(ctx, com.nuvio.tv.fork.sources.TryAnotherSource.run(), android.widget.Toast.LENGTH_SHORT).show()
+            }
             if (series) ForgeSheetRow(text = "Odcinki") { moreOpen = false; onShowEpisodesPanel() }
             ForgeSheetRow(text = "Informacje") { moreOpen = false; onShowStreamInfo() }
             ForgeSheetRow(text = "Szybkość", detail = forgeSpeed(uiState.playbackSpeed)) { moreOpen = false; onShowSpeedDialog() }

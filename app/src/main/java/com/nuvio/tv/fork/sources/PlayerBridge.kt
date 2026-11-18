@@ -24,7 +24,10 @@ object PlayerBridge {
             android.util.Log.i("ForkPerf", "first_play start_to_play_ms=${now - perfStart} key_to_play_ms=${if (lastKeyMs > 0) now - lastKeyMs else -1} host=$host")
         }
     }
-    fun set(s: PlayerUiState, e: (PlayerEvent) -> Unit) { state = s; send = e; perf(s) }
+    fun set(s: PlayerUiState, e: (PlayerEvent) -> Unit) { state = s; send = e; perf(s); TryAnotherSource.onState(s) }
+    fun current(): PlayerUiState? = state
+    /** Kontekst aplikacji do komunikatów modułów (ustawiany przez ForkHooks.playerBridge). */
+    @Volatile var appContext: android.content.Context? = null
 
     /** B09-6: lektor sam, gdy profil chce polskiego, brak polskiej ścieżki dźwięku, są polskie napisy i włączono „lektor_auto”. Raz na odtwarzanie. */
     fun maybeAutoLektor(c: android.content.Context) {
@@ -38,7 +41,7 @@ object PlayerBridge {
         if (com.nuvio.tv.fork.lektor.LektorRules.step(wantsPl, hasPlAudio, hasPlSubs, true) == com.nuvio.tv.fork.lektor.LektorRules.Step.LEKTOR) com.nuvio.tv.fork.lektor.LektorController.start(c)
     }
     fun position(posMs: Long, playing: Boolean) = com.nuvio.tv.fork.lektor.LektorEngine.updatePosition(posMs, playing)
-    fun clear() { state = null; send = null; queue = null; autoTried = false }
+    fun clear() { state = null; send = null; queue = null; autoTried = false; TryAnotherSource.reset() }
     val active: Boolean get() = send != null
     fun send(e: PlayerEvent) { send?.invoke(e) }
     /** Lektor czyta napisy z synchronizacji: wybierz polskie napisy z dodatku, jeśli żadne nie jest wybrane. */

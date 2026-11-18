@@ -42,6 +42,9 @@ object StartupChecks {
         return if (bad.isEmpty()) streams else good + bad
     }
 
+    /** „Spróbuj innego źródła”: pominięte przez widza odłożone na 30 min (Kicia USER_SKIP). */
+    fun markSkipped(stream: Stream) { if (on) runCatching { SmartBadSources.mark(stream, BadReason.USER_SKIP) } }
+
     /** Ręczny wybór źródła: zdejmij jego blokadę. */
     fun clearFor(stream: Stream) = runCatching { SmartBadSources.clearFor(stream) }
 
