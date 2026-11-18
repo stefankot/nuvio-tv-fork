@@ -192,7 +192,9 @@ fun NarratorOverlay(controller: PlayerRuntimeController, visible: Boolean, modif
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = {
                         val result = runCatching {
-                            val endpoint = if (serverAddress.isBlank()) "" else ZonosEndpoint.parse(serverAddress).toString()
+                            val endpoint = if (draft.backend == NarratorBackend.ZONOS_LOCAL && serverAddress.isNotBlank())
+                                ZonosEndpoint.parse(serverAddress).toString()
+                            else options.localEndpoint
                             val chosen = draft.copy(localEndpoint = endpoint, localSpeakerId = speakerId.trim())
                             if (chosen.enabled && chosen.backend == NarratorBackend.ZONOS_LOCAL && endpoint.isBlank()) {
                                 throw IllegalArgumentException("Podaj adres serwera ZONOS3.")
