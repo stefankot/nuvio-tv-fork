@@ -27,4 +27,9 @@
 - YouTube: pamięć miniatur przewijania, przewijanie stron.
 
 ## D. Wspólne szukanie wszystkiego naraz (filmy, seriale, TV, YouTube)
-- **W Kicii też go nie było.** Ekran Szukaj Kicii szuka filmów i seriali z dodatków; w kodzie jest notatka, że półki „Telewizja” i „YouTube” wymagają osobnych źródeł (`TODO(scalanie)` w `ForgeSearchScreen.kt`). Szukanie w TV było osobnym ekranem w Live TV, YouTube miał własne. Prawdopodobnie było w makiecie. Do zrobienia jako nowa funkcja: półki TV (z przewodnika) i YouTube dodane do ekranu Szukaj skórki.
+- Poprzednia wersja tego punktu („w Kicii nie było”) była błędna. Ekran Szukaj Kicii pyta naraz WSZYSTKIE zainstalowane dodatki i scala ich wyniki w jedną półkę: filmy, seriale, a także kanały TV i YouTube, jeśli dają je dodatki (np. YouStream). Odkrywaj (Typ/Katalog/Gatunek) jest pod spodem na tym samym ekranie.
+- Notatka `TODO(scalanie)` w `ForgeSearchScreen.kt` dotyczy tylko osobnych półek dla wbudowanych źródeł aplikacji (Live TV z M3U/EPG i wbudowany YouTube), które nie są dodatkami.
+- Ten ekran przychodzi ze skórką Kicia (wpięcie „search” gotowe). Do potwierdzenia przez właściciela, czy tak to działało.
+
+## Źródło kopii
+Pierwsza kopia skórki była z `nuvio-tv-kicia-poprawki` (13.11). Najnowsza Kicia to `~/Desktop/nuvio-tv-kicia`, gałąź `feat/auto-odtwarzanie` (15.11, +168 commitów); skórka skopiowana ponownie z niej (commit a5b78bc55).
