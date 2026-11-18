@@ -21,6 +21,8 @@ class TvData(
 
     private var log: List<LogEntry> = emptyList()
     private var records = LinkedHashMap<String, WatchRecord>()
+    /** Fork 19.11 (ANR na JMGO): kopia stanu oglądania dla komórek siatki EPG (wątek główny) czytana bez blokady. */
+    @Volatile private var recSnap: List<WatchRecord> = emptyList()
     private var followed: List<Followed> = emptyList()
     private var sessions: List<ViewSession> = emptyList()
     private var current: WatchRecord? = null
@@ -33,6 +35,7 @@ class TvData(
         loaded = true
         log = EpisodeLog.read(File(f("episode_log").path + ".tsv"))
         records = LinkedHashMap(readList("watch", WatchRecord.serializer()).associateBy { it.key })
+        recSnap = records.values.toList()
         followed = readList("followed", Followed.serializer())
         sessions = readList("sessions", ViewSession.serializer())
     }
@@ -54,11 +57,14 @@ class TvData(
     /** Guide read: extends the episode log from archive channels ([kept] may hold only those). */
     fun onGuide(kept: Map<String, List<GuideProgramme>>, catchupDays: Map<String, Int>, nowMs: Long) {
         if (!enabled) return
+        // Fork 19.11 (ANR na JMGO): normalizacja całego przewodnika i scalanie POZA blokadą — pod blokadą czekały na nią
+        // komórki siatki EPG (markFor w wątku głównym).
+        val base = synchronized(lock) { ensureLoaded(); log }
+        val fresh = EpisodeLog.fromGuide(kept, catchupDays, nowMs)
+        if (fresh.isEmpty()) return
+        val merged = EpisodeLog.merge(base, fresh)
         synchronized(lock) {
-            ensureLoaded()
-            val fresh = EpisodeLog.fromGuide(kept, catchupDays, nowMs)
-            if (fresh.isEmpty()) return
-            log = EpisodeLog.merge(log, fresh)
+            log = if (log === base) merged else EpisodeLog.merge(log, fresh)
             val snapshot = log
             save { EpisodeLog.write(File(f("episode_log").path + ".tsv"), snapshot) }
         }
@@ -104,6 +110,7 @@ class TvData(
 
     private fun afterChange(nowMs: Long) {
         val recs = records.values.toList()
+        recSnap = recs
         writeList("watch", WatchRecord.serializer(), recs)
         writeList("sessions", ViewSession.serializer(), sessions)
         val seriesKeys = recs.map { it.programKey }.distinct().filter { k ->
@@ -126,12 +133,15 @@ class TvData(
 
     fun followedList(): List<Followed> = synchronized(lock) { ensureLoaded(); Following.active(followed) }
     /** Znacznik komórki przewodnika: stan i postęp emisji o tym tytule i starcie (null = brak śladu). */
-    fun markFor(title: String, startMs: Long): Pair<WatchState, Float>? = synchronized(lock) {
-        if (!enabled) return@synchronized null
-        ensureLoaded()
+    fun markFor(title: String, startMs: Long): Pair<WatchState, Float>? {
+        // Fork 19.11 (ANR na JMGO): wołane dla każdej komórki siatki w wątku głównym — bez blokady, z kopii [recSnap]
+        // (pusta, dopóki dane nie są wczytane w tle: wtedy komórka po prostu nie ma znacznika).
+        if (!enabled) return null
+        val recs = recSnap
+        if (recs.isEmpty()) return null
         val pk = ShowIdentity.normalizeTitle(title)
-        val r = records.values.firstOrNull { it.programKey == pk && it.startMs == startMs } ?: return@synchronized null
-        if (r.state == WatchState.UNWATCHED) null else r.state to (r.positionMs.toFloat() / r.durMs.coerceAtLeast(1)).coerceIn(0f, 1f)
+        val r = recs.firstOrNull { it.programKey == pk && it.startMs == startMs } ?: return null
+        return if (r.state == WatchState.UNWATCHED) null else r.state to (r.positionMs.toFloat() / r.durMs.coerceAtLeast(1)).coerceIn(0f, 1f)
     }
 
     fun records(): List<WatchRecord> = synchronized(lock) { ensureLoaded(); records.values.toList() }
@@ -149,7 +159,7 @@ class TvData(
     /** „Wyczyść historię oglądania TV”: kasuje stan oglądania, obserwowane i sesje (dziennik odcinków zostaje). */
     fun clearHistory() = synchronized(lock) {
         ensureLoaded()
-        records.clear(); followed = emptyList(); sessions = emptyList(); current = null
+        records.clear(); recSnap = emptyList(); followed = emptyList(); sessions = emptyList(); current = null
         listOf("watch", "followed", "sessions").forEach { File(f(it).path + ".json").delete() }
     }
 }
