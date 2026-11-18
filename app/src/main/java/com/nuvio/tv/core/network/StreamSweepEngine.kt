@@ -715,7 +715,7 @@ object StreamSweepEngine {
             // https source that never negotiates h2 compares identical
             // arms too — deltas read as noise around the 10% bar, which
             // is what the bar exists to absorb.
-            if (measured.isNotEmpty() && !sourceIsThrottling() &&
+            if (false /* fork W1: brak klienta h1.1 w bazowym testerze */ && measured.isNotEmpty() && !sourceIsThrottling() &&
                 parallelPasses < maxParallelPasses &&
                 streamUrl.startsWith("https", ignoreCase = true)
             ) {
@@ -735,11 +735,8 @@ object StreamSweepEngine {
                         headers,
                         bestChunkMb * 1024L * 1024L,
                         bestConnections,
-                        depth,
-                        com.nuvio.tv.core.player.PlayerPlaybackNetworking.playbackHttpClient
-                            .newBuilder()
-                            .protocols(listOf(okhttp3.Protocol.HTTP_1_1))
-                            .build()
+                        depth
+                        // fork W1: bazowy StreamSpeedTester nie przyjmuje klienta h1.1 (etap 6 wyłączony wyżej)
                     )
                 }
                 if (pass == null) {

@@ -1,0 +1,2 @@
+# Łatki kopii KE (W1)
+- `StreamSweepEngine.patch`: KE wołał `StreamSpeedTester.runParallelChunkTest(..., klient h1.1)`; bazowy tester (Nuvio 2c853c1) nie ma tego parametru. Usunięty argument, etap 6 (porównanie h2/h1) wyłączony (`false &&`), bo bez osobnego klienta oba ramiona byłyby identyczne. Przy nowej wersji KE: skopiuj plik 1:1 i nałóż `patch -p1 < fork-tools/patches/ke-w1/StreamSweepEngine.patch`.
