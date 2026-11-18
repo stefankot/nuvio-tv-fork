@@ -30,6 +30,12 @@ Ostatnia aktualizacja: 19.11.2026 ok. 02:40 (koniec wątku 5).
 - NAJBLIŻSZY KROK: etap 2 (d) wybór zawczasu następnego odcinka (PrefetchSelectionSupplier/StreamPrefetchCache usunięte w etapie 1, zależą od rankingu KE) — ocenić koszt; jeśli duży, pominąć i przejść do DUŻEGO buildu APK arm64 (`:app:assembleFullDebug -PforkAbi=arm64-v8a -x lintVitalAnalyzeFullDebug -x lintVitalReportFullDebug -x lintVitalFullDebug`) + test na emulatorze Google TV: Ustawienia → Moduły → Test łącza; odtwarzacz Kicia → Więcej → Test łącza; log `StreamSweepEngine`; potem ranking z limitem (źródła ponad łącze na końcu).
 - Etap 2 (do zrobienia): wybór zawczasu (PrefetchSelectionSupplier/StreamPrefetchCache → następny odcinek, wpięcie przez ForkHooks), FailedReleases w KeRanking, test łącza automatycznie raz na usługę (KE PerPlayNetwork), wejście „Test łącza” także w skórce Nuvio i w ustawieniach. Potem DUŻY build arm64 + test na emulatorze Google TV (AVD `nuvio_tv`? sprawdzić, czy to obraz Google TV; jeśli nie — utworzyć AVD z obrazem google_atv).
 
+## TEST JMGO 19.11 ok. 02:45 (wątek 6, build82)
+- OK na „Kontynuuj oglądanie” od razu odtwarza (Podziemny krąg od 8:09, polskie napisy „Dopasowuję napisy…”). Długie OK na karcie nic nie otwiera.
+- TMDB działa: szczegóły „Ludzkie dzieci” (z Biblioteki) mają polski tytuł i opis, reżyserię, scenariusz, obsadę z rolami. Obsada w skórce Kicii = sam tekst (bez zdjęć; zdjęć nie sprawdzano, testy tylko tekstem).
+- Wypchnięte na GitHuba (prośba właściciela): `hybryda-zrodel` aktualna, `arc-remote` → `main` (+4 stare commity).
+- Dalej: punkt 4 (a) „Na co masz ochotę?”, (b) półki Szukaj, (c) kanał IPTV bez intro, (d) opóźnienie „Odkrywaj”; potem W8.
+
 ## NAJPIERW (wątek 6): co robić po „kontynuuj”
 1. `cd "/Users/milajovovich/Desktop/nuvio 2/NuvioFork" && git status --short && git branch --show-current` (gałąź `hybryda-zrodel`, wypchnięta).
 2. Build82 (armeabi-v7a, 9 min 26 s, z kluczem TMDB) leży w `app/build/outputs/apk/full/debug/app-full-armeabi-v7a-debug.apk` — ZAINSTALOWANY na JMGO 19.11 (skrót zgodny 90031dd2…); od razu testy z punktu 4. Klucze TMDB i TVDB są w `local.properties` (ignorowany przez git; NIGDY nie commitować ani nie wypisywać). TVDB: żaden kod go nie używa (Plex czyta tylko numery tvdb). Jeśli APK zniknął: zbuduj ponownie (`-PforkAbi=armeabi-v7a`, zakładka terminala, `--console=rich | tee`).
