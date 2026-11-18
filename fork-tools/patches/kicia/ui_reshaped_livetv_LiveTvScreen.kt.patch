@@ -128,7 +128,7 @@ index a806eaf82..fdbe5e0dd 100644
 @@ -511,9 +559,9 @@ fun LiveTvScreen(
                          !naming && editingList == null,
                  )
-                 com.nuvio.tv.fork.tv.ekrany.ForYouRow(launchPlay) // Fork patch: dostawca #12 - rząd „Dla Ciebie”
+                 if (forgeBrowseB) com.nuvio.tv.fork.tv.ekrany.ForYouRow(launchPlay) // Fork patch: dostawca #12 - rząd „Dla Ciebie” (Kicia A: w półce nagłówka)
 -                Spacer(Modifier.height(NuvioTheme.spacing.sm))
 +                Spacer(Modifier.height(if (!forgeBrowseB) 0.dp else NuvioTheme.spacing.sm)) // forge hook v7.4
                  LaunchedEffect(gridFocused) { if (gridFocused) categoriesOpen = false }
