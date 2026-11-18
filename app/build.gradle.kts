@@ -306,8 +306,10 @@ android {
         abi {
             isEnable = !buildingAppBundle
             reset()
-            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
-            isUniversalApk = true
+            // Fork: -PforkAbi=armeabi-v7a albo arm64-v8a = tylko jedna wersja APK (szybciej; właściciel 18.11).
+            val forkAbi = (project.findProperty("forkAbi") as String?)?.takeIf { it.isNotBlank() }
+            if (forkAbi != null) include(forkAbi) else include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+            isUniversalApk = forkAbi == null
         }
     }
 

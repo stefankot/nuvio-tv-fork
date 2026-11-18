@@ -53,6 +53,10 @@ object ForkHooks {
         return first + all.filter { it !in first && it !in settings } + settings
     }
 
+    /** Ekran startowy (logowanie QR): trzecia droga obok QR i „bez konta” — ustawienia od rodziny kodem 6 cyfr. */
+    @Composable
+    fun FamilyStartButton() = com.nuvio.tv.fork.family.FamilyStartButton()
+
     private val VOICE_KEYS = setOf(KeyEvent.KEYCODE_SEARCH, KeyEvent.KEYCODE_VOICE_ASSIST, KeyEvent.KEYCODE_ASSIST)
 
     /** HomeScreen / trasy: true = aktywny skin narysował ekran tej trasy. */
@@ -153,6 +157,17 @@ object ForkHooks {
     fun moduleOverlays() {
         val c = LocalContext.current
         remember(c) { com.nuvio.tv.skin.api.SkinPreferences.ensureLoaded(c); com.nuvio.tv.fork.sources.KeRanking.warm(c) } // skórka przed pierwszym ekranem; ranking KE: dekodery i TV
+        // Rodzina: przy pokazaniu aplikacji właściciel wysyła zmiany / rodzina pobiera; przy schowaniu właściciel wysyła.
+        val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+        androidx.compose.runtime.DisposableEffect(owner) {
+            val obs = androidx.lifecycle.LifecycleEventObserver { _, e ->
+                val act = c as? android.app.Activity
+                if (e == androidx.lifecycle.Lifecycle.Event.ON_START && act != null) com.nuvio.tv.fork.family.FamilySync.onAppVisible(act)
+                if (e == androidx.lifecycle.Lifecycle.Event.ON_STOP) com.nuvio.tv.fork.family.FamilySync.onAppHidden(c)
+            }
+            owner.lifecycle.addObserver(obs)
+            onDispose { owner.lifecycle.removeObserver(obs) }
+        }
         androidx.compose.runtime.LaunchedEffect(Unit) { com.nuvio.tv.fork.settings.FirstRunDefaults.run(c) }
         val overlays = remember(c) { ForkRegistry.forContext(c).rootOverlays() }
         // Rysowane nad treścią aplikacji (wcześniej leżały pod nią, bo hook jest pierwszym elementem Box).

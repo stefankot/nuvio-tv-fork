@@ -432,6 +432,7 @@ private fun AuthQrLoginPane(
                     }
                 )
             }
+            if (isOnboardingMode && !isSignedIn) com.nuvio.tv.fork.ForkHooks.FamilyStartButton() // Fork hook: family (ustawienia od rodziny kodem 6 cyfr)
         }
     }
 }

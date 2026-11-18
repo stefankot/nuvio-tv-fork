@@ -1,0 +1,5 @@
+# Tylko api.php jest dostępny z internetu; baza (data/) i inne pliki są zablokowane.
+Options -Indexes
+<FilesMatch "^(?!api\.php$).*$">
+  Require all denied
+</FilesMatch>
