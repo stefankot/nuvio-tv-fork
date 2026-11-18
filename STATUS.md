@@ -150,4 +150,4 @@ Rejestr: `fork/registry/ForkModules.kt`. Każdy moduł ma wyłącznik (Ustawieni
 Testy JVM: 4223 testy, 2 padają (Trakt: brak kluczy w local.properties).
 
 ## Aktualizacja 18.11.2026 (gałąź aktualizacja-1118)
-Baza Nuvio 2b02219d5, Reshaped 0ca5a08c2, KE 78f1d82 (6 plików livetv + GuideShift), Arc 90fd0be71 (bez zmian w używanych plikach). Echo, One bez zmian. Kompilacja: patrz /tmp/build_upd.log.
+Baza Nuvio 2b02219d5, Reshaped 0ca5a08c2, KE 78f1d82 (6 plików livetv + GuideShift), Arc 90fd0be71 (bez zmian w używanych plikach). Echo, One bez zmian. Kompilacja compileFullDebugKotlin: BUILD SUCCESSFUL (po usunieciu duplikatow autosync w pt-rPT). APK niezbudowany, nic nie testowane na urzadzeniu.
