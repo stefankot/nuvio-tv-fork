@@ -2,6 +2,11 @@
 
 Ostatnia aktualizacja: 18.11.2026 ok. 22:45 (koniec wątku 3).
 
+## DECYZJE WŁAŚCICIELA (wątek 4, 19.11)
+- 25 GB to NIE dużo (oglądają filmy po 80 GB): duże remuksy są w porządku, nie karać rozmiaru.
+- W1 ZATWIERDZONE: zacząć i robić po kolei.
+- Od teraz testy na emulatorze Google TV (AVD na Macu, `-PforkAbi=arm64-v8a`), nie na JMGO.
+
 ## STAN WĄTKU 4 (18.11, popołudnie)
 - Paczka w kodzie (commit a72d3ce37): P2 = `FirstRunDefaults.autoSource` (raz na profil: tryb MANUAL → „pierwsze źródło” z rankingiem KE); P3/P9 = `fork/lektor/LektorVoice.kt` (sprawdza w tle, czy jest silnik TTS z polskim: log `LektorVoice polish_tts=`), lektor auto i ręczny przy braku głosu pokazują komunikat „Zainstaluj Google Mowa” zamiast niemego lektora; ranking (`KeRanking.polishTier`): gdy głos działa i napisy = PL, źródło z polskimi napisami w nazwie liczy się jak polski dźwięk; P7 = klawisz Szukaj/Asystent → nasłuch forka PRZED skórką Kicia (`ForkHooks.onGlobalKey`), usługa klawisza loguje każdy klawisz (`ForkVoiceKey key=`), w ustawieniach głosu 3 nowe akcje: „Przycisk mikrofonu: włącz usługę Nuvio”, „…: naucz przycisk” (15 s, `VoiceKeyLearn`), „Ustaw Nuvio jako asystenta”.
 - Raport lektora w chmurze: `plan/raporty/tts-porownanie.md` (rekomendacja: Google Chirp 3 HD, ok. 12 filmów/mies. za darmo).

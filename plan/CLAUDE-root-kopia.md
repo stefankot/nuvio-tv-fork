@@ -4,6 +4,8 @@
 
 **NAJPIERW (18.11.2026, nadrzędne wobec wszystkiego niżej):** gdy użytkownik napisze „kontynuuj”, otwórz `NuvioFork/plan/TERAZ.md` i wykonuj jego instrukcję i kolejkę. Starsze sekcje tego pliku i `NuvioFork/CLAUDE.md` / `plan/KONTYNUUJ.md` są historyczne.
 
+**ZASADA STAŁA (19.11, właściciel): jak najmniejsze zmiany w kodzie bazy i forków, konstrukcja modułowa (cel: łatwe scalanie nowych wydań).** Nowe rzeczy w osobnych plikach, w bazie tylko jednoliniowe hooki. Pełny tekst: `~/Desktop/zasady developementu/ZASADY_OGOLNE.md`.
+
 **ZASADA STAŁA (18.11, właściciel): NIE wolno robić buildu z jedną poprawką; buildy tylko w DUŻYCH paczkach** (drobne poprawki z testów: commit bez buildu, do następnej paczki). Pełny tekst: `~/Desktop/zasady developementu/ZASADA_BUILDY_W_PACZKACH.md`.
 
 **ZASADA STAŁA (18.11): przy ok. 95% kontekstu** przerwij pracę, zapisz wszystko w repozytorium (`NuvioFork/plan/TERAZ.md`: stan, wyniki testów, paczka poprawek, dokładne następne kroki; skrypty i notatki w `NuvioFork/`, nie w `/tmp`), commit + push (`origin`, bieżąca gałąź). Sekcja „NAJPIERW” w TERAZ.md ma być takim promptem, żeby samo „kontynuuj” w nowym wątku od razu uruchomiło pracę bez pytań.

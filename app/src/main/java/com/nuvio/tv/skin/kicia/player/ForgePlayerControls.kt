@@ -179,6 +179,16 @@ fun ForgePlayerControls(
                 moreOpen = false
                 android.widget.Toast.makeText(ctx, com.nuvio.tv.fork.lektor.LektorController.toggle(ctx), android.widget.Toast.LENGTH_SHORT).show()
             }
+            // W1 (19.11): test łącza KE na bieżącym filmie; wynik ustawia pobieranie wieloma połączeniami i limit w rankingu.
+            ForgeSheetRow(text = "Test łącza", detail = com.nuvio.tv.fork.net.KeNetwork.status.ifEmpty { null }) {
+                moreOpen = false
+                val url = com.nuvio.tv.fork.sources.PlayerBridge.streamUrl()
+                if (url == null) android.widget.Toast.makeText(ctx, "Test łącza działa podczas odtwarzania", android.widget.Toast.LENGTH_SHORT).show()
+                else {
+                    android.widget.Toast.makeText(ctx, "Test łącza: ok. 30 s", android.widget.Toast.LENGTH_SHORT).show()
+                    com.nuvio.tv.fork.net.KeNetwork.test(ctx, url, emptyMap()) { msg -> android.widget.Toast.makeText(ctx, msg, android.widget.Toast.LENGTH_LONG).show() }
+                }
+            }
             if (series) ForgeSheetRow(text = "Odcinki") { moreOpen = false; onShowEpisodesPanel() }
             ForgeSheetRow(text = "Informacje") { moreOpen = false; onShowStreamInfo() }
             ForgeSheetRow(text = "Szybkość", detail = forgeSpeed(uiState.playbackSpeed)) { moreOpen = false; onShowSpeedDialog() }

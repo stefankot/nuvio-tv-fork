@@ -23,6 +23,8 @@ object ForkFeatures {
         "lektor_auto", "voice_whisper", "voice_key_service",
         // Start Nuvio z telewizorem
         "launcher_autostart",
+        // W1: limit łącza KE w rankingu
+        com.nuvio.tv.fork.net.KeNetwork.KEY,
     )
     fun enabled(c: Context, key: String, default: Boolean = false) = prefs(c).getBoolean(key, default || key in ON_BY_DEFAULT)
     fun set(c: Context, key: String, v: Boolean) = prefs(c).edit().putBoolean(key, v).apply()

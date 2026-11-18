@@ -108,8 +108,11 @@ object KeRanking {
     }
 
     /** Raz po starcie i po każdej zmianie odpowiedzi: przełącznik, język, dekodery urządzenia, rozdzielczość telewizora. */
+    @Volatile private var appCtx: Context? = null
+
     fun warm(context: Context) {
         val app = context.applicationContext
+        appCtx = app
         enabled = ForkFeatures.enabled(app, KEY, true)
         saver = ForkFeatures.enabled(app, SAVER_KEY, false)
         val answer = SourceChoice.answer(app)
@@ -138,7 +141,10 @@ object KeRanking {
             val pool = streams.filterNot { it in rejected }.ifEmpty { streams }
             val ranked = StreamQualityRank.rank(pool, filmSizeFloors = id?.film == true)
             val cap = tvCap; val dc = decode
+            // W1: limit łącza KE (StreamLimit) — źródła ponad zmierzoną prędkość usługi na koniec (nie znikają).
+            val over = appCtx?.let { com.nuvio.tv.fork.net.KeNetwork.overLimit(it, ranked, runtimeMinutes = null, episode = id?.film == false) }.orEmpty()
             val (fits, demoted) = ranked.partition { s ->
+                if (s in over) return@partition false
                 val facts = ReleaseFactsParser.factsFor(s)
                 dc.verdict(facts) != DecodeVerdict.SOFTWARE && (cap == null || !isOverResolutionCap(facts.resolution, cap))
             }
