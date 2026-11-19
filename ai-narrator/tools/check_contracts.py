@@ -9,7 +9,8 @@ checks = {
     "app/reshaped.gradle": [
         "ai-narrator/src/main/kotlin",
         "ai-narrator/src/test/kotlin",
-        "ai-narrator/jniLibs",
+        "ZONOS_ARM32_APK_URL",
+        "ZONOS_ARM32_APK_SHA256",
     ],
     "ai-narrator/src/main/kotlin/com/nuvio/tv/ainarrator/ZonosOnDeviceModels.kt": [
         "downloadOnUserRequest", "verifySha256", "applicationContext.filesDir", "ModelPhase.READY",
@@ -19,9 +20,20 @@ checks = {
         "filesDir", "15L * 60L * 1000L",
     ],
     "ai-narrator/src/main/kotlin/com/nuvio/tv/ainarrator/ZonosNativeServer.kt": [
-        "127.0.0.1", "ZONOS3_ACCESS_TOKEN", "isPackaged", "memory.check",
+        "127.0.0.1", "ZonosArm32Installer", "isPackaged", "FileProvider",
     ],
-    "ai-narrator/src/main/kotlin/com/nuvio/tv/ainarrator/NarratorEngine.kt": [
+    "ai-narrator/src/main/kotlin/com/nuvio/tv/ainarrator/ZonosArm32Installer.kt": [
+        "downloadOnFeatureEnable", "ZONOS_ARM32_APK_URL", "verifyApkSigner",
+        "Arm32GitHubSource", "FileProvider",
+    ],
+    "ai-narrator/worker-arm32/app/src/main/AndroidManifest.xml": [
+        "com.nuvio.tv.zonos32.permission.CONTROL",
+    ],
+    "ai-narrator/worker-arm32/app/src/main/java/com/nuvio/tv/zonos32/ZonosWorkerService.java": [
+        "libzonos3_server.so", "START", "verify", "ZONOS3_ACCESS_TOKEN",
+    ],
+    "app/src/main/res/xml/file_paths.xml": ["zonos_gguf", "zonos3-mini/v1/"],
+        "ai-narrator/src/main/kotlin/com/nuvio/tv/ainarrator/NarratorEngine.kt": [
         "NarratorPersistentAudio", "ZONOS3 requires pre-rendered audio",
     ],
     "app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt": [
