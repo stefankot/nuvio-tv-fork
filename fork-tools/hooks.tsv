@@ -66,3 +66,5 @@ app/build.gradle.kts	// Fork hook: W8 TVDB	TMDB_API_KEY	tvdb	klucz TVDB do Build
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	// fork hook: okno „Więcej”	panelOrDialogOpen	fork	klawisze dla okna Więcej Kicii
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerSidecarSubtitles.kt	// fork hook: MPL2/MicroDVD	downloadSubtitleBody	fork	polskie napisy MPL2/MicroDVD na SRT	val rawBody = rawBodyLoader?.invoke()
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerSidecarSubtitles.kt	// fork hook: MPL2/MicroDVD	downloadSubtitleBody	fork	polskie napisy MPL2/MicroDVD na SRT	?: downloadSubtitleBody(subtitle.url, subtitle.lang, subtitle.headers)
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerViewModel.kt	AiSubtitles.bind(controller) // Fork hook: ai-subtitles	controller.bindExoSubtitleView(subtitleView)	ai-subtitles	AI napisy: bieżący odtwarzacz Exo	
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerViewModel.kt	AiSubtitles.unbind(controller) // Fork hook: ai-subtitles	controller.onCleared()	ai-subtitles	AI napisy: koniec sesji	
