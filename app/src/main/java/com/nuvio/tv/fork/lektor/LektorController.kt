@@ -41,7 +41,7 @@ object LektorController {
             if (cues.isEmpty()) { status = "Brak polskich napisów do przeczytania"; if (src.name != "brak") say(app, "Lektor: brak polskich napisów do przeczytania (dodatki, wbudowane i AI)"); return@launch }
             say(app, "Lektor czyta: ${src.name}")
             LektorModule.applySettings(app)
-            LektorEngine.load(cues); LektorEngine.enabled = true
+            LektorEngine.load(cues); LektorEngine.enabled = true; Condense.reset()
             LektorPcm.reapply("lektor wł.")
             // Procesor dźwięku włącza się dopiero po flush rurociągu: seek do bieżącej pozycji go wymusza.
             PlayerBridge.send(PlayerEvent.OnSeekTo(LektorEngine.positionMs()))
@@ -63,7 +63,8 @@ object LektorController {
                         if (known != cues.size) android.util.Log.i("ForkLektor", "kwestie zmienione: ${now.size} (przesunięcie pierwszej ${shift} ms)")
                         known = sig; LektorEngine.lines = CuePlanner.plan(now) } }
                     val pos = LektorEngine.positionMs()
-                    val pending = SynthWindow.pending(LektorEngine.lines, pos, done)
+                    // Fork 19.11: zbyt długie kwestie skrócone przez AI przed syntezą (Condense), żeby następna ich nie ucinała.
+                    val pending = Condense.apply(app, SynthWindow.pending(LektorEngine.lines, pos, done))
                     if (LektorEngine.voice.isEmpty() && pending.isEmpty() && System.currentTimeMillis() - quietSaidAt > 60_000) {
                         val next = LektorEngine.lines.firstOrNull { it.startMs > pos }
                         quietSaidAt = System.currentTimeMillis()
@@ -85,7 +86,17 @@ object LektorController {
                                 errStreak++; break
                             }
                             if (parts == null || parts.size != sc.size) { sc.forEach { sceneFallback += it.startMs; sceneLines -= it.startMs }; continue }
-                            sc.forEachIndexed { k, l -> LektorEngine.voice[l.startMs] = parts[k]; done += l.startMs }
+                            // Fork 19.11 (właściciel: „przerywa, gdy dużo tekstu”): kwestie ze sceny też dopasowane do czasu do
+                            // następnej (przyspieszenie / cięcie na zdaniu), bez wchodzenia na nią — inaczej następna ją ucinała.
+                            var refit = 0
+                            sc.forEachIndexed { k, l ->
+                                val part = parts[k]
+                                Condense.learn(l.text, part.durationMs)
+                                val fit = Tempo.fit(l.text, part.durationMs, l.availableMs, gapMs = 0)
+                                val pcm = if (fit.rate > 1.01f || fit.text != l.text) { refit++; runCatching { tts.synthesize(fit.text, fit.rate) }.onFailure { if (it is kotlinx.coroutines.CancellationException) throw it }.logged("ForkLektor", "scena: dopasowanie tempa").getOrDefault(part) } else part
+                                LektorEngine.voice[l.startMs] = pcm; done += l.startMs
+                            }
+                            if (refit > 0) android.util.Log.i("ForkLektor", "scena: $refit/${sc.size} kwestii nagrane ponownie szybciej (nie mieściły się do następnej)")
                             errStreak = 0; synthOk += sc.size
                             if (scenesOk++ % 5 == 0) android.util.Log.i("ForkLektor", "scena OK: ${sc.size} kwestii jednym zapytaniem (scen: $scenesOk, kwestii z głosem: ${LektorEngine.voice.size}, wyprzedzenie ${(sc.first().startMs - pos) / 1000} s)")
                         }
@@ -101,7 +112,8 @@ object LektorController {
                         } ?: break
                         errStreak = 0
                         if (synthOk++ % 10 == 0) android.util.Log.i("ForkLektor", "synteza OK: $synthOk kwestii (ostatnia ${natural.durationMs} ms)")
-                        val fit = Tempo.fit(l.text, natural.durationMs, l.availableMs)
+                        Condense.learn(l.text, natural.durationMs)
+                        val fit = Tempo.fit(l.text, natural.durationMs, l.availableMs, gapMs = 0) // fork 19.11: bez wchodzenia na następną kwestię
                         val pcm = if (fit.rate > 1.01f || fit.text != l.text) runCatching { tts.synthesize(fit.text, fit.rate) }.logged("ForkLektor", "LektorController.kt:66").getOrDefault(natural) else natural
                         LektorEngine.voice[l.startMs] = pcm; done += l.startMs
                     }
