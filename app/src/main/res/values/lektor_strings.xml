@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lektor_volume_row">Głośność lektora</string>
+    <string name="lektor_duck_row">Ściszanie filmu pod lektorem</string>
+    <string name="lektor_volume_now">Głośność lektora: %1$s</string>
+    <string name="lektor_duck_now">Ściszanie filmu pod lektorem: %1$s</string>
+    <string name="lektor_duck_none">bez ściszania</string>
+</resources>

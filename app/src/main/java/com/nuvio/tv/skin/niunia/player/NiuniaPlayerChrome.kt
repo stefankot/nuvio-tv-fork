@@ -221,6 +221,11 @@ private fun MorePanel(series: Boolean, speed: Float, close: () -> Unit, onEvent:
         if (com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctx, "module_lektor")) {
             val state = if (com.nuvio.tv.fork.lektor.LektorEngine.enabled) R.string.niunia_player_on else R.string.niunia_player_off
             PanelRow(stringResource(R.string.niunia_player_lektor), detail = stringResource(state)) { close(); toast(com.nuvio.tv.fork.lektor.LektorController.toggle(ctx)) }
+            // Fork 20.11: regulacja lektora w trakcie filmu (OK = następna wartość, panel zostaje otwarty).
+            var lektorRev by remember { mutableStateOf(0) }
+            val m = com.nuvio.tv.fork.lektor.LektorModule
+            PanelRow(stringResource(R.string.lektor_volume_row), detail = lektorRev.let { m.volumeLabel(ctx) }) { m.cycleVolume(ctx); lektorRev++ }
+            PanelRow(stringResource(R.string.lektor_duck_row), detail = lektorRev.let { m.duckLabel(ctx) }) { m.cycleDuck(ctx); lektorRev++ }
         }
         PanelRow(stringResource(R.string.niunia_player_net_test), detail = com.nuvio.tv.fork.net.KeNetwork.status.ifEmpty { null }) {
             close()
