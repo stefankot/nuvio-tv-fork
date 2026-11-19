@@ -2,6 +2,12 @@
 
 Ostatnia aktualizacja: 19.11.2026 ok. 02:40 (koniec wątku 5).
 
+## TESTY INTERFEJSU (19.11, prośba właściciela) — narzędzia gotowe, `fork-tools/uitest/README.md`
+- Zasada właściciela: testy przez uiautomator, zrzuty ekranu tylko wyjątkowo. Emulator NIE (stary build97 arm64, APK są arm32).
+- Gotowe: `crawl.py` (obchód strzałkami: nieosiągalne przyciski, czas ładowania, utrata fokusu, błędy z logów), `playdiag.py` + `fork/diag/PlaybackDiag.kt` (ForkDiag: język/napisy/HDR oferowane vs wybrane; NIESKOMPILOWANE, do paczki).
+- NASTĘPNY KROK: gdy JMGO wolne → `DEV=192.168.31.252:5555 python3 fork-tools/uitest/crawl.py` (wszystkie trasy), raport właścicielowi; po paczce z PlaybackDiag: kilka filmów z problemem języka/obrazu (właściciel poda tytuły) → `playdiag.py`; potem ścieżki użytkownika.
+- Postęp oglądania TV: 4 przyczyny w README (remember bez odświeżania, dane wczytywane leniwie, brak znacznika poza siatką, pasek 2 dp) — czekają na decyzję.
+
 ## LEKTOR: jeden, scalony z ai-narrator (19.11, właściciel) — NIESKOMPILOWANE, do najbliższej DUŻEJ paczki
 - Właściciel: dwa lektory nie mogą grać naraz — scalić albo usunąć gorszy. Decyzja: silnik STARY (`fork/lektor`: wmiksowany w dźwięk ExoPlayera, ściszanie oryginału, dopasowanie tempa, tryb auto, ranking źródeł, komenda głosowa), głos NOWY (Gemini TTS z `ai-narrator`).
 - Zrobione: `ai-narrator/.../GeminiLektor.kt` (implementuje `fork.lektor.Lektor`; pamięć kwestii, szacowany limit miesięczny, klucz własny albo z AI napisów) + `LektorVoiceChoice` (Gemini domyślnie; systemowy wybieralny; bez klucza → systemowy, bez systemowego głosu → Gemini). Podpięte: `LektorController` (wybór głosu), `LektorVoice.usable`, `PlayerBridge` (lektor auto), `KeRanking` (polskie napisy = dobre także przy głosie Gemini), `LektorModule` (ustawienia: głos, barwa Kore/Puck/Charon/Aoede, model, limit), wiersz „Lektor” w „Więcej” pokazuje głos.
