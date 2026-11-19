@@ -52,15 +52,22 @@ object LektorController {
             try {
                 var known = cues.size
                 var tick = 0
+                var quietSaidAt = 0L // fork 19.11: „nie słyszę lektora” przy długiej scenie bez dialogu — komunikat, kiedy będzie kwestia
                 while (true) {
                     // Źródło rosnące (AI na bieżąco): nowe kwestie dochodzą do planu bez kasowania gotowych głosów.
                     if (src.growing) src.cues().let { now -> if (now.size != known) { known = now.size; LektorEngine.lines = CuePlanner.plan(now) } }
                     val pos = LektorEngine.positionMs()
                     val pending = SynthWindow.pending(LektorEngine.lines, pos, done)
+                    if (LektorEngine.voice.isEmpty() && pending.isEmpty() && System.currentTimeMillis() - quietSaidAt > 60_000) {
+                        val next = LektorEngine.lines.firstOrNull { it.startMs > pos }
+                        quietSaidAt = System.currentTimeMillis()
+                        val msg = if (next == null) "Lektor: w napisach nie ma już kwestii do przeczytania" else "Lektor: najbliższa kwestia za ${(next.startMs - pos) / 1000} s (scena bez dialogu)"
+                        android.util.Log.i("ForkLektor", msg); say(app, msg)
+                    }
                     // Fork 19.11 (build114: „nie słyszę lektora”, po starcie zero logów): stan pętli co ~10 s.
                     if (tick++ % 10 == 0) LektorEngine.lines.let { ls -> android.util.Log.i("ForkLektor", "pętla: pozycja=${pos} ms, kwestii=${ls.size} (${ls.firstOrNull()?.startMs}..${ls.lastOrNull()?.startMs}), do syntezy=${pending.size}, z głosem=${LektorEngine.voice.size}, ok=$synthOk, błędy=$synthErrors, silnik=${tts.javaClass.simpleName}") }
                     for (l in pending.take(5)) {
-                        val natural = runCatching { tts.synthesize(l.text, 1f) }.logged("ForkLektor", "LektorController.kt:57").getOrElse { e ->
+                        val natural = runCatching { tts.synthesize(l.text, 1f) }.onFailure { if (it is kotlinx.coroutines.CancellationException) throw it }.logged("ForkLektor", "LektorController.kt:57").getOrElse { e ->
                             status = e.message ?: "Błąd syntezy"
                             // Fork 19.11: błąd syntezy był widoczny tylko w statusie — log i komunikat (pierwszy).
                             android.util.Log.w("ForkLektor", "synteza nieudana: ${e.javaClass.simpleName}: ${e.message?.take(160)}")
