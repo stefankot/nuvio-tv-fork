@@ -15,6 +15,9 @@ import kotlinx.coroutines.launch
 
 /**
  * Kolejka 19.11 (W1 etap 2, KE PerPlayNetwork „a play from it tests”): test łącza sam, raz na usługę.
+ * KE wstrzymuje start filmu na czas testu (PlayerNetworkTestHold, ekran postępu, Wstecz pomija); właściciel 19.11
+ * woli bez blokowania: (1) [onSources] — w tle na ekranie wyboru źródeł, gdy wybierasz ręcznie, bez postępu na ekranie;
+ * (2) [onPlayerClosed] — zapas po filmie (autostart nie zostawia czasu na ekranie źródeł).
  * Uruchamiany PO zamknięciu odtwarzacza (test w trakcie filmu zerwałby jego pobieranie: bazowy
  * StreamSpeedTester zwalnia sesję ParallelRangeDataSource; test przed startem opóźniałby film).
  * Warunki: limit łącza KE włączony, przełącznik „Test łącza sam” (domyślnie wł.), brak aktualnej tabeli
@@ -28,9 +31,43 @@ object KeAutoTest {
     @Volatile private var pending: Job? = null
     @Volatile private var test: Job? = null
 
+    private var sourcesPending: Job? = null
+
+    /** Która usługa ze źródeł jeszcze nie ma pomiaru (null = nie ma czego mierzyć albo próbowano w ciągu doby). */
+    private fun due(app: Context, url: String): String? {
+        val key = serviceKeyOf(url) ?: return null
+        if (KeNetwork.tables(app).currentTable(key, KeNetwork.transport(app)) != null) return null
+        val last = ForkFeatures.str(app, TRIED + key).toLongOrNull() ?: 0L
+        return key.takeIf { System.currentTimeMillis() - last >= 24 * 3_600_000L }
+    }
+
+    /**
+     * Ekran źródeł (hook w StreamScreenViewModel, przy każdej nowej liście): gdy nie ma autostartu, po 3 s ciszy
+     * test usługi najwyżej ocenionego źródła HTTP bez pomiaru. Po cichu (tylko log); start filmu go przerywa.
+     */
+    fun onSources(c: Context, streams: List<com.nuvio.tv.domain.model.Stream>, ready: Boolean, autoPlay: Boolean) {
+        val app = c.applicationContext
+        if (autoPlay) { sourcesPending?.cancel(); sourcesPending = null; return } // autostart: test po filmie (onPlayerClosed)
+        if (!ready || streams.isEmpty()) return // dopiero gdy wszystkie dodatki odpowiedziały (autostart rozstrzygnięty)
+        if (!ForkFeatures.enabled(app, KeNetwork.KEY, true) || !ForkFeatures.enabled(app, KEY, true)) return
+        if (test?.isActive == true) return
+        sourcesPending?.cancel()
+        sourcesPending = scope.launch {
+            delay(3_000) // lista się uspokaja; szybki wybór = brak testu
+            val pick = com.nuvio.tv.fork.sources.KeRanking.order(streams).asSequence()
+                .filter { !it.isTorrent() }
+                .mapNotNull { s -> s.getStreamUrl()?.takeIf { it.startsWith("http") }?.let { u -> Triple(s, u, due(app, u)) } }
+                .firstOrNull { it.third != null } ?: return@launch
+            ForkFeatures.setStr(app, TRIED + pick.third, System.currentTimeMillis().toString())
+            Log.i(TAG, "sources screen test: ${pick.third}")
+            test = KeNetwork.test(app, pick.second, pick.first.behaviorHints?.proxyHeaders?.request.orEmpty()) { msg -> Log.i(TAG, "sources screen test done: $msg") }
+        }
+    }
+
     /** Odtwarzacz otwarty: nic nie mierzymy w tle. */
     fun onPlayerOpened() {
         pending?.cancel(); pending = null
+        sourcesPending?.cancel(); sourcesPending = null
         test?.let { if (it.isActive) { Log.i(TAG, "player opened: test cancelled"); it.cancel() } }
         test = null
     }
@@ -46,10 +83,7 @@ object KeAutoTest {
                 EntryPointAccessors.fromApplication(app, com.nuvio.tv.fork.sources.SourceChoice.Deps::class.java).player().lastPlaybackDiagnostics.first()
             }.getOrNull() ?: return@launch
             val url = d.streamUrl?.takeIf { it.startsWith("http") } ?: return@launch
-            val key = serviceKeyOf(url) ?: return@launch
-            if (KeNetwork.tables(app).currentTable(key, KeNetwork.transport(app)) != null) return@launch
-            val last = ForkFeatures.str(app, TRIED + key).toLongOrNull() ?: 0L
-            if (System.currentTimeMillis() - last < 24 * 3_600_000L) return@launch
+            val key = due(app, url) ?: return@launch
             ForkFeatures.setStr(app, TRIED + key, System.currentTimeMillis().toString())
             val headers = runCatching {
                 val o = org.json.JSONObject(d.headersJson ?: "{}")

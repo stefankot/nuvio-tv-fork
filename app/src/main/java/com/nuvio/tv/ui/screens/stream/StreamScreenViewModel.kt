@@ -700,6 +700,7 @@ class StreamScreenViewModel @Inject constructor(
                     com.nuvio.tv.fork.echo.EchoRaceHook.run(context, newScope, raceField, raceHeadStart, selectedAutoPlayStream, playerSettings.showPlayerLoadingStatus, { autoPlayHandledForSession }, { m -> updateUiStateIfChanged { it.copy(directAutoPlayMessage = m) } }, { w -> updateUiStateIfChanged { it.copy(autoPlayStream = w) } })
                 } else if (selectedAutoPlayStream != null) com.nuvio.tv.fork.echo.EchoRaceHook.stop(raceHeadStart) // fork hook
                 if (raceField != null) selectedAutoPlayStream = null // fork hook: wygrany z wyścigu ustawia EchoRaceHook
+                com.nuvio.tv.fork.net.KeAutoTest.onSources(context, allStreams, ready = isAllLoaded, autoPlay = resolvedAutoPlayTarget || autoPlayHandledForSession || raceField != null) // Fork hook: test łącza w tle (ekran źródeł)
 
                 val currentFilter = _uiState.value.selectedAddonFilter
                 val fullFiltered = groupStreamsByProvider(if (currentFilter == null) {
