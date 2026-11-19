@@ -20,7 +20,6 @@ app/src/main/java/com/nuvio/tv/ui/screens/player/NuvioExoPlayerPerformanceHelper
 app/src/main/java/com/nuvio/tv/ui/screens/player/NuvioMpvSurfaceView.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/ParallelRangeDataSource.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlaybackSpeedAwareAudioRenderer.kt
-app/src/main/java/com/nuvio/tv/ui/screens/player/PlaybackSpeedAwareAudioSink.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerDebugStatsOverlay.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerMediaSourceFactory.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerNavigationArgs.kt

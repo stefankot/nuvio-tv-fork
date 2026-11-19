@@ -20,7 +20,7 @@ object LektorController {
 
     fun toggle(context: Context): String = if (LektorEngine.enabled) { stop(); "Lektor wyłączony" } else start(context)
 
-    fun stop() { job?.cancel(); job = null; LektorEngine.clear(); status = "" }
+    fun stop() { val was = LektorEngine.enabled; job?.cancel(); job = null; LektorEngine.clear(); status = ""; if (was) LektorPcm.reapply("lektor wył.") }
 
     fun start(context: Context): String {
         if (!PlayerBridge.active) return "Lektor działa tylko podczas odtwarzania"
@@ -42,6 +42,7 @@ object LektorController {
             say(app, "Lektor czyta: ${src.name}")
             LektorModule.applySettings(app)
             LektorEngine.load(cues); LektorEngine.enabled = true
+            LektorPcm.reapply("lektor wł.")
             // Procesor dźwięku włącza się dopiero po flush rurociągu: seek do bieżącej pozycji go wymusza.
             PlayerBridge.send(PlayerEvent.OnSeekTo(LektorEngine.positionMs()))
             val tts = com.nuvio.tv.ainarrator.LektorVoiceChoice.create(app, LektorVoice.ready) // scalenie 19.11: głos Gemini albo systemowy

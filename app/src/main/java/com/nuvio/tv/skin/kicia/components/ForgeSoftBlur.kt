@@ -55,15 +55,19 @@ internal class ForgeSoftBlur(private val layer: GraphicsLayer, private val strip
         val result = runCatching {
             strip.record(density, direction, IntSize(width, stripHeightPx)) { drawLayer(layer) }
             val raw = strip.toImageBitmap().asAndroidBitmap()
-            val soft = raw.copy(Bitmap.Config.ARGB_8888, false) ?: return
-            val w = (width / 8).coerceAtLeast(8)
-            val h = (stripHeightPx / 8).coerceAtLeast(4)
-            val small = Bitmap.createScaledBitmap(soft, w, h, true)
-            val px = IntArray(w * h)
-            small.getPixels(px, 0, w, 0, 0, w, h)
-            repeat(3) { boxBlur(px, w, h, 3) }
-            small.setPixels(px, 0, w, 0, 0, w, h)
-            small.asImageBitmap()
+            // Fork 19.11 (simpleperf JMGO: 35% wątku głównego przy starcie): kopia, skalowanie i rozmycie w tle.
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                val soft = raw.copy(Bitmap.Config.ARGB_8888, false) ?: return@withContext null
+                val w = (width / 8).coerceAtLeast(8)
+                val h = (stripHeightPx / 8).coerceAtLeast(4)
+                val small = Bitmap.createScaledBitmap(soft, w, h, true)
+                if (small !== soft) soft.recycle()
+                val px = IntArray(w * h)
+                small.getPixels(px, 0, w, 0, 0, w, h)
+                repeat(3) { boxBlur(px, w, h, 3) }
+                small.setPixels(px, 0, w, 0, 0, w, h)
+                small.asImageBitmap()
+            } ?: return
         }.logged("ForkKiciaComponents", "ForgeSoftBlur.kt:54").getOrNull() ?: return
         blurred = result
         blurredSize = IntSize(width, stripHeightPx)
