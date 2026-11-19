@@ -3,6 +3,7 @@ package com.nuvio.tv.fork.lektor
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import com.nuvio.tv.ui.screens.player.cancelAutoQualityChange
 
 /**
  * Fork 19.11 (build116, „Strefa gangsterów”, E-AC-3 5.1): przy przekazywaniu Dolby (passthrough) Android omija procesory
