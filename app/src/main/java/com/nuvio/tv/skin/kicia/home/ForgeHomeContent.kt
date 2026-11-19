@@ -418,7 +418,7 @@ fun ForgeHomeContent(
                                     AsyncImage(model = url, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
                                 }
                                 Box(Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Brush.verticalGradient(0.4f to androidx.compose.ui.graphics.Color.Transparent, 1f to androidx.compose.ui.graphics.Color.Black.copy(alpha = .8f))))
-                                ForgeTypeBadge(series = info.series, modifier = Modifier.align(Alignment.TopEnd).padding(10.dp))
+                                // fork 19.11 (właściciel): bez ikonki typu (film/serial) na kaflach — ForgeTypeBadge zostaje nieużywany
                                 // v6: small caption at the bottom edge, tiny 26x2 dp progress bar next to the line.
                                 ForgeCardCaption(
                                     title = info.title,
