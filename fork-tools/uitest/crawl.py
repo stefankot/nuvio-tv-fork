@@ -19,6 +19,7 @@ REV = {"DOWN": "UP", "UP": "DOWN", "LEFT": "RIGHT", "RIGHT": "LEFT"}
 DEFAULT_ROUTES = ["home", "search", "discover", "library", "settings", "playback_settings", "layout_settings",
                   "reshaped_live_tv", "fork_tools", "fork_modules", "fork_tv_search", "fork_discover", "fork_picks",
                   "addon_manager", "catalog_order", "collections", "calendar", "youtube"]
+LOAD_MAX, LOAD_BAD = 10, 5  # właściciel 19.11: >10 s = nie załadowało się, >5 s = błąd
 HERE = os.path.dirname(os.path.abspath(__file__))
 # Wzorce błędów w logcat warte zgłoszenia (obrazki, sieć, wyjątki, ANR).
 LOG_PAT = re.compile(r"(Coil|ImageLoader|HttpException|UnknownHost|SocketTimeout|Exception|FATAL|ANR in|"
@@ -109,9 +110,9 @@ def open_route(route):
     adb("logcat", "-c")
     t0 = time.time()
     adb("shell", "am", "start", "-a", "com.nuvio.fork.OPEN", "-n", ACT, "--es", "route", route)
-    # Ekran gotowy = dwa kolejne odczyty z tym samym zestawem tekstów i jest fokus (max 25 s).
+    # Ekran gotowy = dwa kolejne odczyty z tym samym zestawem tekstów (max LOAD_MAX s; powyżej LOAD_BAD s = błąd).
     prev, stable_at, root = None, None, None
-    while time.time() - t0 < 25:
+    while time.time() - t0 < LOAD_MAX:
         root = dump()
         if root is None:
             continue
@@ -228,6 +229,12 @@ def logcat_issues():
     return out
 
 
+def load_cell(t):
+    if t is None:
+        return "**>%d — nie załadowało się**" % LOAD_MAX
+    return "**%s — błąd (>%d s)**" % (t, LOAD_BAD) if t > LOAD_BAD else str(t)
+
+
 def report(results, outdir):
     L = ["# Obchód pilotem — %s, urządzenie %s\n" % (datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), DEV or "domyślne"),
          "Tylko strzałki (bez OK). „Nieosiągalne” = element do zaznaczenia widoczny na ekranie, do którego fokus nie doszedł "
@@ -236,7 +243,7 @@ def report(results, outdir):
          "|---|---|---|---|---|---|---|---|"]
     for r in results:
         L.append("| %s | %s | %d | %d | %d | %d | %d | %d |" % (
-            r["trasa"], r.get("czas_ladowania_s") if r.get("czas_ladowania_s") is not None else "**>25**",
+            r["trasa"], load_cell(r.get("czas_ladowania_s")),
             r.get("kroki", 0), len(r.get("elementy", {})), len(r.get("odwiedzone", [])),
             len(r.get("nieosiagalne", [])), len(r.get("utrata_fokusu", [])), len(r.get("logcat", []))))
     for r in results:

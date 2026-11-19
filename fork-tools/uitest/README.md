@@ -7,7 +7,7 @@ Emulator NIE: ma stary build97 arm64; bieżące APK są tylko arm32 (właścicie
 ## 1. Obchód pilotem — `crawl.py`
 `DEV=192.168.31.252:5555 python3 fork-tools/uitest/crawl.py [trasa ...] [--steps 120]`
 - Otwiera trasę intencją debug `com.nuvio.fork.OPEN`, naciska tylko strzałki (nigdy OK), buduje mapę przejść fokusu.
-- Raport `wyniki/<data>-<urządzenie>/raport.md`: czas ładowania (>25 s = nie załadowało się), elementy nieosiągalne,
+- Raport `wyniki/<data>-<urządzenie>/raport.md`: czas ładowania (>5 s = błąd, >10 s = nie załadowało się), elementy nieosiągalne,
   utrata fokusu, pułapki, wyjście z aplikacji, ostrzeżenia/błędy z logcat (obrazki, sieć, wyjątki).
 - Próba na emulatorze przerwana (stary build); odczyt i rozpoznanie fokusu działa (ekran główny: fokus „Odtwórz”, 9 elementów).
 

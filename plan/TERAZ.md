@@ -4,7 +4,7 @@ Ostatnia aktualizacja: 19.11.2026 ok. 02:40 (koniec wątku 5).
 
 ## TESTY INTERFEJSU (19.11, prośba właściciela) — narzędzia gotowe, `fork-tools/uitest/README.md`
 - Zasada właściciela: testy przez uiautomator, zrzuty ekranu tylko wyjątkowo. Emulator NIE (stary build97 arm64, APK są arm32).
-- Gotowe: `crawl.py` (obchód strzałkami: nieosiągalne przyciski, czas ładowania, utrata fokusu, błędy z logów), `playdiag.py` + `fork/diag/PlaybackDiag.kt` (ForkDiag: język/napisy/HDR oferowane vs wybrane; NIESKOMPILOWANE, do paczki).
+- Gotowe: `crawl.py` (obchód strzałkami: nieosiągalne przyciski, czas ładowania >5 s = błąd, >10 s = nie załadowało się; utrata fokusu, błędy z logów), `playdiag.py` + `fork/diag/PlaybackDiag.kt` (ForkDiag: język/napisy/HDR oferowane vs wybrane; NIESKOMPILOWANE, do paczki).
 - NASTĘPNY KROK: gdy JMGO wolne → `DEV=192.168.31.252:5555 python3 fork-tools/uitest/crawl.py` (wszystkie trasy), raport właścicielowi; po paczce z PlaybackDiag: kilka filmów z problemem języka/obrazu (właściciel poda tytuły) → `playdiag.py`; potem ścieżki użytkownika.
 - Postęp oglądania TV: 4 przyczyny w README (remember bez odświeżania, dane wczytywane leniwie, brak znacznika poza siatką, pasek 2 dp) — czekają na decyzję.
 
