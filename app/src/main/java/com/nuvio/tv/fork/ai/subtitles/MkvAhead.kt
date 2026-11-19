@@ -50,7 +50,7 @@ internal class MkvAhead(private val url: String, private val headers: Map<String
         var emptyRounds = 0
         while (true) {
             val pos = position()
-            val todo = track.cues.indices.filter { i -> val t = track.cues[i].timeMs; t in (pos - 5_000)..(pos + WINDOW_MS) && t !in got }.take(BATCH)
+            val todo = track.cues.indices.filter { i -> val t = track.cues[i].timeMs; t in (pos - 5_000)..(pos + WINDOW_MS) && !got.containsKey(t) }.take(BATCH)
             if (todo.isEmpty()) { delay(5_000); continue }
             val t0 = System.currentTimeMillis()
             val res = coroutineScope {
