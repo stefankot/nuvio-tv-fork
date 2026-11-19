@@ -63,7 +63,6 @@ object NarratorText {
         // Fork 19.11 (właściciel): klasyczny polski lektor filmowy — styl, nie naśladowanie konkretnej osoby. Jedna stała
         // instrukcja (ta sama barwa i dynamika w każdej kwestii); pytania tylko lekko podniesione na końcu.
         val inflection = if (text.endsWith("?")) " Pytanie tylko minimalnie podnieś na końcu." else ""
-        if (previousQuestion) Unit
         return "Klasyczny polski lektor filmowy czytający tłumaczenie na tle oryginalnej ścieżki: niski, spokojny męski głos, " +
             "równy i beznamiętny, prawie płaski ton, bez grania emocji i bez odgrywania postaci. Tempo szybkie i stałe, " +
             "zdania czytane płynnie, bez dramatycznych pauz. Bardzo wyraźna dykcja, lekki dystans, rzeczowo. " +
