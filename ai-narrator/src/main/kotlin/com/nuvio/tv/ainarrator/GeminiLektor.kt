@@ -43,7 +43,10 @@ class GeminiLektor(context: Context) : Lektor {
         val clean = NarratorText.clean(text)
         if (clean.isBlank()) throw Lektor.Unavailable("Pusta kwestia")
         val style = NarratorText.style(clean, null) + tempoHint(rate)
-        val id = NarratorText.fingerprint(options.model, options.voice, clean, style)
+        // Fork 19.11 (właściciel: „za każdym razem lektor ma inny głos”): klucz pamięci = model, który naprawdę mówi.
+        val current = sticky ?: options.model
+        val id = NarratorText.fingerprint(current, options.voice, clean, style)
+        var storeId = id
         val wav = cache.find(id, touch = true)?.readBytes() ?: run {
             val month = YearMonth.now()
             val seconds = (clean.length / 9.0).coerceIn(1.5, 25.0)
@@ -51,7 +54,7 @@ class GeminiLektor(context: Context) : Lektor {
             if (!prefs.reserve(usd, options.monthlyUsdLimit)) throw Lektor.Unavailable("Lektor Gemini: osiągnięto miesięczny limit kosztów")
             // Fork 19.11 (właściciel: „Błąd Gemini: 503, następnym razem timeout”): przy przeciążeniu (503/429) jedna
             // szybka próba na drugim modelu TTS (inna pula serwerów), potem błąd do kontrolera (on robi przerwy).
-            val model = sticky ?: options.model
+            val model = current
             val bytes = try { paced { tts.synthesize(key, model, options.voice, clean, style) } }
                 catch (e: Exception) {
                     val busy = e.message?.let { it.contains("503") || it.contains("429") || it.contains("500") } == true
@@ -59,13 +62,21 @@ class GeminiLektor(context: Context) : Lektor {
                     if (!busy) throw Lektor.Unavailable("Błąd Gemini: ${e.message ?: "połączenie"}")
                     val other = if (model == NarratorModel.FLASH) NarratorModel.FLASH_LITE else NarratorModel.FLASH
                     kotlinx.coroutines.delay(800)
-                    try { paced { tts.synthesize(key, other, options.voice, clean, style) }.also { if (sticky != other) { sticky = other; android.util.Log.i("ForkLektor", "Gemini TTS: przełączam na ${other.apiId} do końca sesji (${model.apiId}: ${e.message?.take(20)})") } } }
+                    try { paced { tts.synthesize(key, other, options.voice, clean, style) }.also {
+                        storeId = NarratorText.fingerprint(other, options.voice, clean, style)
+                        if (sticky != other) {
+                            sticky = other
+                            // Na stałe: dwa modele = dwa różne głosy; zostaje ten, który działa.
+                            runCatching { prefs.save(prefs.load().copy(model = other)) }.onFailure { e3 -> android.util.Log.w("ForkLektor", "Gemini TTS: zapis modelu: ${e3.javaClass.simpleName}") }
+                            android.util.Log.i("ForkLektor", "Gemini TTS: przełączam na ${other.apiId} na stałe (${model.apiId}: ${e.message?.take(20)})")
+                        }
+                    } }
                     catch (e2: Exception) {
                         android.util.Log.w("ForkLektor", "Gemini TTS zapasowy ${other.apiId}: ${e2.javaClass.simpleName}: ${e2.message?.take(120)}")
                         throw Lektor.Unavailable("Serwer Gemini przeciążony (${e.message?.take(20)})")
                     }
                 }
-            cache.store(id, bytes)
+            cache.store(storeId, bytes)
             bytes
         }
         return pcmFromWav(wav)

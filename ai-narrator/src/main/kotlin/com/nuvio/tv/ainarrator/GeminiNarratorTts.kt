@@ -22,6 +22,7 @@ internal class GeminiNarratorTts {
                     .put("parts", JSONArray().put(part))))
                 .put("generationConfig", JSONObject()
                     .put("responseModalities", JSONArray().put("AUDIO"))
+                    .put("seed", 7) // fork 19.11: stałe ziarno — ta sama barwa głosu w każdej kwestii
                     .put("speechConfig", JSONObject()
                         .put("voiceConfig", JSONObject().put("prebuiltVoiceConfig", JSONObject().put("voiceName", voice)))))
             val connection = URL(
