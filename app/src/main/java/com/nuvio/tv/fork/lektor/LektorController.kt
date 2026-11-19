@@ -47,6 +47,7 @@ object LektorController {
             val tts = com.nuvio.tv.ainarrator.LektorVoiceChoice.create(app, LektorVoice.ready) // scalenie 19.11: głos Gemini albo systemowy
             val done = HashSet<Long>()
             var synthErrors = 0; var synthOk = 0
+            var errStreak = 0 // fork 19.11: kolejne błędy z rzędu → coraz dłuższa przerwa (2, 4, 8 … 30 s)
             try {
                 var known = cues.size
                 var tick = 0
@@ -62,17 +63,19 @@ object LektorController {
                             status = e.message ?: "Błąd syntezy"
                             // Fork 19.11: błąd syntezy był widoczny tylko w statusie — log i komunikat (pierwszy).
                             android.util.Log.w("ForkLektor", "synteza nieudana: ${e.javaClass.simpleName}: ${e.message?.take(160)}")
-                            if (synthErrors++ == 0) say(app, "Lektor: ${e.message ?: "błąd syntezy głosu"}")
+                            if (synthErrors++ == 0) say(app, "Lektor: ${e.message ?: "błąd syntezy głosu"} — ponawiam, część kwestii może zostać bez głosu")
+                            errStreak++
                             null
                         } ?: break
+                        errStreak = 0
                         if (synthOk++ % 10 == 0) android.util.Log.i("ForkLektor", "synteza OK: $synthOk kwestii (ostatnia ${natural.durationMs} ms)")
                         val fit = Tempo.fit(l.text, natural.durationMs, l.availableMs)
                         val pcm = if (fit.rate > 1.01f || fit.text != l.text) runCatching { tts.synthesize(fit.text, fit.rate) }.logged("ForkLektor", "LektorController.kt:66").getOrDefault(natural) else natural
                         LektorEngine.voice[l.startMs] = pcm; done += l.startMs
                     }
                     val kept = SynthWindow.dropOutside(done, pos); done.retainAll(kept); LektorEngine.voice.keys.retainAll(kept)
-                    status = "Lektor włączony"
-                    delay(1000)
+                    status = if (errStreak > 0) "Lektor: ponawiam po błędzie Gemini" else "Lektor włączony"
+                    delay(if (errStreak > 0) minOf(30_000L, 1_000L shl minOf(errStreak, 5)) else 1000)
                 }
             } finally { (tts as? SystemLektor)?.shutdown() }
         }

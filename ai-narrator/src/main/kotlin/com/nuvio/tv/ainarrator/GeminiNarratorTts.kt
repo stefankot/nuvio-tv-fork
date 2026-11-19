@@ -30,7 +30,7 @@ internal class GeminiNarratorTts {
             try {
                 connection.requestMethod = "POST"
                 connection.connectTimeout = 10_000
-                connection.readTimeout = 35_000
+                connection.readTimeout = 15_000 // fork 19.11: kwestia po 15 s i tak jest spóźniona (było 35 s)
                 connection.doOutput = true
                 connection.setRequestProperty("Content-Type", "application/json; charset=utf-8")
                 connection.setRequestProperty("x-goog-api-key", apiKey)

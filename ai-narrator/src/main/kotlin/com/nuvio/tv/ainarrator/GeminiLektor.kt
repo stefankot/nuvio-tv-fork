@@ -38,8 +38,21 @@ class GeminiLektor(context: Context) : Lektor {
             val seconds = (clean.length / 9.0).coerceIn(1.5, 25.0)
             val usd = NarratorPrices.estimatedUsd(options.model, clean.length, seconds * 1.8, month.year, month.monthValue)
             if (!prefs.reserve(usd, options.monthlyUsdLimit)) throw Lektor.Unavailable("Lektor Gemini: osiągnięto miesięczny limit kosztów")
+            // Fork 19.11 (właściciel: „Błąd Gemini: 503, następnym razem timeout”): przy przeciążeniu (503/429) jedna
+            // szybka próba na drugim modelu TTS (inna pula serwerów), potem błąd do kontrolera (on robi przerwy).
             val bytes = try { tts.synthesize(key, options.model, options.voice, clean, style) }
-                catch (e: Exception) { throw Lektor.Unavailable("Błąd Gemini: ${e.message ?: "połączenie"}") }
+                catch (e: Exception) {
+                    val busy = e.message?.let { it.contains("503") || it.contains("429") || it.contains("500") } == true
+                    android.util.Log.w("ForkLektor", "Gemini TTS ${options.model.apiId}: ${e.javaClass.simpleName}: ${e.message?.take(120)}")
+                    if (!busy) throw Lektor.Unavailable("Błąd Gemini: ${e.message ?: "połączenie"}")
+                    val other = if (options.model == NarratorModel.FLASH) NarratorModel.FLASH_LITE else NarratorModel.FLASH
+                    kotlinx.coroutines.delay(800)
+                    try { tts.synthesize(key, other, options.voice, clean, style).also { android.util.Log.i("ForkLektor", "Gemini TTS: zapasowy model ${other.apiId} OK") } }
+                    catch (e2: Exception) {
+                        android.util.Log.w("ForkLektor", "Gemini TTS zapasowy ${other.apiId}: ${e2.javaClass.simpleName}: ${e2.message?.take(120)}")
+                        throw Lektor.Unavailable("Serwer Gemini przeciążony (${e.message?.take(20)})")
+                    }
+                }
             cache.store(id, bytes)
             bytes
         }
