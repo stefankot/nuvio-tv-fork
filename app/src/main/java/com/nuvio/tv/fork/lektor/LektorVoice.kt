@@ -26,16 +26,20 @@ object LektorVoice {
         started = true
         val app = context.applicationContext
         runCatching {
-            lateinit var t: TextToSpeech
+            // Fork 19.11: na JMGO (brak silnika) odpowiedź przychodzi od razu, w konstruktorze — przed przypisaniem t.
+            var t: TextToSpeech? = null
+            var answered = false
             t = TextToSpeech(app) { status ->
                 val ok = status == TextToSpeech.SUCCESS && runCatching {
-                    t.isLanguageAvailable(Locale("pl", "PL")) >= TextToSpeech.LANG_AVAILABLE
-                }.logged("ForkLektor", "LektorVoice.kt:30").getOrDefault(false)
+                    t!!.isLanguageAvailable(Locale("pl", "PL")) >= TextToSpeech.LANG_AVAILABLE
+                }.logged("ForkLektor", "LektorVoice: język").getOrDefault(false)
                 ready = ok
-                android.util.Log.i("LektorVoice", "polish_tts=$ok engine=${runCatching { t.defaultEngine }.logged("ForkLektor", "LektorVoice.kt:34").getOrNull()}")
-                runCatching { t.shutdown() }.logged("ForkLektor", "LektorVoice.kt:35")
+                android.util.Log.i("ForkLektor", "polish_tts=$ok status=$status engine=${t?.defaultEngine}")
+                answered = true
+                t?.let { e -> runCatching { e.shutdown() }.logged("ForkLektor", "LektorVoice: shutdown") }
                 onResult?.invoke(ok)
             }
+            if (answered) runCatching { t?.shutdown() }.logged("ForkLektor", "LektorVoice: shutdown po konstruktorze")
         }.onFailure { android.util.Log.w("ForkLektor", "LektorVoice init: ${it.javaClass.simpleName}: ${it.message?.take(200)}"); ready = false; onResult?.invoke(false) }
     }
 }
