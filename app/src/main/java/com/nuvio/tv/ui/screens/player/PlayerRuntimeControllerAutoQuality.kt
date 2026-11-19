@@ -165,7 +165,7 @@ private fun PlayerRuntimeController.autoQualityTick() {
     val available = if (cached != null && cached.streams === streams && cached.language == language) {
         cached.qualities
     } else {
-        com.nuvio.tv.fork.echo.AutoQualityBackground.start(streams, language, { StreamQualityMenu.availableQualities(if (language == null) streams else streams.filter { keepsLanguage(it, language) }) }) { autoQualityAvailableCache = AutoQualityAvailable(streams, language, it) }; return // Fork hook: auto jakość w tle (ANR JMGO)
+        com.nuvio.tv.fork.echo.AutoQualityBackground.start(streams, language, { StreamQualityMenu.availableQualities(if (language == null) streams else com.nuvio.tv.fork.echo.AutoQualityBackground.parallelFilter(streams) { keepsLanguage(it, language) }) }) { autoQualityAvailableCache = AutoQualityAvailable(streams, language, it) }; return // Fork hook: auto jakość w tle (ANR JMGO)
     }
     val current = currentPlaybackQuality()
     val sample = readAutoQualitySample(now) ?: return

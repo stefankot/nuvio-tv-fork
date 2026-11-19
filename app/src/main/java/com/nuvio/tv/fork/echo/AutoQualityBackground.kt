@@ -33,5 +33,18 @@ object AutoQualityBackground {
     }
 }
 
+/**
+ * Wiele rdzeni (19.11, pomiar JMGO: do 14,5 s na jednym wątku): filtr źródeł po języku na wszystkich rdzeniach
+ * (`parallelStream`, kolejność zachowana). Parser języków ma zsynchronizowaną pamięć podręczną — bezpieczny wątkowo.
+ * Przy błędzie równoległym: wpis w logu i zwykły filtr.
+ */
+fun <T> AutoQualityBackground.parallelFilter(items: List<T>, keep: (T) -> Boolean): List<T> {
+    if (items.size < 8) return items.filter(keep)
+    val t0 = System.currentTimeMillis()
+    return runCatching { items.parallelStream().filter { keep(it) }.collect(java.util.stream.Collectors.toList()) as List<T> }
+        .onSuccess { Log.i("ForkEcho", "auto jakość: filtr języka ${items.size} źródeł na ${Runtime.getRuntime().availableProcessors()} rdzeniach w ${System.currentTimeMillis() - t0} ms") }
+        .getOrElse { e -> Log.w("ForkEcho", "parallelFilter: ${e.javaClass.simpleName}: ${e.message?.take(200)}"); items.filter(keep) }
+}
+
 /** Fork 19.11: czy trwa przełączanie źródła Echo (auto jakość / zmiana dźwięku) — wtedy hook „polski dźwięk” nie szuka dalej. */
 internal fun isSourceSwitching(c: com.nuvio.tv.ui.screens.player.PlayerRuntimeController): Boolean = c.sourceSwitch != null
