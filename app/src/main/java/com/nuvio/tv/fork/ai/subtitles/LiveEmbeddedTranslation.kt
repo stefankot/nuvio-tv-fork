@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import com.nuvio.tv.fork.logged
 
 /**
@@ -22,6 +24,8 @@ import com.nuvio.tv.fork.logged
 object LiveEmbeddedTranslation {
     private const val TAG = "ForkAiLive"
     private const val CHUNK = 30
+    /** Właściciel 19.11: „nie może to trwać tak długo bez komunikatu” — pierwszy blok mały, żeby PL pojawiło się szybko. */
+    private const val FIRST_CHUNK = 8
     private const val AHEAD_MS = 240_000L
 
     private val _translated = MutableStateFlow<List<DocCue>>(emptyList())
@@ -64,15 +68,23 @@ object LiveEmbeddedTranslation {
         var glossary = emptyMap<String, String>()
         var failures = 0
         var published = 0
+        var lastBlockMs = 20_000L // szacowany czas tłumaczenia bloku (pierwszy: ~20 s), potem mierzony
+        val startedAt = System.currentTimeMillis()
         try {
             onState("AI: tłumaczę napisy wbudowane (${language}) na bieżąco")
             while (true) {
                 val all = withContext(Dispatchers.Default) { cuesOf(controller, trackKey) }
                 val pos = port.positionMs()
-                val todo = all.filter { it.id !in done && it.endMs >= pos - 2_000 && it.startMs <= pos + AHEAD_MS }
+                // Fork 19.11: kwestie, które miną, zanim tłumaczenie wróci, zostają po angielsku (do pierwszej publikacji
+                // EN są widoczne) — tłumaczymy od miejsca, w którym film będzie po czasie tłumaczenia (+5 s zapasu).
+                val lead = if (published == 0) minOf(lastBlockMs + 5_000, 30_000L) else 0L
+                val todo = all.filter { it.id !in done && it.endMs >= pos - 2_000 + lead && it.startMs <= pos + AHEAD_MS }
                 val urgent = todo.firstOrNull()?.let { it.startMs - pos < 30_000 } == true
-                if (todo.isEmpty() || (todo.size < 8 && !urgent)) { delay(1_500); continue }
-                val chunk = todo.take(CHUNK)
+                if (todo.isEmpty() || (todo.size < 8 && !urgent)) {
+                    if (published == 0) onState("AI: czekam na napisy do tłumaczenia… ${(System.currentTimeMillis() - startedAt) / 1000} s")
+                    delay(1_500); continue
+                }
+                val chunk = todo.take(if (published == 0) FIRST_CHUNK else CHUNK)
                 val firstIdx = all.indexOfFirst { it.id == chunk.first().id }
                 val lastIdx = all.indexOfFirst { it.id == chunk.last().id }
                 // Kontekst: kwestie wokół kawałka (bez całego filmu — jest tylko to, co już wczytane).
@@ -87,7 +99,21 @@ object LiveEmbeddedTranslation {
                     cues = window, aux = emptyList(), missingCategories = emptyList(), blocks = listOf(block), glossary = glossary,
                     provider = "gemini", model = model, promptVersion = TranslationPrompt.VERSION, createdAtMs = now, updatedAtMs = now,
                 )
-                val result = runCatching { engine.translateBlock(doc, 0) }.logged("ForkAi", "LiveEmbeddedTranslation.kt:89")
+                val blockStart = System.currentTimeMillis()
+                val result = coroutineScope {
+                    // Licznik na ekranie co sekundę, dopóki blok się tłumaczy (przed pierwszym blokiem EN zostają widoczne).
+                    val ticker = launch {
+                        while (true) {
+                            val sec = (System.currentTimeMillis() - blockStart) / 1000
+                            onState(if (published == 0) "AI: tłumaczę pierwsze kwestie na polski… $sec s (do tego czasu napisy oryginalne)"
+                                    else "AI: tłumaczę dalej… $sec s (gotowe ${done.size} kwestii)")
+                            delay(1_000)
+                        }
+                    }
+                    runCatching { engine.translateBlock(doc, 0) }.logged("ForkAi", "LiveEmbeddedTranslation.translateBlock")
+                        .also { ticker.cancel() }
+                }
+                lastBlockMs = System.currentTimeMillis() - blockStart
                 result.exceptionOrNull()?.let { e ->
                     if (e is CancellationException) throw e
                     failures++
@@ -104,7 +130,7 @@ object LiveEmbeddedTranslation {
                 _translated.value = out
                 val r = port.publish(out, "AI PL (wbudowane)")
                 published++
-                Log.i(TAG, "blok $published: ${chunk.size} kwestii, razem ${out.size}, publikacja=$r")
+                Log.i(TAG, "blok $published: ${chunk.size} kwestii w ${lastBlockMs} ms, od ${chunk.first().startMs - pos} ms przed filmem, razem ${out.size}, publikacja=$r")
                 if (r == PublishResult.USER_SWITCHED || r == PublishResult.PLAYER_GONE) { onState(""); return }
                 onState("AI: przetłumaczono ${out.size} kwestii (na bieżąco)")
             }
