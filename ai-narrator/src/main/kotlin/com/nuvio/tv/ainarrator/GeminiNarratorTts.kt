@@ -39,7 +39,15 @@ internal class GeminiNarratorTts {
                 val status = connection.responseCode
                 if (status !in 200..299) {
                     // Do not expose server error bodies: they can contain sensitive request data.
-                    throw IllegalStateException("TTS HTTP $status")
+                    // Fork 19.11 (stałe 429 na obu modelach): z treści błędu tylko nazwa limitu i zalecana przerwa (bez tekstu kwestii).
+                    val info = runCatching {
+                        val body = connection.errorStream?.bufferedReader(Charsets.UTF_8)?.use { it.readText().take(20_000) }.orEmpty()
+                        val metric = Regex("\"quotaMetric\"\\s*:\\s*\"([^\"]{1,120})\"").find(body)?.groupValues?.get(1)
+                        val quotaId = Regex("\"quotaId\"\\s*:\\s*\"([^\"]{1,120})\"").find(body)?.groupValues?.get(1)
+                        val retry = Regex("\"retryDelay\"\\s*:\\s*\"([0-9.]{1,8})s\"").find(body)?.groupValues?.get(1)
+                        listOfNotNull(quotaId ?: metric, retry?.let { "ponów za ${it}s" }).joinToString(", ")
+                    }.getOrDefault("")
+                    throw IllegalStateException("TTS HTTP $status" + if (info.isNotEmpty()) " ($info)" else "")
                 }
                 val response = connection.inputStream.bufferedReader(Charsets.UTF_8).use { reader ->
                     val body = StringBuilder()

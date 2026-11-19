@@ -99,7 +99,8 @@ class GeminiLektor(context: Context) : Lektor, com.nuvio.tv.fork.lektor.SceneLek
                 catch (e2: Exception) {
                     if (e2 is kotlinx.coroutines.CancellationException) throw e2
                     android.util.Log.w("ForkLektor", "Gemini TTS zapasowy ${other.apiId}: ${e2.javaClass.simpleName}: ${e2.message?.take(120)}")
-                    throw Lektor.Unavailable("Serwer Gemini przeciążony (${e.message?.take(20)})")
+                    val daily = listOfNotNull(e.message, e2.message).any { it.contains("PerDay", ignoreCase = true) }
+                    throw Lektor.Unavailable(if (daily) "Dzienny limit głosu Gemini na tym kluczu wyczerpany (odnowienie ok. 9:00)" else "Serwer Gemini przeciążony lub limit na minutę (${e.message?.take(60)})")
                 }
             }
         cache.store(storeId, bytes)
