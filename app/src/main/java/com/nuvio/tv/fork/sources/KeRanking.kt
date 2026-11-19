@@ -95,6 +95,8 @@ object KeRanking {
 
     /** Język napisów = polski (ustawienia odtwarzacza): źródła z polskimi napisami w nazwie wyżej, po polskim dźwięku (W4). */
     @Volatile private var polishSubs = false
+    /** Fork 19.11 (ANR JMGO 18:23): czy lektor ma głos — liczone raz na sortowanie (klucz Gemini odszyfrowywany z Keystore). */
+    @Volatile private var lektorVoiceNow = false
     private val PL_SUBS = Regex("""(?i)\b(?:pl[ ._-]?subs?|subs?[ ._-]?pl|napisy(?:[ ._-]?pl)?|plsub)\b""")
     /** Fork 19.11 (zgłoszenie 9b, decyzja 10): oznaczenia wielu napisów wbudowanych w nazwie (źródło dla AI napisów). */
     private val MULTI_SUBS = Regex("""(?i)\b(?:multi[ ._-]?subs?|m[ ._-]?subs?|multisub|subs?[ ._-]?multi|multi)\b""")
@@ -119,7 +121,7 @@ object KeRanking {
         val audio = (if (TrackScout.of(s)?.hasPolishAudio == true) 0 else null) ?: SourcePresets.tierOf(p, text) ?: Int.MAX_VALUE
         // P3 (18.11): działa polski głos lektora i napisy mają być po polsku → źródło z polskimi napisami równie dobre
         // jak polski dźwięk (lektor przeczyta). Brak głosu (JMGO) → zostaje sam polski dźwięk.
-        if (polishSubs && (com.nuvio.tv.fork.lektor.LektorVoice.ready == true || appCtx?.let { com.nuvio.tv.ainarrator.LektorVoiceChoice.geminiKeyPresent(it) } == true) && PL_SUBS.containsMatchIn(text)) return 0 // scalenie 19.11: głos Gemini też
+        if (polishSubs && lektorVoiceNow && PL_SUBS.containsMatchIn(text)) return 0 // scalenie 19.11: głos Gemini też
         return audio
     }
 
@@ -171,6 +173,7 @@ object KeRanking {
 
     fun order(streams: List<Stream>): List<Stream> {
         if (!enabled || streams.size < 2) return streams
+        lektorVoiceNow = polishSubs && (com.nuvio.tv.fork.lektor.LektorVoice.ready == true || appCtx?.let { a -> runCatching { com.nuvio.tv.ainarrator.LektorVoiceChoice.geminiKeyPresent(a) }.logged("ForkSources", "KeRanking: klucz Gemini").getOrDefault(false) } == true)
         return runCatching {
             val id = identity
             val rejected = id?.let { ContentIdentityGuard.rejections(streams, it).keys }.orEmpty()
