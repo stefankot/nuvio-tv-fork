@@ -60,7 +60,7 @@ class ForgeYouTubePanel internal constructor(internal val session: ForgeYouTubeS
 
 @Composable
 fun rememberForgeYouTubePanel(): ForgeYouTubePanel {
-    val session = LocalForgeYouTubeSession.current
+    val session = LocalForgeYouTubeSession.current ?: ForgeYouTubeHost.session // fork 19.11: sesja z hooka trasy
     return remember(session?.videoId) { ForgeYouTubePanel(session) }
 }
 
@@ -107,4 +107,45 @@ object ForgeYouTubePanelRequests {
     @Volatile var barFocused: Boolean = false
     internal val requests = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     fun open() { requests.tryEmit(Unit) }
+}
+
+/**
+ * Fork 19.11 (właściciel: „przywróć natywne sterowanie YouTube”): w Kicii sesję podawał NuvioNavHost przez
+ * CompositionLocalProvider wokół PlayerScreen; przy przenoszeniu do forka to zginęło (panel 1Tube z One nigdy się nie
+ * włączał). Tu jednoliniowy hook trasy odtwarzacza ustawia sesję dla filmów YouTube; czytelnicy biorą
+ * `LocalForgeYouTubeSession.current ?: ForgeYouTubeHost.session`.
+ */
+object ForgeYouTubeHost {
+    var session by mutableStateOf<ForgeYouTubeSession?>(null)
+        private set
+
+    @Composable
+    fun Bind(contentId: String?, navController: androidx.navigation.NavHostController) {
+        val videoId = contentId?.takeIf { com.nuvio.tv.youtube.YouTubeProgress.isYouTubeId(it) }
+            ?.removePrefix(com.nuvio.tv.youtube.YouTubeProgress.ID_PREFIX)
+        val vm = if (videoId != null) forgeSharedYouTubeViewModel() else null
+        val made = remember(videoId, vm) {
+            if (videoId == null || vm == null) null else ForgeYouTubeSession(
+                videoId = videoId,
+                openChannel = { channelId, name -> vm.openChannel(channelId, name); navController.popBackStack() },
+                playVideo = { item, related ->
+                    vm.activate(item = item, from = related, onReady = { v ->
+                        // jak youtubePlayerRoute w NuvioNavHost (Nuvio One hook); poprzedni film zdjęty ze stosu (Kicia: popUpTo inclusive)
+                        val route = com.nuvio.tv.ui.navigation.Screen.Player.createRoute(
+                            streamUrl = v.url, title = v.title, headers = v.headers.takeIf { it.isNotEmpty() },
+                            contentId = com.nuvio.tv.youtube.YouTubeProgress.ID_PREFIX + v.videoId, contentType = "youtube", contentName = v.title,
+                            poster = v.poster, addonName = "OneTube",
+                        )
+                        val current = navController.currentBackStackEntry?.destination?.id
+                        navController.navigate(route) { if (current != null) popUpTo(current) { inclusive = true } }
+                    })
+                },
+            )
+        }
+        androidx.compose.runtime.DisposableEffect(made) {
+            session = made
+            android.util.Log.i("ForgeYouTubeHost", "session=${made?.videoId}")
+            onDispose { if (session === made) session = null }
+        }
+    }
 }

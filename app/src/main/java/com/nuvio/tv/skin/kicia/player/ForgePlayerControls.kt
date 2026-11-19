@@ -72,7 +72,7 @@ fun ForgePlayerControls(
     onSubtitleClearanceChanged: (Float) -> Unit,
 ) {
     // S12: YouTube videos get the YouTube controls of the mockup.
-    com.nuvio.tv.skin.kicia.youtube.LocalForgeYouTubeSession.current?.let { session ->
+    (com.nuvio.tv.skin.kicia.youtube.LocalForgeYouTubeSession.current ?: com.nuvio.tv.skin.kicia.youtube.ForgeYouTubeHost.session)?.let { session -> // fork 19.11: sesja z hooka trasy
         ForgeYouTubeControls(session, uiState, viewModel, playPauseFocusRequester, progressBarFocusRequester, onPlayPause, onSeekTo,
             onShowSubtitleDialog, onShowSpeedDialog, onShowStreamInfo, onResetHideTimer, onSubtitleClearanceChanged, onShowAudioDialog = onShowAudioDialog) // fork 19.11: dźwięk w YouTube
         return

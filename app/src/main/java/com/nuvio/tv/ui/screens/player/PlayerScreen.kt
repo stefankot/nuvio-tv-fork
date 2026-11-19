@@ -247,6 +247,7 @@ fun PlayerScreen(
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val containerFocusRequester = remember { FocusRequester() }
     val liveTvPlayer = com.nuvio.tv.ui.reshaped.livetv.rememberLiveTvPlayer(viewModel.controller, containerFocusRequester) // Nuvio RS hook: Live TV
+    val forgeYouTube = com.nuvio.tv.skin.kicia.youtube.rememberForgeYouTubePanel() // Fork hook: panel 1Tube (Kicia)
     val playPauseFocusRequester = remember { FocusRequester() }
     val progressBarFocusRequester = remember { FocusRequester() }
     val episodesFocusRequester = remember { FocusRequester() }
@@ -684,6 +685,8 @@ fun PlayerScreen(
             .focusable(enabled = uiState.error == null)
             .onPreviewKeyEvent { keyEvent ->
                 if (liveTvPlayer.onPreviewKey(keyEvent.nativeKeyEvent, uiState)) return@onPreviewKeyEvent true // Nuvio RS hook: Live TV
+                if (forgeYouTube.onPreviewKey(keyEvent.nativeKeyEvent, uiState.showControls)) return@onPreviewKeyEvent true // Fork hook: panel 1Tube (Kicia)
+                if (forgeYouTube.open) return@onPreviewKeyEvent false // Fork hook: panel 1Tube — klawisze bierze panel
                 if (com.nuvio.tv.fork.ForkHooks.modulePlayerKey(context, keyEvent.nativeKeyEvent)) return@onPreviewKeyEvent true // Fork hook: registry
                 run { // Arc hook: remote buttons (player and Live TV)
                     com.nuvio.tv.data.local.RemoteButtonStore.ensureLoaded(context)
@@ -876,6 +879,7 @@ fun PlayerScreen(
                         uiState.error != null ||
                         liveTvPlayer.panelOpen // Nuvio RS hook: Live TV channel list
                 if (panelOrDialogOpen) return@onKeyEvent false
+                if (forgeYouTube.open) return@onKeyEvent false // Fork hook: panel 1Tube
                 if (com.nuvio.tv.skin.kicia.player.ForgeSheetOpen.open) return@onKeyEvent false // fork hook: okno „Więcej” skórki Kicia (▲ działało jak na pasku)
 
                 if (keyEvent.nativeKeyEvent.action == KeyEvent.ACTION_UP) {
@@ -2240,6 +2244,7 @@ fun PlayerScreen(
         }
 
         com.nuvio.tv.ui.reshaped.livetv.LiveTvPlayerOverlay(liveTvPlayer, uiState) // Nuvio RS hook: Live TV
+        com.nuvio.tv.skin.kicia.youtube.ForgeYouTubePanelHost(forgeYouTube) { viewModel.onEvent(PlayerEvent.OnSeekTo(it)) } // Fork hook: panel 1Tube (Kicia)
 
         if (uiState.showSpeedDialog) {
             SpeedSelectionDialog(

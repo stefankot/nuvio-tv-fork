@@ -960,6 +960,7 @@ private fun PlaybackNavHost(
                 }
             }
 
+            com.nuvio.tv.skin.kicia.youtube.ForgeYouTubeHost.Bind(backStackEntry.arguments?.getString("contentId"), navController) // Fork hook: panel 1Tube (sesja YouTube)
             PlayerScreen(
                 onBackPress = { currentVideoId, currentSeason, currentEpisode, autoPlayEnabled, playbackCompleted ->
                     val args = backStackEntry.arguments
