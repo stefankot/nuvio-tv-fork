@@ -36,6 +36,7 @@ object AiSettings {
 object AiKeyStore {
     private fun prefs(c: Context) = ProtectedProfilePreferences(c.applicationContext, "fork_ai_subtitles_secret", "fork_ai_subtitles_gemini")
     fun read(c: Context): String? = runCatching { prefs(c).read(0) }.getOrNull()?.takeIf { it.isNotBlank() }
+        ?: com.nuvio.tv.BuildConfig.GEMINI_API_KEY.takeIf { it.isNotBlank() } // na razie klucz wbudowany (local.properties, polecenie właściciela 19.11)
     fun write(c: Context, key: String?) = prefs(c).write(0, key?.trim()?.takeIf { it.isNotEmpty() })
     fun mask(key: String?) = key?.let { if (it.length > 8) "…" + it.takeLast(4) else "zapisany" } ?: "brak"
 }
