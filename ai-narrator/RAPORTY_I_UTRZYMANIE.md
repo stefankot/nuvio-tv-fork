@@ -10,8 +10,8 @@ Porównanie gałęzi z bazowym `main` za pomocą GitHub Compare:
 |---|---:|---:|---:|
 | Pliki upstream zmienione | 3 | 12 | 0 |
 | Pliki forka zmienione | 1 | 10 | 0 |
-| Nowe pliki modułu i workflow | 21 | 2437 | 0 |
-| **Łącznie** | **23** | **2450** | **0** |
+| Nowe pliki modułu i workflow | 29 | 3407 | 0 |
+| **Łącznie** | **33** | **3429** | **0** |
 
 Jedyna zmiana istniejącej klasy odtwarzacza: `app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt` — wywołanie `NarratorOverlay` (5 wierszy). Własny `app/reshaped.gradle` otrzymał deklaracje źródeł oraz konfigurację weryfikowanego APK ARM32 (+10 wierszy, bez dołączania binarki). Manifest Androida otrzymał +3 linie, a lista ścieżek FileProvider +4. **Bez zmian** w `app/build.gradle.kts`, `PlayerRuntimeController*`, mpv, ExoPlayer i obecnej synchronizacji.
 
