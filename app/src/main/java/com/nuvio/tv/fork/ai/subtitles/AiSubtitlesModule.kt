@@ -174,7 +174,7 @@ fun AiSubtitlesMenuRows(close: () -> Unit) {
     fun toast(msg: String) = android.widget.Toast.makeText(c, msg, android.widget.Toast.LENGTH_LONG).show()
     val running = AiSubtitles.running
     if (running) {
-        ForgeSheetRow(text = "AI napisy: anuluj", detail = st?.let { "${it.doneBlocks}/${it.totalBlocks} bloków" }) { close(); toast(AiSubtitles.cancel()) }
+        ForgeSheetRow(text = "AI napisy: anuluj", detail = if (LiveEmbeddedTranslation.active) "na bieżąco: ${LiveEmbeddedTranslation.translated.value.size} kwestii" else st?.let { "${it.doneBlocks}/${it.totalBlocks} bloków" }) // fork 19.11: tryb na bieżąco nie ma bloków { close(); toast(AiSubtitles.cancel()) }
         ForgeSheetRow(text = if (AiSubtitles.noticeHidden.value) "AI napisy: pokaż powiadomienie" else "AI napisy: ukryj powiadomienie") { close(); AiSubtitles.noticeHidden.value = !AiSubtitles.noticeHidden.value }
     } else {
         val reason = AiSubtitles.unavailableReason(c)

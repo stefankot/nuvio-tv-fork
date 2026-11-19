@@ -28,7 +28,7 @@ data class TranslationValidation(
 /** Validate the *complete parsed response*, not a partially streamed JSON fragment. */
 object TranslationOutputContract {
     private val allowedFlags = setOf("uncertain_meaning", "speaker_ambiguous", "source_mismatch")
-    private val assOverride = Regex("""\{\\[^}]*}""")
+    private val assOverride = Regex("""\{\\[^}]*\}""") // fork 19.11: Android (ICU) wymaga \} — bez tego ExceptionInInitializerError (AI napisy 0/0)
     private val markup = Regex("""</?[A-Za-z][^>]*>""")
     private val blankLine = Regex("""\n\s*\n""")
 
