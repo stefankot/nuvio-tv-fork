@@ -127,12 +127,22 @@ object KeRanking {
         }
         // Dawniej odpowiedź włączała tryb Regex, który omija ranking KE: jednorazowo przestaw na „pierwsze źródło”.
         if (answer.isNotEmpty() && answer != SourcePresets.CUSTOM) scope.launch { runCatching { SourceChoice.useRanking(app) } }
-        tvCap = tvMaxResolution(app)
+        // Właściciel 19.11: „JMGO jest 4K!” — projektor zgłasza tylko tryby 1920×1080 (interfejs), a wideo wyświetla w 4K.
+        // Limit rozdzielczości ekranu tylko, gdy urządzenie NIE ma sprzętowego dekodera 3840×2160.
+        tvCap = tvMaxResolution(app)?.takeUnless { hardware4kDecoder() }
         com.nuvio.tv.fork.lektor.LektorVoice.probe(app)
         StartupChecks.warm(app)
         MpvContainers.warm(app)
         scope.launch { decode = runCatching { DecodeCapability.current(app) }.getOrDefault(DecodeCapability.UNKNOWN) }
     }
+
+    private fun hardware4kDecoder(): Boolean = runCatching {
+        android.media.MediaCodecList(android.media.MediaCodecList.REGULAR_CODECS).codecInfos.any { info ->
+            !info.isEncoder && (android.os.Build.VERSION.SDK_INT < 29 || info.isHardwareAccelerated) &&
+                info.supportedTypes.any { t -> (t == "video/hevc" || t == "video/avc" || t == "video/x-vnd.on2.vp9" || t == "video/av01") &&
+                    runCatching { info.getCapabilitiesForType(t).videoCapabilities.isSizeSupported(3840, 2160) }.getOrDefault(false) }
+        }
+    }.getOrDefault(false)
 
     /** Fork 19.11: dlaczego wygrało dane źródło (logcat `ForkRanking`), pierwsze 6 pozycji z powodami. */
     private fun logTop(list: List<Stream>) = runCatching {
