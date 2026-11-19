@@ -104,16 +104,16 @@ object TvStore {
         _recent.value = RecentlyViewed.decode(read(folder, "recent_$profileId.json"))
         _recentChannels.value = RecentChannels.decode(read(folder, "recent_channels_$profileId.json"))
         storedAirings = runCatching {
-            json.decodeFromString(ListSerializer(Airing.serializer()), read(folder, "airings_$profileId.json").orEmpty())
+            json.decodeFromString(ListSerializer(Airing.serializer()), read(folder, "airings_$profileId.json").takeUnless { it.isNullOrBlank() } ?: "[]")
         }.logged("ForkTv", "TvStore.kt:105").getOrDefault(emptyList())
         announced = runCatching {
-            json.decodeFromString(SetSerializer(String.serializer()), read(folder, "announced_$profileId.json").orEmpty())
+            json.decodeFromString(SetSerializer(String.serializer()), read(folder, "announced_$profileId.json").takeUnless { it.isNullOrBlank() } ?: "[]")
         }.logged("ForkTv", "TvStore.kt:108").getOrDefault(emptySet())
         _favoriteShows.value = runCatching {
-            json.decodeFromString(SetSerializer(String.serializer()), read(folder, "favorite_shows_$profileId.json").orEmpty())
+            json.decodeFromString(SetSerializer(String.serializer()), read(folder, "favorite_shows_$profileId.json").takeUnless { it.isNullOrBlank() } ?: "[]")
         }.logged("ForkTv", "TvStore.kt:111").getOrDefault(emptySet())
         _resume.value = runCatching {
-            json.decodeFromString(ListSerializer(TvResume.serializer()), read(folder, "resume_$profileId.json").orEmpty())
+            json.decodeFromString(ListSerializer(TvResume.serializer()), read(folder, "resume_$profileId.json").takeUnless { it.isNullOrBlank() } ?: "[]")
         }.logged("ForkTv", "TvStore.kt:114").getOrDefault(emptyList())
         recompute(System.currentTimeMillis())
     }
