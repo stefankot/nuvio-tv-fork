@@ -858,6 +858,7 @@ fun MetaDetailsScreen(
                 if (playOnLoad && !playOnLoadReturnContentRevealed) {
                     PlaybackHandoffBackdrop(backdropUrl = heroBackdropUrl ?: meta.backdropUrl)
                 }
+                if (com.nuvio.tv.fork.ForkHooks.skinScreen("detail", mapOf("meta" to meta, "uiState" to uiState, "viewModel" to viewModel, "heroVideo" to playOnLoadVideo, "playEpisode" to playEpisode, "playTitle" to playTitle, "onNavigateToDetail" to onNavigateToDetail, "onNavigateToCastDetail" to onNavigateToCastDetail))) return@Box // Fork hook: skin (strona filmu/serialu skórki)
                 MetaDetailsContent(
                     modifier = Modifier.graphicsLayer {
                         alpha = playOnLoadReturnContentAlpha

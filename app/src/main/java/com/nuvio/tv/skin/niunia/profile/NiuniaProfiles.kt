@@ -1,0 +1,258 @@
+package com.nuvio.tv.skin.niunia.profile
+
+import android.util.Log
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import com.nuvio.tv.R
+import com.nuvio.tv.domain.model.UserProfile
+import com.nuvio.tv.skin.niunia.components.niuniaFocusable
+import com.nuvio.tv.skin.niunia.tokens.NiuniaColors
+import com.nuvio.tv.skin.niunia.tokens.NiuniaText
+import com.nuvio.tv.ui.screens.profile.ProfileSelectionViewModel
+
+private const val TAG = "ForkNiunia"
+
+/**
+ * Przełącznik profili Niunii (canvas: Profiles, klasa .pcard): u góry po lewej pigułka „Zmień profil”, pod nią szklana karta
+ * z awatarami 80 dp (fokus: powiększenie 1,08 i cień, nazwa biała), zielony znacznik przy bieżącym profilu, na końcu „Dodaj profil”.
+ * Profil z PIN-em otwiera okno PIN. Weryfikacja PIN-u i wybór profilu = view model Nuvio; tu tylko wygląd i klawisze.
+ */
+@Composable
+fun NiuniaProfiles(
+    viewModel: ProfileSelectionViewModel,
+    onAddProfile: () -> Unit,
+    onProfileSelected: () -> Unit,
+    onProfileClicked: () -> Unit,
+    onProfileSelectionFailed: () -> Unit,
+    onProfileFocusChanged: ((String?, String?, String?) -> Unit)?,
+) {
+    val context = LocalContext.current
+    val profiles by viewModel.profiles.collectAsState()
+    val activeId by viewModel.activeProfileId.collectAsState()
+    val pinEnabled by viewModel.profilePinEnabled.collectAsState()
+    val working by viewModel.isPinOperationInProgress.collectAsState()
+    val avatarCatalog by viewModel.avatarCatalog.collectAsState()
+    val avatarUrls = remember(avatarCatalog, profiles) {
+        com.nuvio.tv.skin.kicia.profile.forgeAvatarUrls(profiles, avatarCatalog.associate { it.id to it.imageUrl }, viewModel::getAvatarImageUrl)
+    }
+    var pinFor by remember { mutableStateOf<UserProfile?>(null) }
+    var pinError by remember { mutableStateOf<String?>(null) }
+    val first = remember { FocusRequester() }
+    val canAdd = viewModel.canAddProfile
+
+    LaunchedEffect(profiles.size) {
+        Log.i(TAG, "profile: ${profiles.size} (aktywny id=$activeId, z PIN-em=${pinEnabled.count { it.value }}, dodawanie=${if (canAdd) "tak" else "nie"})")
+        if (profiles.isNotEmpty() || canAdd) {
+            try { first.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "profile: fokus startowy: ${e.javaClass.simpleName}: ${e.message}") }
+        }
+    }
+
+    fun select(profile: UserProfile) {
+        Log.i(TAG, "profile: wybrano id=${profile.id}")
+        onProfileClicked()
+        viewModel.selectProfile(profile.id, onComplete = onProfileSelected, onFailure = {
+            Log.w(TAG, "profile: wybór id=${profile.id} nieudany")
+            onProfileSelectionFailed()
+        })
+    }
+
+    Box(Modifier.fillMaxSize().background(NiuniaColors.Bg)) {
+        // Pigułka nawigacji (canvas .nav: 20, 28): „‹ [ikona] Zmień profil”.
+        Row(Modifier.offset(x = 20.dp, y = 28.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("‹", style = NiuniaText.Button, color = NiuniaColors.Text70, modifier = Modifier.padding(end = 8.dp))
+            Box(Modifier.height(32.dp).clip(RoundedCornerShape(50)).background(NiuniaColors.Chrome).padding(horizontal = 14.dp), contentAlignment = Alignment.Center) {
+                Text(stringResource(R.string.niunia_profiles_title), style = NiuniaText.Meta, color = NiuniaColors.Text70)
+            }
+        }
+        // Karta profili (canvas .pcard: 26, 70; promień 22, tło rgba(50,50,52,.78), obwódka 1 dp line).
+        Row(
+            Modifier
+                .offset(x = 26.dp, y = 70.dp)
+                .clip(RoundedCornerShape(22.dp))
+                .background(Color(0xC7323234))
+                .border(1.dp, NiuniaColors.Line, RoundedCornerShape(22.dp))
+                .horizontalScroll(rememberScrollState())
+                .padding(10.dp)
+                .focusGroup(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            profiles.forEachIndexed { index, profile ->
+                ProfileItem(
+                    name = profile.name,
+                    focusRequester = if (index == 0) first else null,
+                    current = profile.id == activeId,
+                    onFocus = { onProfileFocusChanged?.invoke(profile.avatarColorHex, profile.profileBackgroundUrl, null) },
+                    onOk = {
+                        if (pinEnabled[profile.id] == true) { pinError = null; pinFor = profile } else select(profile)
+                    },
+                ) {
+                    Text(com.nuvio.tv.skin.kicia.profile.forgeInitial(profile.name), style = NiuniaText.Logo.copy(fontSize = 30.sp, lineHeight = 30.sp))
+                    avatarUrls[profile.id]?.let { url ->
+                        AsyncImage(model = url, contentDescription = profile.name, contentScale = ContentScale.Crop, modifier = Modifier.size(80.dp).clip(CircleShape))
+                    }
+                }
+            }
+            if (canAdd) {
+                ProfileItem(
+                    name = stringResource(R.string.niunia_profiles_add),
+                    focusRequester = if (profiles.isEmpty()) first else null,
+                    current = false,
+                    onFocus = {},
+                    onOk = { Log.i(TAG, "profile: dodaj profil"); onAddProfile() },
+                ) { Text("+", style = NiuniaText.Logo.copy(fontSize = 30.sp, lineHeight = 30.sp)) }
+            }
+        }
+
+        val target = pinFor
+        if (target != null) {
+            BackHandler { pinFor = null }
+            NiuniaPinDialog(
+                profileName = target.name,
+                error = pinError,
+                working = working,
+                onSubmit = { pin ->
+                    viewModel.verifyProfilePin(target.id, pin) { result ->
+                        result.onSuccess { verify ->
+                            if (verify.unlocked) {
+                                pinError = null; pinFor = null; select(target)
+                            } else {
+                                Log.i(TAG, "profile: zły PIN (blokada ${verify.retryAfterSeconds} s)")
+                                pinError = if (verify.retryAfterSeconds > 0) context.getString(R.string.profile_pin_locked, verify.retryAfterSeconds)
+                                else context.getString(R.string.profile_pin_invalid)
+                            }
+                        }.onFailure { e ->
+                            Log.w(TAG, "profile: weryfikacja PIN: ${e.javaClass.simpleName}: ${e.message}")
+                            pinError = context.getString(R.string.profile_pin_verify_error)
+                        }
+                    }
+                },
+            )
+        }
+    }
+}
+
+/** Jeden profil (canvas .prof 86 szer., .pav 80 dp, napis 12/16; fokus: awatar 1,08 + cień, napis biały). */
+@Composable
+private fun ProfileItem(
+    name: String,
+    focusRequester: FocusRequester?,
+    current: Boolean,
+    onFocus: () -> Unit,
+    onOk: () -> Unit,
+    avatar: @Composable () -> Unit,
+) {
+    var focused by remember { mutableStateOf(false) }
+    Column(Modifier.width(86.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Box {
+            Box(
+                Modifier
+                    .size(80.dp)
+                    .niuniaFocusable(CircleShape, scale = 1.08f, lift = false, focusRequester = focusRequester, onFocus = { focused = it; if (it) onFocus() }, onOk = onOk)
+                    .clip(CircleShape)
+                    .background(NiuniaColors.Fill24),
+                contentAlignment = Alignment.Center,
+            ) { avatar() }
+            if (current) {
+                // canvas .tick: 20 dp, kolor switch-on, biały znak.
+                Box(Modifier.align(Alignment.TopEnd).offset(x = 2.dp).size(20.dp).background(Color(0xFF30D158), CircleShape), contentAlignment = Alignment.Center) {
+                    Text("✓", style = NiuniaText.Caption.copy(fontSize = 12.sp, lineHeight = 12.sp), color = NiuniaColors.Text)
+                }
+            }
+        }
+        Spacer(Modifier.height(6.dp))
+        Text(
+            name, style = NiuniaText.Meta.copy(fontSize = 12.sp, lineHeight = 16.sp), color = if (focused) NiuniaColors.Text else NiuniaColors.Text70,
+            maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
+        )
+    }
+}
+
+/** Okno PIN w stylu Niunii: tytuł, cztery pola z kropkami, klawisze 1–9, ⌫, 0, OK (fokus startuje na „1”). */
+@Composable
+private fun NiuniaPinDialog(profileName: String, error: String?, working: Boolean, onSubmit: (String) -> Unit) {
+    var digits by remember { mutableStateOf("") }
+    val one = remember { FocusRequester() }
+    LaunchedEffect(Unit) {
+        try { one.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "PIN: fokus: ${e.javaClass.simpleName}: ${e.message}") }
+    }
+    LaunchedEffect(error) { if (error != null) digits = "" }
+    val keys = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "⌫", "0", "OK")
+    Box(Modifier.fillMaxSize().background(Color(0x99000000)), contentAlignment = Alignment.Center) {
+        Column(
+            Modifier.width(400.dp).clip(RoundedCornerShape(28.dp)).background(Color(0xF53A3A3C)).padding(24.dp).focusGroup(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(stringResource(R.string.niunia_profiles_pin, profileName), style = NiuniaText.Button.copy(fontSize = 20.sp, lineHeight = 26.sp), color = NiuniaColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (error != null) Text(error, style = NiuniaText.Body, color = Color(0xFFFF7B80), modifier = Modifier.padding(top = 8.dp))
+            Spacer(Modifier.height(16.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                repeat(4) { i ->
+                    Box(Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(NiuniaColors.Fill12), contentAlignment = Alignment.Center) {
+                        if (i < digits.length) Box(Modifier.size(14.dp).background(NiuniaColors.Text, CircleShape))
+                    }
+                }
+            }
+            Spacer(Modifier.height(20.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                keys.chunked(3).forEach { row ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        row.forEach { key ->
+                            var focused by remember { mutableStateOf(false) }
+                            Box(
+                                Modifier
+                                    .size(104.dp, 40.dp)
+                                    .niuniaFocusable(RoundedCornerShape(50), scale = 1.06f, lift = false, focusRequester = if (key == "1") one else null, onFocus = { focused = it }, onOk = {
+                                        if (!working) when (key) {
+                                            "⌫" -> digits = digits.dropLast(1)
+                                            "OK" -> if (digits.length == 4) onSubmit(digits)
+                                            else -> if (digits.length < 4) digits += key
+                                        }
+                                    })
+                                    .background(if (focused) NiuniaColors.Focus else NiuniaColors.Fill12, RoundedCornerShape(50)),
+                                contentAlignment = Alignment.Center,
+                            ) { Text(key, style = NiuniaText.Button, color = if (focused) NiuniaColors.OnFocus else NiuniaColors.Text) }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

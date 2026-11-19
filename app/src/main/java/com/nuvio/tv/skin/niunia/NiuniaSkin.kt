@@ -10,7 +10,7 @@ import com.nuvio.tv.ui.screens.home.HomeViewModel
 /**
  * Niunia — własny projekt właściciela (canvas „Nuvio TV Apple TV Style App”, specyfikacja ~/Desktop/appletv/skin/SKIN.md).
  * Jedyny adapter: zamienia argumenty wpięć skórki na parametry ekranów Niunii.
- * Etap 1–2: ekran główny, wyszukiwarka, biblioteka. Pozostałe trasy (profiles — PIN-y, youtube, odtwarzacz) zostają ekranami Nuvio.
+ * Etap 1–2: ekran główny, wyszukiwarka, biblioteka. Etap 3: profile (z PIN-em), nakładka odtwarzacza, strona filmu/serialu (wpięcie „detail” w MetaDetailsScreen). YouTube zostaje ekranem Nuvio.
  */
 object NiuniaSkin : Skin {
     override val id = SkinId.NIUNIA
@@ -35,6 +35,46 @@ object NiuniaSkin : Skin {
         "library" -> SkinScreen { a ->
             com.nuvio.tv.skin.niunia.library.NiuniaLibrary(onNavigateToDetail = a["onNavigateToDetail"] as (String, String, String?) -> Unit); true
         }
+        "profiles" -> SkinScreen { a ->
+            com.nuvio.tv.skin.niunia.profile.NiuniaProfiles(
+                viewModel = a["viewModel"] as com.nuvio.tv.ui.screens.profile.ProfileSelectionViewModel,
+                onAddProfile = a["onAddProfile"] as () -> Unit,
+                onProfileSelected = a["onProfileSelected"] as () -> Unit,
+                onProfileClicked = a["onProfileClicked"] as () -> Unit,
+                onProfileSelectionFailed = a["onProfileSelectionFailed"] as () -> Unit,
+                onProfileFocusChanged = a["onProfileFocusChanged"] as ((String?, String?, String?) -> Unit)?,
+            ); true
+        }
+        "detail" -> SkinScreen { a ->
+            com.nuvio.tv.skin.niunia.detail.NiuniaDetail(
+                meta = a["meta"] as com.nuvio.tv.domain.model.Meta,
+                uiState = a["uiState"] as com.nuvio.tv.ui.screens.detail.MetaDetailsUiState,
+                viewModel = a["viewModel"] as com.nuvio.tv.ui.screens.detail.MetaDetailsViewModel,
+                heroVideo = a["heroVideo"] as com.nuvio.tv.domain.model.Video?,
+                playEpisode = a["playEpisode"] as (com.nuvio.tv.domain.model.Video) -> Unit,
+                playTitle = a["playTitle"] as (String) -> Unit,
+                onNavigateToDetail = a["onNavigateToDetail"] as (String, String, String?) -> Unit,
+                onNavigateToCastDetail = a["onNavigateToCastDetail"] as (Int, String, Boolean) -> Unit,
+            ); true
+        }
         else -> null
+    }
+
+    /** Nakładka odtwarzacza Niunii: filmy i seriale. Live TV ma własną nakładkę, YouTube — sterowanie Kicii (sesja YouTube). */
+    @Suppress("UNCHECKED_CAST")
+    @androidx.compose.runtime.Composable
+    override fun PlayerChrome(uiState: com.nuvio.tv.ui.screens.player.PlayerUiState, onEvent: (com.nuvio.tv.ui.screens.player.PlayerEvent) -> Unit, args: Map<String, Any?>): Boolean {
+        val vm = args["viewModel"] as? com.nuvio.tv.ui.screens.player.PlayerViewModel ?: return false
+        if (vm.playbackTimeline.value.isLive) return false
+        if ((com.nuvio.tv.skin.kicia.youtube.LocalForgeYouTubeSession.current ?: com.nuvio.tv.skin.kicia.youtube.ForgeYouTubeHost.session) != null) return false
+        com.nuvio.tv.skin.niunia.player.NiuniaPlayerChrome(
+            uiState = uiState,
+            viewModel = vm,
+            playPauseFocusRequester = args["playPause"] as androidx.compose.ui.focus.FocusRequester,
+            progressBarFocusRequester = args["progressBar"] as androidx.compose.ui.focus.FocusRequester,
+            onEvent = onEvent,
+            onSubtitleClearanceChanged = (args["clearance"] as? (Float) -> Unit) ?: {},
+        )
+        return true
     }
 }
