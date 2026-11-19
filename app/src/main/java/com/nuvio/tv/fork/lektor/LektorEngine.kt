@@ -61,6 +61,9 @@ class LektorAudioProcessor : BaseAudioProcessor() {
     private var frames = 0L
     private var baseMs = 0L
     private var mixLogged = false
+    // Fork 19.11 (JMGO build122: cisza mimo nagranych kwestii): diagnostyka — która kwestia gra, czy ucięta, czy bez głosu.
+    private var playingStart = -1L; private var playingIdx = 0; private var playingLen = 0
+    private var lastMissing = -1L
 
     override fun isActive(): Boolean = super.isActive() && LektorEngine.enabled
 
@@ -103,7 +106,21 @@ class LektorAudioProcessor : BaseAudioProcessor() {
                 val l = near[k]
                 if (tMs >= l.startMs && tMs <= l.endMs + 4_000) {
                     val pcm = nearPcm[k]
-                    if (pcm != null) { val idx = ((tUs - l.startMs * 1000) * pcm.sampleRate / 1_000_000L).toInt(); if (idx in pcm.samples.indices) v = pcm.samples[idx] / 32768f * vGain }
+                    if (pcm != null) {
+                        val idx = ((tUs - l.startMs * 1000) * pcm.sampleRate / 1_000_000L).toInt()
+                        if (idx in pcm.samples.indices) {
+                            v = pcm.samples[idx] / 32768f * vGain
+                            if (playingStart != l.startMs) {
+                                if (playingStart >= 0 && playingIdx < playingLen - playingLen / 10)
+                                    android.util.Log.i("ForkLektor", "mikser: kwestia ${playingStart} ucięta przez ${l.startMs} po ${playingIdx * 100L / playingLen.coerceAtLeast(1)}%")
+                                playingStart = l.startMs; playingLen = pcm.samples.size
+                            }
+                            playingIdx = idx
+                        }
+                    } else if (tMs - l.startMs < 300 && lastMissing != l.startMs) {
+                        lastMissing = l.startMs
+                        android.util.Log.i("ForkLektor", "mikser: kwestia ${l.startMs} bez gotowego głosu w chwili napisu")
+                    }
                     break
                 }
             }

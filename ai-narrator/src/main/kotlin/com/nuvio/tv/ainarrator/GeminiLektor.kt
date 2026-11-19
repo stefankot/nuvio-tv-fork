@@ -139,14 +139,14 @@ class GeminiLektor(context: Context) : Lektor, com.nuvio.tv.fork.lektor.SceneLek
 
 /** Wybór głosu lektora i ustawienia Gemini (w Modułach, sekcja Lektor). */
 object LektorVoiceChoice {
-    const val K_VOICE = "lektor_voice_backend" // "chirp" | "gemini" | "system"
+    const val K_VOICE = "lektor_voice_backend" // "chirp" | "vertex" | "gemini" | "system"
     val GEMINI_VOICES = listOf("Kore", "Puck", "Charon", "Aoede")
-    private val BACKENDS = listOf("chirp", "gemini", "system")
+    private val BACKENDS = listOf("chirp", "vertex", "gemini", "system") // 19.11: vertex = Gemini przez Google Cloud
 
     fun geminiKeyPresent(c: Context) = narratorGeminiKey(c.applicationContext, NarratorPreferences(c.applicationContext)).isNotBlank()
 
     /** Fork 19.11: jakiś głos chmurowy dostępny (Chirp albo Gemini) — dla `LektorVoice.usable` i rankingu. */
-    fun cloudVoicePresent(c: Context) = ChirpLektor.keyPresent() || geminiKeyPresent(c)
+    fun cloudVoicePresent(c: Context) = ChirpLektor.keyPresent() || VertexGeminiLektor.keyPresent() || geminiKeyPresent(c)
 
     /**
      * Fork 19.11 (właściciel: Chirp 3 HD zamiast Gemini — limit Gemini TTS 100/dzień): domyślnie Chirp.
@@ -154,9 +154,10 @@ object LektorVoiceChoice {
      */
     fun backend(c: Context, systemVoiceOk: Boolean?): String {
         val want = ForkFeatures.str(c, K_VOICE, "chirp").takeIf { it in BACKENDS } ?: "chirp"
-        val chirp = ChirpLektor.keyPresent(); val gemini = geminiKeyPresent(c)
+        val chirp = ChirpLektor.keyPresent(); val gemini = geminiKeyPresent(c); val vertex = VertexGeminiLektor.keyPresent()
         return when {
             want == "chirp" && chirp -> "chirp"
+            want == "vertex" && vertex -> "vertex"
             want == "gemini" && gemini -> "gemini"
             want == "system" && systemVoiceOk != false -> "system"
             chirp -> "chirp"
@@ -169,18 +170,20 @@ object LektorVoiceChoice {
 
     fun create(c: Context, systemVoiceOk: Boolean?): Lektor = when (backend(c, systemVoiceOk)) {
         "chirp" -> ChirpLektor(c)
+        "vertex" -> VertexGeminiLektor(c)
         "gemini" -> GeminiLektor(c)
         else -> com.nuvio.tv.fork.lektor.SystemLektor(c)
     }
 
     fun label(c: Context, systemVoiceOk: Boolean?): String = when (backend(c, systemVoiceOk)) {
         "chirp" -> "głos Google Chirp (${ChirpLektor.voice(c)})"
-        "gemini" -> "głos Gemini"
+        "vertex" -> "Gemini Cloud (${VertexGeminiLektor.voice(c)}, ${com.nuvio.tv.fork.lektor.LektorPrefs.styleLabel(com.nuvio.tv.fork.lektor.LektorPrefs.style(c))})"
+        "gemini" -> "głos Gemini (AI Studio)"
         else -> "głos systemowy"
     }
 
     fun actions(): List<ModuleAction> = listOf(
-        ModuleAction("Lektor: silnik głosu (Chirp / Gemini / systemowy)", SettingsLevel.ESSENTIAL, "Chirp 3 HD: naturalny, 1 mln znaków/mies. za darmo, bez limitu dziennego; Gemini: limit 100 zapytań/dzień; systemowy: darmowy, jeśli jest polski głos") { c ->
+        ModuleAction("Lektor: silnik głosu (Chirp / Gemini Cloud / Gemini AI Studio / systemowy)", SettingsLevel.ESSENTIAL, "Chirp 3 HD: 1 mln znaków/mies. za darmo, spokojny; Gemini Cloud: scenariusz z kontekstem filmu i emocje, ok. 1 USD/film; Gemini AI Studio: limit 100 zapytań/dzień; systemowy: darmowy") { c ->
             val cur = ForkFeatures.str(c, K_VOICE, "chirp").takeIf { it in BACKENDS } ?: "chirp"
             val next = BACKENDS[(BACKENDS.indexOf(cur) + 1) % BACKENDS.size]
             ForkFeatures.setStr(c, K_VOICE, next)
@@ -189,6 +192,37 @@ object LektorVoiceChoice {
         },
         ModuleAction("Lektor Chirp: wybierz głos (próbki)", SettingsLevel.ESSENTIAL, "30 polskich głosów; zaznaczenie odtwarza próbkę, „Wybierz” zapisuje") { c ->
             ChirpVoicePicker.open(c)
+        },
+        // Fork 19.11: lektor Gemini przez Google Cloud (Vertex AI) — głos, styl, scenariusz, limit.
+        ModuleAction("Lektor Gemini Cloud: głos (Charon / Enceladus / Orus / Iapetus / Algenib / Alnilam / Fenrir / Puck)", SettingsLevel.ESSENTIAL, "Kolejne naciśnięcia przełączają głos") { c ->
+            val list = listOf("Charon", "Enceladus", "Orus", "Iapetus", "Algenib", "Alnilam", "Fenrir", "Puck")
+            val cur = VertexGeminiLektor.voice(c)
+            val next = list[(list.indexOf(cur) + 1).mod(list.size)]
+            ForkFeatures.setStr(c, VertexGeminiLektor.K_VOICE, next)
+            android.util.Log.i("ForkLektor", "ustawienia: głos Gemini Cloud $cur → $next")
+            android.widget.Toast.makeText(c, "Lektor Gemini Cloud: głos $next", android.widget.Toast.LENGTH_SHORT).show()
+        },
+        ModuleAction("Lektor Gemini Cloud: styl (klasyczny lektor / aktorski)", SettingsLevel.ESSENTIAL, "Klasyczny: spokojny głos z lekką intonacją; aktorski: wyraźne emocje") { c ->
+            val P = com.nuvio.tv.fork.lektor.LektorPrefs
+            val next = P.STYLES[(P.STYLES.indexOf(P.style(c)) + 1) % P.STYLES.size]
+            ForkFeatures.setStr(c, P.K_STYLE, next)
+            android.util.Log.i("ForkLektor", "ustawienia: styl lektora → $next")
+            android.widget.Toast.makeText(c, "Lektor: styl ${P.styleLabel(next)}", android.widget.Toast.LENGTH_SHORT).show()
+        },
+        ModuleAction("Lektor Gemini Cloud: scenariusz (porcjami po 10 min / cały film przed startem)", SettingsLevel.ESSENTIAL, "Gemini rozpisuje sceny, kto mówi i emocje z opisu filmu i obsady") { c ->
+            val P = com.nuvio.tv.fork.lektor.LektorPrefs
+            val next = P.SCRIPT_MODES[(P.SCRIPT_MODES.indexOf(P.scriptMode(c)) + 1) % P.SCRIPT_MODES.size]
+            ForkFeatures.setStr(c, P.K_SCRIPT, next)
+            android.util.Log.i("ForkLektor", "ustawienia: scenariusz → $next")
+            android.widget.Toast.makeText(c, "Lektor: scenariusz ${P.scriptLabel(next)}", android.widget.Toast.LENGTH_SHORT).show()
+        },
+        ModuleAction("Lektor Gemini Cloud: limit wydatków na tytuł (2 / 1 / 5 USD / bez limitu)", SettingsLevel.ESSENTIAL, "Film ok. 1 USD, odcinek ok. 0,4 USD; ponowne oglądanie bez kosztu (pamięć podręczna)") { c ->
+            val P = com.nuvio.tv.fork.lektor.LektorPrefs
+            val cur = ForkFeatures.str(c, P.K_LIMIT, "2").takeIf { it in P.LIMITS } ?: "2"
+            val next = P.LIMITS[(P.LIMITS.indexOf(cur) + 1) % P.LIMITS.size]
+            ForkFeatures.setStr(c, P.K_LIMIT, next)
+            android.util.Log.i("ForkLektor", "ustawienia: limit lektora → $next USD")
+            android.widget.Toast.makeText(c, "Lektor: limit " + if (next == "0") "wyłączony" else "$next USD na tytuł", android.widget.Toast.LENGTH_SHORT).show()
         },
         ModuleAction("Lektor Gemini: barwa głosu (Kore / Puck / Charon / Aoede)", SettingsLevel.ESSENTIAL, "Kolejne naciśnięcia przełączają głos") { c ->
             val p = NarratorPreferences(c); val o = p.load()

@@ -9,6 +9,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import com.nuvio.tv.fork.logged
 
 /** Włączanie lektora (B09-3/4/6): napisy z synchronizacji → plan kwestii → synteza naprzód (okno 3 min) → miks w [LektorAudioProcessor]. */
@@ -42,6 +44,7 @@ object LektorController {
             say(app, "Lektor czyta: ${src.name}")
             LektorModule.applySettings(app)
             LektorEngine.load(cues); LektorEngine.enabled = true; Condense.reset()
+            LektorSpend.begin(PlayerBridge.current()?.let { "${it.contentName}|${it.title}" }.orEmpty())
             LektorPcm.reapply("lektor wł.")
             // Procesor dźwięku włącza się dopiero po flush rurociągu: seek do bieżącej pozycji go wymusza.
             PlayerBridge.send(PlayerEvent.OnSeekTo(LektorEngine.positionMs()))
@@ -65,7 +68,8 @@ object LektorController {
                         known = sig; LektorEngine.lines = CuePlanner.plan(now) } }
                     val pos = LektorEngine.positionMs()
                     // Fork 19.11: zbyt długie kwestie skrócone przez AI przed syntezą (Condense), żeby następna ich nie ucinała.
-                    val pending = Condense.apply(app, SynthWindow.pending(LektorEngine.lines, pos, done))
+                    val styled = tts as? StyledLektor
+                    val pending = if (styled != null) SynthWindow.pending(LektorEngine.lines, pos, done) else Condense.apply(app, SynthWindow.pending(LektorEngine.lines, pos, done))
                     if (LektorEngine.voice.isEmpty() && pending.isEmpty() && System.currentTimeMillis() - quietSaidAt > 60_000) {
                         val next = LektorEngine.lines.firstOrNull { it.startMs > pos }
                         quietSaidAt = System.currentTimeMillis()
@@ -74,6 +78,27 @@ object LektorController {
                     }
                     // Fork 19.11 (build114: „nie słyszę lektora”, po starcie zero logów): stan pętli co ~10 s.
                     if (tick++ % 10 == 0) LektorEngine.lines.let { ls -> android.util.Log.i("ForkLektor", "pętla: pozycja=${pos} ms, kwestii=${ls.size} (${ls.firstOrNull()?.startMs}..${ls.lastOrNull()?.startMs}), do syntezy=${pending.size}, z głosem=${LektorEngine.voice.size}, ok=$synthOk, błędy=$synthErrors, silnik=${tts.javaClass.simpleName}") }
+                    // Fork 19.11 (strategia lektora Gemini Cloud): scenariusz w tle, potem kwestia po kwestii ze stylem sceny,
+                    // 3 nagrania naraz; każda kwestia gra w chwili swojego napisu (pauz nie trzeba — test 19.11: Gemini nie trzyma pauz w sekundach).
+                    if (styled != null) {
+                        LektorScript.ensure(app, LektorEngine.lines, pos)
+                        val ready = pending.filter { LektorScript.ready(it.startMs) }.take(if (errStreak > 0) 1 else 6)
+                        if (ready.isEmpty() && pending.isNotEmpty() && LektorEngine.voice.isEmpty()) status = "Lektor: Gemini przygotowuje scenariusz (${LektorScript.progress(LektorEngine.lines.size)})…"
+                        val results = coroutineScope { ready.map { l -> async { l to runCatching { styledLine(app, styled, l) } } }.map { it.await() } }
+                        for ((l, r) in results) {
+                            r.onSuccess { pcm -> LektorEngine.voice[l.startMs] = pcm; done += l.startMs; errStreak = 0; if (synthOk++ % 20 == 0) android.util.Log.i("ForkLektor", "Gemini Cloud: $synthOk kwestii nagranych (ostatnia ${pcm.durationMs} ms, czas ${l.availableMs} ms)") }
+                            .onFailure { e ->
+                                if (e is kotlinx.coroutines.CancellationException) throw e
+                                android.util.Log.w("ForkLektor", "synteza nieudana: ${e.javaClass.simpleName}: ${e.message?.take(160)}")
+                                if (synthErrors++ == 0) say(app, "Lektor: ${e.message ?: "błąd syntezy głosu"} — ponawiam")
+                                errStreak++
+                            }
+                        }
+                        val kept = SynthWindow.dropOutside(done, pos); done.retainAll(kept); LektorEngine.voice.keys.retainAll(kept)
+                        if (errStreak == 0 && status.startsWith("Lektor: Gemini przygotowuje").not()) status = "Lektor włączony"
+                        delay(if (errStreak > 0) minOf(30_000L, 1_000L shl minOf(errStreak, 5)) else 1000)
+                        continue
+                    }
                     // Fork 19.11 (właściciel): sceny jednym zapytaniem, z wyprzedzeniem [SynthWindow.AHEAD_MS] (10 min).
                     val sceneLines = HashSet<Long>()
                     if (tts is SceneLektor && errStreak == 0) {
@@ -139,6 +164,30 @@ object LektorController {
         val first = !com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(app, "lektor_dolby_note", false)
         if (first) com.nuvio.tv.ui.screens.settings.ForkFeatures.set(app, "lektor_dolby_note", true)
         return "Włączam lektora (" + com.nuvio.tv.ainarrator.LektorVoiceChoice.label(app, LektorVoice.ready) + ")…" + if (first) " " + LektorRules.DOLBY_NOTE else ""
+    }
+
+    /**
+     * Fork 19.11: jedna kwestia przez silnik ze stylem — tekst lektorski i styl ze scenariusza; za długa względem czasu do
+     * następnej → drugie nagranie z poleceniem „szybciej”, bierzemy krótsze; nadal za długa → cięcie na granicy zdania (Tempo).
+     */
+    private suspend fun styledLine(app: Context, tts: StyledLektor, l: Line): Pcm {
+        val text = LektorScript.get(l.startMs)?.text ?: l.text
+        val style = LektorScript.styleFor(app, l.startMs)
+        var pcm = tts.synthesizeStyled(text, style)
+        Condense.learn(text, pcm.durationMs)
+        if (pcm.durationMs > l.availableMs + 250) {
+            val sec = "%.1f".format(java.util.Locale.ROOT, l.availableMs / 1000.0)
+            val fast = runCatching { tts.synthesizeStyled(text, "$style Mów wyraźnie szybciej niż zwykle — cała kwestia musi zmieścić się w $sec s.") }
+                .onFailure { if (it is kotlinx.coroutines.CancellationException) throw it }.logged("ForkLektor", "styledLine: szybciej").getOrNull()
+            if (fast != null && fast.durationMs < pcm.durationMs) pcm = fast
+            if (pcm.durationMs > l.availableMs + 250) {
+                val fit = Tempo.fit(text, pcm.durationMs, l.availableMs, gapMs = 0)
+                if (fit.text != text) runCatching { tts.synthesizeStyled(fit.text, "$style Mów wyraźnie szybciej niż zwykle.") }
+                    .onFailure { if (it is kotlinx.coroutines.CancellationException) throw it }.logged("ForkLektor", "styledLine: krócej").getOrNull()?.let { pcm = it }
+                android.util.Log.i("ForkLektor", "kwestia za długa: ${pcm.durationMs} ms na ${l.availableMs} ms" + if (fit.text != text) " — skrócona do zdań" else "")
+            }
+        }
+        return pcm
     }
 
     private val main = android.os.Handler(android.os.Looper.getMainLooper())

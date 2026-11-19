@@ -24,6 +24,7 @@ object CuePlanner {
         return t.replace(Regex("\\s+"), " ").trim()
     }
 
+    private val sentenceEnd = Regex("[.!?…]\\W*$")
     private val dashStart = Regex("^\\s*[-–—]")
     private val endPunct = Regex("[.!?…:;,]$")
 
@@ -47,7 +48,10 @@ object CuePlanner {
         val merged = ArrayList<SubtitleCue>()
         for (c in cleaned) {
             val last = merged.lastOrNull()
-            if (last != null && c.startMs - last.endMs < mergeGapMs) merged[merged.size - 1] = SubtitleCue(last.startMs, maxOf(last.endMs, c.endMs), last.text + " " + c.text)
+            // Fork 19.11 (JMGO build122: 843 napisy → 298 długich kwestii, potem ucinane do „kilku słów” i cisza): sklejamy tylko,
+            // gdy zdanie przechodzi na następny napis (poprzedni bez znaku końca zdania) i razem nie wychodzi za długo.
+            val continues = !sentenceEnd.containsMatchIn(last?.text.orEmpty())
+            if (last != null && c.startMs - last.endMs < mergeGapMs && continues && last.text.length + c.text.length <= 160) merged[merged.size - 1] = SubtitleCue(last.startMs, maxOf(last.endMs, c.endMs), last.text + " " + c.text)
             else merged += c
         }
         return merged.mapIndexed { i, c -> Line(c.startMs, c.endMs, c.text, ((merged.getOrNull(i + 1)?.startMs ?: (c.endMs + 4_000L)) - c.startMs).coerceAtLeast(1)) }

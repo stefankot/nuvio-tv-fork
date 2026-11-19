@@ -45,6 +45,7 @@ object Condense {
     }
 
     fun estimateMs(text: String): Long = (text.length * msPerChar).toLong()
+    fun msPerCharNow(): Double = msPerChar
 
     private fun tooLong(l: Line) = estimateMs(l.text) > l.availableMs * TRIGGER
 

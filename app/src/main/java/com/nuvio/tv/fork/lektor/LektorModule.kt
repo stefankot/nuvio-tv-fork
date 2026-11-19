@@ -36,6 +36,6 @@ object LektorModule : ForkModule {
     override fun actions() = listOf(
         ModuleAction("Lektor: głośność względem filmu (100% / 70% / 130%)", SettingsLevel.ESSENTIAL, "Kolejne naciśnięcia przełączają wartość") { c -> cycle(c, K_VOL, volumes) },
         ModuleAction("Lektor: siła ściszania oryginału (−10 / −6 / −14 dB)", SettingsLevel.ESSENTIAL, "Kolejne naciśnięcia przełączają wartość") { c -> cycle(c, K_DUCK, ducks) },
-        ModuleAction("Lektor: wyczyść pamięć podręczną", SettingsLevel.ADVANCED, "Usuwa zsyntezowane kwestie (limit 200 MB)") { c -> cache(c).clear(); com.nuvio.tv.ainarrator.GeminiLektor(c).clearCache() },
+        ModuleAction("Lektor: wyczyść pamięć podręczną", SettingsLevel.ADVANCED, "Usuwa zsyntezowane kwestie (limit 200 MB)") { c -> cache(c).clear(); com.nuvio.tv.ainarrator.GeminiLektor(c).clearCache(); com.nuvio.tv.ainarrator.VertexGeminiLektor(c).clearCache() },
     ) + com.nuvio.tv.ainarrator.LektorVoiceChoice.actions() // scalenie 19.11: głos Gemini
 }
