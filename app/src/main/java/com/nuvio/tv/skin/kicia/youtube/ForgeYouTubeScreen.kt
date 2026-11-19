@@ -393,12 +393,22 @@ private fun ForgeYtRailItem(icon: androidx.compose.ui.graphics.vector.ImageVecto
             }
         }
         // v7.4 (12, szyna-nazwa): the focused icon shows its name beside it (x 88, 36 high), over the grid, outside the layout
-        if (railFocused) Text(
-            label, style = ForgeText.label.copy(color = ForgeColors.OnFocus), maxLines = 1,
-            modifier = Modifier.offset(x = YtRailItemWidth + 8.dp).wrapContentWidth(unbounded = true).height(36.dp)
-                .background(ForgeColors.Focus, androidx.compose.foundation.shape.RoundedCornerShape(18.dp))
-                .padding(horizontal = 16.dp).wrapContentHeight(Alignment.CenterVertically).testTag("szyna-nazwa.0"),
-        )
+        // fork 19.11 (właściciel: „etykiety ikon ucięte na fokusie”): przewijana szyna przycina to, co wystaje poza nią —
+        // nazwa w Popupie (osobne okno, bez fokusu), nie w układzie szyny.
+        if (railFocused) {
+            val dx = with(androidx.compose.ui.platform.LocalDensity.current) { (YtRailItemWidth + 8.dp).roundToPx() }
+            androidx.compose.ui.window.Popup(
+                offset = androidx.compose.ui.unit.IntOffset(dx, 0),
+                properties = androidx.compose.ui.window.PopupProperties(focusable = false, clippingEnabled = false),
+            ) {
+                Text(
+                    label, style = ForgeText.label.copy(color = ForgeColors.OnFocus), maxLines = 1, softWrap = false,
+                    modifier = Modifier.height(36.dp)
+                        .background(ForgeColors.Focus, androidx.compose.foundation.shape.RoundedCornerShape(18.dp))
+                        .padding(horizontal = 16.dp).wrapContentHeight(Alignment.CenterVertically).testTag("szyna-nazwa.0"),
+                )
+            }
+        }
     }
 }
 

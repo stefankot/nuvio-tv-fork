@@ -71,7 +71,13 @@ object PlayerBridge {
     fun ensurePolishSubtitle() {
         val s = state ?: return
         if (s.selectedAddonSubtitle != null) return
-        s.addonSubtitles.firstOrNull { it.lang.startsWith("pl", true) || it.lang.startsWith("pol", true) }?.let { send?.invoke(PlayerEvent.OnSelectAddonSubtitle(it)) }
+        s.addonSubtitles.firstOrNull { it.lang.startsWith("pl", true) || it.lang.startsWith("pol", true) }?.let {
+            send?.invoke(PlayerEvent.OnSelectAddonSubtitle(it))
+            // Zgłoszenie 5 (19.11, „start filmu otwiera ekran napisów”): bazowe OnSelectAddonSubtitle zawsze pokazuje okno
+            // napisów; wybór automatyczny (lektor) ma je zostawić zamknięte.
+            if (!s.showSubtitleOverlay) send?.invoke(PlayerEvent.OnDismissTransientOverlay)
+            android.util.Log.i("ForkLektor", "auto napisy PL: ${it.addonName} (okno napisów zamknięte)")
+        }
     }
     fun streamUrl(): String? = state?.currentStreamUrl
     fun positionMs(): Long = com.nuvio.tv.fork.lektor.LektorEngine.positionMs()

@@ -97,6 +97,11 @@ internal fun ForgeSettingsContent(initialFocusRequester: FocusRequester? = null)
                 value = if (isAssistant) "Włączone" else "Wyłączone",
                 onClick = { com.nuvio.tv.skin.kicia.ForgeSystemOptions.openAssistantSettings(context) },
             )
+            SettingsActionRow( // fork 19.11 (właściciel): powrót z wersji średniej/rozszerzonej do najprostszych
+                title = "Najprostsze ustawienia",
+                subtitle = "Tylko najważniejsze opcje na jednym ekranie (z niego wrócisz do pełnych)",
+                onClick = { com.nuvio.tv.fork.settings.SimpleLevel.toSimple(context) },
+            )
         }
         SettingsGroupCard(title = "Live TV") {
             // Nuvio's own source window (M3U / Xtream / Stalker + EPG link): the only place to type the guide address.

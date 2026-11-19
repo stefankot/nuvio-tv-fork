@@ -425,6 +425,7 @@ private fun navigateToPillRoute(
         }
         return
     }
+    if (com.nuvio.tv.fork.nav.ForkHomeNav.handle(navController, currentRoute, targetRoute)) return // Fork hook: Home z paska zdejmuje stos (zgłoszenie 1)
     try {
         navController.navigate(targetRoute) {
             popUpTo(navController.graph.startDestinationId) {

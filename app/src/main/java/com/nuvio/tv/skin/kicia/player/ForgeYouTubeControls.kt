@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.ThumbDown
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.ClosedCaption
+import androidx.compose.material.icons.outlined.Headphones
 import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ThumbDown
@@ -137,6 +138,7 @@ internal fun ForgeYouTubeControls(
                     radius = 22.dp, onOk = { session.openChannel(channelId, info?.author.orEmpty()) },
                 ) { _ -> com.nuvio.tv.skin.kicia.components.ForgeAvatar(name = info?.author.orEmpty(), size = 44.dp, imageUrl = info?.authorImage) }
                 ForgeIconButton(icon = Icons.Outlined.ClosedCaption, contentDescription = "Napisy", size = 36.dp, onOk = onShowSubtitleDialog)
+                ForgeIconButton(icon = Icons.Outlined.Headphones, contentDescription = "Dźwięk", size = 36.dp, onOk = onShowAudioDialog) // fork 19.11 (zgłoszenie 4): jak w odtwarzaczu Kicii
                 com.nuvio.tv.skin.kicia.components.ForgeButton(text = "Jakość", icon = Icons.Outlined.Settings, small = true, onOk = { moreOpen = true; onResetHideTimer() })
                 com.nuvio.tv.skin.kicia.components.ForgeButton(text = "Więcej", icon = Icons.Outlined.MoreHoriz, small = true, onOk = { ForgeYouTubePanelRequests.open(); onResetHideTimer() })
             }
@@ -159,7 +161,6 @@ internal fun ForgeYouTubeControls(
             }
         }
         ForgeSideSheet(visible = moreOpen, onDismiss = { moreOpen = false }, title = "Jakość") {
-            if (uiState.audioTracks.size > 1) ForgeSheetRow(text = "Dźwięk") { moreOpen = false; onShowAudioDialog() } // fork 19.11 (zgłoszenie 4)
             ForgeSheetRow(text = "Szybkość") { moreOpen = false; onShowSpeedDialog() }
             ForgeSheetRow(text = "Informacje") { moreOpen = false; onShowStreamInfo() }
         }

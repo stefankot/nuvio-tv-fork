@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,11 +38,16 @@ object SimpleLevel {
     interface Deps { fun experience(): ExperienceModeDataStore }
 
     fun isSimple(c: Context) = ForkFeatures.str(c, FirstRunDefaults.LEVEL_KEY) == UiLevel.SIMPLE.name
+    /** Fork 19.11 (właściciel: „z wersji średniej/rozszerzonej nie ma powrotu do najprostszych”): licznik zmian poziomu — ekran Ustawień przełącza się od razu. */
+    val changes = kotlinx.coroutines.flow.MutableStateFlow(0)
+    /** Wejście „Najprostsze ustawienia” z ustawień podstawowych i pełnych. */
+    fun toSimple(c: Context) { ForkFeatures.setStr(c, FirstRunDefaults.LEVEL_KEY, UiLevel.SIMPLE.name); ForkFeatures.set(c, "module_settings_simple", true); changes.value++ }
 
     suspend fun set(c: Context, level: UiLevel) {
         val change = LevelSwitch.to(level)
         change.experienceMode?.let { EntryPointAccessors.fromApplication(c.applicationContext, Deps::class.java).experience().setMode(ExperienceMode.valueOf(it)) }
         ForkFeatures.setStr(c, FirstRunDefaults.LEVEL_KEY, if (change.simpleFlag) UiLevel.SIMPLE.name else level.name)
+        changes.value++
     }
 }
 
@@ -49,7 +55,8 @@ object SimpleLevel {
 @Composable
 fun SimpleSettingsGate(navigate: (String) -> Unit): Boolean {
     val c = LocalContext.current
-    var simple by remember { mutableStateOf(SimpleLevel.isSimple(c) && ForkFeatures.enabled(c, "module_settings_simple", true)) }
+    val levelChanges by SimpleLevel.changes.collectAsState()
+    var simple by remember(levelChanges) { mutableStateOf(SimpleLevel.isSimple(c) && ForkFeatures.enabled(c, "module_settings_simple", true)) }
     if (!simple) return false
     SimpleSettingsScreen(navigate, onLevelChanged = { simple = false })
     return true

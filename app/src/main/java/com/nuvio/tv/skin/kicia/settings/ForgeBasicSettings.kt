@@ -101,6 +101,7 @@ internal val ForgeBasicCategories: List<ForgeBasicCategory> = listOf(
     )))),
     ForgeBasicCategory("Wszystkie ustawienia", Icons.Outlined.Tune, listOf(ForgeBasicGroup(null, listOf(
         ForgeBasicRow("Pokaż wszystkie ustawienia", "Ponad 200 opcji dla zaawansowanych. Twoje wartości zostają.", target = null),
+        ForgeBasicRow("Najprostsze ustawienia", "Tylko najważniejsze opcje na jednym ekranie", target = "FORK_SIMPLE"), // fork 19.11: powrót do najprostszych
     )))),
 )
 
@@ -116,6 +117,7 @@ fun ForgeBasicSettings(
 ) {
     var selected by remember { mutableIntStateOf(0) }
     var askAll by remember { mutableStateOf(false) }
+    val forkCtx = androidx.compose.ui.platform.LocalContext.current // fork 19.11: „Najprostsze ustawienia”
     val railRequesters = remember { List(ForgeBasicCategories.size) { FocusRequester() } }
     val firstRow = remember { FocusRequester() }
     LaunchedEffect(Unit) { runCatching { railRequesters[0].requestFocus() } }
@@ -169,7 +171,7 @@ fun ForgeBasicSettings(
                                 .then(if (index == 0) Modifier.focusRequester(firstRow) else Modifier)
                                 .focusProperties { left = railRequesters[selected] },
                             scaleOnFocus = false,
-                            onOk = { if (row.target != null) onOpen(row.target) else askAll = true },
+                            onOk = { if (row.target == "FORK_SIMPLE") com.nuvio.tv.fork.settings.SimpleLevel.toSimple(forkCtx) else if (row.target != null) onOpen(row.target) else askAll = true },
                         ) { focused ->
                             Row(
                                 Modifier.fillMaxSize().background(if (focused) ForgeColors.Focus else ForgeColors.Surface, RoundedCornerShape(8.dp))
