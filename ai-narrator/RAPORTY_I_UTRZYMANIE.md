@@ -1,4 +1,4 @@
-# Raporty lektora AI — 18.11.2026
+| **Łącznie** | **33** | **3429** | **0** || Nowe pliki modułu i workflow | 29 | 3407 | 0 |# Raporty lektora AI — 18.11.2026
 
 **Stan:** prototyp integracyjny, nieodebrany produkcyjnie. Gałąź `feature/ai-narrator`, baza `main` = `01ea2ed1860616d758d575154ee08cbad7b43520`. Brak merge do `main` i brak publikacji aplikacji.
 
@@ -8,12 +8,12 @@ Porównanie gałęzi z bazowym `main` za pomocą GitHub Compare:
 
 | Klasa | Pliki | Dodane wiersze | Usunięte |
 |---|---:|---:|---:|
-| Pliki upstream zmienione | 1 | 5 | 0 |
-| Pliki forka zmienione | 1 | 8 | 0 |
+| Pliki upstream zmienione | 3 | 12 | 0 |
+| Pliki forka zmienione | 1 | 10 | 0 |
 | Nowe pliki modułu i workflow | 21 | 2437 | 0 |
 | **Łącznie** | **23** | **2450** | **0** |
 
-Jedyna zmiana istniejącego pliku z odtwarzaczem: `app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt` — wywołanie `NarratorOverlay` (5 wierszy). Własny `app/reshaped.gradle` otrzymał deklaracje źródeł oraz opcjonalnego katalogu JNI (8 dodanych wierszy). **Bez zmian** w `app/build.gradle.kts`, `PlayerRuntimeController*`, mpv, ExoPlayer i obecnej synchronizacji.
+Jedyna zmiana istniejącej klasy odtwarzacza: `app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt` — wywołanie `NarratorOverlay` (5 wierszy). Własny `app/reshaped.gradle` otrzymał deklaracje źródeł oraz konfigurację weryfikowanego APK ARM32 (+10 wierszy, bez dołączania binarki). Manifest Androida otrzymał +3 linie, a lista ścieżek FileProvider +4. **Bez zmian** w `app/build.gradle.kts`, `PlayerRuntimeController*`, mpv, ExoPlayer i obecnej synchronizacji.
 
 ## 2. Integration boundary report
 
