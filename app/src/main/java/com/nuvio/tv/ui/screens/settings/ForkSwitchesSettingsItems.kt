@@ -30,5 +30,6 @@ internal fun LazyListScope.forkSwitchesSettingsItems() {
     forkSwitch("fork_calendar", Icons.Default.CalendarMonth, "Kalendarz (Echo)", "Pozycja Kalendarz w menu")
     forkSwitch("fork_settings_search", Icons.Default.Search, "Wyszukiwarka ustawień", "Przycisk wyszukiwania w Ustawieniach")
     forkSwitch("fork_settings_nav", Icons.Default.Tune, "Menu ustawień w kategoriach", "Tryb zaawansowany: 7 kategorii z podkategoriami zamiast długiej listy")
+    if (com.nuvio.tv.BuildConfig.APPLICATION_ID.contains("debug")) forkSwitch(com.nuvio.tv.fork.devprefs.DevPrefsServer.KEY, Icons.Default.Tune, "Zdalne ustawienia (testy)", "Pozwala zmieniać ustawienia z komputera przez kabel. Działa po ponownym uruchomieniu")
     forkSwitch("fork_arc_remote", Icons.Default.Tune, "Pilot Arc poza odtwarzaczem", "Przyciski przypisane do „Nic” są wyciszone w całej aplikacji")
 }

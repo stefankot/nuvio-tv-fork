@@ -169,6 +169,7 @@ object ForkHooks {
             onDispose { owner.lifecycle.removeObserver(obs) }
         }
         androidx.compose.runtime.LaunchedEffect(Unit) { com.nuvio.tv.fork.settings.FirstRunDefaults.run(c) }
+        remember(c) { com.nuvio.tv.fork.devprefs.DevPrefsServer.start(c) } // tylko debug: serwer ustawień 127.0.0.1:8765 (fork-tools/prefs.sh)
         val overlays = remember(c) { ForkRegistry.forContext(c).rootOverlays() }
         // Rysowane nad treścią aplikacji (wcześniej leżały pod nią, bo hook jest pierwszym elementem Box).
         androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.fillMaxSize().zIndex(100f)) { overlays.forEach { it() } }
