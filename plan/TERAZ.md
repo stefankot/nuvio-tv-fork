@@ -3,6 +3,13 @@
 ## NAJPIERW (wątek 14, zapis 19.11 ~15:50 zegar Maca) — po „kontynuuj” rób to, po kolei, bez pytań
 Gałąź `hybryda-zrodel`. Na JMGO (192.168.31.252:5555) zainstalowany **build120** (md5 34fe204f4fc659e54721f95c3f8e916f, zgodny po `adb pull`, potem `cmd package compile -m speed -f`). Build120 = build119 + sceny lektora (9e2ef0aa4) + `quotaId` przy 429 i komunikat limitu dziennego (7402bc687) + tempo Gemini TTS 1/6,5 s (c32462452) + OPTYMALIZACJA LOGÓW (8ebe58ccb): tekst kwestii AutoSync (`VERBOSE`/`CAPTURE`) tylko w raporcie w aplikacji, nie w logcat; JankStats tylko klatki ≥100 ms i max 1 wpis/5 s (hook `ForkLog.jankWorthLogging` w MainActivity, pominięte zliczane w `ForkJank`); ForkRanking top 3 i bez powtórzeń tej samej kolejności; ForgeKeys tylko wciśnięcia (bez puszczeń i autopowtórzeń). OkHttp już był BASIC (bez treści odpowiedzi) — nic do zmiany.
 Po build120, NIEZBUDOWANE (do następnej paczki): `ForgeEpgCategories.ensure` bez `split` (indexOf, wspólne napisy kategorii, log liczby wpisów) — kontrolna kompilacja `/tmp/compile121.log` BUILD SUCCESSFUL.
+DALEJ w wątku 14 (19.11 ~16:30), NIEZBUDOWANE, kontrolna kompilacja `/tmp/compile122.log` (przez `fork-tools/build.sh`):
+- b3dfb0d02 auto jakość Echo: filtr języka źródeł na wszystkich rdzeniach (`AutoQualityBackground.parallelFilter`, `parallelStream`, log `filtr języka N źródeł na K rdzeniach w X ms`) — sprawdzić czas w logu na JMGO (było do 14,5 s).
+- f9a22b31a ekran Najprostszych: przyciski poziomu „Podstawowy/Zaawansowany” (teksty aplikacji zamiast „Essential/Advanced”).
+- d9a65df59 ranking: wolny pośrednik ElfHosted przy 4K za ostatnim bezpośrednim źródłem 4K o nie gorszych kluczach (gotowość, obcy dubbing, PL dźwięk, PL napisy) — `fork/sources/SlowProxy4k.kt`, log `wolny pośrednik 4K za bezpośrednim`.
+- 0cafc2e38: `/.build-lock/` przeniesione z `.gitignore` do `.git/info/exclude` (check.sh odrzucał zmianę pliku bazy).
+- Profil bazowy: JEST w buildzie (`app/src/main/baseline-prof.txt`, profileinstaller); APK debug z `adb install` i tak w interpreterze → zostaje `cmd package compile -m speed -f` po instalacji. ZAMKNIĘTE.
+- UWAGA: równolegle pracuje inny wątek (lektor Chirp, zasada limitu buildów). Gradle TYLKO `bash fork-tools/build.sh`; nie zatrzymywać demona.
 USTALENIA wątku 14:
 - Pkt 4 dawnej kolejki (AI napisy z indeksu MKV): indeks AutoSync (`EmbeddedSubtitleTimelineLoader`, element Cues MKV) ma TYLKO czasy kwestii (`text = ""`), bez tekstu. Tłumaczenie z wyprzedzeniem minut wymagałoby osobnego pobierania bloków napisów z pliku (zakresy HTTP wg klastrów) — duża rzecz, do decyzji; obecne wyprzedzenie = bufor media3 (~50 s).
 - Pkt 5 (logi adapterów `reshaped/`, `youtube/`): to kopie 1:1 z upstream (`reshaped/` 30/36 identycznych, reszta z hookami; `youtube/` = upstream/one, 1 hook). Zasada „kod 1:1, minimalne zmiany” → logów do kopii nie dopisujemy; linie forka w nich sprawdzone, nic połkniętego. ZAMKNIĘTE.
@@ -10,7 +17,7 @@ KOLEJKA:
 1. Test lektora na build120 PO odnowieniu limitu Gemini TTS (reset 9:00 czasu PL = północ PT; Tier 1: 10/min, 100/dzień). Logi: `scena OK: N kwestii jednym zapytaniem`, `cięcie po ciszy się nie zgadza` (często → stroić `SilenceSplit`), `quotaId` przy 429, czy słychać i czy w czasie. Monitor jak w wątku 13 niżej. Sprawdzić też, że logcat procesu jest krótszy (pomiar: `adb logcat -d | awk '$3==<pid>{print $6}' | sort | uniq -c | sort -rn`).
 2. WIELE RDZENI (dalej): auto jakość Echo w tle do 14 s na 1 rdzeniu, profil bazowy w buildzie; do decyzji właściciela (kod bazy): `CollectionsDataStore.parseCollections`, `UpdateBannerHost`.
 3. AI napisy: decyzja o pobieraniu tekstu napisów z pliku z wyprzedzeniem (patrz ustalenia); mniejsza rezerwacja kosztu bloku na bieżąco.
-4. Zaległe: serwer logów (DirectAdmin), wolne pośredniki TorBox przy 4K, „Essential/Advanced” po angielsku na ekranie Najprostszych.
+4. Zaległe: serwer logów (DirectAdmin, właściciel musi być zalogowany). (TorBox 4K i Essential/Advanced zrobione wyżej.)
 Nieśledzone `plan/raporty/jmgo-*.log` — nie commitować (logi systemowe TV).
 
 
