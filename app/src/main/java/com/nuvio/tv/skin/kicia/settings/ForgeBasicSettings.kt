@@ -123,8 +123,9 @@ fun ForgeBasicSettings(
     val firstRow = remember { FocusRequester() }
     LaunchedEffect(Unit) { runCatching { railRequesters[0].requestFocus() } }
     val category = ForgeBasicCategories[selected]
+    val look = com.nuvio.tv.fork.settings.nav.settingsLook() // fork 20.11: skórka Niunia podmienia kolory i kształty (układ ten sam)
 
-    Row(Modifier.fillMaxSize().background(ForgeColors.Bg).padding(top = 84.dp, start = 40.dp, end = 40.dp)) {
+    Row(Modifier.fillMaxSize().background(look.bg).padding(top = 84.dp, start = 40.dp, end = 40.dp)) {
         // Rail
         Column(Modifier.width(216.dp).focusGroup(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             if (com.nuvio.tv.fork.settings.nav.ForkSettingsNav.railSearch(forkCtx)) { // fork 19.11: wyszukiwarka ustawień także w trybie Prostym
@@ -135,7 +136,7 @@ fun ForgeBasicSettings(
             }
             ForgeBasicCategories.forEachIndexed { i, c ->
                 ForgeFocusBox(
-                    radius = 8.dp,
+                    radius = look.railRadius,
                     modifier = Modifier.fillMaxWidth().height(36.dp).testTag("wiersz.$i").focusProperties { right = firstRow }, // ▲ z pierwszej: pasek (zakładka Ustawienia)
                     focusRequester = railRequesters[i],
                     scaleOnFocus = false,
@@ -144,12 +145,12 @@ fun ForgeBasicSettings(
                 ) { focused ->
                     Row(
                         Modifier.fillMaxSize().background(
-                            when { focused -> ForgeColors.Focus; i == selected -> ForgeColors.Surface3; else -> androidx.compose.ui.graphics.Color.Transparent },
-                            RoundedCornerShape(8.dp),
+                            when { focused -> look.focus; i == selected -> look.selected; else -> androidx.compose.ui.graphics.Color.Transparent },
+                            RoundedCornerShape(look.railRadius),
                         ).padding(horizontal = 16.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        val fg = if (focused) ForgeColors.OnFocus else ForgeColors.Text
+                        val fg = if (focused) look.onFocus else look.text
                         Icon(c.icon, contentDescription = null, tint = fg, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(12.dp))
                         Text(c.name, style = ForgeText.label.copy(color = fg), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.testTag("wiersz-tytul.$i"))
@@ -173,7 +174,7 @@ fun ForgeBasicSettings(
                     group.rows.forEach { row ->
                         val index = n++
                         ForgeFocusBox(
-                            radius = 8.dp,
+                            radius = look.rowRadius,
                             modifier = Modifier.fillMaxWidth().height(56.dp).testTag("wiersz.${ForgeBasicCategories.size + index}")
                                 .then(if (index == 0) Modifier.focusRequester(firstRow) else Modifier)
                                 .focusProperties { left = railRequesters[selected] },
@@ -181,21 +182,21 @@ fun ForgeBasicSettings(
                             onOk = { if (row.target == "FORK_SIMPLE") com.nuvio.tv.fork.settings.SimpleLevel.toSimple(forkCtx) else if (row.target != null) onOpen(row.target) else askAll = true },
                         ) { focused ->
                             Row(
-                                Modifier.fillMaxSize().background(if (focused) ForgeColors.Focus else ForgeColors.Surface, RoundedCornerShape(8.dp))
+                                Modifier.fillMaxSize().background(if (focused) look.focus else look.row, RoundedCornerShape(look.rowRadius))
                                     .padding(start = 16.dp, end = 12.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Column(Modifier.weight(1f)) {
-                                    Text(row.title, style = ForgeText.shelfTitle.copy(color = if (focused) ForgeColors.OnFocus else ForgeColors.Text), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    Text(row.title, style = ForgeText.shelfTitle.copy(color = if (focused) look.onFocus else look.text), maxLines = 1, overflow = TextOverflow.Ellipsis)
                                     if (row.description != null) Text(
                                         row.description, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                                        style = ForgeText.label5.copy(color = if (focused) ForgeColors.OnFocus.copy(alpha = .7f) else ForgeColors.Text2),
+                                        style = ForgeText.label5.copy(color = if (focused) look.onFocus.copy(alpha = .7f) else look.text2),
                                         modifier = Modifier.testTag("wiersz-opis.$index"),
                                     )
                                 }
                                 Icon(
                                     Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null,
-                                    tint = if (focused) ForgeColors.OnFocus else ForgeColors.Text2,
+                                    tint = if (focused) look.onFocus else look.text2,
                                     modifier = Modifier.padding(start = 12.dp).size(16.dp).testTag("wiersz-szewron.$index"),
                                 )
                             }

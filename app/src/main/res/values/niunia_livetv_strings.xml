@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="niunia_live_guide">Przewodnik</string>
+    <string name="niunia_live_all">Wszystkie</string>
+    <string name="niunia_live_until">%1$s · do %2$s</string>
+    <string name="niunia_live_no_guide">Brak programu</string>
+    <string name="niunia_live_no_source">Dodaj listę kanałów w Ustawieniach → Telewizja.</string>
+    <string name="niunia_live_empty">Brak kanałów do pokazania.</string>
+    <string name="niunia_live_play_failed">Nie udało się włączyć kanału.</string>
+</resources>

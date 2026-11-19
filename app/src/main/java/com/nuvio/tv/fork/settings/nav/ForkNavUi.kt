@@ -40,8 +40,9 @@ internal fun NavRailItem(
     onFocus: () -> Unit = {},
     onOk: () -> Unit,
 ) {
+    val look = settingsLook()
     ForgeFocusBox(
-        radius = 8.dp,
+        radius = look.railRadius,
         modifier = modifier.fillMaxWidth().height(36.dp),
         focusRequester = focusRequester,
         scaleOnFocus = false,
@@ -50,12 +51,12 @@ internal fun NavRailItem(
     ) { focused ->
         Row(
             Modifier.fillMaxSize().background(
-                when { focused -> ForgeColors.Focus; selected -> ForgeColors.Surface3; else -> Color.Transparent },
-                RoundedCornerShape(8.dp),
+                when { focused -> look.focus; selected -> look.selected; else -> Color.Transparent },
+                RoundedCornerShape(look.railRadius),
             ).padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val fg = if (focused) ForgeColors.OnFocus else ForgeColors.Text
+            val fg = if (focused) look.onFocus else look.text
             Icon(icon, contentDescription = null, tint = fg, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(12.dp))
             Text(title, style = ForgeText.label.copy(color = fg), maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -76,31 +77,32 @@ internal fun NavRow(
     on: Boolean? = null,
     onOk: () -> Unit,
 ) {
+    val look = settingsLook()
     ForgeFocusBox(
-        radius = 8.dp,
+        radius = look.rowRadius,
         modifier = modifier.fillMaxWidth().height(if (description.isNullOrEmpty()) 56.dp else 64.dp),
         focusRequester = focusRequester,
         scaleOnFocus = false,
         onOk = onOk,
     ) { focused ->
         Row(
-            Modifier.fillMaxSize().background(if (focused) ForgeColors.Focus else ForgeColors.Surface, RoundedCornerShape(8.dp))
+            Modifier.fillMaxSize().background(if (focused) look.focus else look.row, RoundedCornerShape(look.rowRadius))
                 .padding(start = 16.dp, end = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val fg = if (focused) ForgeColors.OnFocus else ForgeColors.Text
+            val fg = if (focused) look.onFocus else look.text
             if (icon != null) { Icon(icon, contentDescription = null, tint = fg, modifier = Modifier.size(22.dp)); Spacer(Modifier.width(14.dp)) }
             Column(Modifier.weight(1f)) {
                 Text(title, style = ForgeText.shelfTitle.copy(color = fg), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 if (!description.isNullOrEmpty()) Text(
                     description, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    style = ForgeText.label5.copy(color = if (focused) ForgeColors.OnFocus.copy(alpha = .7f) else ForgeColors.Text2),
+                    style = ForgeText.label5.copy(color = if (focused) look.onFocus.copy(alpha = .7f) else look.text2),
                 )
             }
             if (value != null) NavValuePill(value, focused, on)
             if (chevron) Icon(
                 Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null,
-                tint = if (focused) ForgeColors.OnFocus else ForgeColors.Text2,
+                tint = if (focused) look.onFocus else look.text2,
                 modifier = Modifier.padding(start = 12.dp).size(16.dp),
             )
         }
@@ -110,8 +112,9 @@ internal fun NavRow(
 /** Mała plakietka wartości („Włączone”, „Prosty”): zielona dla włączonych. */
 @Composable
 internal fun NavValuePill(value: String, focused: Boolean, on: Boolean? = null) {
-    val bg = when { on == true -> ForgeColors.Switch; focused -> ForgeColors.OnFocus.copy(alpha = .12f); else -> ForgeColors.Surface3 }
-    val fg = when { on == true -> ForgeColors.OnFocus; focused -> ForgeColors.OnFocus; else -> ForgeColors.Text }
+    val look = settingsLook()
+    val bg = when { on == true -> look.on; focused -> look.onFocus.copy(alpha = .12f); else -> look.selected }
+    val fg = when { on == true -> look.onFocus; focused -> look.onFocus; else -> look.text }
     Text(
         value, style = ForgeText.label5.copy(color = fg), maxLines = 1,
         modifier = Modifier.background(bg, RoundedCornerShape(12.dp)).padding(horizontal = 10.dp, vertical = 3.dp),
@@ -121,5 +124,5 @@ internal fun NavValuePill(value: String, focused: Boolean, on: Boolean? = null) 
 /** Nagłówek grupy w panelu (WIELKIE LITERY, jak w „Ustawieniach podstawowych”). */
 @Composable
 internal fun NavGroupHeader(text: String, modifier: Modifier = Modifier) {
-    Text(text.uppercase(), style = ForgeText.captionBold.copy(color = ForgeColors.Text2), maxLines = 1, modifier = modifier.padding(top = 12.dp, bottom = 6.dp))
+    Text(text.uppercase(), style = ForgeText.captionBold.copy(color = settingsLook().text2), maxLines = 1, modifier = modifier.padding(top = 12.dp, bottom = 6.dp))
 }

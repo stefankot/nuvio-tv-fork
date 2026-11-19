@@ -111,7 +111,7 @@ internal fun ForkAdvancedSettings(onOpenCategory: (String) -> Unit, onSearch: ()
         scope.launch { withFrameNanos { }; runCatching { rowRequesters.getOrNull(lastRow)?.requestFocus() } }
     }
 
-    Row(Modifier.fillMaxSize().background(ForgeColors.Bg).padding(top = 84.dp, start = 40.dp, end = 40.dp)) {
+    Row(Modifier.fillMaxSize().background(settingsLook().bg).padding(top = 84.dp, start = 40.dp, end = 40.dp)) {
         Column(Modifier.width(216.dp).focusGroup(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             if (ForkSettingsNav.railSearch(c)) {
                 NavRailItem("Szukaj", Icons.Outlined.Search, selected = false, focusRequester = railRequesters[0], onOk = onSearch,

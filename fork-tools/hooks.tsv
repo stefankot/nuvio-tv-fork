@@ -78,3 +78,5 @@ app/src/main/java/com/nuvio/tv/ui/screens/player/PlaybackSpeedAwareAudioSink.kt	
 app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.kt	// Fork hook: settings-nav	forgeBasicDetour	fork	nawigacja ustawień w 3 trybach (drzewo trybu Zaawansowanego)	
 app/src/main/java/com/nuvio/tv/ui/screens/detail/MetaDetailsScreen.kt	Fork hook: skin (strona filmu/serialu skórki)	MetaDetailsContent(	skin	skin: strona filmu/serialu (Niunia)	
 app/src/main/java/com/nuvio/tv/ui/reshaped/pillnav/PillNavigationBar.kt	// Fork hook: skin (nawigacja Niunii)	niuniaNavActive	skin	skin: menu Niunii (pigułka + panel boczny) zamiast paska	
+app/src/main/java/com/nuvio/tv/ui/screens/cast/CastDetailScreen.kt	Fork hook: skin (strona osoby skórki)	CastDetailContent(	skin	skin: strona osoby (Niunia)	
+app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	Fork hook: skin (Live TV skórki)	LIVE_TV_ROUTE	skin	skin: Live TV (Niunia)	

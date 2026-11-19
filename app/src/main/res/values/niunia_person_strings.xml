@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="niunia_person_born_in">urodzony w: %1$s</string>
+    <string name="niunia_person_more">Więcej</string>
+    <string name="niunia_person_less">Mniej</string>
+    <string name="niunia_person_series">Seriale</string>
+    <string name="niunia_person_movies">Filmy</string>
+</resources>

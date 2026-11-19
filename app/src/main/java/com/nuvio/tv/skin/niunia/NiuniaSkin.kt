@@ -57,6 +57,17 @@ object NiuniaSkin : Skin {
                 onNavigateToCastDetail = a["onNavigateToCastDetail"] as (Int, String, Boolean) -> Unit,
             ); true
         }
+        "person" -> SkinScreen { a ->
+            com.nuvio.tv.skin.niunia.person.NiuniaPerson(
+                person = a["person"] as com.nuvio.tv.domain.model.PersonDetail,
+                bioExpanded = a["bioExpanded"] as Boolean,
+                onBioExpanded = a["onBioExpanded"] as (Boolean) -> Unit,
+                onNavigateToDetail = a["onNavigateToDetail"] as (String, String, String?) -> Unit,
+            ); true
+        }
+        "livetv" -> SkinScreen { a ->
+            com.nuvio.tv.skin.niunia.livetv.NiuniaLiveTv(onPlay = a["onPlay"] as (String) -> Unit); true
+        }
         else -> null
     }
 

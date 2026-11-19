@@ -42,18 +42,19 @@ fun ForgeSettingsRailButton(
     painter: Painter?,
     modifier: Modifier = Modifier,
 ) {
+    val look = com.nuvio.tv.fork.settings.nav.settingsLook() // fork 20.11: skórka Niunia podmienia kolory i kształty (układ ten sam)
     ForgeFocusBox(
-        radius = 8.dp, // v7.4: Wiersz-szyna r 8
+        radius = look.railRadius, // v7.4: Wiersz-szyna r 8
         modifier = modifier.padding(vertical = 2.dp).fillMaxWidth().height(36.dp), // mockup: 36 dp rows 4 apart
         scaleOnFocus = false,
         focusRequester = focusRequester,
         onFocusChange = { if (it) onFocused() },
         onOk = onClick,
     ) { focused ->
-        val fg = if (focused) ForgeColors.OnFocus else ForgeColors.Text
+        val fg = if (focused) look.onFocus else look.text
         Row(
-            Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp))
-                .background(if (focused) ForgeColors.Focus else if (selected) ForgeColors.Surface3 else ForgeColors.Surface2) // v7.4: every rail row is a tile (surface), selected 24%
+            Modifier.fillMaxSize().clip(RoundedCornerShape(look.railRadius))
+                .background(if (focused) look.focus else if (selected) look.selected else look.railTile) // v7.4: every rail row is a tile (surface), selected 24%
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
