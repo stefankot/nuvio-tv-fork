@@ -104,7 +104,7 @@ object KeRanking {
         val audio = SourcePresets.tierOf(p, text) ?: Int.MAX_VALUE
         // P3 (18.11): działa polski głos lektora i napisy mają być po polsku → źródło z polskimi napisami równie dobre
         // jak polski dźwięk (lektor przeczyta). Brak głosu (JMGO) → zostaje sam polski dźwięk.
-        if (polishSubs && com.nuvio.tv.fork.lektor.LektorVoice.ready == true && PL_SUBS.containsMatchIn(text)) return 0
+        if (polishSubs && (com.nuvio.tv.fork.lektor.LektorVoice.ready == true || appCtx?.let { com.nuvio.tv.ainarrator.LektorVoiceChoice.geminiKeyPresent(it) } == true) && PL_SUBS.containsMatchIn(text)) return 0 // scalenie 19.11: głos Gemini też
         return audio
     }
 

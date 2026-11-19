@@ -23,7 +23,7 @@ object LektorController {
 
     fun start(context: Context): String {
         if (!PlayerBridge.active) return "Lektor działa tylko podczas odtwarzania"
-        if (LektorVoice.ready == false) return LektorVoice.MISSING_MSG
+        if (!LektorVoice.usable(context)) return LektorVoice.MISSING_MSG
         val app = context.applicationContext
         job?.cancel()
         PlayerBridge.ensurePolishSubtitle()
@@ -38,7 +38,7 @@ object LektorController {
             LektorEngine.load(cues); LektorEngine.enabled = true
             // Procesor dźwięku włącza się dopiero po flush rurociągu: seek do bieżącej pozycji go wymusza.
             PlayerBridge.send(PlayerEvent.OnSeekTo(LektorEngine.positionMs()))
-            val tts = SystemLektor(app)
+            val tts = com.nuvio.tv.ainarrator.LektorVoiceChoice.create(app, LektorVoice.ready) // scalenie 19.11: głos Gemini albo systemowy
             val done = HashSet<Long>()
             try {
                 while (true) {
@@ -54,10 +54,10 @@ object LektorController {
                     status = "Lektor włączony"
                     delay(1000)
                 }
-            } finally { tts.shutdown() }
+            } finally { (tts as? SystemLektor)?.shutdown() }
         }
         val first = !com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(app, "lektor_dolby_note", false)
         if (first) com.nuvio.tv.ui.screens.settings.ForkFeatures.set(app, "lektor_dolby_note", true)
-        return "Włączam lektora…" + if (first) " " + LektorRules.DOLBY_NOTE else ""
+        return "Włączam lektora (" + com.nuvio.tv.ainarrator.LektorVoiceChoice.label(app, LektorVoice.ready) + ")…" + if (first) " " + LektorRules.DOLBY_NOTE else ""
     }
 }

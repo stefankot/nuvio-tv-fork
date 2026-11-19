@@ -177,13 +177,12 @@ fun ForgePlayerControls(
                 moreOpen = false
                 android.widget.Toast.makeText(ctx, com.nuvio.tv.fork.sources.PlayerBridge.subtitleMismatch() ?: "Brak napisów", android.widget.Toast.LENGTH_SHORT).show()
             }
-            if (com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctx, "module_lektor")) ForgeSheetRow(text = "Lektor (czyta polskie napisy)", detail = if (com.nuvio.tv.fork.lektor.LektorEngine.enabled) "Włączony" else "Wyłączony") {
+            if (com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctx, "module_lektor")) ForgeSheetRow(text = "Lektor (czyta polskie napisy)", detail = (if (com.nuvio.tv.fork.lektor.LektorEngine.enabled) "Włączony · " else "Wyłączony · ") + com.nuvio.tv.ainarrator.LektorVoiceChoice.label(ctx, com.nuvio.tv.fork.lektor.LektorVoice.ready)) {
                 moreOpen = false
                 android.widget.Toast.makeText(ctx, com.nuvio.tv.fork.lektor.LektorController.toggle(ctx), android.widget.Toast.LENGTH_SHORT).show()
             }
             // W1 (19.11): test łącza KE na bieżącym filmie; wynik ustawia pobieranie wieloma połączeniami i limit w rankingu.
             com.nuvio.tv.fork.ai.subtitles.AiSubtitlesMenuRows { moreOpen = false } // fork: AI napisy
-            com.nuvio.tv.ainarrator.NarratorMenuRow { moreOpen = false } // fork: Lektor AI (ai-narrator)
             ForgeSheetRow(text = "Test łącza", detail = com.nuvio.tv.fork.net.KeNetwork.status.ifEmpty { null }) {
                 moreOpen = false
                 val url = com.nuvio.tv.fork.sources.PlayerBridge.streamUrl()

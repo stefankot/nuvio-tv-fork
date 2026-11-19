@@ -47,7 +47,7 @@ object PlayerBridge {
         val wantsPl = SourceChoice.answer(c).let { it == "pl_always" || it == "pl_if_good" }
         if (com.nuvio.tv.fork.lektor.LektorRules.step(wantsPl, hasPlAudio, hasPlSubs, true) != com.nuvio.tv.fork.lektor.LektorRules.Step.LEKTOR) return
         // P3/P9: bez silnika mowy z polskim głosem lektor byłby niemy (JMGO 18.11) — zamiast włączać, powiedz, co zrobić.
-        if (com.nuvio.tv.fork.lektor.LektorVoice.ready == false) {
+        if (!com.nuvio.tv.fork.lektor.LektorVoice.usable(c)) {
             // Test JMGO 18.11: przy zmianie źródła komunikat pokazywał się dwa razy — raz na uruchomienie aplikacji.
             if (com.nuvio.tv.fork.lektor.LektorVoice.notified) return
             com.nuvio.tv.fork.lektor.LektorVoice.notified = true
