@@ -45,3 +45,5 @@ Wykonawca nie pyta właściciela. Korzysta z tej listy. Właściciel może zmien
 - 2026-11-17 B04-4: decyzja o ścieżkach (AudioCheck) jest czystą logiką z testami; podpięcie do odtwarzacza nie wykonane (brak bezpiecznego publicznego wejścia mechanizmu odzyskiwania; patrz BLOKADY).
 - 2026-11-17 B10-0: Scout z Arc NIE jest przenoszony (71 plików, ok. 23 000 linii, silne sprzężenie z modelami aplikacji; patrz plan/raporty/scout.md). Budujemy własny moduł `fork/picks` według B10-1..8.
 - 2026-11-17 B06a: skórka KE (B06a-2/3/5) odłożona — zgodnie z CLAUDE.md „wygląd nie ma znaczenia teraz”; wykonane B06a-1 i raport B06a-4.
+- 2026-11-19 Lektor (właściciel): głos = Google Cloud TTS Chirp 3 HD pl-PL, domyślnie Enceladus; wysyłanie scenami (markup + `[pause long]` + SilenceSplit); wybór głosu w ustawieniach z próbkami; klucz Cloud TTS na sztywno (local.properties → BuildConfig). Powód: Gemini TTS Tier 1 = 100 zapytań/dzień. Szczegóły: `plan/lektor/GLOS_CHIRP.md`.
+- 2026-11-19 Buildy (właściciel): najwyżej 1 build naraz, 1 w kolejce, przed każdym buildem zerowanie kolejki — tylko przez `fork-tools/build.sh` (`fork-tools/ZASADA_LIMIT_BUILDOW.md`).
