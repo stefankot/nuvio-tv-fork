@@ -36,7 +36,7 @@ import com.nuvio.tv.ui.theme.NuvioTheme
 fun ForgeReadyLine(meta: Meta, nextToWatch: NextToWatch?, modifier: Modifier = Modifier) {
     val vm: ForgeReadyViewModel = hiltViewModel()
     val isSeries = meta.apiType.equals("series", ignoreCase = true)
-    val videoId = if (isSeries) nextToWatch?.nextVideoId else meta.id
+    val videoId = (if (isSeries) nextToWatch?.nextVideoId else meta.id)?.takeUnless { forgeNotReleased(meta, it) } // fork 19.11: niewydane bez „Gotowe”
     LaunchedEffect(meta.id, videoId, nextToWatch?.nextSeason, nextToWatch?.nextEpisode) {
         if (videoId != null) vm.load(meta.apiType, videoId, nextToWatch?.nextSeason.takeIf { isSeries }, nextToWatch?.nextEpisode.takeIf { isSeries }, contentId = meta.id)
     }
@@ -129,7 +129,7 @@ private fun Chip(text: String, dot: Color? = null) {
 fun ForgeDetailDataLine(meta: Meta, nextToWatch: NextToWatch?, modifier: Modifier = Modifier) {
     val vm: ForgeReadyViewModel = hiltViewModel()
     val isSeries = meta.apiType.equals("series", ignoreCase = true)
-    val videoId = if (isSeries) nextToWatch?.nextVideoId else meta.id
+    val videoId = (if (isSeries) nextToWatch?.nextVideoId else meta.id)?.takeUnless { forgeNotReleased(meta, it) } // fork 19.11: niewydane bez „Gotowe”
     LaunchedEffect(meta.id, videoId, nextToWatch?.nextSeason, nextToWatch?.nextEpisode) {
         if (videoId != null) vm.load(meta.apiType, videoId, nextToWatch?.nextSeason.takeIf { isSeries }, nextToWatch?.nextEpisode.takeIf { isSeries }, contentId = meta.id)
     }
@@ -153,4 +153,10 @@ fun ForgeDetailDataLine(meta: Meta, nextToWatch: NextToWatch?, modifier: Modifie
             Text("Szukam źródeł…", style = small, maxLines = 1)
         }
     }
+}
+
+/** Fork 19.11 (zgłoszenie 8, „Blade Runner 2099”): odcinek / film z datą premiery w przyszłości nie ma linii „Gotowe”. */
+internal fun forgeNotReleased(meta: Meta, videoId: String): Boolean {
+    val released = meta.videos.firstOrNull { it.id == videoId }?.released ?: meta.released
+    return com.nuvio.tv.core.util.isEpisodeReleaseAired(released) == false
 }

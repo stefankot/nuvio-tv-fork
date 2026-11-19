@@ -665,7 +665,7 @@ private fun EpisodeCard(
     onFocused: (() -> Unit)? = null,
     onFocusRestored: (() -> Unit)? = null
 ) {
-    if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) { com.nuvio.tv.skin.kicia.detail.ForgeEpisodeCard(episode, watchProgress?.progressPercentage ?: 0f, watchProgress?.isCompleted() == true || isMarkedWatched, onClick, onLongPress, upFocusRequester, downFocusRequester, focusRequester, isFocusEnabled, { onFocused?.invoke(); onFocusRestored?.invoke() }); return } // forge hook: episode card (S03)
+    if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) { com.nuvio.tv.skin.kicia.detail.ForgeEpisodeCard(episode, watchProgress?.progressPercentage ?: 0f, watchProgress?.isCompleted() == true || isMarkedWatched, onClick, onLongPress, upFocusRequester, downFocusRequester, focusRequester, isFocusEnabled, { onFocused?.invoke(); onFocusRestored?.invoke() }, imdbRating); return } // forge hook: episode card (S03); fork 19.11: ocena IMDb odcinka
     val context = LocalContext.current
     val density = LocalDensity.current
     val configuration = LocalConfiguration.current

@@ -163,6 +163,7 @@ fun ForgePlayerControls(
             }
         }
         androidx.compose.runtime.SideEffect { ForgeSheetOpen.open = moreOpen } // fork 19.11: odtwarzacz nie zabiera ▲ oknu „Więcej”
+        LaunchedEffect(moreOpen) { while (moreOpen) { onResetHideTimer(); kotlinx.coroutines.delay(2_000) } } // fork 19.11 (zgłoszenie 6): licznik ukrywania (3 s) nie zamyka okna „Więcej”
         androidx.compose.runtime.DisposableEffect(Unit) { onDispose { ForgeSheetOpen.open = false } }
         ForgeSideSheet(visible = moreOpen, onDismiss = { moreOpen = false }, title = "Więcej") {
             ForgeSheetRow(text = "Źródła") { moreOpen = false; onShowSourcesPanel() }

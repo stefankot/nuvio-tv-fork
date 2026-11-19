@@ -49,6 +49,7 @@ fun ForgeEpisodeCard(
     focusRequester: FocusRequester,
     isFocusEnabled: Boolean,
     onFocused: () -> Unit,
+    imdbRating: Double? = null, // fork 19.11 (zgłoszenie: brak ocen odcinków)
 ) {
     Column(Modifier.width(ForgeDims.Wide)) { // v7.4: Karta/Odcinek 160 x 114, r 8
         ForgeFocusBox(
@@ -87,7 +88,11 @@ fun ForgeEpisodeCard(
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(top = 16.dp, start = 8.dp, end = 8.dp),
         )
-        episode.runtime?.takeIf { it > 0 }?.let { Text("$it min", style = ForgeText.caption.copy(color = ForgeColors.Text3), modifier = Modifier.padding(horizontal = 8.dp)) } // v7.4: meta 12/16, 50%
+        val metaLine = listOfNotNull(
+            imdbRating?.takeIf { it > 0.0 }?.let { "IMDb " + "%.1f".format(java.util.Locale("pl"), it) },
+            episode.runtime?.takeIf { it > 0 }?.let { "$it min" },
+        ).joinToString(" · ")
+        if (metaLine.isNotEmpty()) Text(metaLine, style = ForgeText.caption.copy(color = ForgeColors.Text3), modifier = Modifier.padding(horizontal = 8.dp)) // v7.4: meta 12/16, 50%; fork 19.11: ocena IMDb
     }
 }
 
