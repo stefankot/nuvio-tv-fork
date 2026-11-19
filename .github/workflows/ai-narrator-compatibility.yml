@@ -42,7 +42,9 @@ jobs:
       - name: Compile and unit tests
         run: |
           ./gradlew :app:compileFullDebugKotlin --no-daemon
-          ./gradlew :app:testFullDebugUnitTest --tests '*Narrator*Test*' --no-daemon
+          ./gradlew :app:testFullDebugUnitTest --tests '*Narrator*Test*' --tests '*ZonosArm32InstallerTest*' --no-daemon
+      - name: Compile optional ARM32 worker service (without native artifacts)
+        run: ./gradlew -p ai-narrator/worker-arm32 :app:compileDebugJavaWithJavac --no-daemon
       - name: Isolated upstream merge and compile (manual request only)
         if: github.event_name == 'workflow_dispatch' && inputs.upstream_tag != ''
         env:
