@@ -36,7 +36,7 @@ object LektorPrefs {
     else
         "Klasyczny polski lektor filmowy (jak w polskiej telewizji): jeden spokojny, rzeczowy męski głos dla wszystkich postaci, " +
             "lekka intonacja zgodna z sensem i nastrojem sceny (pytanie, napięcie, żart), bez aktorskiego grania i bez przesady, " +
-            "wyraźnie i dość szybko, żeby zmieścić się w czasie napisu."
+            "wyraźnie, w naturalnym tempie."
 }
 
 /**

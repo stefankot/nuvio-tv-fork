@@ -130,11 +130,11 @@ object LektorController {
                             sc.forEachIndexed { k, l ->
                                 val part = parts[k]
                                 Condense.learn(l.text, part.durationMs)
-                                val fit = Tempo.fit(l.text, part.durationMs, l.availableMs, gapMs = 0)
-                                val pcm = if (fit.rate > 1.01f || fit.text != l.text) { refit++; runCatching { tts.synthesize(fit.text, fit.rate) }.onFailure { if (it is kotlinx.coroutines.CancellationException) throw it }.logged("ForkLektor", "scena: dopasowanie tempa").getOrDefault(part) } else part
+                                val pcm = fitByShortening(app, l, l.text, part) { t -> tts.synthesize(t, 1f) }
+                                if (pcm !== part) refit++
                                 LektorEngine.voice[l.startMs] = pcm; done += l.startMs
                             }
-                            if (refit > 0) android.util.Log.i("ForkLektor", "scena: $refit/${sc.size} kwestii nagrane ponownie szybciej (nie mieściły się do następnej)")
+                            if (refit > 0) android.util.Log.i("ForkLektor", "scena: $refit/${sc.size} kwestii skrócone i nagrane ponownie (nie mieściły się do następnej)")
                             errStreak = 0; synthOk += sc.size
                             if (scenesOk++ % 5 == 0) android.util.Log.i("ForkLektor", "scena OK: ${sc.size} kwestii (${sc.sumOf { it.text.length }} znaków) jednym zapytaniem (scen: $scenesOk, kwestii z głosem: ${LektorEngine.voice.size}, wyprzedzenie ${(sc.first().startMs - pos) / 1000} s)")
                         }
@@ -151,8 +151,7 @@ object LektorController {
                         errStreak = 0
                         if (synthOk++ % 10 == 0) android.util.Log.i("ForkLektor", "synteza OK: $synthOk kwestii (ostatnia ${natural.durationMs} ms)")
                         Condense.learn(l.text, natural.durationMs)
-                        val fit = Tempo.fit(l.text, natural.durationMs, l.availableMs, gapMs = 0) // fork 19.11: bez wchodzenia na następną kwestię
-                        val pcm = if (fit.rate > 1.01f || fit.text != l.text) runCatching { tts.synthesize(fit.text, fit.rate) }.logged("ForkLektor", "LektorController.kt:66").getOrDefault(natural) else natural
+                        val pcm = fitByShortening(app, l, l.text, natural) { t -> tts.synthesize(t, 1f) } // fork 20.11: skrót zamiast przyspieszania
                         LektorEngine.voice[l.startMs] = pcm; done += l.startMs
                     }
                     val kept = SynthWindow.dropOutside(done, pos); done.retainAll(kept); LektorEngine.voice.keys.retainAll(kept)
@@ -168,26 +167,41 @@ object LektorController {
 
     /**
      * Fork 19.11: jedna kwestia przez silnik ze stylem — tekst lektorski i styl ze scenariusza; za długa względem czasu do
-     * następnej → drugie nagranie z poleceniem „szybciej”, bierzemy krótsze; nadal za długa → cięcie na granicy zdania (Tempo).
+     * następnej → skrót AI i nagranie w zwykłym tempie ([fitByShortening]).
      */
     private suspend fun styledLine(app: Context, tts: StyledLektor, l: Line): Pcm {
         val text = LektorScript.get(l.startMs)?.text ?: l.text
         val style = LektorScript.styleFor(app, l.startMs)
-        var pcm = tts.synthesizeStyled(text, style)
+        val pcm = tts.synthesizeStyled(text, style)
         Condense.learn(text, pcm.durationMs)
-        if (pcm.durationMs > l.availableMs + 250) {
-            val sec = "%.1f".format(java.util.Locale.ROOT, l.availableMs / 1000.0)
-            val fast = runCatching { tts.synthesizeStyled(text, "$style Mów wyraźnie szybciej niż zwykle — cała kwestia musi zmieścić się w $sec s.") }
-                .onFailure { if (it is kotlinx.coroutines.CancellationException) throw it }.logged("ForkLektor", "styledLine: szybciej").getOrNull()
-            if (fast != null && fast.durationMs < pcm.durationMs) pcm = fast
-            if (pcm.durationMs > l.availableMs + 250) {
-                val fit = Tempo.fit(text, pcm.durationMs, l.availableMs, gapMs = 0)
-                if (fit.text != text) runCatching { tts.synthesizeStyled(fit.text, "$style Mów wyraźnie szybciej niż zwykle.") }
-                    .onFailure { if (it is kotlinx.coroutines.CancellationException) throw it }.logged("ForkLektor", "styledLine: krócej").getOrNull()?.let { pcm = it }
-                android.util.Log.i("ForkLektor", "kwestia za długa: ${pcm.durationMs} ms na ${l.availableMs} ms" + if (fit.text != text) " — skrócona do zdań" else "")
-            }
+        return fitByShortening(app, l, text, pcm) { t -> tts.synthesizeStyled(t, style) }
+    }
+
+    /** Ile nagranie może wyjść poza czas do następnej kwestii (mikser i tak czeka na koniec do 1,2 s). */
+    private const val SLACK_MS = 500L
+
+    /**
+     * Fork 20.11 (właściciel: „gdy kwestia jest za długa, powinien ją skrócić, a nie mówić szybciej — to brzmi dziwnie”):
+     * nagranie dłuższe niż czas do następnej → skrót AI (jak polski lektor) i nagranie w zwykłym tempie; nadal za długie
+     * → pierwsze zdania. Bez przyspieszania.
+     */
+    private suspend fun fitByShortening(app: Context, l: Line, text: String, pcm: Pcm, synth: suspend (String) -> Pcm): Pcm {
+        val budget = l.availableMs + SLACK_MS
+        if (pcm.durationMs <= budget) return pcm
+        val msPerChar = pcm.durationMs.toDouble() / text.length.coerceAtLeast(1)
+        val max = (l.availableMs / msPerChar).toInt().coerceAtLeast(8)
+        var best = pcm; var bestText = text; var how = ""
+        Condense.shortenOne(app, text, max)?.let { short ->
+            runCatching { synth(short) }.onFailure { if (it is kotlinx.coroutines.CancellationException) throw it }.logged("ForkLektor", "skrót kwestii: nagranie").getOrNull()
+                ?.let { if (it.durationMs < best.durationMs) { best = it; bestText = short; how = "skrót AI" } }
         }
-        return pcm
+        if (best.durationMs > budget) {
+            val cut = Tempo.sentences(bestText, best.durationMs, budget)
+            if (cut != bestText) runCatching { synth(cut) }.onFailure { if (it is kotlinx.coroutines.CancellationException) throw it }.logged("ForkLektor", "skrót kwestii: zdania").getOrNull()
+                ?.let { if (it.durationMs < best.durationMs) { best = it; how = if (how.isEmpty()) "pierwsze zdania" else "$how + pierwsze zdania" } }
+        }
+        android.util.Log.i("ForkLektor", "kwestia za długa: ${pcm.durationMs} → ${best.durationMs} ms na ${l.availableMs} ms (${how.ifEmpty { "bez zmian — mikser poczeka" }})")
+        return best
     }
 
     private val main = android.os.Handler(android.os.Looper.getMainLooper())

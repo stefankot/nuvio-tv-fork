@@ -28,14 +28,15 @@ import java.util.concurrent.ConcurrentHashMap
 object Condense {
     private const val TAG = "ForkLektor"
     private const val BATCH = 30
-    /** Skracamy, gdy szacowana mowa przekracza czas o tyle (do tego zakresu wystarcza przyspieszenie). */
-    private const val TRIGGER = 1.15f
+    /** Skracamy, gdy szacowana mowa przekracza czas (fork 20.11, właściciel: „ma skrócić, a nie mówić szybciej” — bez zapasu na przyspieszenie). */
+    private const val TRIGGER = 1.0f
     @Volatile private var msPerChar = 65.0
     private val short = ConcurrentHashMap<Long, String>()   // start kwestii → skrócony tekst
     private val tried = ConcurrentHashMap.newKeySet<Long>()  // próbowane (także nieudane) — bez ponawiania
     @Volatile private var failStreak = 0
 
-    fun reset() { short.clear(); tried.clear(); failStreak = 0 }
+    fun reset() { short.clear(); tried.clear(); failStreak = 0; one.clear() }
+    private val one = ConcurrentHashMap<String, String>() // tekst|maks → skrót (jedna kwestia po nagraniu)
 
     /** Uczy się tempa mowy z gotowego nagrania (tempo 1,0). */
     fun learn(text: String, durationMs: Long, rate: Float = 1f) {
@@ -49,7 +50,7 @@ object Condense {
 
     private fun tooLong(l: Line) = estimateMs(l.text) > l.availableMs * TRIGGER
 
-    private fun maxChars(l: Line) = (l.availableMs * 1.1 / msPerChar).toInt().coerceAtLeast(8)
+    private fun maxChars(l: Line) = (l.availableMs * 0.95 / msPerChar).toInt().coerceAtLeast(8)
 
     /** Kwestie z tekstem skróconym tam, gdzie trzeba (raz na kwestię). */
     suspend fun apply(app: Context, lines: List<Line>): List<Line> {
@@ -64,9 +65,34 @@ object Condense {
 
     private suspend fun condense(app: Context, todo: List<Line>) {
         todo.forEach { tried += it.startMs }
-        val key = AiKeyStore.read(app)?.takeIf { it.isNotBlank() } ?: run { Log.i(TAG, "skracanie kwestii: brak klucza Gemini — bez skracania"); failStreak = 3; return }
+        val t0 = System.currentTimeMillis()
+        val got = ask(app, todo.map { it.text to maxChars(it) }) ?: return
+        var n = 0
+        got.forEach { (i, t) -> val l = todo.getOrNull(i) ?: return@forEach; if (t.length < l.text.length) { short[l.startMs] = t; n++ } }
+        Log.i(TAG, "skrócono $n/${todo.size} zbyt długich kwestii w ${System.currentTimeMillis() - t0} ms (tempo mowy ${msPerChar.toInt()} ms/znak)")
+    }
+
+    /**
+     * Fork 20.11 (właściciel: „gdy kwestia jest za długa, powinien ją skrócić, a nie mówić szybciej”): jedna kwestia, której
+     * gotowe nagranie nie mieści się w czasie — skrót do [maxChars] znaków. null = bez klucza / błąd / nie krócej.
+     */
+    suspend fun shortenOne(app: Context, text: String, maxChars: Int): String? {
+        val k = "$maxChars|$text"
+        one[k]?.let { return it }
+        if (failStreak >= 3) return null
+        val r = runCatching { ask(app, listOf(text to maxChars)) }.onFailure { e ->
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            failStreak++; Log.w(TAG, "skracanie kwestii (po nagraniu): ${e.javaClass.simpleName}: ${e.message?.take(160)}")
+        }.getOrNull()?.get(0)?.takeIf { it.length < text.length } ?: return null
+        one[k] = r
+        return r
+    }
+
+    /** Zapytanie do modelu tekstowego: (tekst, maks. znaków) → numer → skrót. null = brak klucza. */
+    private suspend fun ask(app: Context, items: List<Pair<String, Int>>): Map<Int, String>? {
+        val key = AiKeyStore.read(app)?.takeIf { it.isNotBlank() } ?: run { Log.i(TAG, "skracanie kwestii: brak klucza Gemini — bez skracania"); failStreak = 3; return null }
         val provider = GeminiProvider(key, AiSettings.model(app), thinkingLevel = "low")
-        val list = todo.mapIndexed { i, l -> "$i\t${maxChars(l)}\t${l.text}" }.joinToString("\n")
+        val list = items.mapIndexed { i, (t, max) -> "$i\t$max\t$t" }.joinToString("\n")
         val schema = buildJsonObject {
             put("type", "object")
             putJsonObject("properties") { putJsonObject("items") {
@@ -79,26 +105,25 @@ object Condense {
             } }
             putJsonArray("required") { add(kotlinx.serialization.json.JsonPrimitive("items")) }
         }
-        val t0 = System.currentTimeMillis()
         val res = provider.complete(ModelRequest(
-            system = "Jesteś polskim lektorem filmowym. Lektor nie czyta napisów słowo w słowo, tylko je zwięźle streszcza, " +
-                "tak żeby zdążyć przed następną kwestią. Skróć każdą kwestię do podanej maksymalnej liczby znaków, zachowując sens, " +
-                "ton i najważniejsze informacje (imiona, liczby, pytania). Nie dodawaj niczego od siebie, bez komentarzy i cudzysłowów.",
+            system = SYSTEM,
             context = "Kwestie (numer TAB maks. znaków TAB tekst):\n$list",
             task = "Zwróć JSON {\"items\":[{\"i\":numer,\"t\":\"skrócony tekst\"}]} dla każdej kwestii.",
             schema = schema,
             maxOutputTokens = 4_000,
         ))
-        val items = Json.parseToJsonElement(res.text).jsonObject["items"]?.jsonArray.orEmpty()
-        var n = 0
-        items.forEach { el ->
+        val out = HashMap<Int, String>()
+        Json.parseToJsonElement(res.text).jsonObject["items"]?.jsonArray.orEmpty().forEach { el ->
             val o = el as? JsonObject ?: return@forEach
             val i = o["i"]?.jsonPrimitive?.int ?: return@forEach
             val t = o["t"]?.jsonPrimitive?.content?.trim().orEmpty()
-            val l = todo.getOrNull(i) ?: return@forEach
-            if (t.isNotEmpty() && t.length < l.text.length) { short[l.startMs] = t; n++ }
+            if (t.isNotEmpty() && i in items.indices) out[i] = t
         }
         failStreak = 0
-        Log.i(TAG, "skrócono $n/${todo.size} zbyt długich kwestii w ${System.currentTimeMillis() - t0} ms (tempo mowy ${msPerChar.toInt()} ms/znak)")
+        return out
     }
+
+    const val SYSTEM = "Jesteś polskim lektorem filmowym. Lektor nie czyta napisów słowo w słowo, tylko je zwięźle streszcza, " +
+        "tak żeby zdążyć przed następną kwestią. Skróć każdą kwestię do podanej maksymalnej liczby znaków, zachowując sens, " +
+        "ton i najważniejsze informacje (imiona, liczby, pytania). Nie dodawaj niczego od siebie, bez komentarzy i cudzysłowów."
 }

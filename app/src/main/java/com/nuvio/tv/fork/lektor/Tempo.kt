@@ -29,4 +29,12 @@ object Tempo {
         }
         return Fit(MAX_RATE, kept.joinToString(" "), gapMs, kept.size < sentences.size)
     }
+
+    /** Fork 20.11: pierwsze zdania, które w zwykłym tempie zmieszczą się w [budgetMs] (zawsze co najmniej jedno). */
+    fun sentences(text: String, naturalMs: Long, budgetMs: Long): String {
+        val ss = text.split(Regex("(?<=[.!?…])\\s+"))
+        var acc = 0L; val kept = ArrayList<String>()
+        for (x in ss) { val ms = naturalMs * x.length / text.length.coerceAtLeast(1); if (acc + ms > budgetMs && kept.isNotEmpty()) break; kept += x; acc += ms }
+        return kept.joinToString(" ")
+    }
 }
