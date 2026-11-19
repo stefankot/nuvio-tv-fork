@@ -274,6 +274,7 @@ internal class LiveTvGuideState(
                             togglePicked(picked)
                             return true
                         }
+                        selected()?.takeIf { com.nuvio.tv.skin.kicia.ForgeUi.NEW_NAV && it.startEpochMs > LiveTvClock.nowEpochMs() }?.let { com.nuvio.tv.skin.kicia.livetv.ForgeGuideDetail.open(picked, it); return true } // Fork hook: program w przyszłości → strona programu (zgłoszenie 19.11)
                         // A programme that has ended plays again where the provider keeps it; anything else plays live.
                         val programme = selected()
                         if (programme != null && programme.stopEpochMs <= LiveTvClock.nowEpochMs() &&

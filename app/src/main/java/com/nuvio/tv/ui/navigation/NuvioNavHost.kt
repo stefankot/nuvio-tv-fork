@@ -207,6 +207,7 @@ private fun PlaybackNavHost(
             }
         }
     ) {
+        composable("forge_history") { com.nuvio.tv.skin.kicia.library.ForgeHistoryScreen(onNavigateToDetail = { id, type, url -> navController.navigate(Screen.Detail.createRoute(id, type, url)) }) } // Fork hook: Historia z menu (trasa Kicii brakowała)
         composable(Screen.ExperienceModeSelection.route) {
             ExperienceModeSelectionScreen(
                 onContinue = { mode ->
@@ -1243,7 +1244,7 @@ private fun PlaybackNavHost(
         }
 
         com.nuvio.tv.fork.ForkHooks.moduleRoutes(this, context) // Fork hook: registry
-        composable(Screen.Calendar.route) { // Fork hook: echo-calendar
+        composable(Screen.Calendar.route) { com.nuvio.tv.skin.kicia.nav.ForgeTabScreenToBar { // Fork hook: echo-calendar; 19.11: Wstecz i ▲ na pasek Kicii
             com.nuvio.tv.ui.screens.calendar.CalendarScreen(
                 onOpenShow = { showId, addonBaseUrl, season, episode ->
                     navController.navigate(
@@ -1257,7 +1258,7 @@ private fun PlaybackNavHost(
                     )
                 }
             )
-        }
+        } }
 
         composable(Screen.YouTube.route) { // Nuvio One hook: YouTube
             if (com.nuvio.tv.fork.ForkHooks.skinScreen("youtube", mapOf("onPlay" to { v: com.nuvio.tv.youtube.YtPlayable -> navController.navigate(youtubePlayerRoute(v)) }))) return@composable // Fork hook: skin

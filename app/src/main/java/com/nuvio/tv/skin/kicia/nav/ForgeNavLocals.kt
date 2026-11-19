@@ -8,6 +8,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.key
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
@@ -49,3 +52,22 @@ fun Modifier.forgeTag(name: String): Modifier = if (name.isEmpty()) this else th
 /** v7.4: put on the root of a window so the tags above show up as resource-id in `uiautomator dump`. */
 @OptIn(ExperimentalComposeUiApi::class)
 fun Modifier.forgeTagRoot(): Modifier = this.semantics { testTagsAsResourceId = true }
+
+/**
+ * Fork 19.11 (Calendar z Echo): ekran zakładki bez własnej obsługi paska Kicii — Wstecz idzie na pasek, a ▲, gdy
+ * wyżej nie ma już nic do fokusu, też na pasek. Poza paskiem Kicii (null) nic nie zmienia.
+ */
+@Composable
+fun ForgeTabScreenToBar(content: @Composable () -> Unit) {
+    ForgeTabBackToBar()
+    val focusBar = LocalForgeBarFocus.current
+    val fm = androidx.compose.ui.platform.LocalFocusManager.current
+    androidx.compose.foundation.layout.Box(Modifier.forgeUpToBar(focusBar, fm)) { content() }
+}
+
+private fun Modifier.forgeUpToBar(focusBar: (() -> Unit)?, fm: androidx.compose.ui.focus.FocusManager): Modifier =
+    if (focusBar == null) this else this.then(Modifier.onPreviewKeyEvent { e ->
+        if (e.type != androidx.compose.ui.input.key.KeyEventType.KeyDown || e.key != androidx.compose.ui.input.key.Key.DirectionUp) return@onPreviewKeyEvent false
+        if (!fm.moveFocus(androidx.compose.ui.focus.FocusDirection.Up)) focusBar()
+        true
+    })

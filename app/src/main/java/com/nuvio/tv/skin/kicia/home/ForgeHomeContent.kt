@@ -591,6 +591,7 @@ fun ForgeHomeContent(
                     }
                 }
             }
+            run { val myIndex = shelfIndex++; item(key = "fork_picks") { com.nuvio.tv.fork.picks.PicksModule.KiciaHomeShelf(onFocused = { focusedShelf = myIndex; inHero = heroOverShelf && myIndex == 0; focusedMeta = null }) } } // Fork hook: kafle „Na co masz ochotę?” (właściciel 19.11)
             // YouTube dla Ciebie (mockup S01): between the new episodes and the catalogs.
             if (homeYouTube) {
                 val myIndex = shelfIndex++

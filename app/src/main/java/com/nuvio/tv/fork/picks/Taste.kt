@@ -15,6 +15,7 @@ data class PickTitle(
     val runtimeMin: Int = 100,
     val certification: Int = 0,
     val vector: FloatArray? = null,
+    val poster: String? = null, // fork 19.11: okładka TMDB (siatka jak inne filmy)
 )
 
 enum class Outcome { COMPLETED, ABANDONED_EARLY, THUMB_UP, THUMB_DOWN }

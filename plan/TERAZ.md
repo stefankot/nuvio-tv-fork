@@ -2,6 +2,25 @@
 
 Ostatnia aktualizacja: 19.11.2026 ok. 02:40 (koniec wątku 5).
 
+## WĄTEK 9 (19.11 ~17:30) — wynik i następne kroki (nadrzędne wobec listy „wątek 8” niżej)
+- build108 compile OK (FullLog, lektor 321ba3643). build109 compile OK. build110 = DUŻA paczka APK armeabi-v7a (`/tmp/build110.log`).
+- Zrobione w kodzie (175657dbb, e1b5a3e7f):
+  - (11/11a) `fork/sources/TrackScout.kt`: sonda ścieżek w tle przy każdej partii źródeł (hook w StreamScreenViewModel przed `shouldAutoSelect`): 6 najlepszych gotowych (bez P2P), 3 naraz, 5 s; MKV: własny odczyt EBML (Range 1 MB, SeekHead → Tracks), inne: MediaExtractor; LRU 128 po URL. Nie blokuje startu. `KeRanking`: polski dźwięk z sondy = szczebel 0 (gdy odpowiedź „lektor/dubbing”); `subsTier` (gdy napisy PL): 0 PL (nazwa lub wbudowane), 1 Multi-Sub w nazwie lub ≥3 języki wbudowane, 2 jakieś wbudowane, 3 reszta. Log `ForkTrackScout` i `ForkRanking` (sonda=, napisy=).
+  - (10a) Ustalone: bazowy `tryAutoSelectPreferredSubtitleFromAvailableTracks` JUŻ woli wbudowane w języku głównym (dodatki dopiero po skanie ścieżek). Wyjątek: lektor `PlayerBridge.ensurePolishSubtitle` wybiera napisy z dodatku (potrzebuje tekstu) — zostawione.
+  - (9a) AI napisy: wyjątek z treścią w logu (`ForkAiSubtitles ... failed: BlockFailedException: <komunikat>`), komunikat „Brak napisów z dodatków… wbudowanych AI jeszcze nie czyta”. Tekst z napisów wbudowanych NIE zrobiony: `EmbeddedSubtitleTimelineLoader` daje tylko czasy (indeks Cues), nie tekst; tekst MKV jest w klastrach (cały plik) — wymaga zbierania cue z ExoPlayera podczas odtwarzania (osobne zadanie).
+  - (3) Ulubione programów: normalizacja raz na tytuł + Ulubione liczone zawczasu (`ForkProgrammeCache.prewarm`, klucz z hashem ulubionych).
+  - (6) Okno „Więcej” Kicii: odnawia licznik ukrywania co 2 s, póki otwarte (zmiana w bazowym `scheduleHideControls` zablokowana przez check.sh — linia Reshaped).
+  - (8) „Gotowe” ukryte, gdy odcinek/film ma datę premiery w przyszłości (`forgeNotReleased` w ForgeReadyLine).
+  - NOWE 19.11 ~17:20 (właściciel): „Strefa gangsterów”: (a) brak ocen odcinków — NAPRAWIONE: hook Kicii w `EpisodesSection` gubił `imdbRating`, karta pokazuje „IMDb 8,4 · 45 min”; (b) „Gotowe”, a film ładował się ~20 s — logi już zniknęły z bufora JMGO; sprawdzić po instalacji build110 w pełnych logach (FullLog) / `ForkRanking`, `DS_OPEN`, wyścig Echo.
+- (9) ręczny wybór źródła („Jakość”: OK = lista jakości `QualitySelectionOverlay`, długie OK = Źródła) — kod podpięty poprawnie; sprawdzić na TV z `ForgeKeys`.
+- build110 APK OK (6 min 19 s), NIEZAINSTALOWANY (JMGO zajęte). Po nim (commit „Zgłoszenia 19.11 cz. 2”):
+  - EPG: OK na programie w przyszłości → strona programu (`ForgeGuideDetail.open`, hook w `LiveTvGuide` przed odtwarzaniem; było: kanał na żywo).
+  - Historia z menu awatara: brakowało trasy `forge_history` w `NuvioNavHost` (Kicia ją ma) — dodana.
+  - „Na co masz ochotę?”: kafle nastrojów jako półka na ekranie głównym Kicii (`PicksModule.KiciaHomeShelf`, hook w `ForgeHomeContent` przed YouTube), kafel otwiera ekran z gotową listą (`pendingMood`); wyniki = siatka okładek TMDB (`ForgePosterCard`, 40 pozycji, rok i ocena), nastroje jako pigułki.
+  - build111 = APK z powyższym (`/tmp/build111.log`) — wynik NIESPRAWDZONY w chwili zapisu (budował się). Sprawdź `grep -a BUILD /tmp/build111.log`; jeśli padł — popraw błędy (`grep -a "^e: "`).
+  - PO starcie build111 (NIESKOMPILOWANE): Baahubali — ▲ z wydzielonego rzędu kolekcji w stosie Kicii (`MetaDetailsScreen` „collection_section”: `upFocusRequester = if (forgeStack) null else …`; hipoteza: wskazywał sekcję niewidocznej zakładki — sprawdzić na TV); Calendar — `ForgeTabScreenToBar` (nowe w `skin/kicia/nav/ForgeNavLocals.kt`): Wstecz → pasek, ▲ bez celu wyżej → pasek (było: Wstecz → Home, ▲ kończył na przełączniku List/Month).
+- NASTĘPNE: (0) kompilacja/APK build112 z poprawkami Baahubali/Calendar (zakładka terminala, `--console=rich | tee /tmp/build112.log`, armeabi-v7a); (1) gdy JMGO wolne (`dumpsys media_session` — o 17:14 ktoś oglądał Polsat Cafe) zainstalować `app-full-armeabi-v7a-debug.apk` z build110, skrót md5, testy: AI napisy (komunikat), Ulubione, Więcej, oceny odcinków, ForkTrackScout w logu; (2) serwer logów — wgrać `panel_api.php` i `panel/app.js` (właściciel zalogowany w DirectAdmin, 3× dźwięk); (3) zgłoszenia 1, 2, 4, 5 z listy niżej.
+
 ## NAJPIERW (wątek 8, od 19.11 ~17:20): po „kontynuuj” rób to, po kolei, bez pytań
 Stan: gałąź `hybryda-zrodel`, ostatnie commity: b187e1afb (pełne logi), 15edd16ca (zgłoszenia). Na JMGO build107 (39a21572…). W tym samym katalogu pracuje sesja „Moduł AI narrator” (lektor, `ai-narrator/`, `fork/lektor/`) — jej plików nie ruszać, nie budować równolegle (sprawdź `ps` na GradleDaemon i najnowszy `/tmp/buildN.log`). Commituj tylko swoje ścieżki (`git commit -- ścieżki`).
 1. Kompilacja kontrolna (`compileFullDebugKotlin -PforkAbi=armeabi-v7a`, zakładka terminala, `--console=rich | tee /tmp/buildN.log`): zawiera NIESKOMPILOWANE `fork/family/FullLog.kt` + hooki w `FamilySync` (start w onAppVisible, wysyłka po raporcie) i poprawkę lektora 321ba3643 (sesja narratora).

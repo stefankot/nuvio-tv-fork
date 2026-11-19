@@ -2879,7 +2879,7 @@ private fun MetaDetailsContent(
                         listState = collectionListState,
                         title = collectionName ?: strTabCollection,
                         posterCardCornerRadius = posterCardCornerRadiusDp.dp,
-                        upFocusRequester = if (hasVisiblePeopleSection) {
+                        upFocusRequester = if (forgeStack) null else if (hasVisiblePeopleSection) { // forge hook 19.11 (Baahubali): w stosie Kicii ▲ szukał karty niewidocznej zakładki
                             when (activePeopleTab) {
                                 PeopleSectionTab.CAST -> castSectionFocusRequester
                                 PeopleSectionTab.MORE_LIKE_THIS -> moreLikeSectionFocusRequester

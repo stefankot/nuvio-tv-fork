@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -82,51 +83,95 @@ object PicksModule : ForkModule {
                 out += PickTitle(
                     tmdbId = t.id, title = t.title ?: t.originalTitle ?: return@forEach, genres = mood.genres.keys.toList(),
                     year = t.releaseDate?.take(4)?.toIntOrNull() ?: 2000, rating = t.voteAverage ?: 6.5, votes = t.voteCount ?: 0,
+                    poster = t.posterPath?.let { "https://image.tmdb.org/t/p/w342$it" },
                 )
             }
         }
         out
     }
 
+    /** Nastrój wybrany kaflem na ekranie głównym (otwiera ekran z gotową listą). */
+    @Volatile var pendingMood: String? = null
+
+    fun moods(c: android.content.Context): List<Mood> =
+        Moods.parse(runCatching { c.assets.open("fork/moods.json").bufferedReader().use { it.readText() } }.getOrDefault(""))
+
+    /** Właściciel 19.11: nastroje jako kafle na ekranie głównym (skórka Kicia: hook w ForgeHomeContent). */
+    @Composable
+    fun KiciaHomeShelf(onFocused: () -> Unit) {
+        val c = LocalContext.current
+        if (!ForkFeatures.enabled(c, "module_$id", defaultEnabled)) return
+        val moods = remember { moods(c) }
+        if (moods.isEmpty()) return
+        com.nuvio.tv.skin.kicia.components.ForgeShelf(title = "Na co masz ochotę?") {
+            items(moods, key = { "mood_${it.id}" }) { m ->
+                com.nuvio.tv.skin.kicia.components.ForgeWideCard(
+                    onFocusChange = { if (it) onFocused() },
+                    onOk = { pendingMood = m.id; ForkFeatures.open?.invoke(ROUTE) },
+                ) {
+                    androidx.compose.foundation.layout.Box(Modifier.fillMaxSize().padding(12.dp), contentAlignment = androidx.compose.ui.Alignment.BottomStart) {
+                        Text(m.title, style = com.nuvio.tv.skin.kicia.tokens.ForgeText.label, maxLines = 3)
+                    }
+                }
+            }
+        }
+    }
+
     @Composable
     private fun PicksScreen() {
         val c = LocalContext.current
         val scope = rememberCoroutineScope()
-        val moods = remember { Moods.parse(runCatching { c.assets.open("fork/moods.json").bufferedReader().use { it.readText() } }.getOrDefault("")) }
+        val moods = remember { moods(c) }
         var picked by remember { mutableStateOf<Mood?>(null) }
         var results by remember { mutableStateOf<List<PickTitle>>(emptyList()) }
         var status by remember { mutableStateOf("") }
-        Column(Modifier.fillMaxSize().padding(48.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Na co masz ochotę?", style = MaterialTheme.typography.headlineMedium)
+        fun choose(m: Mood) {
+            picked = m; status = "Szukam…"; results = emptyList()
+            scope.launch {
+                val cand = candidates(c, m)
+                results = RuleScoring.rank(cand, TasteProfile(), m).map { it.first }.take(40)
+                status = if (results.isEmpty()) (if (BuildConfig.TMDB_API_KEY.isBlank()) "Brak klucza TMDB" else "Nic nie znaleziono") else ""
+            }
+        }
+        LaunchedEffect(Unit) { pendingMood?.let { id -> pendingMood = null; moods.firstOrNull { it.id == id }?.let(::choose) } }
+        fun open(t: PickTitle) {
+            scope.launch {
+                val imdb = withContext(Dispatchers.IO) {
+                    runCatching {
+                        EntryPointAccessors.fromApplication(c.applicationContext, Deps::class.java).tmdb()
+                            .getMovieExternalIds(t.tmdbId, BuildConfig.TMDB_API_KEY).body()?.imdbId
+                    }.getOrNull()
+                }
+                if (imdb != null) ForkFeatures.open?.invoke(Screen.Detail.createRoute(imdb, "movie"))
+            }
+        }
+        Column(Modifier.fillMaxSize().padding(start = 48.dp, end = 48.dp, top = 32.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text(picked?.title ?: "Na co masz ochotę?", style = com.nuvio.tv.skin.kicia.tokens.ForgeText.title)
             // Właściciel 19.11: ekran był pusty — ta wersja nie ma wbudowanego klucza TMDB (local.properties: TMDB_API_KEY).
             if (BuildConfig.TMDB_API_KEY.isBlank()) Text("Polecenia nie działają: ta wersja aplikacji nie ma klucza TMDB. Po dodaniu klucza i nowym buildzie pojawią się filmy.")
             if (moods.isEmpty()) Text("Brak listy nastrojów (plik fork/moods.json)")
             LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(moods, key = { it.id }) { m ->
-                    Button(onClick = {
-                        picked = m; status = "Szukam…"; results = emptyList()
-                        scope.launch {
-                            val cand = candidates(c, m)
-                            results = RuleScoring.rank(cand, TasteProfile(), m).map { it.first }.take(20)
-                            status = if (results.isEmpty()) (if (BuildConfig.TMDB_API_KEY.isBlank()) "Brak klucza TMDB" else "Nic nie znaleziono") else ""
-                        }
-                    }) { Text(m.title) }
+                    com.nuvio.tv.skin.kicia.components.ForgePillSelect(text = m.title, selected = picked?.id == m.id, bare = false, onOk = { choose(m) })
                 }
             }
             if (status.isNotEmpty()) Text(status)
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(results, key = { it.tmdbId }) { t ->
-                    Card(onClick = {
-                        scope.launch {
-                            val imdb = withContext(Dispatchers.IO) {
-                                runCatching {
-                                    EntryPointAccessors.fromApplication(c.applicationContext, Deps::class.java).tmdb()
-                                        .getMovieExternalIds(t.tmdbId, BuildConfig.TMDB_API_KEY).body()?.imdbId
-                                }.getOrNull()
-                            }
-                            if (imdb != null) ForkFeatures.open?.invoke(Screen.Detail.createRoute(imdb, "movie"))
+            // Właściciel 19.11: pozycje jak wszystkie inne filmy — okładki w siatce.
+            androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
+                columns = androidx.compose.foundation.lazy.grid.GridCells.Adaptive(com.nuvio.tv.skin.kicia.tokens.ForgeDims.Poster),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 12.dp),
+            ) {
+                items(results.size, key = { results[it].tmdbId }) { i ->
+                    val t = results[i]
+                    Column {
+                        com.nuvio.tv.skin.kicia.components.ForgePosterCard(onOk = { open(t) }) {
+                            com.nuvio.tv.skin.kicia.components.ForgePosterImage(t.poster, null, t.title)
                         }
-                    }) { Text("${t.title} (${t.year}) ★ ${"%.1f".format(t.rating)}", Modifier.padding(12.dp)) }
+                        Text(t.title, style = com.nuvio.tv.skin.kicia.tokens.ForgeText.caption, maxLines = 1, modifier = Modifier.padding(top = 8.dp).width(com.nuvio.tv.skin.kicia.tokens.ForgeDims.Poster))
+                        Text("${t.year} · ★ ${"%.1f".format(java.util.Locale("pl"), t.rating)}", style = com.nuvio.tv.skin.kicia.tokens.ForgeText.caption.copy(color = com.nuvio.tv.skin.kicia.tokens.ForgeColors.Text3), maxLines = 1)
+                    }
                 }
             }
         }
