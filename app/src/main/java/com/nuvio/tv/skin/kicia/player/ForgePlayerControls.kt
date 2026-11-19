@@ -74,7 +74,7 @@ fun ForgePlayerControls(
     // S12: YouTube videos get the YouTube controls of the mockup.
     com.nuvio.tv.skin.kicia.youtube.LocalForgeYouTubeSession.current?.let { session ->
         ForgeYouTubeControls(session, uiState, viewModel, playPauseFocusRequester, progressBarFocusRequester, onPlayPause, onSeekTo,
-            onShowSubtitleDialog, onShowSpeedDialog, onShowStreamInfo, onResetHideTimer, onSubtitleClearanceChanged)
+            onShowSubtitleDialog, onShowSpeedDialog, onShowStreamInfo, onResetHideTimer, onSubtitleClearanceChanged, onShowAudioDialog = onShowAudioDialog) // fork 19.11: dźwięk w YouTube
         return
     }
     val timeline by viewModel.playbackTimeline.collectAsState()

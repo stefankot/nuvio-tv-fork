@@ -265,7 +265,7 @@ internal fun ForgeGuideHeaderA(
                 Spacer(Modifier.width(12.dp))
                 com.nuvio.tv.skin.kicia.components.ForgePillSelect(
                     text = "Odkrywaj", selected = false, bare = false, icon = Icons.Outlined.Explore,
-                    onOk = { com.nuvio.tv.ui.screens.settings.ForkFeatures.open?.invoke("fork_discover") },
+                    onOk = { com.nuvio.tv.ui.screens.settings.ForkFeatures.open?.invoke("forge_tv_browse") }, // zgłoszenie 2: półki Kicii (było: rzędy fork_discover)
                 )
             }
             Spacer(Modifier.weight(1f))

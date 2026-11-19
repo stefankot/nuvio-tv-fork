@@ -86,6 +86,7 @@ internal fun ForgeYouTubeControls(
     onShowStreamInfo: () -> Unit,
     onResetHideTimer: () -> Unit,
     onSubtitleClearanceChanged: (Float) -> Unit,
+    onShowAudioDialog: () -> Unit = {}, // fork 19.11 (zgłoszenie 4): wybór ścieżki dźwięku (oryginał / dubbing)
 ) {
     val yt: YouTubePlayerViewModel = hiltViewModel()
     val ytState by yt.state.collectAsState()
@@ -158,6 +159,7 @@ internal fun ForgeYouTubeControls(
             }
         }
         ForgeSideSheet(visible = moreOpen, onDismiss = { moreOpen = false }, title = "Jakość") {
+            if (uiState.audioTracks.size > 1) ForgeSheetRow(text = "Dźwięk") { moreOpen = false; onShowAudioDialog() } // fork 19.11 (zgłoszenie 4)
             ForgeSheetRow(text = "Szybkość") { moreOpen = false; onShowSpeedDialog() }
             ForgeSheetRow(text = "Informacje") { moreOpen = false; onShowStreamInfo() }
         }

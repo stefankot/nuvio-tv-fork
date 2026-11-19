@@ -67,6 +67,8 @@ object DiscoverModule : ForkModule {
 
     override fun routes() = listOf(
         com.nuvio.tv.fork.registry.ModuleRoute("fork_tv_search") { composable("fork_tv_search") { TvSearchScreen() } },
+        // Fork 19.11 (zgłoszenie 2): Live TV Kicii → „Odkrywaj” = półki Kicii (drugi układ Live TV).
+        com.nuvio.tv.fork.registry.ModuleRoute("forge_tv_browse") { composable("forge_tv_browse") { com.nuvio.tv.skin.kicia.livetv.ForgeTvBrowseRoute() } },
         com.nuvio.tv.fork.registry.ModuleRoute("fork_discover") {
             composable("fork_discover") {
                 androidx.compose.foundation.lazy.LazyColumn(Modifier.fillMaxSize().padding(48.dp)) { item { Rows() } }
