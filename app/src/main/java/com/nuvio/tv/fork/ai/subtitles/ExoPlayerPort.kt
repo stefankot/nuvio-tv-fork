@@ -1,5 +1,3 @@
-@file:OptIn(androidx.media3.common.util.UnstableApi::class)
-
 package com.nuvio.tv.fork.ai.subtitles
 
 import androidx.media3.common.text.Cue

@@ -88,7 +88,7 @@ class TranslationEngine(
         }
         val accepted = validation?.accepted ?: throw BlockFailedException("Odpowiedź odrzucona po naprawie")
         var translations = accepted.map { it.translation }
-        var warnings = validation!!.readabilityWarnings
+        var warnings = validation.readabilityWarnings
         val checks = mutableListOf("structure")
         val changes = mutableListOf<ReviewChange>()
 
