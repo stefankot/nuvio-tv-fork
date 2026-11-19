@@ -11,7 +11,7 @@ Gałąź: scalone do `hybryda-zrodel` 19.11 (merge 82d132d4f; wcześniej `ai-sub
 ## Decyzje właściciela (19.11)
 - Dźwięk do AI: **180 s na każdą godzinę filmu** (proporcjonalnie, min. 60 s; fragment ≤20 s) — `OrdinaryAudioBudget.limitForRuntime`, `reserve(..., limitMs)`.
 - OpenSubtitles jako źródło: **bez potwierdzenia, niewidoczne dla użytkownika** (pobieranie w tle, gdy brak dobrego oryginału).
-- **Bez wysyłania** tłumaczeń do OpenSubtitles (punkt usunięty z planu).
+- Wysyłanie gotowych polskich napisów AI **DO OpenSubtitles: MUSI BYĆ** (właściciel 19.11, sprostowanie). Te same napisy mają trafiać do innych członków rodziny jako **preferowane** (pierwsze na liście / wybierane automatycznie). Do ustalenia: konto OpenSubtitles (wysyłanie wymaga zalogowanego konta + klucza API), oznaczenie „tłumaczenie maszynowe” (wymóg OpenSubtitles), czy wysyłać automatycznie po skończonym tłumaczeniu.
 - Klucz Gemini: QR na telefonie + wbudowany klucz (local.properties) jako zapas; zgoda domyślnie włączona.
 
 ## Co napisano (nowe pliki, `app/src/main/java/com/nuvio/tv/fork/ai/subtitles/`)
