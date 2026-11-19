@@ -2416,7 +2416,7 @@ private class SubtitleOffsetRenderersFactory(
         })
             .setEnableFloatOutput(enableFloatOutput)
             .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
-            .setAudioProcessors(arrayOf(gainAudioProcessor))
+            .setAudioProcessors(arrayOf(gainAudioProcessor, com.nuvio.tv.fork.lektor.LektorAudioProcessor())) // Fork hook: lektor (ścieżka Arc też)
             .setAudioTrackBufferSizeProvider(cappedPassthroughBufferSizeProvider)
         val baseAudioSink = builder.build()
         // Read-only capability snapshot for diagnostics; never opens an AudioTrack.

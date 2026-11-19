@@ -49,11 +49,14 @@ object LektorController {
             var synthErrors = 0; var synthOk = 0
             try {
                 var known = cues.size
+                var tick = 0
                 while (true) {
                     // Źródło rosnące (AI na bieżąco): nowe kwestie dochodzą do planu bez kasowania gotowych głosów.
                     if (src.growing) src.cues().let { now -> if (now.size != known) { known = now.size; LektorEngine.lines = CuePlanner.plan(now) } }
                     val pos = LektorEngine.positionMs()
                     val pending = SynthWindow.pending(LektorEngine.lines, pos, done)
+                    // Fork 19.11 (build114: „nie słyszę lektora”, po starcie zero logów): stan pętli co ~10 s.
+                    if (tick++ % 10 == 0) LektorEngine.lines.let { ls -> android.util.Log.i("ForkLektor", "pętla: pozycja=${pos} ms, kwestii=${ls.size} (${ls.firstOrNull()?.startMs}..${ls.lastOrNull()?.startMs}), do syntezy=${pending.size}, z głosem=${LektorEngine.voice.size}, ok=$synthOk, błędy=$synthErrors, silnik=${tts.javaClass.simpleName}") }
                     for (l in pending.take(5)) {
                         val natural = runCatching { tts.synthesize(l.text, 1f) }.logged("ForkLektor", "LektorController.kt:57").getOrElse { e ->
                             status = e.message ?: "Błąd syntezy"
