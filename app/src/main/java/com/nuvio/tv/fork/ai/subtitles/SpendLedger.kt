@@ -24,7 +24,7 @@ object ModelPricing {
         ModelPrice("gemini-4-argon", LocalDate.of(2026, 12, 1), 4.00, 20.00, 0.20),
     )
     val models: List<String> = table.map { it.model }.distinct()
-    const val DEFAULT_MODEL = "gemini-3.8-flash"
+    const val DEFAULT_MODEL = "gemini-4-hydrogen" // właściciel 19.11 (wcześniej gemini-3.8-flash)
 
     /** null = unknown model: paid work must not start without a price (no invented price). */
     fun priceFor(model: String, day: LocalDate = LocalDate.now()): ModelPrice? =
