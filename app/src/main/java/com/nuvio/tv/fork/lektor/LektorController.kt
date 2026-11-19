@@ -28,6 +28,7 @@ object LektorController {
         if (!PlayerBridge.active) return "Lektor działa tylko podczas odtwarzania"
         if (!LektorVoice.usable(context)) return LektorVoice.MISSING_MSG
         val app = context.applicationContext
+        LektorDump.init(app)
         job?.cancel()
         if (com.nuvio.tv.fork.yt.YouTubeTextSource.videoId(PlayerBridge.streamUrl()) == null && PlayerBridge.hasPolishAddonSubtitle()) { // YouTube: napisy z manifestu, nie z dodatków
             PlayerBridge.ensurePolishSubtitle()

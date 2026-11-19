@@ -102,6 +102,7 @@ class ChirpLektor(context: Context) : Lektor, com.nuvio.tv.fork.lektor.SceneLekt
             c.requestMethod = "POST"; c.connectTimeout = 10_000; c.readTimeout = if (asMarkup) 40_000 else 15_000; c.doOutput = true // fork 19.11: duże sceny (do ~4700 B) generują się dłużej
             c.setRequestProperty("Content-Type", "application/json; charset=utf-8")
             c.setRequestProperty("x-goog-api-key", key)
+            com.nuvio.tv.fork.lektor.LektorDump.save("glos-chirp", payload.toString()) // fork 20.11: 3 ostatnie surowe zapytania (bez klucza)
             c.outputStream.use { it.write(payload.toString().toByteArray(Charsets.UTF_8)) }
             val status = c.responseCode
             if (status !in 200..299) {

@@ -152,7 +152,7 @@ object LektorScript {
             putJsonArray("required") { add(JsonPrimitive("scenes")); add(JsonPrimitive("lines")) }
         }
         val known = scenes.entries.sortedBy { it.key }.takeLast(30).joinToString("\n") { "${it.key}: ${it.value}" }
-        val res = provider.complete(ModelRequest(
+        val res = provider.complete(LektorDump.text(app, "scenariusz", provider, ModelRequest(
             system = "Jesteś reżyserem polskiego lektora filmowego. Na podstawie opisu filmu, obsady i pełnego tekstu napisów " +
                 "rozpisujesz kwestie dla lektora: do której sceny należy (krótki opis sceny: miejsce, sytuacja, nastrój), kto mówi " +
                 "(imię postaci z obsady, a gdy nie wiadomo — krótki opis np. „policjant”, „?”), z jaką emocją i jak to podać " +
@@ -165,7 +165,7 @@ object LektorScript {
                 "Rozpisz te kwestie (numer TAB limit znaków):\n$wanted\n\nZwróć JSON {\"scenes\":[{\"s\":nr,\"d\":\"opis sceny\"}],\"lines\":[{\"i\":numer,\"s\":nr sceny,\"w\":\"kto mówi\",\"e\":\"emocja\",\"t\":\"tekst skrócony (opcjonalnie)\"}]}.",
             schema = schema,
             maxOutputTokens = 24_000,
-        ))
+        )))
         res.usage?.let { u -> ModelPricing.priceFor(model)?.let { p -> LektorSpend.add("scenariusz", ModelPricing.actualCost(p, u)) } }
         val root = Json.parseToJsonElement(res.text).jsonObject
         root["scenes"]?.jsonArray?.forEach { el -> val o = el as? JsonObject ?: return@forEach

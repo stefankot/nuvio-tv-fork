@@ -105,13 +105,13 @@ object Condense {
             } }
             putJsonArray("required") { add(kotlinx.serialization.json.JsonPrimitive("items")) }
         }
-        val res = provider.complete(ModelRequest(
+        val res = provider.complete(LektorDump.text(app, "skrot", provider, ModelRequest(
             system = SYSTEM,
             context = "Kwestie (numer TAB maks. znaków TAB tekst):\n$list",
             task = "Zwróć JSON {\"items\":[{\"i\":numer,\"t\":\"skrócony tekst\"}]} dla każdej kwestii.",
             schema = schema,
             maxOutputTokens = 4_000,
-        ))
+        )))
         val out = HashMap<Int, String>()
         Json.parseToJsonElement(res.text).jsonObject["items"]?.jsonArray.orEmpty().forEach { el ->
             val o = el as? JsonObject ?: return@forEach

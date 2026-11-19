@@ -71,6 +71,7 @@ class VertexGeminiLektor(context: Context) : Lektor, StyledLektor {
             c.requestMethod = "POST"; c.connectTimeout = 10_000; c.readTimeout = 30_000; c.doOutput = true
             c.setRequestProperty("Content-Type", "application/json; charset=utf-8")
             c.setRequestProperty("x-goog-api-key", key)
+            com.nuvio.tv.fork.lektor.LektorDump.save("glos-gemini", payload.toString()) // fork 20.11: 3 ostatnie surowe zapytania (bez klucza)
             c.outputStream.use { it.write(payload.toString().toByteArray(Charsets.UTF_8)) }
             val status = c.responseCode
             if (status !in 200..299) {
