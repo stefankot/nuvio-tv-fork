@@ -18,6 +18,11 @@ object KeNetworkModule : ForkModule {
     override val title = "Test łącza"
     override val defaultEnabled = true
 
+    override fun settings() = listOf(
+        com.nuvio.tv.fork.registry.ModuleSetting(KeAutoTest.KEY, SettingsLevel.ESSENTIAL, "Test łącza", "Test łącza sam (po zamknięciu filmu)",
+            "Raz na usługę, gdy nie ma jej pomiaru; przerywany, gdy włączysz film", defaultValue = true),
+    )
+
     private fun toast(c: android.content.Context, m: String) =
         android.widget.Toast.makeText(c, m, android.widget.Toast.LENGTH_LONG).show()
 

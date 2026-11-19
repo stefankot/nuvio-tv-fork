@@ -115,7 +115,7 @@ object ForkHooks {
         androidx.compose.runtime.SideEffect { com.nuvio.tv.fork.sources.PlayerBridge.appContext = ctx.applicationContext; com.nuvio.tv.fork.sources.PlayerBridge.set(uiState, onEvent) }
         androidx.compose.runtime.LaunchedEffect(uiState.audioTracks.size, uiState.isPlaying) { com.nuvio.tv.fork.sources.PlayerBridge.maybeAutoLektor(ctx) }
         androidx.compose.runtime.LaunchedEffect(timeline) { timeline.collect { com.nuvio.tv.fork.sources.PlayerBridge.position(it.currentPosition, uiState.isPlaying) } }
-        androidx.compose.runtime.DisposableEffect(Unit) { onDispose { com.nuvio.tv.fork.sources.PlayerBridge.clear(); com.nuvio.tv.fork.lektor.LektorController.stop() } }
+        androidx.compose.runtime.DisposableEffect(Unit) { com.nuvio.tv.fork.net.KeAutoTest.onPlayerOpened(); onDispose { com.nuvio.tv.fork.sources.PlayerBridge.clear(); com.nuvio.tv.fork.lektor.LektorController.stop(); com.nuvio.tv.fork.net.KeAutoTest.onPlayerClosed(ctx) } }
     }
 
     /** Tylko build debug: `adb shell am start -a com.nuvio.fork.OPEN -n <activity> --es route <trasa>` otwiera trasę (testy bez klikania). */

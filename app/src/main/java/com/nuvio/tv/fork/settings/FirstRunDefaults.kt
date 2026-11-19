@@ -55,6 +55,17 @@ object FirstRunDefaults {
     }
 
     /**
+     * Kolejka 19.11 (W1 etap 2, „następny odcinek zawczasu”): baza ma wczytywanie źródeł następnego odcinka przed końcem
+     * (`preloadNextEpisodeSources`, wybór przez StreamAutoPlaySelector = ranking KE), ale domyślnie wyłączone. Raz włącza.
+     */
+    private suspend fun preloadNext(app: Context) {
+        if (ForkFeatures.enabled(app, "fork_defaults_preload_done")) return
+        val store = EntryPointAccessors.fromApplication(app, com.nuvio.tv.fork.sources.SourceChoice.Deps::class.java).player()
+        if (!store.playerSettings.first().preloadNextEpisodeSources) store.setPreloadNextEpisodeSources(true)
+        ForkFeatures.set(app, "fork_defaults_preload_done", true)
+    }
+
+    /**
      * Raz na profil (także istniejący, właściciel 18.11 P2): automatyczny wybór źródła = tryb „pierwsze źródło”
      * z rankingiem KE (KeRanking) zamiast ręcznej listy. Zmienia tylko tryb MANUAL; Regex i inne zostają.
      */
@@ -72,6 +83,7 @@ object FirstRunDefaults {
         reshapedOn(app)
         runCatching { polishSubtitles(app) }
         runCatching { frameRateMatching(app) }
+        runCatching { preloadNext(app) }
         val d = EntryPointAccessors.fromApplication(app, Deps::class.java)
         val pid = d.profiles().activeProfileId.value
         runCatching { autoSource(app, pid) }

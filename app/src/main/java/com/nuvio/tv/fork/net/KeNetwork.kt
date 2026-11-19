@@ -39,11 +39,12 @@ object KeNetwork {
     fun transport(c: Context): NetworkTransport = runCatching { NetworkTransportReader.current(c) }.getOrDefault(NetworkTransport.OTHER)
 
     /** Test łącza na adresie [url] (zwykle bieżący film): mierzy usługę i zapisuje tabelę; [onDone] dostaje komunikat. */
-    fun test(c: Context, url: String, headers: Map<String, String>, onDone: (String) -> Unit) {
-        if (running) { onDone("Test łącza już trwa"); return }
+    fun test(c: Context, url: String, headers: Map<String, String>, onDone: (String) -> Unit): kotlinx.coroutines.Job? {
+        if (running) { onDone("Test łącza już trwa"); return null }
         val app = c.applicationContext
         running = true; status = "Test łącza…"
-        scope.launch {
+        return scope.launch {
+            try {
             val msg = runCatching {
                 val requestKey = serviceKeyOf(url) ?: return@runCatching "Tego źródła nie da się zmierzyć"
                 // Baza nie zwraca adresu po przekierowaniach (KE ContentProbe.finalUrl): tabela pod kluczem adresu żądania.
@@ -61,9 +62,10 @@ object KeNetwork {
                     if (best.chunkMb > 0) store.setParallelChunkSizeKb(best.chunkMb * 1024)
                 }
                 "Łącze z $servingKey: ${best?.mbps?.toInt() ?: 0} Mbit/s" + (best?.takeIf { it.connections > 1 }?.let { " (${it.connections} połączenia)" } ?: "")
-            }.getOrElse { "Test łącza nie powiódł się" }
-            status = msg; running = false
+            }.getOrElse { if (it is kotlinx.coroutines.CancellationException) throw it; "Test łącza nie powiódł się" }
+            status = msg
             kotlinx.coroutines.withContext(Dispatchers.Main) { onDone(msg) }
+            } finally { running = false } // przerwany (np. KeAutoTest przy starcie filmu) też zwalnia blokadę
         }
     }
 
