@@ -4,6 +4,7 @@ import android.content.Context
 import com.nuvio.tv.reshaped.livetv.LiveTvChannel
 import com.nuvio.tv.ui.screens.settings.ForkFeatures
 import java.io.File
+import com.nuvio.tv.fork.logged
 
 /** Wywoływane z repozytorium Live TV (łatka dostawca #9): adres przewodnika uzupełniającego dla kraju listy. */
 object ExtraGuides {
@@ -21,6 +22,6 @@ object ExtraGuides {
         if (!ForkFeatures.enabled(c, KEY, true)) return emptyList()
         return runCatching {
             EpgSources.detect(channels.map { it.tvgId to it.group }, sources(c))?.epg?.let(::listOf).orEmpty()
-        }.getOrDefault(emptyList())
+        }.logged("ForkTv", "ExtraGuides.kt:22").getOrDefault(emptyList())
     }
 }

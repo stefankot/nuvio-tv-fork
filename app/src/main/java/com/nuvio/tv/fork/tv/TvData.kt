@@ -3,6 +3,7 @@ package com.nuvio.tv.fork.tv
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import java.io.File
+import com.nuvio.tv.fork.logged
 
 /**
  * Dane TV jednego profilu w `files/fork_tv/`: dziennik odcinków, stan oglądania, obserwowane, sesje kanałów.
@@ -41,7 +42,7 @@ class TvData(
     }
 
     private fun <T> readList(name: String, s: kotlinx.serialization.KSerializer<T>): List<T> =
-        runCatching { f(name).let { File(it.path + ".json") }.takeIf { it.isFile }?.readText()?.let { json.decodeFromString(ListSerializer(s), it) } }.getOrNull().orEmpty()
+        runCatching { f(name).let { File(it.path + ".json") }.takeIf { it.isFile }?.readText()?.let { json.decodeFromString(ListSerializer(s), it) } }.logged("ForkTv", "TvData.kt:44").getOrNull().orEmpty()
 
     private fun <T> writeList(name: String, s: kotlinx.serialization.KSerializer<T>, data: List<T>) {
         val text = json.encodeToString(ListSerializer(s), data)
@@ -50,7 +51,7 @@ class TvData(
                 dir.mkdirs()
                 val file = File(f(name).path + ".json"); val tmp = File(file.path + ".tmp")
                 tmp.writeText(text); if (!tmp.renameTo(file)) { file.delete(); tmp.renameTo(file) }
-            }
+            }.logged("ForkTv", "TvData.kt:49")
         }
     }
 

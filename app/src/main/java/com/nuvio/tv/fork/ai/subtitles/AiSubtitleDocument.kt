@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.security.MessageDigest
+import com.nuvio.tv.fork.logged
 
 enum class SourceAvailability { FULL_TEXT, WINDOWED_TEXT, TIMING_ONLY, BITMAP, UNAVAILABLE }
 enum class SourceRole { ORIGINAL, INTERMEDIARY_SOURCE }
@@ -101,12 +102,12 @@ class AiSubtitleStore(private val dir: File) {
 
     fun load(key: String): AiSubtitleDoc? = synchronized(lock) {
         val f = File(dir, "$key.json")
-        if (!f.exists()) null else runCatching { json.decodeFromString(AiSubtitleDoc.serializer(), f.readText()) }.getOrNull()
+        if (!f.exists()) null else runCatching { json.decodeFromString(AiSubtitleDoc.serializer(), f.readText()) }.logged("ForkAi", "AiSubtitleDocument.kt:104").getOrNull()
     }
 
     fun list(): List<AiSubtitleDoc> = synchronized(lock) {
         dir.listFiles { _, n -> n.endsWith(".json") }.orEmpty()
-            .mapNotNull { runCatching { json.decodeFromString(AiSubtitleDoc.serializer(), it.readText()) }.getOrNull() }
+            .mapNotNull { runCatching { json.decodeFromString(AiSubtitleDoc.serializer(), it.readText()) }.logged("ForkAi", "AiSubtitleDocument.kt:109").getOrNull() }
             .sortedByDescending { it.updatedAtMs }
     }
 

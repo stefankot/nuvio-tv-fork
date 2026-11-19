@@ -36,6 +36,7 @@ import com.nuvio.tv.fork.registry.ModuleRoute
 import com.nuvio.tv.fork.registry.ModuleSetting
 import com.nuvio.tv.fork.registry.SettingsLevel
 import com.nuvio.tv.ui.screens.settings.ForkFeatures
+import com.nuvio.tv.fork.logged
 
 /** Ekran główny telewizora i blokada wyjścia (B06). */
 object LauncherModule : ForkModule {
@@ -114,7 +115,7 @@ object LauncherModule : ForkModule {
             item { Text("Aplikacje", style = MaterialTheme.typography.headlineMedium) }
             item { Button(onClick = { LauncherOptions.openSystemSettings(c) }) { Text("Ustawienia systemu") } }
             items(apps, key = { it.first.packageName }) { (entry, intent) ->
-                Button(onClick = { runCatching { c.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } }) { Text(entry.label) }
+                Button(onClick = { runCatching { c.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.logged("ForkLauncher", "LauncherModule.kt:117") }) { Text(entry.label) }
             }
         }
     }

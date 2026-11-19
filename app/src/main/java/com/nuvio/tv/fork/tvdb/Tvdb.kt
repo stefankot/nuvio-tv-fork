@@ -18,6 +18,7 @@ import org.json.JSONObject
 import java.io.File
 import java.text.Normalizer
 import java.util.concurrent.TimeUnit
+import com.nuvio.tv.fork.logged
 
 /**
  * W8 (właściciel 19.11: „integracja z TVDB, szczególnie dane o serialach w IPTV”): TheTVDB v4 jako drugie źródło
@@ -114,7 +115,7 @@ object Tvdb {
 
     private fun episodesLocked(c: Context, id: Long): List<JSONObject>? {
         val f = File(c.applicationContext.filesDir, "tvdb/ep_$id.json")
-        runCatching { JSONObject(f.readText()) }.getOrNull()?.let { o ->
+        runCatching { JSONObject(f.readText()) }.logged("ForkTvdb", "Tvdb.kt:117").getOrNull()?.let { o ->
             if (System.currentTimeMillis() - o.optLong("t") < EP_TTL_MS) return o.optJSONArray("e")?.let { a -> (0 until a.length()).mapNotNull { a.optJSONObject(it) } }
         }
         val out = JSONArray()
@@ -133,7 +134,7 @@ object Tvdb {
                 page++
             }
         }.onFailure { Log.w(TAG, "episodes $id: ${it.message}"); return null }
-        runCatching { f.parentFile?.mkdirs(); f.writeText(JSONObject().put("t", System.currentTimeMillis()).put("e", out).toString()) }
+        runCatching { f.parentFile?.mkdirs(); f.writeText(JSONObject().put("t", System.currentTimeMillis()).put("e", out).toString()) }.logged("ForkTvdb", "Tvdb.kt:136")
         return (0 until out.length()).mapNotNull { out.optJSONObject(it) }
     }
 
@@ -152,7 +153,7 @@ object Tvdb {
     /** Ustawienia: logowanie na próbę, wynik do [status]. */
     suspend fun check(c: Context): String = withContext(Dispatchers.IO) {
         if (!hasKey) return@withContext "TVDB: brak klucza w buildzie".also { status = "brak klucza" }
-        runCatching { token(c, force = true); "TVDB: zalogowano" }.getOrElse { "TVDB: błąd logowania (${it.message?.take(60)})" }
+        runCatching { token(c, force = true); "TVDB: zalogowano" }.logged("ForkTvdb", "Tvdb.kt:155").getOrElse { "TVDB: błąd logowania (${it.message?.take(60)})" }
             .also { status = it.removePrefix("TVDB: ") }
     }
 
@@ -240,14 +241,14 @@ object Tvdb {
 
     private fun file(c: Context) = File(c.applicationContext.filesDir, "tvdb/meta.json")
 
-    private fun cache(c: Context): JSONObject = mem ?: runCatching { JSONObject(file(c).readText()) }.getOrDefault(JSONObject()).also { mem = it }
+    private fun cache(c: Context): JSONObject = mem ?: runCatching { JSONObject(file(c).readText()) }.logged("ForkTvdb", "Tvdb.kt:243").getOrDefault(JSONObject()).also { mem = it }
 
     private fun save(c: Context, o: JSONObject) {
         if (o.length() > MAX_ROWS) {
             val old = o.keys().asSequence().toList().sortedBy { o.optJSONObject(it)?.optLong("t") ?: 0 }
             old.take(o.length() - MAX_ROWS).forEach(o::remove)
         }
-        runCatching { file(c).also { it.parentFile?.mkdirs() }.writeText(o.toString()) }
+        runCatching { file(c).also { it.parentFile?.mkdirs() }.writeText(o.toString()) }.logged("ForkTvdb", "Tvdb.kt:250")
     }
 
     private fun toJson(m: TvMeta) = JSONObject().put("title", m.title).put("overview", m.overview).put("poster", m.posterUrl)

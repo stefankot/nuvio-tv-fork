@@ -68,6 +68,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
+import com.nuvio.tv.fork.logged
 
 /** Sub-tabs of the mockup's Biblioteka (S05). */
 enum class ForgeLibraryTab(val label: String) { All("Wszystko"), Movies("Filmy"), Series("Seriale"), History("Historia") }
@@ -112,7 +113,7 @@ fun forgeLibraryCount(entries: List<LibraryEntry>, tab: ForgeLibraryTab): Int = 
 @HiltViewModel
 class ForgeHistoryViewModel @Inject constructor(private val watched: WatchedItemsPreferences) : ViewModel() {
     /** v7.4 (11): Popover „Usuń z historii”. */
-    fun remove(item: WatchedItem) { viewModelScope.launch { runCatching { watched.unmarkAsWatched(item.contentId) } } }
+    fun remove(item: WatchedItem) { viewModelScope.launch { runCatching { watched.unmarkAsWatched(item.contentId) }.logged("ForkKiciaLibrary", "ForgeLibraryScreen.kt:115") } }
     val history: StateFlow<List<WatchedItem>> = watched.allItems
         .map { items -> items.sortedByDescending { it.watchedAt }.distinctBy { it.contentId }.take(60) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())

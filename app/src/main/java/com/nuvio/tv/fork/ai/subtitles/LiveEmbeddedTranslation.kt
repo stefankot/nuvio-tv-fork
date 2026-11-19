@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
+import com.nuvio.tv.fork.logged
 
 /**
  * Fork 19.11 (zgłoszenie 9a, właściciel: „AI napisy i lektor nie działają nigdzie”): źródło z napisów WBUDOWANYCH w plik.
@@ -86,7 +87,7 @@ object LiveEmbeddedTranslation {
                     cues = window, aux = emptyList(), missingCategories = emptyList(), blocks = listOf(block), glossary = glossary,
                     provider = "gemini", model = model, promptVersion = TranslationPrompt.VERSION, createdAtMs = now, updatedAtMs = now,
                 )
-                val result = runCatching { engine.translateBlock(doc, 0) }
+                val result = runCatching { engine.translateBlock(doc, 0) }.logged("ForkAi", "LiveEmbeddedTranslation.kt:89")
                 result.exceptionOrNull()?.let { e ->
                     if (e is CancellationException) throw e
                     failures++

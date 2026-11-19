@@ -31,6 +31,7 @@ import com.nuvio.tv.reshaped.livetv.LiveTvClock
 import com.nuvio.tv.reshaped.livetv.LiveTvRepository
 import com.nuvio.tv.ui.screens.settings.ForkFeatures
 import kotlinx.coroutines.delay
+import com.nuvio.tv.fork.logged
 
 /** Odkrywaj (B08): rzędy z dziennika odcinków i oglądania na ekranie głównym. Wyłączone, gdy brak danych TV. */
 object DiscoverModule : ForkModule {
@@ -42,7 +43,7 @@ object DiscoverModule : ForkModule {
     fun build(context: android.content.Context): List<DiscoverRow> {
         val data = TvBridge.data ?: return emptyList()
         val now = LiveTvClock.nowEpochMs()
-        val genreText = runCatching { context.assets.open("fork/genres.json").bufferedReader().use { it.readText() } }.getOrDefault("{}")
+        val genreText = runCatching { context.assets.open("fork/genres.json").bufferedReader().use { it.readText() } }.logged("ForkDiscover", "DiscoverModule.kt:45").getOrDefault("{}")
         val buckets = GenreBuckets(genreText)
         val state = LiveTvRepository.uiState.value
         val groupOf = state.channels.associate { it.guideKey to it.group }
@@ -86,7 +87,7 @@ object DiscoverModule : ForkModule {
     private fun Rows() {
         val c = LocalContext.current
         var rows by remember { mutableStateOf<List<DiscoverRow>>(emptyList()) }
-        LaunchedEffect(Unit) { while (true) { rows = runCatching { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { build(c) } }.getOrDefault(emptyList()) /* fork 19.11: ANR na JMGO — liczone w tle */; delay(120_000L) } }
+        LaunchedEffect(Unit) { while (true) { rows = runCatching { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { build(c) } }.logged("ForkDiscover", "DiscoverModule.kt:89").getOrDefault(emptyList()) /* fork 19.11: ANR na JMGO — liczone w tle */; delay(120_000L) } }
         Card(onClick = { ForkFeatures.open?.invoke("fork_tv_search") }, modifier = Modifier.padding(bottom = 8.dp).width(240.dp)) {
             Text("Szukaj w telewizji", Modifier.padding(12.dp), style = MaterialTheme.typography.titleSmall)
         }

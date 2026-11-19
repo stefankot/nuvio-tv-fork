@@ -21,6 +21,7 @@ import com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE
 import com.nuvio.tv.reshaped.livetv.LiveTvClock
 import com.nuvio.tv.reshaped.livetv.LiveTvRepository
 import com.nuvio.tv.ui.screens.settings.ForkFeatures
+import com.nuvio.tv.fork.logged
 
 /**
  * Fork 19.11 (właściciel: „search nie szuka w YouTube i TV”): pod wynikami katalogu w ekranie Szukaj
@@ -34,7 +35,7 @@ fun SearchExtras(query: String, modifier: Modifier = Modifier) {
     val c = LocalContext.current
     val channels = LiveTvRepository.uiState.value.channels
     val index = rememberTvSearchIndex(channels.size).value
-    val r = remember(q, index) { index?.let { runCatching { it.search(q, LiveTvClock.nowEpochMs()) }.getOrNull() } }
+    val r = remember(q, index) { index?.let { runCatching { it.search(q, LiveTvClock.nowEpochMs()) }.logged("ForkDiscover", "SearchExtras.kt:37").getOrNull() } }
     val names = remember(channels) { channels.associate { it.guideKey to it.name } }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
         val tvCards = buildList<Triple<String, String, () -> Unit>> {

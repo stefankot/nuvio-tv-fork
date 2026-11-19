@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.nuvio.tv.fork.logged
 
 /** Kopia Kicii 34c80c6 `forge/tv/ForgeTvMetaViewModel.kt` (nazwy forka): dane TMDB programu na karcie programu skórki Kicia. */
 @HiltViewModel
@@ -30,11 +31,11 @@ class TvStoreMetaViewModel @Inject constructor(
         _tvdb.value = null
         viewModelScope.launch {
             // W8: TVDB zawsze (pierwszeństwo przed EPG); zdjęcie i opis ODCINKA z TVDB (numer z przewodnika) w miejsce tła i opisu serialu.
-            val series = runCatching { com.nuvio.tv.fork.tvdb.Tvdb.lookup(context, title, year) }.getOrNull()
+            val series = runCatching { com.nuvio.tv.fork.tvdb.Tvdb.lookup(context, title, year) }.logged("ForkTv", "TvStoreMetaViewModel.kt:33").getOrNull()
             if (asked == key) _tvdb.value = series
             val base = tmdb.lookup(title, year) ?: series
             if (asked == key) _meta.value = base
-            val ep = runCatching { com.nuvio.tv.fork.tvdb.Tvdb.episode(context, title, episode, year) }.getOrNull() ?: return@launch
+            val ep = runCatching { com.nuvio.tv.fork.tvdb.Tvdb.episode(context, title, episode, year) }.logged("ForkTv", "TvStoreMetaViewModel.kt:37").getOrNull() ?: return@launch
             if (asked != key) return@launch
             if (series != null) _tvdb.value = series.copy(backdropUrl = ep.image ?: series.backdropUrl, overview = ep.overview ?: series.overview)
             if (base != null) _meta.value = base.copy(backdropUrl = ep.image ?: base.backdropUrl, overview = ep.overview ?: base.overview)

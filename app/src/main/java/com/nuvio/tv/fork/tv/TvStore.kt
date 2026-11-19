@@ -16,6 +16,7 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.SetSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
+import com.nuvio.tv.fork.logged
 
 /**
  * The TV tab's memory: the 15 recently viewed shows and the alerts for new episodes found in the
@@ -104,16 +105,16 @@ object TvStore {
         _recentChannels.value = RecentChannels.decode(read(folder, "recent_channels_$profileId.json"))
         storedAirings = runCatching {
             json.decodeFromString(ListSerializer(Airing.serializer()), read(folder, "airings_$profileId.json").orEmpty())
-        }.getOrDefault(emptyList())
+        }.logged("ForkTv", "TvStore.kt:105").getOrDefault(emptyList())
         announced = runCatching {
             json.decodeFromString(SetSerializer(String.serializer()), read(folder, "announced_$profileId.json").orEmpty())
-        }.getOrDefault(emptySet())
+        }.logged("ForkTv", "TvStore.kt:108").getOrDefault(emptySet())
         _favoriteShows.value = runCatching {
             json.decodeFromString(SetSerializer(String.serializer()), read(folder, "favorite_shows_$profileId.json").orEmpty())
-        }.getOrDefault(emptySet())
+        }.logged("ForkTv", "TvStore.kt:111").getOrDefault(emptySet())
         _resume.value = runCatching {
             json.decodeFromString(ListSerializer(TvResume.serializer()), read(folder, "resume_$profileId.json").orEmpty())
-        }.getOrDefault(emptyList())
+        }.logged("ForkTv", "TvStore.kt:114").getOrDefault(emptyList())
         recompute(System.currentTimeMillis())
     }
 
@@ -201,7 +202,7 @@ object TvStore {
         _unannounced.value = EpisodeAlerts.fresh(found, announced)
     }
 
-    private fun read(folder: File, name: String): String? = runCatching { File(folder, name).takeIf { it.isFile }?.readText() }.getOrNull()
+    private fun read(folder: File, name: String): String? = runCatching { File(folder, name).takeIf { it.isFile }?.readText() }.logged("ForkTv", "TvStore.kt:204").getOrNull()
 
     private fun save(name: String, text: String) {
         val folder = dir ?: return

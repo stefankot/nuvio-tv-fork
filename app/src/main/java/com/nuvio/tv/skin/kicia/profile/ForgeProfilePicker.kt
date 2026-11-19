@@ -204,6 +204,7 @@ fun ForgeProfilePicker(
                                 }
                             }
                         }.onFailure {
+                            android.util.Log.w("ForkKiciaProfile", "PIN weryfikacja: ${it.javaClass.simpleName}")
                             pinError = context.getString(R.string.profile_pin_verify_error)
                         }
                     }

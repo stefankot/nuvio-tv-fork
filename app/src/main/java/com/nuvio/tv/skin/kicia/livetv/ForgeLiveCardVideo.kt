@@ -17,6 +17,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.nuvio.tv.fork.logged
 
 /** How many live card previews play right now; the background frame grabber waits while any does. */
 object ForgeLivePreview {
@@ -42,7 +43,7 @@ internal fun ForgeLiveCardVideo(channel: LiveTvChannel, modifier: Modifier = Mod
                 val now = LiveTvClock.nowEpochMs()
                 val programme = LiveTvRepository.uiState.value.currentProgrammes[channel.guideKey]
                 val safe = programme == null || forgeFrameWindowOpen(programme.startEpochMs, programme.stopEpochMs, now)
-                val frame = if (safe) runCatching { view.getBitmap(320, 180) }.getOrNull() else null
+                val frame = if (safe) runCatching { view.getBitmap(320, 180) }.logged("ForkKiciaLivetv", "ForgeLiveCardVideo.kt:45").getOrNull() else null
                 if (frame != null) CoroutineScope(Dispatchers.IO).launch {
                     ForgeChannelSnapshots.save(channel.guideKey, programme?.startEpochMs ?: now, frame)
                 }

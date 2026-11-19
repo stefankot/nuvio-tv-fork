@@ -4,6 +4,7 @@ import com.nuvio.tv.ui.screens.player.SubtitleSyncCue
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.util.concurrent.TimeUnit
+import com.nuvio.tv.fork.logged
 
 /**
  * Fork 19.11 (właściciel: „w YouTube nie dzieje się nic po wybraniu AI lektora ani AI tłumaczenia napisów”).
@@ -50,5 +51,5 @@ object YouTubeTextSource {
 
     private fun get(url: String): String? = runCatching {
         http.newCall(Request.Builder().url(url).build()).execute().use { r -> if (r.isSuccessful) r.body.string() else null }
-    }.getOrNull()
+    }.logged("ForkYt", "YouTubeTextSource.kt:51").getOrNull()
 }

@@ -17,6 +17,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
+import com.nuvio.tv.fork.logged
 
 /**
  * Fork 19.11 (właściciel, zgłoszenia 11/11a): sonda ścieżek PRZED wyborem źródła. Podczas ładowania źródeł czyta w tle
@@ -61,7 +62,7 @@ object TrackScout {
     @Volatile private var pending: kotlinx.coroutines.Job? = null
 
     private fun pick(streams: List<Stream>) {
-        val picks = runCatching { KeRanking.order(streams) }.getOrDefault(streams).asSequence()
+        val picks = runCatching { KeRanking.order(streams) }.logged("ForkSources", "TrackScout.kt:64").getOrDefault(streams).asSequence()
             .filter { !it.isTorrent() && SourceReady.tier(it) == 0 }
             .mapNotNull { s -> key(s)?.let { k -> s to k } }
             .filter { (_, k) -> cache.get(k) == null && k !in inFlight }
@@ -108,7 +109,7 @@ object TrackScout {
             }
             out.toByteArray()
         }
-    }.getOrNull()
+    }.logged("ForkSources", "TrackScout.kt:95").getOrNull()
 
     private fun extractor(url: String, headers: Map<String, String>): Tracks? {
         val ex = MediaExtractor()
@@ -124,9 +125,10 @@ object TrackScout {
             }
             Tracks(audio.distinct(), subs.distinct()).takeIf { ex.trackCount > 0 }
         } catch (e: Throwable) {
+            android.util.Log.w("ForkSources", "TrackScout: ${e.javaClass.simpleName}: ${e.message?.take(200)}")
             null
         } finally {
-            runCatching { ex.release() }
+            runCatching { ex.release() }.logged("ForkSources", "TrackScout.kt:129")
         }
     }
 

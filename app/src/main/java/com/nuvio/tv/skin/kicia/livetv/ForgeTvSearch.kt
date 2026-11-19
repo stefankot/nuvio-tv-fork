@@ -53,6 +53,7 @@ import kotlinx.coroutines.Dispatchers
 import androidx.lifecycle.compose.currentStateAsState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import com.nuvio.tv.fork.logged
 
 /**
  * v7.6 (mockup 06, state „szukaj”, owner 13.11): Live TV search. The board on the left; on the right the field
@@ -97,7 +98,7 @@ fun ForgeTvSearch(
         val results by produceState<ForgeTvSearchResults?>(null, q, category, channels, state.guideVersion) {
             if (q.isNotEmpty()) delay(250)
             value = withContext(Dispatchers.Default) {
-                runCatching { forgeTvSearch(q, category, channels, state.currentProgrammes, LiveTvClock.nowEpochMs()) }.getOrNull()
+                runCatching { forgeTvSearch(q, category, channels, state.currentProgrammes, LiveTvClock.nowEpochMs()) }.logged("ForkKiciaLivetv", "ForgeTvSearch.kt:100").getOrNull()
             }
         }
         val keep = { if (q.isNotEmpty()) ForgeTvSearchMemory.add(q) }

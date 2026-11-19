@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import java.io.File
+import com.nuvio.tv.fork.logged
 
 /** Karta programu: okładka, tło, opis, obsada, ocena, typ. Każde pole może brakować (ekran rysuje kartę zastępczą). */
 @Serializable
@@ -48,7 +49,7 @@ class ProgramCardCache(private val file: File? = null, private val clock: () -> 
 
     private fun load() {
         val f = file?.takeIf { it.isFile } ?: return
-        runCatching { json.decodeFromString(ListSerializer(Row.serializer()), f.readText()).forEach { rows[it.key] = it } }
+        runCatching { json.decodeFromString(ListSerializer(Row.serializer()), f.readText()).forEach { rows[it.key] = it } }.logged("ForkTv", "ProgramCard.kt:51")
     }
 
     private fun save() {
@@ -57,7 +58,7 @@ class ProgramCardCache(private val file: File? = null, private val clock: () -> 
             if (rows.size > MAX_ROWS) rows.entries.sortedBy { it.value.atMs }.take(rows.size - MAX_ROWS).forEach { rows.remove(it.key) }
             f.parentFile?.mkdirs()
             f.writeText(json.encodeToString(ListSerializer(Row.serializer()), rows.values.toList()))
-        }
+        }.logged("ForkTv", "ProgramCard.kt:56")
     }
 
     companion object { const val MISS_TTL_MS = 7 * 24 * 3_600_000L; const val MAX_ROWS = 2_000 }

@@ -15,6 +15,7 @@ import com.nuvio.tv.fork.sources.kicia.judgeDuration
 import com.nuvio.tv.fork.sources.kicia.judgeSound
 import com.nuvio.tv.ui.screens.player.PlayerRuntimeController
 import com.nuvio.tv.ui.screens.settings.ForkFeatures
+import com.nuvio.tv.fork.logged
 
 /**
  * Kontrole Kicii po otwarciu pliku (punkt 4 kolejki), podpięte w automatyczne przełączanie źródeł bazy
@@ -38,19 +39,19 @@ object StartupChecks {
     /** Ranking: zablokowane źródła na koniec (nigdy nie usuwane). Stabilnie. */
     fun demoteBad(streams: List<Stream>): List<Stream> {
         if (!on) return streams
-        val (bad, good) = streams.partition { runCatching { SmartBadSources.isBlocked(it) }.getOrDefault(false) }
+        val (bad, good) = streams.partition { runCatching { SmartBadSources.isBlocked(it) }.logged("ForkSources", "StartupChecks.kt:41").getOrDefault(false) }
         return if (bad.isEmpty()) streams else good + bad
     }
 
     /** „Spróbuj innego źródła”: pominięte przez widza odłożone na 30 min (Kicia USER_SKIP). */
-    fun markSkipped(stream: Stream) { if (on) runCatching { SmartBadSources.mark(stream, BadReason.USER_SKIP) } }
+    fun markSkipped(stream: Stream) { if (on) runCatching { SmartBadSources.mark(stream, BadReason.USER_SKIP) }.logged("ForkSources", "StartupChecks.kt:46") }
 
     /** Ręczny wybór źródła: zdejmij jego blokadę. */
-    fun clearFor(stream: Stream) = runCatching { SmartBadSources.clearFor(stream) }
+    fun clearFor(stream: Stream) = runCatching { SmartBadSources.clearFor(stream) }.logged("ForkSources", "StartupChecks.kt:49")
 
     /** Ile źródeł jest teraz odłożonych (wiersz w ustawieniach). */
-    fun badCount(): Int = runCatching { SmartBadSources.liveCount() }.getOrDefault(0)
-    fun clearAll() = runCatching { SmartBadSources.clearAll() }
+    fun badCount(): Int = runCatching { SmartBadSources.liveCount() }.logged("ForkSources", "StartupChecks.kt:52").getOrDefault(0)
+    fun clearAll() = runCatching { SmartBadSources.clearAll() }.logged("ForkSources", "StartupChecks.kt:53")
 
     sealed interface Verdict {
         data object Ok : Verdict
@@ -76,7 +77,7 @@ object StartupChecks {
 
         fun verdict(player: PlayerRuntimeController): Verdict {
             if (!on) return Verdict.Ok
-            return runCatching { check(player) }.getOrElse { Verdict.Ok }
+            return runCatching { check(player) }.logged("ForkSources", "StartupChecks.kt:79").getOrElse { Verdict.Ok }
         }
 
         private fun check(player: PlayerRuntimeController): Verdict {
@@ -91,7 +92,7 @@ object StartupChecks {
                 val episode = player.currentEpisode != null
                 val expectedSec = expectedSec(player)
                 val text = listOfNotNull(source.name, source.title, source.description, source.behaviorHints?.filename).joinToString(" ")
-                val edition = runCatching { ReleaseParser.parse(text).edition }.getOrNull()
+                val edition = runCatching { ReleaseParser.parse(text).edition }.logged("ForkSources", "StartupChecks.kt:94").getOrNull()
                 if (judgeDuration(timeline.duration.takeIf { seekable }, expectedSec, episode, edition) == DurationVerdict.WRONG) {
                     if (!sanity.onWrong(com.nuvio.tv.fork.sources.kicia.badSourceKey(source), timeline.duration)) {
                         wrongDuration += source
@@ -135,14 +136,14 @@ object StartupChecks {
             val source = current ?: return
             val code = player.lastPlaybackIssueError?.errorCode
             val reason = badReason ?: if (code != null && com.nuvio.tv.fork.sources.kicia.isFileInherentPlaybackError(code)) BadReason.DECODER else BadReason.NO_START
-            runCatching { SmartBadSources.mark(source, reason) }
+            runCatching { SmartBadSources.mark(source, reason) }.logged("ForkSources", "StartupChecks.kt:138")
         }
 
         /** Czas tytułu z metadanych w pamięci (bez zapytań): film = runtime, odcinek = runtime odcinka. */
         private fun expectedSec(player: PlayerRuntimeController): Long? {
             val type = player.contentType ?: return null
             val id = player.contentId ?: return null
-            val meta = runCatching { player.metaRepository.getCachedMeta(type, id) }.getOrNull() ?: return null
+            val meta = runCatching { player.metaRepository.getCachedMeta(type, id) }.logged("ForkSources", "StartupChecks.kt:145").getOrNull() ?: return null
             val ep = player.currentEpisode
             val minutes = if (ep != null) meta.videos.firstOrNull { it.season == player.currentSeason && it.episode == ep }?.runtime
                 else parseRuntimeMinutes(meta.runtime)

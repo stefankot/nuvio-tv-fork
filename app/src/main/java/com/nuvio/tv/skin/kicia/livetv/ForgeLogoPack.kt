@@ -91,7 +91,7 @@ object ForgeLogoPack {
                     fresh.deleteRecursively()
                     status = "pusta paczka"
                 }
-            }.onFailure { status = "błąd: " + (it.message ?: it.javaClass.simpleName) }
+            }.onFailure { android.util.Log.w("ForkKiciaLivetv", "ForgeLogoPack: ${it.javaClass.simpleName}: ${it.message?.take(200)}"); status = "błąd: " + (it.message ?: it.javaClass.simpleName) }
         }.apply { isDaemon = true; name = "forge-logo-pack" }.start()
     }
 }

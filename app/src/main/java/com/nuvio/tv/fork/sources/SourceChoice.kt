@@ -10,6 +10,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.first
+import com.nuvio.tv.fork.logged
 
 /** Odpowiedź na jedno pytanie „Co ważniejsze: polski dźwięk czy jakość obrazu?” zapisuje ustawienia przez istniejące DataStore. */
 object SourceChoice {
@@ -19,7 +20,7 @@ object SourceChoice {
     private const val ASSET = "fork/source_presets.json"
 
     fun presets(c: Context): List<SourcePreset> =
-        runCatching { SourcePresets.parse(c.assets.open(ASSET).bufferedReader().use { it.readText() }) }.getOrDefault(emptyList())
+        runCatching { SourcePresets.parse(c.assets.open(ASSET).bufferedReader().use { it.readText() }) }.logged("ForkSources", "SourceChoice.kt:22").getOrDefault(emptyList())
 
     private fun stateKey() = "sources_answer"
 

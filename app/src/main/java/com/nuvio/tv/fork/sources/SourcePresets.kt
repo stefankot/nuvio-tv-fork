@@ -3,6 +3,7 @@ package com.nuvio.tv.fork.sources
 import com.nuvio.tv.core.streams.ranking.RankedRegexRules
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import com.nuvio.tv.fork.logged
 
 /** Zestaw reguł rankingu źródeł dla jednej odpowiedzi na pytanie „polski dźwięk czy jakość?”. */
 @Serializable
@@ -25,7 +26,7 @@ object SourcePresets {
 
     private val json = Json { ignoreUnknownKeys = true }
 
-    fun parse(text: String): List<SourcePreset> = runCatching { json.decodeFromString<PresetFile>(text).presets }.getOrDefault(emptyList())
+    fun parse(text: String): List<SourcePreset> = runCatching { json.decodeFromString<PresetFile>(text).presets }.logged("ForkSources", "SourcePresets.kt:28").getOrDefault(emptyList())
 
     /** Szczebel (od 0), w którym nazwa źródła ląduje przy regułach zestawu; null = żaden (źródło odpada). */
     fun tierOf(preset: SourcePreset, sourceText: String): Int? {

@@ -27,6 +27,7 @@ import com.nuvio.tv.skin.kicia.tokens.ForgeColors
 import com.nuvio.tv.skin.kicia.tokens.ForgeText
 import com.nuvio.tv.ui.reshaped.livetv.LiveTvPlayerState
 import kotlinx.coroutines.delay
+import com.nuvio.tv.fork.logged
 
 /**
  * Owner 13.11: while a programme plays live, an earlier airing of the same episode is looked for in the background;
@@ -74,7 +75,7 @@ internal object ForgeArchiveOffer {
             val programme = ui.currentProgrammes[channel.guideKey] ?: continue
             if (!asked.add(url + "|" + programme.startEpochMs)) continue
             android.util.Log.i("ForgeAiringRace", "offer check '" + programme.title + "' on " + channel.name) // forge JMGO 7 diagnosis
-            val win = runCatching { ForgeAiringRace.findEarlier(channel, programme) }.getOrNull() ?: continue
+            val win = runCatching { ForgeAiringRace.findEarlier(channel, programme) }.logged("ForkKiciaLivetv", "ForgeArchiveOffer.kt:77").getOrNull() ?: continue
             if (state.currentListUrl != url || state.isCatchup()) continue
             offer = Offer(url, win)
             delay(SHOW_MS)

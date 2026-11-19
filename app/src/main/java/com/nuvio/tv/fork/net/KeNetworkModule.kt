@@ -8,6 +8,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import com.nuvio.tv.fork.logged
 
 /**
  * W1 etap 2: wejście „Test łącza” w ustawieniach forka (poza odtwarzaczem Kicia). Mierzy łącze na adresie
@@ -35,13 +36,13 @@ object KeNetworkModule : ForkModule {
                 val d = runCatching {
                     EntryPointAccessors.fromApplication(app, com.nuvio.tv.fork.sources.SourceChoice.Deps::class.java)
                         .player().lastPlaybackDiagnostics.first()
-                }.getOrNull()
+                }.logged("ForkNet", "KeNetworkModule.kt:35").getOrNull()
                 val url = d?.streamUrl
                 if (url.isNullOrBlank()) { toast(app, "Najpierw obejrzyj chwilę dowolny film, potem uruchom test"); return@launch }
                 val headers = runCatching {
                     val o = org.json.JSONObject(d.headersJson ?: "{}")
                     o.keys().asSequence().associateWith { o.getString(it) }
-                }.getOrDefault(emptyMap())
+                }.logged("ForkNet", "KeNetworkModule.kt:41").getOrDefault(emptyMap())
                 toast(app, "Test łącza: start (ok. 1 min)")
                 KeNetwork.test(app, url, headers) { msg -> toast(app, msg) }
             }

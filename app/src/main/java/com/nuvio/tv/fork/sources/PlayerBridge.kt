@@ -2,6 +2,7 @@ package com.nuvio.tv.fork.sources
 
 import com.nuvio.tv.ui.screens.player.PlayerEvent
 import com.nuvio.tv.ui.screens.player.PlayerUiState
+import com.nuvio.tv.fork.logged
 
 /** Most do odtwarzacza (B04-8, B07): ostatni stan i wysyłanie zdarzeń; działa tylko, gdy ekran odtwarzacza jest otwarty. */
 object PlayerBridge {
@@ -20,7 +21,7 @@ object PlayerBridge {
         if (!perfDone && s.isPlaying && !s.showLoadingOverlay && !s.isBuffering) {
             perfDone = true
             val now = android.os.SystemClock.elapsedRealtime()
-            val host = runCatching { android.net.Uri.parse(u).host }.getOrNull()
+            val host = runCatching { android.net.Uri.parse(u).host }.logged("ForkSources", "PlayerBridge.kt:23").getOrNull()
             android.util.Log.i("ForkPerf", "first_play start_to_play_ms=${now - perfStart} key_to_play_ms=${if (lastKeyMs > 0) now - lastKeyMs else -1} host=$host")
             com.nuvio.tv.fork.family.FamilyStats.play(now - perfStart, s.currentStreamName)
         }

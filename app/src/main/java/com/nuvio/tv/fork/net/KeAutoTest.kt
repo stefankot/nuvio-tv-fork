@@ -12,6 +12,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import com.nuvio.tv.fork.logged
 
 /**
  * Kolejka 19.11 (W1 etap 2, KE PerPlayNetwork „a play from it tests”): test łącza sam, raz na usługę.
@@ -88,14 +89,14 @@ object KeAutoTest {
             delay(8_000)
             val d = runCatching {
                 EntryPointAccessors.fromApplication(app, com.nuvio.tv.fork.sources.SourceChoice.Deps::class.java).player().lastPlaybackDiagnostics.first()
-            }.getOrNull() ?: return@launch
+            }.logged("ForkNet", "KeAutoTest.kt:89").getOrNull() ?: return@launch
             val url = d.streamUrl?.takeIf { it.startsWith("http") } ?: return@launch
             val key = due(app, url) ?: return@launch
             ForkFeatures.setStr(app, TRIED + key, System.currentTimeMillis().toString())
             val headers = runCatching {
                 val o = org.json.JSONObject(d.headersJson ?: "{}")
                 o.keys().asSequence().associateWith { o.getString(it) }
-            }.getOrDefault(emptyMap())
+            }.logged("ForkNet", "KeAutoTest.kt:95").getOrDefault(emptyMap())
             Log.i(TAG, "auto test: $key")
             test = KeNetwork.test(app, url, headers) { msg -> Log.i(TAG, "auto test done: $msg") }
         }

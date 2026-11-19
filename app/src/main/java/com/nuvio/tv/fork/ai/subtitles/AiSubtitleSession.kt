@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import com.nuvio.tv.fork.logged
 
 /** A subtitle file offered by the player (add-on or stream). */
 data class SubtitleOption(val id: String, val url: String, val language: String, val label: String)
@@ -70,7 +71,7 @@ object SourceGatherer {
         var source: SubtitleOption? = null
         var cues: List<DocCue> = emptyList()
         for (o in ordered.take(4)) {
-            cues = runCatching { port.displayedCues(o) ?: port.loadCues(o) }.getOrDefault(emptyList())
+            cues = runCatching { port.displayedCues(o) ?: port.loadCues(o) }.logged("ForkAi", "AiSubtitleSession.kt:73").getOrDefault(emptyList())
             if (cues.size >= 20) { source = o; break }
         }
         if (source == null) throw BlockFailedException("Nie udało się wczytać napisów źródłowych")
@@ -87,7 +88,7 @@ object SourceGatherer {
         val western = notTarget.filter { eligible(it) && lang(it) in AuxiliaryLanguagePolicy.westernLanguages }.take(PER_CATEGORY)
         val loaded = HashMap<String, List<DocCue>>()
         val candidates = (slavic + western).map { o ->
-            val c = runCatching { port.loadCues(o) }.getOrDefault(emptyList()).take(MAX_CUES)
+            val c = runCatching { port.loadCues(o) }.logged("ForkAi", "AiSubtitleSession.kt:90").getOrDefault(emptyList()).take(MAX_CUES)
             loaded[o.id] = c
             val coverage = coverage(cues, c)
             AuxiliarySubtitleCandidate(o.id, o.language, acceptedAfterVerification = c.size >= cues.size / 2 && coverage >= 0.6, matchingScore = (coverage * 100).toInt())
@@ -170,6 +171,7 @@ class AiSubtitleSession(
             _state.update { it.copy(stage = AiStage.STOPPED, message = "Anulowano", notice = "") }
             throw e
         } catch (e: SpendLimitException) {
+            android.util.Log.w("ForkAi", "AiSubtitleSession: limit kosztów: ${e.message?.take(200)}")
             finish(AiStage.STOPPED, e.message ?: "Limit kosztów")
         }
     }
@@ -201,6 +203,7 @@ class AiSubtitleSession(
                 }
                 if (mode == AiMode.WATCH) publish()
             } catch (e: BlockFailedException) {
+                android.util.Log.w("ForkAi", "AiSubtitleSession: blok $index nieudany: ${e.message?.take(200)}")
                 docLock.withLock {
                     inFlight.remove(index); failures[index] = (failures[index] ?: 0) + 1
                     val blocks = doc.blocks.toMutableList(); blocks[index] = blocks[index].copy(lastError = e.message)
@@ -252,7 +255,7 @@ class AiSubtitleSession(
 
     private suspend fun refreshState() {
         val d = doc
-        val pos = runCatching { port.positionMs() }.getOrDefault(0L)
+        val pos = runCatching { port.positionMs() }.logged("ForkAi", "AiSubtitleSession.kt:255").getOrDefault(0L)
         val model = d.model
         fun estimate(indices: List<Int>): Long? {
             var total = 0L

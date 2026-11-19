@@ -30,6 +30,7 @@ import com.nuvio.tv.reshaped.livetv.LiveTvChannel
 import com.nuvio.tv.reshaped.livetv.LiveTvProgramme
 import com.nuvio.tv.ui.screens.settings.ForkFeatures
 import kotlinx.coroutines.delay
+import com.nuvio.tv.fork.logged
 
 /**
  * Pozycje „Dla Ciebie” (odświeżane co minutę); pusta lista, gdy moduł TV albo rząd wyłączony.
@@ -40,7 +41,7 @@ fun rememberForYouItems(): List<ResolvedItem> {
     val context = LocalContext.current
     if (!ForkFeatures.enabled(context, "module_tv", true) || !ForkFeatures.enabled(context, "tv_for_you_row", true)) return emptyList()
     var items by remember { mutableStateOf<List<ResolvedItem>>(emptyList()) }
-    LaunchedEffect(Unit) { while (true) { items = runCatching { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { TvQueue.build() } }.getOrDefault(emptyList()) /* fork 19.11: ANR na JMGO — liczone w tle */; delay(60_000L) } }
+    LaunchedEffect(Unit) { while (true) { items = runCatching { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { TvQueue.build() } }.logged("ForkTv", "ForYouRow.kt:43").getOrDefault(emptyList()) /* fork 19.11: ANR na JMGO — liczone w tle */; delay(60_000L) } }
     return items
 }
 

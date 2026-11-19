@@ -73,6 +73,7 @@ import com.nuvio.tv.youtube.YtItem
 import com.nuvio.tv.youtube.YtKind
 import com.nuvio.tv.youtube.YtPlayable
 import com.nuvio.tv.youtube.YtTab
+import com.nuvio.tv.fork.logged
 
 // Owner 10.11: the rail's icons are centred under the avatar (centre x 60 = 40 dp margin + half the 40 dp avatar); the first column of
 // videos starts where the top bar's tab pill starts (x 88 = avatar 40..80 + 8), so the grid sits in one line under the bar.
@@ -434,7 +435,7 @@ private fun ForgeYtSignIn(focus: androidx.compose.ui.focus.FocusRequester, onSig
     LaunchedEffect(acc.signedIn) { if (acc.signedIn) onSignedIn() }
     // No grab of the focus on entry (the bar's own ▼ lands here through the rail's enter rule); only when the button is swapped.
     LaunchedEffect(acc.code == null) { if (initial) initial = false else runCatching { focus.requestFocus() } }
-    val qr = remember(acc.activateLink) { acc.activateLink?.let { runCatching { com.nuvio.tv.core.qr.QrCodeGenerator.generate(it, 400) }.getOrNull() } }
+    val qr = remember(acc.activateLink) { acc.activateLink?.let { runCatching { com.nuvio.tv.core.qr.QrCodeGenerator.generate(it, 400) }.logged("ForkKiciaYoutube", "ForgeYouTubeScreen.kt:437").getOrNull() } }
     Column(Modifier.fillMaxSize().padding(start = 12.dp, end = ForgeDims.ContentEnd), verticalArrangement = Arrangement.Center) {
         Text("Zaloguj się do YouTube", style = ForgeText.title)
         Text(

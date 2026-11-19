@@ -3,6 +3,7 @@ package com.nuvio.tv.fork.lektor
 import android.content.Context
 import android.speech.tts.TextToSpeech
 import java.util.Locale
+import com.nuvio.tv.fork.logged
 
 /**
  * P3/P9 (18.11): czy na urządzeniu jest silnik mowy z polskim głosem (JMGO: brak, Xiaomi: jest).
@@ -29,12 +30,12 @@ object LektorVoice {
             t = TextToSpeech(app) { status ->
                 val ok = status == TextToSpeech.SUCCESS && runCatching {
                     t.isLanguageAvailable(Locale("pl", "PL")) >= TextToSpeech.LANG_AVAILABLE
-                }.getOrDefault(false)
+                }.logged("ForkLektor", "LektorVoice.kt:30").getOrDefault(false)
                 ready = ok
-                android.util.Log.i("LektorVoice", "polish_tts=$ok engine=${runCatching { t.defaultEngine }.getOrNull()}")
-                runCatching { t.shutdown() }
+                android.util.Log.i("LektorVoice", "polish_tts=$ok engine=${runCatching { t.defaultEngine }.logged("ForkLektor", "LektorVoice.kt:34").getOrNull()}")
+                runCatching { t.shutdown() }.logged("ForkLektor", "LektorVoice.kt:35")
                 onResult?.invoke(ok)
             }
-        }.onFailure { ready = false; onResult?.invoke(false) }
+        }.onFailure { android.util.Log.w("ForkLektor", "LektorVoice init: ${it.javaClass.simpleName}: ${it.message?.take(200)}"); ready = false; onResult?.invoke(false) }
     }
 }

@@ -27,6 +27,7 @@ import com.nuvio.tv.fork.registry.ForkModule
 import com.nuvio.tv.fork.registry.ModuleSetting
 import com.nuvio.tv.fork.registry.SettingsLevel
 import kotlinx.coroutines.runBlocking
+import com.nuvio.tv.fork.logged
 
 /** Sterowanie głosem (B07): wyzwalacz → nasłuch systemowy → parser reguł → komunikat z rozpoznanym poleceniem. Wykonanie poleceń: dalsze kroki B07. */
 object VoiceModule : ForkModule {
@@ -43,7 +44,7 @@ object VoiceModule : ForkModule {
 
     private fun toast(c: android.content.Context, m: String) = android.widget.Toast.makeText(c, m, android.widget.Toast.LENGTH_LONG).show()
     private fun openSettings(c: android.content.Context, vararg actions: String) {
-        for (a in actions) if (runCatching { c.startActivity(Intent(a).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.isSuccess) return
+        for (a in actions) if (runCatching { c.startActivity(Intent(a).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.logged("ForkVoice", "VoiceModule.kt:46").isSuccess) return
         toast(c, "Ten telewizor nie ma takiego ekranu ustawień")
     }
 
@@ -95,7 +96,7 @@ object VoiceModule : ForkModule {
             override fun onPartialResults(p: Bundle?) {}
             override fun onEvent(t: Int, p: Bundle?) {}
         })
-        cont.invokeOnCancellation { runCatching { rec.destroy() } }
+        cont.invokeOnCancellation { runCatching { rec.destroy() }.logged("ForkVoice", "VoiceModule.kt:98") }
         rec.startListening(Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM).putExtra(RecognizerIntent.EXTRA_LANGUAGE, "pl-PL"))
     }
 

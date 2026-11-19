@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import java.io.File
+import com.nuvio.tv.fork.logged
 
 /**
  * Pictures of what is on each channel, for the cards above the guide and the MiniGuide tile (owner 8.11:
@@ -63,7 +64,7 @@ object ForgeChannelSnapshots {
                 val f = line.split('\t')
                 if (f.size < 3) null else File(d, f[2]).takeIf { it.exists() }?.let { file -> f[0] to ((f[1].toLongOrNull() ?: 0L) to file) }
             }.toMap()
-        }.getOrDefault(emptyMap())
+        }.logged("ForkKiciaLivetv", "ForgeChannelSnapshots.kt:61").getOrDefault(emptyMap())
     }
 
     fun fileFor(guideKey: String): File? = _frames.value[guideKey]?.second
@@ -85,11 +86,11 @@ object ForgeChannelSnapshots {
         // The capture time is in the name, so a refreshed frame is a new address (no stale cached picture).
         val name = "s" + Integer.toHexString(guideKey.hashCode()) + "_" + stamp + "_" + takenAt + ".jpg"
         val file = File(d, name)
-        runCatching { file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 80, it) } }.onFailure { return }
+        runCatching { file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 80, it) } }.onFailure { android.util.Log.w("ForkKiciaLivetv", "Snapshots zapis: ${it.javaClass.simpleName}: ${it.message?.take(200)}"); return }
         _frames.value[guideKey]?.second?.takeIf { it.name != name }?.delete()
         _frames.value = _frames.value + (guideKey to (stamp to file))
         taken[guideKey] = takenAt
-        runCatching { File(d, INDEX).writeText(_frames.value.entries.joinToString("\n") { (k, v) -> "${k.replace('\t', ' ')}\t${v.first}\t${v.second.name}" }) }
+        runCatching { File(d, INDEX).writeText(_frames.value.entries.joinToString("\n") { (k, v) -> "${k.replace('\t', ' ')}\t${v.first}\t${v.second.name}" }) }.logged("ForkKiciaLivetv", "ForgeChannelSnapshots.kt:92")
     }
 }
 
@@ -136,7 +137,7 @@ internal fun ForgeSnapshotter(channels: List<LiveTvChannel>) {
                 while (!player.showingVideo && waited < 10_000) { delay(250); waited += 250 }
                 if (player.showingVideo) {
                     delay(2_000) // past the first, often grey or frozen, frames
-                    val frame = runCatching { view.getBitmap(320, 180) }.getOrNull()
+                    val frame = runCatching { view.getBitmap(320, 180) }.logged("ForkKiciaLivetv", "ForgeChannelSnapshots.kt:139").getOrNull()
                     if (frame != null) withContext(Dispatchers.IO) { ForgeChannelSnapshots.save(channel.guideKey, programme?.startEpochMs ?: now, frame) }
                 }
                 player.stop()

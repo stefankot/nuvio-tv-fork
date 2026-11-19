@@ -2,6 +2,7 @@ package com.nuvio.tv.fork.nav
 
 import androidx.navigation.NavHostController
 import com.nuvio.tv.ui.navigation.Screen
+import com.nuvio.tv.fork.logged
 
 /**
  * Fork 19.11 (zgłoszenie 1: „Home w pasku nie działa”). Pasek nawiguje do zakładki przez
@@ -12,7 +13,7 @@ import com.nuvio.tv.ui.navigation.Screen
 object ForkHomeNav {
     fun handle(nav: NavHostController, currentRoute: String?, targetRoute: String): Boolean {
         if (targetRoute != Screen.Home.route || currentRoute == targetRoute) return false
-        val hasHome = runCatching { nav.getBackStackEntry(Screen.Home.route) }.isSuccess
+        val hasHome = runCatching { nav.getBackStackEntry(Screen.Home.route) }.logged("ForkNav", "ForkHomeNav.kt:15").isSuccess
         if (!hasHome) return false
         android.util.Log.i("ForkHomeNav", "home from $currentRoute")
         nav.clearBackStack(Screen.Home.route)

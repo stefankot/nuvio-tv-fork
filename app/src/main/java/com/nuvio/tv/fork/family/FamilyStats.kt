@@ -3,6 +3,7 @@ package com.nuvio.tv.fork.family
 import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
+import com.nuvio.tv.fork.logged
 
 /**
  * Lekkie, anonimowe statystyki dla panelu „Nuvio Rodzina” (19.11.2026): start filmu (ms), błędy odtwarzania,
@@ -23,7 +24,7 @@ object FamilyStats {
             runCatching {
                 val at = e.stackTrace.firstOrNull { it.className.startsWith("com.nuvio") }?.let { "${it.className.substringAfterLast('.')}:${it.lineNumber}" }
                 add(JSONObject().put("k", "crash").put("cls", e.javaClass.simpleName).put("at", at ?: ""), sync = true)
-            }
+            }.logged("ForkFamily", "FamilyStats.kt:23")
             prev?.uncaughtException(t, e)
         }
         add(JSONObject().put("k", "start"))
@@ -37,7 +38,7 @@ object FamilyStats {
     @Synchronized private fun add(e: JSONObject, sync: Boolean = false) {
         val c = app ?: return
         val p = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val arr = runCatching { JSONArray(p.getString("q", "[]")) }.getOrDefault(JSONArray())
+        val arr = runCatching { JSONArray(p.getString("q", "[]")) }.logged("ForkFamily", "FamilyStats.kt:40").getOrDefault(JSONArray())
         arr.put(e.put("t", System.currentTimeMillis()))
         val keep = JSONArray(); for (i in maxOf(0, arr.length() - MAX) until arr.length()) keep.put(arr.get(i))
         val ed = p.edit().putString("q", keep.toString())
@@ -47,13 +48,13 @@ object FamilyStats {
     /** Zabiera kolejkę do wysłania; przy błędzie wysyłki [restore]. */
     @Synchronized fun take(c: Context): JSONArray {
         val p = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val arr = runCatching { JSONArray(p.getString("q", "[]")) }.getOrDefault(JSONArray())
+        val arr = runCatching { JSONArray(p.getString("q", "[]")) }.logged("ForkFamily", "FamilyStats.kt:50").getOrDefault(JSONArray())
         p.edit().putString("q", "[]").apply()
         return arr
     }
     @Synchronized fun restore(c: Context, events: JSONArray) {
         val p = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val now = runCatching { JSONArray(p.getString("q", "[]")) }.getOrDefault(JSONArray())
+        val now = runCatching { JSONArray(p.getString("q", "[]")) }.logged("ForkFamily", "FamilyStats.kt:56").getOrDefault(JSONArray())
         val all = JSONArray(); for (i in 0 until events.length()) all.put(events.get(i)); for (i in 0 until now.length()) all.put(now.get(i))
         val keep = JSONArray(); for (i in maxOf(0, all.length() - MAX) until all.length()) keep.put(all.get(i))
         p.edit().putString("q", keep.toString()).apply()

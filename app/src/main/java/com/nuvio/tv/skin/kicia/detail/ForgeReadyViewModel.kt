@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.nuvio.tv.fork.logged
 
 /**
  * Looks for the source of the title on the detail screen while the viewer reads it, so "Ready" can say
@@ -72,7 +73,8 @@ class ForgeReadyViewModel @Inject constructor(
                 }
             } catch (cancel: kotlinx.coroutines.CancellationException) {
                 throw cancel
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                android.util.Log.w("ForkKiciaDetail", "ForgeReady: ${e.javaClass.simpleName}: ${e.message?.take(200)}")
                 // No result is simply no "Ready" line.
             } finally {
                 _searching.value = false
@@ -107,7 +109,7 @@ class ForgeReadyViewModel @Inject constructor(
             val found = kotlinx.coroutines.withTimeoutOrNull(SUBTITLE_CHECK_MS) {
                 runCatching {
                     subtitles.getSubtitles(type, contentId, videoId.takeIf { it != contentId }, stream.behaviorHints?.videoHash, size, name)
-                }.getOrNull()
+                }.logged("ForkKiciaDetail", "ForgeReadyViewModel.kt:108").getOrNull()
             } ?: return@launch // no answer in time: keep what the name said
             val has = found.any { com.nuvio.tv.ui.screens.player.autosync.SubtitleLanguageMatching.matchesLanguageCode(it.lang, lang) }
             val code = lang.trim().take(2).uppercase(java.util.Locale.ROOT)

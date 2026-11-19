@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import com.nuvio.tv.fork.logged
 
 /**
  * Opcje systemowe (B06): start z telewizorem i Nuvio jako ekran główny. Aplikacja przełącza tylko to, co Android pozwala jej
@@ -24,18 +25,18 @@ object LauncherOptions {
     fun openOverlayPermission(context: Context) {
         val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + context.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         runCatching { context.startActivity(intent) }.onFailure {
-            runCatching { context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + context.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+            runCatching { context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + context.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.logged("ForkLauncher", "LauncherOptions.kt:27")
         }
     }
 
     fun homeEnabled(context: Context): Boolean = runCatching {
         context.packageManager.getComponentEnabledSetting(ComponentName(context.packageName, HOME_ALIAS)) == PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-    }.getOrDefault(false)
+    }.logged("ForkLauncher", "LauncherOptions.kt:31").getOrDefault(false)
 
     fun isDefaultHome(context: Context): Boolean = runCatching {
         val home = context.packageManager.resolveActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME), PackageManager.MATCH_DEFAULT_ONLY)
         home?.activityInfo?.packageName == context.packageName
-    }.getOrDefault(false)
+    }.logged("ForkLauncher", "LauncherOptions.kt:35").getOrDefault(false)
 
     /** Włącza (lub nie) alias HOME i otwiera systemowy wybór ekranu głównego. Alias tylko, gdy trasa „Aplikacje” istnieje (B06-2). */
     fun setHome(context: Context, on: Boolean) {
@@ -45,21 +46,21 @@ object LauncherOptions {
                 if (on) PackageManager.COMPONENT_ENABLED_STATE_ENABLED else PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
                 PackageManager.DONT_KILL_APP,
             )
-        }
+        }.logged("ForkLauncher", "LauncherOptions.kt:42")
         if (on) {
             runCatching { context.startActivity(Intent(Settings.ACTION_HOME_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.onFailure {
-                runCatching { context.startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                runCatching { context.startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.logged("ForkLauncher", "LauncherOptions.kt:51")
             }
         }
     }
 
     fun openSystemSettings(context: Context) {
-        runCatching { context.startActivity(Intent(Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+        runCatching { context.startActivity(Intent(Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.logged("ForkLauncher", "LauncherOptions.kt:57")
     }
 
     fun openInputs(context: Context): Boolean = runCatching {
         context.startActivity(Intent("android.settings.INPUT_METHOD_SETTINGS").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); true
-    }.getOrDefault(false)
+    }.logged("ForkLauncher", "LauncherOptions.kt:60").getOrDefault(false)
 }
 
 /** Uruchamia Nuvio po starcie telewizora, gdy włączono „Uruchamiaj z telewizorem”. */
@@ -69,6 +70,6 @@ class ForkBootReceiver : BroadcastReceiver() {
         if (!LauncherOptions.autostart(context)) return
         val launch = context.packageManager.getLeanbackLaunchIntentForPackage(context.packageName)
             ?: context.packageManager.getLaunchIntentForPackage(context.packageName) ?: return
-        runCatching { context.startActivity(launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+        runCatching { context.startActivity(launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.logged("ForkLauncher", "LauncherOptions.kt:72")
     }
 }

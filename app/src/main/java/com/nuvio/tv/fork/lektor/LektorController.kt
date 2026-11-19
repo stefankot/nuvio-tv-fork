@@ -9,6 +9,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.nuvio.tv.fork.logged
 
 /** Włączanie lektora (B09-3/4/6): napisy z synchronizacji → plan kwestii → synteza naprzód (okno 3 min) → miks w [LektorAudioProcessor]. */
 object LektorController {
@@ -54,7 +55,7 @@ object LektorController {
                     val pos = LektorEngine.positionMs()
                     val pending = SynthWindow.pending(LektorEngine.lines, pos, done)
                     for (l in pending.take(5)) {
-                        val natural = runCatching { tts.synthesize(l.text, 1f) }.getOrElse { e ->
+                        val natural = runCatching { tts.synthesize(l.text, 1f) }.logged("ForkLektor", "LektorController.kt:57").getOrElse { e ->
                             status = e.message ?: "Błąd syntezy"
                             // Fork 19.11: błąd syntezy był widoczny tylko w statusie — log i komunikat (pierwszy).
                             android.util.Log.w("ForkLektor", "synteza nieudana: ${e.javaClass.simpleName}: ${e.message?.take(160)}")
@@ -63,7 +64,7 @@ object LektorController {
                         } ?: break
                         if (synthOk++ % 10 == 0) android.util.Log.i("ForkLektor", "synteza OK: $synthOk kwestii (ostatnia ${natural.durationMs} ms)")
                         val fit = Tempo.fit(l.text, natural.durationMs, l.availableMs)
-                        val pcm = if (fit.rate > 1.01f || fit.text != l.text) runCatching { tts.synthesize(fit.text, fit.rate) }.getOrDefault(natural) else natural
+                        val pcm = if (fit.rate > 1.01f || fit.text != l.text) runCatching { tts.synthesize(fit.text, fit.rate) }.logged("ForkLektor", "LektorController.kt:66").getOrDefault(natural) else natural
                         LektorEngine.voice[l.startMs] = pcm; done += l.startMs
                     }
                     val kept = SynthWindow.dropOutside(done, pos); done.retainAll(kept); LektorEngine.voice.keys.retainAll(kept)

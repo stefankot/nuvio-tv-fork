@@ -1,6 +1,7 @@
 package com.nuvio.tv.fork.tv
 
 import java.io.File
+import com.nuvio.tv.fork.logged
 
 /** Jedna emisja kanału z identyfikatorem odcinka zapisanym w chwili czytania EPG (archiwum Reshaped nie trzyma opisów). */
 data class LogEntry(
@@ -68,7 +69,7 @@ object EpisodeLog {
         return out
     }
 
-    fun read(file: File): List<LogEntry> = runCatching { decode(file.takeIf { it.isFile }?.readText()) }.getOrDefault(emptyList())
+    fun read(file: File): List<LogEntry> = runCatching { decode(file.takeIf { it.isFile }?.readText()) }.logged("ForkTv", "EpisodeLog.kt:71").getOrDefault(emptyList())
 
     fun write(file: File, entries: List<LogEntry>) {
         runCatching {
@@ -76,7 +77,7 @@ object EpisodeLog {
             val tmp = File(file.path + ".tmp")
             tmp.writeText(encode(entries))
             if (!tmp.renameTo(file)) { file.delete(); tmp.renameTo(file) }
-        }
+        }.logged("ForkTv", "EpisodeLog.kt:74")
     }
 
     private fun clean(s: String) = s.replace('\t', ' ').replace('\n', ' ').replace('\r', ' ')

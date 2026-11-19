@@ -15,6 +15,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import com.nuvio.tv.fork.logged
 
 /**
  * Synchronizacja ustawień rodziny (właściciel 18.11.2026; projekt: plan/raporty/synchronizacja-rodzina.md).
@@ -55,9 +56,9 @@ object FamilySync {
             conn.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
         }
         val code = conn.responseCode
-        val text = runCatching { (if (code in 200..299) conn.inputStream else conn.errorStream)?.bufferedReader()?.use { it.readText() } }.getOrNull()
+        val text = runCatching { (if (code in 200..299) conn.inputStream else conn.errorStream)?.bufferedReader()?.use { it.readText() } }.logged("ForkFamily", "FamilySync.kt:58").getOrNull()
         conn.disconnect()
-        return code to text?.let { runCatching { JSONObject(it) }.getOrNull() }
+        return code to text?.let { runCatching { JSONObject(it) }.logged("ForkFamily", "FamilySync.kt:60").getOrNull() }
     }
 
     // ---------- Właściciel ----------
@@ -102,7 +103,7 @@ object FamilySync {
         val p = prefs(c)
         val (status, json) = http("GET", "a=get&id=${p.getString("id", "")}&since=${p.getInt("version", 0)}")
         status == 200 && json != null && json.optInt("version") > p.getInt("version", 0) && json.optString("src") == "panel"
-    }.getOrDefault(false)
+    }.logged("ForkFamily", "FamilySync.kt:101").getOrDefault(false)
 
     /** Kod 6 cyfr dla nowego urządzenia rodziny (10 minut). */
     fun newDeviceCode(c: Context) = scope.launch {
@@ -123,7 +124,7 @@ object FamilySync {
                 if (status != 409) return@runCatching "Serwer odrzucił kod ($status)"
             }
             "Spróbuj ponownie"
-        }.getOrElse { "Brak połączenia z serwerem rodziny" }
+        }.logged("ForkFamily", "FamilySync.kt:112").getOrElse { "Brak połączenia z serwerem rodziny" }
         refresh(c, msg)
     }
 
@@ -141,14 +142,14 @@ object FamilySync {
             if (status != 200) return@runCatching "Serwer odrzucił kod ($status)"
             _state.value = _state.value.copy(code = code, codeUntilMs = System.currentTimeMillis() + 10 * 60_000L, panelCode = true)
             "Wpisz kod w panelu: nuviosync.caring.design/panel"
-        }.getOrElse { "Brak połączenia z serwerem rodziny" }
+        }.logged("ForkFamily", "FamilySync.kt:135").getOrElse { "Brak połączenia z serwerem rodziny" }
         refresh(c, msg)
     }
 
     /** Przestaje udostępniać: kasuje dane rodziny na serwerze; urządzenia rodziny przestają dostawać zmiany. */
     fun stopSharing(c: Context) = scope.launch {
         val p = prefs(c)
-        if (role(c) == Role.OWNER) runCatching { http("POST", "a=delete", JSONObject().put("id", p.getString("id", "")).put("owner", p.getString("owner", ""))) }
+        if (role(c) == Role.OWNER) runCatching { http("POST", "a=delete", JSONObject().put("id", p.getString("id", "")).put("owner", p.getString("owner", ""))) }.logged("ForkFamily", "FamilySync.kt:151")
         p.edit().clear().commit()
         _state.value = State(message = "Udostępnianie wyłączone")
     }
@@ -167,7 +168,7 @@ object FamilySync {
             prefs(c).edit().putString("role", Role.MEMBER.name).putString("id", payload.getString("id"))
                 .putString("key", payload.getString("key")).putInt("epoch", payload.optInt("epoch", 0)).putInt("version", 0).commit()
             pull(activity, announce = true) ?: "Dołączono do rodziny"
-        }.getOrElse { Log.w(TAG, "join failed: ${it.javaClass.simpleName}"); "Nie udało się dołączyć (sprawdź kod i internet)" }
+        }.logged("ForkFamily", "FamilySync.kt:162").getOrElse { Log.w(TAG, "join failed: ${it.javaClass.simpleName}"); "Nie udało się dołączyć (sprawdź kod i internet)" }
         refresh(c, msg)
     }
 
@@ -206,7 +207,7 @@ object FamilySync {
         if (!now) { toast(activity, "Nowe ustawienia z panelu — uruchom aplikację ponownie"); return null }
         val zip = FamilyCrypto.decrypt(FamilyCrypto.unb64(p.getString("key", "")!!), FamilyCrypto.unb64(data))
         val server = FamilySnapshot.entries(zip).mapValues { FamilySnapshot.sha(it.value) }
-        val baseJson = runCatching { JSONObject(p.getString("files", "{}")!!) }.getOrDefault(JSONObject())
+        val baseJson = runCatching { JSONObject(p.getString("files", "{}")!!) }.logged("ForkFamily", "FamilySync.kt:209").getOrDefault(JSONObject())
         val local = FamilySnapshot.localState(c)
         val serverMs = json.optLong("updated") * 1000
         val take = server.filter { (rel, sh) ->
@@ -293,10 +294,10 @@ object FamilySync {
         poll = scope.launch {
             var now = first
             while (true) {
-                if (runCatching { syncKey(activity.applicationContext) }.getOrDefault(true)) runCatching {
+                if (runCatching { syncKey(activity.applicationContext) }.logged("ForkFamily", "FamilySync.kt:296").getOrDefault(true)) runCatching {
                     if (role(activity) == Role.OWNER && !panelNewer(activity)) upload(activity.applicationContext, force = false)
                     else pull(activity, announce = false, now = now)
-                }
+                }.logged("ForkFamily", "FamilySync.kt:296")
                 report(activity.applicationContext)
                 now = false
                 kotlinx.coroutines.delay(15 * 60_000L)
@@ -317,7 +318,7 @@ object FamilySync {
         val events = FamilyStats.take(c)
         FamilyUsage.drain(c)?.let { events.put(JSONObject().put("k", "usage").put("t", System.currentTimeMillis()).put("c", it)) }
         val ok = runCatching {
-            val ver = runCatching { c.packageManager.getPackageInfo(c.packageName, 0).versionName }.getOrNull().orEmpty()
+            val ver = runCatching { c.packageManager.getPackageInfo(c.packageName, 0).versionName }.logged("ForkFamily", "FamilySync.kt:320").getOrNull().orEmpty()
             val info = JSONObject().put("model", "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}").put("android", android.os.Build.VERSION.RELEASE)
                 .put("app", ver).put("role", role(c).name.lowercase())
             // box: klucz urządzenia zaszyfrowany kluczem rodziny — tylko panel (z kluczem rodziny) go odczyta.
@@ -326,7 +327,7 @@ object FamilySync {
                 .put("events", events).put("box", box).put("epoch", p.getInt("epoch", 0)))
             if (json?.optBoolean("removed") == true) { removed(c); return }
             st == 200
-        }.getOrDefault(false)
+        }.logged("ForkFamily", "FamilySync.kt:319").getOrDefault(false)
         if (!ok) FamilyStats.restore(c, events)
         // Pełne logi (FullLog) do panelu: każdy niewysłany kawałek osobno; błąd = ponowna próba przy następnym raporcie.
         if (ok) FullLog.upload(c) { name, b64 ->

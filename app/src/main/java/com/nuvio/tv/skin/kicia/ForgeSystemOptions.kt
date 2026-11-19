@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import com.nuvio.tv.fork.logged
 
 /**
  * Settings → Nuvio Forge: start with the TV, Nuvio as the home screen, Nuvio as the assistant (owner 8.11).
@@ -28,19 +29,19 @@ object ForgeSystemOptions {
     fun openOverlayPermission(context: Context) {
         val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + context.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         runCatching { context.startActivity(intent) }.onFailure {
-            runCatching { context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + context.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+            runCatching { context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + context.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.logged("ForkKiciaCore", "ForgeSystemOptions.kt:31")
         }
     }
 
     // ---- home screen ----
     fun homeEnabled(context: Context): Boolean = runCatching {
         context.packageManager.getComponentEnabledSetting(ComponentName(context.packageName, HOME_ALIAS)) == PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-    }.getOrDefault(false)
+    }.logged("ForkKiciaCore", "ForgeSystemOptions.kt:36").getOrDefault(false)
 
     fun isDefaultHome(context: Context): Boolean = runCatching {
         val home = context.packageManager.resolveActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME), PackageManager.MATCH_DEFAULT_ONLY)
         home?.activityInfo?.packageName == context.packageName
-    }.getOrDefault(false)
+    }.logged("ForkKiciaCore", "ForgeSystemOptions.kt:40").getOrDefault(false)
 
     /** Makes Nuvio offerable as the home screen (or not) and opens the system choice of home app. */
     fun setHome(context: Context, on: Boolean) {
@@ -50,12 +51,12 @@ object ForgeSystemOptions {
                 if (on) PackageManager.COMPONENT_ENABLED_STATE_ENABLED else PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
                 PackageManager.DONT_KILL_APP,
             )
-        }
+        }.logged("ForkKiciaCore", "ForgeSystemOptions.kt:47")
         if (on) {
             val settings = Intent(Settings.ACTION_HOME_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             runCatching { context.startActivity(settings) }.onFailure {
                 // No home settings screen (most TVs): pressing Home then asks which home app to use.
-                runCatching { context.startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                runCatching { context.startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.logged("ForkKiciaCore", "ForgeSystemOptions.kt:58")
             }
         }
     }
@@ -67,7 +68,7 @@ object ForgeSystemOptions {
         } else {
             Settings.Secure.getString(context.contentResolver, "assistant")?.contains(context.packageName) == true
         }
-    }.getOrDefault(false)
+    }.logged("ForkKiciaCore", "ForgeSystemOptions.kt:64").getOrDefault(false)
 
     /** The system screen where the assistant is chosen (the role cannot be asked for by an app). */
     fun openAssistantSettings(context: Context) {
@@ -77,7 +78,7 @@ object ForgeSystemOptions {
             Intent(Settings.ACTION_SETTINGS),
         )
         for (intent in candidates) {
-            if (runCatching { context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.isSuccess) return
+            if (runCatching { context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.logged("ForkKiciaCore", "ForgeSystemOptions.kt:80").isSuccess) return
         }
     }
 }
@@ -89,6 +90,6 @@ class ForgeBootReceiver : BroadcastReceiver() {
         if (!ForgeSystemOptions.autostart(context)) return
         val launch = context.packageManager.getLeanbackLaunchIntentForPackage(context.packageName)
             ?: context.packageManager.getLaunchIntentForPackage(context.packageName) ?: return
-        runCatching { context.startActivity(launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+        runCatching { context.startActivity(launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.logged("ForkKiciaCore", "ForgeSystemOptions.kt:92")
     }
 }

@@ -16,6 +16,7 @@ import coil3.compose.AsyncImage
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import coil3.request.allowHardware
+import com.nuvio.tv.fork.logged
 
 /**
  * How a channel logo is turned black-and-white WITHOUT a plate behind it (owner's decision).
@@ -159,7 +160,7 @@ fun forgeLogoCorners(bitmap: android.graphics.Bitmap): IntArray? = runCatching {
         bitmap.getPixel(x1, y1), bitmap.getPixel(x2, y1), bitmap.getPixel(x1, y2), bitmap.getPixel(x2, y2),
         bitmap.getPixel(ix1, iy1), bitmap.getPixel(ix2, iy1), bitmap.getPixel(ix1, iy2), bitmap.getPixel(ix2, iy2), // 20% in
     )
-}.getOrNull()
+}.logged("ForkTv", "ForgeChannelLogo.kt:152").getOrNull()
 
 /** The inner tile of a decoded logo as its own image ([forgeLogoInnerTile]); null when there is none. */
 private fun forgeLogoTileBitmap(bitmap: android.graphics.Bitmap): androidx.compose.ui.graphics.ImageBitmap? = runCatching {
@@ -169,7 +170,7 @@ private fun forgeLogoTileBitmap(bitmap: android.graphics.Bitmap): androidx.compo
     val box = forgeLogoInnerTile(bitmap.width, bitmap.height) { x, y -> bitmap.getPixel(x, y) } ?: return null
     android.graphics.Bitmap.createBitmap(bitmap, box[0], box[1], box[2] - box[0] + 1, box[3] - box[1] + 1)
         .asImageBitmap()
-}.getOrNull()
+}.logged("ForkTv", "ForgeChannelLogo.kt:165").getOrNull()
 
 /**
  * The logo without its transparent margin (EPG.OVH logos are 330x198 canvases with the mark small in the middle, so they drew
@@ -191,7 +192,7 @@ fun forgeLogoTrim(bitmap: android.graphics.Bitmap): androidx.compose.ui.graphics
     val r = (x1 + m).coerceAtMost(w - 1); val b = (y1 + m).coerceAtMost(h - 1)
     if ((r - l + 1) * (b - t + 1) > w * h * 0.85f) return null
     android.graphics.Bitmap.createBitmap(bitmap, l, t, r - l + 1, b - t + 1).asImageBitmap()
-}.getOrNull()
+}.logged("ForkTv", "ForgeChannelLogo.kt:178").getOrNull()
 
 /**
  * A channel logo drawn black-and-white without a plate, choosing the filter per logo ([forgeLogoModeFor]).

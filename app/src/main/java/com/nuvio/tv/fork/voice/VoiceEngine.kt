@@ -70,7 +70,7 @@ class SemanticParser(
     }
 
     override suspend fun parse(text: String, context: VoiceContext): VoiceCommandCall? {
-        val q = try { VectorMath.truncateNormalize(embedder.embed(listOf(text)).first()) } catch (_: EmbedderUnavailable) { return null }
+        val q = try { VectorMath.truncateNormalize(embedder.embed(listOf(text)).first()) } catch (e: EmbedderUnavailable) { android.util.Log.w("ForkVoice", "VoiceEngine: embedder niedostępny: ${e.message?.take(200)}"); return null }
         val scored = examples().map { (p, vs) -> p to (vs.maxOfOrNull { VectorMath.cosine(q, it) } ?: -1f) }.sortedByDescending { it.second }
         val (best, score) = scored.firstOrNull() ?: return null
         if (score < threshold) return null

@@ -46,6 +46,7 @@ import com.nuvio.tv.skin.kicia.tokens.ForgeColors
 import com.nuvio.tv.skin.kicia.tokens.ForgeText
 import com.nuvio.tv.ui.screens.settings.ForkFeatures
 import kotlinx.coroutines.delay
+import com.nuvio.tv.fork.logged
 
 /** AI napisy: tłumaczenie napisów na polski (Gemini). Wejście: odtwarzacz → Więcej; ustawienia: Moduły → AI napisy. */
 object AiSubtitlesModule : ForkModule {
@@ -84,12 +85,12 @@ fun AiSubtitlesScreen() {
         message = if (uri == null) "Eksport anulowany" else runCatching {
             c.contentResolver.openOutputStream(uri)?.use { it.write(exportText(doc, format).toByteArray(Charsets.UTF_8)) } ?: error("no stream")
             "Zapisano ${format.uppercase()}" + if (!doc.complete) " (częściowe: nie do publikacji)" else ""
-        }.getOrElse { "Nie udało się zapisać: ${it.javaClass.simpleName}" }
+        }.logged("ForkAi", "AiSubtitlesModule.kt:84").getOrElse { "Nie udało się zapisać: ${it.javaClass.simpleName}" }
     }
     fun export(doc: AiSubtitleDoc, format: String) {
         pending = doc to format
         val name = doc.title.replace(Regex("[^\\p{L}\\p{N} ._-]"), "").take(60) + ".pl.ai" + when (format) { "vtt" -> ".vtt"; "json" -> ".manifest.json"; else -> ".srt" }
-        message = runCatching { exporter.launch(name); "" }.getOrElse {
+        message = runCatching { exporter.launch(name); "" }.logged("ForkAi", "AiSubtitlesModule.kt:92").getOrElse {
             // TV without a document picker: keep a copy in app storage (still playable from the menu).
             val f = java.io.File(c.getExternalFilesDir(null) ?: c.filesDir, "ai_subtitles_export/$name")
             f.parentFile?.mkdirs(); f.writeText(exportText(doc, format)); pending = null
@@ -97,14 +98,14 @@ fun AiSubtitlesScreen() {
         }
     }
     val ledger = remember(refresh) { AiSubtitles.ledger(c) }
-    val spentToday = remember(refresh) { runCatching { ledger.spentForDay() }.getOrNull() }
+    val spentToday = remember(refresh) { runCatching { ledger.spentForDay() }.logged("ForkAi", "AiSubtitlesModule.kt:100").getOrNull() }
     LazyColumn(Modifier.fillMaxSize().padding(48.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { Text("AI napisy: tłumaczenie na polski", style = MaterialTheme.typography.headlineMedium) }
         item { Text("Dostawca: Google Gemini. Wysyłany jest tylko tekst napisów (oryginał i dwa pomocnicze), bez obrazu i dźwięku. Żądania mają store=false; o retencji decydują zasady Google dla płatnego API.") }
         item { check(refresh >= 0) /* odśwież napis po zmianie */; Text("Klucz API: ${AiKeyStore.mask(AiKeyStore.read(c))} (szyfrowany kluczem Android Keystore)") }
         // Klucz wpisywany na telefonie przez kod QR (polecenie właściciela 19.11; wzór Reshaped: klucz Seekr).
-        item { AiKeyPhoneEntry { sent -> if (sent.trim().length >= 20) { runCatching { AiKeyStore.write(c, sent) }; message = "Klucz zapisany (z telefonu)"; refresh++ } else message = "Za krótki klucz" } }
-        item { Button(onClick = { runCatching { AiKeyStore.write(c, null) }; message = "Klucz usunięty"; refresh++ }) { Text("Usuń klucz") } }
+        item { AiKeyPhoneEntry { sent -> if (sent.trim().length >= 20) { runCatching { AiKeyStore.write(c, sent) }.logged("ForkAi", "AiSubtitlesModule.kt:106"); message = "Klucz zapisany (z telefonu)"; refresh++ } else message = "Za krótki klucz" } }
+        item { Button(onClick = { runCatching { AiKeyStore.write(c, null) }.logged("ForkAi", "AiSubtitlesModule.kt:107"); message = "Klucz usunięty"; refresh++ }) { Text("Usuń klucz") } }
         item { check(refresh >= 0) /* odśwież napis po zmianie */
             val on = AiSettings.textConsent(c)
             Button(onClick = { ForkFeatures.set(c, AiSettings.K_CONSENT_TEXT, !on); refresh++ }) {

@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import kotlin.math.roundToInt
+import com.nuvio.tv.fork.logged
 
 /**
  * Backdrop blur for Android 11 and below (owner 10.11: the JMGO is API 30, where RenderEffect — and so Haze — does not exist).
@@ -63,7 +64,7 @@ internal class ForgeSoftBlur(private val layer: GraphicsLayer, private val strip
             repeat(3) { boxBlur(px, w, h, 3) }
             small.setPixels(px, 0, w, 0, 0, w, h)
             small.asImageBitmap()
-        }.getOrNull() ?: return
+        }.logged("ForkKiciaComponents", "ForgeSoftBlur.kt:54").getOrNull() ?: return
         blurred = result
         blurredSize = IntSize(width, stripHeightPx)
     }

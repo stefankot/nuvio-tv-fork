@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.nuvio.tv.ui.screens.player.PlayerUiState
 import com.nuvio.tv.ui.screens.player.TrackInfo
+import com.nuvio.tv.fork.logged
 
 /**
  * Diagnostyka odtwarzania do testów (znacznik logcat „ForkDiag”): przy starcie każdego strumienia i przy zmianie
@@ -21,7 +22,7 @@ object PlaybackDiag {
         val key = "$url|${s.selectedAudioTrackIndex}|${s.selectedSubtitleTrackIndex}|${s.audioTracks.size}|${s.subtitleTracks.size}|${s.isHdrVideo}"
         if (key == lastKey) return
         lastKey = key
-        runCatching { log(c, s) }
+        runCatching { log(c, s) }.logged("ForkDiag", "PlaybackDiag.kt:24")
     }
 
     fun reset() { lastKey = null }
@@ -33,7 +34,7 @@ object PlaybackDiag {
     private fun log(c: Context?, s: PlayerUiState) {
         val audioSel = s.audioTracks.firstOrNull { it.index == s.selectedAudioTrackIndex }
         val subSel = s.subtitleTracks.firstOrNull { it.index == s.selectedSubtitleTrackIndex }
-        val wish = c?.let { runCatching { com.nuvio.tv.fork.sources.SourceChoice.answer(it) }.getOrNull() } ?: "?"
+        val wish = c?.let { runCatching { com.nuvio.tv.fork.sources.SourceChoice.answer(it) }.logged("ForkDiag", "PlaybackDiag.kt:36").getOrNull() } ?: "?"
         val wantsPl = wish == "pl_always" || wish == "pl_if_good"
         val plAudio = s.audioTracks.any { isPl(it.language) }
         val plSubs = s.subtitleTracks.any { isPl(it.language) } || s.addonSubtitles.any { isPl(it.lang) }
@@ -42,7 +43,7 @@ object PlaybackDiag {
             if (wantsPl && !plAudio && plSubs && !isPl(subSel?.language)) add("napisy_pl_dostepne_niewlaczone")
             if (audioSel == null && s.audioTracks.isNotEmpty()) add("brak_wybranej_sciezki_audio")
         }
-        val host = runCatching { android.net.Uri.parse(s.currentStreamUrl).host }.getOrNull()
+        val host = runCatching { android.net.Uri.parse(s.currentStreamUrl).host }.logged("ForkDiag", "PlaybackDiag.kt:45").getOrNull()
         Log.i(TAG, "stream title=«${s.title.take(60)}» name=«${s.currentStreamName?.take(80)}» addon=${s.currentStreamAddonName} host=$host engine=${s.internalPlayerEngine}")
         Log.i(TAG, "video hdr=${s.isHdrVideo} quality=${s.currentStreamQuality?.label} desc=«${s.currentStreamDescription?.replace('\n', ' ')?.take(160)}»")
         Log.i(TAG, "audio offered=[${s.audioTracks.joinToString("; ") { t(it) }}] selected=${audioSel?.let { t(it) }}")

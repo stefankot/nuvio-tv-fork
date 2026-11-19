@@ -10,6 +10,7 @@ import com.nuvio.tv.ui.screens.player.audiosync.asr.SharedRecognizer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.abs
+import com.nuvio.tv.fork.logged
 
 /**
  * Mowa na tekst offline (B07-6, silnik 2): mikrofon 16 kHz → prosty detektor ciszy → Whisper z sherpa-onnx (model wybrany w ustawieniach
@@ -38,7 +39,7 @@ object WhisperListen {
                 if (peak > 1500) { speech = true; quietChunks = 0 } else if (speech) quietChunks++
                 if (speech && quietChunks >= 9) break
             }
-        } finally { runCatching { rec.stop() }; rec.release() }
+        } finally { runCatching { rec.stop() }.logged("ForkVoice", "WhisperListen.kt:41"); rec.release() }
         if (!speech || all.size < RATE / 3) return@withContext null
         val samples = FloatArray(all.size) { all[it] / 32768f }
         val stt = SharedRecognizer.acquire(AsrModel.directory(c), 2)

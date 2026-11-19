@@ -2,6 +2,7 @@ package com.nuvio.tv.fork.tv
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import com.nuvio.tv.fork.logged
 
 /**
  * A show the viewer chose to watch on TV, as Freely's "Recently Viewed" keeps them: the last
@@ -49,6 +50,6 @@ object RecentlyViewed {
         if (text.isNullOrBlank()) return emptyList()
         return runCatching {
             json.decodeFromString(kotlinx.serialization.builtins.ListSerializer(RecentShow.serializer()), text)
-        }.getOrDefault(emptyList()).take(MAX)
+        }.logged("ForkTv", "RecentlyViewed.kt:50").getOrDefault(emptyList()).take(MAX)
     }
 }

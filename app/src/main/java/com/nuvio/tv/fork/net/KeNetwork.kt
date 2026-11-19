@@ -18,6 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import com.nuvio.tv.fork.logged
 
 /**
  * W1 (18.11, zgoda właściciela 19.11): adapter testu i limitu łącza KE (0a87a08, pliki 1:1 w core/network,
@@ -47,7 +48,7 @@ object KeNetwork {
     fun tables(c: Context): ServiceNetworkTables = ServiceNetworkTables.decode(ForkFeatures.str(c, TABLES).ifEmpty { null })
     private fun save(c: Context, t: ServiceNetworkTables) = ForkFeatures.setStr(c, TABLES, t.encode())
 
-    fun transport(c: Context): NetworkTransport = runCatching { NetworkTransportReader.current(c) }.getOrDefault(NetworkTransport.OTHER)
+    fun transport(c: Context): NetworkTransport = runCatching { NetworkTransportReader.current(c) }.logged("ForkNet", "KeNetwork.kt:50").getOrDefault(NetworkTransport.OTHER)
 
     /** Test łącza na adresie [url] (zwykle bieżący film): mierzy usługę i zapisuje tabelę; [onDone] dostaje komunikat. */
     fun test(c: Context, url: String, headers: Map<String, String>, onDone: (String) -> Unit): kotlinx.coroutines.Job? {
@@ -91,12 +92,12 @@ object KeNetwork {
                     if (best.chunkMb > 0) store.setParallelChunkSizeKb(best.chunkMb * 1024)
                 }
                 "Łącze z $servingKey: ${best?.mbps?.toInt() ?: 0} Mbit/s" + (best?.takeIf { it.connections > 1 }?.let { " (${it.connections} połączenia)" } ?: "")
-            }.getOrElse { if (it is kotlinx.coroutines.CancellationException) throw it; "Test łącza nie powiódł się" }
+            }.logged("ForkNet", "KeNetwork.kt:72").getOrElse { if (it is kotlinx.coroutines.CancellationException) throw it; "Test łącza nie powiódł się" }
             status = msg
             kotlinx.coroutines.withContext(Dispatchers.Main) { onDone(msg) }
             } catch (e: kotlinx.coroutines.CancellationException) {
                 // Przerwany startem filmu: zostaje to, co zmierzono, jeśli test trwał ≥ 30 s (oznaczone do uzupełnienia).
-                if (System.currentTimeMillis() - startedMs >= PARTIAL_AFTER_MS) runCatching { savePartial(true) }
+                if (System.currentTimeMillis() - startedMs >= PARTIAL_AFTER_MS) runCatching { savePartial(true) }.logged("ForkNet", "KeNetwork.kt:99")
                 throw e
             } finally { running = false } // przerwany (np. KeAutoTest przy starcie filmu) też zwalnia blokadę
         }
@@ -112,7 +113,7 @@ object KeNetwork {
         if (t.tables.isEmpty()) return emptySet()
         val tr = transport(c); val debrid = debridServiceTableKeys(streams, t)
         return streams.filter { s ->
-            runCatching { streamLimitVerdict(s, StreamLimitSettings(), t, tr, runtimeMinutes, episode, debrid)?.hidden == true }.getOrDefault(false)
+            runCatching { streamLimitVerdict(s, StreamLimitSettings(), t, tr, runtimeMinutes, episode, debrid)?.hidden == true }.logged("ForkNet", "KeNetwork.kt:115").getOrDefault(false)
         }.toSet()
     }
 }

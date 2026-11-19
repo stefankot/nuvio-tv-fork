@@ -6,6 +6,7 @@ import com.nuvio.tv.data.local.StreamAutoPlaySource
 import com.nuvio.tv.domain.model.AddonStreams
 import com.nuvio.tv.domain.model.Stream
 import com.nuvio.tv.domain.model.StreamDebridCacheState
+import com.nuvio.tv.fork.logged
 
 // Echo adapter: StreamAutoPlaySelector.raceCandidates (UP/echo core/player/StreamAutoPlaySelector.kt 215-232) as an
 // extension function, with the private helpers it needs copied from Echo (lines 33-213) as file-private functions.
@@ -147,7 +148,7 @@ private fun modeMatches(
             val pattern = regexPattern.trim()
  
             // Try to compile the user regex
-            val userRegex = runCatching { Regex(pattern, RegexOption.IGNORE_CASE) }.getOrNull()
+            val userRegex = runCatching { Regex(pattern, RegexOption.IGNORE_CASE) }.logged("ForkEcho", "EchoRaceCandidates.kt:150").getOrNull()
             if (userRegex == null) return emptyList()
 
             // Auto-extract exclusion patterns from negative lookaheads

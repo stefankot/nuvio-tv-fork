@@ -12,6 +12,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
 import dagger.hilt.components.SingletonComponent
+import com.nuvio.tv.fork.logged
 
 /** Domyślne wartości pierwszego uruchomienia profilu. Nie zmienia tego, co użytkownik już zapisał. */
 object FirstRunDefaults {
@@ -81,12 +82,12 @@ object FirstRunDefaults {
     suspend fun run(c: Context) {
         val app = c.applicationContext
         reshapedOn(app)
-        runCatching { polishSubtitles(app) }
-        runCatching { frameRateMatching(app) }
-        runCatching { preloadNext(app) }
+        runCatching { polishSubtitles(app) }.logged("ForkSettings", "FirstRunDefaults.kt:84")
+        runCatching { frameRateMatching(app) }.logged("ForkSettings", "FirstRunDefaults.kt:85")
+        runCatching { preloadNext(app) }.logged("ForkSettings", "FirstRunDefaults.kt:86")
         val d = EntryPointAccessors.fromApplication(app, Deps::class.java)
         val pid = d.profiles().activeProfileId.value
-        runCatching { autoSource(app, pid) }
+        runCatching { autoSource(app, pid) }.logged("ForkSettings", "FirstRunDefaults.kt:89")
         val flag = "first_run_done_$pid"
         if (ForkFeatures.enabled(app, flag)) return
         val en = booleanPreferencesKey("tmdb_enabled"); val lang = stringPreferencesKey("tmdb_language")

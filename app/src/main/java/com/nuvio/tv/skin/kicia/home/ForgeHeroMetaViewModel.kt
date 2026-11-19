@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.nuvio.tv.fork.logged
 
 /**
  * Year, genres and IMDb of a title in Continue watching, for the hero line of the mockup (S01:
@@ -30,7 +31,7 @@ class ForgeHeroMetaViewModel @Inject constructor(
 ) : ViewModel() {
     init {
         viewModelScope.launch {
-            profiles.activeProfileId.collect { id -> kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { runCatching { com.nuvio.tv.fork.tv.TvStore.attach(appContext, id) } } }
+            profiles.activeProfileId.collect { id -> kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { runCatching { com.nuvio.tv.fork.tv.TvStore.attach(appContext, id) }.logged("ForkKiciaHome", "ForgeHeroMetaViewModel.kt:33") } }
         }
     }
 
@@ -38,7 +39,7 @@ class ForgeHeroMetaViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching {
                 watched.markAsWatched(com.nuvio.tv.domain.model.WatchedItem(contentId = item.id, contentType = item.apiType, title = item.name, watchedAt = System.currentTimeMillis(), poster = item.poster, releaseInfo = item.releaseInfo))
-            }
+            }.logged("ForkKiciaHome", "ForgeHeroMetaViewModel.kt:39")
         }
     }
 
@@ -50,14 +51,14 @@ class ForgeHeroMetaViewModel @Inject constructor(
                     itemId = e.id, itemType = e.type, title = e.name, imdbId = e.imdbId, tmdbId = e.tmdbId, traktId = e.traktId, simklId = e.simklId,
                     poster = e.poster, posterShape = e.posterShape, background = e.background, logo = e.logo, description = e.description, releaseInfo = e.releaseInfo,
                 ))
-            }
+            }.logged("ForkKiciaHome", "ForgeHeroMetaViewModel.kt:48")
         }
     }
 
     /** v7.4 (10): Popover karty Biblioteki: „Oznacz jako obejrzane”. */
     fun markWatched(e: com.nuvio.tv.domain.model.LibraryEntry) {
         viewModelScope.launch {
-            runCatching { watched.markAsWatched(com.nuvio.tv.domain.model.WatchedItem(contentId = e.id, contentType = e.type, title = e.name, watchedAt = System.currentTimeMillis(), poster = e.poster, releaseInfo = e.releaseInfo)) }
+            runCatching { watched.markAsWatched(com.nuvio.tv.domain.model.WatchedItem(contentId = e.id, contentType = e.type, title = e.name, watchedAt = System.currentTimeMillis(), poster = e.poster, releaseInfo = e.releaseInfo)) }.logged("ForkKiciaHome", "ForgeHeroMetaViewModel.kt:60")
         }
     }
 
@@ -82,7 +83,7 @@ class ForgeHeroMetaViewModel @Inject constructor(
                         description = item.description, releaseInfo = item.releaseInfo, imdbRating = item.imdbRating, genres = item.genres,
                     )
                 )
-            }
+            }.logged("ForkKiciaHome", "ForgeHeroMetaViewModel.kt:77")
         }
     }
 
@@ -92,7 +93,7 @@ class ForgeHeroMetaViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching {
                 metas.getMetaFromPrimaryAddon(type, id).first { it !is NetworkResult.Loading }
-            }.getOrNull()?.let { if (it is NetworkResult.Success) put(id, it.data) }
+            }.logged("ForkKiciaHome", "ForgeHeroMetaViewModel.kt:93").getOrNull()?.let { if (it is NetworkResult.Success) put(id, it.data) }
         }
     }
 

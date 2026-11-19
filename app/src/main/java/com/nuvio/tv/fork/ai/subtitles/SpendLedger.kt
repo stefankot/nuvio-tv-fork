@@ -6,6 +6,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.time.LocalDate
+import com.nuvio.tv.fork.logged
 
 /**
  * Prices in USD per 1M tokens (paid tier, standard), checked 18.11.2026 on aistudio.google.com/docs/pricing.
@@ -88,7 +89,7 @@ class SpendLedger(private val file: File, private val perTitleUsd: () -> Double,
         if (!file.exists()) return mutableListOf()
         // Fail closed: an unreadable ledger blocks paid work instead of resetting the spent money.
         val text = try { file.readText() } catch (e: IOException) { throw SpendLimitException("Rejestr kosztów nieczytelny") }
-        return runCatching { json.decodeFromString(SpendFile.serializer(), text).entries.toMutableList() }
+        return runCatching { json.decodeFromString(SpendFile.serializer(), text).entries.toMutableList() }.logged("ForkAi", "SpendLedger.kt:91")
             .getOrElse { throw SpendLimitException("Rejestr kosztów uszkodzony") }
     }
 

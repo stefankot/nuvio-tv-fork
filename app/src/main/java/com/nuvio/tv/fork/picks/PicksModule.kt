@@ -39,6 +39,7 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.nuvio.tv.fork.logged
 
 /** Polecenia według nastroju (B10): „Na co masz ochotę?”. Kandydaci z TMDB (discover), punktacja regułowa B10-3, bez profilu gustu (pusty profil). */
 object PicksModule : ForkModule {
@@ -78,7 +79,7 @@ object PicksModule : ForkModule {
                     voteCountGte = if (mood.votesMin > 0) mood.votesMin else 200,
                     withGenres = ids.takeIf { it.isNotEmpty() }?.joinToString("|"),
                 ).body()?.results.orEmpty()
-            }.getOrDefault(emptyList())
+            }.logged("ForkPicks", "PicksModule.kt:75").getOrDefault(emptyList())
             r.forEach { t ->
                 out += PickTitle(
                     tmdbId = t.id, title = t.title ?: t.originalTitle ?: return@forEach, genres = mood.genres.keys.toList(),
@@ -94,7 +95,7 @@ object PicksModule : ForkModule {
     @Volatile var pendingMood: String? = null
 
     fun moods(c: android.content.Context): List<Mood> =
-        Moods.parse(runCatching { c.assets.open("fork/moods.json").bufferedReader().use { it.readText() } }.getOrDefault(""))
+        Moods.parse(runCatching { c.assets.open("fork/moods.json").bufferedReader().use { it.readText() } }.logged("ForkPicks", "PicksModule.kt:97").getOrDefault(""))
 
     /** Właściciel 19.11: nastroje jako kafle na ekranie głównym (skórka Kicia: hook w ForgeHomeContent). */
     @Composable
@@ -140,7 +141,7 @@ object PicksModule : ForkModule {
                     runCatching {
                         EntryPointAccessors.fromApplication(c.applicationContext, Deps::class.java).tmdb()
                             .getMovieExternalIds(t.tmdbId, BuildConfig.TMDB_API_KEY).body()?.imdbId
-                    }.getOrNull()
+                    }.logged("ForkPicks", "PicksModule.kt:140").getOrNull()
                 }
                 if (imdb != null) ForkFeatures.open?.invoke(Screen.Detail.createRoute(imdb, "movie"))
             }

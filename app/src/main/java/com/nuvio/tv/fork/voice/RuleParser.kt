@@ -1,4 +1,5 @@
 package com.nuvio.tv.fork.voice
+import com.nuvio.tv.fork.logged
 
 /** Polecenie głosowe: identyfikator wzorca + parametry. */
 data class VoiceCommandCall(val id: String, val params: Map<String, String> = emptyMap(), val confidence: Float = 1f, val needsConfirm: Boolean = false)
@@ -30,7 +31,7 @@ class RuleParser(private val patterns: List<CommandPattern> = Patterns.all) : Co
         for (p in ordered) {
             for (rx in p.regexes) {
                 val m = rx.find(n) ?: rx.find(d) ?: continue
-                val params = paramNames(rx).mapNotNull { name -> runCatching { m.groups[name]?.value }.getOrNull()?.let { name to it } }.toMap()
+                val params = paramNames(rx).mapNotNull { name -> runCatching { m.groups[name]?.value }.logged("ForkVoice", "RuleParser.kt:33").getOrNull()?.let { name to it } }.toMap()
                 val call = VoiceCommandCall(p.id, params, 1f, p.needsConfirm)
                 when (p.id) {
                     "channel.play" -> channelHit = channelHit ?: call

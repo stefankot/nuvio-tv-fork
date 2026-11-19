@@ -1,4 +1,5 @@
 package com.nuvio.tv.fork.lektor
+import com.nuvio.tv.fork.logged
 
 /** Napis: start, koniec (ms), tekst. */
 data class SubtitleCue(val startMs: Long, val endMs: Long, val text: String)
@@ -53,7 +54,7 @@ object CuePlanner {
         fun t(s: String): Long { val p = s.trim().split(':', '.'); return p[0].toLong() * 3_600_000 + p[1].toLong() * 60_000 + p[2].toLong() * 1000 + p[3].padEnd(2, '0').take(2).toLong() * 10 }
         return text.lineSequence().filter { it.startsWith("Dialogue:") }.mapNotNull { l ->
             val f = l.removePrefix("Dialogue:").split(',', limit = 10)
-            if (f.size < 10) null else runCatching { SubtitleCue(t(f[1]), t(f[2]), f[9]) }.getOrNull()
+            if (f.size < 10) null else runCatching { SubtitleCue(t(f[1]), t(f[2]), f[9]) }.logged("ForkLektor", "Cues.kt:56").getOrNull()
         }.toList()
     }
 }

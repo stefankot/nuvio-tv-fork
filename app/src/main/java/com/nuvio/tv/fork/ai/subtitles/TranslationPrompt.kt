@@ -11,6 +11,7 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
+import com.nuvio.tv.fork.logged
 
 /** Splits dialogue into blocks at natural pauses: at most [maxCues] cues or [maxSpanMs] of dialogue each. */
 object BlockPlanner {
@@ -174,7 +175,7 @@ object ReplyParser {
     private fun root(text: String): JsonObject? {
         if (text.length > MAX_CHARS) return null
         val trimmed = text.trim().removePrefix("```json").removePrefix("```").removeSuffix("```").trim()
-        return runCatching { json.parseToJsonElement(trimmed) as? JsonObject }.getOrNull()
+        return runCatching { json.parseToJsonElement(trimmed) as? JsonObject }.logged("ForkAi", "TranslationPrompt.kt:177").getOrNull()
     }
 
     fun translation(text: String): ParsedTranslation? {

@@ -19,6 +19,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import com.nuvio.tv.fork.logged
 
 /** What a provider can do. Audio is false until an audio adapter exists (no pretend support). */
 data class ProviderCapabilities(
@@ -144,11 +145,11 @@ class GeminiProvider(
 
         fun errorMessage(body: String): String = runCatching {
             json.parseToJsonElement(body).jsonObject["error"]?.jsonObject?.get("message")?.jsonPrimitive?.contentOrNull
-        }.getOrNull()?.take(200) ?: "no details"
+        }.logged("ForkAi", "ModelProvider.kt:145").getOrNull()?.take(200) ?: "no details"
 
         /** Text of all `model_output` steps; `incomplete` (e.g. max tokens) is reported, never silently accepted. */
         fun parseResponse(body: String): ModelResult {
-            val root = runCatching { json.parseToJsonElement(body).jsonObject }.getOrElse { throw ProviderException("Malformed provider response", transient = true) }
+            val root = runCatching { json.parseToJsonElement(body).jsonObject }.logged("ForkAi", "ModelProvider.kt:151").getOrElse { throw ProviderException("Malformed provider response", transient = true) }
             val status = root["status"]?.jsonPrimitive?.contentOrNull
             if (status == "failed" || status == "cancelled") throw ProviderException("Provider status $status", transient = status == "failed")
             val text = StringBuilder()

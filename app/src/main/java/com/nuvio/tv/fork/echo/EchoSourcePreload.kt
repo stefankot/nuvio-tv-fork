@@ -17,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import com.nuvio.tv.fork.logged
 
 @EntryPoint
 @InstallIn(SingletonComponent::class)
@@ -60,7 +61,7 @@ object EchoSourcePreload {
             val t0 = System.currentTimeMillis()
             runCatching {
                 repo.getStreamsFromAllAddons(type = type, videoId = videoId, season = if (isSeries) season else null, episode = if (isSeries) episode else null).collect { r -> if (r is com.nuvio.tv.core.network.NetworkResult.Success) com.nuvio.tv.fork.sources.ReadyState.update(r.data) }
-            }
+            }.logged("ForkEcho", "EchoSourcePreload.kt:61")
             android.util.Log.i("EchoPreload", "done $key in ${System.currentTimeMillis() - t0}ms")
         }
     }

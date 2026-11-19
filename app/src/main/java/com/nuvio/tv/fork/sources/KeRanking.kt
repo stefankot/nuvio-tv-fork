@@ -18,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import com.nuvio.tv.fork.logged
 
 /**
  * Hybryda wyboru źródła (18.11.2026): jedyne miejsce, które składa kod KE (kopie 1:1 w `core/stream`, `core/player`)
@@ -64,7 +65,7 @@ object KeRanking {
         scope.launch {
             preferredRaw = runCatching {
                 dagger.hilt.android.EntryPointAccessors.fromApplication(app, Deps::class.java).preferredSources().observe(showId).first()
-            }.getOrNull()
+            }.logged("ForkSources", "KeRanking.kt:65").getOrNull()
         }
     }
 
@@ -81,7 +82,7 @@ object KeRanking {
         scope.launch {
             runCatching {
                 dagger.hilt.android.EntryPointAccessors.fromApplication(app, Deps::class.java).preferredSources().set(showId, PreferredSource.of(stream))
-            }
+            }.logged("ForkSources", "KeRanking.kt:82")
         }
     }
 
@@ -137,26 +138,26 @@ object KeRanking {
         scope.launch {
             polishSubs = runCatching {
                 dagger.hilt.android.EntryPointAccessors.fromApplication(app, SourceChoice.Deps::class.java).player().playerSettings.first().subtitleStyle.preferredLanguage == "pl"
-            }.getOrDefault(false)
+            }.logged("ForkSources", "KeRanking.kt:138").getOrDefault(false)
         }
         // Dawniej odpowiedź włączała tryb Regex, który omija ranking KE: jednorazowo przestaw na „pierwsze źródło”.
-        if (answer.isNotEmpty() && answer != SourcePresets.CUSTOM) scope.launch { runCatching { SourceChoice.useRanking(app) } }
+        if (answer.isNotEmpty() && answer != SourcePresets.CUSTOM) scope.launch { runCatching { SourceChoice.useRanking(app) }.logged("ForkSources", "KeRanking.kt:143") }
         // Właściciel 19.11: „JMGO jest 4K!” — projektor zgłasza tylko tryby 1920×1080 (interfejs), a wideo wyświetla w 4K.
         // Limit rozdzielczości ekranu tylko, gdy urządzenie NIE ma sprzętowego dekodera 3840×2160.
         tvCap = tvMaxResolution(app)?.takeUnless { hardware4kDecoder() }
         com.nuvio.tv.fork.lektor.LektorVoice.probe(app)
         StartupChecks.warm(app)
         MpvContainers.warm(app)
-        scope.launch { decode = runCatching { DecodeCapability.current(app) }.getOrDefault(DecodeCapability.UNKNOWN) }
+        scope.launch { decode = runCatching { DecodeCapability.current(app) }.logged("ForkSources", "KeRanking.kt:150").getOrDefault(DecodeCapability.UNKNOWN) }
     }
 
     private fun hardware4kDecoder(): Boolean = runCatching {
         android.media.MediaCodecList(android.media.MediaCodecList.REGULAR_CODECS).codecInfos.any { info ->
             !info.isEncoder && (android.os.Build.VERSION.SDK_INT < 29 || info.isHardwareAccelerated) &&
                 info.supportedTypes.any { t -> (t == "video/hevc" || t == "video/avc" || t == "video/x-vnd.on2.vp9" || t == "video/av01") &&
-                    runCatching { info.getCapabilitiesForType(t).videoCapabilities.isSizeSupported(3840, 2160) }.getOrDefault(false) }
+                    runCatching { info.getCapabilitiesForType(t).videoCapabilities.isSizeSupported(3840, 2160) }.logged("ForkSources", "KeRanking.kt:157").getOrDefault(false) }
         }
-    }.getOrDefault(false)
+    }.logged("ForkSources", "KeRanking.kt:153").getOrDefault(false)
 
     /** Fork 19.11: dlaczego wygrało dane źródło (logcat `ForkRanking`), pierwsze 6 pozycji z powodami. */
     private fun logTop(list: List<Stream>) = runCatching {
@@ -195,6 +196,6 @@ object KeRanking {
             // niegotowe (SourceReady) i obcy dubbing (ForeignDub) zawsze na koniec, kolejność w środku zostaje.
             val picked = preferred?.preferredFirst(withBad)?.first ?: withBad
             picked.map { Triple(it, SourceReady.tier(it), ForeignDub.tier(it)) }.sortedWith(compareBy({ it.second }, { it.third })).map { it.first }.also { logTop(it) } // klucze raz na źródło
-        }.getOrDefault(streams)
+        }.logged("ForkSources", "KeRanking.kt:173").getOrDefault(streams)
     }
 }

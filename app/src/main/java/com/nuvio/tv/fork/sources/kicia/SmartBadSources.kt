@@ -22,6 +22,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
 import kotlinx.serialization.json.put
+import com.nuvio.tv.fork.logged
 
 /** forge: why a source was put aside. [fileInherent] = the file itself is bad, so every host of it is. */
 enum class BadReason(val fileInherent: Boolean) {
@@ -109,9 +110,9 @@ class BadSourceBook(entries: List<BadEntry> = emptyList()) {
                     val key = o["k"]!!.jsonPrimitive.content
                     if (key.startsWith("url:") || key.contains("://")) null // never trust a raw address from disk
                     else BadEntry(key, BadReason.valueOf(o["r"]!!.jsonPrimitive.content), o["u"]!!.jsonPrimitive.long, o["c"]!!.jsonPrimitive.int)
-                }.getOrNull()
+                }.logged("ForkSources", "SmartBadSources.kt:107").getOrNull()
             })
-        }.getOrElse { BadSourceBook() }
+        }.logged("ForkSources", "SmartBadSources.kt:103").getOrElse { BadSourceBook() }
 
         /** Book → file text, at most [MAX_FILE_BYTES]: the entries closest to expiry are left out first. */
         fun encode(entries: List<BadEntry>): String {
@@ -144,7 +145,7 @@ object SmartBadSources {
         val target = File(context.applicationContext.filesDir, FILE)
         file = target
         scope.launch {
-            val text = runCatching { if (target.exists() && target.length() <= BadSourceBook.MAX_FILE_BYTES) target.readText() else null }
+            val text = runCatching { if (target.exists() && target.length() <= BadSourceBook.MAX_FILE_BYTES) target.readText() else null }.logged("ForkSources", "SmartBadSources.kt:147")
                 .getOrNull()
             val disk = BadSourceBook.decode(text).persistable(now())
             // M3b: merged into the live book, never swapped for a new one, so a mark made while the file

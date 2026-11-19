@@ -3,6 +3,7 @@ package com.nuvio.tv.fork.tv
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
+import com.nuvio.tv.fork.logged
 
 /** A channel the viewer tuned to, as the TV tab's "recent channels" row keeps them. */
 @Serializable
@@ -31,7 +32,7 @@ object RecentChannels {
     /** The saved list, or empty when the text is missing or damaged. */
     fun decode(text: String?): List<RecentChannel> {
         if (text.isNullOrBlank()) return emptyList()
-        return runCatching { json.decodeFromString(ListSerializer(RecentChannel.serializer()), text) }
+        return runCatching { json.decodeFromString(ListSerializer(RecentChannel.serializer()), text) }.logged("ForkTv", "RecentChannels.kt:34")
             .getOrDefault(emptyList()).take(MAX)
     }
 }

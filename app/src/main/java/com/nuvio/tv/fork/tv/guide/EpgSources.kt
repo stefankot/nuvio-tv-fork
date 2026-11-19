@@ -2,6 +2,7 @@ package com.nuvio.tv.fork.tv.guide
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import com.nuvio.tv.fork.logged
 
 @Serializable
 data class EpgSource(
@@ -19,7 +20,7 @@ data class EpgSourceList(val sources: List<EpgSource> = emptyList())
 object EpgSources {
     private val json = Json { ignoreUnknownKeys = true }
 
-    fun parse(text: String): List<EpgSource> = runCatching { json.decodeFromString<EpgSourceList>(text).sources }.getOrDefault(emptyList())
+    fun parse(text: String): List<EpgSource> = runCatching { json.decodeFromString<EpgSourceList>(text).sources }.logged("ForkTv", "EpgSources.kt:22").getOrDefault(emptyList())
 
     /** Najlepsze źródło dla kanałów (tvg-id, grupa), gdy dopasowuje się co najmniej [minShare] z nich. */
     fun detect(channels: List<Pair<String?, String>>, sources: List<EpgSource>, minShare: Double = 0.3): EpgSource? {

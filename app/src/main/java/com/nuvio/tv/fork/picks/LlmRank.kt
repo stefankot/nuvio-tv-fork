@@ -24,7 +24,7 @@ class LlmRanker(private val llm: RankLlm?, private val clock: () -> Long = Syste
         val key = "$profileKey|${mood.id}"
         cache[key]?.takeIf { clock() - it.first < 24 * 3_600_000L }?.let { return it.second }
         val pool = ruleRanked.take(60)
-        val reply = try { withTimeoutOrNull(8_000L) { client.rank(mood.title, taste, pool.map { it.tmdbId to it.title }) } } catch (_: Exception) { null } ?: return fallback
+        val reply = try { withTimeoutOrNull(8_000L) { client.rank(mood.title, taste, pool.map { it.tmdbId to it.title }) } } catch (e: Exception) { android.util.Log.w("ForkPicks", "LlmRank: ${e.javaClass.simpleName}: ${e.message?.take(200)}"); null } ?: return fallback
         val byId = pool.associateBy { it.tmdbId }
         val picks = reply.mapNotNull { (id, why) -> byId[id]?.let { RankedPick(it, why.take(160)) } }.distinctBy { it.title.tmdbId }.take(size)
         if (picks.isEmpty()) return fallback

@@ -8,6 +8,7 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.TextView
 import com.nuvio.tv.BuildConfig
+import com.nuvio.tv.fork.logged
 
 /**
  * forge (owner 13.11.2026): a small, quiet build label floating in the bottom-right corner of every screen, so a
@@ -23,7 +24,7 @@ object ForgeBuildBadge {
         if (decor.findViewWithTag<View>(TAG) != null) return
         val build = runCatching {
             activity.assets.open("forge_build.txt").bufferedReader().use { it.readText().trim() }
-        }.getOrNull()?.takeIf { it.isNotEmpty() }
+        }.logged("ForkKiciaCore", "ForgeBuildBadge.kt:24").getOrNull()?.takeIf { it.isNotEmpty() }
         val label = TextView(activity).apply {
             tag = TAG
             text = listOfNotNull("v${BuildConfig.VERSION_NAME}", build).joinToString(" · ")

@@ -16,6 +16,7 @@ import java.text.Normalizer
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import com.nuvio.tv.reshaped.livetv.LiveTvCatchupLinks
+import com.nuvio.tv.fork.logged
 
 /**
  * Panel „Kategorie” of mockup v7.4 (06, W-68; owner 13.11: categories from the EPG, not the playlist groups), with the
@@ -139,7 +140,7 @@ object ForgeEpgCategories {
                     val a = line.split('\t')
                     if (a.size == 3) programmeCats.putIfAbsent(a[0] + "|" + a[1], a[2])
                 }
-            }
+            }.logged("ForkKiciaLivetv", "ForgeEpgCategories.kt:137")
             loaded = true
             version.incrementAndGet()
         }
@@ -156,7 +157,7 @@ object ForgeEpgCategories {
     /** After a full guide read: the file exists even when the guide has no categories, so it is not read again for them. */
     fun markRead() {
         val f = file ?: return
-        io.launch { runCatching { if (!f.exists()) f.createNewFile() } }
+        io.launch { runCatching { if (!f.exists()) f.createNewFile() }.logged("ForkKiciaLivetv", "ForgeEpgCategories.kt:159") }
     }
 
     /** Hook in LiveTvEpg: a kept programme of the guide (its channel's guide keys, start, first <category>). */
@@ -185,7 +186,7 @@ object ForgeEpgCategories {
                         }
                     }
                     tmp.renameTo(f)
-                }
+                }.logged("ForkKiciaLivetv", "ForgeEpgCategories.kt:178")
             }
         }
     }

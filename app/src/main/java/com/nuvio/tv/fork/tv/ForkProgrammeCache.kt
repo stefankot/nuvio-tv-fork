@@ -8,6 +8,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.nuvio.tv.fork.logged
 
 /**
  * Fork 19.11 (właściciel: „programy w kategoriach ładują się bardzo długo, jakby nie były cachowane”).
@@ -55,7 +56,7 @@ internal object ForkProgrammeCache {
         val k = entryKey(channels, guideVersion, key, sort, phrase)
         synchronized(entries) { entries[k] }?.let { return it }
         val e = withContext(Dispatchers.Default) {
-            runCatching { buildEntries(channels, key, LiveTvClock.nowEpochMs(), sort, phrase) }.getOrDefault(Entries(emptyList(), 0))
+            runCatching { buildEntries(channels, key, LiveTvClock.nowEpochMs(), sort, phrase) }.logged("ForkTv", "ForkProgrammeCache.kt:58").getOrDefault(Entries(emptyList(), 0))
         }
         synchronized(entries) { entries[k] = e }
         return e
@@ -73,7 +74,7 @@ internal object ForkProgrammeCache {
             (listOf(ForgeEpgCategories.PROG_ALL, com.nuvio.tv.skin.kicia.livetv.FORGE_PROG_FAVOURITES) + t.map { it.key }).forEach { key -> // 19.11: Ulubione też zawczasu
                 val k = entryKey(channels, guideVersion, key, sort, "")
                 if (synchronized(entries) { entries.containsKey(k) }) return@forEach
-                val e = runCatching { buildEntries(channels, key, LiveTvClock.nowEpochMs(), sort, "") }.getOrNull() ?: return@forEach
+                val e = runCatching { buildEntries(channels, key, LiveTvClock.nowEpochMs(), sort, "") }.logged("ForkTv", "ForkProgrammeCache.kt:76").getOrNull() ?: return@forEach
                 synchronized(entries) { entries[k] = e }
             }
         }

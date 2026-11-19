@@ -31,7 +31,7 @@ class LlmParser(
         val tools = patterns.map { LlmTool(it.id, it.examples.take(2)) }
         val choice = try {
             withTimeoutOrNull(timeoutMs) { c.choose(text, tools, listOf(context.screen).filter { it.isNotBlank() }.take(MAX_CONTEXT)) }
-        } catch (_: Exception) { null } ?: return null // limit czasu / błąd → wyszukiwanie
+        } catch (e: Exception) { android.util.Log.w("ForkVoice", "LlmParser: ${e.javaClass.simpleName}: ${e.message?.take(200)}"); null } ?: return null // limit czasu / błąd → wyszukiwanie
         return when (choice) {
             is LlmChoice.Ask -> { lastQuestion = choice.question; null }
             is LlmChoice.Tool -> patterns.firstOrNull { it.id == choice.id }?.let { VoiceCommandCall(it.id, choice.params, 0.8f, it.needsConfirm) }

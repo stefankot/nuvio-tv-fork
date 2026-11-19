@@ -1,4 +1,5 @@
 package com.nuvio.tv.fork.tv.guide
+import com.nuvio.tv.fork.logged
 
 /**
  * Właściciel 19.11: kolejność danych o programie: TVDB → TMDB → przewodnik epg.ovh → przewodnik tv.team.
@@ -14,7 +15,7 @@ object GuidePriority {
 
     /** Miejsce przewodnika na liście właściciela (0 = najwyżej) albo null, gdy go na niej nie ma. */
     fun rank(url: String): Int? {
-        val host = runCatching { java.net.URI(url.trim()).host }.getOrNull()?.lowercase() ?: return null
+        val host = runCatching { java.net.URI(url.trim()).host }.logged("ForkTv", "GuidePriority.kt:17").getOrNull()?.lowercase() ?: return null
         val i = ORDER.indexOfFirst { names -> names.any { host == it || host.endsWith(".$it") } }
         return i.takeIf { it >= 0 }
     }

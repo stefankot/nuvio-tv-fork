@@ -69,6 +69,7 @@ import com.nuvio.tv.skin.kicia.tokens.ForgeDims
 import com.nuvio.tv.skin.kicia.tokens.ForgeText
 import com.nuvio.tv.ui.screens.search.SearchEvent
 import com.nuvio.tv.ui.screens.search.SearchViewModel
+import com.nuvio.tv.fork.logged
 
 /**
  * S02 Szukaj (mockup): microphone + pill field at y 84, the 12-column Polish on-screen keyboard on OK,
@@ -105,7 +106,7 @@ fun ForgeSearchScreen(
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
             .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             .putExtra(RecognizerIntent.EXTRA_PROMPT, "Słucham…")
-        runCatching { voice.launch(intent) }
+        runCatching { voice.launch(intent) }.logged("ForkKiciaSearch", "ForgeSearchScreen.kt:108")
     }
     // The remote's voice / assistant button opens Search and starts listening.
     LaunchedEffect(Unit) {

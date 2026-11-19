@@ -3,6 +3,7 @@ package com.nuvio.tv.fork.ai.subtitles
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import java.util.concurrent.ConcurrentHashMap
+import com.nuvio.tv.fork.logged
 
 /**
  * Measured duration per (model, stage), persisted between runs. ETA comes only from these measurements,
@@ -97,7 +98,7 @@ class TranslationEngine(
                 val result = request("${doc.key}:${block.id}:r", doc.materialId, system, context,
                     TranslationPrompt.reviewTask(doc, block, translations), TranslationPrompt.reviewSchema, "review", source.size)
                 if (!result.complete) null else ReplyParser.review(result.text, block.id)
-            }.getOrElse { if (it is CancellationException || it is SpendLimitException) throw it; null }
+            }.logged("ForkAi", "TranslationEngine.kt:96").getOrElse { if (it is CancellationException || it is SpendLimitException) throw it; null }
             if (reviewed != null) {
                 val byId = source.withIndex().associate { (i, c) -> c.id to i }
                 val candidate = translations.toMutableList()
@@ -149,6 +150,7 @@ class TranslationEngine(
             } catch (e: CancellationException) {
                 throw e // reservation kept: the request may have been sent and billed
             } catch (e: ProviderException) {
+                android.util.Log.w("ForkAi", "TranslationEngine: dostawca http=${e.httpCode} transient=${e.transient} próba=$attempt: ${e.message?.take(200)}")
                 if (!e.maybeSent) ledger.release(spendId)
                 if (!e.transient || attempt >= settings.maxRetries) throw BlockFailedException(e.message ?: "Błąd dostawcy")
                 attempt++

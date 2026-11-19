@@ -20,6 +20,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import com.nuvio.tv.fork.logged
 
 /**
  * Owner 13.11:
@@ -81,7 +82,7 @@ internal object ForgeAiringRace {
      */
     suspend fun pick(channel: LiveTvChannel, programme: LiveTvProgramme): Triple<LiveTvChannel, LiveTvProgramme, LiveTvReplay?> {
         val now = LiveTvClock.nowEpochMs()
-        val others = withContext(Dispatchers.Default) { runCatching { otherAirings(programme, now) }.getOrDefault(emptyList()) }
+        val others = withContext(Dispatchers.Default) { runCatching { otherAirings(programme, now) }.logged("ForkKiciaLivetv", "ForgeAiringRace.kt:84").getOrDefault(emptyList()) }
         android.util.Log.i("ForgeAiringRace", "pick '" + programme.title + "' ep=" + programme.episode + " on " + channel.name + ": " + others.size + " other airings") // forge JMGO 6 diagnosis
         if (others.isEmpty()) return Triple(channel, programme, LiveTvRepository.catchupChannel(channel, programme))
         com.nuvio.tv.skin.kicia.components.ForgeToast.show("Szukam działającej emisji (" + (others.size.coerceAtMost(MAX_CANDIDATES - 1) + 1) + ")", top = true)
@@ -94,7 +95,7 @@ internal object ForgeAiringRace {
     suspend fun findEarlier(channel: LiveTvChannel, programme: LiveTvProgramme): Win? {
         val now = LiveTvClock.nowEpochMs()
         val earlier = withContext(Dispatchers.Default) {
-            runCatching { otherAirings(programme, now, before = programme.startEpochMs).filter { it.second.stopEpochMs <= now } }.getOrDefault(emptyList())
+            runCatching { otherAirings(programme, now, before = programme.startEpochMs).filter { it.second.stopEpochMs <= now } }.logged("ForkKiciaLivetv", "ForgeAiringRace.kt:97").getOrDefault(emptyList())
         }
         android.util.Log.i("ForgeAiringRace", "findEarlier '" + programme.title + "' ep=" + programme.episode + " on " + channel.name + ": " + earlier.size + " earlier airings") // forge JMGO 7 diagnosis
         if (earlier.isEmpty()) return null
@@ -114,7 +115,7 @@ internal object ForgeAiringRace {
                         replay.fallback != null && answers(replay.fallback.playback) -> Win(ch, p, replay.fallback)
                         else -> null
                     }
-                }.getOrNull()
+                }.logged("ForkKiciaLivetv", "ForgeAiringRace.kt:110").getOrNull()
                 if (win != null) result.complete(win) else if (left.decrementAndGet() == 0) result.complete(null)
             }
         }
@@ -127,7 +128,7 @@ internal object ForgeAiringRace {
     private suspend fun answers(playback: LiveTvChannel): Boolean {
         if (playback.stalkerCommand != null) return true // resolved by the player itself; cannot be checked here
         val req = PlayerMediaSourceFactory.normalizePlaybackRequest(playback.streamUrl, playback.headers)
-        return withContext(Dispatchers.IO) { runCatching { probe(req.url, req.headers, 0) }.getOrDefault(false) }
+        return withContext(Dispatchers.IO) { runCatching { probe(req.url, req.headers, 0) }.logged("ForkKiciaLivetv", "ForgeAiringRace.kt:130").getOrDefault(false) }
     }
 
     private fun probe(url: String, headers: Map<String, String>, depth: Int): Boolean {

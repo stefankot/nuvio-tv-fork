@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.math.abs
 import kotlin.math.ln
+import com.nuvio.tv.fork.logged
 
 @Serializable
 data class Mood(
@@ -27,7 +28,7 @@ data class Mood(
 @Serializable private data class MoodFile(val moods: List<Mood> = emptyList())
 
 object Moods {
-    fun parse(text: String): List<Mood> = runCatching { Json { ignoreUnknownKeys = true }.decodeFromString<MoodFile>(text).moods }.getOrDefault(emptyList())
+    fun parse(text: String): List<Mood> = runCatching { Json { ignoreUnknownKeys = true }.decodeFromString<MoodFile>(text).moods }.logged("ForkPicks", "Scoring.kt:30").getOrDefault(emptyList())
 }
 
 /** Punktacja regułowa (B10-3): podobieństwo do profilu × waga nastroju. Zwraca null, gdy tytuł odpada twardo. */

@@ -10,6 +10,7 @@ import java.text.Normalizer
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.nuvio.tv.fork.logged
 
 /** A person from TMDB: photo only when TMDB has one (no photo = initials in the UI). */
 data class TvPerson(val id: Int?, val name: String, val role: String?, val photoUrl: String?)
@@ -54,7 +55,7 @@ class TvTmdb @Inject constructor(
         if (wanted.length < 3) return null
         val key = wanted + "|" + (year ?: 0)
         cache[key]?.let { return it.value }
-        val found = runCatching { fetch(title, wanted, year) }.getOrNull()
+        val found = runCatching { fetch(title, wanted, year) }.logged("ForkTv", "TvTmdb.kt:57").getOrNull()
         cache[key] = Optional(found)
         return found
     }
