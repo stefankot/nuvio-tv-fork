@@ -51,3 +51,10 @@
 - Na JMGO zainstalowany build „chirp” (md5 727b10b64d9ef3489bb19dccb2f66ea2). **Niesłyszany jeszcze przez właściciela na TV.**
 - Do testu: lektor na filmie z PL napisami (logi `scena OK`, cięcie, `HTTP`), okno wyboru głosu pilotem (czy odtwarza próbki).
 - Wniosek o Tier 2 Gemini: formularz wypełniony, niewysłany.
+
+## Inne głosy — klucze (19.11, polecenie właściciela „uzyskaj klucze do pozostałych dwóch modeli TTS”)
+- **WaveNet / Standard (Google Cloud TTS):** działa z tym samym kluczem `GOOGLE_TTS_API_KEY` (test 19.11: HTTP 200, `pl-PL-Wavenet-B`). Neural2 nie ma polskich głosów (w pl-PL są tylko Chirp3 ×30, Wavenet ×2, Standard ×2).
+- **Gemini TTS przez Google Cloud (Vertex AI), bez limitu 100/dzień z AI Studio:** włączone „Agent Platform API” w projekcie gen-lang-client-0857437598; konto usługi `nuvio-lektor-gemini` z rolą „Agent Platform user”; klucz „Nuvio lektor Gemini Cloud” związany z tym kontem, ograniczony do Agent Platform API → `local.properties` `GOOGLE_VERTEX_API_KEY` (poza gitem).
+  - Działa (test 19.11, HTTP 200, PCM 24 kHz jak w AI Studio): `POST https://aiplatform.googleapis.com/v1/projects/gen-lang-client-0857437598/locations/global/publishers/google/models/gemini-2.5-flash-tts:generateContent`, nagłówek `x-goog-api-key`, ciało jak w AI Studio (`responseModalities:["AUDIO"]`, `speechConfig…voiceName`). Też `us-central1`. Bez `projects/…` w ścieżce → 404; `gemini-2.5-flash-preview-tts` w global → 500.
+  - Płatne od pierwszego znaku (kredyt GCP), w aplikacji jeszcze nie podpięte.
+- **Microsoft Azure Neural:** brak konta Azure w przeglądarce; założenie konta wymaga karty i weryfikacji — robi właściciel.
