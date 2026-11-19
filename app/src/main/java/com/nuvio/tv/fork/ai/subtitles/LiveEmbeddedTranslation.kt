@@ -70,15 +70,18 @@ object LiveEmbeddedTranslation {
         var published = 0
         var lastBlockMs = 20_000L // szacowany czas tłumaczenia bloku (pierwszy: ~20 s), potem mierzony
         val startedAt = System.currentTimeMillis()
+        // Fork 19.11 („Tak, pobieraj”): tekst kwestii z pliku MKV z wyprzedzeniem ~10 min (MkvAhead); bez tego bufor odtwarzacza.
+        val ahead = MkvAhead(controller.currentStreamUrl, controller.currentHeaders, language)
+        ahead.start({ port.positionMs() }, { cuesOf(controller, trackKey) })
         try {
             onState("AI: tłumaczę napisy wbudowane (${language}) na bieżąco")
             while (true) {
-                val all = withContext(Dispatchers.Default) { cuesOf(controller, trackKey) }
+                val all = withContext(Dispatchers.Default) { MkvAhead.merge(ahead.cues(), cuesOf(controller, trackKey)) }
                 val pos = port.positionMs()
                 // Fork 19.11: kwestie, które miną, zanim tłumaczenie wróci, zostają po angielsku (do pierwszej publikacji
                 // EN są widoczne) — tłumaczymy od miejsca, w którym film będzie po czasie tłumaczenia (+5 s zapasu).
                 val lead = if (published == 0) minOf(lastBlockMs + 5_000, 30_000L) else 0L
-                val todo = all.filter { it.id !in done && it.endMs >= pos - 2_000 + lead && it.startMs <= pos + AHEAD_MS }
+                val todo = all.filter { it.id !in done && it.endMs >= pos - 2_000 + lead && it.startMs <= pos + (if (ahead.active) MkvAhead.WINDOW_MS else AHEAD_MS) }
                 val urgent = todo.firstOrNull()?.let { it.startMs - pos < 30_000 } == true
                 if (todo.isEmpty() || (todo.size < 8 && !urgent)) {
                     if (published == 0) onState("AI: czekam na napisy do tłumaczenia… ${(System.currentTimeMillis() - startedAt) / 1000} s")
@@ -135,6 +138,7 @@ object LiveEmbeddedTranslation {
                 onState("AI: przetłumaczono ${out.size} kwestii (na bieżąco)")
             }
         } finally {
+            ahead.stop()
             active = false
         }
     }
