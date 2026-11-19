@@ -42,7 +42,12 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
+import coil3.compose.rememberAsyncImagePainter
+import coil3.request.ImageRequest
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -220,8 +225,17 @@ private fun EntryIcon(entry: PillNavEntry, size: Int, bg: Color, tint: Color, pr
         val icon = (size * 0.55f).dp
         when {
             entry.icon != null -> Icon(entry.icon, contentDescription = null, tint = tint, modifier = Modifier.size(icon))
-            entry.iconRes != null -> Icon(painterResource(entry.iconRes), contentDescription = null, tint = tint, modifier = Modifier.size(icon))
+            entry.iconRes != null -> Icon(rememberRawSvgPainter(entry.iconRes, icon), contentDescription = null, tint = tint, modifier = Modifier.size(icon))
             else -> Text(entry.label.take(1), style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold, color = tint))
         }
     }
+}
+
+/** Ikony zakładek to pliki SVG z res/raw (jak w PillNavigationBar) — painterResource ich nie czyta (crash na starcie). */
+@Composable
+private fun rememberRawSvgPainter(rawIconRes: Int, size: Dp): Painter {
+    val px = with(LocalDensity.current) { size.roundToPx() }
+    return rememberAsyncImagePainter(
+        model = ImageRequest.Builder(LocalContext.current).data(rawIconRes).size(px).build()
+    )
 }
