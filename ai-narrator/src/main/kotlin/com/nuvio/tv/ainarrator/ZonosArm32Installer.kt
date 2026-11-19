@@ -3,6 +3,8 @@ package com.nuvio.tv.ainarrator
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
 import android.os.Build
 import androidx.core.content.FileProvider
 import com.nuvio.tv.BuildConfig
@@ -121,6 +123,21 @@ internal class ZonosArm32Installer(context: Context) {
     fun openInstaller(): Boolean {
         if (_status.value.phase != Arm32InstallPhase.AWAITING_INSTALL) return false
         verifyApkSigner(apk)
+        // On Android 8+, users must explicitly authorize this app to request APK installs.
+        if (Build.VERSION.SDK_INT >= 26 && !app.packageManager.canRequestPackageInstalls()) {
+            return try {
+                app.startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES)
+                    .setData(Uri.parse("package:" + app.packageName))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                _status.value = Arm32InstallStatus(Arm32InstallPhase.AWAITING_INSTALL,
+                    message = "Zezwól na instalację dla NuvioTV i wróć do przycisku instalacji")
+                false
+            } catch (_: Exception) {
+                _status.value = Arm32InstallStatus(Arm32InstallPhase.ERROR,
+                    message = "System nie udostępnia ustawień instalacji z innych źródeł")
+                false
+            }
+        }
         val uri = FileProvider.getUriForFile(app, app.packageName + ".fileprovider", apk)
         val intent = Intent(Intent.ACTION_VIEW)
             .setDataAndType(uri, "application/vnd.android.package-archive")
