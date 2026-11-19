@@ -39,6 +39,17 @@ object LektorModule : ForkModule {
         val duck = com.nuvio.tv.ui.screens.settings.ForkFeatures.str(c, K_DUCK, ducks[0]).toFloatOrNull() ?: -6f
         LektorEngine.setDuckDepth(duck)
         android.util.Log.i("ForkLektor", "ustawienia: głos=${(LektorEngine.voiceGain * 100).toInt()}%, ściszanie filmu=$duck dB (lektor ${if (LektorEngine.enabled) "gra" else "wyłączony"})")
+        watch(c)
+    }
+
+    // Fork 20.11: zmiana zapisana inną drogą (serwer ustawień, inny ekran) też trafia do grającego miksera, nie dopiero po ponownym włączeniu.
+    private var listener: android.content.SharedPreferences.OnSharedPreferenceChangeListener? = null
+    @Synchronized private fun watch(c: android.content.Context) {
+        if (listener != null) return
+        val app = c.applicationContext
+        val l = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key -> if (key == K_VOL || key == K_DUCK) applySettings(app) }
+        listener = l // silna referencja: SharedPreferences trzyma słuchaczy słabo
+        app.getSharedPreferences("fork_features", android.content.Context.MODE_PRIVATE).registerOnSharedPreferenceChangeListener(l)
     }
 
     private fun cycle(c: android.content.Context, key: String, values: List<String>) {
