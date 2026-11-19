@@ -1,5 +1,11 @@
 name: ZONOS3 ARM32 companion (manual only)
 on:
+  push:
+    branches: [feature/ai-narrator]
+    paths:
+      - "ai-narrator/worker-arm32/**"
+      - "ai-narrator/tools/build_android_zonos3.sh"
+      - ".github/workflows/zonos32-companion-release.yml"
   workflow_dispatch:
     inputs:
       publish_public_release:
