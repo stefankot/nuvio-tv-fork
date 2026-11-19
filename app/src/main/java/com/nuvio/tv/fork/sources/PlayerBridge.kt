@@ -80,6 +80,8 @@ object PlayerBridge {
         }
     }
     fun streamUrl(): String? = state?.currentStreamUrl
+    /** Fork 19.11 (lektor): czy dodatki dały polskie napisy. */
+    fun hasPolishAddonSubtitle(): Boolean = state?.addonSubtitles.orEmpty().any { it.lang.startsWith("pl", true) || it.lang.startsWith("pol", true) }
     fun positionMs(): Long = com.nuvio.tv.fork.lektor.LektorEngine.positionMs()
     fun cues() = state?.subtitleAutoSyncCues.orEmpty()
 

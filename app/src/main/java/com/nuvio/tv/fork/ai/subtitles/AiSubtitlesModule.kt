@@ -63,7 +63,7 @@ object AiSubtitlesModule : ForkModule {
         ModuleAction("AI napisy: klucz, model, limity, zapisane", SettingsLevel.SIMPLE, "Gemini: klucz API, zgoda, limit wydatków, eksport SRT/VTT") { ForkFeatures.open?.invoke(ROUTE) },
     )
     override fun routes() = listOf(ModuleRoute(ROUTE) { composable(ROUTE) { AiSubtitlesScreen() } })
-    override fun rootOverlays(): List<@Composable () -> Unit> = listOf({ AiSubtitlesNotice() })
+    override fun rootOverlays(): List<@Composable () -> Unit> = listOf({ AiSubtitlesNotice() }, { AiOfferDialog() }) // fork 19.11: okno „napisy AI? innych brak”
 }
 
 private fun cycle(c: Context, key: String, values: List<String>, default: String) {

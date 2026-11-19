@@ -26,20 +26,19 @@ object LektorController {
         if (!LektorVoice.usable(context)) return LektorVoice.MISSING_MSG
         val app = context.applicationContext
         job?.cancel()
-        if (com.nuvio.tv.fork.yt.YouTubeTextSource.videoId(PlayerBridge.streamUrl()) == null) { // YouTube: napisy z manifestu, nie z dodatków
+        if (com.nuvio.tv.fork.yt.YouTubeTextSource.videoId(PlayerBridge.streamUrl()) == null && PlayerBridge.hasPolishAddonSubtitle()) { // YouTube: napisy z manifestu, nie z dodatków
             PlayerBridge.ensurePolishSubtitle()
             PlayerBridge.send(PlayerEvent.OnReloadSubtitleAutoSyncCues)
         }
         job = scope.launch {
             status = "Przygotowuję lektora…"
-            // Fork 19.11: YouTube nie ma napisów z dodatków — polskie napisy z manifestu YouTube (tłumaczenie YouTube).
-            val yt = com.nuvio.tv.fork.yt.YouTubeTextSource.videoId(PlayerBridge.streamUrl()) != null
-            var tries = 0
-            if (!yt) while (PlayerBridge.cues().isEmpty() && tries++ < 20) delay(500)
-            val source = if (yt) com.nuvio.tv.fork.yt.YouTubeTextSource.polishCues(PlayerBridge.streamUrl()) else PlayerBridge.cues()
-            val cues = source.map { SubtitleCue(it.startTimeMs, it.endTimeMs, it.text) }
-            android.util.Log.i("ForkLektor", "start: youtube=$yt kwestii=${cues.size}")
-            if (cues.isEmpty()) { status = "Brak napisów do przeczytania"; return@launch }
+            // Fork 19.11 (właściciel: „lektor nie działa nigdzie”): polski tekst z pierwszego źródła, które go ma —
+            // YouTube (tłumaczenie YouTube), napisy PL z dodatku, polska ścieżka wbudowana, AI napisy (też na bieżąco z wbudowanych).
+            val src = LektorSources.pick(app) { status = it; say(app, it) }
+            val cues = src.cues()
+            android.util.Log.i("ForkLektor", "start: źródło=${src.name} kwestii=${cues.size}")
+            if (cues.isEmpty()) { status = "Brak polskich napisów do przeczytania"; if (src.name != "brak") say(app, "Lektor: brak polskich napisów do przeczytania (dodatki, wbudowane i AI)"); return@launch }
+            say(app, "Lektor czyta: ${src.name}")
             LektorModule.applySettings(app)
             LektorEngine.load(cues); LektorEngine.enabled = true
             // Procesor dźwięku włącza się dopiero po flush rurociągu: seek do bieżącej pozycji go wymusza.
@@ -47,7 +46,10 @@ object LektorController {
             val tts = com.nuvio.tv.ainarrator.LektorVoiceChoice.create(app, LektorVoice.ready) // scalenie 19.11: głos Gemini albo systemowy
             val done = HashSet<Long>()
             try {
+                var known = cues.size
                 while (true) {
+                    // Źródło rosnące (AI na bieżąco): nowe kwestie dochodzą do planu bez kasowania gotowych głosów.
+                    if (src.growing) src.cues().let { now -> if (now.size != known) { known = now.size; LektorEngine.lines = CuePlanner.plan(now) } }
                     val pos = LektorEngine.positionMs()
                     val pending = SynthWindow.pending(LektorEngine.lines, pos, done)
                     for (l in pending.take(5)) {
@@ -66,4 +68,8 @@ object LektorController {
         if (first) com.nuvio.tv.ui.screens.settings.ForkFeatures.set(app, "lektor_dolby_note", true)
         return "Włączam lektora (" + com.nuvio.tv.ainarrator.LektorVoiceChoice.label(app, LektorVoice.ready) + ")…" + if (first) " " + LektorRules.DOLBY_NOTE else ""
     }
+
+    private val main = android.os.Handler(android.os.Looper.getMainLooper())
+    /** Komunikat na ekranie (właściciel: „nic się nie dzieje” — wynik był tylko w logu). */
+    fun say(c: Context, msg: String) = main.post { android.widget.Toast.makeText(c.applicationContext, msg, android.widget.Toast.LENGTH_LONG).show() }
 }

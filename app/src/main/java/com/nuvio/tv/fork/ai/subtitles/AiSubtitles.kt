@@ -88,6 +88,16 @@ object AiSubtitles {
 
     val running: Boolean get() = job?.isActive == true
 
+    /** Fork 19.11 (lektor): bieżący odtwarzacz ExoPlayer (null poza odtwarzaniem). */
+    fun controller(): PlayerRuntimeController? = controllerRef?.get()
+
+    /** Fork 19.11 (lektor): polskie kwestie AI gotowe do tej pory — tryb na bieżąco albo zwykła sesja. */
+    fun polishCues(): List<DocCue> {
+        if (LiveEmbeddedTranslation.active || LiveEmbeddedTranslation.translated.value.isNotEmpty()) return LiveEmbeddedTranslation.translated.value
+        val d = session?.doc ?: return emptyList()
+        return d.translatedCues().map { DocCue(it.source.id, it.source.startMs, it.source.endMs, it.translation) }
+    }
+
     fun savedForCurrent(c: Context): List<AiSubtitleDoc> {
         val controller = controllerRef?.get() ?: return emptyList()
         val material = listOf(controller.contentId ?: controller.title, controller.currentVideoId ?: "").joinToString("|")
@@ -106,6 +116,25 @@ object AiSubtitles {
         _state.value = AiState(id, port.materialId, AiStage.SOURCES, notice = "AI: przygotowanie tekstu — wczytuję napisy")
         job = scope.launch {
             try {
+                // Fork 19.11 (9a): brak napisów z dodatków → napisy wbudowane, tłumaczone na bieżąco (LiveEmbeddedTranslation).
+                if (port.options().isEmpty()) {
+                    val original = port.audioLanguages().firstOrNull()?.let(AuxiliaryLanguagePolicy::primaryLanguage)
+                    var track = LiveEmbeddedTranslation.sourceTrack(controller, original)
+                    var waited = 0
+                    while (track == null && waited++ < 15) { _state.value = AiState(id, port.materialId, AiStage.SOURCES, notice = "AI: czekam na napisy wbudowane…"); kotlinx.coroutines.delay(1_000); track = LiveEmbeddedTranslation.sourceTrack(controller, original) }
+                    if (track == null) throw BlockFailedException("Brak napisów do tłumaczenia: ani z dodatków, ani wbudowanych w plik")
+                    val model = AiSettings.model(app)
+                    docKey = "live" + java.lang.Long.toHexString(System.currentTimeMillis())
+                    val provider = GeminiProvider(AiKeyStore.read(app) ?: error("no key"), model)
+                    val engine = TranslationEngine(provider, ledger(app), eta(app), EngineSettings(review = false)) { e ->
+                        if (e is EngineEvent.Waiting) _state.value = AiState(id, port.materialId, AiStage.WAITING, notice = "AI: oczekiwanie (${e.reason})")
+                    }
+                    Log.i(TAG, "start session=$id na bieżąco: wbudowane ${track.first} (${track.second})")
+                    LiveEmbeddedTranslation.run(controller, port, engine, model, track.first, track.second ?: "und") { msg ->
+                        _state.value = AiState(id, port.materialId, AiStage.TRANSLATING, notice = msg, message = msg, published = LiveEmbeddedTranslation.translated.value.isNotEmpty())
+                    }
+                    return@launch
+                }
                 val gathered = SourceGatherer.gather(port)
                 lastSource = gathered.source
                 val model = AiSettings.model(app)
@@ -167,6 +196,7 @@ object AiSubtitles {
 
     fun stop(reason: String?) {
         job?.cancel(); job = null; session = null
+        if (reason != null) LiveEmbeddedTranslation.reset() // fork 19.11: kwestie na bieżąco nie przechodzą na następny film
         if (reason != null) _state.value?.let { st -> if (st.stage != AiStage.DONE) _state.value = st.copy(stage = AiStage.STOPPED, message = reason, notice = "") }
     }
 
