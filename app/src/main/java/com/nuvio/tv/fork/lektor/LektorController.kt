@@ -49,6 +49,8 @@ object LektorController {
             val done = HashSet<Long>()
             var synthErrors = 0; var synthOk = 0
             var errStreak = 0 // fork 19.11: kolejne błędy z rzędu → coraz dłuższa przerwa (2, 4, 8 … 30 s)
+            val sceneFallback = HashSet<Long>() // sceny, których nagrania nie dało się pociąć: te kwestie pojedynczo
+            var scenesOk = 0
             try {
                 var known = cues.size // podpis listy kwestii (liczba + czasy)
                 var tick = 0
@@ -70,7 +72,25 @@ object LektorController {
                     }
                     // Fork 19.11 (build114: „nie słyszę lektora”, po starcie zero logów): stan pętli co ~10 s.
                     if (tick++ % 10 == 0) LektorEngine.lines.let { ls -> android.util.Log.i("ForkLektor", "pętla: pozycja=${pos} ms, kwestii=${ls.size} (${ls.firstOrNull()?.startMs}..${ls.lastOrNull()?.startMs}), do syntezy=${pending.size}, z głosem=${LektorEngine.voice.size}, ok=$synthOk, błędy=$synthErrors, silnik=${tts.javaClass.simpleName}") }
-                    for (l in pending.take(5)) {
+                    // Fork 19.11 (właściciel): sceny jednym zapytaniem, z wyprzedzeniem [SynthWindow.AHEAD_MS] (10 min).
+                    val sceneLines = HashSet<Long>()
+                    if (tts is SceneLektor && errStreak == 0) {
+                        val scenes = Scenes.group(pending).filter { sc -> sc.size >= 2 && sc.none { it.startMs in sceneFallback } }
+                        scenes.forEach { sc -> sc.forEach { sceneLines += it.startMs } }
+                        for (sc in scenes.take(2)) {
+                            val parts = try { tts.synthesizeScene(sc.map { it.text }) } catch (e: Exception) {
+                                if (e is kotlinx.coroutines.CancellationException) throw e
+                                android.util.Log.w("ForkLektor", "scena nieudana: ${e.javaClass.simpleName}: ${e.message?.take(160)}")
+                                if (synthErrors++ == 0) say(app, "Lektor: ${e.message ?: "błąd syntezy głosu"} — ponawiam")
+                                errStreak++; break
+                            }
+                            if (parts == null || parts.size != sc.size) { sc.forEach { sceneFallback += it.startMs; sceneLines -= it.startMs }; continue }
+                            sc.forEachIndexed { k, l -> LektorEngine.voice[l.startMs] = parts[k]; done += l.startMs }
+                            errStreak = 0; synthOk += sc.size
+                            if (scenesOk++ % 5 == 0) android.util.Log.i("ForkLektor", "scena OK: ${sc.size} kwestii jednym zapytaniem (scen: $scenesOk, kwestii z głosem: ${LektorEngine.voice.size}, wyprzedzenie ${(sc.first().startMs - pos) / 1000} s)")
+                        }
+                    }
+                    for (l in pending.filter { it.startMs !in sceneLines && it.startMs !in done }.take(if (errStreak > 0) 0 else 5)) {
                         val natural = runCatching { tts.synthesize(l.text, 1f) }.onFailure { if (it is kotlinx.coroutines.CancellationException) throw it }.logged("ForkLektor", "LektorController.kt:57").getOrElse { e ->
                             status = e.message ?: "Błąd syntezy"
                             // Fork 19.11: błąd syntezy był widoczny tylko w statusie — log i komunikat (pierwszy).

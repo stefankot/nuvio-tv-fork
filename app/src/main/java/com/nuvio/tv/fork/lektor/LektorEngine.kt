@@ -99,7 +99,7 @@ class LektorAudioProcessor : BaseAudioProcessor() {
             val tMs = tUs / 1000
             val g = if (n > 1) g0 + (g1 - g0) * i / (n - 1) else g0
             var v = 0f
-            for (k in near.indices) {
+            for (k in near.indices.reversed()) { // fork 19.11: przy nakładaniu wygrywa nowsza kwestia (nie ucina jej początku)
                 val l = near[k]
                 if (tMs >= l.startMs && tMs <= l.endMs + 4_000) {
                     val pcm = nearPcm[k]

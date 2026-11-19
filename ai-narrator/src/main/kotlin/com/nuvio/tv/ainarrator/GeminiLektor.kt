@@ -18,7 +18,7 @@ import kotlinx.coroutines.sync.withLock
  * Silnik lektora (ściszanie oryginału, tempo, tryb auto) zostaje stary; tu tylko synteza kwestii.
  * Kwestie w pamięci podręcznej (ta sama kwestia = bez ponownego kosztu), szacowany limit miesięczny.
  */
-class GeminiLektor(context: Context) : Lektor {
+class GeminiLektor(context: Context) : Lektor, com.nuvio.tv.fork.lektor.SceneLektor {
     private val app = context.applicationContext
     private val prefs = NarratorPreferences(app)
     private val tts = GeminiNarratorTts()
@@ -43,43 +43,67 @@ class GeminiLektor(context: Context) : Lektor {
         val clean = NarratorText.clean(text)
         if (clean.isBlank()) throw Lektor.Unavailable("Pusta kwestia")
         val style = NarratorText.style(clean, null) + tempoHint(rate)
+        return pcmFromWav(wavFor(key, options, clean, style, (clean.length / 9.0).coerceIn(1.5, 25.0)))
+    }
+
+    /**
+     * Fork 19.11 (właściciel: „TTS w partiach z podziałem na sceny i z dużym wyprzedzeniem”): cała scena jednym zapytaniem,
+     * kwestie w osobnych akapitach z wyraźną pauzą; nagranie cięte po ciszy ([SilenceSplit]). null = cięcie się nie zgadza.
+     */
+    override suspend fun synthesizeScene(texts: List<String>): List<Pcm>? {
+        if (texts.size < 2) return null
+        val key = narratorGeminiKey(app, prefs)
+        if (key.isBlank()) throw Lektor.Unavailable("Brak klucza Gemini (Ustawienia → AI napisy)")
+        val options = prefs.load()
+        val cleaned = texts.map { NarratorText.clean(it) }
+        if (cleaned.any { it.isBlank() }) return null
+        val joined = cleaned.joinToString("\n\n")
+        if (joined.length > 1_200) return null
+        val style = NarratorText.style("", null) + SCENE_NOTE
+        val pcm = pcmFromWav(wavFor(key, options, joined, style, (joined.length / 9.0 + cleaned.size * 0.8).coerceIn(3.0, 120.0)))
+        val parts = com.nuvio.tv.fork.lektor.SilenceSplit.split(pcm, cleaned.size)
+        if (parts == null) android.util.Log.i("ForkLektor", "scena ${cleaned.size} kwestii (${pcm.durationMs} ms): cięcie po ciszy się nie zgadza")
+        return parts
+    }
+
+    /** Nagranie z pamięci albo z Gemini (rezerwacja kosztu, równe tempo, zapasowy model przy 503/429, zapis modelu, który mówi). */
+    private suspend fun wavFor(key: String, options: NarratorOptions, clean: String, style: String, seconds: Double): ByteArray {
         // Fork 19.11 (właściciel: „za każdym razem lektor ma inny głos”): klucz pamięci = model, który naprawdę mówi.
         val current = sticky ?: options.model
         val id = NarratorText.fingerprint(current, options.voice, clean, style)
+        cache.find(id, touch = true)?.readBytes()?.let { return it }
         var storeId = id
-        val wav = cache.find(id, touch = true)?.readBytes() ?: run {
-            val month = YearMonth.now()
-            val seconds = (clean.length / 9.0).coerceIn(1.5, 25.0)
-            val usd = NarratorPrices.estimatedUsd(options.model, clean.length, seconds * 1.8, month.year, month.monthValue)
-            if (!prefs.reserve(usd, options.monthlyUsdLimit)) throw Lektor.Unavailable("Lektor Gemini: osiągnięto miesięczny limit kosztów")
-            // Fork 19.11 (właściciel: „Błąd Gemini: 503, następnym razem timeout”): przy przeciążeniu (503/429) jedna
-            // szybka próba na drugim modelu TTS (inna pula serwerów), potem błąd do kontrolera (on robi przerwy).
-            val model = current
-            val bytes = try { paced { tts.synthesize(key, model, options.voice, clean, style) } }
-                catch (e: Exception) {
-                    val busy = e.message?.let { it.contains("503") || it.contains("429") || it.contains("500") } == true
-                    android.util.Log.w("ForkLektor", "Gemini TTS ${model.apiId}: ${e.javaClass.simpleName}: ${e.message?.take(120)}")
-                    if (!busy) throw Lektor.Unavailable("Błąd Gemini: ${e.message ?: "połączenie"}")
-                    val other = if (model == NarratorModel.FLASH) NarratorModel.FLASH_LITE else NarratorModel.FLASH
-                    kotlinx.coroutines.delay(800)
-                    try { paced { tts.synthesize(key, other, options.voice, clean, style) }.also {
-                        storeId = NarratorText.fingerprint(other, options.voice, clean, style)
-                        if (sticky != other) {
-                            sticky = other
-                            // Na stałe: dwa modele = dwa różne głosy; zostaje ten, który działa.
-                            runCatching { prefs.save(prefs.load().copy(model = other)) }.onFailure { e3 -> android.util.Log.w("ForkLektor", "Gemini TTS: zapis modelu: ${e3.javaClass.simpleName}") }
-                            android.util.Log.i("ForkLektor", "Gemini TTS: przełączam na ${other.apiId} na stałe (${model.apiId}: ${e.message?.take(20)})")
-                        }
-                    } }
-                    catch (e2: Exception) {
-                        android.util.Log.w("ForkLektor", "Gemini TTS zapasowy ${other.apiId}: ${e2.javaClass.simpleName}: ${e2.message?.take(120)}")
-                        throw Lektor.Unavailable("Serwer Gemini przeciążony (${e.message?.take(20)})")
+        val month = YearMonth.now()
+        val usd = NarratorPrices.estimatedUsd(current, clean.length, seconds * 1.8, month.year, month.monthValue)
+        if (!prefs.reserve(usd, options.monthlyUsdLimit)) throw Lektor.Unavailable("Lektor Gemini: osiągnięto miesięczny limit kosztów")
+        // Fork 19.11 (właściciel: „Błąd Gemini: 503, następnym razem timeout”): przy przeciążeniu (503/429) jedna
+        // szybka próba na drugim modelu TTS (inna pula serwerów), potem błąd do kontrolera (on robi przerwy).
+        val model = current
+        val bytes = try { paced { tts.synthesize(key, model, options.voice, clean, style) } }
+            catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                val busy = e.message?.let { it.contains("503") || it.contains("429") || it.contains("500") } == true
+                android.util.Log.w("ForkLektor", "Gemini TTS ${model.apiId}: ${e.javaClass.simpleName}: ${e.message?.take(120)}")
+                if (!busy) throw Lektor.Unavailable("Błąd Gemini: ${e.message ?: "połączenie"}")
+                val other = if (model == NarratorModel.FLASH) NarratorModel.FLASH_LITE else NarratorModel.FLASH
+                kotlinx.coroutines.delay(800)
+                try { paced { tts.synthesize(key, other, options.voice, clean, style) }.also {
+                    storeId = NarratorText.fingerprint(other, options.voice, clean, style)
+                    if (sticky != other) {
+                        sticky = other
+                        // Na stałe: dwa modele = dwa różne głosy; zostaje ten, który działa.
+                        runCatching { prefs.save(prefs.load().copy(model = other)) }.onFailure { e3 -> android.util.Log.w("ForkLektor", "Gemini TTS: zapis modelu: ${e3.javaClass.simpleName}") }
+                        android.util.Log.i("ForkLektor", "Gemini TTS: przełączam na ${other.apiId} na stałe (${model.apiId}: ${e.message?.take(20)})")
                     }
+                } }
+                catch (e2: Exception) {
+                    if (e2 is kotlinx.coroutines.CancellationException) throw e2
+                    android.util.Log.w("ForkLektor", "Gemini TTS zapasowy ${other.apiId}: ${e2.javaClass.simpleName}: ${e2.message?.take(120)}")
+                    throw Lektor.Unavailable("Serwer Gemini przeciążony (${e.message?.take(20)})")
                 }
-            cache.store(storeId, bytes)
-            bytes
-        }
-        return pcmFromWav(wav)
+            }
+        cache.store(storeId, bytes)
+        return bytes
     }
 
     private fun tempoHint(rate: Float): String =
@@ -89,6 +113,8 @@ class GeminiLektor(context: Context) : Lektor {
 
     companion object {
         private const val MIN_GAP_MS = 2_000L
+        private const val SCENE_NOTE = " To kilka kolejnych kwestii z jednej sceny, każda w osobnym akapicie. Czytaj je po kolei tym samym głosem " +
+            "i w tym samym tempie, a między akapitami rób wyraźną pauzę, około jednej sekundy. Nie czytaj numerów ani pustych linii."
 
         /** WAV (RIFF, PCM 16-bit) → próbki mono dla miksera lektora. */
         fun pcmFromWav(b: ByteArray): Pcm {

@@ -1,0 +1,88 @@
+package com.nuvio.tv.fork.lektor
+
+import kotlin.math.sqrt
+
+/** Silnik mowy, który czyta całą scenę jednym zapytaniem. null = nagrania nie dało się pociąć (wtedy kwestia po kwestii). */
+interface SceneLektor {
+    suspend fun synthesizeScene(texts: List<String>): List<Pcm>?
+}
+
+/**
+ * Właściciel 19.11: „tekst do TTS w partiach z podziałem na sceny i z dużym wyprzedzeniem”. Scena = kolejne kwestie
+ * z przerwą poniżej [MAX_GAP_MS], najwyżej [MAX_LINES] kwestii i [MAX_CHARS] znaków. Mniej zapytań (mniej 429),
+ * jedna barwa i dynamika w scenie, intonacja z kontekstem sąsiednich kwestii.
+ */
+object Scenes {
+    const val MAX_GAP_MS = 2_500L
+    const val MAX_LINES = 8
+    const val MAX_CHARS = 600
+
+    fun group(lines: List<Line>): List<List<Line>> {
+        val out = ArrayList<List<Line>>()
+        var cur = ArrayList<Line>(); var chars = 0
+        for (l in lines.sortedBy { it.startMs }) {
+            val prev = cur.lastOrNull()
+            if (prev != null && (l.startMs - prev.endMs > MAX_GAP_MS || cur.size >= MAX_LINES || chars + l.text.length > MAX_CHARS)) {
+                out += cur; cur = ArrayList(); chars = 0
+            }
+            cur += l; chars += l.text.length
+        }
+        if (cur.isNotEmpty()) out += cur
+        return out
+    }
+}
+
+/** Cięcie nagrania sceny na kwestie w najdłuższych ciszach (okna 20 ms, RMS). */
+object SilenceSplit {
+    private const val WIN_MS = 20
+    private const val MIN_PAUSE_MS = 200
+
+    fun split(pcm: Pcm, n: Int): List<Pcm>? {
+        if (n <= 1) return listOf(trim(pcm))
+        val s = pcm.samples
+        val win = (pcm.sampleRate * WIN_MS / 1000).coerceAtLeast(1)
+        val frames = s.size / win
+        if (frames < n * 10) return null
+        val rms = FloatArray(frames) { f -> rmsAt(s, f * win, win) }
+        val peak = rms.maxOrNull() ?: return null
+        val thr = maxOf(peak * 0.05f, 0.003f)
+        val runs = ArrayList<IntArray>() // [początek, koniec) w oknach
+        var i = 0
+        while (i < frames) {
+            if (rms[i] < thr) {
+                val st = i
+                while (i < frames && rms[i] < thr) i++
+                if (st > 0 && i < frames && (i - st) * WIN_MS >= MIN_PAUSE_MS) runs += intArrayOf(st, i)
+            } else i++
+        }
+        if (runs.size < n - 1) return null
+        val cuts = runs.sortedByDescending { it[1] - it[0] }.take(n - 1).sortedBy { it[0] }.map { (it[0] + it[1]) / 2 * win }
+        val bounds = listOf(0) + cuts + listOf(s.size)
+        val parts = (0 until n).map { k -> trim(Pcm(s.copyOfRange(bounds[k], bounds[k + 1]), pcm.sampleRate), thr) }
+        if (parts.any { it.durationMs < 250 }) return null
+        return parts
+    }
+
+    /** Bez ciszy na początku i końcu: głos zaczyna się w chwili kwestii. */
+    fun trim(p: Pcm, thr: Float = 0.003f): Pcm {
+        val s = p.samples
+        val win = (p.sampleRate * WIN_MS / 1000).coerceAtLeast(1)
+        val frames = s.size / win
+        var a = 0
+        while (a < frames && rmsAt(s, a * win, win) < thr) a++
+        if (a >= frames) return p
+        var z = frames - 1
+        while (z > a && rmsAt(s, z * win, win) < thr) z--
+        val from = ((a - 1) * win).coerceAtLeast(0)
+        val to = minOf(s.size, (z + 2) * win)
+        return Pcm(s.copyOfRange(from, to), p.sampleRate)
+    }
+
+    private fun rmsAt(s: ShortArray, from: Int, len: Int): Float {
+        val end = minOf(s.size, from + len)
+        if (end <= from) return 0f
+        var sum = 0.0
+        for (i in from until end) { val v = s[i] / 32768.0; sum += v * v }
+        return sqrt(sum / (end - from)).toFloat()
+    }
+}

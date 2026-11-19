@@ -14,7 +14,7 @@ internal class GeminiNarratorTts {
     suspend fun synthesize(apiKey: String, model: NarratorModel, voice: String, text: String, style: String): ByteArray =
         withContext(Dispatchers.IO) {
             require(apiKey.isNotBlank())
-            require(text.isNotBlank() && text.length <= 380)
+            require(text.isNotBlank() && text.length <= 1_200) // fork 19.11: scena (kilka kwestii) w jednym zapytaniu
             val part = JSONObject().put("text", text).put("speechMetadata", JSONObject().put("style", style))
             val payload = JSONObject()
                 .put("contents", JSONArray().put(JSONObject()

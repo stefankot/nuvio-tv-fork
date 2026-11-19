@@ -15,7 +15,7 @@ interface Lektor {
 
 /** Okno syntezy naprzód i pamięć na dysku (B09-4). */
 object SynthWindow {
-    const val AHEAD_MS = 3 * 60_000L
+    const val AHEAD_MS = 10 * 60_000L // fork 19.11 (właściciel: „z dużym wyprzedzeniem”): było 3 min
 
     /** Kwestie do zsyntezowania od pozycji [positionMs]: te w oknie [AHEAD_MS], jeszcze niezrobione. */
     fun pending(lines: List<Line>, positionMs: Long, done: Set<Long>): List<Line> =
