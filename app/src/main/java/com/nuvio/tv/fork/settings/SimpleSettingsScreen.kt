@@ -90,8 +90,8 @@ private fun SimpleSettingsScreen(navigate: (String) -> Unit, onLevelChanged: () 
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Button(onClick = { }) { Text("✓ Prosty") }
-                Button(onClick = { scope.launch { SimpleLevel.set(c, UiLevel.ESSENTIAL); onLevelChanged() } }) { Text("Essential") }
-                Button(onClick = { scope.launch { SimpleLevel.set(c, UiLevel.ADVANCED); onLevelChanged() } }) { Text("Advanced") }
+                Button(onClick = { scope.launch { SimpleLevel.set(c, UiLevel.ESSENTIAL); onLevelChanged() } }) { Text(androidx.compose.ui.res.stringResource(com.nuvio.tv.R.string.experience_mode_essential)) }
+                Button(onClick = { scope.launch { SimpleLevel.set(c, UiLevel.ADVANCED); onLevelChanged() } }) { Text(androidx.compose.ui.res.stringResource(com.nuvio.tv.R.string.experience_mode_advanced)) }
             }
         }
     }
