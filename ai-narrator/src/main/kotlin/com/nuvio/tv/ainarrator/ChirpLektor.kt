@@ -53,6 +53,9 @@ class ChirpLektor(context: Context) : Lektor, com.nuvio.tv.fork.lektor.SceneLekt
      * kwestie w polu `markup` rozdzielone `[pause long]` (test 19.11: pauzy 1,1–1,5 s, inne ciche miejsca ≤0,3 s),
      * nagranie cięte po ciszy ([com.nuvio.tv.fork.lektor.SilenceSplit]). null = cięcie się nie zgadza (kontroler czyta pojedynczo).
      */
+    /** Limit Cloud TTS: 5000 bajtów na zapytanie (dokumentacja „Quotas and limits”, 19.11); zapas na znaczniki i czyszczenie. */
+    override val sceneMaxBytes: Int get() = 4_700
+
     override suspend fun synthesizeScene(texts: List<String>): List<Pcm>? {
         if (texts.size < 2) return null
         val key = apiKey()
@@ -94,7 +97,7 @@ class ChirpLektor(context: Context) : Lektor, com.nuvio.tv.fork.lektor.SceneLekt
             .put("audioConfig", JSONObject().put("audioEncoding", "LINEAR16").put("sampleRateHertz", 24_000).put("speakingRate", speed.toDouble()))
         val c = URL("https://texttospeech.googleapis.com/v1/text:synthesize").openConnection() as HttpURLConnection
         try {
-            c.requestMethod = "POST"; c.connectTimeout = 10_000; c.readTimeout = 15_000; c.doOutput = true
+            c.requestMethod = "POST"; c.connectTimeout = 10_000; c.readTimeout = if (asMarkup) 60_000 else 15_000; c.doOutput = true // fork 19.11: duże sceny (do ~4700 B) generują się dłużej
             c.setRequestProperty("Content-Type", "application/json; charset=utf-8")
             c.setRequestProperty("x-goog-api-key", key)
             c.outputStream.use { it.write(payload.toString().toByteArray(Charsets.UTF_8)) }

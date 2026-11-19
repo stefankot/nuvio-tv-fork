@@ -50,6 +50,7 @@ object LektorController {
             var synthErrors = 0; var synthOk = 0
             var errStreak = 0 // fork 19.11: kolejne błędy z rzędu → coraz dłuższa przerwa (2, 4, 8 … 30 s)
             val sceneFallback = HashSet<Long>() // sceny, których nagrania nie dało się pociąć: te kwestie pojedynczo
+            val sceneSmall = HashSet<Long>() // fork 19.11: duża scena nie dała się pociąć — te kwestie małymi scenami
             var scenesOk = 0
             try {
                 var known = cues.size // podpis listy kwestii (liczba + czasy)
@@ -76,7 +77,12 @@ object LektorController {
                     // Fork 19.11 (właściciel): sceny jednym zapytaniem, z wyprzedzeniem [SynthWindow.AHEAD_MS] (10 min).
                     val sceneLines = HashSet<Long>()
                     if (tts is SceneLektor && errStreak == 0) {
-                        val scenes = Scenes.group(pending).filter { sc -> sc.size >= 2 && sc.none { it.startMs in sceneFallback } }
+                        // Fork 19.11: duże sceny (Chirp: do ~4800 B, kontekst dla intonacji); pierwsze 30 s i sceny, których
+                        // duże nagranie nie dało się pociąć — małe sceny; dopiero potem kwestia po kwestii (sceneFallback).
+                        val bigOk = tts.sceneMaxBytes > 0
+                        val (soon, later) = pending.filter { it.startMs !in sceneFallback }.partition { !bigOk || it.startMs < pos + 30_000 || it.startMs in sceneSmall }
+                        val scenes = (Scenes.group(soon) + if (bigOk) Scenes.group(later, Scenes.BIG_MAX_GAP_MS, Int.MAX_VALUE, Int.MAX_VALUE, tts.sceneMaxBytes) else emptyList())
+                            .sortedBy { it.first().startMs }.filter { sc -> sc.size >= 2 }
                         scenes.forEach { sc -> sc.forEach { sceneLines += it.startMs } }
                         for (sc in scenes.take(2)) {
                             val parts = try { tts.synthesizeScene(sc.map { it.text }) } catch (e: Exception) {
@@ -85,7 +91,12 @@ object LektorController {
                                 if (synthErrors++ == 0) say(app, "Lektor: ${e.message ?: "błąd syntezy głosu"} — ponawiam")
                                 errStreak++; break
                             }
-                            if (parts == null || parts.size != sc.size) { sc.forEach { sceneFallback += it.startMs; sceneLines -= it.startMs }; continue }
+                            if (parts == null || parts.size != sc.size) {
+                                val big = sc.size > Scenes.MAX_LINES || sc.sumOf { it.text.length } > Scenes.MAX_CHARS
+                                if (big && sc.none { it.startMs in sceneSmall }) { sc.forEach { sceneSmall += it.startMs; sceneLines -= it.startMs }; android.util.Log.i("ForkLektor", "duża scena ${sc.size} kwestii: cięcie się nie zgadza — ponownie małymi scenami") }
+                                else sc.forEach { sceneFallback += it.startMs; sceneLines -= it.startMs }
+                                continue
+                            }
                             // Fork 19.11 (właściciel: „przerywa, gdy dużo tekstu”): kwestie ze sceny też dopasowane do czasu do
                             // następnej (przyspieszenie / cięcie na zdaniu), bez wchodzenia na nią — inaczej następna ją ucinała.
                             var refit = 0
@@ -98,7 +109,7 @@ object LektorController {
                             }
                             if (refit > 0) android.util.Log.i("ForkLektor", "scena: $refit/${sc.size} kwestii nagrane ponownie szybciej (nie mieściły się do następnej)")
                             errStreak = 0; synthOk += sc.size
-                            if (scenesOk++ % 5 == 0) android.util.Log.i("ForkLektor", "scena OK: ${sc.size} kwestii jednym zapytaniem (scen: $scenesOk, kwestii z głosem: ${LektorEngine.voice.size}, wyprzedzenie ${(sc.first().startMs - pos) / 1000} s)")
+                            if (scenesOk++ % 5 == 0) android.util.Log.i("ForkLektor", "scena OK: ${sc.size} kwestii (${sc.sumOf { it.text.length }} znaków) jednym zapytaniem (scen: $scenesOk, kwestii z głosem: ${LektorEngine.voice.size}, wyprzedzenie ${(sc.first().startMs - pos) / 1000} s)")
                         }
                     }
                     for (l in pending.filter { it.startMs !in sceneLines && it.startMs !in done }.take(if (errStreak > 0) 0 else 5)) {

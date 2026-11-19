@@ -5,6 +5,8 @@ import kotlin.math.sqrt
 /** Silnik mowy, który czyta całą scenę jednym zapytaniem. null = nagrania nie dało się pociąć (wtedy kwestia po kwestii). */
 interface SceneLektor {
     suspend fun synthesizeScene(texts: List<String>): List<Pcm>?
+    /** Fork 19.11: największa scena w bajtach UTF-8 (0 = małe sceny [Scenes.MAX_LINES]/[Scenes.MAX_CHARS]). Chirp: limit 5000 B/zapytanie. */
+    val sceneMaxBytes: Int get() = 0
 }
 
 /**
@@ -17,15 +19,25 @@ object Scenes {
     const val MAX_LINES = 8
     const val MAX_CHARS = 600
 
-    fun group(lines: List<Line>): List<List<Line>> {
+    /** Fork 19.11 (właściciel: „najdłuższe fragmenty, model rozumie kontekst”): duże sceny — przerwa do 30 s, bez limitu kwestii. */
+    const val BIG_MAX_GAP_MS = 30_000L
+    /** Na separator `[pause long]` między kwestiami w markup. */
+    private const val SEPARATOR_BYTES = 14
+
+    fun group(lines: List<Line>): List<List<Line>> = group(lines, MAX_GAP_MS, MAX_LINES, MAX_CHARS, 0)
+
+    /** [maxBytes] > 0: sceny do tylu bajtów UTF-8 (z separatorami), inaczej limity znaków/kwestii. */
+    fun group(lines: List<Line>, maxGapMs: Long, maxLines: Int, maxChars: Int, maxBytes: Int): List<List<Line>> {
         val out = ArrayList<List<Line>>()
-        var cur = ArrayList<Line>(); var chars = 0
+        var cur = ArrayList<Line>(); var chars = 0; var bytes = 0
         for (l in lines.sortedBy { it.startMs }) {
             val prev = cur.lastOrNull()
-            if (prev != null && (l.startMs - prev.endMs > MAX_GAP_MS || cur.size >= MAX_LINES || chars + l.text.length > MAX_CHARS)) {
-                out += cur; cur = ArrayList(); chars = 0
+            val b = l.text.toByteArray(Charsets.UTF_8).size + SEPARATOR_BYTES
+            val full = if (maxBytes > 0) bytes + b > maxBytes else cur.size >= maxLines || chars + l.text.length > maxChars
+            if (prev != null && (l.startMs - prev.endMs > maxGapMs || full)) {
+                out += cur; cur = ArrayList(); chars = 0; bytes = 0
             }
-            cur += l; chars += l.text.length
+            cur += l; chars += l.text.length; bytes += b
         }
         if (cur.isNotEmpty()) out += cur
         return out
