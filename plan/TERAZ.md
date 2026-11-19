@@ -1,5 +1,13 @@
 # TERAZ — stan pracy i instrukcja „kontynuuj” (aktualizuj po każdym kroku)
 
+## LEKTOR CHIRP (wątek równoległy, 19.11 ~16:10) — przeczytaj przed „NAJPIERW”
+Na JMGO zainstalowany **build „chirp”** (16:04, `/tmp/build-chirp.log`, md5 727b10b64d9ef3489bb19dccb2f66ea2, zgodny po `adb pull`, potem `compile -m speed`). Zawiera wszystko do 1bc14b911; zmiany wątku 14 z 15:56–16:04 (Echo parallelStream, Najprostsze, SlowProxy4k) mogły wejść częściowo (były w drzewie w trakcie kompilacji) — w następnej paczce i tak wejdą całe.
+- Lektor ma nowy głos: **Google Cloud TTS Chirp 3 HD pl-PL, domyślnie Enceladus** (`ai-narrator/.../ChirpLektor.kt`), bez limitu dziennego (200 zapytań/min, tempo 350 ms), 1 mln znaków/mies. za darmo. Klucz `GOOGLE_TTS_API_KEY` w `local.properties` → BuildConfig (osobny klucz „Nuvio lektor Chirp”, tylko Text-to-Speech API, projekt „Gemini Project”). Klucz z AI Studio Cloud TTS NIE przyjmuje.
+- Sceny: `synthesizeScene` — kwestie w `markup` rozdzielone `[pause long]`, cięcie `SilenceSplit` (test: pauzy 1,1–1,5 s, reszta ≤0,3 s). Zapas: kwestia po kwestii.
+- Ustawienia → Moduły → Lektor: „silnik głosu (Chirp / Gemini / systemowy)” (domyślnie Chirp) i „Lektor Chirp: wybierz głos (próbki)” — okno z 30 głosami, próbki offline z `assets/fork/lektor-chirp/`.
+- DO TESTU na JMGO: film z PL napisami → lektor; logi `ForkLektor`: `scena OK`, `Chirp scena … cięcie po ciszy się nie zgadza` (często → stroić), `Chirp TTS … HTTP`, `Chirp: w <miesiąc> zużyto N znaków`; okno wyboru głosu (czy odtwarza próbki pilotem).
+- Wniosek o Tier 2 Gemini: formularz wypełniony, NIE wysłany (czeka na decyzję właściciela).
+
 ## NAJPIERW (wątek 14, zapis 19.11 ~15:50 zegar Maca) — po „kontynuuj” rób to, po kolei, bez pytań
 Gałąź `hybryda-zrodel`. Na JMGO (192.168.31.252:5555) zainstalowany **build120** (md5 34fe204f4fc659e54721f95c3f8e916f, zgodny po `adb pull`, potem `cmd package compile -m speed -f`). Build120 = build119 + sceny lektora (9e2ef0aa4) + `quotaId` przy 429 i komunikat limitu dziennego (7402bc687) + tempo Gemini TTS 1/6,5 s (c32462452) + OPTYMALIZACJA LOGÓW (8ebe58ccb): tekst kwestii AutoSync (`VERBOSE`/`CAPTURE`) tylko w raporcie w aplikacji, nie w logcat; JankStats tylko klatki ≥100 ms i max 1 wpis/5 s (hook `ForkLog.jankWorthLogging` w MainActivity, pominięte zliczane w `ForkJank`); ForkRanking top 3 i bez powtórzeń tej samej kolejności; ForgeKeys tylko wciśnięcia (bez puszczeń i autopowtórzeń). OkHttp już był BASIC (bez treści odpowiedzi) — nic do zmiany.
 Po build120, NIEZBUDOWANE (do następnej paczki): `ForgeEpgCategories.ensure` bez `split` (indexOf, wspólne napisy kategorii, log liczby wpisów) — kontrolna kompilacja `/tmp/compile121.log` BUILD SUCCESSFUL.
