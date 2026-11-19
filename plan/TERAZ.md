@@ -2,6 +2,13 @@
 
 Ostatnia aktualizacja: 19.11.2026 ok. 02:40 (koniec wątku 5).
 
+## LEKTOR AI (ai-narrator, 19.11, prośba właściciela) — w kodzie, NIE w APK
+- Źródło: GitHub `feature/ai-narrator` (z bazy 01ea2ed18). Skopiowane do `hybryda-zrodel` (cf09637b8): `ai-narrator/**` (osobny katalog źródeł, dołączany w `app/reshaped.gradle`), hooki: manifest (+3, pakiet ZONOS32), `file_paths.xml` (+4), `PlayerScreen.kt` (1 linia), `ForkModules.kt` (moduł `ai_narrator`), `ForgePlayerControls.kt` (wiersz „Lektor AI (Gemini)” w „Więcej”).
+- Sprawdzone 19.11: prawdziwe żądanie do `gemini-3.8-flash-lite-tts` z `speechMetadata.style` → HTTP 200, WAV 24 kHz mono (2,16 s = 54 tokeny audio, zgodne z szacunkiem kosztu w module).
+- Poprawki: wejście z menu „Więcej” (pływający przycisk wyłączony: nieosiągalny pilotem w Kicii), przełącznik w Modułach (domyślnie wejście widoczne, sam lektor WYŁĄCZONY = 0 kosztu), klucz: własny albo wspólny z AI napisów (`AiKeyStore`), PCM→WAV dla starszych modeli, okno nie wraca w następnym filmie.
+- ZONOS3 lokalnie (ARM32 + model 1,12 GB): kod jest, ale ZABLOKOWANE — brak opublikowanego pakietu ARM32 (`ZONOS_ARM32_APK_URL` pusty); okno pokaże „Brak opublikowanego pakietu”. Na JMGO i tak wątpliwe (RAM).
+- Do testu w następnej DUŻEJ paczce: odtwarzacz → Więcej → „Lektor AI (Gemini)” → Włącz → Zapisz; film z polskimi napisami: czy słychać lektora, opóźnienie, głośność, koszt w oknie. Uwaga: stary „Lektor (czyta polskie napisy)” (TTS systemowy) może grać równocześnie — włączać tylko jeden.
+
 ## NAJPIERW: AI napisy (prośba właściciela 18–19.11) — wykonaj PRZED kolejką „wątek 6” niżej
 Stan 19.11: moduł SCALONY do `hybryda-zrodel` (merge 82d132d4f; kod `app/src/main/java/com/nuvio/tv/fork/ai/subtitles/`, testy `app/src/test/.../fork/ai/subtitles/`). build96: testy JUnit 31/31, kompilacja aplikacji OK. `check.sh` OK, `scripts/ai-subtitles/check-ai-subtitles-hooks` = 0. NIE w APK, NIE testowane na emulatorze/TV, brak prawdziwego żądania do Gemini. Pracuj w `NuvioFork` (worktree `NuvioFork-aisub` usunięty).
 1. Przeczytaj `docs/agent/ai-subtitles/STATE.md` (decyzje, pliki, wyniki, znane braki) i lokalny `docs/agent/ai-subtitles/AUDIT_REPORT.md`. Nie pytaj ponownie o: dostawcę (Gemini, `gemini-3.8-flash`, Interactions API, `store:false`), limity ($1/film, $3/dzień), zakres (etapy 03+04; audio 60 s, tryb ekstremalny, MPV, OpenSubtitles w kolejnych paczkach).
