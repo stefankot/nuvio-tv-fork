@@ -1,5 +1,17 @@
 # TERAZ — stan pracy i instrukcja „kontynuuj” (aktualizuj po każdym kroku)
 
+## NAJPIERW (wątek 12, aktualizacja 19.11 ~13:45 zegar Maca / 20:35 TV) — po „kontynuuj” rób to, po kolei, bez pytań
+Na JMGO: build115 (md5 2e0a965b…). W budowie / do instalacji: **build116** (`/tmp/build116.log`, zakładka terminala „build114 APK”) = build115 + Gemini TTS 503/timeout (fadf5bbff: drugi model TTS przy 503/429, timeout 15 s, przerwy 2–30 s) + ANR auto jakość Echo w tle (d75b719a6, `fork/echo/AutoQualityBackground.kt`) + ANR KeRanking (5ab1f3615).
+Wyniki testów 19.11 wieczór (zegar TV):
+- AI napisy na bieżąco DZIAŁAJĄ (build114). Właściciel: za długo bez komunikatu → licznik sekund + mały pierwszy blok z wyprzedzeniem (build115). Do sprawdzenia na build115/116: komunikat z licznikiem, EN do czasu PL.
+- Lektor build114: cisza — procesor lektora nie był w ścieżce dźwięku Arc (`buildFormatsAudioSink`, tylko `gainAudioProcessor`) → dodany (build115). Gemini TTS: „TTS HTTP 503” i „timeout” (serwer Google przeciążony) → build116.
+- Lektor build115 (20:29): start OK (`pętla: pozycja=… do syntezy=16 … silnik=GeminiLektor`, `synteza OK`), potem ANR 20:30:05 — wątek główny w `autoQualityTick → keepsLanguage → StreamAudioParser` (regex ICU dla każdego źródła) → build116. Wpisu `ForkLektor mikser: format=` jeszcze NIE widziano — to pierwsze do sprawdzenia na build116 (czy głos trafia do dźwięku).
+- ANR-y z dropbox (`dumpsys dropbox --print data_app_anr`): 18.11–19.11 rano `Text.norm`/`markFor`/`episodeLog` (stare, już poprawione), 18:23 `KeRanking.polishTier` (klucz Gemini z Keystore dla każdego źródła) → build116.
+- Podgląd logów: Monitor z `grep --line-buffered` + `awk … fflush()` (NIE `cut` — buforuje; przez to nie widziałem 503 na bieżąco). Wzorzec tagów przy `-v time`: `/(ForkLektor|ForkAi…)\(`.
+1. Zainstalować build116 (zapytać, czy ktoś ogląda), test lektora: logi `mikser: format=… aktywny`, `mikser: miksuję`, `synteza OK`, ewentualnie `zapasowy model`; czy słychać.
+2. AI napisy: komunikat z licznikiem, brak dziury na starcie.
+3. Potem punkty 2–3 z „wątek 12” niżej (logi adapterów reshaped/youtube, WIELE RDZENI).
+
 ## NAJPIERW (wątek 12, zapis 19.11 ~13:10 zegar Maca) — po „kontynuuj” rób to, po kolei, bez pytań
 Gałąź `hybryda-zrodel`. Na JMGO (192.168.31.252:5555) zainstalowany **build114** (md5 0d1ca7c87f3842a8f7a4d45ce9fe476a, zgodny po `adb pull`; start bez awarii 20:05 zegar TV). Build114 = logi we wszystkich modułach (12acfe8a8) + AI napisy regex ICU (699ef1f3d) + lektor mikser float i logi (bd927e426) + naprawa przycisku „AI napisy: anuluj” (d52189a8c: komentarz `//` połykał akcję — to był błąd kompilacji). Po build114, NIEZBUDOWANE: `LektorVoice` (9e4a82f14: na JMGO odpowiedź TTS przychodzi w konstruktorze przed przypisaniem `t` → log `UninitializedPropertyAccessException`, silnik nie był zamykany; wynik `ready=false` był poprawny).
 1. TEST build114 na JMGO (właściciel ogląda/testuje; ja czytam `adb logcat -d | grep -E " Fork[A-Za-z]*"`, nie ruszam TV, gdy ktoś ogląda — `dumpsys media_session`): lektor (Więcej → Lektor; logi `ForkLektor start: źródło=`, `ForkLektor mikser: format=`, `synteza OK/nieudana`); AI napisy (serial z napisami tylko EN wbudowanymi → „Napisy AI”; log `ForkAiLive`, `ForkAi`); reszta listy testów z punktu 3 wątku 11 niżej. Nowe tagi logów: `Fork<katalog>` (np. `ForkTv`, `ForkSources`, `ForkFamily`), `ForkKicia<katalog>`; każdy wpis = `Plik.kt:linia: Typ: komunikat`.
