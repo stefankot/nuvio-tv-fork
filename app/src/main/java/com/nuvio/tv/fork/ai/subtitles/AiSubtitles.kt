@@ -127,6 +127,7 @@ object AiSubtitles {
                     val model = AiSettings.model(app)
                     docKey = "live" + java.lang.Long.toHexString(System.currentTimeMillis())
                     val provider = GeminiProvider(AiKeyStore.read(app) ?: error("no key"), model)
+                    com.nuvio.tv.fork.lektor.LektorDump.init(app) // fork 20.11: zapis surowych zapytań napisów
                     val engine = TranslationEngine(provider, ledger(app), eta(app), EngineSettings(review = false)) { e ->
                         if (e is EngineEvent.Waiting) _state.value = AiState(id, port.materialId, AiStage.WAITING, notice = "AI: oczekiwanie (${e.reason})")
                     }
@@ -149,6 +150,7 @@ object AiSubtitles {
                 Log.i(TAG, "start session=$id blocks=${doc.blocks.size} done=${doc.doneBlocks} aux=${doc.aux.map { it.language }} missing=${doc.missingCategories}")
                 val provider = GeminiProvider(AiKeyStore.read(app) ?: error("no key"), model)
                 lateinit var s: AiSubtitleSession
+                com.nuvio.tv.fork.lektor.LektorDump.init(app) // fork 20.11: zapis surowych zapytań napisów
                 val engine = TranslationEngine(provider, ledger(app), eta(app), EngineSettings(review = AiSettings.review(app))) { e -> s.onEngineEvent(e) }
                 s = AiSubtitleSession(doc, engine, store, port, eta(app), mode, id, fallbackOriginal = AiSettings.fallbackOriginal(app))
                 s.engineReview = AiSettings.review(app)

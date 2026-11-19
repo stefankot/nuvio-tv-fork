@@ -141,7 +141,9 @@ class TranslationEngine(
             ledger.reserve(spendId, title, reserve)
             val started = clock()
             try {
-                val result = provider.complete(ModelRequest(system, context, task, schema, settings.maxOutputTokens))
+                val request = ModelRequest(system, context, task, schema, settings.maxOutputTokens)
+                (provider as? GeminiProvider)?.let { com.nuvio.tv.fork.lektor.LektorDump.save("napisy", it.buildBody(request)) } // fork 20.11: 3 ostatnie surowe zapytania (bez klucza)
+                val result = provider.complete(request)
                 val usd = result.usage?.let { ModelPricing.actualCost(p, it) } ?: reserve // no usage = keep the worst case
                 ledger.settle(spendId, usd)
                 onEvent(EngineEvent.Cost(usd))
