@@ -28,6 +28,17 @@ import kotlinx.coroutines.launch
 object KeNetwork {
     const val KEY = "ke_stream_limit"           // limit łącza w rankingu (domyślnie włączony)
     private const val TABLES = "ke_service_network_tables"
+    private const val PARTIAL = "ke_partial_tables" // usługi z wynikiem częściowym (do uzupełnienia)
+    private const val PARTIAL_AFTER_MS = 30_000L
+    private val ROW_LABEL = Regex("""(\d+)\D+?(\d+)\s*MB""")
+
+    /** Wynik usługi częściowy (test przerwany albo jeszcze trwał): KeAutoTest uzupełnia go przy następnej okazji. */
+    fun isPartial(c: Context, key: String): Boolean = key in ForkFeatures.str(c, PARTIAL).split(',')
+    private fun markPartial(c: Context, key: String, on: Boolean) {
+        val set = ForkFeatures.str(c, PARTIAL).split(',').filter { it.isNotBlank() }.toMutableSet()
+        if (on) set += key else set -= key
+        ForkFeatures.setStr(c, PARTIAL, set.joinToString(","))
+    }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     @Volatile var status: String = ""
         private set
@@ -43,17 +54,35 @@ object KeNetwork {
         if (running) { onDone("Test łącza już trwa"); return null }
         val app = c.applicationContext
         running = true; status = "Test łącza…"
+        val requestKey0 = serviceKeyOf(url)
+        val startedMs = System.currentTimeMillis()
+        val rows = java.util.Collections.synchronizedList(mutableListOf<com.nuvio.tv.core.assessment.NetworkRow>())
+        val tr0 = transport(app)
+        /** Właściciel 19.11: ~30 s wystarczy do zapisu; po 30 s każdy krok dopisuje częściowy wynik (uzupełniany później). */
+        fun savePartial(force: Boolean) {
+            val key = requestKey0 ?: return
+            if (!force && System.currentTimeMillis() - startedMs < PARTIAL_AFTER_MS) return
+            val snap = synchronized(rows) { rows.filter { it.mbps > 0 }.groupBy { it.connections to it.chunkMb }.map { (k, r) -> com.nuvio.tv.core.assessment.NetworkRow(k.first, k.second, r.maxOf { it.mbps }) } }
+            if (snap.isEmpty()) return
+            save(app, tables(app).withTest(key, key, ServiceTable(tr0, System.currentTimeMillis(), null, snap.sortedWith(compareBy({ it.connections }, { it.chunkMb })))))
+            markPartial(app, key, true)
+        }
         return scope.launch {
             try {
             val msg = runCatching {
-                val requestKey = serviceKeyOf(url) ?: return@runCatching "Tego źródła nie da się zmierzyć"
+                val requestKey = requestKey0 ?: return@runCatching "Tego źródła nie da się zmierzyć"
                 // Baza nie zwraca adresu po przekierowaniach (KE ContentProbe.finalUrl): tabela pod kluczem adresu żądania.
                 val servingKey = requestKey
                 var step = 0
+                val baselineLabel = app.getString(com.nuvio.tv.R.string.stream_test_label_baseline)
                 val outcome = StreamSweepEngine.run(app, url, headers, null, onState = {}, onPassAdded = {},
-                    onPassResult = { _, _, _ -> }, onRunStarted = { status = "Test łącza: krok ${++step}" })
+                    onPassResult = { label, mbps, _ ->
+                        val cell = if (label == baselineLabel) 1 to 0 else ROW_LABEL.find(label)?.destructured?.let { (n, mb) -> n.toInt() to mb.toInt() }
+                        if (cell != null && mbps != null && mbps > 0) { rows += com.nuvio.tv.core.assessment.NetworkRow(cell.first, cell.second, mbps); savePartial(false) }
+                    }, onRunStarted = { status = "Test łącza: krok ${++step}" })
                 val table = tableFromSweep(outcome, transport(app), System.currentTimeMillis()) ?: return@runCatching "Test łącza nic nie zmierzył"
                 save(app, tables(app).withTest(requestKey, servingKey, table))
+                markPartial(app, requestKey, false)
                 val best = table.rows.maxByOrNull { it.mbps }
                 if (best != null && best.connections > 1) {
                     val store = EntryPointAccessors.fromApplication(app, com.nuvio.tv.fork.sources.SourceChoice.Deps::class.java).player()
@@ -65,6 +94,10 @@ object KeNetwork {
             }.getOrElse { if (it is kotlinx.coroutines.CancellationException) throw it; "Test łącza nie powiódł się" }
             status = msg
             kotlinx.coroutines.withContext(Dispatchers.Main) { onDone(msg) }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                // Przerwany startem filmu: zostaje to, co zmierzono, jeśli test trwał ≥ 30 s (oznaczone do uzupełnienia).
+                if (System.currentTimeMillis() - startedMs >= PARTIAL_AFTER_MS) runCatching { savePartial(true) }
+                throw e
             } finally { running = false } // przerwany (np. KeAutoTest przy starcie filmu) też zwalnia blokadę
         }
     }

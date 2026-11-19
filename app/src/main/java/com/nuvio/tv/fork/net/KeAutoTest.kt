@@ -36,9 +36,12 @@ object KeAutoTest {
     /** Która usługa ze źródeł jeszcze nie ma pomiaru (null = nie ma czego mierzyć albo próbowano w ciągu doby). */
     private fun due(app: Context, url: String): String? {
         val key = serviceKeyOf(url) ?: return null
-        if (KeNetwork.tables(app).currentTable(key, KeNetwork.transport(app)) != null) return null
+        val partial = KeNetwork.isPartial(app, key)
+        if (!partial && KeNetwork.tables(app).currentTable(key, KeNetwork.transport(app)) != null) return null
         val last = ForkFeatures.str(app, TRIED + key).toLongOrNull() ?: 0L
-        return key.takeIf { System.currentTimeMillis() - last >= 24 * 3_600_000L }
+        // wynik częściowy uzupełniamy przy najbliższej okazji (co najmniej 10 min odstępu), brak wyniku: raz na dobę
+        val gap = if (partial) 10 * 60_000L else 24 * 3_600_000L
+        return key.takeIf { System.currentTimeMillis() - last >= gap }
     }
 
     /**
