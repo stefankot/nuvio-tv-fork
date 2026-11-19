@@ -115,6 +115,66 @@ if ($a === 'report') {
   out(200, ['ok' => true]);
 }
 
+// ---------- pełne logi telewizorów (19.11: „logi w całości, z całego używania”) ----------
+const LOG_DAYS = 60;                     // ile dni trzymać logi
+const LOG_DEVICE_MAX = 400 * 1024 * 1024; // najwyżej tyle na telewizor (najstarsze wypadają)
+function log_dir($id, $dev) {
+  $d = __DIR__ . '/data/logs/' . $id . '/' . $dev;
+  if (!is_dir($d)) mkdir($d, 0700, true);
+  return $d;
+}
+if ($a === 'logs') {
+  // Telewizor rodziny wysyła kawałek logu (gzip, base64). Ten sam warunek co raport: rodzina istnieje, urządzenie nie usunięte.
+  $in = body(4 * 1024 * 1024);
+  $id = $in['id'] ?? ''; $dev = $in['device'] ?? ''; $name = $in['name'] ?? ''; $data = $in['data'] ?? '';
+  if (!validId($id) || !is_string($dev) || !preg_match('/^[0-9a-f]{32}$/', $dev)
+    || !is_string($name) || !preg_match('/^seg_[0-9]{10,16}\.log\.gz$/', $name) || !is_string($data)) out(400, ['error' => 'bad_request']);
+  $st = db()->prepare('SELECT removed FROM family_devices WHERE family_id=? AND device=?');
+  $st->execute([$id, $dev]);
+  $r = $st->fetchColumn();
+  if ($r === false) { note('miss'); out(404, ['error' => 'no_device']); }
+  if ((int)$r === 1) out(200, ['removed' => true]);
+  $bin = base64_decode($data, true);
+  if ($bin === false || strlen($bin) < 18 || substr($bin, 0, 2) !== "\x1f\x8b") out(400, ['error' => 'bad_data']);
+  $d = log_dir($id, $dev);
+  file_put_contents($d . '/' . $name, $bin); // ta sama nazwa ponownie = nadpisanie (powtórzona wysyłka)
+  if (mt_rand(0, 10) === 0) {
+    $files = glob($d . '/seg_*.log.gz'); sort($files);
+    $total = 0; foreach ($files as $f) $total += filesize($f);
+    foreach ($files as $f) {
+      if (filemtime($f) < time() - LOG_DAYS * 86400 || $total > LOG_DEVICE_MAX) { $total -= filesize($f); unlink($f); }
+    }
+  }
+  out(200, ['ok' => true]);
+}
+if ($a === 'logs_list') {
+  need_session();
+  $id = $_GET['id'] ?? ''; admin_family($id);
+  $dev = $_GET['device'] ?? '';
+  if (!preg_match('/^[0-9a-f]{32}$/', $dev)) out(400, ['error' => 'bad_request']);
+  $files = glob(log_dir($id, $dev) . '/seg_*.log.gz'); rsort($files);
+  out(200, ['files' => array_map(fn($f) => ['name' => basename($f), 'size' => filesize($f), 'ts' => (int)(substr(basename($f), 4, -7) / 1000)], $files)]);
+}
+if ($a === 'logs_get') {
+  // Pobranie: jeden kawałek (name) albo wszystkie z dnia (day=YYYY-MM-DD), rozpakowane, jako zwykły tekst.
+  need_session();
+  $id = $_GET['id'] ?? ''; admin_family($id);
+  $dev = $_GET['device'] ?? '';
+  if (!preg_match('/^[0-9a-f]{32}$/', $dev)) out(400, ['error' => 'bad_request']);
+  $d = log_dir($id, $dev);
+  $name = $_GET['name'] ?? ''; $day = $_GET['day'] ?? '';
+  if (is_string($name) && preg_match('/^seg_[0-9]{10,16}\.log\.gz$/', $name)) $files = [$d . '/' . $name];
+  elseif (is_string($day) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $day)) {
+    $from = strtotime($day . ' 00:00:00') * 1000; $to = $from + 86400000;
+    $files = array_values(array_filter(glob($d . '/seg_*.log.gz'), function ($f) use ($from, $to) { $t = (int)substr(basename($f), 4, -7); return $t >= $from && $t < $to; }));
+    sort($files);
+  } else out(400, ['error' => 'bad_request']);
+  header('Content-Type: text/plain; charset=utf-8');
+  header('Content-Disposition: attachment; filename="nuvio-' . substr($dev, 0, 8) . '-' . ($day ?: substr($name, 4, -7)) . '.log"');
+  foreach ($files as $f) if (is_file($f)) echo gzdecode(file_get_contents($f));
+  exit;
+}
+
 // ---------- dane dla panelu ----------
 if ($a === 'families') {
   need_session();

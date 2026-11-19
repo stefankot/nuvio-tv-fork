@@ -111,7 +111,7 @@ async function homeView() {
       <p class="muted">${h`${info.model || ''} · Android ${info.android || '?'} · ${info.app || ''}`}<br>Widziany ${ago(r.now, d.last_seen)}</p>
       ${avg ? `<p>Start filmu średnio ${avg} s</p><div class="bars" aria-label="Czasy startu ostatnich filmów">${plays.map(p => `<span style="height:${Math.max(4, p.ms / max * 100)}%" title="${(p.ms / 1000).toFixed(1)} s"></span>`).join('')}</div>` : '<p class="muted">Brak odtworzeń</p>'}
       ${errs.slice(0, 3).map(e => `<p class="muted">${hhmm(e.ts)}: ${h`${label(e)}`}</p>`).join('')}
-      <div class="row"><button data-name="${d.device}">Zmień nazwę</button><button data-forget="${d.device}">Usuń z listy</button><button data-remove="${d.device}">Odbierz dostęp</button></div>
+      <div class="row"><button data-logs="${d.device}">Logi</button><button data-name="${d.device}">Zmień nazwę</button><button data-forget="${d.device}">Usuń z listy</button><button data-remove="${d.device}">Odbierz dostęp</button></div>
     </article>`;
   }).join('');
   // problemy wspólne: to samo źródło zawodzi na kilku telewizorach
@@ -131,6 +131,7 @@ async function homeView() {
     <h2>Problemy (30 dni)</h2>
     ${problems || crashes ? `<ul class="problems">${problems}${crashes ? `<li>Aplikacja zamknęła się z błędem ${crashes} razy. Jeśli to się powtarza, zaktualizuj aplikację.</li>` : ''}</ul>` : '<p>Bez problemów.</p>'}
     <div class="row"><button id="clear">Wyczyść statystyki</button></div>`;
+  app.querySelectorAll('[data-logs]').forEach(b => b.onclick = () => logsView(b.dataset.logs, b.closest('article').querySelector('h3').textContent));
   app.querySelectorAll('[data-name]').forEach(b => b.onclick = async () => {
     const n = prompt('Nazwa telewizora (np. „Mama, salon”)'); if (n == null) return;
     await api('device_name', { id: family.id, device: b.dataset.name, name: n }); homeView();
@@ -345,3 +346,21 @@ async function removeFromFamily(dev, devs) {
 }
 
 start();
+
+// ---------- pełne logi telewizora (19.11: logi w całości, z całego używania) ----------
+async function logsView(dev, title) {
+  app.innerHTML = '<p class="muted">Wczytuję logi…</p>';
+  const r = await api('logs_list', null, '&id=' + family.id + '&device=' + dev);
+  const files = r.files || [];
+  const q = '&id=' + family.id + '&device=' + dev;
+  const days = {};
+  for (const f of files) { const d = new Date(f.ts * 1000); const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; (days[k] ??= []).push(f); }
+  const mb = n => (n / 1048576).toFixed(1) + ' MB';
+  app.innerHTML = `<h2>Logi: ${h`${title}`}</h2>
+    <p class="muted">Telewizor zapisuje logi aplikacji przez cały czas działania i wysyła je co 15 minut i przy wyjściu z aplikacji (pliki spakowane). Trzymane 60 dni.</p>
+    ${files.length ? Object.entries(days).map(([day, fs]) => `<details><summary>${day} · ${fs.length} plików · ${mb(fs.reduce((s, f) => s + f.size, 0))} spakowane
+      · <a href="${API}?a=logs_get${q}&day=${day}">pobierz cały dzień</a></summary><ul>${fs.map(f => `<li>${hhmm(f.ts)} · ${mb(f.size)} · <a href="${API}?a=logs_get${q}&name=${f.name}">pobierz</a></li>`).join('')}</ul></details>`).join('')
+      : '<p>Brak logów. Pojawią się po aktualizacji aplikacji na tym telewizorze.</p>'}
+    <div class="row"><button id="logsBack">Wróć</button></div>`;
+  $('#logsBack').onclick = () => homeView();
+}

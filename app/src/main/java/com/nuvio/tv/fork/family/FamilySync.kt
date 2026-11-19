@@ -285,6 +285,7 @@ object FamilySync {
         refresh(activity)
         lastActivity = java.lang.ref.WeakReference(activity)
         FamilyStats.install(activity)
+        FullLog.start(activity) // właściciel 19.11: pełne logi z całego używania
         poll?.cancel()
         val first = !started
         started = true
@@ -327,6 +328,10 @@ object FamilySync {
             st == 200
         }.getOrDefault(false)
         if (!ok) FamilyStats.restore(c, events)
+        // Pełne logi (FullLog) do panelu: każdy niewysłany kawałek osobno; błąd = ponowna próba przy następnym raporcie.
+        if (ok) FullLog.upload(c) { name, b64 ->
+            http("POST", "a=logs", JSONObject().put("id", p.getString("id", "")).put("device", dev).put("name", name).put("data", b64)).first == 200
+        }
     }
 
     /** Wyjście z aplikacji: właściciel wysyła zmiany zrobione w tej sesji. */
