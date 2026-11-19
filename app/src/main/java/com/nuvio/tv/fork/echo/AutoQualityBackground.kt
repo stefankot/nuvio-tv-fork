@@ -31,3 +31,6 @@ object AutoQualityBackground {
         }
     }
 }
+
+/** Fork 19.11: czy trwa przełączanie źródła Echo (auto jakość / zmiana dźwięku) — wtedy hook „polski dźwięk” nie szuka dalej. */
+internal fun isSourceSwitching(c: com.nuvio.tv.ui.screens.player.PlayerRuntimeController): Boolean = c.sourceSwitch != null

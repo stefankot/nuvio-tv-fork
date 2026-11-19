@@ -307,7 +307,7 @@ internal fun PlayerRuntimeController.updateAvailableTracks(tracks: Tracks) {
         )
     }
     updateAudioControlAvailability(audioTracks, selectedAudioIndex)
-    if (!hasRenderedFirstFrame && com.nuvio.tv.fork.ForkHooks.wantsNextSourceForAudio(context, audioTracks.map { it.language }, sourceFallbackAttempts, streamAutoPlayFallbackMaxSources)) tryFallbackToNextSourceAfterError("No Polish audio track") // Fork hook: sources
+    if (!com.nuvio.tv.fork.echo.isSourceSwitching(this) && !hasRenderedFirstFrame && com.nuvio.tv.fork.ForkHooks.wantsNextSourceForAudio(context, audioTracks.map { it.language }, sourceFallbackAttempts, streamAutoPlayFallbackMaxSources)) tryFallbackToNextSourceAfterError("No Polish audio track") // Fork hook: sources
     logSwitchTrace(
         stage = "exo-tracks-update-end",
         message = "audioCount=${audioTracks.size} subtitleCount=${subtitleTracks.size} " +

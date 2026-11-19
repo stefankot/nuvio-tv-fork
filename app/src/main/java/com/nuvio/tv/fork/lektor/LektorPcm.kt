@@ -21,6 +21,13 @@ object LektorPcm {
                 c.playbackSpeedAwareAudioSink?.notifyAudioProcessingRequirementChanged()
                 c._exoPlayer?.let { p -> p.trackSelectionParameters = p.trackSelectionParameters.buildUpon().build() }
                 Log.i(TAG, "PCM ($reason): lektor=${LektorEngine.enabled}, ścieżka dźwięku wybrana ponownie")
+                // Fork 19.11 (build118 „stream się wyłączył”): chwilowo pusty bufor po zmianie dekodowania auto jakość brała
+                // za słabe łącze (1080p → 720p, potem źródła bez polskiego dźwięku do wyczerpania). Odwołanie jej decyzji
+                // z tych kilku sekund (zmiana zapowiadana 5 s przed wykonaniem).
+                val main = Handler(Looper.getMainLooper())
+                for (delayMs in longArrayOf(3_000, 6_000, 9_000)) main.postDelayed({
+                    runCatching { c.cancelAutoQualityChange(byViewer = false) }.onFailure { e -> Log.w(TAG, "PCM: auto jakość: ${e.javaClass.simpleName}: ${e.message}") }
+                }, delayMs)
             }.onFailure { Log.w(TAG, "PCM ($reason): ${it.javaClass.simpleName}: ${it.message?.take(200)}") }
         }
     }
