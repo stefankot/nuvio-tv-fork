@@ -136,10 +136,17 @@ object ForgeEpgCategories {
         file = f
         io.launch {
             runCatching {
+                // Wiele rdzeni / wydajność 19.11: do 200 tys. linii — bez split (lista na linię), kategorie wspólne (mało różnych).
+                val cats = HashMap<String, String>()
+                var n = 0
                 if (f.exists()) f.forEachLine { line ->
-                    val a = line.split('\t')
-                    if (a.size == 3) programmeCats.putIfAbsent(a[0] + "|" + a[1], a[2])
+                    val t1 = line.indexOf('\t'); val t2 = if (t1 < 0) -1 else line.indexOf('\t', t1 + 1)
+                    if (t2 > 0 && line.indexOf('\t', t2 + 1) < 0) {
+                        val cat = line.substring(t2 + 1).let { c -> cats.getOrPut(c) { c } }
+                        programmeCats.putIfAbsent(line.substring(0, t1) + "|" + line.substring(t1 + 1, t2), cat); n++
+                    }
                 }
+                android.util.Log.i("ForkKiciaLivetv", "kategorie EPG: $n wpisów, ${cats.size} kategorii")
             }.logged("ForkKiciaLivetv", "ForgeEpgCategories.kt:137")
             loaded = true
             version.incrementAndGet()
