@@ -3,6 +3,15 @@
 Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–13: `plan/archiwum/TERAZ-historia-watki-1-13.md` (tylko `grep`, nie czytaj całości).
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
+## NAJPIERW (wątek 15, zapis 20.11 ~02:30 zegar Maca) — po „kontynuuj” rób to, po kolei, bez pytań
+TEST build123 (właściciel 20.11 ~02:00, film z lektorem **Chirp**): „brzmi świetnie”, ale rozjeżdża się, czasem powtarza kwestie, ucina w połowie słowa, często ucina 1–3 ostatnie słowa. Logi: `.stage/lektor-test123.log`. Przyczyny w kodzie:
+- mikser (`LektorAudioProcessor`): napis bez gotowego głosu po cichu uciszał bieżącą kwestię; nowsza kwestia ucinała starszą bez zanikania; głos grał tylko do `endMs+4 s`; pozycja w nagraniu liczona z zegara — skok zegara (poprawka z interfejsu przy buforowaniu) powtarzał albo przeskakiwał fragment; `positionMs()` przy buforowaniu uciekał do przodu bez limitu;
+- `SilenceSplit.trim`: koniec szukany progiem 5% szczytu + 40 ms zapasu → ciche końcówki słów obcinane;
+- `SilenceSplit.split`: n−1 najdłuższych pauz → pauza w środku zdania brana za granicę (koniec kwestii trafiał do następnej).
+NAPRAWIONE (testy `:app:testFullDebugUnitTest --tests com.nuvio.tv.fork.lektor.*` 15/15 OK, `/tmp/test132.log`): mikser gra kwestię od początku do końca własnym licznikiem próbek, każdą raz (lista zagranych czyszczona przy przewinięciu), następna czeka na koniec poprzedniej do 1,2 s, dłużej → poprzednia ściszana w 60 ms; zegar poprawiany tylko świeżą pozycją przy rozjeździe < −2 s / > +3 s; szacunek pozycji max 1,5 s za ostatnią; trim: koniec progiem 25% (min 0,0015) + 160 ms, początek 40 ms; cięcie sceny dopasowane do długości tekstów (programowanie dynamiczne) i odrzucane, gdy część nie pasuje długością (log `cięcie sceny: część k/n … odrzucone`). Nowe logi: `mikser: kwestia X ściszona przy Y po N% (zostało …, czekała …)`, `mikser: kwestia X zaczęta N ms po napisie`, `mikser: zegar poprawiony o N ms`, `mikser: kwestie czekały na poprzednią=…, ściszone przed końcem=…, pominięte=…`.
+KOLEJKA:
+1. Build124 (te poprawki) → JMGO (gdy nikt nie ogląda) → test lektora Chirp; sprawdzić w logu liczbę `ściszona`, `zaczęta … po napisie` (duże opóźnienia = kwestie za długie → rozważyć mocniejsze skracanie `Condense`), `zegar poprawiony` (częste = problem zegara), `cięcie sceny … odrzucone` (częste = stroić `SilenceSplit`).
+
 ## NAJPIERW (wątek 14, zapis 19.11 ~18:50 zegar Maca) — po „kontynuuj” rób to, po kolei, bez pytań
 **19.11 ~19:20: na JMGO build123** (md5 d9865c0217b597afafb521ed7f0fbfee, zgodny, `compile -m speed`) = lektor Gemini Cloud + poprawka ciszy — DO TESTU (punkt 1 kolejki). Wcześniej build122. Test build122 (właściciel): lektor Chirp „nie brzmiał najgorzej”, ale słychać tylko pierwszą minutę, potem długa cisza, kilka słów, cisza. Logi: 61 kwestii nagranych bez błędów → problem w odtwarzaniu: `CuePlanner.plan` sklejał napisy <0,3 s (843 → 298 długich kwestii), za długie cięte do pierwszych zdań.
 ZROBIONE (b8eb11c77, kompilacja `/tmp/compile130.log` OK, NIEZBUDOWANE):

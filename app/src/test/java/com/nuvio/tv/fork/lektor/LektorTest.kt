@@ -33,9 +33,9 @@ class LektorTest {
     }
 
     @Test fun `ASS i laczenie kwestii bliskich o mniej niz 300 ms`() {
-        val ass = "[Events]\nDialogue: 0,0:00:01.00,0:00:02.00,Default,,0,0,0,,{\\i1}Pierwsza.{\\i0}\nDialogue: 0,0:00:02.10,0:00:03.00,Default,,0,0,0,,Druga.\nDialogue: 0,0:00:05.00,0:00:06.00,Default,,0,0,0,,Trzecia."
+        val ass = "[Events]\nDialogue: 0,0:00:01.00,0:00:02.00,Default,,0,0,0,,{\\i1}Pierwsza{\\i0}\nDialogue: 0,0:00:02.10,0:00:03.00,Default,,0,0,0,,Druga.\nDialogue: 0,0:00:05.00,0:00:06.00,Default,,0,0,0,,Trzecia."
         val lines = CuePlanner.plan(CuePlanner.parseAss(ass))
-        assertEquals(2, lines.size); assertEquals("Pierwsza. Druga.", lines[0].text); assertEquals(4_000L, lines[0].availableMs)
+        assertEquals(2, lines.size); assertEquals("Pierwsza Druga.", lines[0].text); assertEquals(4_000L, lines[0].availableMs)
     }
 
     @Test fun `tempo trzy przypadki`() {

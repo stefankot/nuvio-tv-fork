@@ -77,7 +77,7 @@ class ChirpLektor(context: Context) : Lektor, com.nuvio.tv.fork.lektor.SceneLekt
             throw Lektor.Unavailable("Błąd głosu Google Chirp: ${e.message?.take(80) ?: "połączenie"}")
         }
         val pcm = GeminiLektor.pcmFromWav(wav)
-        val parts = com.nuvio.tv.fork.lektor.SilenceSplit.split(pcm, cleaned.size)
+        val parts = com.nuvio.tv.fork.lektor.SilenceSplit.split(pcm, cleaned.size, cleaned)
         if (parts == null) Log.i(TAG, "Chirp scena ${cleaned.size} kwestii (${pcm.durationMs} ms): cięcie po ciszy się nie zgadza")
         return parts
     }

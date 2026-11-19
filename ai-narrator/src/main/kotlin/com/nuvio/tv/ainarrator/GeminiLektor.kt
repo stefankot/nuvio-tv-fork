@@ -61,7 +61,7 @@ class GeminiLektor(context: Context) : Lektor, com.nuvio.tv.fork.lektor.SceneLek
         if (joined.length > 1_200) return null
         val style = NarratorText.style("", null) + SCENE_NOTE
         val pcm = pcmFromWav(wavFor(key, options, joined, style, (joined.length / 9.0 + cleaned.size * 0.8).coerceIn(3.0, 120.0)))
-        val parts = com.nuvio.tv.fork.lektor.SilenceSplit.split(pcm, cleaned.size)
+        val parts = com.nuvio.tv.fork.lektor.SilenceSplit.split(pcm, cleaned.size, cleaned)
         if (parts == null) android.util.Log.i("ForkLektor", "scena ${cleaned.size} kwestii (${pcm.durationMs} ms): cięcie po ciszy się nie zgadza")
         return parts
     }
