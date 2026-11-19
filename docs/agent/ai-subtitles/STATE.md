@@ -1,6 +1,6 @@
 # AI napisy — stan prac (przerwane na prośbę właściciela, 18.11.2026)
 
-Gałąź: `ai-subtitles-integration` (worktree `../NuvioFork-aisub`, od `hybryda-zrodel` @ d18ca6ddf). **Kompiluje się, testy JUnit 31/31 (build96). Nieuruchomione na emulatorze/TV, bez prawdziwego klucza Gemini.**
+Gałąź: scalone do `hybryda-zrodel` 19.11 (merge 82d132d4f; wcześniej `ai-subtitles-integration`). **Kompiluje się, testy JUnit 31/31 (build96). Nieuruchomione na emulatorze/TV, bez prawdziwego klucza Gemini.**
 
 ## Decyzje właściciela (18.11)
 - Dostawca: **Google Gemini**, domyślny model `gemini-3.8-flash` (do wyboru: 3.5-flash-lite, 4-hydrogen, 4-argon). Ceny sprawdzone 18.11 na aistudio.google.com/docs/pricing (3.8-flash: $0.75/$3.75 za 1M do 31.12.2026, potem $1.50/$7.50).
