@@ -669,6 +669,7 @@ class StreamScreenViewModel @Inject constructor(
                 // chance to return higher-quality streams before the selector
                 // picks from whatever is available.
                 if (!isAllLoaded && !autoPlayHandledForSession && !resolvedAutoPlayTarget) com.nuvio.tv.fork.echo.EchoRaceHook.offer(context, raceHeadStart, allStreams, playerSettings, installedAddonOrder.toSet()) // fork hook
+                com.nuvio.tv.fork.sources.TrackScout.onSources(allStreams) // Fork hook: sonda ścieżek (dźwięk/napisy wbudowane) w tle
                 val shouldAutoSelect = !autoPlayHandledForSession && !resolvedAutoPlayTarget && isAllLoaded
                 var selectedAutoPlayStream = if (earlyBingeGroupMatch != null) {
                     earlyBingeGroupMatch

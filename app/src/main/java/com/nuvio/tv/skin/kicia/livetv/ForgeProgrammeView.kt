@@ -122,6 +122,7 @@ internal fun buildEntries(channels: List<LiveTvChannel>, key: String, now: Long,
     // makieta 7.7 F29: the phrase matches the title anywhere, case and Polish letters ignored, so a recurring programme is found whole
     // test 15.11 (JMGO): a Regex per title over ~100 000 airings kept „Wczytuję programy…” for minutes — one pattern, one result per title
     val cache = HashMap<String, Boolean>()
+    val favCache = HashMap<String, Boolean>()
     val needle = forgeFold(phrase.trim())
     val groups = LinkedHashMap<String, MutableList<Pair<LiveTvChannel, LiveTvProgramme>>>()
     val seen = HashSet<String>()
@@ -131,7 +132,7 @@ internal fun buildEntries(channels: List<LiveTvChannel>, key: String, now: Long,
             if (p.startEpochMs > now + 2 * DAY_MS) return@forEach
             // Past airings count only where they can be played again.
             if (p.stopEpochMs <= now && !LiveTvCatchupLinks.isPlayable(ch.catchup, p, now)) return@forEach
-            if (key == FORGE_PROG_FAVOURITES) { if (com.nuvio.tv.fork.tv.ShowIdentity.normalizeTitle(p.title) !in favourites) return@forEach } // makieta 7.7 F27
+            if (key == FORGE_PROG_FAVOURITES) { if (!favCache.getOrPut(p.title) { com.nuvio.tv.fork.tv.ShowIdentity.normalizeTitle(p.title) in favourites }) return@forEach } // makieta 7.7 F27; fork 19.11: raz na tytuł (7 regex na każdą emisję = wolne Ulubione)
             else if (!ForgeEpgCategories.programmeMatches(ch.guideKey, p, key)) return@forEach
             if (needle.isNotEmpty() && !cache.getOrPut(p.title) { forgeFold(p.title).contains(needle) }) return@forEach
             val id = p.title.trim().lowercase() // v7.6: ALL airings and episodes of a programme in one tile

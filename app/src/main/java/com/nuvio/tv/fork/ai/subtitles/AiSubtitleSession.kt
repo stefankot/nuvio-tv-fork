@@ -60,6 +60,8 @@ object SourceGatherer {
         val original = port.audioLanguages().firstOrNull()?.let(AuxiliaryLanguagePolicy::primaryLanguage)
         fun lang(o: SubtitleOption) = AuxiliaryLanguagePolicy.primaryLanguage(o.language)
         val notTarget = options.filter { lang(it) != target }
+        // Zgłoszenie 9a (Tip Toe): film miał tylko napisy wbudowane w plik — moduł czyta na razie wyłącznie napisy z dodatków.
+        if (options.isEmpty()) throw BlockFailedException("Brak napisów z dodatków (np. OpenSubtitles). Napisów wbudowanych w plik AI jeszcze nie czyta")
         if (notTarget.isEmpty()) throw BlockFailedException("Brak napisów źródłowych w innym języku niż polski")
         // The user's own non-Polish choice first, then the original language, then English as an intermediary.
         val selected = port.selected()?.takeIf { lang(it) != target }

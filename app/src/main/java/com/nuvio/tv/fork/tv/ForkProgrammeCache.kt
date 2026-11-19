@@ -45,7 +45,8 @@ internal object ForkProgrammeCache {
     }
 
     private fun entryKey(channels: List<LiveTvChannel>, guideVersion: Int, key: String, sort: ForgeProgrammeSort, phrase: String) =
-        sig(channels, guideVersion) + "|" + key + "|" + sort.name + "|" + phrase
+        sig(channels, guideVersion) + "|" + key + "|" + sort.name + "|" + phrase +
+            (if (key == com.nuvio.tv.skin.kicia.livetv.FORGE_PROG_FAVOURITES) "|" + com.nuvio.tv.fork.tv.TvStore.favoriteShows.value.hashCode() else "") // zmiana ulubionych = nowa lista
 
     fun entriesOrNull(channels: List<LiveTvChannel>, guideVersion: Int, key: String, sort: ForgeProgrammeSort, phrase: String): Entries? =
         synchronized(entries) { entries[entryKey(channels, guideVersion, key, sort, phrase)] }
@@ -69,7 +70,7 @@ internal object ForkProgrammeCache {
         warm = scope.launch(worker) {
             val t = treeNow(channels, guideVersion)
             val sort = ForgeProgrammeView.sort
-            (listOf(ForgeEpgCategories.PROG_ALL) + t.map { it.key }).forEach { key ->
+            (listOf(ForgeEpgCategories.PROG_ALL, com.nuvio.tv.skin.kicia.livetv.FORGE_PROG_FAVOURITES) + t.map { it.key }).forEach { key -> // 19.11: Ulubione też zawczasu
                 val k = entryKey(channels, guideVersion, key, sort, "")
                 if (synchronized(entries) { entries.containsKey(k) }) return@forEach
                 val e = runCatching { buildEntries(channels, key, LiveTvClock.nowEpochMs(), sort, "") }.getOrNull() ?: return@forEach

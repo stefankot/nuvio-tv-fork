@@ -70,3 +70,4 @@ app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerViewModel.kt	AiSubtitles.
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerViewModel.kt	AiSubtitles.unbind(controller) // Fork hook: ai-subtitles	controller.onCleared()	ai-subtitles	AI napisy: koniec sesji	
 app/build.gradle.kts	// Fork hook: ai-subtitles klucz	TVDB_API_KEY	ai-subtitles	klucz Gemini do BuildConfig (local.properties)
 app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt	// Fork hook: test łącza w tle	if (raceField != null) selectedAutoPlayStream = null	ke-network	test łącza w tle na ekranie źródeł (KeAutoTest)
+app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt	TrackScout.onSources(	val shouldAutoSelect	sources	sonda ścieżek (dźwięk/napisy wbudowane) przed wyborem źródła

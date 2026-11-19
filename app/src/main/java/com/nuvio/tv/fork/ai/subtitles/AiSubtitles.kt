@@ -130,7 +130,7 @@ object AiSubtitles {
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
             } catch (e: Exception) {
-                Log.w(TAG, "session=$id failed: ${e.javaClass.simpleName}") // no dialogue text or key in logs
+                Log.w(TAG, "session=$id failed: ${e.javaClass.simpleName}: ${e.message?.take(160)}") // own messages only (no dialogue text, no key)
                 _state.value = AiState(id, port.materialId, AiStage.FAILED, message = e.message ?: "Błąd", notice = "AI: ${e.message ?: "błąd"}")
             }
         }

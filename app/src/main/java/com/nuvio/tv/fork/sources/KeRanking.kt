@@ -95,13 +95,27 @@ object KeRanking {
     /** Język napisów = polski (ustawienia odtwarzacza): źródła z polskimi napisami w nazwie wyżej, po polskim dźwięku (W4). */
     @Volatile private var polishSubs = false
     private val PL_SUBS = Regex("""(?i)\b(?:pl[ ._-]?subs?|subs?[ ._-]?pl|napisy(?:[ ._-]?pl)?|plsub)\b""")
-    private fun subsTier(s: Stream): Int =
-        if (!polishSubs) 0 else if (PL_SUBS.containsMatchIn(listOfNotNull(s.name, s.title, s.description).joinToString(" "))) 0 else 1
+    /** Fork 19.11 (zgłoszenie 9b, decyzja 10): oznaczenia wielu napisów wbudowanych w nazwie (źródło dla AI napisów). */
+    private val MULTI_SUBS = Regex("""(?i)\b(?:multi[ ._-]?subs?|m[ ._-]?subs?|multisub|subs?[ ._-]?multi|multi)\b""")
+    // Napisy: 0 = polskie (nazwa albo sonda TrackScout: wbudowane PL), 1 = dużo wbudowanych (nazwa Multi-Sub albo
+    // sonda ≥3 języki — źródło dla AI napisów), 2 = wbudowane inne, 3 = reszta (w tym niesprawdzone).
+    private fun subsTier(s: Stream): Int {
+        if (!polishSubs) return 0
+        val text = listOfNotNull(s.name, s.title, s.description).joinToString(" ")
+        val scout = TrackScout.of(s)
+        return when {
+            PL_SUBS.containsMatchIn(text) || scout?.hasPolishSubs == true -> 0
+            MULTI_SUBS.containsMatchIn(text) || (scout?.subs?.count { it != "und" } ?: 0) >= 3 -> 1
+            scout?.subs?.isNotEmpty() == true -> 2
+            else -> 3
+        }
+    }
 
     private fun polishTier(s: Stream): Int {
         val p = polishRules ?: return 0
         val text = listOfNotNull(s.name, s.title, s.description).joinToString(" ")
-        val audio = SourcePresets.tierOf(p, text) ?: Int.MAX_VALUE
+        // Sonda ścieżek (TrackScout): polski dźwięk w pliku = najlepszy szczebel, także bez oznaczenia w nazwie.
+        val audio = (if (TrackScout.of(s)?.hasPolishAudio == true) 0 else null) ?: SourcePresets.tierOf(p, text) ?: Int.MAX_VALUE
         // P3 (18.11): działa polski głos lektora i napisy mają być po polsku → źródło z polskimi napisami równie dobre
         // jak polski dźwięk (lektor przeczyta). Brak głosu (JMGO) → zostaje sam polski dźwięk.
         if (polishSubs && (com.nuvio.tv.fork.lektor.LektorVoice.ready == true || appCtx?.let { com.nuvio.tv.ainarrator.LektorVoiceChoice.geminiKeyPresent(it) } == true) && PL_SUBS.containsMatchIn(text)) return 0 // scalenie 19.11: głos Gemini też
@@ -149,7 +163,7 @@ object KeRanking {
         android.util.Log.i("ForkRanking", "order: ${list.size} źródeł, polski=${polishRules?.id ?: "-"} napisyPL=$polishSubs oszczędz=$saver preferowane=${preferred != null}")
         list.take(6).forEachIndexed { i, st ->
             val f = ReleaseFactsParser.factsFor(st)
-            android.util.Log.i("ForkRanking", "#$i ${st.addonName} | ${f.resolution} | gotowe=${SourceReady.tier(st) == 0} obcyDub=${ForeignDub.tier(st) == 1} pl=${polishTier(st)} pref=${preferred?.matches(st) == true} | " +
+            android.util.Log.i("ForkRanking", "#$i ${st.addonName} | ${f.resolution} | sonda=${TrackScout.of(st)?.let { "a${it.audio}/n${it.subs}" } ?: "-"} napisy=${subsTier(st)} | gotowe=${SourceReady.tier(st) == 0} obcyDub=${ForeignDub.tier(st) == 1} pl=${polishTier(st)} pref=${preferred?.matches(st) == true} | " +
                 listOfNotNull(st.name, st.title).joinToString(" ").replace('\n', ' ').take(140))
         }
     }
