@@ -16,7 +16,17 @@ internal class NarratorPreferences(context: Context) {
     private val prefs = context.applicationContext.getSharedPreferences("ai_narrator_v1", Context.MODE_PRIVATE)
     private val alias = "nuvio_ai_narrator_v1"
 
-    fun load(): NarratorOptions = NarratorOptions(
+    fun load(): NarratorOptions {
+        // Fork 19.11 (właściciel: lektor jak klasyczny polski lektor filmowy): raz zmiana domyślnego żeńskiego „Kore” na niski męski
+        // „Charon”; później wybór w ustawieniach (Lektor Gemini: barwa głosu) zostaje.
+        if (!prefs.getBoolean("voice_classic_v1", false)) {
+            if ((prefs.getString("voice", "Kore") ?: "Kore") == "Kore") prefs.edit().putString("voice", "Charon").apply()
+            prefs.edit().putBoolean("voice_classic_v1", true).apply()
+        }
+        return loadRaw()
+    }
+
+    private fun loadRaw(): NarratorOptions = NarratorOptions(
         enabled = prefs.getBoolean("enabled", false),
         backend = runCatching { NarratorBackend.valueOf(prefs.getString("backend", "GEMINI")!!) }
             .getOrDefault(NarratorBackend.GEMINI),
@@ -24,7 +34,7 @@ internal class NarratorPreferences(context: Context) {
         localSpeakerId = prefs.getString("local_speaker", "") ?: "",
         model = runCatching { NarratorModel.valueOf(prefs.getString("model", "FLASH_LITE")!!) }
             .getOrDefault(NarratorModel.FLASH_LITE),
-        voice = prefs.getString("voice", "Kore") ?: "Kore",
+        voice = prefs.getString("voice", "Charon") ?: "Charon",
         narratorVolume = prefs.getFloat("volume", 0.65f).coerceIn(0f, 1f),
         monthlyUsdLimit = prefs.getFloat("limit", 2f).toDouble().coerceIn(0.1, 100.0)
     )
