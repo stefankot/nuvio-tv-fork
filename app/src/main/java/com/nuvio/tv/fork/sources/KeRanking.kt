@@ -185,15 +185,16 @@ object KeRanking {
             }
             // Polski dźwięk według odpowiedzi właściciela przed jakością; w obrębie szczebla zostaje kolejność KE (stabilne).
             // Oszczędzanie łącza: w obrębie dekodowanych sprzętowo najpierw najlepszy kodek (AV1 > HEVC > AVC), potem najmniejszy plik.
-            val fitsOrdered = if (!saver) fits else fits.sortedWith(compareBy<Stream>({ ReleaseFactsParser.factsFor(it).encode.ordinal }, { ReleaseFactsParser.factsFor(it).size ?: Long.MAX_VALUE }))
-            val ordered = (fitsOrdered + demoted).let { list -> if (polishRules == null && !polishSubs) list else list.sortedWith(compareBy(::polishTier, ::subsTier)) }
+            val fitsOrdered = if (!saver) fits else fits.map { it to ReleaseFactsParser.factsFor(it) }.sortedWith(compareBy({ it.second.encode.ordinal }, { it.second.size ?: Long.MAX_VALUE })).map { it.first }
+            // Fork 19.11 (ANR na JMGO: 917 źródeł, regex w komparatorze liczony przy każdym porównaniu): klucze raz na źródło.
+            val ordered = (fitsOrdered + demoted).let { list -> if (polishRules == null && !polishSubs) list else list.map { Triple(it, polishTier(it), subsTier(it)) }.sortedWith(compareBy({ it.second }, { it.third })).map { it.first } }
             // Kicia: źródła, które niedawno nie wystartowały albo nie przeszły kontroli pliku, na koniec (StartupChecks).
             val withBad = StartupChecks.demoteBad(ordered)
             // Fork 19.11 (JMGO: hiszpańskie „Castellano” 720p wygrało z angielskim 1080p, potem niegotowy plik TB⬇️):
             // zapamiętany ręczny wybór (dodatek + rozdzielczość) nie może przebić języka ani gotowości pliku —
             // niegotowe (SourceReady) i obcy dubbing (ForeignDub) zawsze na koniec, kolejność w środku zostaje.
             val picked = preferred?.preferredFirst(withBad)?.first ?: withBad
-            picked.sortedWith(compareBy(SourceReady::tier, ForeignDub::tier)).also { logTop(it) }
+            picked.map { Triple(it, SourceReady.tier(it), ForeignDub.tier(it)) }.sortedWith(compareBy({ it.second }, { it.third })).map { it.first }.also { logTop(it) } // klucze raz na źródło
         }.getOrDefault(streams)
     }
 }

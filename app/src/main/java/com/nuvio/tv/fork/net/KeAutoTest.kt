@@ -51,6 +51,10 @@ object KeAutoTest {
     fun onSources(c: Context, streams: List<com.nuvio.tv.domain.model.Stream>, ready: Boolean, autoPlay: Boolean) {
         val app = c.applicationContext
         if (autoPlay) { sourcesPending?.cancel(); sourcesPending = null; return } // autostart: test po filmie (onPlayerClosed)
+        // Zgłoszenie 19.11 („Władca Pierścieni”: „Gotowe 4K”, start ≥ 0,5–2 min): test w tle ruszał już z ekranu szczegółów
+        // (lista źródeł dla „Gotowe”) i trwał przy starcie filmu — anulowanie zadania nie zatrzymuje pobierania w wątkach testu,
+        // a bazowy tester zwalnia sesję pobierania odtwarzacza (ParallelRangeDataSource.releaseRetainedSession). Test tylko po filmie.
+        if (true) return
         if (!ready || streams.isEmpty()) return // dopiero gdy wszystkie dodatki odpowiedziały (autostart rozstrzygnięty)
         if (!ForkFeatures.enabled(app, KeNetwork.KEY, true) || !ForkFeatures.enabled(app, KEY, true)) return
         if (test?.isActive == true) return

@@ -8,6 +8,7 @@ import com.nuvio.tv.domain.model.Stream
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
@@ -53,6 +54,13 @@ object TrackScout {
     /** Hook ekranu źródeł (każda partia odpowiedzi dodatków): sonda najlepszych jeszcze niesprawdzonych. */
     fun onSources(streams: List<Stream>) {
         if (streams.isEmpty()) return
+        // Fork 19.11 (ANR na JMGO przy 917 źródłach): wołane z wątku głównego przy każdej partii — ranking w tle, raz na 0,5 s.
+        pending?.cancel()
+        pending = scope.launch { delay(500); pick(streams) }
+    }
+    @Volatile private var pending: kotlinx.coroutines.Job? = null
+
+    private fun pick(streams: List<Stream>) {
         val picks = runCatching { KeRanking.order(streams) }.getOrDefault(streams).asSequence()
             .filter { !it.isTorrent() && SourceReady.tier(it) == 0 }
             .mapNotNull { s -> key(s)?.let { k -> s to k } }
