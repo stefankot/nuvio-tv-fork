@@ -1,0 +1,102 @@
+name: ZONOS3 ARM32 companion (manual only)
+on:
+  workflow_dispatch:
+    inputs:
+      publish_public_release:
+        description: "Publish signed ARM32 APK to a PUBLIC repository in the stefankot account"
+        required: true
+        type: boolean
+        default: false
+      public_release_repo:
+        description: "Existing PUBLIC GitHub repository, e.g. stefankot/zonos32-runtime"
+        required: false
+        type: string
+      release_tag:
+        description: "Release tag for this independent companion APK"
+        required: false
+        default: "zonos32-v1"
+        type: string
+
+permissions:
+  contents: read
+jobs:
+  arm32-worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+      - name: Install pinned NDK and platform
+        run: |
+          sdkmanager --install "ndk;29.0.14206865" "platforms;android-36" "build-tools;36.0.0"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/29.0.14206865" >> "$GITHUB_ENV"
+      - name: Configure same keystore as Nuvio
+        env:
+          KEYSTORE: ${{ secrets.AUTOSYNC_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.AUTOSYNC_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.AUTOSYNC_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.AUTOSYNC_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test -n "$KEYSTORE"
+          test -n "$STORE_PASSWORD"
+          test -n "$KEY_ALIAS"
+          test -n "$KEY_PASSWORD"
+          printf '%s' "$KEYSTORE" | base64 -d > "$RUNNER_TEMP/zonos32-release.jks"
+          keytool -list -keystore "$RUNNER_TEMP/zonos32-release.jks"             -storepass "$STORE_PASSWORD" -alias "$KEY_ALIAS" >/dev/null
+          {
+            echo "NUVIO_RELEASE_STORE_FILE=$RUNNER_TEMP/zonos32-release.jks"
+            echo "NUVIO_RELEASE_STORE_PASSWORD=$STORE_PASSWORD"
+            echo "NUVIO_RELEASE_KEY_ALIAS=$KEY_ALIAS"
+            echo "NUVIO_RELEASE_KEY_PASSWORD=$KEY_PASSWORD"
+          } >> "$GITHUB_ENV"
+      - name: Cross-build upstream C++ and signed companion APK
+        run: bash ai-narrator/tools/build_android_zonos3.sh
+      - name: Verify ARM32 APK and digest
+        run: |
+          set -euo pipefail
+          APK="ai-narrator/worker-arm32/app/build/outputs/apk/release/app-release.apk"
+          test -s "$APK"
+          ls -lh "$APK"
+          sha256sum "$APK" | tee zonos32-apk.sha256
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs "$APK"
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$APK" | grep 'native-code' | grep 'armeabi-v7a'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zonos32-android-apk-for-testing
+          path: |
+            ai-narrator/worker-arm32/app/build/outputs/apk/release/app-release.apk
+            zonos32-apk.sha256
+      - name: Publish optional signed APK to EXISTING public stefankot repo
+        if: inputs.publish_public_release
+        env:
+          GH_TOKEN: ${{ secrets.ZONOS_PUBLIC_RELEASE_TOKEN }}
+          TARGET_REPO: ${{ inputs.public_release_repo }}
+          TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          [[ "$TARGET_REPO" =~ ^stefankot/[a-zA-Z0-9_.-]+$ ]] || {
+            echo "Target must be an existing public stefankot repo"; exit 1; }
+          [[ "$TAG" =~ ^[a-zA-Z0-9._-]+$ ]] || exit 1
+          test -n "$GH_TOKEN"
+          [[ "$(gh api "repos/$TARGET_REPO" --jq '.private')" == "false" ]] || {
+            echo "PRIVATE repository assets are not anonymously downloadable by Android TV"; exit 1; }
+          APK="ai-narrator/worker-arm32/app/build/outputs/apk/release/app-release.apk"
+          if gh release view "$TAG" -R "$TARGET_REPO" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK#zonos3-worker-armeabi-v7a.apk" -R "$TARGET_REPO" --clobber
+          else
+            gh release create "$TAG" "$APK#zonos3-worker-armeabi-v7a.apk"               -R "$TARGET_REPO" --title "Optional ZONOS3 ARM32 worker $TAG"               --notes "Separately signed Android armeabi-v7a companion. Requires installation consent."
+          fi
+          {
+            echo "ZONOS_ARM32_APK_URL=https://github.com/$TARGET_REPO/releases/download/$TAG/zonos3-worker-armeabi-v7a.apk"
+            echo "ZONOS_ARM32_APK_SHA256=$(sha256sum "$APK" | cut -d' ' -f1)"
+          } > zonos32-public-release.properties
+      - uses: actions/upload-artifact@v4
+        if: inputs.publish_public_release
+        with:
+          name: zonos32-public-release-config-for-nuvio-build
+          path: zonos32-public-release.properties
