@@ -224,6 +224,7 @@ fun SettingsScreen(
     // settings (Back returns here); "Pokaż wszystkie ustawienia" switches to the advanced mode.
     var forgeBasicDetour by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf<String?>(null) }
     val forgeShowBasic = isEssentialMode || (BuildConfig.IS_DEBUG_BUILD && com.nuvio.tv.skin.kicia.nav.ForgeNavState.debugBasicSettings) // debug: pomiar 15 niezależnie od zapisanego trybu
+    if (com.nuvio.tv.fork.settings.nav.ForkSettingsNav.gate(forgeShowBasic, forgeBasicDetour) { forgeBasicDetour = it }) return // Fork hook: settings-nav
     if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_SETTINGS && forgeShowBasic && forgeBasicDetour == null) {
         com.nuvio.tv.skin.kicia.settings.ForgeBasicSettings(
             onOpen = { category -> forgeBasicDetour = category; com.nuvio.tv.skin.kicia.nav.ForgeNavState.settingsCategory = category },
@@ -287,7 +288,7 @@ fun SettingsScreen(
     // focus back to the rail whenever it gains focus while this is false, so a plain remember made
     // every return from those screens land on the rail rather than where the user had been.
     var allowDetailAutofocus by rememberSaveable { mutableStateOf(false) }
-    var showSettingsSearch by rememberSaveable { mutableStateOf(false) } // Fork hook: settings-search
+    var showSettingsSearch by rememberSaveable { mutableStateOf(com.nuvio.tv.fork.settings.nav.ForkSettingsNav.takeSearch()) } // Fork hook: settings-search
     var detailHasFocus by remember { mutableStateOf(false) }
     // The rail item that last had focus. Not the same as the selected category: an external
     // category such as tracking never becomes the selected one, and moving along the rail without
@@ -819,7 +820,7 @@ fun SettingsScreen(
                         verticalArrangement = Arrangement.spacedBy(if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_SETTINGS) 0.dp else 10.dp, if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_SETTINGS) Alignment.Top else Alignment.CenterVertically)
                     ) {
                         item(key = "settings_search_row") { // Fork hook: settings-search
-                            if (ForkFeatures.enabled(androidx.compose.ui.platform.LocalContext.current, "fork_settings_search", true)) SettingsRailButton(title = "Search settings", icon = Icons.Default.Search, isSelected = false, onClick = { showSettingsSearch = true })
+                            if (com.nuvio.tv.fork.settings.nav.ForkSettingsNav.railSearch(androidx.compose.ui.platform.LocalContext.current)) SettingsRailButton(title = "Szukaj w ustawieniach", icon = Icons.Default.Search, isSelected = false, onClick = { showSettingsSearch = true }, onFocused = { forgeRailFirstFocused = true })
                         }
                         itemsIndexed(
                             items = visibleSections,
@@ -831,7 +832,7 @@ fun SettingsScreen(
                                 }
                                 SettingsRailButton(
                                     onFocused = {
-                                        forgeRailFirstFocused = index == 0 // forge hook v7.4
+                                        forgeRailFirstFocused = index == 0 && !com.nuvio.tv.fork.settings.nav.ForkSettingsNav.railSearchShown // forge hook v7.4
                                         forgeRailFocused = section.category.name // forge hook v7.4 (1.15)
                                         val restoringTo = railRestoringCategory
                                         if (section.category == restoringTo) {

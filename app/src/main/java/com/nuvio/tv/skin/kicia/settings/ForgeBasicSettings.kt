@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material.icons.outlined.Sync
@@ -101,7 +102,7 @@ internal val ForgeBasicCategories: List<ForgeBasicCategory> = listOf(
     )))),
     ForgeBasicCategory("Wszystkie ustawienia", Icons.Outlined.Tune, listOf(ForgeBasicGroup(null, listOf(
         ForgeBasicRow("Pokaż wszystkie ustawienia", "Ponad 200 opcji dla zaawansowanych. Twoje wartości zostają.", target = null),
-        ForgeBasicRow("Najprostsze ustawienia", "Tylko najważniejsze opcje na jednym ekranie", target = "FORK_SIMPLE"), // fork 19.11: powrót do najprostszych
+        ForgeBasicRow("Tryb NOOB", "Tylko najważniejsze opcje na jednym ekranie", target = "FORK_SIMPLE"), // fork 19.11: powrót do najprostszych
     )))),
 )
 
@@ -126,6 +127,12 @@ fun ForgeBasicSettings(
     Row(Modifier.fillMaxSize().background(ForgeColors.Bg).padding(top = 84.dp, start = 40.dp, end = 40.dp)) {
         // Rail
         Column(Modifier.width(216.dp).focusGroup(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            if (com.nuvio.tv.fork.settings.nav.ForkSettingsNav.railSearch(forkCtx)) { // fork 19.11: wyszukiwarka ustawień także w trybie Prostym
+                com.nuvio.tv.fork.settings.nav.NavRailItem("Szukaj", Icons.Outlined.Search, selected = false,
+                    modifier = Modifier.focusProperties { right = firstRow },
+                    onOk = { com.nuvio.tv.fork.settings.nav.ForkSettingsNav.requestSearch(); onOpen(com.nuvio.tv.fork.settings.nav.ForkSettingsNav.SEARCH) })
+                Spacer(Modifier.height(8.dp))
+            }
             ForgeBasicCategories.forEachIndexed { i, c ->
                 ForgeFocusBox(
                     radius = 8.dp,

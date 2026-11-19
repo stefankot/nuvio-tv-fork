@@ -39,7 +39,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.k
      val isPrimaryProfileActive by profileViewModel.isPrimaryProfileActive.collectAsStateWithLifecycle()
      val isWatchPartyAvailable by partyViewModel.party.available.collectAsStateWithLifecycle()
      val experienceModeState by remember(experienceModeViewModel) {
-@@ -206,6 +212,26 @@
+@@ -206,6 +212,27 @@
      }
  
      val isEssentialMode = loadedExperienceMode == ExperienceMode.ESSENTIAL
@@ -55,6 +55,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.k
 +    // settings (Back returns here); "Pokaż wszystkie ustawienia" switches to the advanced mode.
 +    var forgeBasicDetour by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf<String?>(null) }
 +    val forgeShowBasic = isEssentialMode || (BuildConfig.IS_DEBUG_BUILD && com.nuvio.tv.skin.kicia.nav.ForgeNavState.debugBasicSettings) // debug: pomiar 15 niezależnie od zapisanego trybu
++    if (com.nuvio.tv.fork.settings.nav.ForkSettingsNav.gate(forgeShowBasic, forgeBasicDetour) { forgeBasicDetour = it }) return // Fork hook: settings-nav
 +    if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_SETTINGS && forgeShowBasic && forgeBasicDetour == null) {
 +        com.nuvio.tv.skin.kicia.settings.ForgeBasicSettings(
 +            onOpen = { category -> forgeBasicDetour = category; com.nuvio.tv.skin.kicia.nav.ForgeNavState.settingsCategory = category },
@@ -66,7 +67,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.k
  
      val visibleCategories = remember(isPrimaryProfileActive, isEssentialMode, isWatchPartyAvailable) {
          visibleSettingsCategories(
-@@ -239,6 +265,9 @@
+@@ -239,6 +266,9 @@
              SettingsCategory.TRACKING to FocusRequester(),
              SettingsCategory.PLAYBACK to FocusRequester(),
              SettingsCategory.NUVIO_RESHAPED to FocusRequester(), // Nuvio RS hook
@@ -76,14 +77,14 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.k
              SettingsCategory.ADVANCED to FocusRequester(),
              SettingsCategory.ABOUT to FocusRequester(),
              SettingsCategory.ACCOUNT to FocusRequester()
-@@ -370,7 +399,37 @@
+@@ -370,6 +400,36 @@
      }
  
      val focusManager = LocalFocusManager.current
 +    val forgeBarFocus = com.nuvio.tv.skin.kicia.nav.LocalForgeBarFocus.current // forge hook v7.4 (01: ▲ z pierwszej kategorii szyny -> pasek)
 +    var forgeRailFirstFocused by remember { mutableStateOf(false) } // forge hook v7.4
 +    var forgeRailFocused by remember { mutableStateOf<String?>(null) } // forge hook v7.4 (1.15): the rail category that really has the focus
- 
++
 +    // forge hook v7.4 (1.15): the bar asked for a category (long OK on Tryb nocny): select it and focus it on the rail
 +    val forgeWanted = com.nuvio.tv.skin.kicia.nav.ForgeNavState.settingsCategory
 +    LaunchedEffect(forgeWanted) {
@@ -110,11 +111,10 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.k
 +        }
 +        com.nuvio.tv.skin.kicia.nav.ForgeNavState.settingsCategory = null
 +    }
-+
+ 
      LaunchedEffect(visibleSections) {
          if (visibleSections.none { it.category == selectedCategory }) {
-             selectedCategory = visibleSections.firstOrNull()?.category ?: SettingsCategory.APPEARANCE
-@@ -428,12 +487,12 @@
+@@ -428,12 +488,12 @@
      Box(
          modifier = Modifier
              .fillMaxSize()
@@ -132,7 +132,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.k
              )
      ) {
          SettingsWorkspaceSurface(
-@@ -691,11 +750,11 @@
+@@ -691,11 +751,11 @@
              } else {
              Row(
                  modifier = Modifier.fillMaxSize(),
@@ -146,7 +146,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.k
                          .fillMaxHeight()
                  ) {
                      LazyColumn(
-@@ -735,6 +794,12 @@
+@@ -735,6 +795,12 @@
                                      railFocusJob = null
                                      railRestoringCategory = null
                                  }
@@ -159,7 +159,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.k
                                  val toDetailKey = if (isRtl) Key.DirectionLeft else Key.DirectionRight
                                  if (event.type == KeyEventType.KeyDown && event.key == toDetailKey) {
                                      val pendingSection = focusedTabCategory
-@@ -751,7 +816,7 @@
+@@ -751,21 +817,23 @@
                                      false
                                  }
                              },
@@ -167,8 +167,11 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.k
 +                        verticalArrangement = Arrangement.spacedBy(if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_SETTINGS) 0.dp else 10.dp, if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_SETTINGS) Alignment.Top else Alignment.CenterVertically)
                      ) {
                          item(key = "settings_search_row") { // Fork hook: settings-search
-                             if (ForkFeatures.enabled(androidx.compose.ui.platform.LocalContext.current, "fork_settings_search", true)) SettingsRailButton(title = "Search settings", icon = Icons.Default.Search, isSelected = false, onClick = { showSettingsSearch = true })
-@@ -761,11 +826,13 @@
+-                            if (com.nuvio.tv.fork.settings.nav.ForkSettingsNav.railSearch(androidx.compose.ui.platform.LocalContext.current)) SettingsRailButton(title = "Szukaj w ustawieniach", icon = Icons.Default.Search, isSelected = false, onClick = { showSettingsSearch = true })
++                            if (com.nuvio.tv.fork.settings.nav.ForkSettingsNav.railSearch(androidx.compose.ui.platform.LocalContext.current)) SettingsRailButton(title = "Szukaj w ustawieniach", icon = Icons.Default.Search, isSelected = false, onClick = { showSettingsSearch = true }, onFocused = { forgeRailFirstFocused = true })
+                         }
+                         itemsIndexed(
+                             items = visibleSections,
                              key = { _, section -> section.category }
                          ) { index, section ->
                              Column {
@@ -178,12 +181,12 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.k
                                  }
                                  SettingsRailButton(
                                      onFocused = {
-+                                        forgeRailFirstFocused = index == 0 // forge hook v7.4
++                                        forgeRailFirstFocused = index == 0 && !com.nuvio.tv.fork.settings.nav.ForkSettingsNav.railSearchShown // forge hook v7.4
 +                                        forgeRailFocused = section.category.name // forge hook v7.4 (1.15)
                                          val restoringTo = railRestoringCategory
                                          if (section.category == restoringTo) {
                                              // Cleared here rather than waiting for the attempt to
-@@ -786,6 +853,7 @@
+@@ -786,6 +854,7 @@
                                      rawIconRes = section.rawIconRes,
                                      isSelected = selectedCategory == section.category,
                                      focusRequester = railFocusRequesters[section.category],
@@ -191,7 +194,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.k
                                      onClick = { onSectionClick(section) },
                                      suppressSelectedVisual = railHadFocus
                                          && focusedTabCategory != null
-@@ -1000,6 +1068,11 @@
+@@ -1000,6 +1069,11 @@
          SettingsCategory.NUVIO_RESHAPED -> NuvioReshapedSettingsContent( // Nuvio RS hook
              initialFocusRequester = if (allowDetailAutofocus) contentFocusRequesters[SettingsCategory.NUVIO_RESHAPED] else null
          )

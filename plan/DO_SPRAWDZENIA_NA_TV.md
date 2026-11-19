@@ -44,3 +44,4 @@ Lista dla właściciela. Wykonawca dopisuje tu wszystko, czego nie da się spraw
 - Tryb nocny: „Tryb nocny: początek/koniec” przełączają godziny harmonogramu (21/22/23 i 06/07/08).
 - Nastroje: Ustawienia (Prosty) → „Na co masz ochotę?”: wymaga klucza TMDB w `local.properties`; bez niego komunikat „Brak klucza TMDB”.
 - „Sterowanie głosem: przykłady poleceń” — lista przykładów.
+- Ustawienia 3 tryby (19.11): Zaawansowany — szyna „Szukaj” + 7 kategorii, ▶ do podkategorii, OK otwiera; Wstecz z panelu/kategorii wraca do drzewa; fokus w panelu grup Reshaped (np. Odtwarzanie → Dźwięk i obraz). Prosty — wiersz „Szukaj” nad kategoriami otwiera wyszukiwarkę. NOOB — nowy wygląd, przełączniki z plakietką, wybór poziomu. Pełne ustawienia (wyłącznik `fork_settings_nav` off): ▲ z pierwszej kategorii → „Szukaj w ustawieniach”.

@@ -75,3 +75,4 @@ app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvGuide.kt	ForgeGuideDetai
 app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	composable("forge_history")	composable(Screen.ExperienceModeSelection.route)	kicia	trasa Historia (menu awatara)
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerInitialization.kt	// Fork hook: lektor (ścieżka Arc też)	.setAudioProcessors	lektor	procesor lektora w ścieżce dźwięku Arc (formatsPlan)	.setAudioProcessors(arrayOf(gainAudioProcessor))
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlaybackSpeedAwareAudioSink.kt	// Fork hook: lektor = Dolby	shouldRejectDirectPlayback	lektor	lektor wymusza PCM (mikser działa przy Dolby)	
+app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.kt	// Fork hook: settings-nav	forgeBasicDetour	fork	nawigacja ustawień w 3 trybach (drzewo trybu Zaawansowanego)	

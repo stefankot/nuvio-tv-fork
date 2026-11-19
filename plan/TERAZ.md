@@ -3,6 +3,9 @@
 Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–13: `plan/archiwum/TERAZ-historia-watki-1-13.md` (tylko `grep`, nie czytaj całości).
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
+## USTAWIENIA 3 TRYBY (wątek równoległy, 19.11, gałąź skin-niunia) — NIEZBUDOWANE, kompilacja + testy `/tmp/test-nav1.log` OK (9/9)
+NOOB (dawne „Najprostsze”) ostylowany tokenami skórki; Prosty = `ForgeBasicSettings` + wiersz „Szukaj”; Zaawansowany = drzewo `fork/settings/nav/SettingsTree.kt` (7 kategorii: Konto i profile, Wygląd i ekran główny, Odtwarzanie, Napisy i lektor, Telewizja, Dodatki i usługi, System; po 5–8 podkategorii — cała kategoria Reshaped rozdzielona na grupy, Forge, moduły forka). Hook `// Fork hook: settings-nav` w `SettingsScreen` (w łatce Kicii), wyłącznik `fork_settings_nav`. Wyszukiwarka naprawiona: ▲ z pierwszej kategorii szyny szedł do paska, omijając „Szukaj”. Do następnej paczki builda; test wg `DO_SPRAWDZENIA_NA_TV.md` (wpis „Ustawienia 3 tryby”).
+
 ## NAJPIERW (wątek 15, zapis 20.11 ~02:30 zegar Maca) — po „kontynuuj” rób to, po kolei, bez pytań
 TEST build123 (właściciel 20.11 ~02:00, film z lektorem **Chirp**): „brzmi świetnie”, ale rozjeżdża się, czasem powtarza kwestie, ucina w połowie słowa, często ucina 1–3 ostatnie słowa. Logi: `.stage/lektor-test123.log`. Przyczyny w kodzie:
 - mikser (`LektorAudioProcessor`): napis bez gotowego głosu po cichu uciszał bieżącą kwestię; nowsza kwestia ucinała starszą bez zanikania; głos grał tylko do `endMs+4 s`; pozycja w nagraniu liczona z zegara — skok zegara (poprawka z interfejsu przy buforowaniu) powtarzał albo przeskakiwał fragment; `positionMs()` przy buforowaniu uciekał do przodu bez limitu;

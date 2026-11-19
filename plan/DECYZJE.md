@@ -54,3 +54,5 @@ Wykonawca nie pyta właściciela. Korzysta z tej listy. Właściciel może zmien
 - Etykiety: „#n Dziś” w rzędach trend/popul/top, „Nowość” (premiera ≤ 45 dni), „Klasyka” (rok < 2000); kolor = średnia pikseli spod etykiety, tekst czarny/biały wg jasności.
 - Profile zostają ekranem Nuvio, dopóki Niunia nie obsłuży PIN-ów.
 - Rozmycie plakatu tylko API 31+ (RenderEffect); na JMGO sam gradient.
+- 19.11 Nawigacja ustawień w 3 trybach: NOOB = dawne „Najprostsze” (UiLevel.SIMPLE), Prosty = Essential (`ForgeBasicSettings`), Zaawansowany = drzewo `fork/settings/nav/SettingsTree.kt` (7 kategorii × 5–8 podkategorii). Podkategoria z kategorią Nuvio otwiera pełny ekran tej kategorii (Wstecz → drzewo); grupy Reshaped i moduły rysowane w panelu drzewa. Wyłącznik `fork_settings_nav`.
+- 19.11 Wyszukiwarka: w szynie pełnych ustawień ▲ z pierwszej kategorii szedł do paska i omijał wiersz „Szukaj” — teraz ▲ z kategorii → Szukaj, ▲ z Szukaj → pasek. „Szukaj” także w szynie trybu Prostego i Zaawansowanego. W NOOB bez wyszukiwarki (jeden krótki ekran; objazd do pełnych ustawień łamałby powrót Wstecz).

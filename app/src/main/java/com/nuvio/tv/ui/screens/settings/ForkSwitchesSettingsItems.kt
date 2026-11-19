@@ -29,5 +29,6 @@ private fun LazyListScope.forkSwitch(key: String, icon: ImageVector, title: Stri
 internal fun LazyListScope.forkSwitchesSettingsItems() {
     forkSwitch("fork_calendar", Icons.Default.CalendarMonth, "Kalendarz (Echo)", "Pozycja Kalendarz w menu")
     forkSwitch("fork_settings_search", Icons.Default.Search, "Wyszukiwarka ustawień", "Przycisk wyszukiwania w Ustawieniach")
+    forkSwitch("fork_settings_nav", Icons.Default.Tune, "Menu ustawień w kategoriach", "Tryb zaawansowany: 7 kategorii z podkategoriami zamiast długiej listy")
     forkSwitch("fork_arc_remote", Icons.Default.Tune, "Pilot Arc poza odtwarzaczem", "Przyciski przypisane do „Nic” są wyciszone w całej aplikacji")
 }
