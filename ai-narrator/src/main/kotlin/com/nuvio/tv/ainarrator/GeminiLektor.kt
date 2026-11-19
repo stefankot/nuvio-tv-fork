@@ -113,7 +113,7 @@ class GeminiLektor(context: Context) : Lektor, com.nuvio.tv.fork.lektor.SceneLek
     fun clearCache() = cache.clear()
 
     companion object {
-        private const val MIN_GAP_MS = 2_000L
+        private const val MIN_GAP_MS = 6_500L // fork 19.11: limit konta TTS = 10 zapytań/min (AI Studio), 100/dzień
         private const val SCENE_NOTE = " To kilka kolejnych kwestii z jednej sceny, każda w osobnym akapicie. Czytaj je po kolei tym samym głosem " +
             "i w tym samym tempie, a między akapitami rób wyraźną pauzę, około jednej sekundy. Nie czytaj numerów ani pustych linii."
 
