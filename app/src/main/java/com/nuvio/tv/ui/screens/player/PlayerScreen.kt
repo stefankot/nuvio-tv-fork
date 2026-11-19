@@ -2240,6 +2240,7 @@ fun PlayerScreen(
         }
 
         com.nuvio.tv.ui.reshaped.livetv.LiveTvPlayerOverlay(liveTvPlayer, uiState) // Nuvio RS hook: Live TV
+        com.nuvio.tv.ainarrator.NarratorOverlay(viewModel.controller, visible = false, modifier = Modifier.align(Alignment.TopEnd).zIndex(2.7f)) // Fork hook: ai-narrator (wejście: Więcej → Lektor AI)
 
         if (uiState.showSpeedDialog) {
             SpeedSelectionDialog(

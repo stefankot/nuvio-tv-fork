@@ -67,3 +67,13 @@ dependencies {
     // The audio sync tests use kotlin.test.
     testImplementation "org.jetbrains.kotlin:kotlin-test:${kotlin.coreLibrariesVersion}"
 }
+
+// AI Narrator: independent sources; never modify upstream app/build.gradle.kts.
+android.sourceSets.getByName("main").java.srcDir("$rootDir/ai-narrator/src/main/kotlin")
+android.sourceSets.getByName("test").java.srcDir("$rootDir/ai-narrator/src/test/kotlin")
+
+// Optional ARM32 companion APK is delivered on demand. No native ZONOS3 binaries
+// are included in the Nuvio base APK. Values remain empty until a VERIFIED signed
+// armeabi-v7a companion package has been built and made available over HTTPS.
+defaults.buildConfigField("String", "ZONOS_ARM32_APK_URL", buildConfigString(resolveProperty("ZONOS_ARM32_APK_URL", "")))
+defaults.buildConfigField("String", "ZONOS_ARM32_APK_SHA256", buildConfigString(resolveProperty("ZONOS_ARM32_APK_SHA256", "")))

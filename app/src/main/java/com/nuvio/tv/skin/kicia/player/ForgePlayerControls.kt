@@ -183,6 +183,7 @@ fun ForgePlayerControls(
             }
             // W1 (19.11): test łącza KE na bieżącym filmie; wynik ustawia pobieranie wieloma połączeniami i limit w rankingu.
             com.nuvio.tv.fork.ai.subtitles.AiSubtitlesMenuRows { moreOpen = false } // fork: AI napisy
+            com.nuvio.tv.ainarrator.NarratorMenuRow { moreOpen = false } // fork: Lektor AI (ai-narrator)
             ForgeSheetRow(text = "Test łącza", detail = com.nuvio.tv.fork.net.KeNetwork.status.ifEmpty { null }) {
                 moreOpen = false
                 val url = com.nuvio.tv.fork.sources.PlayerBridge.streamUrl()
