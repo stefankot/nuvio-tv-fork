@@ -81,3 +81,11 @@ Przygotowanie dotyczy syntezy polskich napisów, **nie ich tłumaczenia z innych
 [Uruchomienie #44396760322](https://github.com/stefankot/nuvio-tv-fork/actions/runs/44396760322): failure. Nie uzyskano prawidłowego raportu kompilacji ani wykonanych testów z tego workflow.
 
 **Luka sprzętowa:** tryb przygotowania wymaga otwartego odtwarzacza z dostępnymi napisami. Samo wstrzymanie filmu może pozostawić w pamięci dekoder wideo. Na 2 GB RAM w dalszym ciągu może wystąpić blokada uruchomienia natywnego ZONOS3; optymalizacja „całkowicie przed inicjalizacją filmu” wymaga nowej ścieżki pozyskiwania pełnych napisów bez tworzenia odtwarzacza.
+
+### Aktualizacja: 19.11.2026 — osobny ARM32 APK z GitHub
+
+Usunięto wcześniejszą próbę dołączania natywnej binarki ARM64 do NuvioTV. W katalogu `ai-narrator/worker-arm32/` dodano osobny projekt Android `armeabi-v7a`, usługę dostępną wyłącznie dla aplikacji z tym samym podpisem, przekazywanie GGUF jako URI z prawem odczytu, walidację SHA i uruchamianie serwera wyłącznie na 127.0.0.1. W NuvioTV dodano `ZonosArm32Installer`, który automatycznie pobiera podpisany pakiet po aktywacji funkcji, gdy skonfigurowano publiczne GitHub Release z konta `stefankot`. Instalacja wymaga zgody Androida.
+
+**Stan rzeczywisty:** nie powstał sprawdzony plik APK ARM32; `stefankot/nuvio-tv-fork` jest prywatne i release assets nie są publicznie dostępne. Wymagany jest podpisany testowany plik z osobnego publicznego repozytorium właściciela, ustalenie dokładnego SHA-256 i skonfigurowanie URL przed budową NuvioTV. Rewizję kodu natywnego przypięto, ale CMake/NDK i obsługa na ARM32 są nieprzetestowane.
+
+Dodatkowy minimalny koszt integracji: oprócz PlayerScreen.kt (+5) pojawiły się wpisy w AndroidManifest.xml (+3) i file_paths.xml (+4) do widoczności pakietu, kontroli podpisu i bezpiecznego przekazania modeli. **Brak dowodu kompilacji i działania.** Liczby w pierwotnej tabeli u góry dokumentu są historyczne; aktualne należy ustalać z GitHub Compare.
