@@ -8,6 +8,8 @@
         <intent>
             <action android:name="android.speech.RecognitionService" />
         </intent>
+        <!-- Optional, separately installed ARM32 ZONOS3 worker -->
+        <package android:name="com.nuvio.tv.zonos32" />
     </queries>
 
     <uses-permission android:name="android.permission.INTERNET" />
