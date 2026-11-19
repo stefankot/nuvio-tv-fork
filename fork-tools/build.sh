@@ -47,6 +47,8 @@ trap 'rm -rf "$RUN"' EXIT
 say "start: $* (log $LOG)"
 cd "$ROOT" || exit 1
 export JAVA_HOME="${JAVA_HOME:-/opt/homebrew/opt/openjdk@17}"
+# Czas kompilacji dla napisu „built-…” w aplikacji (fork/buildage, tylko debug); plik poza gitem.
+mkdir -p "$ROOT/app/src/main/assets/fork" && date +%s > "$ROOT/app/src/main/assets/fork/build_time.txt"
 ./gradlew "$@" --console=rich 2>&1 | tee "$LOG"
 code=${PIPESTATUS[0]}
 say "koniec: kod $code"

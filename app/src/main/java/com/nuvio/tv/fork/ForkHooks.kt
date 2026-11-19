@@ -175,7 +175,7 @@ object ForkHooks {
         remember(c) { com.nuvio.tv.fork.devprefs.DevPrefsServer.start(c) } // tylko debug: serwer ustawień 127.0.0.1:8765 (fork-tools/prefs.sh)
         val overlays = remember(c) { ForkRegistry.forContext(c).rootOverlays() }
         // Rysowane nad treścią aplikacji (wcześniej leżały pod nią, bo hook jest pierwszym elementem Box).
-        androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.fillMaxSize().zIndex(100f)) { overlays.forEach { it() } }
+        androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.fillMaxSize().zIndex(100f)) { overlays.forEach { it() }; com.nuvio.tv.fork.buildage.BuildAgeBadge() }
     }
 
     /** PlayerScreen: klawisze odtwarzacza dla modułów. true = obsłużony. */
