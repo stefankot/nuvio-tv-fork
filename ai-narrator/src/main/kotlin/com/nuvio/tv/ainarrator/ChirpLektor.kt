@@ -11,6 +11,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.time.YearMonth
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
@@ -20,9 +21,9 @@ import org.json.JSONObject
  * bez limitu dziennego, 1 mln znaków/miesiąc za darmo (potem 30 USD / 1 mln znaków).
  * Klucz: `local.properties` GOOGLE_TTS_API_KEY → BuildConfig (osobny klucz Cloud, ograniczony do Text-to-Speech API;
  * klucz z AI Studio jest związany z kontem usługi i Cloud TTS go nie przyjmuje).
- * Kwestia po kwestii (limit na minutę wystarcza), pamięć podręczna na dysku, licznik znaków w miesiącu (log).
+ * Sceny jednym zapytaniem ([synthesizeScene]), zapas kwestia po kwestii; pamięć podręczna na dysku, licznik znaków w miesiącu (log).
  */
-class ChirpLektor(context: Context) : Lektor {
+class ChirpLektor(context: Context) : Lektor, com.nuvio.tv.fork.lektor.SceneLektor {
     private val app = context.applicationContext
     private val cache = NarratorAudioCache(File(app.cacheDir, "lektor-chirp"))
 
@@ -47,9 +48,48 @@ class ChirpLektor(context: Context) : Lektor {
         return GeminiLektor.pcmFromWav(wav)
     }
 
-    private suspend fun request(key: String, voice: String, text: String, speed: Float): ByteArray = withContext(Dispatchers.IO) {
+    /**
+     * Fork 19.11 (właściciel: „miał być mechanizm dzielenia na sceny i wysyłania scenami”): cała scena jednym zapytaniem —
+     * kwestie w polu `markup` rozdzielone `[pause long]` (test 19.11: pauzy 1,1–1,5 s, inne ciche miejsca ≤0,3 s),
+     * nagranie cięte po ciszy ([com.nuvio.tv.fork.lektor.SilenceSplit]). null = cięcie się nie zgadza (kontroler czyta pojedynczo).
+     */
+    override suspend fun synthesizeScene(texts: List<String>): List<Pcm>? {
+        if (texts.size < 2) return null
+        val key = apiKey()
+        if (key.isBlank()) throw Lektor.Unavailable("Brak klucza Google Cloud TTS (lektor Chirp)")
+        // Nawiasy kwadratowe w napisach udawałyby znaczniki markup.
+        val cleaned = texts.map { NarratorText.clean(it).replace('[', '(').replace(']', ')') }
+        if (cleaned.any { it.isBlank() }) return null
+        val markup = cleaned.joinToString(" [pause long] ")
+        if (markup.toByteArray(Charsets.UTF_8).size > 4_800) return null // limit Cloud TTS: 5000 bajtów na zapytanie
+        val voice = voice(app)
+        val id = NarratorText.fingerprint("chirp3hd-scene/$voice/${"%.2f".format(java.util.Locale.ROOT, BASE_RATE)}", markup, "")
+        val wav = cache.find(id, touch = true)?.readBytes() ?: try {
+            request(key, voice, markup, BASE_RATE, asMarkup = true).also { cache.store(id, it); countChars(cleaned.sumOf { it.length }) }
+        } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            Log.w(TAG, "Chirp TTS scena ${cleaned.size} kwestii, $voice: ${e.javaClass.simpleName}: ${e.message?.take(160)}")
+            throw Lektor.Unavailable("Błąd głosu Google Chirp: ${e.message?.take(80) ?: "połączenie"}")
+        }
+        val pcm = GeminiLektor.pcmFromWav(wav)
+        val parts = com.nuvio.tv.fork.lektor.SilenceSplit.split(pcm, cleaned.size)
+        if (parts == null) Log.i(TAG, "Chirp scena ${cleaned.size} kwestii (${pcm.durationMs} ms): cięcie po ciszy się nie zgadza")
+        return parts
+    }
+
+    /** Limit Cloud TTS Chirp 3 HD: 200 zapytań/min na projekt; kontroler na starcie potrafi wysłać ~7/s → równe tempo. */
+    private val pace = kotlinx.coroutines.sync.Mutex()
+    @Volatile private var lastCallAt = 0L
+
+    private suspend fun request(key: String, voice: String, text: String, speed: Float, asMarkup: Boolean = false): ByteArray = pace.withLock {
+        val wait = lastCallAt + MIN_GAP_MS - System.currentTimeMillis()
+        if (wait > 0) kotlinx.coroutines.delay(wait)
+        try { send(key, voice, text, speed, asMarkup) } finally { lastCallAt = System.currentTimeMillis() }
+    }
+
+    private suspend fun send(key: String, voice: String, text: String, speed: Float, asMarkup: Boolean): ByteArray = withContext(Dispatchers.IO) {
         val payload = JSONObject()
-            .put("input", JSONObject().put("text", text))
+            .put("input", JSONObject().put(if (asMarkup) "markup" else "text", text))
             .put("voice", JSONObject().put("languageCode", "pl-PL").put("name", "pl-PL-Chirp3-HD-$voice"))
             .put("audioConfig", JSONObject().put("audioEncoding", "LINEAR16").put("sampleRateHertz", 24_000).put("speakingRate", speed.toDouble()))
         val c = URL("https://texttospeech.googleapis.com/v1/text:synthesize").openConnection() as HttpURLConnection
@@ -86,6 +126,7 @@ class ChirpLektor(context: Context) : Lektor {
         private const val TAG = "ForkLektor"
         private const val PREFS = "fork_lektor_chirp"
         private const val FREE_CHARS = 1_000_000L
+        private const val MIN_GAP_MS = 350L // ≈170 zapytań/min, poniżej limitu 200/min
         /** Lekko szybciej niż domyślnie — kwestie lektora muszą mieścić się w czasie napisu. */
         private const val BASE_RATE = 1.1f
         const val K_CHIRP_VOICE = "lektor_chirp_voice"

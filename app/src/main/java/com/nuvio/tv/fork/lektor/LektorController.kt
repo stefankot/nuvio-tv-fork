@@ -106,7 +106,7 @@ object LektorController {
                         LektorEngine.voice[l.startMs] = pcm; done += l.startMs
                     }
                     val kept = SynthWindow.dropOutside(done, pos); done.retainAll(kept); LektorEngine.voice.keys.retainAll(kept)
-                    status = if (errStreak > 0) "Lektor: ponawiam po błędzie Gemini" else "Lektor włączony"
+                    status = if (errStreak > 0) "Lektor: ponawiam po błędzie głosu" else "Lektor włączony"
                     delay(if (errStreak > 0) minOf(30_000L, 1_000L shl minOf(errStreak, 5)) else 1000)
                 }
             } finally { (tts as? SystemLektor)?.shutdown() }
