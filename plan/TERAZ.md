@@ -12,7 +12,8 @@ Ostatnia aktualizacja: 19.11.2026 ok. 02:40 (koniec wątku 5).
   - NOWE: YouTube ekran główny — nazwy ikon szyny ucięte na fokusie (przewijana szyna przycinała) → nazwa w `Popup` bez fokusu.
   - NOWE: Ustawienia — z wersji podstawowej/pełnej brak powrotu do najprostszych → wiersz „Najprostsze ustawienia” w podstawowych (kategoria „Wszystkie ustawienia”) i w pełnych (Nuvio Forge → System); `SimpleLevel.changes` przełącza ekran od razu.
   - NOWE: kafle Kicii (Kontynuuj oglądanie) bez ikonki typu film/serial (`ForgeTypeBadge` nieużywany), 9e60c9403.
-- NASTĘPNE: wynik build112 (`grep -a BUILD /tmp/build112.log`, błędy `grep -a "^e: "`); gdy OK i JMGO wolne (`adb -s 192.168.31.252:5555 shell dumpsys media_session` — brak aktywnego odtwarzania) → instalacja `app/build/outputs/apk/full/debug/app-full-armeabi-v7a-debug.apk`, md5, testy z „wątek 9 NASTĘPNE (1)” + Odkrywaj + YouTube Dźwięk + Baahubali ▲ + Calendar Wstecz; potem zgłoszenia (1) Home i (5) ekran napisów na starcie (odtworzyć na TV, `ForgeKeys` w logu); serwer logów (właściciel zalogowany w DirectAdmin).
+- build112 APK OK (5 min, 10:50, md5 c3a69e81703d0754a18ed794f316161f), NIEZAINSTALOWANY: o 10:50 na JMGO Nuvio odtwarza (media_session state=3).
+- NASTĘPNE: gdy JMGO wolne (`adb -s 192.168.31.252:5555 shell dumpsys media_session` — brak aktywnego odtwarzania) → instalacja `app/build/outputs/apk/full/debug/app-full-armeabi-v7a-debug.apk`, md5, testy z „wątek 9 NASTĘPNE (1)” + Odkrywaj + YouTube Dźwięk + Baahubali ▲ + Calendar Wstecz; potem zgłoszenia (1) Home i (5) ekran napisów na starcie (odtworzyć na TV, `ForgeKeys` w logu); serwer logów (właściciel zalogowany w DirectAdmin).
 
 ## WĄTEK 9 (19.11 ~17:30) — wynik i następne kroki (nadrzędne wobec listy „wątek 8” niżej)
 - build108 compile OK (FullLog, lektor 321ba3643). build109 compile OK. build110 = DUŻA paczka APK armeabi-v7a (`/tmp/build110.log`).
