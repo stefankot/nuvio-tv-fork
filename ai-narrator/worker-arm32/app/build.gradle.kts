@@ -1,9 +1,9 @@
 plugins { id("com.android.application") }
 
 val keyFile = System.getenv("NUVIO_RELEASE_STORE_FILE").orEmpty()
-val keyAlias = System.getenv("NUVIO_RELEASE_KEY_ALIAS").orEmpty()
-val keyPassword = System.getenv("NUVIO_RELEASE_KEY_PASSWORD").orEmpty()
-val storePassword = System.getenv("NUVIO_RELEASE_STORE_PASSWORD").orEmpty()
+val releaseAlias = System.getenv("NUVIO_RELEASE_KEY_ALIAS").orEmpty()
+val releaseKeyPassword = System.getenv("NUVIO_RELEASE_KEY_PASSWORD").orEmpty()
+val releaseStorePassword = System.getenv("NUVIO_RELEASE_STORE_PASSWORD").orEmpty()
 
 android {
     namespace = "com.nuvio.tv.zonos32"
@@ -19,16 +19,16 @@ android {
     signingConfigs {
         create("nuvio") {
             if (keyFile.isNotBlank()) storeFile = file(keyFile)
-            keyAlias = keyAlias
-            keyPassword = keyPassword
-            storePassword = storePassword
+            keyAlias = releaseAlias
+            keyPassword = releaseKeyPassword
+            storePassword = releaseStorePassword
         }
     }
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
-            if (keyFile.isNotBlank() && keyAlias.isNotBlank() &&
-                keyPassword.isNotBlank() && storePassword.isNotBlank()) {
+            if (keyFile.isNotBlank() && releaseAlias.isNotBlank() &&
+                releaseKeyPassword.isNotBlank() && releaseStorePassword.isNotBlank()) {
                 signingConfig = signingConfigs.getByName("nuvio")
             }
         }
