@@ -39,6 +39,18 @@ Stan 19.11: moduł SCALONY do `hybryda-zrodel` (merge 82d132d4f; kod `app/src/ma
 - build107 (APK armeabi-v7a, 2 min 10 s — Kotlin z build106 w pamięci Gradle; skrót zgodny 39a21572…) ZAINSTALOWANY na JMGO 19.11. Wyniki: start OK; AI napisy: QR z adresem `http://192.168.31.252:8120/<token>/` (strona odpowiada, pole „Klucz API Gemini”), zgoda TAK, model gemini-4-hydrogen, w APK tylko nowy klucz (…2oaQ). UWAGA UX: nagłówek i wiersz „Klucz API” przewijają się poza ekran (nie da się do nich wrócić fokusem) — do poprawy. Live TV → Kategorie → Programy: drzewo od razu (Wszystkie 6342, Filmy 1712, Seriale 1752…), „Wszystkie: Seriale” — lista bez „Wczytuję”, w pierwszym odczycie ekranu (<3–5 s z czasem zrzutu). „Kontynuuj oglądanie” (Star Trek): start od razu ze źródła TB, BEZ okna P2P. Po zamknięciu filmu KeAutoTest: „auto test: strem.fun” → „Łącze z strem.fun: 81 Mbit/s (3 połączenia)” (~60 s). Uwaga: klucz usługi = host dodatku (Torrentio strem.fun), nie CDN TorBox (baza nie podaje adresu po przekierowaniu). Niesprawdzone: karta programu (TVDB→TMDB→EPG), „Więcej” → AI napisy w odtwarzaczu, płatne tłumaczenie, test na ekranie źródeł.
 5. Następne paczki (po teście): audio do 60 s, MPV (`sub-add` z pliku), OpenSubtitles (przegląd + potwierdzenie), tryb ekstremalny.
 
+
+## ZGŁOSZENIA WŁAŚCICIELA po build107 (19.11 ~16:50) — DO ZROBIENIA (sesja Kontynuuj)
+1. Home w pasku nawigacji nie działa (Kicia ForgeTopNav → MainActivity `navigateToDrawerRoute`, popUpTo(startDestination)+restoreState) — przyczyna nieznana, odtworzyć na TV.
+2. Live TV → Odkrywaj: ma być drugi układ Live TV z paskami „Kontynuuj oglądanie”, „Obejrzane”, „Nowe odcinki” itd. — jest pusto.
+3. Live TV → Szukaj programu → Ulubione: wczytuje bardzo długo (w Kicii szybko).
+4. YouTube: nie da się zmienić ścieżki dźwiękowej.
+5. Start filmu otwiera ekran wyboru napisów zamiast filmu.
+6. Film „Reality” (tt24068064): wybrane 1080p mimo wielu 4K — PRZYCZYNA: JMGO ma ekran 1920×1080 tylko (dumpsys display), `KeRanking` `tvCap` odsuwa 4K za 1080p (celowo) — czeka na decyzję właściciela; start bez napisów; przełączenie na 4K bardzo wolne (oryginalny Nuvio: chwila i od razu polskie napisy); „Napisy nie pasują” w Więcej mimo zsynchronizowanych; okno Więcej zamyka się samo i za szybko; lektor milczy — NAPRAWIONE przez sesję „Moduł AI narrator” (commit 321ba3643: Regex z `]`/`}` w NarratorCore rzucał na Androidzie), do następnej paczki.
+7. NOWE (właściciel): logi mają się zachowywać W CAŁOŚCI (całe używanie) i synchronizować z panelem administracyjnym na zenbox (nuviosync.caring.design) w całości. Teraz logcat JMGO gubi wpisy (chatty/bufor) — przyczyny „Reality” nie dało się odczytać.
+- Logi z JMGO po zgłoszeniach: `plan/raporty/jmgo-build107-zgloszenia.log` (ucięte).
+- JMGO o ~16:55 ktoś oglądał film — testy ADB wstrzymane.
+
 ## PANEL „NUVIO RODZINA” (19.11, wersja minimalna dla kilku osób; decyzja właściciela)
 - Wdrożony: https://nuviosync.caring.design/panel/ (pliki: `server/family-sync/{api.php,panel_api.php,.htaccess,panel/*}`; wgrywanie: menedżer plików DirectAdmin `panel-s7.zenbox.pl/CMD_FILE_MANAGER/...` przez POST `action=edit` z poziomu strony, właściciel zalogowany do panelu klienta zenbox → „Manager plików”).
 - Działa (curl/Node): logowanie linkiem e-mail (tylko brzostkowski@gmail.com, 15 min, sesja 30 dni, ciasteczko HttpOnly/Secure/Strict), `panel_redeem` (kod typu panel), `report`, `devices`, nazwy, usuwanie, czyszczenie; `put` z `base` (409 przy nowszej wersji) i `src`; ZIP + protobuf DataStore round-trip (Node). XML SharedPreferences tylko w przeglądarce (nietestowane na prawdziwym zrzucie).
