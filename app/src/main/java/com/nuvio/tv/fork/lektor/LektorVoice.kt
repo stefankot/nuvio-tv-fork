@@ -19,7 +19,7 @@ object LektorVoice {
     const val MISSING_MSG = "Brak głosu lektora na tym telewizorze. Zainstaluj „Google Mowa” (Speech Services by Google) ze Sklepu Play i pobierz język polski."
 
     /** Scalenie 19.11: lektor ma głos, gdy jest polski głos systemowy ALBO klucz Gemini. */
-    fun usable(c: Context): Boolean = ready != false || com.nuvio.tv.ainarrator.LektorVoiceChoice.geminiKeyPresent(c)
+    fun usable(c: Context): Boolean = ready != false || com.nuvio.tv.ainarrator.LektorVoiceChoice.cloudVoicePresent(c) // 19.11: + Chirp
 
     fun probe(context: Context, onResult: ((Boolean) -> Unit)? = null) {
         if (started) { ready?.let { onResult?.invoke(it) }; return }

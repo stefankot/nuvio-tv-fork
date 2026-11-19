@@ -179,7 +179,7 @@ object KeRanking {
 
     fun order(streams: List<Stream>): List<Stream> {
         if (!enabled || streams.size < 2) return streams
-        lektorVoiceNow = polishSubs && (com.nuvio.tv.fork.lektor.LektorVoice.ready == true || appCtx?.let { a -> runCatching { com.nuvio.tv.ainarrator.LektorVoiceChoice.geminiKeyPresent(a) }.logged("ForkSources", "KeRanking: klucz Gemini").getOrDefault(false) } == true)
+        lektorVoiceNow = polishSubs && (com.nuvio.tv.fork.lektor.LektorVoice.ready == true || appCtx?.let { a -> runCatching { com.nuvio.tv.ainarrator.LektorVoiceChoice.cloudVoicePresent(a) }.logged("ForkSources", "KeRanking: klucz Gemini").getOrDefault(false) } == true)
         return runCatching {
             val id = identity
             val rejected = id?.let { ContentIdentityGuard.rejections(streams, it).keys }.orEmpty()

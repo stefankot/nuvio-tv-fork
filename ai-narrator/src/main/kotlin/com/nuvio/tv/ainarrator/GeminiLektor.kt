@@ -139,30 +139,60 @@ class GeminiLektor(context: Context) : Lektor, com.nuvio.tv.fork.lektor.SceneLek
 
 /** Wybór głosu lektora i ustawienia Gemini (w Modułach, sekcja Lektor). */
 object LektorVoiceChoice {
-    const val K_VOICE = "lektor_voice_backend" // "gemini" | "system"
+    const val K_VOICE = "lektor_voice_backend" // "chirp" | "gemini" | "system"
     val GEMINI_VOICES = listOf("Kore", "Puck", "Charon", "Aoede")
+    private val BACKENDS = listOf("chirp", "gemini", "system")
 
     fun geminiKeyPresent(c: Context) = narratorGeminiKey(c.applicationContext, NarratorPreferences(c.applicationContext)).isNotBlank()
 
-    /** Gemini, chyba że wybrano systemowy; bez klucza Gemini — systemowy; bez systemowego głosu — Gemini. */
-    fun useGemini(c: Context, systemVoiceOk: Boolean?): Boolean {
-        val wantGemini = ForkFeatures.str(c, K_VOICE, "gemini") != "system"
-        val key = geminiKeyPresent(c)
+    /** Fork 19.11: jakiś głos chmurowy dostępny (Chirp albo Gemini) — dla `LektorVoice.usable` i rankingu. */
+    fun cloudVoicePresent(c: Context) = ChirpLektor.keyPresent() || geminiKeyPresent(c)
+
+    /**
+     * Fork 19.11 (właściciel: Chirp 3 HD zamiast Gemini — limit Gemini TTS 100/dzień): domyślnie Chirp.
+     * Wybrany silnik bez klucza → następny dostępny (Chirp → Gemini → systemowy); systemowy bez polskiego głosu → chmurowy.
+     */
+    fun backend(c: Context, systemVoiceOk: Boolean?): String {
+        val want = ForkFeatures.str(c, K_VOICE, "chirp").takeIf { it in BACKENDS } ?: "chirp"
+        val chirp = ChirpLektor.keyPresent(); val gemini = geminiKeyPresent(c)
         return when {
-            wantGemini && key -> true
-            !wantGemini && systemVoiceOk == false && key -> true
-            else -> false
-        }
+            want == "chirp" && chirp -> "chirp"
+            want == "gemini" && gemini -> "gemini"
+            want == "system" && systemVoiceOk != false -> "system"
+            chirp -> "chirp"
+            gemini -> "gemini"
+            else -> "system"
+        }.also { if (it != want) android.util.Log.i("ForkLektor", "głos: wybrany $want niedostępny → $it") }
     }
 
-    fun create(c: Context, systemVoiceOk: Boolean?): Lektor =
-        if (useGemini(c, systemVoiceOk)) GeminiLektor(c) else com.nuvio.tv.fork.lektor.SystemLektor(c)
+    fun useGemini(c: Context, systemVoiceOk: Boolean?): Boolean = backend(c, systemVoiceOk) == "gemini"
 
-    fun label(c: Context, systemVoiceOk: Boolean?): String = if (useGemini(c, systemVoiceOk)) "głos Gemini" else "głos systemowy"
+    fun create(c: Context, systemVoiceOk: Boolean?): Lektor = when (backend(c, systemVoiceOk)) {
+        "chirp" -> ChirpLektor(c)
+        "gemini" -> GeminiLektor(c)
+        else -> com.nuvio.tv.fork.lektor.SystemLektor(c)
+    }
+
+    fun label(c: Context, systemVoiceOk: Boolean?): String = when (backend(c, systemVoiceOk)) {
+        "chirp" -> "głos Google Chirp (${ChirpLektor.voice(c)})"
+        "gemini" -> "głos Gemini"
+        else -> "głos systemowy"
+    }
 
     fun actions(): List<ModuleAction> = listOf(
-        ModuleAction("Lektor: głos (Gemini / systemowy)", SettingsLevel.ESSENTIAL, "Gemini: naturalny głos, płatny wg zużycia (klucz z AI napisów); systemowy: darmowy, jeśli jest polski głos") { c ->
-            ForkFeatures.setStr(c, K_VOICE, if (ForkFeatures.str(c, K_VOICE, "gemini") == "system") "gemini" else "system")
+        ModuleAction("Lektor: silnik głosu (Chirp / Gemini / systemowy)", SettingsLevel.ESSENTIAL, "Chirp 3 HD: naturalny, 1 mln znaków/mies. za darmo, bez limitu dziennego; Gemini: limit 100 zapytań/dzień; systemowy: darmowy, jeśli jest polski głos") { c ->
+            val cur = ForkFeatures.str(c, K_VOICE, "chirp").takeIf { it in BACKENDS } ?: "chirp"
+            val next = BACKENDS[(BACKENDS.indexOf(cur) + 1) % BACKENDS.size]
+            ForkFeatures.setStr(c, K_VOICE, next)
+            android.util.Log.i("ForkLektor", "ustawienia: silnik głosu $cur → $next")
+            android.widget.Toast.makeText(c, "Lektor: ${label(c, null)}", android.widget.Toast.LENGTH_SHORT).show()
+        },
+        ModuleAction("Lektor Chirp: głos (30 polskich)", SettingsLevel.ESSENTIAL, "Kolejne naciśnięcia przełączają głos; najpierw męskie, potem żeńskie") { c ->
+            val list = ChirpLektor.CHIRP_VOICES
+            val next = list[(list.indexOf(ChirpLektor.voice(c)) + 1) % list.size]
+            ForkFeatures.setStr(c, ChirpLektor.K_CHIRP_VOICE, next)
+            android.util.Log.i("ForkLektor", "ustawienia: głos Chirp → $next")
+            android.widget.Toast.makeText(c, "Głos lektora Chirp: $next", android.widget.Toast.LENGTH_SHORT).show()
         },
         ModuleAction("Lektor Gemini: barwa głosu (Kore / Puck / Charon / Aoede)", SettingsLevel.ESSENTIAL, "Kolejne naciśnięcia przełączają głos") { c ->
             val p = NarratorPreferences(c); val o = p.load()
