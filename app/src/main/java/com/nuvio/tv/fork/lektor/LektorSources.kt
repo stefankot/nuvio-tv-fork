@@ -22,7 +22,13 @@ object LektorSources {
         if (PlayerBridge.hasPolishAddonSubtitle()) {
             var tries = 0
             while (PlayerBridge.cues().isEmpty() && tries++ < 20) delay(500)
-            if (PlayerBridge.cues().isNotEmpty()) return Source("napisy PL z dodatku", false) { PlayerBridge.cues().map { SubtitleCue(it.startTimeMs, it.endTimeMs, it.text) } }
+            // Fork 19.11 (build118: „lektor mówi kwestie za wcześnie o minutę”): kwestie brane raz przy starcie, bez późniejszego
+            // przesunięcia AutoSync. Teraz te same, które są na ekranie (sidecar, po AutoSync), czytane na bieżąco (growing).
+            if (PlayerBridge.cues().isNotEmpty()) return Source("napisy PL z dodatku", true) {
+                val shown = AiSubtitles.controller()?.sidecarTimedCues?.takeIf { it.isNotEmpty() }
+                shown?.let { com.nuvio.tv.fork.ai.subtitles.ExoPlayerPort.toDocCues(it).map { c -> SubtitleCue(c.startMs, c.endMs, c.text) } }
+                    ?: PlayerBridge.cues().map { SubtitleCue(it.startTimeMs, it.endTimeMs, it.text) }
+            }
         }
         val controller = AiSubtitles.controller()
         if (controller != null) {

@@ -50,12 +50,16 @@ object LektorController {
             var synthErrors = 0; var synthOk = 0
             var errStreak = 0 // fork 19.11: kolejne błędy z rzędu → coraz dłuższa przerwa (2, 4, 8 … 30 s)
             try {
-                var known = cues.size
+                var known = cues.size // podpis listy kwestii (liczba + czasy)
                 var tick = 0
                 var quietSaidAt = 0L // fork 19.11: „nie słyszę lektora” przy długiej scenie bez dialogu — komunikat, kiedy będzie kwestia
                 while (true) {
                     // Źródło rosnące (AI na bieżąco): nowe kwestie dochodzą do planu bez kasowania gotowych głosów.
-                    if (src.growing) src.cues().let { now -> if (now.size != known) { known = now.size; LektorEngine.lines = CuePlanner.plan(now) } }
+                    // Fork 19.11: zmiana także samych czasów (AutoSync przesuwa napisy), nie tylko liczby kwestii.
+                    if (src.growing) src.cues().let { now -> val sig = now.size * 31 + now.sumOf { it.startMs }.toInt(); if (sig != known) {
+                        val shift = (now.firstOrNull()?.startMs ?: 0) - (LektorEngine.lines.firstOrNull()?.startMs ?: 0)
+                        if (known != cues.size) android.util.Log.i("ForkLektor", "kwestie zmienione: ${now.size} (przesunięcie pierwszej ${shift} ms)")
+                        known = sig; LektorEngine.lines = CuePlanner.plan(now) } }
                     val pos = LektorEngine.positionMs()
                     val pending = SynthWindow.pending(LektorEngine.lines, pos, done)
                     if (LektorEngine.voice.isEmpty() && pending.isEmpty() && System.currentTimeMillis() - quietSaidAt > 60_000) {
