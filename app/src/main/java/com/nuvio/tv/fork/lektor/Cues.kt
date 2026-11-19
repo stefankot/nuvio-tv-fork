@@ -15,12 +15,30 @@ object CuePlanner {
 
     /** Usuwa znaczniki formatowania, opisy dźwięków w nawiasach, myślniki dialogowe i imiona mówiących. */
     fun clean(raw: String): String {
-        var t = raw.replace("\\N", " ").replace("\n", " \n")
+        var t = raw.replace("\\N", "\n").replace("\n", " \n")
         t = tags.replace(t, "")
         t = brackets.replace(t, " ")
+        t = speakerBreaks(t)
         t = dash.replace(t, "")
         t = t.lines().joinToString(" ") { speaker.replace(it, "").trim() }
         return t.replace(Regex("\\s+"), " ").trim()
+    }
+
+    private val dashStart = Regex("^\\s*[-–—]")
+    private val endPunct = Regex("[.!?…:;,]$")
+
+    /**
+     * Fork 19.11 (JMGO: „bez przerw między wypowiedziami osób — wszystko jak jedno długie zdanie”): linia dialogowa
+     * zaczynająca się myślnikiem = inna osoba. Poprzednia linia bez znaku końca dostaje kropkę, żeby głos zrobił pauzę.
+     */
+    private fun speakerBreaks(t: String): String {
+        val ls = t.lines()
+        if (ls.size < 2) return t
+        return ls.mapIndexed { i, l ->
+            val next = ls.getOrNull(i + 1)
+            val cur = l.trimEnd()
+            if (next != null && dashStart.containsMatchIn(next) && cur.isNotBlank() && !endPunct.containsMatchIn(cur)) "$cur." else l
+        }.joinToString("\n")
     }
 
     /** Lista kwestii: bez pustych, kwestie rozdzielone o mniej niż [mergeGapMs] sklejone, z czasem dostępnym do następnej. */

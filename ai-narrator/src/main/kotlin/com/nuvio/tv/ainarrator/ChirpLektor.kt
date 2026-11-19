@@ -43,7 +43,7 @@ class ChirpLektor(context: Context) : Lektor, com.nuvio.tv.fork.lektor.SceneLekt
             Log.w(TAG, "Chirp TTS $voice: ${e.javaClass.simpleName}: ${e.message?.take(160)}")
             throw Lektor.Unavailable("Błąd głosu Google Chirp: ${e.message?.take(80) ?: "połączenie"}")
         }
-        cache.store(id, wav)
+        runCatching { cache.store(id, wav) }.onFailure { Log.w(TAG, "Chirp: zapis w pamięci podręcznej: ${it.javaClass.simpleName}: ${it.message?.take(120)}") } // fork 19.11: błąd pamięci podręcznej nie przerywa głosu
         countChars(clean.length)
         return GeminiLektor.pcmFromWav(wav)
     }
@@ -54,7 +54,9 @@ class ChirpLektor(context: Context) : Lektor, com.nuvio.tv.fork.lektor.SceneLekt
      * nagranie cięte po ciszy ([com.nuvio.tv.fork.lektor.SilenceSplit]). null = cięcie się nie zgadza (kontroler czyta pojedynczo).
      */
     /** Limit Cloud TTS: 5000 bajtów na zapytanie (dokumentacja „Quotas and limits”, 19.11); zapas na znaczniki i czyszczenie. */
-    override val sceneMaxBytes: Int get() = 4_700
+    // Test JMGO 19.11: scena 4700 B (53 kwestie) = nagranie > 8 MB (limit pamięci podręcznej), 68 s czekania, zacinanie obrazu
+    // (odpowiedź ~15 MB w base64 na 32-bitowym TV). ~1500 B ≈ 60–90 s mowy ≈ 3–4 MB — nadal kilkanaście kwestii kontekstu.
+    override val sceneMaxBytes: Int get() = 1_500
 
     override suspend fun synthesizeScene(texts: List<String>): List<Pcm>? {
         if (texts.size < 2) return null
@@ -68,7 +70,7 @@ class ChirpLektor(context: Context) : Lektor, com.nuvio.tv.fork.lektor.SceneLekt
         val voice = voice(app)
         val id = NarratorText.fingerprint("chirp3hd-scene/$voice/${"%.2f".format(java.util.Locale.ROOT, BASE_RATE)}", markup, "")
         val wav = cache.find(id, touch = true)?.readBytes() ?: try {
-            request(key, voice, markup, BASE_RATE, asMarkup = true).also { cache.store(id, it); countChars(cleaned.sumOf { it.length }) }
+            request(key, voice, markup, BASE_RATE, asMarkup = true).also { w -> runCatching { cache.store(id, w) }.onFailure { Log.w(TAG, "Chirp: zapis sceny w pamięci podręcznej: ${it.javaClass.simpleName}: ${it.message?.take(120)}") }; countChars(cleaned.sumOf { it.length }) }
         } catch (e: Exception) {
             if (e is kotlinx.coroutines.CancellationException) throw e
             Log.w(TAG, "Chirp TTS scena ${cleaned.size} kwestii, $voice: ${e.javaClass.simpleName}: ${e.message?.take(160)}")
@@ -97,7 +99,7 @@ class ChirpLektor(context: Context) : Lektor, com.nuvio.tv.fork.lektor.SceneLekt
             .put("audioConfig", JSONObject().put("audioEncoding", "LINEAR16").put("sampleRateHertz", 24_000).put("speakingRate", speed.toDouble()))
         val c = URL("https://texttospeech.googleapis.com/v1/text:synthesize").openConnection() as HttpURLConnection
         try {
-            c.requestMethod = "POST"; c.connectTimeout = 10_000; c.readTimeout = if (asMarkup) 60_000 else 15_000; c.doOutput = true // fork 19.11: duże sceny (do ~4700 B) generują się dłużej
+            c.requestMethod = "POST"; c.connectTimeout = 10_000; c.readTimeout = if (asMarkup) 40_000 else 15_000; c.doOutput = true // fork 19.11: duże sceny (do ~4700 B) generują się dłużej
             c.setRequestProperty("Content-Type", "application/json; charset=utf-8")
             c.setRequestProperty("x-goog-api-key", key)
             c.outputStream.use { it.write(payload.toString().toByteArray(Charsets.UTF_8)) }

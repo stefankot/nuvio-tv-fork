@@ -88,6 +88,8 @@ object LektorController {
                             val parts = try { tts.synthesizeScene(sc.map { it.text }) } catch (e: Exception) {
                                 if (e is kotlinx.coroutines.CancellationException) throw e
                                 android.util.Log.w("ForkLektor", "scena nieudana: ${e.javaClass.simpleName}: ${e.message?.take(160)}")
+                                // Fork 19.11 (JMGO: po błędzie dużej sceny ta sama scena w kółko): następnym razem małymi scenami, potem pojedynczo.
+                                if (sc.any { it.startMs in sceneSmall }) sc.forEach { sceneFallback += it.startMs } else sc.forEach { sceneSmall += it.startMs }
                                 if (synthErrors++ == 0) say(app, "Lektor: ${e.message ?: "błąd syntezy głosu"} — ponawiam")
                                 errStreak++; break
                             }
@@ -112,7 +114,7 @@ object LektorController {
                             if (scenesOk++ % 5 == 0) android.util.Log.i("ForkLektor", "scena OK: ${sc.size} kwestii (${sc.sumOf { it.text.length }} znaków) jednym zapytaniem (scen: $scenesOk, kwestii z głosem: ${LektorEngine.voice.size}, wyprzedzenie ${(sc.first().startMs - pos) / 1000} s)")
                         }
                     }
-                    for (l in pending.filter { it.startMs !in sceneLines && it.startMs !in done }.take(if (errStreak > 0) 0 else 5)) {
+                    for (l in pending.filter { it.startMs !in sceneLines && it.startMs !in done }.take(if (errStreak > 0) 1 else 5)) { // fork 19.11: po błędzie 1 próba na obieg (było 0 → lektor nie wracał)
                         val natural = runCatching { tts.synthesize(l.text, 1f) }.onFailure { if (it is kotlinx.coroutines.CancellationException) throw it }.logged("ForkLektor", "LektorController.kt:57").getOrElse { e ->
                             status = e.message ?: "Błąd syntezy"
                             // Fork 19.11: błąd syntezy był widoczny tylko w statusie — log i komunikat (pierwszy).
