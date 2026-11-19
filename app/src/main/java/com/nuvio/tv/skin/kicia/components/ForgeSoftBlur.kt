@@ -101,11 +101,17 @@ private fun boxBlur(px: IntArray, w: Int, h: Int, r: Int) {
 
 @Composable
 internal fun rememberForgeSoftBlur(): ForgeSoftBlur? {
+    // Właściciel 19.11 (ZASADA): efekty interfejsu tylko natywnie (rozmycie = RenderEffect, Android 12+); bez symulacji
+    // programowej na starszych Androidach — tam pasek ma tylko swój kolor (ForgeColors.Tray). Kod zostaje, nieużywany.
+    if (!SOFTWARE_EFFECTS) return null
     if (forgeBlurAvailable()) return null
     val layer = rememberGraphicsLayer()
     val strip = rememberGraphicsLayer()
     return remember(layer, strip) { ForgeSoftBlur(layer, strip) }
 }
+
+/** Symulowane efekty interfejsu (programowe rozmycie) — wyłączone decyzją właściciela 19.11. */
+private const val SOFTWARE_EFFECTS = false
 
 internal val LocalForgeNavSoftBlur = staticCompositionLocalOf<ForgeSoftBlur?> { null }
 
