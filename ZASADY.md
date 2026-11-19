@@ -1,10 +1,10 @@
 # ZASADY PRACY (jedyne źródło; aktualne na 19.11.2026)
 
 Zasady właściciela dla każdego wątku i agenta. Inne pliki tylko tu odsyłają. Nowa zasada: dopisz TUTAJ (z datą), nigdzie indziej.
-Stare wersje: `plan/archiwum-zasad/` i historia gita.
+Stare wersje: `plan/archiwum/zasady/` i historia gita.
 
 ## 1. Sposób pracy
-- „kontynuuj” → otwórz `plan/TERAZ.md`, wykonuj sekcję „NAJPIERW” i kolejkę. Inne plany (`KONTYNUUJ.md`, `ARCHITECT_PLAN.md`, stare sekcje `CLAUDE.md`) są historyczne.
+- „kontynuuj” → otwórz `plan/TERAZ.md`, wykonuj sekcję „NAJPIERW” i kolejkę. Dawne plany są w `plan/archiwum/` (tylko grep).
 - Pracuj autonomicznie, po polsku, krótko. Nie pytaj o potwierdzenie ani o kontynuację, nie kończ tury pytaniem. Przy niejasności wybierz wariant łatwiejszy do cofnięcia i mniej zmieniający rdzeń, zapisz go jednym zdaniem w `plan/DECYZJE.md`.
 - Zadanie nie wychodzi po 2 różnych podejściach albo brakuje czegoś (TV, konto, klucz, plik) → wpis w `plan/BLOKADY.md`, bierz następne.
 - Decyzja naprawdę potrzebna od właściciela → `afplay -v 10 /System/Library/Sounds/Sosumi.aiff`.

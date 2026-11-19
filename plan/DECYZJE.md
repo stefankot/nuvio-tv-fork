@@ -31,7 +31,7 @@ Wykonawca nie pyta właściciela. Korzysta z tej listy. Właściciel może zmien
 | 24 | Polecenia (rekomendacje) | najpierw ocena modułu Scout z Nuvio Arc; przenieść go, jeśli jakość i budowa na to pozwalają, inaczej własny moduł. Ranking końcowy może robić model po API |
 | 25 | Przycisk głosu na Google TV | usługa ułatwień dostępu przechwytująca jeden klawisz, włączana świadomie przez użytkownika |
 | 26 | Układy Nuvio KE | jako druga skórka `MARQUEE` przez kontrakt `skin/api`; ekran główny najpierw; Live TV z KE nie jest przenoszone |
-| 27 | Relacja do `ARCHITECT_PLAN.md` | jego zasady R1–R9 i narzędzia `fork-tools` obowiązują; jego kroków ten plan nie wykonuje |
+| 27 | Relacja do `ARCHITECT_PLAN.md` (archiwum) | jego zasady przeniesione do `ZASADY.md` |
 | 23 | Zmienione wartości domyślne z Kicia | przez moduł „pierwsze uruchomienie”, nie przez edycję plików bazy |
 
 ## Podjęte przez wykonawcę
