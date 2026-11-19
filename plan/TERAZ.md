@@ -1,6 +1,13 @@
 # TERAZ — stan pracy i instrukcja „kontynuuj” (aktualizuj po każdym kroku)
 
-Ostatnia aktualizacja: 19.11.2026 ok. 02:40 (koniec wątku 5).
+## NAJPIERW (wątek 11, od 19.11 ~11:20 zegar Maca) — po „kontynuuj” rób to, po kolei, bez pytań
+Gałąź `hybryda-zrodel` (wypchnięta, ostatni commit b691a24a8). Na JMGO (192.168.31.252:5555) zainstalowany build112 (md5 c3a69e81…); wszystko po nim jest tylko w kodzie.
+1. build113 = DUŻA paczka APK armeabi-v7a; w chwili zapisu kompilował się w zakładce terminala („build113 APK”, `/tmp/build113.log`). Sprawdź `grep -a BUILD /tmp/build113.log`. Jeśli brak wyniku i nie ma procesu Gradle (`ps aux | grep -c "[G]radleDaemon"`), uruchom od nowa w zakładce terminala: `./gradlew :app:assembleFullDebug -PforkAbi=armeabi-v7a -x lintVitalAnalyzeFullDebug -x lintVitalReportFullDebug -x lintVitalFullDebug --console=rich 2>&1 | tee /tmp/build113.log`. Błędy: `grep -a "^e: "` → popraw (nowe pliki: `fork/ai/subtitles/{AiOffer,LiveEmbeddedTranslation}.kt`, `fork/lektor/LektorSources.kt`, `fork/yt/{YouTubeTextSource,YouTubeAudioSlim}.kt`, `fork/nav/ForkHomeNav.kt`, `skin/kicia/livetv/ForgeTvBrowseRoute.kt`, `ForgeYouTubeHost` w `skin/kicia/youtube/ForgeYouTubePlayer.kt`).
+2. Instalacja na JMGO (właściciel 19.11: „instaluj”, ale sprawdź `dumpsys media_session`; gdy ktoś ogląda — zapytaj 3× dźwiękiem), `adb install -r`, porównaj md5 (`adb pull` ścieżki `pm path`).
+3. Testy (uiautomator, zrzuty wyjątkowo): start filmu bez ANR i szybki („Władca Pierścieni: Pierścienie Władzy” S1E1, przedtem ~2 min); serial z napisami tylko wbudowanymi EN (np. ostatni z TorBox) → okno „Brak polskich napisów — Napisy AI / Nie” → „AI PL (wbudowane)”, log `ForkAiLive`; lektor (Więcej → Lektor; log `ForkLektor start: źródło=`); YouTube: ▼ = panel 1Tube, sterowanie YouTube Kicii, Dźwięk ~1 wiersz/język (log `ForkYtAudio`, `ForgeYouTubeHost session=`), lektor/AI z napisów YouTube (`ForkYtText`); okno napisów nie otwiera się samo na starcie; Najprostsze ustawienia; Odkrywaj; Home z paska.
+4. Potem zadanie „WIELE RDZENI W MODUŁACH FORKA” (sekcja niżej) — priorytet wysoki.
+5. Zaległe: serwer logów (`server/family-sync/panel_api.php`, `panel/app.js` — wgrać przez DirectAdmin, właściciel musi być zalogowany); pomysł: wolne pośredniki (MediaFusion ElfHosted ~6 Mbit/s) za bezpośrednim TorBox przy 4K; przyciski poziomu na ekranie Najprostszych po angielsku („Essential/Advanced”).
+Szczegóły i przyczyny: sekcje „WĄTEK 10” i „DO ZROBIENIA: WIELE RDZENI” niżej.
 
 ## WĄTEK 10 (19.11 ~10:40 zegar Maca) — nadrzędne wobec „wątek 9” niżej
 - build111 ZGINĄŁ z poprzednią sesją (log urwany na 95%, bez wyniku). Zastąpiony przez build112 = DUŻA paczka APK armeabi-v7a (zakładka terminala „build112 APK”, `/tmp/build112.log`): wszystko z build110/111 + Baahubali/Calendar + poniższe.
