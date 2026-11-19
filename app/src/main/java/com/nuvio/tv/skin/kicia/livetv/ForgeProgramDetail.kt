@@ -122,7 +122,7 @@ private fun ForgeProgramCard(
     val metaVm: com.nuvio.tv.fork.tv.TvStoreMetaViewModel = androidx.hilt.navigation.compose.hiltViewModel()
     val extra = remember(programme) { com.nuvio.tv.fork.tv.EpgExtras.get(programme.title, programme.startEpochMs) }
     LaunchedEffect(programme.title, programme.episode) { metaVm.load(programme.title, extra?.year, programme.episode ?: extra?.episode) } // fork W8: odcinek z TVDB
-    val tmdb by metaVm.meta.collectAsState(); val tvdb by metaVm.tvdb.collectAsState() // fork 19.11: TVDB przed EPG
+    val tmdb by metaVm.meta.collectAsState(); val tvdb by metaVm.tvdb.collectAsState() // fork 19.11 (właściciel): TVDB → TMDB → EPG (epg.ovh → tv.team)
     val favorite = channel.streamUrl in liveTv.favoriteUrls
     LaunchedEffect(Unit) { com.nuvio.tv.fork.tv.Reminders.load(ctx.applicationContext) }
     val reminders by com.nuvio.tv.fork.tv.Reminders.list.collectAsState()
@@ -155,7 +155,7 @@ private fun ForgeProgramCard(
 
     Box(Modifier.fillMaxSize().background(ForgeColors.Bg).forgeTagRoot()) { // v7.4: tagi widoczne w uiautomator (warstwa nad przewodnikiem)
         // Tło tytułu: the programme's picture (the guide's first, TMDB's only when the guide has none), gradient to bg at the bottom.
-        (tvdb?.backdropUrl ?: programme.image?.takeIf { it.isNotBlank() } ?: tmdb?.backdropUrl)?.let {
+        (tvdb?.backdropUrl ?: tmdb?.backdropUrl ?: programme.image?.takeIf { it.isNotBlank() })?.let {
             AsyncImage(model = it, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize().blur(40.dp))
         }
         Box(Modifier.fillMaxSize().background(ForgeColors.HeroScrimHorizontal))
@@ -176,7 +176,7 @@ private fun ForgeProgramCard(
                 tmdb?.genres?.firstOrNull(),
             ).joinToString(" · ")
             Text(meta, style = ForgeText.label5, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 8.dp).then(tagIf(!sectionsShown, "t-14.0")))
-            (tvdb?.overview?.takeIf { it.isNotBlank() } ?: programme.description?.takeIf { it.isNotBlank() } ?: tmdb?.overview)?.let {
+            (tvdb?.overview?.takeIf { it.isNotBlank() } ?: tmdb?.overview?.takeIf { it.isNotBlank() } ?: programme.description?.takeIf { it.isNotBlank() })?.let {
                 Text(it.replace('\n', ' '), style = ForgeText.label5, maxLines = 3, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 8.dp).width(300.dp).then(tagIf(!sectionsShown, "t-14.1")))
             }
             Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -367,11 +367,11 @@ private fun ForgeProgramDetailV6(
     // What the guide itself knows beyond the description (episode, age, year, categories, credits), filled while the EPG is read.
     val extra = remember(programme) { com.nuvio.tv.fork.tv.EpgExtras.get(programme.title, programme.startEpochMs) }
     LaunchedEffect(programme.title, programme.episode) { metaVm.load(programme.title, extra?.year, programme.episode ?: extra?.episode) } // fork W8: odcinek z TVDB
-    val tmdb by metaVm.meta.collectAsState(); val tvdb by metaVm.tvdb.collectAsState() // fork 19.11: TVDB przed EPG
+    val tmdb by metaVm.meta.collectAsState(); val tvdb by metaVm.tvdb.collectAsState() // fork 19.11 (właściciel): TVDB → TMDB → EPG (epg.ovh → tv.team)
     val favorite = channel.streamUrl in liveTv.favoriteUrls
     Box(Modifier.fillMaxSize().background(ForgeColors.Bg)) {
         // Blurred picture of the programme behind (mockup d06); EPG pictures only, never a guess.
-        (tvdb?.backdropUrl ?: programme.image?.takeIf { it.isNotBlank() } ?: tmdb?.backdropUrl)?.let { // TMDB's picture only when the guide has none
+        (tvdb?.backdropUrl ?: tmdb?.backdropUrl ?: programme.image?.takeIf { it.isNotBlank() })?.let { // TMDB's picture only when the guide has none
             AsyncImage(model = it, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize().blur(40.dp))
         }
         Box(Modifier.fillMaxSize().background(ForgeColors.HeroScrimHorizontal))
@@ -408,7 +408,7 @@ private fun ForgeProgramDetailV6(
                     .joinToString(" · ").takeIf { it.isNotBlank() }
                     ?.let { Text(it, style = ForgeText.caption, modifier = Modifier.padding(top = 6.dp)) }
             }
-            (tvdb?.overview?.takeIf { it.isNotBlank() } ?: programme.description?.takeIf { it.isNotBlank() } ?: tmdb?.overview)?.let {
+            (tvdb?.overview?.takeIf { it.isNotBlank() } ?: tmdb?.overview?.takeIf { it.isNotBlank() } ?: programme.description?.takeIf { it.isNotBlank() })?.let {
                 Text(it, style = ForgeText.label5, maxLines = if (compact) 2 else 3, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = if (compact) 6.dp else 8.dp).width(300.dp)) // v7.4: 14/20, 300 dp
             }
             Row(Modifier.padding(top = if (compact) 10.dp else 20.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {

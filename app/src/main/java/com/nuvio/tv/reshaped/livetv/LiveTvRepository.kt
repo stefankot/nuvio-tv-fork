@@ -1822,6 +1822,7 @@ object LiveTvRepository {
                                     // an id the viewer assigned in the playlist is what shows (as in other players);
                                     // then a channel's own playlist's guides first, in its order; then the others'.
                                     fun rank(key: String): Int {
+                                        com.nuvio.tv.fork.tv.guide.GuidePriority.repoRank(epgUrl, key in guide.nameMatched, NAME_MATCH_RANK)?.let { return it } // Fork patch: kolejnosc-przewodnikow (właściciel 19.11: epg.ovh → tv.team)
                                         // Fork patch: dostawca #3 - przewodnik dodany przez użytkownika zawsze wygrywa
                                         val added = sourcesById[sourceForKey[key]]?.epgUrl?.trim().orEmpty()
                                         if (added.isNotEmpty() && added == epgUrl) return -1
