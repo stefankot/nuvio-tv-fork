@@ -8,6 +8,12 @@ Gałąź: scalone do `hybryda-zrodel` 19.11 (merge 82d132d4f; wcześniej `ai-sub
 - Zakres tej paczki: **etapy 03+04** (działający przekrój tekstowy). Audio 60 s, tryb ekstremalny, OpenSubtitles: następne paczki.
 - API: **Interactions API** (`POST /v1beta/interactions`, `x-goog-api-key`, `store:false`); `generateContent` Google oznacza jako legacy.
 
+## Decyzje właściciela (19.11)
+- Dźwięk do AI: **180 s na każdą godzinę filmu** (proporcjonalnie, min. 60 s; fragment ≤20 s) — `OrdinaryAudioBudget.limitForRuntime`, `reserve(..., limitMs)`.
+- OpenSubtitles jako źródło: **bez potwierdzenia, niewidoczne dla użytkownika** (pobieranie w tle, gdy brak dobrego oryginału).
+- **Bez wysyłania** tłumaczeń do OpenSubtitles (punkt usunięty z planu).
+- Klucz Gemini: QR na telefonie + wbudowany klucz (local.properties) jako zapas; zgoda domyślnie włączona.
+
 ## Co napisano (nowe pliki, `app/src/main/java/com/nuvio/tv/fork/ai/subtitles/`)
 | Plik | Zawartość |
 | --- | --- |

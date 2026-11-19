@@ -28,7 +28,7 @@ data class AudioSnippet(
     }
 }
 
-/** The 60 s limit for this material is used up (expected, not an error). */
+/** The audio limit for this material is used up (expected, not an error). */
 class AudioBudgetExhaustedException(message: String) : IllegalStateException(message)
 
 /** The ledger cannot be trusted; uploads stay blocked for this material (fail closed). */
@@ -37,8 +37,8 @@ class AudioBudgetCorruptedException(message: String, cause: Throwable? = null) :
 
 enum class AudioTransmissionState { RESERVED, SENT, DEFINITELY_NOT_SENT }
 data class AudioBudgetEntry(val snippet: AudioSnippet, val state: AudioTransmissionState)
-data class AudioBudgetSnapshot(val accountedMs: Long, val entries: List<AudioBudgetEntry>) {
-    val remainingMs: Long get() = (60_000L - accountedMs).coerceAtLeast(0L)
+data class AudioBudgetSnapshot(val accountedMs: Long, val entries: List<AudioBudgetEntry>, val limitMs: Long = OrdinaryAudioBudget.DEFAULT_LIMIT_MS) {
+    val remainingMs: Long get() = (limitMs - accountedMs).coerceAtLeast(0L)
 }
 
 /**
@@ -55,12 +55,13 @@ data class AudioBudgetSnapshot(val accountedMs: Long, val entries: List<AudioBud
 class OrdinaryAudioBudget(private val directory: File) {
     init { check(directory.isDirectory || directory.mkdirs()) { "Cannot create budget directory" } }
 
-    fun reserve(materialKey: String, snippet: AudioSnippet): AudioBudgetSnapshot = modify(materialKey) { entries ->
+    /** [limitMs]: limit tego materiału, zwykle [limitForRuntime] (właściciel 19.11: 180 s na godzinę filmu). */
+    fun reserve(materialKey: String, snippet: AudioSnippet, limitMs: Long = DEFAULT_LIMIT_MS): AudioBudgetSnapshot = modify(materialKey, limitMs) { entries ->
         require(entries.none { it.snippet.requestId == snippet.requestId }) {
             "Each physical upload attempt requires a fresh requestId and a new reservation"
         }
-        if (accountedMs(entries) + snippet.durationMs > MAX_BUDGET_MS) {
-            throw AudioBudgetExhaustedException("60-second ordinary-audio limit exhausted")
+        if (accountedMs(entries) + snippet.durationMs > limitMs.coerceIn(DEFAULT_LIMIT_MS, MAX_BUDGET_MS)) {
+            throw AudioBudgetExhaustedException("Ordinary-audio limit exhausted (${limitMs / 1000} s)")
         }
         entries += AudioBudgetEntry(snippet, AudioTransmissionState.RESERVED)
         true
@@ -87,11 +88,12 @@ class OrdinaryAudioBudget(private val directory: File) {
         true
     }
 
-    fun snapshot(materialKey: String): AudioBudgetSnapshot = modify(materialKey) { false }
+    fun snapshot(materialKey: String, limitMs: Long = DEFAULT_LIMIT_MS): AudioBudgetSnapshot = modify(materialKey, limitMs) { false }
 
     /** Boolean result means the ledger really changed; snapshots and repeated SENT are write-free. */
     private fun modify(
         materialKey: String,
+        limitMs: Long = DEFAULT_LIMIT_MS,
         edit: (MutableList<AudioBudgetEntry>) -> Boolean,
     ): AudioBudgetSnapshot {
         require(materialKey.isNotBlank())
@@ -118,7 +120,7 @@ class OrdinaryAudioBudget(private val directory: File) {
                     val charged = accountedMs(entries)
                     check(charged <= MAX_BUDGET_MS) { "Persisted ordinary-audio limit violated" }
                     if (changed) writeAtomic(ledger, entries)
-                    AudioBudgetSnapshot(charged, entries.toList())
+                    AudioBudgetSnapshot(charged, entries.toList(), limitMs.coerceIn(DEFAULT_LIMIT_MS, MAX_BUDGET_MS))
                 }
             }
         }
@@ -208,7 +210,13 @@ class OrdinaryAudioBudget(private val directory: File) {
     }
 
     companion object {
-        private const val MAX_BUDGET_MS = 60_000L
+        /** Najmniejszy limit (krótki materiał) i dotychczasowa wartość domyślna. */
+        const val DEFAULT_LIMIT_MS = 60_000L
+        /** Twardy sufit zapisu (film 5 h × 180 s): większa suma w rejestrze = uszkodzenie. */
+        private const val MAX_BUDGET_MS = 900_000L
+        /** Właściciel 19.11: 180 s dźwięku na każdą godzinę filmu (proporcjonalnie), nie mniej niż 60 s. */
+        fun limitForRuntime(durationMs: Long): Long =
+            if (durationMs <= 0) DEFAULT_LIMIT_MS else (durationMs * 180L / 3_600L).coerceIn(DEFAULT_LIMIT_MS, MAX_BUDGET_MS)
         private const val FILE_MAGIC = 0x41534231 // ASB1, compatible with existing ledgers
         private const val HEX = "0123456789abcdef"
         private val mutexes = Array(64) { Any() }

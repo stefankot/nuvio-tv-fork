@@ -77,6 +77,23 @@ class AiSubtitleContractsTest {
         } finally { pool.shutdownNow(); root.deleteRecursively() }
     }
 
+    @Test fun audioLimitScalesWithRuntime() { // właściciel 19.11: 180 s na godzinę filmu, nie mniej niż 60 s
+        assertEquals(60_000L, OrdinaryAudioBudget.limitForRuntime(0))
+        assertEquals(60_000L, OrdinaryAudioBudget.limitForRuntime(15 * 60_000L))
+        assertEquals(135_000L, OrdinaryAudioBudget.limitForRuntime(45 * 60_000L))
+        assertEquals(360_000L, OrdinaryAudioBudget.limitForRuntime(120 * 60_000L))
+        val root = Files.createTempDirectory("nuvio-audio-runtime-").toFile()
+        try {
+            val budget = OrdinaryAudioBudget(root)
+            val limit = OrdinaryAudioBudget.limitForRuntime(120 * 60_000L)
+            (0 until 18).forEach { budget.reserve("film-2h", AudioSnippet("r$it", "audio", 0, 20_000), limit) }
+            assertEquals(0L, budget.snapshot("film-2h", limit).remainingMs)
+            assertThrows(AudioBudgetExhaustedException::class.java) {
+                budget.reserve("film-2h", AudioSnippet("r18", "audio", 0, 1_000), limit)
+            }
+        } finally { root.deleteRecursively() }
+    }
+
     @Test fun deterministicSelectionPreservesTieRules() {
         val candidates = listOf(
             AuxiliarySubtitleCandidate("z", "ru", true, 30),
