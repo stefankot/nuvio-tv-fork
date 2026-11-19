@@ -34,7 +34,15 @@ class ExoPlayerPort(private val controller: PlayerRuntimeController, private val
     private fun Subtitle.option() = SubtitleOption(id, url, lang, "$addonName ${getDisplayLanguage()}".trim())
 
     override suspend fun positionMs(): Long = main { controller._exoPlayer?.currentPosition ?: 0L }
-    override suspend fun options(): List<SubtitleOption> = main { controller._uiState.value.addonSubtitles.filterNot { it.url.startsWith("ai://") }.map { it.option() } }
+    override suspend fun options(): List<SubtitleOption> {
+        val addon = main { controller._uiState.value.addonSubtitles.filterNot { it.url.startsWith("ai://") }.map { it.option() } }
+        // Fork 19.11: YouTube — napisy z manifestu (oryginalne, nie tłumaczone przez YouTube) jako źródło dla AI.
+        val stream = main { controller.currentStreamUrl }
+        if (addon.isNotEmpty() || com.nuvio.tv.fork.yt.YouTubeTextSource.videoId(stream) == null) return addon
+        val yt = withContext(Dispatchers.IO) { com.nuvio.tv.fork.yt.YouTubeTextSource.tracks(stream!!) }.filterNot { it.translated }
+        android.util.Log.i("ForkAiSubtitles", "youtube źródła: ${yt.joinToString { it.language }}")
+        return yt.map { SubtitleOption("yt_${it.language}", it.url, it.language, "YouTube ${it.language}") }
+    }
     override suspend fun selected(): SubtitleOption? = main { controller._uiState.value.selectedAddonSubtitle?.takeUnless { it.url.startsWith("ai://") }?.option() }
     override suspend fun audioLanguages(): List<String> = main {
         val tracks = controller._uiState.value.audioTracks
@@ -48,6 +56,10 @@ class ExoPlayerPort(private val controller: PlayerRuntimeController, private val
     }
 
     override suspend fun loadCues(option: SubtitleOption): List<DocCue> {
+        if (option.id.startsWith("yt_")) { // Fork 19.11: napisy YouTube z manifestu
+            val yt = withContext(Dispatchers.IO) { com.nuvio.tv.fork.yt.YouTubeTextSource.cues(option.url) }
+            return yt.sortedBy { it.startTimeMs }.mapIndexed { i, c -> DocCue("c%05d".format(java.util.Locale.ROOT, i + 1), c.startTimeMs, c.endTimeMs, c.text) }
+        }
         val sub = main { controller._uiState.value.addonSubtitles.firstOrNull { it.url == option.url } } ?: return emptyList()
         val raw = com.nuvio.tv.fork.subs.TextSubtitleFormats.toSrt(controller.downloadSubtitleBody(sub.url, sub.lang, sub.headers)) // MPL2/MicroDVD → SRT
         if (raw.length > 8 * 1024 * 1024) throw BlockFailedException("Plik napisów za duży")

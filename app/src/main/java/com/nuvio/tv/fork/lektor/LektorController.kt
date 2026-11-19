@@ -26,13 +26,19 @@ object LektorController {
         if (!LektorVoice.usable(context)) return LektorVoice.MISSING_MSG
         val app = context.applicationContext
         job?.cancel()
-        PlayerBridge.ensurePolishSubtitle()
-        PlayerBridge.send(PlayerEvent.OnReloadSubtitleAutoSyncCues)
+        if (com.nuvio.tv.fork.yt.YouTubeTextSource.videoId(PlayerBridge.streamUrl()) == null) { // YouTube: napisy z manifestu, nie z dodatków
+            PlayerBridge.ensurePolishSubtitle()
+            PlayerBridge.send(PlayerEvent.OnReloadSubtitleAutoSyncCues)
+        }
         job = scope.launch {
             status = "Przygotowuję lektora…"
+            // Fork 19.11: YouTube nie ma napisów z dodatków — polskie napisy z manifestu YouTube (tłumaczenie YouTube).
+            val yt = com.nuvio.tv.fork.yt.YouTubeTextSource.videoId(PlayerBridge.streamUrl()) != null
             var tries = 0
-            while (PlayerBridge.cues().isEmpty() && tries++ < 20) delay(500)
-            val cues = PlayerBridge.cues().map { SubtitleCue(it.startTimeMs, it.endTimeMs, it.text) }
+            if (!yt) while (PlayerBridge.cues().isEmpty() && tries++ < 20) delay(500)
+            val source = if (yt) com.nuvio.tv.fork.yt.YouTubeTextSource.polishCues(PlayerBridge.streamUrl()) else PlayerBridge.cues()
+            val cues = source.map { SubtitleCue(it.startTimeMs, it.endTimeMs, it.text) }
+            android.util.Log.i("ForkLektor", "start: youtube=$yt kwestii=${cues.size}")
             if (cues.isEmpty()) { status = "Brak napisów do przeczytania"; return@launch }
             LektorModule.applySettings(app)
             LektorEngine.load(cues); LektorEngine.enabled = true
