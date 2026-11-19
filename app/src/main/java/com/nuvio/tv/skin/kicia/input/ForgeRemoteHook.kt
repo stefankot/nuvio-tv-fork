@@ -46,7 +46,8 @@ object ForgeRemoteHook {
     fun consumeVoiceWanted(): Boolean = voiceWanted.also { voiceWanted = false }
 
     fun onKey(event: KeyEvent, redispatch: ((KeyEvent) -> Boolean)? = null): Boolean {
-        if (BuildConfig.IS_DEBUG_BUILD) Log.d(TAG, ForgeRemoteKeys.describe(event))
+        // Optymalizacja logów 19.11: tylko wciśnięcie (bez puszczenia i autopowtórzeń) — połowa wpisów mniej, „chatty” nie gubi błędów.
+        if (BuildConfig.IS_DEBUG_BUILD && event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) Log.d(TAG, ForgeRemoteKeys.describe(event))
         com.nuvio.tv.skin.kicia.player.ForgePlayerFocusRescue.onKey(event) // player lost the focus (controls hid): give it back first
         // A computer keyboard (emulator, USB/Bluetooth keyboard): Esc works as Back. Remotes never send Esc.
         if (event.keyCode == KeyEvent.KEYCODE_ESCAPE && redispatch != null) {

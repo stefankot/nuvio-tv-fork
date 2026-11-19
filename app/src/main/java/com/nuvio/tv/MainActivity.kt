@@ -1357,6 +1357,7 @@ open class MainActivity : ComponentActivity() {
         }
 
         jankStats = JankStats.createAndTrack(window) { frameData ->
+            if (!com.nuvio.tv.fork.ForkLog.jankWorthLogging(frameData.isJank, frameData.frameDurationUiNanos)) return@createAndTrack // fork: optymalizacja logów
             if (frameData.isJank) {
                 Log.w(
                     "JankStats",

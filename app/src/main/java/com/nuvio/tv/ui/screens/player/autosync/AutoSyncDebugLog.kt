@@ -232,6 +232,7 @@ internal object AutoSyncDebugLog {
             }
         }
         when (level) {
+            "VERBOSE" -> Unit // fork 19.11: tekst kwestii tylko w raporcie w aplikacji, nie w logcat
             "ERROR" -> Log.e(TAG, line)
             "WARN" -> Log.w(TAG, line)
             else -> Log.d(TAG, line)

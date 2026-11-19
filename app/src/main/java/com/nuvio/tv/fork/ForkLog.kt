@@ -20,6 +20,24 @@ fun <T> Result<T>.logged(tag: String, what: String): Result<T> = onFailure { e -
 object ForkLog {
     fun i(tag: String, msg: String) { Log.i(tag, msg) }
 
+    @Volatile private var lastJankMs = 0L
+    @Volatile private var skippedJanks = 0
+
+    /**
+     * Optymalizacja logów (19.11, właściciel „Tak, dodaj”): JankStats z bazy pisał długą ścieżkę ekranu przy każdym
+     * przycięciu. Teraz tylko klatki ≥ 100 ms i najwyżej 1 wpis / 5 s; pominięte zliczane w jednym wpisie.
+     */
+    fun jankWorthLogging(isJank: Boolean, frameNanos: Long): Boolean {
+        if (!isJank) return false
+        if (frameNanos < 100_000_000L) { skippedJanks++; return false }
+        val now = android.os.SystemClock.elapsedRealtime()
+        if (now - lastJankMs < 5_000L) { skippedJanks++; return false }
+        lastJankMs = now
+        if (skippedJanks > 0) Log.i("ForkJank", "pominięte drobne/powtórzone przycięcia: $skippedJanks")
+        skippedJanks = 0
+        return true
+    }
+
     fun w(tag: String, what: String, e: Throwable) {
         Log.w(tag, "$what: ${e.javaClass.simpleName}: ${e.message?.take(200)}")
     }

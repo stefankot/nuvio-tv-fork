@@ -161,10 +161,16 @@ object KeRanking {
         }
     }.logged("ForkSources", "KeRanking.kt:153").getOrDefault(false)
 
-    /** Fork 19.11: dlaczego wygrało dane źródło (logcat `ForkRanking`), pierwsze 6 pozycji z powodami. */
+    /** Fork 19.11: dlaczego wygrało dane źródło (logcat `ForkRanking`), pierwsze 3 pozycje z powodami, bez powtórzeń. */
+    @Volatile private var lastTopSig = 0
+
     private fun logTop(list: List<Stream>) = runCatching {
+        // Fork 19.11 (optymalizacja logów): ta sama kolejność co ostatnio → bez wpisu; top 3 zamiast 6.
+        val sig = list.take(3).fold(list.size) { h, st -> 31 * h + (st.url ?: st.name ?: "").hashCode() }
+        if (sig == lastTopSig) return@runCatching
+        lastTopSig = sig
         android.util.Log.i("ForkRanking", "order: ${list.size} źródeł, polski=${polishRules?.id ?: "-"} napisyPL=$polishSubs oszczędz=$saver preferowane=${preferred != null}")
-        list.take(6).forEachIndexed { i, st ->
+        list.take(3).forEachIndexed { i, st ->
             val f = ReleaseFactsParser.factsFor(st)
             android.util.Log.i("ForkRanking", "#$i ${st.addonName} | ${f.resolution} | sonda=${TrackScout.of(st)?.let { "a${it.audio}/n${it.subs}" } ?: "-"} napisy=${subsTier(st)} | gotowe=${SourceReady.tier(st) == 0} obcyDub=${ForeignDub.tier(st) == 1} pl=${polishTier(st)} pref=${preferred?.matches(st) == true} | " +
                 listOfNotNull(st.name, st.title).joinToString(" ").replace('\n', ' ').take(140))
