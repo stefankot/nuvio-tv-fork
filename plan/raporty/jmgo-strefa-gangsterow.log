@@ -1,0 +1,244 @@
+11-19 17:14:08.165 D/PlayerViewModel(14530): Applied audio delay 0ms (+0ms from stream, 0ms manual on stream) for route=type:built_in_speaker|name:h931
+11-19 17:14:08.166 D/PlayerViewModel(14530): AUTO_SUB eval: targets=[pl, en], forcedOnly=false, selectedAudio=null/null, scannedText=false, internalCount=0, selectedInternal=-1, addonCount=0, selectedAddon=null
+11-19 17:14:08.166 D/PlayerViewModel(14530): AUTO_SUB defer addon fallback: text tracks not scanned yet
+11-19 17:14:08.222 D/PlayerViewModel(14530): Registered audio output route callback
+11-19 17:14:08.244 D/PlayerViewModel(14530): Applied audio delay 0ms (+0ms from stream, 0ms manual on stream) for route=type:built_in_speaker|name:h931
+11-19 17:14:08.252 D/PlayerViewModel(14530): Resolved stream mimeType=application/x-mpegURL for url=http://12.hls.gd/ch923/mono.m3u8?token=lilak.v2_tj2lnuAZyBuVHZd4PGvEOdl5ty9zD7g97xDjCrnPuG4zO1RHopeN_K-yfSQ_sbF73N3e5Vv7
+11-19 17:14:08.252 I/PlayerViewModel(14530): DV7_AUTO: decision=STRIP_TO_HDR10 effectiveMode=HDR10_BASE_LAYER hdrCapsKnown=true displayDv=false displayHdr10=true displayHdr10Plus=false codecDvheDtb=false codecDvheSt=fals
+11-19 17:14:08.253 I/PlayerViewModel(14530): DV7_DOVI: mode=AUTO effectiveMode=HDR10_BASE_LAYER dv81Active=false dv5Compat=false preserveMapping=false buildNative=true libraryLoaded=true extractorHookReady=true active=fa
+11-19 17:14:08.255 I/PlayerViewModel(14530): BUFFER_GATE: engine=exo-stock master=off; DefaultLoadControl (1.5s back buffer, no VOD cache) host=12.hls.gd
+11-19 17:14:08.256 I/PlayerViewModel(14530): BUFFER_NETWORK: bufferEngine=false parallelNetwork=false useParallel=false nuvioPerf=false engineNative=false useNativeEffective=false vodCache=false host=12.hls.gd
+11-19 17:14:08.259 I/PlayerViewModel(14530): SURROUND_RESOLVE: route=type:built_in_speaker|name:h931 policy=[ac3=true eac3=true truehd=false dts=true dtshd=true learned=[]] transcodePreferred=false channelTarget=null tvA
+11-19 17:14:08.260 I/PlayerViewModel(14530): DV_RPU_STRIP: enabled — will remove DV RPU NALs
+11-19 17:14:08.417 D/PlayerViewModel(14530): MediaSession metadata updated: title=PL: Polsat Cafe HD, artist=null, mediaId=mono.m3u8, artworkUri=null
+11-19 17:14:08.421 I/PlayerMediaSource(14530): PLAYBACK_CONFIG: native=false customBuffers=false budgetManaged=true minBufferMs=15000 maxBufferMs=45000 backBufferMs=15000 targetMb=1000 safeNativeMb=1000 parallel=0 chunkK
+11-19 17:14:08.421 I/PlayerMediaSource(14530): VOD_CACHE: enabled=false active=false requestedCap=0MB stats=none
+11-19 17:14:08.578 I/DS_OPEN (14530): [HTTP] file=mono.m3u8 pos=0 reqLen=-1 -> len=-1 ms=145
+11-19 17:14:08.615 I/DS_OPEN (14530): [HTTP] file=mono.m3u8 pos=0 reqLen=-1 -> len=-1 ms=27
+11-19 17:14:08.652 I/DS_OPEN (14530): [HTTP] file=2535164.ts pos=0 reqLen=-1 -> len=4785728 ms=62
+11-19 17:14:08.801 D/NuvioTrackSelector(14530): selectAllTracks run: streamMime=application/x-mpegURL, isHls=true
+11-19 17:14:08.802 D/NuvioTrackSelector(14530): Evaluating track: id=0, res=1920x1080, mime=video/avc, codecs=avc1.4D4028, support=4
+11-19 17:14:08.842 I/PlayerViewModel(14530): VIDEO_TRACK: mime=video/avc codecs=avc1.4D4028 size=1920x1080 vc1=false selected=true support=YES vc1TrackBypassActive=false
+11-19 17:14:08.843 D/PlayerViewModel(14530): TRACKS updated: internalSubs=1, selectedInternalIndex=-1, selectedAddon=null, pendingAddonLang=null, pendingAddonTrackId=null
+11-19 17:14:08.846 D/PlayerViewModel(14530): AUTO_SUB eval: targets=[pl, en], forcedOnly=false, selectedAudio=pl/Polski (MP2 Stereo), scannedText=true, internalCount=1, selectedInternal=-1, addonCount=0, selectedAddon=nu
+11-19 17:14:08.847 D/PlayerViewModel(14530): AUTO_SUB defer addon fallback: player not ready
+11-19 17:14:08.943 I/PlayerViewModel(14530): VIDEO_DECODER: name=OMX.MS.AVC.Decoder software=false initMs=129 host=12.hls.gd
+11-19 17:14:09.052 D/PlayerViewModel(14530): onVideoSizeChanged: updated resolution to 1920x1080
+11-19 17:14:09.210 D/PlayerViewModel(14530): AUTO_SUB eval: targets=[pl, en], forcedOnly=false, selectedAudio=pl/Polski (MP2 Stereo), scannedText=true, internalCount=1, selectedInternal=-1, addonCount=0, selectedAddon=nu
+11-19 17:14:09.211 D/PlayerViewModel(14530): AUTO_SUB no addon match for targets=[pl, en]
+11-19 17:14:09.217 D/PlayerViewModel(14530): BUFFER: ahead=4s, loading=true, heap=135/512MB, pos=12s
+11-19 17:14:09.412 I/DS_OPEN (14530): [HTTP] file=2535165.ts pos=0 reqLen=-1 -> len=5231664 ms=50
+11-19 17:14:10.045 D/ForgeKeys(14530): down code=22 (KEYCODE_DPAD_RIGHT) scan=106 device=25 repeat=0
+11-19 17:14:10.207 D/ForgeKeys(14530): up code=22 (KEYCODE_DPAD_RIGHT) scan=106 device=25 repeat=0
+11-19 17:14:10.257 I/DS_OPEN (14530): [HTTP] file=2535166.ts pos=0 reqLen=-1 -> len=6133312 ms=73
+11-19 17:14:10.562 D/ForgeKeys(14530): down code=23 (KEYCODE_DPAD_CENTER) scan=28 device=25 repeat=0
+11-19 17:14:10.721 D/ForgeKeys(14530): up code=23 (KEYCODE_DPAD_CENTER) scan=28 device=25 repeat=0
+11-19 17:14:11.010 I/DS_OPEN (14530): [HTTP] file=2535167.ts pos=0 reqLen=-1 -> len=6077664 ms=94
+11-19 17:14:12.117 I/DS_OPEN (14530): [HTTP] file=mono.m3u8 pos=0 reqLen=-1 -> len=-1 ms=28
+11-19 17:14:15.665 I/DS_OPEN (14530): [HTTP] file=mono.m3u8 pos=0 reqLen=-1 -> len=-1 ms=75
+11-19 17:14:15.751 I/DS_OPEN (14530): [HTTP] file=2535168.ts pos=0 reqLen=-1 -> len=6430540 ms=75
+11-19 17:14:16.236 D/PlayerViewModel(14530): TRACKS updated: internalSubs=0, selectedInternalIndex=-1, selectedAddon=null, pendingAddonLang=null, pendingAddonTrackId=null
+11-19 17:14:16.239 D/PlayerViewModel(14530): AUTO_SUB eval: targets=[pl, en], forcedOnly=false, selectedAudio=null/null, scannedText=true, internalCount=0, selectedInternal=-1, addonCount=0, selectedAddon=null
+11-19 17:14:16.240 D/PlayerViewModel(14530): AUTO_SUB defer addon fallback: player not ready
+11-19 17:14:16.258 I/TvStore (14530): resume 'Hell's Kitchen' at 0% (90 min left)
+11-19 17:14:16.368 I/PlayerMediaSource(14530): PLAYBACK_CONFIG: native=false customBuffers=false budgetManaged=true minBufferMs=15000 maxBufferMs=45000 backBufferMs=15000 targetMb=1000 safeNativeMb=1000 parallel=0 chunkK
+11-19 17:14:16.368 I/PlayerMediaSource(14530): VOD_CACHE: enabled=false active=false requestedCap=0MB stats=none
+11-19 17:14:16.530 I/DS_OPEN (14530): [HTTP] file=mono.m3u8 pos=0 reqLen=-1 -> len=-1 ms=124
+11-19 17:14:16.814 I/DS_OPEN (14530): [HTTP] file=06827-06240.ts pos=0 reqLen=65536 -> len=65536 ms=74
+11-19 17:14:18.243 I/DS_OPEN (14530): [HTTP] file=00547-06280.ts pos=0 reqLen=-1 -> len=5183348 ms=118
+11-19 17:14:18.383 D/NuvioTrackSelector(14530): selectAllTracks run: streamMime=application/x-mpegURL, isHls=true
+11-19 17:14:18.383 D/NuvioTrackSelector(14530): Evaluating track: id=0, res=1920x1080, mime=video/avc, codecs=avc1.4D4028, support=4
+11-19 17:14:18.392 I/PlayerViewModel(14530): VIDEO_TRACK: mime=video/avc codecs=avc1.4D4028 size=1920x1080 vc1=false selected=true support=YES vc1TrackBypassActive=false
+11-19 17:14:18.392 D/PlayerViewModel(14530): TRACKS updated: internalSubs=1, selectedInternalIndex=-1, selectedAddon=null, pendingAddonLang=null, pendingAddonTrackId=null
+11-19 17:14:18.393 D/PlayerViewModel(14530): AUTO_SUB eval: targets=[pl, en], forcedOnly=false, selectedAudio=pl/Polski (MP2 Stereo), scannedText=true, internalCount=1, selectedInternal=-1, addonCount=0, selectedAddon=nu
+11-19 17:14:18.394 D/PlayerViewModel(14530): AUTO_SUB defer addon fallback: player not ready
+11-19 17:14:18.503 I/PlayerViewModel(14530): VIDEO_DECODER: name=OMX.MS.AVC.Decoder software=false initMs=111 host=12.hls.gd
+11-19 17:14:18.616 D/PlayerViewModel(14530): onVideoSizeChanged: updated resolution to 1920x1080
+11-19 17:14:18.671 D/PlayerViewModel(14530): AUTO_SUB eval: targets=[pl, en], forcedOnly=false, selectedAudio=pl/Polski (MP2 Stereo), scannedText=true, internalCount=1, selectedInternal=-1, addonCount=0, selectedAddon=nu
+11-19 17:14:18.671 D/PlayerViewModel(14530): AUTO_SUB no addon match for targets=[pl, en]
+11-19 17:14:19.077 I/DS_OPEN (14530): [HTTP] file=06827-06240.ts pos=0 reqLen=-1 -> len=3656788 ms=58
+11-19 17:14:19.614 I/DS_OPEN (14530): [HTTP] file=13067-06200.ts pos=0 reqLen=-1 -> len=3191488 ms=59
+11-19 17:14:19.681 D/PlayerViewModel(14530): BUFFER: ahead=13s, loading=true, heap=133/512MB, pos=0s
+11-19 17:14:20.069 I/DS_OPEN (14530): [HTTP] file=19267-06080.ts pos=0 reqLen=-1 -> len=3448484 ms=73
+11-19 17:14:20.615 I/DS_OPEN (14530): [HTTP] file=25347-06760.ts pos=0 reqLen=-1 -> len=7422240 ms=98
+11-19 17:14:20.628 D/ForgeKeys(14530): down code=21 (KEYCODE_DPAD_LEFT) scan=105 device=25 repeat=0
+11-19 17:14:20.834 D/ForgeKeys(14530): up code=21 (KEYCODE_DPAD_LEFT) scan=105 device=25 repeat=0
+11-19 17:14:21.538 D/ForgeKeys(14530): down code=22 (KEYCODE_DPAD_RIGHT) scan=106 device=25 repeat=0
+11-19 17:14:21.614 I/DS_OPEN (14530): [HTTP] file=32107-06640.ts pos=0 reqLen=-1 -> len=5303292 ms=93
+11-19 17:14:21.659 D/ForgeKeys(14530): up code=22 (KEYCODE_DPAD_RIGHT) scan=106 device=25 repeat=0
+11-19 17:14:22.059 D/ForgeKeys(14530): down code=19 (KEYCODE_DPAD_UP) scan=103 device=25 repeat=0
+11-19 17:14:22.203 D/ForgeKeys(14530): up code=19 (KEYCODE_DPAD_UP) scan=103 device=25 repeat=0
+11-19 17:14:22.455 D/ForgeKeys(14530): down code=22 (KEYCODE_DPAD_RIGHT) scan=106 device=25 repeat=0
+11-19 17:14:22.521 I/DS_OPEN (14530): [HTTP] file=38747-06120.ts pos=0 reqLen=-1 -> len=5140296 ms=62
+11-19 17:14:22.851 D/ForgeKeys(14530): down code=22 (KEYCODE_DPAD_RIGHT) scan=106 device=25 repeat=1
+11-19 17:14:22.900 D/ForgeKeys(14530): down code=22 (KEYCODE_DPAD_RIGHT) scan=106 device=25 repeat=2
+11-19 17:14:22.955 D/ForgeKeys(14530): down code=22 (KEYCODE_DPAD_RIGHT) scan=106 device=25 repeat=3
+11-19 17:14:23.005 D/ForgeKeys(14530): down code=22 (KEYCODE_DPAD_RIGHT) scan=106 device=25 repeat=4
+11-19 17:14:23.055 D/ForgeKeys(14530): down code=22 (KEYCODE_DPAD_RIGHT) scan=106 device=25 repeat=5
+11-19 17:14:23.103 D/ForgeKeys(14530): down code=22 (KEYCODE_DPAD_RIGHT) scan=106 device=25 repeat=6
+11-19 17:14:23.157 D/ForgeKeys(14530): down code=22 (KEYCODE_DPAD_RIGHT) scan=106 device=25 repeat=7
+11-19 17:14:23.218 D/ForgeKeys(14530): down code=22 (KEYCODE_DPAD_RIGHT) scan=106 device=25 repeat=8
+11-19 17:14:23.257 D/ForgeKeys(14530): down code=22 (KEYCODE_DPAD_RIGHT) scan=106 device=25 repeat=9
+11-19 17:14:23.306 D/ForgeKeys(14530): down code=22 (KEYCODE_DPAD_RIGHT) scan=106 device=25 repeat=10
+11-19 17:14:23.357 D/ForgeKeys(14530): down code=22 (KEYCODE_DPAD_RIGHT) scan=106 device=25 repeat=11
+11-19 17:14:23.361 I/DS_OPEN (14530): [HTTP] file=44867-06320.ts pos=0 reqLen=-1 -> len=6086876 ms=94
+11-19 17:14:23.417 D/ForgeKeys(14530): down code=22 (KEYCODE_DPAD_RIGHT) scan=106 device=25 repeat=12
+11-19 17:14:23.421 D/ForgeKeys(14530): up code=22 (KEYCODE_DPAD_RIGHT) scan=106 device=25 repeat=0
+11-19 17:14:24.248 I/DS_OPEN (14530): [HTTP] file=51187-06160.ts pos=0 reqLen=-1 -> len=5916360 ms=72
+11-19 17:14:24.634 I/PlayerViewModel(14530): REBUFFER: count=1 totalRebufferMs=0 bufferEngine=false dv7dovi=false host=12.hls.gd
+11-19 17:14:24.870 I/DS_OPEN (14530): [HTTP] file=41947-06720.ts pos=0 reqLen=-1 -> len=5980656 ms=212
+11-19 17:14:25.432 I/PlayerViewModel(14530): SEEK_SOURCE: toMs=283488 durationMs=63857000 titleCachedMb=-1
+11-19 17:14:25.680 D/PlayerViewModel(14530): AUTO_SUB eval: targets=[pl, en], forcedOnly=false, selectedAudio=pl/Polski (MP2 Stereo), scannedText=true, internalCount=1, selectedInternal=-1, addonCount=0, selectedAddon=nu
+11-19 17:14:25.681 D/PlayerViewModel(14530): AUTO_SUB no addon match for targets=[pl, en]
+11-19 17:14:25.850 I/DS_OPEN (14530): [HTTP] file=48667-06440.ts pos=0 reqLen=-1 -> len=3873552 ms=111
+11-19 17:14:26.519 I/DS_OPEN (14530): [HTTP] file=55107-06720.ts pos=0 reqLen=-1 -> len=3609600 ms=131
+11-19 17:14:27.076 I/DS_OPEN (14530): [HTTP] file=01827-06080.ts pos=0 reqLen=-1 -> len=3081696 ms=82
+11-19 17:14:27.618 I/DS_OPEN (14530): [HTTP] file=07907-06080.ts pos=0 reqLen=-1 -> len=2953480 ms=69
+11-19 17:14:28.171 I/DS_OPEN (14530): [HTTP] file=13987-06200.ts pos=0 reqLen=-1 -> len=3752480 ms=168
+11-19 17:14:28.755 I/DS_OPEN (14530): [HTTP] file=20187-06200.ts pos=0 reqLen=-1 -> len=3828432 ms=93
+11-19 17:14:29.343 I/DS_OPEN (14530): [HTTP] file=26387-06960.ts pos=0 reqLen=-1 -> len=3215364 ms=84
+11-19 17:14:29.701 D/PlayerViewModel(14530): BUFFER: ahead=44s, loading=true, heap=145/512MB, pos=287s
+11-19 17:14:29.782 I/DS_OPEN (14530): [HTTP] file=33347-06040.ts pos=0 reqLen=-1 -> len=2983184 ms=68
+11-19 17:14:31.211 I/DS_OPEN (14530): [HTTP] file=39387-06680.ts pos=0 reqLen=-1 -> len=3299400 ms=97
+11-19 17:14:31.709 I/TvStore (14530): resume 'Hell's Kitchen' at 5% (85 min left)
+11-19 17:14:37.848 I/DS_OPEN (14530): [HTTP] file=46067-06760.ts pos=0 reqLen=-1 -> len=3026612 ms=58
+11-19 17:14:39.811 D/PlayerViewModel(14530): BUFFER: ahead=54s, loading=false, heap=148/512MB, pos=297s
+11-19 17:14:44.629 I/DS_OPEN (14530): [HTTP] file=52827-06560.ts pos=0 reqLen=-1 -> len=3507892 ms=75
+11-19 17:14:46.834 I/TvStore (14530): resume 'Hell's Kitchen' at 5% (84 min left)
+11-19 17:14:49.798 D/ForgeKeys(14530): down code=4 (KEYCODE_BACK) scan=158 device=25 repeat=0
+11-19 17:14:49.955 D/ForgeKeys(14530): up code=4 (KEYCODE_BACK) scan=158 device=25 repeat=0
+11-19 17:14:50.167 D/PlayerViewModel(14530): BUFFER: ahead=50s, loading=false, heap=152/512MB, pos=307s
+11-19 17:14:51.260 I/DS_OPEN (14530): [HTTP] file=59387-06800.ts pos=0 reqLen=-1 -> len=3177200 ms=145
+11-19 17:14:52.722 D/PlayerViewModel(14530): TRACKS updated: internalSubs=0, selectedInternalIndex=-1, selectedAddon=null, pendingAddonLang=null, pendingAddonTrackId=null
+11-19 17:14:52.724 D/PlayerViewModel(14530): AUTO_SUB eval: targets=[pl, en], forcedOnly=false, selectedAudio=null/null, scannedText=true, internalCount=0, selectedInternal=-1, addonCount=0, selectedAddon=null
+11-19 17:14:52.724 D/PlayerViewModel(14530): AUTO_SUB defer addon fallback: player not ready
+11-19 17:14:52.813 I/PlayerMediaSource(14530): PLAYBACK_CONFIG: native=false customBuffers=false budgetManaged=true minBufferMs=15000 maxBufferMs=45000 backBufferMs=15000 targetMb=1000 safeNativeMb=1000 parallel=0 chunkK
+11-19 17:14:52.814 I/PlayerMediaSource(14530): VOD_CACHE: enabled=false active=false requestedCap=0MB stats=none
+11-19 17:14:52.885 D/ForgeKeys(14530): down code=4 (KEYCODE_BACK) scan=158 device=25 repeat=0
+11-19 17:14:52.901 I/DS_OPEN (14530): [HTTP] file=mono.m3u8 pos=0 reqLen=-1 -> len=-1 ms=75
+11-19 17:14:52.995 I/DS_OPEN (14530): [HTTP] file=mono.m3u8 pos=0 reqLen=-1 -> len=-1 ms=87
+11-19 17:14:53.020 I/DS_OPEN (14530): [HTTP] file=2535171.ts pos=0 reqLen=-1 -> len=6904300 ms=112
+11-19 17:14:53.065 D/ForgeKeys(14530): up code=4 (KEYCODE_BACK) scan=158 device=25 repeat=0
+11-19 17:14:53.236 D/NuvioTrackSelector(14530): selectAllTracks run: streamMime=application/x-mpegURL, isHls=true
+11-19 17:14:53.236 D/NuvioTrackSelector(14530): Evaluating track: id=0, res=1920x1080, mime=video/avc, codecs=avc1.4D4028, support=4
+11-19 17:14:53.262 I/PlayerViewModel(14530): VIDEO_TRACK: mime=video/avc codecs=avc1.4D4028 size=1920x1080 vc1=false selected=true support=YES vc1TrackBypassActive=false
+11-19 17:14:53.262 D/PlayerViewModel(14530): TRACKS updated: internalSubs=1, selectedInternalIndex=-1, selectedAddon=null, pendingAddonLang=null, pendingAddonTrackId=null
+11-19 17:14:53.264 D/PlayerViewModel(14530): AUTO_SUB eval: targets=[pl, en], forcedOnly=false, selectedAudio=pl/Polski (MP2 Stereo), scannedText=true, internalCount=1, selectedInternal=-1, addonCount=0, selectedAddon=nu
+11-19 17:14:53.264 D/PlayerViewModel(14530): AUTO_SUB defer addon fallback: player not ready
+11-19 17:14:53.347 I/PlayerViewModel(14530): VIDEO_DECODER: name=OMX.MS.AVC.Decoder software=false initMs=80 host=12.hls.gd
+11-19 17:14:53.412 D/PlayerViewModel(14530): onVideoSizeChanged: updated resolution to 1920x1080
+11-19 17:14:53.433 D/PlayerViewModel(14530): AUTO_SUB eval: targets=[pl, en], forcedOnly=false, selectedAudio=pl/Polski (MP2 Stereo), scannedText=true, internalCount=1, selectedInternal=-1, addonCount=0, selectedAddon=nu
+11-19 17:14:53.433 D/PlayerViewModel(14530): AUTO_SUB no addon match for targets=[pl, en]
+11-19 17:14:54.225 I/DS_OPEN (14530): [HTTP] file=2535172.ts pos=0 reqLen=-1 -> len=6673248 ms=46
+11-19 17:14:54.495 D/ForgeKeys(14530): down code=4 (KEYCODE_BACK) scan=158 device=25 repeat=0
+11-19 17:14:54.638 D/ForgeKeys(14530): up code=4 (KEYCODE_BACK) scan=158 device=25 repeat=0
+11-19 17:14:54.641 I/PlayerMediaSource(14530): VOD_CACHE_END: enabled=false active=false stats=none
+11-19 17:14:54.658 D/PlayerViewModel(14530): TRACKS updated: internalSubs=0, selectedInternalIndex=-1, selectedAddon=null, pendingAddonLang=null, pendingAddonTrackId=null
+11-19 17:14:54.659 D/PlayerViewModel(14530): AUTO_SUB eval: targets=[pl, en], forcedOnly=false, selectedAudio=null/null, scannedText=true, internalCount=0, selectedInternal=-1, addonCount=0, selectedAddon=null
+11-19 17:14:54.660 D/PlayerViewModel(14530): AUTO_SUB defer addon fallback: player not ready
+11-19 17:14:54.866 I/TvStore (14530): shelf resumes=3 of 7 (started=3)
+11-19 17:14:56.650 D/ForgeKeys(14530): down code=20 (KEYCODE_DPAD_DOWN) scan=108 device=25 repeat=0
+11-19 17:14:56.838 D/ForgeKeys(14530): up code=20 (KEYCODE_DPAD_DOWN) scan=108 device=25 repeat=0
+11-19 17:14:57.260 D/StartupSyncService(14530): Activity sync started profile=1 reason=navigation
+11-19 17:14:57.260 D/StartupSyncService(14530): Periodic library pull requested profile=1
+11-19 17:14:57.262 D/StartupSyncService(14530): Periodic watch state pull: profile=1 shouldUseSupabaseWatchProgressSync=true
+11-19 17:14:57.262 D/StartupSyncService(14530): Starting watched items delta sync for profile 1
+11-19 17:14:57.452 D/StartupSyncService(14530): Watched items sync applied 0 upserts and 0 deletes (snapshot=false)
+11-19 17:14:57.483 D/StartupSyncService(14530): Library delta pull completed profile=1 snapshot=false upserts=0 deletes=0
+11-19 17:14:57.627 D/ForgeKeys(14530): down code=21 (KEYCODE_DPAD_LEFT) scan=105 device=25 repeat=0
+11-19 17:14:57.822 D/StartupSyncService(14530): Watch progress sync applied 1 upserts and 0 deletes (snapshot=false)
+11-19 17:14:57.823 D/StartupSyncService(14530): Activity sync completed profile=1 reason=navigation succeeded=true
+11-19 17:14:57.890 D/ForgeKeys(14530): up code=21 (KEYCODE_DPAD_LEFT) scan=105 device=25 repeat=0
+11-19 17:14:57.942 D/ForgeKeys(14530): down code=21 (KEYCODE_DPAD_LEFT) scan=105 device=25 repeat=0
+11-19 17:14:58.085 D/ForgeKeys(14530): up code=21 (KEYCODE_DPAD_LEFT) scan=105 device=25 repeat=0
+11-19 17:14:58.977 D/ForgeKeys(14530): down code=23 (KEYCODE_DPAD_CENTER) scan=28 device=25 repeat=0
+11-19 17:14:59.022 D/ForgeKeys(14530): up code=23 (KEYCODE_DPAD_CENTER) scan=28 device=25 repeat=0
+11-19 17:14:59.378 D/PlayerViewModel(14530): TRACK_PREF load: skipped (contentId is null)
+11-19 17:14:59.558 D/PlayerViewModel(14530): Applied audio delay 0ms (+0ms from stream, 0ms manual on stream) for route=type:built_in_speaker|name:h931
+11-19 17:14:59.559 D/PlayerViewModel(14530): AUTO_SUB eval: targets=[pl, en], forcedOnly=false, selectedAudio=null/null, scannedText=false, internalCount=0, selectedInternal=-1, addonCount=0, selectedAddon=null
+11-19 17:14:59.559 D/PlayerViewModel(14530): AUTO_SUB defer addon fallback: text tracks not scanned yet
+11-19 17:14:59.611 D/PlayerViewModel(14530): Registered audio output route callback
+11-19 17:14:59.644 D/PlayerViewModel(14530): Applied audio delay 0ms (+0ms from stream, 0ms manual on stream) for route=type:built_in_speaker|name:h931
+11-19 17:14:59.831 D/PlayerViewModel(14530): Resolved stream mimeType=application/x-mpegURL for url=http://12.hls.gd/ch924/mono.m3u8?token=lilak.v2_vy71iOkR4Ri-qZhs3Re6SKEXcT53Q7AUodclQBwk46ORU9iHkPkSsHm0UKntHV7f01dasYP2
+11-19 17:14:59.832 I/PlayerViewModel(14530): DV7_AUTO: decision=STRIP_TO_HDR10 effectiveMode=HDR10_BASE_LAYER hdrCapsKnown=true displayDv=false displayHdr10=true displayHdr10Plus=false codecDvheDtb=false codecDvheSt=fals
+11-19 17:14:59.832 I/PlayerViewModel(14530): DV7_DOVI: mode=AUTO effectiveMode=HDR10_BASE_LAYER dv81Active=false dv5Compat=false preserveMapping=false buildNative=true libraryLoaded=true extractorHookReady=true active=fa
+11-19 17:14:59.833 I/PlayerViewModel(14530): BUFFER_GATE: engine=exo-stock master=off; DefaultLoadControl (1.5s back buffer, no VOD cache) host=12.hls.gd
+11-19 17:14:59.834 I/PlayerViewModel(14530): BUFFER_NETWORK: bufferEngine=false parallelNetwork=false useParallel=false nuvioPerf=false engineNative=false useNativeEffective=false vodCache=false host=12.hls.gd
+11-19 17:14:59.839 I/PlayerViewModel(14530): SURROUND_RESOLVE: route=type:built_in_speaker|name:h931 policy=[ac3=true eac3=true truehd=false dts=true dtshd=true learned=[]] transcodePreferred=false channelTarget=null tvA
+11-19 17:14:59.843 I/PlayerViewModel(14530): DV_RPU_STRIP: enabled — will remove DV RPU NALs
+11-19 17:15:00.047 D/PlayerViewModel(14530): MediaSession metadata updated: title=Święty, artist=null, mediaId=mono.m3u8, artworkUri=null
+11-19 17:15:00.062 I/PlayerMediaSource(14530): PLAYBACK_CONFIG: native=false customBuffers=false budgetManaged=true minBufferMs=15000 maxBufferMs=45000 backBufferMs=15000 targetMb=1000 safeNativeMb=1000 parallel=0 chunkK
+11-19 17:15:00.062 I/PlayerMediaSource(14530): VOD_CACHE: enabled=false active=false requestedCap=0MB stats=none
+11-19 17:15:00.212 I/DS_OPEN (14530): [HTTP] file=mono.m3u8 pos=0 reqLen=-1 -> len=-1 ms=122
+11-19 17:15:00.361 I/DS_OPEN (14530): [HTTP] file=12164-06720.ts pos=0 reqLen=65536 -> len=65536 ms=91
+11-19 17:15:00.801 I/DS_OPEN (14530): [HTTP] file=05284-06880.ts pos=0 reqLen=-1 -> len=2523712 ms=139
+11-19 17:15:00.885 D/NuvioTrackSelector(14530): selectAllTracks run: streamMime=application/x-mpegURL, isHls=true
+11-19 17:15:00.885 D/NuvioTrackSelector(14530): Evaluating track: id=0, res=1920x1080, mime=video/avc, codecs=avc1.640029, support=4
+11-19 17:15:00.914 I/PlayerViewModel(14530): VIDEO_TRACK: mime=video/avc codecs=avc1.640029 size=1920x1080 vc1=false selected=true support=YES vc1TrackBypassActive=false
+11-19 17:15:00.914 D/PlayerViewModel(14530): TRACKS updated: internalSubs=1, selectedInternalIndex=-1, selectedAddon=null, pendingAddonLang=null, pendingAddonTrackId=null
+11-19 17:15:00.917 D/PlayerViewModel(14530): AUTO_SUB eval: targets=[pl, en], forcedOnly=false, selectedAudio=pl/Polski (MP2 Stereo), scannedText=true, internalCount=1, selectedInternal=-1, addonCount=0, selectedAddon=nu
+11-19 17:15:00.918 D/PlayerViewModel(14530): AUTO_SUB defer addon fallback: player not ready
+11-19 17:15:01.006 I/PlayerViewModel(14530): VIDEO_DECODER: name=OMX.MS.AVC.Decoder software=false initMs=110 host=12.hls.gd
+11-19 17:15:01.144 D/PlayerViewModel(14530): onVideoSizeChanged: updated resolution to 1920x1080
+11-19 17:15:01.247 D/PlayerViewModel(14530): AUTO_SUB eval: targets=[pl, en], forcedOnly=false, selectedAudio=pl/Polski (MP2 Stereo), scannedText=true, internalCount=1, selectedInternal=-1, addonCount=0, selectedAddon=nu
+11-19 17:15:01.247 D/PlayerViewModel(14530): AUTO_SUB no addon match for targets=[pl, en]
+11-19 17:15:01.257 D/PlayerViewModel(14530): BUFFER: ahead=4s, loading=true, heap=143/512MB, pos=0s
+11-19 17:15:01.525 I/DS_OPEN (14530): [HTTP] file=12164-06720.ts pos=0 reqLen=-1 -> len=2961000 ms=143
+11-19 17:15:01.966 I/DS_OPEN (14530): [HTTP] file=18884-06360.ts pos=0 reqLen=-1 -> len=2381960 ms=75
+11-19 17:15:02.263 I/TvStore (14530): resume 'Święty' at 0% (59 min left)
+11-19 17:15:02.424 I/DS_OPEN (14530): [HTTP] file=25244-06720.ts pos=0 reqLen=-1 -> len=3558464 ms=107
+11-19 17:15:03.062 I/DS_OPEN (14530): [HTTP] file=31964-06720.ts pos=0 reqLen=-1 -> len=4066628 ms=98
+11-19 17:15:03.694 I/DS_OPEN (14530): [HTTP] file=38684-06720.ts pos=0 reqLen=-1 -> len=4103664 ms=72
+11-19 17:15:04.313 I/DS_OPEN (14530): [HTTP] file=45404-06240.ts pos=0 reqLen=-1 -> len=1690496 ms=73
+11-19 17:15:04.708 I/DS_OPEN (14530): [HTTP] file=51644-06000.ts pos=0 reqLen=-1 -> len=1109764 ms=178
+11-19 17:15:04.970 I/DS_OPEN (14530): [HTTP] file=57644-06200.ts pos=0 reqLen=-1 -> len=1620560 ms=61
+11-19 17:15:06.474 D/ForgeKeys(14530): down code=4 (KEYCODE_BACK) scan=158 device=25 repeat=0
+11-19 17:15:06.627 D/ForgeKeys(14530): up code=4 (KEYCODE_BACK) scan=158 device=25 repeat=0
+11-19 17:15:09.793 I/DS_OPEN (14530): [HTTP] file=03844-06080.ts pos=0 reqLen=-1 -> len=4339792 ms=75
+11-19 17:15:09.960 D/ForgeKeys(14530): down code=23 (KEYCODE_DPAD_CENTER) scan=28 device=25 repeat=0
+11-19 17:15:10.103 D/ForgeKeys(14530): up code=23 (KEYCODE_DPAD_CENTER) scan=28 device=25 repeat=0
+11-19 17:15:13.602 D/ForgeKeys(14530): down code=23 (KEYCODE_DPAD_CENTER) scan=28 device=25 repeat=0
+11-19 17:15:13.612 D/PlayerViewModel(14530): BUFFER: ahead=55s, loading=false, heap=113/512MB, pos=8s
+11-19 17:15:13.748 D/ForgeKeys(14530): up code=23 (KEYCODE_DPAD_CENTER) scan=28 device=25 repeat=0
+11-19 17:15:15.098 D/ForgeKeys(14530): down code=22 (KEYCODE_DPAD_RIGHT) scan=106 device=25 repeat=0
+11-19 17:15:15.202 D/ForgeKeys(14530): up code=22 (KEYCODE_DPAD_RIGHT) scan=106 device=25 repeat=0
+11-19 17:15:16.065 D/ForgeKeys(14530): down code=23 (KEYCODE_DPAD_CENTER) scan=28 device=25 repeat=0
+11-19 17:15:16.223 D/ForgeKeys(14530): up code=23 (KEYCODE_DPAD_CENTER) scan=28 device=25 repeat=0
+11-19 17:15:17.683 I/TvStore (14530): resume 'Święty' at 0% (59 min left)
+11-19 17:15:19.270 I/DS_OPEN (14530): [HTTP] file=09924-06880.ts pos=0 reqLen=-1 -> len=4083548 ms=87
+11-19 17:15:22.335 D/ForgeKeys(14530): down code=4 (KEYCODE_BACK) scan=158 device=25 repeat=0
+11-19 17:15:22.482 D/ForgeKeys(14530): up code=4 (KEYCODE_BACK) scan=158 device=25 repeat=0
+11-19 17:15:24.002 D/PlayerViewModel(14530): BUFFER: ahead=52s, loading=false, heap=100/512MB, pos=19s
+11-19 17:15:24.690 D/ForgeKeys(14530): down code=4 (KEYCODE_BACK) scan=158 device=25 repeat=0
+11-19 17:15:24.841 D/ForgeKeys(14530): up code=4 (KEYCODE_BACK) scan=158 device=25 repeat=0
+11-19 17:15:26.126 I/DS_OPEN (14530): [HTTP] file=16804-06000.ts pos=0 reqLen=-1 -> len=2750252 ms=65
+11-19 17:15:26.361 D/ForgeKeys(14530): down code=4 (KEYCODE_BACK) scan=158 device=25 repeat=0
+11-19 17:15:26.574 D/ForgeKeys(14530): up code=4 (KEYCODE_BACK) scan=158 device=25 repeat=0
+11-19 17:15:28.263 D/PlayerViewModel(14530): TRACKS updated: internalSubs=0, selectedInternalIndex=-1, selectedAddon=null, pendingAddonLang=null, pendingAddonTrackId=null
+11-19 17:15:28.264 D/PlayerViewModel(14530): AUTO_SUB eval: targets=[pl, en], forcedOnly=false, selectedAudio=null/null, scannedText=true, internalCount=0, selectedInternal=-1, addonCount=0, selectedAddon=null
+11-19 17:15:28.264 D/PlayerViewModel(14530): AUTO_SUB defer addon fallback: player not ready
+11-19 17:15:28.384 I/PlayerMediaSource(14530): PLAYBACK_CONFIG: native=false customBuffers=false budgetManaged=true minBufferMs=15000 maxBufferMs=45000 backBufferMs=15000 targetMb=1000 safeNativeMb=1000 parallel=0 chunkK
+11-19 17:15:28.384 I/PlayerMediaSource(14530): VOD_CACHE: enabled=false active=false requestedCap=0MB stats=none
+11-19 17:15:28.544 I/DS_OPEN (14530): [HTTP] file=mono.m3u8 pos=0 reqLen=-1 -> len=-1 ms=143
+11-19 17:15:28.655 I/DS_OPEN (14530): [HTTP] file=mono.m3u8 pos=0 reqLen=-1 -> len=-1 ms=103
+11-19 17:15:28.710 I/DS_OPEN (14530): [HTTP] file=2477077.ts pos=0 reqLen=-1 -> len=3182276 ms=158
+11-19 17:15:28.854 D/NuvioTrackSelector(14530): selectAllTracks run: streamMime=application/x-mpegURL, isHls=true
+11-19 17:15:28.855 D/NuvioTrackSelector(14530): Evaluating track: id=0, res=1920x1080, mime=video/avc, codecs=avc1.640029, support=4
+11-19 17:15:28.869 I/PlayerViewModel(14530): VIDEO_TRACK: mime=video/avc codecs=avc1.640029 size=1920x1080 vc1=false selected=true support=YES vc1TrackBypassActive=false
+11-19 17:15:28.869 D/PlayerViewModel(14530): TRACKS updated: internalSubs=1, selectedInternalIndex=-1, selectedAddon=null, pendingAddonLang=null, pendingAddonTrackId=null
+11-19 17:15:28.871 D/PlayerViewModel(14530): AUTO_SUB eval: targets=[pl, en], forcedOnly=false, selectedAudio=pl/Polski (MP2 Stereo), scannedText=true, internalCount=1, selectedInternal=-1, addonCount=0, selectedAddon=nu
+11-19 17:15:28.871 D/PlayerViewModel(14530): AUTO_SUB defer addon fallback: player not ready
+11-19 17:15:28.921 D/ForgeKeys(14530): down code=4 (KEYCODE_BACK) scan=158 device=25 repeat=0
+11-19 17:15:28.957 I/PlayerViewModel(14530): VIDEO_DECODER: name=OMX.MS.AVC.Decoder software=false initMs=79 host=12.hls.gd
+11-19 17:15:28.974 D/ForgeKeys(14530): up code=4 (KEYCODE_BACK) scan=158 device=25 repeat=0
+11-19 17:15:29.014 D/PlayerViewModel(14530): onVideoSizeChanged: updated resolution to 1920x1080
+11-19 17:15:29.152 D/PlayerViewModel(14530): AUTO_SUB eval: targets=[pl, en], forcedOnly=false, selectedAudio=pl/Polski (MP2 Stereo), scannedText=true, internalCount=1, selectedInternal=-1, addonCount=0, selectedAddon=nu
+11-19 17:15:29.152 D/PlayerViewModel(14530): AUTO_SUB no addon match for targets=[pl, en]
+11-19 17:15:29.760 I/DS_OPEN (14530): [HTTP] file=2477078.ts pos=0 reqLen=-1 -> len=3582528 ms=104
+11-19 17:15:30.211 D/ForgeKeys(14530): down code=4 (KEYCODE_BACK) scan=158 device=25 repeat=0
+11-19 17:15:30.366 D/ForgeKeys(14530): up code=4 (KEYCODE_BACK) scan=158 device=25 repeat=0
+11-19 17:15:30.367 I/PlayerMediaSource(14530): VOD_CACHE_END: enabled=false active=false stats=none
+11-19 17:15:30.392 D/PlayerViewModel(14530): TRACKS updated: internalSubs=0, selectedInternalIndex=-1, selectedAddon=null, pendingAddonLang=null, pendingAddonTrackId=null
+11-19 17:15:30.393 D/PlayerViewModel(14530): AUTO_SUB eval: targets=[pl, en], forcedOnly=false, selectedAudio=null/null, scannedText=true, internalCount=0, selectedInternal=-1, addonCount=0, selectedAddon=null
+11-19 17:15:30.393 D/PlayerViewModel(14530): AUTO_SUB defer addon fallback: player not ready
+11-19 17:15:30.608 I/TvStore (14530): shelf resumes=3 of 8 (started=3)
