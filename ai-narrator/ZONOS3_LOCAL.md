@@ -1,45 +1,49 @@
-# ZONOS3-Mini: synteza na Android TV, przygotowanie audio przed seansem
+# ZONOS3-Mini ARM32: automatyczne pobieranie wewnątrz NuvioTV
 
-**Stan: prototyp.** Kod pobierania modelu i planowania audio jest w gałęzi, lecz nie ma skompilowanego i przetestowanego silnika ZONOS3 dla Android ARM64. Brak natywnego pliku wykonawczego **blokuje syntezę**; nie wolno mylić pobrania GGUF z działającą funkcją.
+**Stan: implementacja instalatora i osobnego projektu ARM32; NIE MA jeszcze zbudowanego ani opublikowanego binarnego wydania.** Synteza lokalna nie została uruchomiona na urządzeniu. Nie mylić implementacji mechanizmu pobierania z dostarczeniem silnika.
 
-## Działanie
+## Proces dla użytkownika
 
-1. Wybierz ZONOS3-Mini zamiast Gemini. ZONOS3 jest uruchamiany **na samym Android TV** (lokalna pętla 127.0.0.1), bez zewnętrznego serwera LAN. Nikt nie pobiera modelu automatycznie.
-2. Dopiero przycisk **Pobierz / wznów pobieranie modelu** pobiera dwa pliki GGUF, łącznie 1 115 476 064 bajtów, z przypiętej rewizji Hugging Face. Są kontrolowane rozmiary, miejsce na dysku, wznowienie i SHA-256.
-3. Wstrzymaj film i użyj **Przygotuj 1. połowę** lub **Przygotuj 2. połowę**. Wymagana jest pełna lista napisów z czasami. Tekst jest syntezowany kolejno, a ekran pokazuje postęp i szacowany pozostały czas.
-4. Jedna sesja syntezy ma limit 15 minut. Nie ma danych, czy pół filmu powstanie w tym czasie na konkretnym procesorze. Jeśli nie, sesję można wznowić; już wykonane kwestie nie są generowane ponownie.
-5. Podczas filmu ZONOS3 **wyłącznie odtwarza wcześniej zapisane WAV**. Synteza drugiej połowy może być wykonana podczas przerwy w projekcji; nie uruchamia się równolegle z filmem.
+1. Użytkownik włącza **Lektor AI → ZONOS3 (lokalnie)**. NuvioTV sprawdza obecność podpisanego dodatkowego pakietu **armeabi-v7a**, odrębnego od podstawowego APK.
+2. Jeśli pakietu brakuje, aplikacja **automatycznie pobiera go z Twojego GitHub Releases** (po skonfigurowaniu adresu wydania). Pasek postępu działa w panelu. Sprawdzana jest suma SHA-256 i podpis: pakiet musi być podpisany tym samym kluczem co NuvioTV.
+3. Android **wymaga zatwierdzenia instalacji** osobnego APK. Aplikacja otwiera systemowy instalator przyciskiem; instalacji nie można wykonać po cichu.
+4. Po instalacji i weryfikacji aplikacja automatycznie pobiera model GGUF (~1,12 GB) z Hugging Face, z wznawianiem i SHA-256. Model nie jest częścią żadnego APK.
+5. Po wstrzymaniu filmu użytkownik przygotowuje pierwszą albo drugą połowę z pełnej osi czasowej napisów. Audio jest zapisywane w trwałej pamięci. W trakcie projekcji nie następuje synteza.
+6. Gdy już istnieją WAV, ponowne przygotowanie pomija nagrania obecne na dysku. Ręczne usuwanie audio wymaga potwierdzenia.
 
-## Zapis i bezpieczeństwo
+## Skąd plik ARM32
 
-Model jest w prywatnej trwałej pamięci aplikacji: filesDir/zonos3-mini/v1. Audio jest trwale zapisywane w filesDir/ai-narrator/zonos3-prepared/v1, poza katalogiem cache Androida. Klucz pliku obejmuje wariant modelu i tekst, pozwalając wykorzystać identyczne kwestie w kolejnych sesjach. Limit nagrań 2 GiB; zachowywane jest 500 MiB wolnego miejsca. Zabraknie miejsca — generowanie staje, gotowe nagrania pozostają. Ich kasowanie wymaga osobnego potwierdzenia.
+Źródła i eksperymentalny skrypt: `ai-narrator/worker-arm32/`, `ai-narrator/tools/build_android_zonos3.sh`. Skrypt używa przypiętego commita Zyphra i NDK dla `armeabi-v7a`, produkując oddzielny **podpisany APK** `com.nuvio.tv.zonos32`. Bazowe APK nie zawiera silnika ani wag.
 
-## Pamięć RAM: 2 GB, 3 GB, 4 GB
+Workflow `.github/workflows/zonos32-companion-release.yml` umożliwia zbudowanie pliku, zapisanie artefaktu do testów i opcjonalne wypchnięcie podpisanego APK na publiczne GitHub Releases z konta `stefankot`. Wymaga istniejącego **publicznego** repozytorium dla dystrybucji, `ZONOS_PUBLIC_RELEASE_TOKEN` uprawnionego do publikacji oraz sekretów podpisu `AUTOSYNC_KEYSTORE_BASE64`, `AUTOSYNC_STORE_PASSWORD`, `AUTOSYNC_KEY_ALIAS`, `AUTOSYNC_KEY_PASSWORD`. Nie publikować przed sprawdzeniem zgodności ELF/PIE, głosu i RAM na urządzeniach.
 
-Progi aplikacji to zasady bezpieczeństwa, **nie pomiary wydajności ZONOS3**. Sprawdzana jest wolna RAM, stan lowMemory i zużycie procesu. W trybie przygotowania z pauzą wymagane jest przed uruchomieniem co najmniej:
+Repozytorium `stefankot/nuvio-tv-fork` jest **prywatne**. Jego release assets nie będą anonimowo dostępne dla aplikacji na TV bez dodatkowego uwierzytelnienia. Nie wdrożono wprowadzania tokena GitHub na telewizorze. Potrzebne jest osobne publiczne repozytorium w tym samym koncie albo świadoma decyzja o publicznym wydaniu.
 
-| Urządzenie | Minimalna wolna RAM na start |
-|---|---:|
-| Xiaomi TV Box S 3rd Gen (2 GB) | 1 250 MiB |
-| Onn 4K Pro (3 GB) | 1 500 MiB |
-| Projektor (4 GB) | 1 750 MiB |
+Po opublikowaniu i pomiarze SHA-256 zbudowanego APK należy ustawić w `local.dev.properties` przed budową NuvioTV dwa klucze:
+- `ZONOS_ARM32_APK_URL` — rzeczywisty adres `https://github.com/stefankot/<repo-publiczne>/releases/download/<tag>/zonos3-worker-armeabi-v7a.apk`.
+- `ZONOS_ARM32_APK_SHA256` — dokładna suma SHA-256 tego APK.
 
-Dodatkowo rezerwa systemowa wynosi odpowiednio przynajmniej 450/520/700 MiB. Kontrola wolnej RAM powtarzana jest podczas pracy i przerywa syntezę, gdy zaczyna brakować pamięci lub użytkownik wznawia film. Proces natywny ma pojedyncze zadanie CPU. 2 GB może nie wystarczyć nawet przy pauzie — wtedy aplikacja ma odmówić uruchomienia, nie zawiesić systemu.
+Po uzupełnieniu tych wartości aplikacja sama pobiera wydanie po aktywacji funkcji; użytkownik nie wpisuje adresu serwera. Brak któregokolwiek parametru powoduje komunikat **Brak opublikowanego pakietu ARM32** i zakaz pobierania z nieznanych źródeł.
 
-## Natywny silnik: wymagane wdrożenie
+## Bezpieczeństwo i architektura
 
-Dodano skrypt eksperymentalny ai-narrator/tools/build_android_zonos3.sh. Próbuje on skompilować natywny serwer C++/ggml ze źródeł Zyphra przez Android NDK i umieścić go w ai-narrator/jniLibs/arm64-v8a/libzonos3_server.so. Forkowy Gradle wskazuje ten katalog. **Skrypt nie był wykonany**, nie potwierdzono kompilacji, uruchomienia ELF/PIE ani wymaganej ilości RAM. Bez tego pliku interfejs wyświetla brak silnika i nie próbuje syntezy. Test jest wymagany na każdym urządzeniu.
+- NuvioTV weryfikuje APK przez SHA-256 oraz rzeczywiste certyfikaty podpisu pakietu. Sprawdza też podpis zainstalowanej aplikacji `com.nuvio.tv.zonos32`.
+- Komponent ma eksportowaną usługę chronioną **uprawnieniem signature**, więc inne aplikacje nie mogą jej uruchamiać.
+- Model jest przekazywany z NuvioTV do komponentu przez czasowo udostępnione `content://` URIs z uprawnieniem odczytu; komponent kopiuje i sprawdza GGUF w swojej prywatnej pamięci. Uwaga: wymaga drugiej kopii ~1,12 GB na dysku.
+- Natywny proces pracuje tylko na `127.0.0.1`, z losowym tokenem sesyjnym i limitami RAM. Wbudowany strażnik zatrzymuje proces przy małej pamięci lub długiej sesji.
+- **Nigdy** nie uruchamia się pobranego pliku ELF przez `exec` z `filesDir`; natywny plik znajduje się w katalogu zarządzanym przez Android Package Manager. Nie jest dołączany do głównego NuvioTV APK.
+- Jeśli Android nie zgłasza ABI `armeabi-v7a`, aplikacja blokuje instalację. Sama nominalna wielkość RAM nie dowodzi zgodności architektury.
 
-Źródła: https://github.com/Zyphra/ZONOS3-Mini/tree/main/servers/ggml oraz https://huggingface.co/Zyphra/ZONOS3-Mini. Wagi Apache 2.0, kod referencyjny MIT.
+## Pamięć i przygotowanie
 
-## Dodatkowe ograniczenia
+Model + dekoder: **1 115 476 064 bajty**. Kopia w Nuvio + kopia w komponencie to około **2,23 GB** na dysku, nie licząc gotowych WAV (limit 2 GiB i rezerwa 500 MiB). Wymagane progi wolnej pamięci RAM przed przygotowaniem: 1 250 MiB (klasa 2 GB), 1 500 MiB (3 GB), 1 750 MiB (4 GB). To tylko wstępna, konserwatywna polityka; nie ma pomiarów szczytowego zużycia procesora ARM32.
 
-- Aktualnie jest to **czytanie polskich napisów**, nie tłumaczenie zagranicznych dialogów. Tłumaczenie to odrębna funkcja.
-- Adapter posiada pełną listę czasową głównie przez subtitleAutoSyncCues. Bez pełnych napisów (zwykłe SRT/VTT nie zawsze są tu dostępne) przygotowanie jest zablokowane. Pełna ekstrakcja z wybranej ścieżki napisów nadal wymaga implementacji.
-- Prawdziwego czasu przygotowania nie zmierzono. Limit 15 minut nie stanowi obietnicy ukończenia połowy filmu.
-- Brak automatycznego przełączenia na Gemini. Nie istnieje ścieżka syntezy ZONOS3 w trakcie odtwarzania.
-- Brak potwierdzonych testów kompilacji, ARM64, ExoPlayer/mpv, synchronizacji i odporności na OOM.
+Przygotowanie ma limit **15 minut na sesję**, ale nie potwierdzono możliwości wygenerowania połowy filmu w tym czasie. Sesję można wznowić bez utraty gotowych nagrań. Model uruchamiany jest tylko przy wstrzymanym filmie; sam dekoder obrazu może wówczas nadal zajmować RAM.
 
-## Warunki odbioru
+**Funkcja aktualnie czyta istniejące polskie napisy — nie tłumaczy obcych dialogów.** Pełne napisy SRT/VTT nie zawsze są dostępne przez obecny adapter odtwarzacza. Jeśli nie ma pełnej osi czasowej, przygotowanie jest zablokowane.
 
-Kompilacja APK i uruchomienie rzeczywistego silnika ARM64, test na modelach Xiaomi 2 GB, Onn 3 GB i projektor 4 GB, pomiary RAM/latencji, pełna lista napisów, przygotowanie obu połówek, wznowienie po restarcie, brak syntezy w trakcie filmu, niezmieniona synchronizacja upstream. Dopóki tych testów nie ma, stan pozostaje **prototyp / BRAK DANYCH**.
+## Warunki odbioru i brakujące elementy
+
+BRAK DANYCH: poprawna kompilacja C++ ARM32 z upstream, instalacja podpisanego APK, uruchomienie serwera na realnym Android TV, zgodność ABI Xiaomi/Onn/projektora, jakość polskiej wymowy, szczytowa RAM, realny czas generacji, obsługa pełnych ścieżek napisów. Dotychczasowe GitHub Actions kończyły się błędami bez dowodu poprawnej kompilacji.
+
+Źródła: https://github.com/Zyphra/ZONOS3-Mini/tree/main/servers/ggml i https://huggingface.co/mlx-community/ZONOS3-Mini/blob/main/conversion.json (model revision i SHA-256).
