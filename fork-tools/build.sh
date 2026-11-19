@@ -1,5 +1,5 @@
 #!/bin/bash
-# Jedyny dozwolony sposób uruchamiania Gradle w tym projekcie (ZASADA: fork-tools/ZASADA_LIMIT_BUILDOW.md).
+# Jedyny dozwolony sposób uruchamiania Gradle w tym projekcie (ZASADA: ZASADY.md, sekcja 4).
 #   najwyżej 1 build równocześnie, najwyżej 1 build w kolejce,
 #   każde nowe zlecenie najpierw zeruje kolejkę (czekający build zostaje anulowany i zastąpiony nowym).
 # Użycie (zawsze w zakładce terminala, postęp widoczny):

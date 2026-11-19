@@ -1,0 +1,5 @@
+- [Autonomia bez czekania](feedback_autonomia.md) — nigdy nie pytaj/nie zatrzymuj się; działaj do końca
+- [Emulator i aplikacje](feedback_emulator_i_aplikacje.md) — tylko fork com.nuviodebug.com, hash APK, emulator tylko na testy
+- [Buildy zbiorczo, bez bezczynności](feedback_buildy_zbiorczo.md) — jeden build na komplet poprawek; w czasie builda pisz dalej (.stage/)
+- [Limit buildów](feedback_limit_buildow.md) — 1 build naraz, 1 w kolejce, zerowanie kolejki; tylko fork-tools/build.sh
+- [Gradle tylko przez build.sh](feedback_build_sh.md) — 1 build naraz; nigdy --stop/pkill demona (inne wątki)

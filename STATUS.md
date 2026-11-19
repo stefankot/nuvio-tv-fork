@@ -18,7 +18,7 @@
 # Stan prac: fork Nuvio Android TV (16.11.2026)
 
 Baza: oficjalny NuvioTV, gałąź `dev`, commit `2c853c1` (w gicie: "Baseline NuvioTV 2c853c1", `85f9010aa`).
-Pochodzenie plików: `UPSTREAM_SOURCES.md`. Zasady i preferencje: `../CLAUDE.md`.
+Pochodzenie plików: `UPSTREAM_SOURCES.md`. Zasady i preferencje: `ZASADY.md`.
 
 ## Gałęzie (git, katalog NuvioFork)
 | Gałąź | Zawartość | Kompiluje |

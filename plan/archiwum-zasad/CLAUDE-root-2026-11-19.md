@@ -1,10 +1,14 @@
 # Kontynuacja: fork Nuvio Android TV
 
-**Stan na koniec wątku 3 (18.11 ok. 22:45):** gałąź `hybryda-zrodel` (GitHub), kolejka i decyzje o lektorze/TTS w `NuvioFork/plan/TERAZ.md` sekcja „NAJPIERW (wątek 4)”.
+**Stan na koniec wątku 14 (19.11 ok. 15:55 zegar Maca):** gałąź `hybryda-zrodel`, na JMGO build120, kolejka w `NuvioFork/plan/TERAZ.md` sekcja „NAJPIERW (wątek 14)” (lektor czeka na odnowienie limitu Gemini TTS). Dawniej — **Stan na koniec wątku 12 (19.11 ok. 15:10 zegar Maca):** gałąź `hybryda-zrodel`, kolejka w `NuvioFork/plan/TERAZ.md` sekcja „NAJPIERW (wątek 13)” (na JMGO build119; build120 ze scenami lektora do zbudowania; lektor blokowany limitem Gemini TTS Tier 1: 100 zapytań/dzień). Dawniej — **Stan na koniec wątku 10 (19.11 ok. 11:20):** gałąź `hybryda-zrodel`, kolejka w `NuvioFork/plan/TERAZ.md` sekcja „NAJPIERW (wątek 11)”. Dawniej — **Stan na koniec wątku 3 (18.11 ok. 22:45):** gałąź `hybryda-zrodel` (GitHub), kolejka i decyzje o lektorze/TTS w `NuvioFork/plan/TERAZ.md` sekcja „NAJPIERW (wątek 4)”.
 
 **NAJPIERW (18.11.2026, nadrzędne wobec wszystkiego niżej):** gdy użytkownik napisze „kontynuuj”, otwórz `NuvioFork/plan/TERAZ.md` i wykonuj jego instrukcję i kolejkę. Starsze sekcje tego pliku i `NuvioFork/CLAUDE.md` / `plan/KONTYNUUJ.md` są historyczne.
 
 **ZASADA STAŁA (19.11, właściciel): jak najmniejsze zmiany w kodzie bazy i forków, konstrukcja modułowa (cel: łatwe scalanie nowych wydań).** Nowe rzeczy w osobnych plikach, w bazie tylko jednoliniowe hooki. Pełny tekst: `~/Desktop/zasady developementu/ZASADY_OGOLNE.md`.
+
+**ZASADA STAŁA (19.11, właściciel): wszystkie moduły zapisują do logu** — każda ważna czynność, wybór i KAŻDY błąd (typ + komunikat), żadnych połkniętych wyjątków; błąd odczuwalny przez użytkownika także na ekranie; bez kluczy i tekstu dialogów. Pełny tekst: `~/Desktop/zasady developementu/ZASADY_OGOLNE.md`.
+
+**ZASADA STAŁA (19.11, właściciel): ostry limit buildów — najwyżej 1 build równocześnie, najwyżej 1 w kolejce, przed każdym buildem wyzerować kolejkę.** Gradle WYŁĄCZNIE przez `bash fork-tools/build.sh <nazwa-logu> <zadania...>` (w `NuvioFork`, w zakładce terminala); bezpośrednie `./gradlew` zakazane. Pełny tekst: `NuvioFork/fork-tools/ZASADA_LIMIT_BUILDOW.md`.
 
 **ZASADA STAŁA (18.11, właściciel): NIE wolno robić buildu z jedną poprawką; buildy tylko w DUŻYCH paczkach** (drobne poprawki z testów: commit bez buildu, do następnej paczki). Pełny tekst: `~/Desktop/zasady developementu/ZASADA_BUILDY_W_PACZKACH.md`.
 

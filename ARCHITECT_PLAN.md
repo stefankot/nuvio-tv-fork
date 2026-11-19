@@ -54,16 +54,7 @@ Owner decisions that this revision implements (2026-11-16):
 ## 2. Solutions
 
 ### 2.0 Rules for the executor
-
-- R1. Work on branch `final` (step 3). One step or phase = one commit. Update `STATUS.md` after each.
-- R2. Files in `fork-tools/overrides.txt` are Reshaped-owned. They may be edited **only** by inserting marked hook lines named in this plan. Each insertion: one statement, ending with `// Fork hook: <module>`, calling into `SRC/fork/**` or an Echo extension function; add a row to `fork-tools/hooks.tsv`; move the file from `overrides.txt` to `hooked-overrides.txt`. Never restructure, reformat or delete Reshaped code.
-- R3. Copied files stay 1:1 in their original package path. Fix compile errors only by the "symbol closure procedure" (2.6.3) or by edits this plan explicitly allows. Record every allowed edit in `UPSTREAM_SOURCES.md`.
-- R4. **Stop rule for optional items (B, D, E):** maximum 4 compile cycles; if more than 40 errors remain, `git reset --hard` to the last good commit, write "PARKED: reason, error count" in `STATUS.md`, continue with the next step.
-- R5. **No-drop rule for A:** never park A. If a phase is stuck after 6 compile cycles, commit the work on a side branch `a-phase-N-wip`, write the remaining error list to `FORK/A_BLOCKERS.md` (file, line, symbol, what was tried), play the owner's alert sound once, and continue with the next non-A step. Return to A afterwards.
-- R6. Never run Gradle and the emulator together (8 GB RAM): `./gradlew --stop` before the emulator, `adb emu kill` after.
-- R7. New strings go to `res/values/<module>_strings.xml`; delete a name from the module file if it already exists in `strings.xml`. No translations.
-- R8. `df -h ~` before each build (need about 15 GB; VERIFIED exactly 15 GB free on 2026-11-16).
-- R9. A feature that is switched off must cost nothing: every hook goes through a function that returns immediately when its `ForkFeatures` key is off.
+Moved to `ZASADY.md` (single source of rules); old R1–R9 in git history.
 
 ### 2.1 Shared infrastructure: `ForkHooks` and `ForkFeatures`
 
