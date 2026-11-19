@@ -45,6 +45,7 @@ object LektorController {
             PlayerBridge.send(PlayerEvent.OnSeekTo(LektorEngine.positionMs()))
             val tts = com.nuvio.tv.ainarrator.LektorVoiceChoice.create(app, LektorVoice.ready) // scalenie 19.11: głos Gemini albo systemowy
             val done = HashSet<Long>()
+            var synthErrors = 0; var synthOk = 0
             try {
                 var known = cues.size
                 while (true) {
@@ -53,7 +54,14 @@ object LektorController {
                     val pos = LektorEngine.positionMs()
                     val pending = SynthWindow.pending(LektorEngine.lines, pos, done)
                     for (l in pending.take(5)) {
-                        val natural = runCatching { tts.synthesize(l.text, 1f) }.getOrElse { status = it.message ?: "Błąd syntezy"; null } ?: break
+                        val natural = runCatching { tts.synthesize(l.text, 1f) }.getOrElse { e ->
+                            status = e.message ?: "Błąd syntezy"
+                            // Fork 19.11: błąd syntezy był widoczny tylko w statusie — log i komunikat (pierwszy).
+                            android.util.Log.w("ForkLektor", "synteza nieudana: ${e.javaClass.simpleName}: ${e.message?.take(160)}")
+                            if (synthErrors++ == 0) say(app, "Lektor: ${e.message ?: "błąd syntezy głosu"}")
+                            null
+                        } ?: break
+                        if (synthOk++ % 10 == 0) android.util.Log.i("ForkLektor", "synteza OK: $synthOk kwestii (ostatnia ${natural.durationMs} ms)")
                         val fit = Tempo.fit(l.text, natural.durationMs, l.availableMs)
                         val pcm = if (fit.rate > 1.01f || fit.text != l.text) runCatching { tts.synthesize(fit.text, fit.rate) }.getOrDefault(natural) else natural
                         LektorEngine.voice[l.startMs] = pcm; done += l.startMs

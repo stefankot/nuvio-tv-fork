@@ -44,11 +44,16 @@ object LektorEngine {
 class LektorAudioProcessor : BaseAudioProcessor() {
     private var frames = 0L
     private var baseMs = 0L
+    private var mixLogged = false
 
     override fun isActive(): Boolean = super.isActive() && LektorEngine.enabled
 
-    override fun onConfigure(inputAudioFormat: AudioProcessor.AudioFormat): AudioProcessor.AudioFormat =
-        if (inputAudioFormat.encoding == C.ENCODING_PCM_16BIT) inputAudioFormat else AudioProcessor.AudioFormat.NOT_SET
+    // Fork 19.11 (właściciel: „lektor nie działa”): także PCM float (FFmpeg / wyjście float) — wcześniej mikser po cichu się wyłączał.
+    override fun onConfigure(inputAudioFormat: AudioProcessor.AudioFormat): AudioProcessor.AudioFormat {
+        val ok = inputAudioFormat.encoding == C.ENCODING_PCM_16BIT || inputAudioFormat.encoding == C.ENCODING_PCM_FLOAT
+        android.util.Log.i("ForkLektor", "mikser: format=${inputAudioFormat.encoding} kanały=${inputAudioFormat.channelCount} ${inputAudioFormat.sampleRate} Hz → ${if (ok) "aktywny" else "pominięty"}")
+        return if (ok) inputAudioFormat else AudioProcessor.AudioFormat.NOT_SET
+    }
 
     override fun onFlush() { frames = 0; baseMs = LektorEngine.positionMs() }
 
@@ -61,12 +66,15 @@ class LektorAudioProcessor : BaseAudioProcessor() {
         var t0 = baseMs
         // Poprawka z zegara interfejsu przy dużym rozjeździe (przewinięcie).
         val ui = LektorEngine.positionMs(); if (kotlin.math.abs(ui - (baseMs + frames * 1000 / rate)) > 1500) { baseMs = ui; frames = 0; t0 = ui }
-        while (inp.remaining() >= 2 * ch) {
+        val float = inputAudioFormat.encoding == C.ENCODING_PCM_FLOAT
+        val bytes = if (float) 4 else 2
+        if (!mixLogged) { mixLogged = true; android.util.Log.i("ForkLektor", "mikser: miksuję (float=$float, kwestii z głosem=${LektorEngine.voice.size})") }
+        while (inp.remaining() >= bytes * ch) {
             val t = t0 + frames * 1000 / rate
             val g = LektorEngine.gainAt(t); val v = LektorEngine.voiceAt(t) * LektorEngine.voiceGain
             for (c in 0 until ch) {
-                val s = inp.short / 32768f
-                out.putShort(((s * g + v).coerceIn(-1f, 1f) * 32767f).toInt().toShort())
+                if (float) out.putFloat((inp.float * g + v).coerceIn(-1f, 1f))
+                else out.putShort(((inp.short / 32768f * g + v).coerceIn(-1f, 1f) * 32767f).toInt().toShort())
             }
             frames++
         }
