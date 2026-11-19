@@ -47,6 +47,7 @@ fun NarratorOverlay(controller: PlayerRuntimeController, visible: Boolean, modif
     val prefs = remember(context) { NarratorPreferences(context) }
     val engine = remember(controller) { NarratorEngine(context) }
     val models = remember(context) { ZonosOnDeviceModels(context) }
+    val companion = remember(context) { ZonosArm32Installer(context) }
     val durable = remember(context) { NarratorPersistentAudio(context) }
     val preparation = remember(controller) { NarratorPreparer(context, models, durable) }
     var options by remember(prefs) { mutableStateOf(prefs.load()) }
@@ -60,17 +61,36 @@ fun NarratorOverlay(controller: PlayerRuntimeController, visible: Boolean, modif
     val liveGeminiKey by rememberUpdatedState(geminiKey)
     val status by engine.status.collectAsState()
     val download by models.status.collectAsState()
+    val install by companion.status.collectAsState()
     val progress by preparation.status.collectAsState()
-    val nativeAvailable = remember(context) {
-        java.io.File(context.applicationInfo.nativeLibraryDir, "libzonos3_server.so").let {
-            it.isFile && it.canExecute()
+
+    // Turning on local narration is the explicit user request to download its
+    // optional GitHub-hosted runtime, then the model. Installation needs Android approval.
+    LaunchedEffect(options.enabled, options.backend, install.phase, download.phase) {
+        if (options.enabled && options.backend == NarratorBackend.ZONOS_LOCAL) {
+            when (install.phase) {
+                Arm32InstallPhase.NOT_INSTALLED -> companion.downloadOnFeatureEnable()
+                Arm32InstallPhase.INSTALLED -> {
+                    if (download.phase == ModelPhase.MISSING) models.downloadOnUserRequest()
+                }
+                else -> Unit
+            }
+        }
+    }
+    LaunchedEffect(showDialog) {
+        if (showDialog) {
+            while (isActive) {
+                companion.refresh()
+                delay(1_200L)
+            }
         }
     }
 
-    DisposableEffect(engine, preparation, models) {
+    DisposableEffect(engine, preparation, models, companion) {
         onDispose {
             preparation.close()
             models.close()
+            companion.close()
             engine.close()
         }
     }
@@ -128,6 +148,7 @@ fun NarratorOverlay(controller: PlayerRuntimeController, visible: Boolean, modif
     if (visible) {
         Button(onClick = {
             draft = options
+            companion.refresh()
             newGeminiKey = ""
             confirmDeleteAudio = false
             inputError = ""
@@ -185,7 +206,33 @@ fun NarratorOverlay(controller: PlayerRuntimeController, visible: Boolean, modif
                     }) { Text("Zmień limit") }
                 } else {
                     Text("ZONOS3-Mini — bezpośrednio na tym Android TV; bez serwera LAN.")
-                    Text("Model GGUF: około 1,12 GB. Pobierany wyłącznie po wybraniu opcji poniżej.")
+                    Text("Po włączeniu: automatyczne pobieranie ARM32 z Twojego GitHub Releases, " +
+                        "następnie modelu GGUF (ok. 1,12 GB). Instalację pakietu zatwierdza Android.")
+                    Text("Silnik ARM32: " + when (install.phase) {
+                        Arm32InstallPhase.UNSUPPORTED -> "Android urządzenia nie obsługuje armeabi-v7a"
+                        Arm32InstallPhase.NOT_PUBLISHED -> "Brak opublikowanego pakietu ARM32 na GitHub"
+                        Arm32InstallPhase.NOT_INSTALLED -> "Oczekiwanie na pobieranie"
+                        Arm32InstallPhase.DOWNLOADING -> "Pobieranie z GitHub"
+                        Arm32InstallPhase.AWAITING_INSTALL -> "Gotowy do instalacji — zatwierdź w Androidzie"
+                        Arm32InstallPhase.INSTALLED -> "Zainstalowany i podpisany zgodnie z NuvioTV"
+                        Arm32InstallPhase.ERROR -> install.message
+                    })
+                    if (install.phase == Arm32InstallPhase.DOWNLOADING) {
+                        NarratorProgressBar(if (install.expectedBytes > 0L)
+                            (100L * install.receivedBytes / install.expectedBytes).toInt().coerceIn(0, 100)
+                            else 0)
+                        Text("Silnik pobrano: ${install.receivedBytes / 1_000_000L} MB")
+                    }
+                    if (install.phase == Arm32InstallPhase.AWAITING_INSTALL) {
+                        Button(onClick = { companion.openInstaller() }) {
+                            Text("Zatwierdź instalację ARM32 w Androidzie")
+                        }
+                    }
+                    if (install.phase == Arm32InstallPhase.ERROR) {
+                        Button(onClick = { companion.downloadOnFeatureEnable() }) {
+                            Text("Ponów pobieranie ARM32 z GitHub")
+                        }
+                    }
                     Text("Stan modelu: " + when (download.phase) {
                         ModelPhase.CHECKING -> "Sprawdzanie plików"
                         ModelPhase.MISSING -> "Niepobrany"
@@ -205,10 +252,12 @@ fun NarratorOverlay(controller: PlayerRuntimeController, visible: Boolean, modif
                         }
                     }
                     if (download.phase == ModelPhase.READY) {
-                        Text(if (nativeAvailable) "Silnik ARM64: dostępny" else
-                            "Silnik ARM64 nie jest dołączony do APK — synteza zablokowana.")
+                        Text(if (install.phase == Arm32InstallPhase.INSTALLED)
+                            "Silnik ARM32 jest zainstalowany osobno; model zweryfikowany."
+                            else "Zainstaluj opcjonalny pakiet ARM32 przed syntezą.")
                         Text("Audio przygotowuje się WYŁĄCZNIE przy wstrzymanym filmie.")
                         Text("Niezbędne są pełne napisy z czasami. Ukończone WAV pozostają na dysku.")
+                        if (install.phase == Arm32InstallPhase.INSTALLED) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(onClick = {
                                 val cues = controller.uiState.value.subtitleAutoSyncCues.mapNotNull { cue ->
@@ -231,6 +280,7 @@ fun NarratorOverlay(controller: PlayerRuntimeController, visible: Boolean, modif
                                 }
                             }) { Text("Przygotuj 2. połowę") }
                         }
+                        }
                     }
                     if (progress.total > 0) {
                         NarratorProgressBar(progress.percentage)
@@ -250,6 +300,7 @@ fun NarratorOverlay(controller: PlayerRuntimeController, visible: Boolean, modif
                         Button(onClick = {
                             preparation.pause()
                             models.deleteOnUserRequest()
+                            ZonosNativeServer(context, ZonosMemoryGuard(context)).deleteCompanionModels()
                         }) { Text("Usuń pobrany model") }
                         Button(onClick = { confirmDeleteAudio = !confirmDeleteAudio }) {
                             Text("Usuń przygotowane audio")
@@ -263,6 +314,7 @@ fun NarratorOverlay(controller: PlayerRuntimeController, visible: Boolean, modif
                         }) { Text("Potwierdź usunięcie WAV") }
                     }
 
+                }
                 Text("Głośność lektora: ${(draft.narratorVolume * 100).toInt()}%")
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = {
