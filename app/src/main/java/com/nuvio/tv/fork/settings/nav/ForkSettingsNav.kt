@@ -36,6 +36,11 @@ object ForkSettingsNav {
     /** Wiersz wyszukiwania jest pierwszy w szynie: pierwsza kategoria nie jest wtedy „pierwszym wierszem” dla ▲. */
     @Volatile var railSearchShown = false
 
+    /** Gdzie był użytkownik w drzewie przed otwarciem pełnej kategorii (powrót Wstecz na ten sam wiersz). */
+    var lastSection = 0
+    var lastRow = 0
+    var backFromCategory = false
+
     /**
      * Hook w `SettingsScreen` (przed ustawieniami podstawowymi). Tryb Zaawansowany: rysuje drzewo i zwraca true.
      * Gdy otwarty jest objazd do pełnej kategorii ([detour] != null) — Wstecz wraca do drzewa, zwraca false.
@@ -46,7 +51,7 @@ object ForkSettingsNav {
         val on = remember { enabled(c) }
         if (isEssentialMode || !on) return false
         if (detour != null) {
-            BackHandler { Log.i(TAG, "Wstecz z kategorii $detour → drzewo"); setDetour(null) }
+            BackHandler { Log.i(TAG, "Wstecz z kategorii $detour → drzewo"); backFromCategory = true; setDetour(null) }
             return false
         }
         // Ktoś prosi o konkretną kategorię (np. długie OK na Trybie nocnym): od razu objazd do niej.

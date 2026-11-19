@@ -89,16 +89,16 @@ internal fun ForkAdvancedSettings(onOpenCategory: (String) -> Unit, onSearch: ()
             s.copy(leaves = s.leaves.filter { l -> val t = l.target; t !is NavTarget.Parts || t.items.isNotEmpty() || t.modules.any { it in mods } })
         }.filter { it.leaves.isNotEmpty() }
     }
-    var selected by rememberSaveable { mutableIntStateOf(0) }
+    var selected by rememberSaveable { mutableIntStateOf(ForkSettingsNav.lastSection) }
     var openLeaf by rememberSaveable { mutableStateOf<String?>(null) }
-    var lastRow by rememberSaveable { mutableIntStateOf(0) }
+    var lastRow by rememberSaveable { mutableIntStateOf(ForkSettingsNav.lastRow) }
     val section = sections[selected.coerceIn(0, sections.lastIndex)]
     val leaf = section.leaves.firstOrNull { it.id == openLeaf }
     val railRequesters = remember(sections) { List(sections.size + 1) { FocusRequester() } }
     val rowRequesters = remember(section) { List(section.leaves.size) { FocusRequester() } }
     val detailFocus = remember { FocusRequester() }
 
-    LaunchedEffect(Unit) { Log.i(ForkSettingsNav.TAG, "tryb zaawansowany: ${sections.size} kategorii, ${sections.sumOf { it.leaves.size }} podkategorii"); withFrameNanos { }; runCatching { railRequesters[selected + 1].requestFocus() }.onFailure { Log.w(ForkSettingsNav.TAG, "fokus szyny: ${it.javaClass.simpleName}: ${it.message}") } }
+    LaunchedEffect(Unit) { Log.i(ForkSettingsNav.TAG, "tryb zaawansowany: ${sections.size} kategorii, ${sections.sumOf { it.leaves.size }} podkategorii"); withFrameNanos { }; runCatching { (if (ForkSettingsNav.lastRow >= 0 && ForkSettingsNav.backFromCategory) rowRequesters.getOrNull(lastRow) ?: railRequesters[selected + 1] else railRequesters[selected + 1]).requestFocus(); ForkSettingsNav.backFromCategory = false }.onFailure { Log.w(ForkSettingsNav.TAG, "fokus szyny: ${it.javaClass.simpleName}: ${it.message}") } }
     LaunchedEffect(openLeaf) {
         if (openLeaf == null) return@LaunchedEffect
         withFrameNanos { }
@@ -139,7 +139,7 @@ internal fun ForkAdvancedSettings(onOpenCategory: (String) -> Unit, onSearch: ()
                             NavRow(
                                 l.title, l.description, focusRequester = rowRequesters[i],
                                 modifier = Modifier.focusProperties { left = railRequesters[selected + 1] },
-                                onOk = { lastRow = i; open(c, l, onOpenCategory) { openLeaf = l.id } },
+                                onOk = { lastRow = i; ForkSettingsNav.lastSection = selected; ForkSettingsNav.lastRow = i; open(c, l, onOpenCategory) { openLeaf = l.id } },
                             )
                         }
                     }

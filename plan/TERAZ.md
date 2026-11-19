@@ -3,7 +3,9 @@
 Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–13: `plan/archiwum/TERAZ-historia-watki-1-13.md` (tylko `grep`, nie czytaj całości).
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
-## USTAWIENIA 3 TRYBY (wątek równoległy, 19.11, gałąź skin-niunia) — NIEZBUDOWANE, kompilacja + testy `/tmp/test-nav1.log` OK (9/9)
+## USTAWIENIA 3 TRYBY (wątek równoległy, 19.11, gałąź skin-niunia)
+**NA JMGO build129-nav** (md5 5ecd4a8569178468eebdfd50f96f90b7, zgodny po `adb pull`, `compile -m speed`; skin-niunia do 37b287ddf, czyli też skórka Niunia i lektor do 054981613). Sprawdzone na TV (uiautomator): drzewo 7 kategorii; ▲ z pierwszej kategorii → „Szukaj” → OK otwiera wyszukiwarkę; Wstecz z wyszukiwarki → pełne ustawienia, kolejne Wstecz → drzewo; Odtwarzanie → Dźwięk i obraz: panel z fokusem na pierwszym ustawieniu, Wstecz → wiersz podkategorii; Odtwarzacz i źródła → pełna kategoria (fokus na szynie „Odtwarzanie”), Wstecz → drzewo.
+PO build129 (NIESKOMPILOWANE, do paczki): powrót z pełnej kategorii na ten sam wiersz drzewa (było: zawsze „Konto i profile”) — `ForkSettingsNav.lastSection/lastRow/backFromCategory`. Niesprawdzone: tryb Prosty (wiersz Szukaj), NOOB (nowy wygląd).
 NOOB (dawne „Najprostsze”) ostylowany tokenami skórki; Prosty = `ForgeBasicSettings` + wiersz „Szukaj”; Zaawansowany = drzewo `fork/settings/nav/SettingsTree.kt` (7 kategorii: Konto i profile, Wygląd i ekran główny, Odtwarzanie, Napisy i lektor, Telewizja, Dodatki i usługi, System; po 5–8 podkategorii — cała kategoria Reshaped rozdzielona na grupy, Forge, moduły forka). Hook `// Fork hook: settings-nav` w `SettingsScreen` (w łatce Kicii), wyłącznik `fork_settings_nav`. Wyszukiwarka naprawiona: ▲ z pierwszej kategorii szyny szedł do paska, omijając „Szukaj”. Do następnej paczki builda; test wg `DO_SPRAWDZENIA_NA_TV.md` (wpis „Ustawienia 3 tryby”).
 
 ## NAJPIERW (wątek 15, zapis 20.11 ~02:30 zegar Maca) — po „kontynuuj” rób to, po kolei, bez pytań
