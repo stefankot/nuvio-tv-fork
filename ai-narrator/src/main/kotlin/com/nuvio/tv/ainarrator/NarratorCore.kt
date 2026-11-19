@@ -38,9 +38,9 @@ data class NarratorOptions(
 
 object NarratorText {
     private val htmlTags = Regex("<[^>]+>")
-    private val assTags = Regex("""\{\\[^}]*}""")
+    private val assTags = Regex("""\{\\[^}]*\}""") // fork: Android (ICU) wymaga \} — bez tego ExceptionInInitializerError na TV
     private val whitespace = Regex("""\s+""")
-    private val nonDialogue = Regex("""^\[[^]]+]$""")
+    private val nonDialogue = Regex("""^\[[^\]]+\]$""") // fork: ICU nie przyjmuje [^]] ani gołego ]
 
     fun clean(raw: String): String = raw
         .replace(htmlTags, "")
