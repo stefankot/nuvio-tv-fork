@@ -52,7 +52,7 @@ object Condense {
 
     /** Kwestie z tekstem skróconym tam, gdzie trzeba (raz na kwestię). */
     suspend fun apply(app: Context, lines: List<Line>): List<Line> {
-        val todo = lines.filter { it.startMs !in tried && it.startMs !in short && tooLong(it) }.take(BATCH)
+        val todo = lines.filter { it.startMs !in tried && !short.containsKey(it.startMs) && tooLong(it) }.take(BATCH)
         if (todo.isNotEmpty() && failStreak < 3) runCatching { condense(app, todo) }.onFailure { e ->
             if (e is kotlinx.coroutines.CancellationException) throw e
             failStreak++
