@@ -2,6 +2,20 @@
 
 Ostatnia aktualizacja: 19.11.2026 ok. 02:40 (koniec wątku 5).
 
+## NAJPIERW (wątek 8, od 19.11 ~17:20): po „kontynuuj” rób to, po kolei, bez pytań
+Stan: gałąź `hybryda-zrodel`, ostatnie commity: b187e1afb (pełne logi), 15edd16ca (zgłoszenia). Na JMGO build107 (39a21572…). W tym samym katalogu pracuje sesja „Moduł AI narrator” (lektor, `ai-narrator/`, `fork/lektor/`) — jej plików nie ruszać, nie budować równolegle (sprawdź `ps` na GradleDaemon i najnowszy `/tmp/buildN.log`). Commituj tylko swoje ścieżki (`git commit -- ścieżki`).
+1. Kompilacja kontrolna (`compileFullDebugKotlin -PforkAbi=armeabi-v7a`, zakładka terminala, `--console=rich | tee /tmp/buildN.log`): zawiera NIESKOMPILOWANE `fork/family/FullLog.kt` + hooki w `FamilySync` (start w onAppVisible, wysyłka po raporcie) i poprawkę lektora 321ba3643 (sesja narratora).
+2. Serwer (pełne logi) NIEWGRANY: `server/family-sync/panel_api.php` (akcje `logs`, `logs_list`, `logs_get`; pliki `data/logs/<rodzina>/<urządzenie>/seg_*.log.gz`, 60 dni, 400 MB/TV) i `panel/app.js` (przycisk „Logi” przy telewizorze → `logsView`). Wgrać na zenbox: menedżer plików DirectAdmin (panel-s7.zenbox.pl), właściciel musi być zalogowany w przeglądarce — zagraj 3× dźwięk i poproś. Po wgraniu: curl `a=logs` z błędnymi danymi → 400/404 (bez sesji panelu `logs_list` → 401).
+3. Naprawy ze zgłoszeń (sekcja „ZGŁOSZENIA WŁAŚCICIELA po build107” niżej) — ustalenia do tej pory:
+   - (5) ekran napisów na starcie: okno otwiera tylko `PlayerEvent.OnShowSubtitleOverlay` (przycisk CC Kicii `ForgeSubtitleButton` w `skin/kicia/player/ForgePlayerControls.kt:123`, `ForgeYouTubeControls.kt:138`, bazowy `PlayerScreen.kt:3095`). Hipoteza: OK, który uruchomił film, trafia na CC (fokus) — sprawdzić z pełnymi logami / na TV (`ForgeKeys` w logu).
+   - (6) 4K: JMGO = ekran 1920×1080 → `KeRanking.tvCap` odsuwa 4K (celowo). Zapytać właściciela, czy na ekranie 1080p wolić 4K (wyższy bitrate). Pozostałe z (6): brak napisów na starcie, wolne przełączanie źródła (porównać z bazą: Echo hot swap / AutoSync?), „Napisy nie pasują” mimo dopasowanych (moduł `fork/subs`), okno Więcej zamyka się samo (licznik ukrywania `onResetHideTimer` nie działa przy otwartym oknie — sprawdzić `ForgeSheetOpen`), lektor naprawiony przez sesję narratora.
+   - (1) Home w pasku: `MainActivity.navigateToDrawerRoute` (popUpTo(start)+restoreState) — odtworzyć na TV.
+   - (2) Live TV → Odkrywaj puste: ma być układ z paskami (Kontynuuj, Obejrzane, Nowe odcinki…) — `fork/discover/DiscoverModule.kt`.
+   - (3) Szukaj programu → Ulubione wolne (Kicia szybka) — `ForgeProgrammeView` FORGE_PROG_FAVOURITES przez `buildEntries` (ShowIdentity.normalizeTitle dla każdej emisji) — dodać do `ForkProgrammeCache.prewarm` klucz ulubionych i/lub pamięć normalizacji.
+   - (4) YouTube: zmiana ścieżki dźwięku nie działa — `ForgeYouTubeControls`/moduł yt.
+   - (8) NOWE: „Blade Runner 2099” pokazuje „Gotowe” na stronie szczegółów, choć serial jeszcze niewydany — znaleźć, skąd etykieta „Gotowe” (grep „Gotowe” w skin/kicia/details i fork/sources).
+4. Potem DUŻA paczka APK armeabi-v7a → JMGO (najpierw sprawdź `dumpsys media_session`, czy nikt nie ogląda) → testy + pobranie logów z panelu.
+
 ## TESTY INTERFEJSU (19.11, prośba właściciela) — narzędzia gotowe, `fork-tools/uitest/README.md`
 - Zasada właściciela: testy przez uiautomator, zrzuty ekranu tylko wyjątkowo. Emulator NIE (stary build97 arm64, APK są arm32).
 - Gotowe: `crawl.py` (obchód strzałkami: nieosiągalne przyciski, czas ładowania >5 s = błąd, >10 s = nie załadowało się; utrata fokusu, błędy z logów), `playdiag.py` + `fork/diag/PlaybackDiag.kt` (ForkDiag: język/napisy/HDR oferowane vs wybrane; NIESKOMPILOWANE, do paczki).
