@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <permission
+        android:name="com.nuvio.tv.zonos32.permission.CONTROL"
+        android:protectionLevel="signature" />
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <application
+        android:label="Nuvio ZONOS3 ARM32"
+        android:extractNativeLibs="true"
+        android:allowBackup="false"
+        android:usesCleartextTraffic="true">
+        <service
+            android:name=".ZonosWorkerService"
+            android:exported="true"
+            android:permission="com.nuvio.tv.zonos32.permission.CONTROL"
+            android:foregroundServiceType="dataSync">
+            <intent-filter>
+                <action android:name="com.nuvio.tv.zonos32.START" />
+                <action android:name="com.nuvio.tv.zonos32.STOP" />
+                <action android:name="com.nuvio.tv.zonos32.CLEAR_MODELS" />
+            </intent-filter>
+        </service>
+    </application>
+</manifest>
