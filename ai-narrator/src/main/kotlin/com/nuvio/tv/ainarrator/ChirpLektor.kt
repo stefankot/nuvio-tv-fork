@@ -1,0 +1,105 @@
+package com.nuvio.tv.ainarrator
+
+import android.content.Context
+import android.util.Base64
+import android.util.Log
+import com.nuvio.tv.fork.lektor.Lektor
+import com.nuvio.tv.fork.lektor.Pcm
+import com.nuvio.tv.ui.screens.settings.ForkFeatures
+import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
+import java.time.YearMonth
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+
+/**
+ * Fork 19.11 (właściciel: „Tak, Chirp 3 HD”): głos lektora z Google Cloud Text-to-Speech, Chirp 3 HD pl-PL.
+ * Powód: Gemini TTS w AI Studio ma na Tier 1 limit 100 zapytań/dzień; Cloud TTS Chirp 3 HD — 200 zapytań/min,
+ * bez limitu dziennego, 1 mln znaków/miesiąc za darmo (potem 30 USD / 1 mln znaków).
+ * Klucz: `local.properties` GOOGLE_TTS_API_KEY → BuildConfig (osobny klucz Cloud, ograniczony do Text-to-Speech API;
+ * klucz z AI Studio jest związany z kontem usługi i Cloud TTS go nie przyjmuje).
+ * Kwestia po kwestii (limit na minutę wystarcza), pamięć podręczna na dysku, licznik znaków w miesiącu (log).
+ */
+class ChirpLektor(context: Context) : Lektor {
+    private val app = context.applicationContext
+    private val cache = NarratorAudioCache(File(app.cacheDir, "lektor-chirp"))
+
+    override fun voices(): List<String> = CHIRP_VOICES
+
+    override suspend fun synthesize(text: String, rate: Float): Pcm {
+        val key = apiKey()
+        if (key.isBlank()) throw Lektor.Unavailable("Brak klucza Google Cloud TTS (lektor Chirp)")
+        val clean = NarratorText.clean(text)
+        if (clean.isBlank()) throw Lektor.Unavailable("Pusta kwestia")
+        val voice = voice(app)
+        val speed = rate.coerceIn(0.75f, 2.0f) * BASE_RATE
+        val id = NarratorText.fingerprint("chirp3hd/$voice/${"%.2f".format(java.util.Locale.ROOT, speed)}", clean, "")
+        cache.find(id, touch = true)?.readBytes()?.let { return GeminiLektor.pcmFromWav(it) }
+        val wav = try { request(key, voice, clean, speed) } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            Log.w(TAG, "Chirp TTS $voice: ${e.javaClass.simpleName}: ${e.message?.take(160)}")
+            throw Lektor.Unavailable("Błąd głosu Google Chirp: ${e.message?.take(80) ?: "połączenie"}")
+        }
+        cache.store(id, wav)
+        countChars(clean.length)
+        return GeminiLektor.pcmFromWav(wav)
+    }
+
+    private suspend fun request(key: String, voice: String, text: String, speed: Float): ByteArray = withContext(Dispatchers.IO) {
+        val payload = JSONObject()
+            .put("input", JSONObject().put("text", text))
+            .put("voice", JSONObject().put("languageCode", "pl-PL").put("name", "pl-PL-Chirp3-HD-$voice"))
+            .put("audioConfig", JSONObject().put("audioEncoding", "LINEAR16").put("sampleRateHertz", 24_000).put("speakingRate", speed.toDouble()))
+        val c = URL("https://texttospeech.googleapis.com/v1/text:synthesize").openConnection() as HttpURLConnection
+        try {
+            c.requestMethod = "POST"; c.connectTimeout = 10_000; c.readTimeout = 15_000; c.doOutput = true
+            c.setRequestProperty("Content-Type", "application/json; charset=utf-8")
+            c.setRequestProperty("x-goog-api-key", key)
+            c.outputStream.use { it.write(payload.toString().toByteArray(Charsets.UTF_8)) }
+            val status = c.responseCode
+            if (status !in 200..299) {
+                // Bez treści kwestii: z odpowiedzi tylko status Google (np. RESOURCE_EXHAUSTED, PERMISSION_DENIED).
+                val body = runCatching { c.errorStream?.bufferedReader()?.use { it.readText().take(4_000) }.orEmpty() }
+                    .onFailure { Log.w(TAG, "Chirp TTS: odczyt błędu: ${it.javaClass.simpleName}") }.getOrDefault("")
+                val st = Regex("\"status\"\\s*:\\s*\"([A-Z_]{1,40})\"").find(body)?.groupValues?.get(1)
+                throw IllegalStateException("TTS HTTP $status" + (st?.let { " ($it)" } ?: ""))
+            }
+            val json = c.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+            Base64.decode(JSONObject(json).getString("audioContent"), Base64.DEFAULT)
+        } finally { c.disconnect() }
+    }
+
+    private fun countChars(n: Int) {
+        val p = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val month = YearMonth.now().toString()
+        val used = (if (p.getString("month", "") == month) p.getLong("chars", 0) else 0L) + n
+        p.edit().putString("month", month).putLong("chars", used).apply()
+        if (used > FREE_CHARS && used - n <= FREE_CHARS) Log.w(TAG, "Chirp: przekroczono darmowy 1 mln znaków w $month — dalej płatne (30 USD / 1 mln)")
+        if (used % 50_000 < n) Log.i(TAG, "Chirp: w $month zużyto $used znaków")
+    }
+
+    fun clearCache() = cache.clear()
+
+    companion object {
+        private const val TAG = "ForkLektor"
+        private const val PREFS = "fork_lektor_chirp"
+        private const val FREE_CHARS = 1_000_000L
+        /** Lekko szybciej niż domyślnie — kwestie lektora muszą mieścić się w czasie napisu. */
+        private const val BASE_RATE = 1.1f
+        const val K_CHIRP_VOICE = "lektor_chirp_voice"
+        const val DEFAULT_VOICE = "Enceladus" // wybór właściciela 19.11 (odsłuch 30 próbek)
+        /** Polskie głosy Chirp 3 HD (lista z API 19.11). */
+        val CHIRP_VOICES = listOf(
+            "Enceladus", "Charon", "Orus", "Algenib", "Algieba", "Achird", "Alnilam", "Fenrir", "Iapetus", "Puck",
+            "Rasalgethi", "Sadachbia", "Sadaltager", "Schedar", "Umbriel", "Zubenelgenubi",
+            "Kore", "Aoede", "Achernar", "Autonoe", "Callirrhoe", "Despina", "Erinome", "Gacrux", "Laomedeia", "Leda",
+            "Pulcherrima", "Sulafat", "Vindemiatrix", "Zephyr",
+        )
+
+        fun apiKey(): String = com.nuvio.tv.BuildConfig.GOOGLE_TTS_API_KEY
+        fun keyPresent() = apiKey().isNotBlank()
+        fun voice(c: Context): String = ForkFeatures.str(c, K_CHIRP_VOICE, DEFAULT_VOICE).takeIf { it in CHIRP_VOICES } ?: DEFAULT_VOICE
+    }
+}
