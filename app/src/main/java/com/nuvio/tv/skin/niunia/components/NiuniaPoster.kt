@@ -60,9 +60,12 @@ fun NiuniaPoster(
     large: Boolean = false,
     tagline: String? = null,
     onFocus: ((Boolean) -> Unit)? = null,
+    fallback: String? = null,
 ) {
     val shape = RoundedCornerShape(NiuniaDims.RadiusCard)
-    val colors = rememberArtColors(art, width.value / height.value)
+    val colors = rememberArtColors(art, width.value / height.value, fallback)
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val model = androidx.compose.runtime.remember(art, fallback) { niuniaImageRequest(context, art, fallback) }
     Box(
         modifier
             .size(width, height)
@@ -70,10 +73,10 @@ fun NiuniaPoster(
             .clip(shape)
             .background(NiuniaColors.Surface)
     ) {
-        AsyncImage(model = art, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+        AsyncImage(model = model, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
         if (Build.VERSION.SDK_INT >= 31) {
-            if (!baked) BlurLayer(art, 6f, .66f, .84f)
-            BlurLayer(art, if (baked) 8f else 14f, if (baked) .82f else .78f, if (baked) .97f else .96f)
+            if (!baked) BlurLayer(model, 6f, .66f, .84f)
+            BlurLayer(model, if (baked) 8f else 14f, if (baked) .82f else .78f, if (baked) .97f else .96f)
         }
         Tint(colors.dominant, baked)
         if (label != null) {
@@ -107,7 +110,7 @@ fun NiuniaPoster(
 
 /** Druga kopia grafiki rozmyta i widoczna tylko od [from] (przejście do [to]) wysokości. */
 @Composable
-private fun BoxScope.BlurLayer(art: String?, radius: Float, from: Float, to: Float) {
+private fun BoxScope.BlurLayer(art: Any?, radius: Float, from: Float, to: Float) {
     Box(
         Modifier.fillMaxSize()
             .graphicsLayer {
@@ -136,4 +139,31 @@ private fun BoxScope.Tint(dom: Color, baked: Boolean) {
             drawRect(Brush.verticalGradient(0f to Color.Transparent, (if (baked) .72f else .60f) to Color.Transparent, 1f to deep))
         }
     )
+}
+
+/**
+ * Zapytanie o grafikę z zapasem: Nuvio podmienia plakaty na wzór z ustawień (np. kaptain.stream), a przy błędzie
+ * wraca do oryginału (CustomPosterFallbackInterceptor, klucz w memoryCacheKeyExtras) — tak samo jak ContentCard.
+ */
+fun niuniaImageRequest(context: android.content.Context, art: String?, fallback: String?): coil3.request.ImageRequest =
+    coil3.request.ImageRequest.Builder(context).data(art).apply {
+        if (!fallback.isNullOrBlank() && fallback != art) {
+            memoryCacheKeyExtras(mapOf(com.nuvio.tv.core.image.CustomPosterFallbackInterceptor.FALLBACK_URL_KEY to fallback))
+        }
+    }.build()
+
+/**
+ * Plakat pionowy pozycji: (grafika, zapas). Pozycje poziome (posterShape ≠ POSTER) dostają pionowy plakat ze wzoru
+ * z ustawień (bez tego poziomy obraz był przycinany do pionu); zapas = oryginalny plakat.
+ */
+fun niuniaPortrait(item: com.nuvio.tv.domain.model.MetaPreview, pattern: String): Pair<String?, String?> {
+    if (item.posterShape == com.nuvio.tv.domain.model.PosterShape.POSTER || pattern.isBlank()) return item.poster to item.rawPosterUrl
+    val url = try {
+        com.nuvio.tv.core.poster.CustomPosterUrlResolver.resolve(
+            pattern, com.nuvio.tv.core.poster.CustomPosterUrlResolver.extractIds(item.id, item.imdbId), item.type.toApiString(item.rawType), "poster",
+        )
+    } catch (e: Exception) {
+        android.util.Log.w("ForkNiunia", "plakat pionowy ${item.id}: ${e.javaClass.simpleName}: ${e.message}"); null
+    }
+    return (url ?: item.poster) to (item.rawPosterUrl ?: item.poster)
 }

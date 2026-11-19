@@ -112,7 +112,7 @@ fun NiuniaPerson(
                 LazyRow(contentPadding = PaddingValues(horizontal = NiuniaDims.Gutter, vertical = 14.dp), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
                     items(list, key = { "${it.rawType}_${it.id}" }) { item ->
                         NiuniaPoster(
-                            art = item.poster, title = item.name, logo = item.logo, meta = NiuniaLabels.meta(item),
+                            art = item.poster, fallback = item.rawPosterUrl, title = item.name, logo = item.logo, meta = NiuniaLabels.meta(item),
                             label = NiuniaLabels.label(context, item, 0, rankingRow = false), baked = item.poster != null,
                             onFocus = { if (it) focusedRow = rowIndex },
                             onOk = { Log.i(TAG, "osoba: otwieram ${item.rawType} ${item.id}"); onNavigateToDetail(item.id, item.rawType, null) },

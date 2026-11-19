@@ -35,7 +35,7 @@ private val cache = LruCache<String, ArtColors>(400)
 val NiuniaFallbackColors = ArtColors(Color(0xFFDDDDDD), Color(0xFF111111), Color(0xFF333333))
 
 @Composable
-fun rememberArtColors(url: String?, cardAspect: Float): ArtColors {
+fun rememberArtColors(url: String?, cardAspect: Float, fallback: String? = null): ArtColors {
     val context = LocalContext.current
     val key = "$url@$cardAspect"
     var colors by remember(key) { mutableStateOf(cache.get(key) ?: NiuniaFallbackColors) }
@@ -43,7 +43,9 @@ fun rememberArtColors(url: String?, cardAspect: Float): ArtColors {
         if (url.isNullOrBlank() || cache.get(key) != null) return@LaunchedEffect
         val result = try {
             val request = ImageRequest.Builder(context).data(url).size(60, 90).allowHardware(false)
-                .memoryCacheKey("niunia-sample:$url").build()
+                .memoryCacheKey("niunia-sample:$url")
+                .apply { if (!fallback.isNullOrBlank() && fallback != url) memoryCacheKeyExtras(mapOf(com.nuvio.tv.core.image.CustomPosterFallbackInterceptor.FALLBACK_URL_KEY to fallback)) }
+                .build()
             SingletonImageLoader.get(context).execute(request)
         } catch (e: Exception) {
             Log.w(TAG, "próbka koloru: ${e.javaClass.simpleName}: ${e.message}"); null

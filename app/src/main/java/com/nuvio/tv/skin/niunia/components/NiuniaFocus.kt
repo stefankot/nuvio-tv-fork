@@ -49,6 +49,6 @@ fun Modifier.niuniaFocusable(
             scaleX = s; scaleY = s
             translationY = if (lift && focused) -4.dp.toPx() * ((s - 1f) / (scale - 1f).coerceAtLeast(0.001f)) else 0f
         }
-        .shadow(if (focused) 18.dp else 6.dp, shape, clip = false)
+        .shadow(if (focused) (if (lift) 18.dp else 10.dp) else (if (lift) 6.dp else 0.dp), shape, clip = false)
         .clickable(interactionSource = interaction, indication = null, onClick = onOk)
 }

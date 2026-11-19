@@ -1,5 +1,8 @@
 package com.nuvio.tv.skin.niunia.home
 
+import com.nuvio.tv.skin.niunia.components.niuniaPortrait
+import androidx.compose.ui.focus.onFocusChanged
+import kotlinx.coroutines.launch
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -77,11 +80,19 @@ fun NiuniaHome(
     var heroIndex by remember { mutableIntStateOf(0) }
     var focusedRow by remember { mutableIntStateOf(-1) }
     val heroFocus = remember { FocusRequester() }
+    val posterPattern = remember(uiState.customPosterUrlPattern, uiState.customPosterEnabledScreens) {
+        com.nuvio.tv.core.poster.patternForScreen(uiState.customPosterUrlPattern, com.nuvio.tv.core.poster.CustomPosterScreen.HOME, uiState.customPosterEnabledScreens)
+    }
+    // Hero ucięty od góry: po powrocie z rzędów (▲) lista przewijała się tylko tyle, by pokazać przycisk.
+    // Fokus w hero = lista na samą górę (jak w projekcie: hero zawsze w całości).
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
     LaunchedEffect(heroes.size, uiState.catalogRows.size) {
         Log.i(TAG, "ekran główny: hero=${heroes.size}, dalej oglądaj=${uiState.continueWatchingItems.size}, rzędy=${uiState.catalogRows.size}")
     }
 
     LazyColumn(
+        state = listState,
         modifier = Modifier.fillMaxSize().background(NiuniaColors.Bg),
         contentPadding = PaddingValues(bottom = 48.dp),
     ) {
@@ -89,6 +100,7 @@ fun NiuniaHome(
             item(key = "niunia_hero") {
                 Hero(
                     item = hero, index = heroIndex, count = heroes.size, focus = heroFocus,
+                    onFocusInside = { if (listState.firstVisibleItemIndex != 0 || listState.firstVisibleItemScrollOffset != 0) scope.launch { listState.animateScrollToItem(0) } },
                     onOpen = { onNavigateToDetail(hero.id, hero.rawType, uiState.catalogRows.firstOrNull()?.addonBaseUrl ?: "") },
                     onNext = { heroIndex = (heroIndex + 1) % heroes.size },
                 )
@@ -111,14 +123,16 @@ fun NiuniaHome(
                 RowTitle(row.catalogName, on = focusedRow == rowIndex)
                 LazyRow(contentPadding = PaddingValues(horizontal = NiuniaDims.Gutter, vertical = 14.dp), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
                     itemsIndexed(row.items, key = { _, it -> it.id }) { i, item ->
+                        val (art, fallback) = remember(item, posterPattern) { niuniaPortrait(item, posterPattern) }
                         NiuniaPoster(
-                            art = item.poster,
+                            art = art,
+                            fallback = fallback,
                             title = item.name,
                             logo = item.logo,
                             meta = NiuniaLabels.meta(item),
                             label = NiuniaLabels.label(context, item, i, ranking),
                             // Plakaty z dodatków zwykle mają tytuł w grafice → wariant „baked” (decyzja: plan/DECYZJE.md, Niunia).
-                            baked = item.poster != null,
+                            baked = art != null,
                             onFocus = { if (it) { focusedRow = rowIndex; onItemFocus(item) } },
                             onOk = { onNavigateToDetail(item.id, item.rawType, row.addonBaseUrl) },
                         )
@@ -143,7 +157,7 @@ private fun RowTitle(text: String, on: Boolean) {
 }
 
 @Composable
-private fun Hero(item: MetaPreview, index: Int, count: Int, focus: FocusRequester, onOpen: () -> Unit, onNext: () -> Unit) {
+private fun Hero(item: MetaPreview, index: Int, count: Int, focus: FocusRequester, onFocusInside: () -> Unit, onOpen: () -> Unit, onNext: () -> Unit) {
     LaunchedEffect(Unit) {
         try { focus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "fokus hero: ${e.javaClass.simpleName}: ${e.message}") }
     }
@@ -161,7 +175,7 @@ private fun Hero(item: MetaPreview, index: Int, count: Int, focus: FocusRequeste
             val meta = listOfNotNull(item.genres.take(2).joinToString(" · ").ifBlank { null }, item.releaseInfo, item.runtime, item.ageRating).joinToString(" · ")
             if (meta.isNotBlank()) Text(meta, style = NiuniaText.Meta, modifier = Modifier.padding(top = 10.dp), maxLines = 1)
             if (!item.description.isNullOrBlank()) Text(item.description, style = NiuniaText.Body, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 6.dp))
-            Row(Modifier.padding(top = 18.dp), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.padding(top = 18.dp).onFocusChanged { if (it.hasFocus) onFocusInside() }, horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
                 NiuniaButton(stringResource(R.string.niunia_hero_open), onOpen, primary = true, focusRequester = focus)
                 if (count > 1) NiuniaRoundButton("›", stringResource(R.string.niunia_hero_next), onNext)
             }

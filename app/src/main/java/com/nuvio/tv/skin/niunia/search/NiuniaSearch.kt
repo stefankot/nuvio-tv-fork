@@ -113,7 +113,7 @@ fun NiuniaSearch(viewModel: SearchViewModel, onNavigateToDetail: (String, String
                     horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap), verticalArrangement = Arrangement.spacedBy(24.dp),
                 ) {
                     items(state.discoverResults.take(24), key = { it.id }) { item ->
-                        NiuniaPoster(art = item.poster, title = item.name, logo = item.logo, meta = NiuniaLabels.meta(item), label = null, baked = item.poster != null,
+                        NiuniaPoster(art = item.poster, fallback = item.rawPosterUrl, title = item.name, logo = item.logo, meta = NiuniaLabels.meta(item), label = null, baked = item.poster != null,
                             onOk = { onNavigateToDetail(item.id, item.rawType, "") })
                     }
                 }

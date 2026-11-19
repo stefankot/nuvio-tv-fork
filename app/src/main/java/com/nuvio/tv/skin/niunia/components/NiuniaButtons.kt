@@ -1,6 +1,7 @@
 package com.nuvio.tv.skin.niunia.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
@@ -40,6 +41,7 @@ fun NiuniaButton(
             .widthIn(min = if (primary) 200.dp else 0.dp)
             .niuniaFocusable(shape, scale = NiuniaDims.ScaleButton, lift = false, focusRequester = focusRequester, onFocus = { focused = it }, onOk = onOk)
             .background(if (focused) NiuniaColors.Focus else NiuniaColors.Btn, shape)
+            .then(if (focused) Modifier else Modifier.border(1.dp, androidx.compose.ui.graphics.Color(0x14FFFFFF), shape))
             .padding(horizontal = 24.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
@@ -56,7 +58,8 @@ fun NiuniaRoundButton(symbol: String, description: String, onOk: () -> Unit, mod
         modifier
             .size(NiuniaDims.ButtonH)
             .niuniaFocusable(CircleShape, scale = NiuniaDims.ScaleButton, lift = false, onFocus = { focused = it }, onOk = onOk)
-            .background(if (focused) NiuniaColors.Focus else NiuniaColors.Btn, CircleShape),
+            .background(if (focused) NiuniaColors.Focus else NiuniaColors.Btn, CircleShape)
+            .then(if (focused) Modifier else Modifier.border(1.dp, androidx.compose.ui.graphics.Color(0x14FFFFFF), CircleShape)),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
