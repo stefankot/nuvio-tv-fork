@@ -41,7 +41,7 @@ object SkinPreferences {
         if (id == SkinId.NETFLIX) com.nuvio.tv.ui.reshaped.netflix.NetflixUiPreferences.setEnabled(context, true)
         else if (previous == SkinId.NETFLIX) com.nuvio.tv.ui.reshaped.netflix.NetflixUiPreferences.setEnabled(context, false)
         // KICIA = górny pasek Reshaped (pill nav) z poprawkami Kicii.
-        if (id == SkinId.KICIA) com.nuvio.tv.ui.reshaped.pillnav.PillNavPreferences.setEnabled(context, true)
+        if (id == SkinId.KICIA || id == SkinId.NIUNIA) com.nuvio.tv.ui.reshaped.pillnav.PillNavPreferences.setEnabled(context, true) // NIUNIA: jej menu rysuje się w miejscu paska
     }
 
     private fun prefs(context: Context) = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

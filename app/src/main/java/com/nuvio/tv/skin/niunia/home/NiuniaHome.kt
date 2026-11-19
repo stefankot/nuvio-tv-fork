@@ -67,7 +67,13 @@ fun NiuniaHome(
     onItemFocus: (MetaPreview) -> Unit,
 ) {
     val context = LocalContext.current
-    val heroes = uiState.heroItems.ifEmpty { uiState.catalogRows.firstOrNull()?.items?.take(6).orEmpty() }
+    // Baner: tylko filmy i seriale z dużym obrazem tła (bez pozycji „narzędziowych” dodatków, np. „Delete all files”).
+    // Najpierw źródła wybrane w ustawieniach (heroItems), potem wszystkie rzędy ekranu głównego.
+    val heroes = remember(uiState.heroItems, uiState.catalogRows) {
+        fun ok(m: MetaPreview) = (m.rawType == "movie" || m.rawType == "series") && !m.background.isNullOrBlank()
+        (uiState.heroItems.filter(::ok) + uiState.catalogRows.flatMap { r -> r.items.filter(::ok).take(3) })
+            .distinctBy { it.id }.take(8)
+    }
     var heroIndex by remember { mutableIntStateOf(0) }
     var focusedRow by remember { mutableIntStateOf(-1) }
     val heroFocus = remember { FocusRequester() }

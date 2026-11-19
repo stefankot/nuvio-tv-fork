@@ -34,7 +34,7 @@ case "$cmd" in
     out=$(call "$URL/get?store=$(enc "$1")$P")
     if [ -n "${2:-}" ]; then printf '%s' "$out" | python3 -c 'import json,sys;d=json.load(sys.stdin);q=sys.argv[1].lower();[print(k,"=",json.dumps(v["v"],ensure_ascii=False),"("+v["t"]+")") for k,v in d.items() if q in k.lower()]' "$2"
     else printf '%s' "$out" | python3 -c 'import json,sys;d=json.load(sys.stdin);[print(k,"=",json.dumps(v["v"],ensure_ascii=False)[:300],"("+v["t"]+")") for k,v in d.items()] if "error" not in d else print(d)'; fi ;;
-  find) call "$URL/dump?x=1$P" | python3 -c 'import json,sys;d=json.load(sys.stdin);q=sys.argv[1].lower();[print(s+" / "+k,"=",json.dumps(v["v"],ensure_ascii=False)[:300],"("+v["t"]+")") for s,kv in d.items() for k,v in kv.items() if q in k.lower()]' "$1" ;;
+  find) call "$URL/dump?x=1$P" | python3 -c 'import json,sys;d=json.load(sys.stdin);q=sys.argv[1].lower();[print(s+" / "+k,"=",json.dumps(v["v"],ensure_ascii=False)[:300],"("+v["t"]+")") for s,kv in d.items() if isinstance(kv,dict) for k,v in kv.items() if isinstance(v,dict) and q in k.lower()]' "$1" ;;
   set) call "$URL/set?store=$(enc "$1")&key=$(enc "$2")&value=$(enc "$3")${4:+&type=$4}$P" ;;
   del) call "$URL/del?store=$(enc "$1")&key=$(enc "$2")$P" ;;
   pull)

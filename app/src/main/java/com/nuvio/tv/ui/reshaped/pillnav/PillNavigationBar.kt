@@ -162,6 +162,7 @@ internal fun PillNavigationBar(
     backdrop: PillGlassBackdrop? = null,
     clear: Boolean = false,
 ) {
+    if (com.nuvio.tv.skin.niunia.nav.niuniaNavActive()) { com.nuvio.tv.skin.niunia.nav.NiuniaNavBar(entries, selectedKey, state, requesterFor, interactive, hidden, activeProfileColorHex, onEntryClick, onExitDown, modifier); return } // Fork hook: skin (nawigacja Niunii)
     if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_NAV) { // forge hook: the top bar of the mockup
         com.nuvio.tv.skin.kicia.nav.ForgeTopNav(
             entries, selectedKey, state, requesterFor, interactive, hidden, canLeaveUp, isRtl,

@@ -54,6 +54,7 @@ object DevPrefsServer {
     private val standalone = setOf(
         "app_onboarding", "auth_session_notice_store", "debug_settings", "device_local_player_prefs", "member_access",
         "profile_lock_state", "profile_settings", "sentry_settings", "torrent_settings", "tv_channel_prefs",
+        "update_settings", // flavor full: updater/UpdatePreferences.kt
     )
 
     @EntryPoint @InstallIn(SingletonComponent::class)
@@ -117,7 +118,13 @@ object DevPrefsServer {
             "/set" -> { write(app, deps, profile, need(q, "store"), need(q, "key"), q["type"], need(q, "value")); JSONObject().put("ok", true) }
             "/del" -> { remove(app, deps, profile, need(q, "store"), need(q, "key")); JSONObject().put("ok", true) }
             "/dump" -> JSONObject().also { o ->
-                (dataStoreNames(app, profile) + sharedNames(app).map { "sp:$it" }).forEach { o.put(it, read(app, deps, profile, it)) }
+                (dataStoreNames(app, profile) + sharedNames(app).map { "sp:$it" }).forEach { name ->
+                    // Jeden zły magazyn (np. nieznany własny DataStore) nie psuje całego zrzutu.
+                    try { o.put(name, read(app, deps, profile, name)) } catch (e: Exception) {
+                        Log.w(TAG, "zrzut $name: ${e.javaClass.simpleName}: ${e.message?.take(200)}")
+                        o.put(name, JSONObject().put("error", "${e.javaClass.simpleName}"))
+                    }
+                }
             }
             "/apply" -> JSONObject().put("changed", apply(app, deps, profile, JSONObject(body)))
             else -> { reply(s, 404, JSONObject().put("error", "nieznana ścieżka $path")); return }
