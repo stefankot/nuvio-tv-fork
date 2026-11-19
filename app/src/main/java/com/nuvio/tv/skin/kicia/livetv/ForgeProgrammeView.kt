@@ -114,9 +114,9 @@ private const val DAY_MS = 86_400_000L
 private const val MAX_ENTRIES = 300
 
 /** JMGO uwaga 1: the header counts every programme of the category; the grid shows the first [MAX_ENTRIES]. */
-private class Entries(val shown: List<ProgrammeEntry>, val total: Int)
+internal class Entries(val shown: List<ProgrammeEntry>, val total: Int)
 
-private fun buildEntries(channels: List<LiveTvChannel>, key: String, now: Long, sort: ForgeProgrammeSort, phrase: String = ""): Entries {
+internal fun buildEntries(channels: List<LiveTvChannel>, key: String, now: Long, sort: ForgeProgrammeSort, phrase: String = ""): Entries {
     val upcoming = sort == ForgeProgrammeSort.SOON
     val favourites = com.nuvio.tv.fork.tv.TvStore.favoriteShows.value
     // makieta 7.7 F29: the phrase matches the title anywhere, case and Polish letters ignored, so a recurring programme is found whole
@@ -162,10 +162,11 @@ internal fun ForgeProgrammeRows(uiState: LiveTvUiState, onPlay: (LiveTvChannel, 
     val key = ForgeProgrammeView.selection ?: return
     val context = LocalContext.current
     val minute = LiveTvClock.nowEpochMs() / 60_000
-    val tree = remember(uiState.channels, uiState.guideVersion, ForgeEpgCategories.programmeVersion()) { ForgeEpgCategories.programmeTree(uiState.channels) }
-    val entries by produceState<Entries?>(null, key, uiState.channels, uiState.guideVersion, ForgeEpgCategories.programmeVersion(), minute / 5, ForgeProgrammeView.sort, ForgeProgrammeView.phrase) {
-        value = null
-        value = withContext(Dispatchers.Default) { runCatching { buildEntries(uiState.channels, key, LiveTvClock.nowEpochMs(), ForgeProgrammeView.sort, ForgeProgrammeView.phrase) }.getOrDefault(Entries(emptyList(), 0)) }
+    val tree by produceState(ForkProgrammeCache.treeOrNull(uiState.channels, uiState.guideVersion) ?: emptyList(), uiState.channels, uiState.guideVersion, ForgeEpgCategories.programmeVersion()) { value = ForkProgrammeCache.tree(uiState.channels, uiState.guideVersion) } // fork 19.11: pamięć, poza wątkiem głównym
+    val entries by produceState(ForkProgrammeCache.entriesOrNull(uiState.channels, uiState.guideVersion, key, ForgeProgrammeView.sort, ForgeProgrammeView.phrase), key, uiState.channels, uiState.guideVersion, ForgeEpgCategories.programmeVersion(), minute / 5, ForgeProgrammeView.sort, ForgeProgrammeView.phrase) {
+        // fork 19.11: lista z pamięci (rozgrzewka w tle po wejściu w Live TV); „Wczytuję…” tylko gdy jej jeszcze nie ma
+        value = ForkProgrammeCache.entriesOrNull(uiState.channels, uiState.guideVersion, key, ForgeProgrammeView.sort, ForgeProgrammeView.phrase)
+        value = ForkProgrammeCache.entries(uiState.channels, uiState.guideVersion, key, ForgeProgrammeView.sort, ForgeProgrammeView.phrase)
     }
     val chosenRow = remember { FocusRequester() }
     val firstTile = remember { FocusRequester() }

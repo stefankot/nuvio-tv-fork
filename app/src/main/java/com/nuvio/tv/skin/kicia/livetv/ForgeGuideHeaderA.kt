@@ -143,6 +143,7 @@ internal fun ForgeGuideHeaderA(
     // A channel tile on Home asked for this channel: start it as soon as the list is here.
     val pendingPlay by ForgePendingPlay.request.collectAsStateWithLifecycle()
     // makieta 7.7 G31: a resume from Home; test 15.11 (JMGO): it waits for the guide (before it the archive fell back to live)
+    androidx.compose.runtime.LaunchedEffect(uiState.channels, uiState.guideVersion, uiState.isEpgLoading) { if (!uiState.isEpgLoading) ForkProgrammeCache.prewarm(this, uiState.channels, uiState.guideVersion) } // fork 19.11: kategorie programów zawczasu
     androidx.compose.runtime.LaunchedEffect(pendingPlay, byUrl, uiState.isEpgLoading, uiState.currentProgrammes.isEmpty()) {
         if (pendingPlay?.programme != null && (uiState.isEpgLoading || uiState.currentProgrammes.isEmpty())) return@LaunchedEffect
         ForgePendingPlay.take(byUrl, byGuide = byGuide)?.let { onPlay(it, ForgePendingPlay.lastProgramme) }
@@ -344,7 +345,7 @@ internal fun ForgeRecentProgrammeCard(
         border = CardDefaults.border(focusedBorder = Border.None), // v7.4: focus is never an outline (scale 1.125 + shadow)
     ) {
         Box(Modifier.fillMaxSize()) {
-            val image: Any? = frame ?: show.imageUrl?.takeIf { it.isNotBlank() } ?: com.nuvio.tv.fork.tvdb.rememberTvdbCardImage(show.title, episode) // fork W8
+            val image: Any? = frame ?: com.nuvio.tv.fork.tvdb.rememberTvdbCardImage(show.title, episode) ?: show.imageUrl?.takeIf { it.isNotBlank() } // fork W8; 19.11: TVDB przed EPG
             if (image != null) {
                 AsyncImage(model = image, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             }
@@ -410,7 +411,7 @@ internal data class ForgeFilterRow(val key: String, val name: String, val count:
  * the programme tree. Inside a branch: "Wszystkie: …" and its leaves.
  */
 internal fun forgeFilterRows(uiState: LiveTvUiState, programmes: Boolean, branch: String?): List<ForgeFilterRow> = buildList {
-    val tree = if (programmes) ForgeEpgCategories.programmeTree(uiState.channels) else ForgeEpgCategories.channelTree(uiState.channels, uiState.hiddenGroups)
+    val tree = if (programmes) ForkProgrammeCache.treeNow(uiState.channels, uiState.guideVersion) /* fork 19.11: pamięć */ else ForgeEpgCategories.channelTree(uiState.channels, uiState.hiddenGroups)
     if (branch != null) {
         val node = tree.firstOrNull { it.key == branch } ?: return@buildList
         add(ForgeFilterRow(node.key, "Wszystkie: " + node.name, node.count))

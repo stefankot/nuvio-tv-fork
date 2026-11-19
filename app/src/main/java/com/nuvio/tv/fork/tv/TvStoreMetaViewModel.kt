@@ -17,6 +17,9 @@ class TvStoreMetaViewModel @Inject constructor(
 ) : ViewModel() {
     private val _meta = MutableStateFlow<TvMeta?>(null)
     val meta: StateFlow<TvMeta?> = _meta.asStateFlow()
+    /** Właściciel 19.11: dane TVDB (serial, a gdy przewodnik podał numer — odcinek) mają pierwszeństwo przed EPG (epg.ovh, tv.team). */
+    private val _tvdb = MutableStateFlow<TvMeta?>(null)
+    val tvdb: StateFlow<TvMeta?> = _tvdb.asStateFlow()
     private var asked: String? = null
 
     fun load(title: String, year: Int? = null, episode: String? = null) {
@@ -24,12 +27,17 @@ class TvStoreMetaViewModel @Inject constructor(
         if (asked == key) return
         asked = key
         _meta.value = null
+        _tvdb.value = null
         viewModelScope.launch {
-            // W8: TVDB, gdy TMDB nie zna programu; zdjęcie i opis ODCINKA z TVDB (numer z przewodnika) w miejsce tła i opisu.
-            val base = tmdb.lookup(title, year) ?: com.nuvio.tv.fork.tvdb.Tvdb.lookup(context, title, year)
-            _meta.value = base
+            // W8: TVDB zawsze (pierwszeństwo przed EPG); zdjęcie i opis ODCINKA z TVDB (numer z przewodnika) w miejsce tła i opisu serialu.
+            val series = runCatching { com.nuvio.tv.fork.tvdb.Tvdb.lookup(context, title, year) }.getOrNull()
+            if (asked == key) _tvdb.value = series
+            val base = tmdb.lookup(title, year) ?: series
+            if (asked == key) _meta.value = base
             val ep = runCatching { com.nuvio.tv.fork.tvdb.Tvdb.episode(context, title, episode, year) }.getOrNull() ?: return@launch
-            if (asked == key && base != null) _meta.value = base.copy(backdropUrl = ep.image ?: base.backdropUrl, overview = ep.overview ?: base.overview)
+            if (asked != key) return@launch
+            if (series != null) _tvdb.value = series.copy(backdropUrl = ep.image ?: series.backdropUrl, overview = ep.overview ?: series.overview)
+            if (base != null) _meta.value = base.copy(backdropUrl = ep.image ?: base.backdropUrl, overview = ep.overview ?: base.overview)
         }
     }
 }
