@@ -290,8 +290,8 @@ fun NarratorOverlay(controller: PlayerRuntimeController, visible: Boolean, modif
                         NarratorProgressBar(progress.percentage)
                         Text("Gotowe: ${progress.completed}/${progress.total} " +
                             "(${progress.percentage}%), z cache: ${progress.cached}")
-                        if (progress.etaSeconds != null) {
-                            Text("Szacowany pozostały czas: ${progress.etaSeconds / 60L} min")
+                        progress.etaSeconds?.let { eta -> // fork: smart cast na delegacie nie kompilował się
+                            Text("Szacowany pozostały czas: ${eta / 60L} min")
                         }
                     }
                     if (progress.message.isNotBlank()) Text(progress.message)

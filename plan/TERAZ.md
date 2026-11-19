@@ -7,6 +7,7 @@ Ostatnia aktualizacja: 19.11.2026 ok. 02:40 (koniec wątku 5).
 - Sprawdzone 19.11: prawdziwe żądanie do `gemini-3.8-flash-lite-tts` z `speechMetadata.style` → HTTP 200, WAV 24 kHz mono (2,16 s = 54 tokeny audio, zgodne z szacunkiem kosztu w module).
 - Poprawki: wejście z menu „Więcej” (pływający przycisk wyłączony: nieosiągalny pilotem w Kicii), przełącznik w Modułach (domyślnie wejście widoczne, sam lektor WYŁĄCZONY = 0 kosztu), klucz: własny albo wspólny z AI napisów (`AiKeyStore`), PCM→WAV dla starszych modeli, okno nie wraca w następnym filmie.
 - ZONOS3 lokalnie (ARM32 + model 1,12 GB): kod jest, ale ZABLOKOWANE — brak opublikowanego pakietu ARM32 (`ZONOS_ARM32_APK_URL` pusty); okno pokaże „Brak opublikowanego pakietu”. Na JMGO i tak wątpliwe (RAM).
+- build103 (compile + testy modułu): kompilacja OK, 17/17 testów; naprawiony błąd oryginału (smart cast etaSeconds w NarratorOverlay — moduł z GitHuba się nie kompilował). Gemini TTS ma darmowy próg (Free tier) dla modeli 3.8; subskrypcja Google AI Pro NIE daje darmowego API, tylko ok. $10/mies. kredytów Google Cloud do ręcznej aktywacji.
 - Do testu w następnej DUŻEJ paczce: odtwarzacz → Więcej → „Lektor AI (Gemini)” → Włącz → Zapisz; film z polskimi napisami: czy słychać lektora, opóźnienie, głośność, koszt w oknie. Uwaga: stary „Lektor (czyta polskie napisy)” (TTS systemowy) może grać równocześnie — włączać tylko jeden.
 
 ## NAJPIERW: AI napisy (prośba właściciela 18–19.11) — wykonaj PRZED kolejką „wątek 6” niżej
