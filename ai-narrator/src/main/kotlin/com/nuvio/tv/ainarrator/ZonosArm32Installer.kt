@@ -3,7 +3,6 @@ package com.nuvio.tv.ainarrator
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import androidx.core.content.FileProvider
 import com.nuvio.tv.BuildConfig
@@ -13,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -50,7 +50,15 @@ internal class ZonosArm32Installer(context: Context) {
     private val _status = MutableStateFlow(readStatus())
     val status: StateFlow<Arm32InstallStatus> = _status
 
-    fun refresh() { _status.value = readStatus() }
+    fun refresh() {
+        val latest = readStatus()
+        if (latest.phase == Arm32InstallPhase.INSTALLED ||
+            latest.phase == Arm32InstallPhase.UNSUPPORTED ||
+            (_status.value.phase != Arm32InstallPhase.DOWNLOADING &&
+                _status.value.phase != Arm32InstallPhase.AWAITING_INSTALL)) {
+            _status.value = latest
+        }
+    }
 
     fun supportedAbi(): Boolean = Build.SUPPORTED_32_BIT_ABIS.contains("armeabi-v7a")
 
@@ -71,8 +79,10 @@ internal class ZonosArm32Installer(context: Context) {
         return Arm32InstallStatus(phase)
     }
 
-    fun downloadOnExplicitClick() {
+    /** Invoked once the user enables ZONOS3 in settings (no background install). */
+    fun downloadOnFeatureEnable() {
         if (download?.isActive == true || !supportedAbi() || installedAndTrusted()) return
+        if (_status.value.phase == Arm32InstallPhase.AWAITING_INSTALL) return
         val url = BuildConfig.ZONOS_ARM32_APK_URL
         val expectedSha = BuildConfig.ZONOS_ARM32_APK_SHA256.lowercase(Locale.ROOT)
         if (url.isBlank() || !expectedSha.matches(Regex("[a-f0-9]{64}"))) {
@@ -115,7 +125,13 @@ internal class ZonosArm32Installer(context: Context) {
         val intent = Intent(Intent.ACTION_VIEW)
             .setDataAndType(uri, "application/vnd.android.package-archive")
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        app.startActivity(intent)
+        try {
+            app.startActivity(intent)
+        } catch (e: Exception) {
+            _status.value = Arm32InstallStatus(Arm32InstallPhase.ERROR,
+                message = "Nie znaleziono instalatora Android: " + e.javaClass.simpleName)
+            return false
+        }
         return true
     }
 
@@ -127,9 +143,8 @@ internal class ZonosArm32Installer(context: Context) {
         try {
             while (true) {
                 kotlinx.coroutines.currentCoroutineContext().ensureActive()
-                require(current.protocol.equals("https", ignoreCase = true) &&
-                    current.userInfo == null && current.host.isNotBlank()) {
-                    "Silnik ARM32 może pochodzić wyłącznie z HTTPS"
+                require(Arm32GitHubSource.isApproved(current, redirects > 0)) {
+                    "Pakiet ARM32 musi pochodzić z GitHub Releases użytkownika stefankot"
                 }
                 val conn = current.openConnection() as HttpURLConnection
                 conn.instanceFollowRedirects = false
@@ -198,6 +213,7 @@ internal class ZonosArm32Installer(context: Context) {
         val archive = app.packageManager.getPackageArchiveInfo(file.absolutePath, flags)
             ?: throw IOException("Nie można odczytać podpisanego pakietu")
         if (archive.packageName != WORKER_PACKAGE) throw IOException("Zła nazwa pakietu silnika")
+        if (archive.applicationInfo == null) throw IOException("Pakiet nie zawiera komponentu Android")
         val appInfo = app.packageManager.getPackageInfo(app.packageName, flags)
         val own = appInfo.signingInfo?.apkContentsSigners?.map { it.toByteArray().toList() }?.toSet()
         val downloaded = archive.signingInfo?.apkContentsSigners?.map { it.toByteArray().toList() }?.toSet()
@@ -211,5 +227,23 @@ internal class ZonosArm32Installer(context: Context) {
     companion object {
         const val WORKER_PACKAGE = "com.nuvio.tv.zonos32"
         private const val MAX_APK_BYTES = 256L * 1024L * 1024L
+    }
+}
+
+/** Strict GitHub provenance. Public release or authenticated delivery is required for private repos. */
+internal object Arm32GitHubSource {
+    fun isApproved(url: URL, redirect: Boolean): Boolean {
+        if (!url.protocol.equals("https", ignoreCase = true) || url.userInfo != null ||
+            url.port != -1 || url.host.isBlank()) return false
+        val host = url.host.lowercase(Locale.ROOT)
+        if (!redirect) {
+            return host == "github.com" &&
+                url.path.startsWith("/stefankot/") &&
+                url.path.contains("/releases/download/") &&
+                url.path.endsWith(".apk")
+        }
+        return (host == "github.com" && url.path.startsWith("/stefankot/")) ||
+            host == "release-assets.githubusercontent.com" ||
+            host == "objects.githubusercontent.com"
     }
 }
