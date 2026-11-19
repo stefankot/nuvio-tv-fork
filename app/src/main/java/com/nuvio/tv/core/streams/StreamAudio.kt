@@ -356,6 +356,7 @@ object StreamAudioParser {
         return result
     }
 
+    private val originalAudioRegex = Regex("original[ ._-]?audio") // Fork: ANR JMGO
     private val ptBrRegex = Regex("(?i)(?<![a-z0-9])pt[-_. ]?br(?![a-z0-9])")
     private val latamRegex = Regex("(?i)(?<![a-z0-9])es[-_]?(419|la|mx)(?![a-z0-9])")
 
@@ -417,7 +418,7 @@ object StreamAudioParser {
         }
         val dubbed = words.any { it == "dub" || it == "dubbed" || it == "dublado" || it == "doblado" || it == "doppiato" }
         val original = words.any { it == "vostfr" || it == "vost" || it == "subbed" || it == "raw" } ||
-            Regex("original[ ._-]?audio").containsMatchIn(lower)
+            originalAudioRegex.containsMatchIn(lower) // Fork: regex raz, nie przy każdej linii (ANR JMGO)
         var languages = languageAt.filterNotNull().toSet()
         // "Spanish Latino" is the Latin American dub, not Castilian.
         if (AudioLanguage.LATIN_SPANISH in languages && AudioLanguage.SPANISH in languages &&
