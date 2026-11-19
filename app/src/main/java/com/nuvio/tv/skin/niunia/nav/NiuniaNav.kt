@@ -32,6 +32,10 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
@@ -96,6 +100,23 @@ internal fun NiuniaNavBar(
     val items = entries.filter { it.kind != PillNavEntryKind.Profile }
     val ordered = listOfNotNull(profile) + items
     val selected = entries.firstOrNull { it.key == selectedKey } ?: items.firstOrNull()
+    val focusManager = LocalFocusManager.current
+    // Wyjście z panelu do treści ekranu: w prawo (panel jest pionowy, „w dół” trafiało w następną pozycję menu),
+    // a gdy w prawo nic nie ma — requester treści z PillNavScaffold (onExitDown).
+    fun exitToContent(why: String) {
+        val moved = try { focusManager.moveFocus(FocusDirection.Right) } catch (e: IllegalStateException) { Log.w(TAG, "menu → treść: ${e.javaClass.simpleName}: ${e.message}"); false }
+        if (!moved || state.hasFocus) onExitDown()
+        Log.i(TAG, "menu → treść ($why), w prawo=${moved}")
+    }
+    // OK na zakładce: po przejściu na nowy ekran fokus idzie do jego treści (nie zostaje w menu).
+    var exitAfterSwitch by remember { mutableStateOf(false) }
+    LaunchedEffect(exitAfterSwitch, selectedKey) {
+        if (!exitAfterSwitch) return@LaunchedEffect
+        repeat(4) { withFrameNanos { } }
+        if (state.hasFocus) exitToContent("po wyborze zakładki")
+        exitAfterSwitch = false
+    }
+    val homeKey = items.firstOrNull { it.route == "home" }?.key
 
     Box(modifier.fillMaxSize()) {
         // Przyciemnienie od lewej, gdy panel jest otwarty (.scrim-side).
@@ -133,12 +154,17 @@ internal fun NiuniaNavBar(
                 .padding(horizontal = 8.dp, vertical = 12.dp)
                 .onFocusChanged { if (state.hasFocus != it.hasFocus) { state.hasFocus = it.hasFocus; Log.i(TAG, "menu: " + if (it.hasFocus) "otwarte" else "zamknięte") } }
                 .onPreviewKeyEvent { e ->
+                    // Wstecz w otwartym menu: zamyka je (fokus do treści). Na ekranie Główna — jak dotąd (wyjście z aplikacji).
+                    if (e.key == Key.Back && selectedKey != homeKey) {
+                        if (e.type == KeyEventType.KeyUp) exitToContent("Wstecz")
+                        return@onPreviewKeyEvent true
+                    }
                     if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
                     val i = ordered.indexOfFirst { it.key == state.focusedKey }
                     when (e.key) {
                         Key.DirectionUp -> { ordered.getOrNull(i - 1)?.let { runCatching { requesterFor(it.key).requestFocus() }.onFailure { t -> Log.w(TAG, "menu ▲: ${t.javaClass.simpleName}: ${t.message}") } }; true }
-                        Key.DirectionDown -> { val n = ordered.getOrNull(i + 1); if (n != null) runCatching { requesterFor(n.key).requestFocus() }.onFailure { t -> Log.w(TAG, "menu ▼: ${t.javaClass.simpleName}: ${t.message}") } else onExitDown(); true }
-                        Key.DirectionRight -> { onExitDown(); true }
+                        Key.DirectionDown -> { val n = ordered.getOrNull(i + 1); if (n != null) runCatching { requesterFor(n.key).requestFocus() }.onFailure { t -> Log.w(TAG, "menu ▼: ${t.javaClass.simpleName}: ${t.message}") } else exitToContent("▼ z ostatniej"); true }
+                        Key.DirectionRight -> { exitToContent("▶"); true }
                         Key.DirectionLeft -> true
                         else -> false
                     }
@@ -147,7 +173,11 @@ internal fun NiuniaNavBar(
         ) {
             ordered.forEach { entry ->
                 if (entry.kind == PillNavEntryKind.Profile) ProfileRow(entry, activeProfileColorHex, interactive && open || interactive && entry.key == selected?.key, requesterFor(entry.key), state, onEntryClick)
-                else SideItem(entry, entry.key == selectedKey, interactive && (open || entry.key == selected?.key), requesterFor(entry.key), state, activeProfileColorHex, onEntryClick)
+                else SideItem(entry, entry.key == selectedKey, interactive && (open || entry.key == selected?.key), requesterFor(entry.key), state, activeProfileColorHex) {
+                    onEntryClick(it)
+                    // Ten sam ekran: PillNavScaffold sam oddaje fokus treści; inny: po przejściu (exitAfterSwitch).
+                    if (it.key != selectedKey) exitAfterSwitch = true
+                }
             }
         }
     }

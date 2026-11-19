@@ -48,8 +48,11 @@ object ForkHooks {
             val i = items.indexOfFirst { it.route == "library" }.let { if (it < 0) items.size else it + 1 }
             items.toMutableList().apply { add(i, com.nuvio.tv.DrawerItem(route = "youtube", label = "YouTube", icon = androidx.compose.material.icons.Icons.Default.PlayArrow)) }
         }
-        if (!com.nuvio.tv.skin.kicia.ForgeUi.ON) return all
-        val order = listOf("search", "home", "discover", "youtube", com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE, "library")
+        val niunia = com.nuvio.tv.skin.api.SkinPreferences.run { ensureLoaded(c); skin.value } == com.nuvio.tv.skin.api.SkinId.NIUNIA
+        if (!com.nuvio.tv.skin.kicia.ForgeUi.ON && !niunia) return all
+        // Niunia: kolejność z mockupu (Sidebar): Szukaj, Główna, Live TV, YouTube, Biblioteka, …, Ustawienia.
+        val order = if (niunia) listOf("search", "home", com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE, "youtube", "library", "discover")
+            else listOf("search", "home", "discover", "youtube", com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE, "library")
         val first = order.mapNotNull { r -> all.firstOrNull { it.route == r } }
         val settings = all.filter { it.route == "settings" }
         return first + all.filter { it !in first && it !in settings } + settings
