@@ -47,3 +47,10 @@ Wykonawca nie pyta właściciela. Korzysta z tej listy. Właściciel może zmien
 - 2026-11-17 B06a: skórka KE (B06a-2/3/5) odłożona — zgodnie z CLAUDE.md „wygląd nie ma znaczenia teraz”; wykonane B06a-1 i raport B06a-4.
 - 2026-11-19 Lektor (właściciel): głos = Google Cloud TTS Chirp 3 HD pl-PL, domyślnie Enceladus; wysyłanie scenami (markup + `[pause long]` + SilenceSplit); wybór głosu w ustawieniach z próbkami; klucz Cloud TTS na sztywno (local.properties → BuildConfig). Powód: Gemini TTS Tier 1 = 100 zapytań/dzień. Szczegóły: `plan/lektor/GLOS_CHIRP.md`.
 - 2026-11-19 Buildy (właściciel): najwyżej 1 build naraz, 1 w kolejce, przed każdym buildem zerowanie kolejki — tylko przez `fork-tools/build.sh` (`ZASADY.md`).
+
+## 19.11.2026 — skórka Niunia (gałąź skin-niunia)
+- Plakaty z dodatków domyślnie w wariancie „baked” (stopka: gatunek · ocena); logo TMDB na plakacie dopiero, gdy wiadomo, że plakat jest bez napisów.
+- Ocena = średnia dostępnych serwisów; dziś w danych jest tylko IMDb (`imdbRating`).
+- Etykiety: „#n Dziś” w rzędach trend/popul/top, „Nowość” (premiera ≤ 45 dni), „Klasyka” (rok < 2000); kolor = średnia pikseli spod etykiety, tekst czarny/biały wg jasności.
+- Profile zostają ekranem Nuvio, dopóki Niunia nie obsłuży PIN-ów.
+- Rozmycie plakatu tylko API 31+ (RenderEffect); na JMGO sam gradient.

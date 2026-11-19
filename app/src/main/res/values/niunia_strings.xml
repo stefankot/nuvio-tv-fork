@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="niunia_skin_name">Niunia</string>
+    <string name="niunia_label_rank">#%1$d Dziś</string>
+    <string name="niunia_label_new">Nowość</string>
+    <string name="niunia_label_classic">Klasyka</string>
+    <string name="niunia_row_continue">Oglądaj dalej</string>
+    <string name="niunia_hero_open">Zobacz</string>
+    <string name="niunia_hero_next">Następna propozycja</string>
+    <string name="niunia_search_hint">Filmy, seriale i więcej</string>
+    <string name="niunia_search_space">SPACJA</string>
+    <string name="niunia_search_clear">WYCZYŚĆ</string>
+    <string name="niunia_search_recent">Ostatnio szukane</string>
+    <string name="niunia_search_browse">Przeglądaj</string>
+    <string name="niunia_search_top">Najlepsze wyniki</string>
+    <string name="niunia_search_searching">Szukam…</string>
+    <string name="niunia_search_none">Nic nie znaleziono dla „%1$s”.</string>
+    <string name="niunia_library_empty">Biblioteka jest pusta.</string>
+    <string name="niunia_library_empty_hint">Dodaj film albo serial przyciskiem + na jego stronie.</string>
+</resources>

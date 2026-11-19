@@ -15,11 +15,11 @@ internal fun LazyListScope.skinSettingsItems() {
     item(key = "fork_skin") {
         val context = LocalContext.current
         val current = rememberSkinId()
-        val name = when (current) { SkinId.NUVIO -> "Nuvio"; SkinId.NETFLIX -> "Netflix"; SkinId.KIT -> "Mój projekt"; SkinId.KICIA -> "Kicia" }
+        val name = when (current) { SkinId.NUVIO -> "Nuvio"; SkinId.NETFLIX -> "Netflix"; SkinId.KIT -> "Mój projekt"; SkinId.KICIA -> "Kicia"; SkinId.NIUNIA -> "Niunia" }
         NavigationSettingsItem(
             Icons.Default.Palette,
             "Wygląd: $name",
-            "Kliknij, aby zmienić: Nuvio → Netflix → Mój projekt (pusty, wygląda jak Nuvio)",
+            "Kliknij, aby zmienić: Nuvio → Netflix → Mój projekt → Kicia → Niunia",
             onClick = { SkinPreferences.set(context, SkinId.entries[(current.ordinal + 1) % SkinId.entries.size]) }
         )
     }
