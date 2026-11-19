@@ -12,8 +12,14 @@ Ostatnia aktualizacja: 19.11.2026 ok. 02:40 (koniec wątku 5).
   - NOWE: YouTube ekran główny — nazwy ikon szyny ucięte na fokusie (przewijana szyna przycinała) → nazwa w `Popup` bez fokusu.
   - NOWE: Ustawienia — z wersji podstawowej/pełnej brak powrotu do najprostszych → wiersz „Najprostsze ustawienia” w podstawowych (kategoria „Wszystkie ustawienia”) i w pełnych (Nuvio Forge → System); `SimpleLevel.changes` przełącza ekran od razu.
   - NOWE: kafle Kicii (Kontynuuj oglądanie) bez ikonki typu film/serial (`ForgeTypeBadge` nieużywany), 9e60c9403.
-- build112 APK OK (5 min, 10:50, md5 c3a69e81703d0754a18ed794f316161f), NIEZAINSTALOWANY: o 10:50 na JMGO Nuvio odtwarza (media_session state=3).
-- NASTĘPNE: gdy JMGO wolne (`adb -s 192.168.31.252:5555 shell dumpsys media_session` — brak aktywnego odtwarzania) → instalacja `app/build/outputs/apk/full/debug/app-full-armeabi-v7a-debug.apk`, md5, testy z „wątek 9 NASTĘPNE (1)” + Odkrywaj + YouTube Dźwięk + Baahubali ▲ + Calendar Wstecz; potem zgłoszenia (1) Home i (5) ekran napisów na starcie (odtworzyć na TV, `ForgeKeys` w logu); serwer logów (właściciel zalogowany w DirectAdmin).
+- build112 APK OK (5 min, md5 c3a69e81703d0754a18ed794f316161f) ZAINSTALOWANY na JMGO 19.11 ~17:52 (zegar TV; właściciel: „Instaluj teraz”), skrót zgodny. Wyniki (uiautomator, 0 awarii):
+  - start OK, Home: „Kontynuuj oglądanie” (Strefa gangsterów, IMDb 8,3).
+  - Live TV → „Odkrywaj” (tap) → półki Kicii („Nowe odcinki Twoich programów”, „Teraz na żywo”…); Wstecz → przewodnik. Home z paska z Live TV działa (log `ForkHomeNav: home from reshaped_live_tv`).
+  - YouTube: nazwa ikony szyny na fokusie cała („Subskrypcje”, zrzut obrazu).
+  - Ustawienia pełne → Nuvio Forge → „Najprostsze ustawienia” → od razu ekran najprostszy; powrót przyciskiem „Advanced” (poziom właściciela przywrócony). Uwaga: przyciski poziomu na ekranie najprostszym po angielsku („Essential/Advanced”) i nie reagują na dotyk (tylko pilot).
+  - YouTube „Dźwięk”: filmy grają w ZWYKŁYM sterowaniu Kicii (przycisk Dźwięk na wierzchu jest — właściciel miał rację; zmiana w ForgeYouTubeControls nieistotna). Okno dźwięku działa, ale film testowy („Is She the Next Einstein”) ma jeden język: 10 ścieżek `und` (Opus+AAC), a wiersze językowe en/ja/ko „No sources”. Manifest z `mediaservicecore` YouTubeMPDBuilder: `lang` = `format.getLanguage()` (null dla jednojęzycznych) → `YouTubeAudioTracks.tidy` daje „und”. DO SPRAWDZENIA: film z dubbingiem (np. MrBeast) — czy są osobne zestawy z językami; poprosić właściciela o tytuł, na którym zmiana nie działała.
+  - Niesprawdzone: okno napisów na starcie filmu (lektor auto), Baahubali ▲, Calendar Wstecz, kafle bez ikonki typu (sprawdzić wzrokowo).
+- NASTĘPNE: testy z „wątek 9 NASTĘPNE (1)” + Baahubali ▲ + Calendar Wstecz + start filmu (okno napisów) + YouTube z dubbingiem; potem zgłoszenia (1) Home i (5) ekran napisów na starcie (odtworzyć na TV, `ForgeKeys` w logu); serwer logów (właściciel zalogowany w DirectAdmin).
 
 ## WĄTEK 9 (19.11 ~17:30) — wynik i następne kroki (nadrzędne wobec listy „wątek 8” niżej)
 - build108 compile OK (FullLog, lektor 321ba3643). build109 compile OK. build110 = DUŻA paczka APK armeabi-v7a (`/tmp/build110.log`).
