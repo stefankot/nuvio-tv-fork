@@ -75,7 +75,6 @@ private fun cycle(c: Context, key: String, values: List<String>, default: String
 fun AiSubtitlesScreen() {
     val c = LocalContext.current
     var refresh by remember { mutableIntStateOf(0) }
-    var keyInput by remember { mutableStateOf("") }
     var message by remember { mutableStateOf("") }
     val docs = remember(refresh) { AiSubtitles.store(c).list() }
     var pending by remember { mutableStateOf<Pair<AiSubtitleDoc, String>?>(null) }
@@ -103,18 +102,9 @@ fun AiSubtitlesScreen() {
         item { Text("AI napisy: tłumaczenie na polski", style = MaterialTheme.typography.headlineMedium) }
         item { Text("Dostawca: Google Gemini. Wysyłany jest tylko tekst napisów (oryginał i dwa pomocnicze), bez obrazu i dźwięku. Żądania mają store=false; o retencji decydują zasady Google dla płatnego API.") }
         item { Text("Klucz API: ${AiKeyStore.mask(AiKeyStore.read(c))} (szyfrowany kluczem Android Keystore)") }
-        item {
-            OutlinedTextField(value = keyInput, onValueChange = { keyInput = it.trim() }, singleLine = true,
-                label = { androidx.compose.material3.Text("Klucz Gemini (aistudio.google.com → Get API key)") },
-                visualTransformation = PasswordVisualTransformation(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                modifier = Modifier.width(560.dp))
-        }
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Button(onClick = { runCatching { AiKeyStore.write(c, keyInput) }; keyInput = ""; message = "Klucz zapisany"; refresh++ }, enabled = keyInput.length >= 20) { Text("Zapisz klucz") }
-                Button(onClick = { runCatching { AiKeyStore.write(c, null) }; message = "Klucz usunięty"; refresh++ }) { Text("Usuń klucz") }
-            }
-        }
+        // Klucz wpisywany na telefonie przez kod QR (polecenie właściciela 19.11; wzór Reshaped: klucz Seekr).
+        item { AiKeyPhoneEntry { sent -> if (sent.trim().length >= 20) { runCatching { AiKeyStore.write(c, sent) }; message = "Klucz zapisany (z telefonu)"; refresh++ } else message = "Za krótki klucz" } }
+        item { Button(onClick = { runCatching { AiKeyStore.write(c, null) }; message = "Klucz usunięty"; refresh++ }) { Text("Usuń klucz") } }
         item {
             val on = AiSettings.textConsent(c)
             Button(onClick = { ForkFeatures.set(c, AiSettings.K_CONSENT_TEXT, !on); refresh++ }) {
