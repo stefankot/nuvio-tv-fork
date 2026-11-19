@@ -2,6 +2,11 @@
 
 Ostatnia aktualizacja: 19.11.2026 ok. 02:40 (koniec wątku 5).
 
+## WĄTEK 10 (19.11 ~10:40 zegar Maca) — nadrzędne wobec „wątek 9” niżej
+- build111 ZGINĄŁ z poprzednią sesją (log urwany na 95%, bez wyniku). Zastąpiony przez build112 = DUŻA paczka APK armeabi-v7a (zakładka terminala „build112 APK”, `/tmp/build112.log`): wszystko z build110/111 + Baahubali/Calendar + poniższe.
+- Nowe (089a43c4c): (2) Live TV Kicii → „Odkrywaj” otwiera półki Kicii `ForgeTvBrowse` (nowe odcinki, ostatnie kanały, ostatnio oglądane) jako trasę `forge_tv_browse` (`skin/kicia/livetv/ForgeTvBrowseRoute.kt`, rejestracja w `DiscoverModule.routes`); wybór kanału = `ForgePendingPlay.ask` + powrót do przewodnika (ForgeGuideHeaderA odbiera prośbę). Było: uboższe rzędy `fork_discover` (puste bez archiwum catchup). (4) YouTube: okienko „Jakość” ma wiersz „Dźwięk” (gdy >1 ścieżka; MPD YouTube ma oryginał/dubbing) → bazowe okno ścieżek dźwięku.
+- NASTĘPNE: wynik build112 (`grep -a BUILD /tmp/build112.log`, błędy `grep -a "^e: "`); gdy OK i JMGO wolne (`adb -s 192.168.31.252:5555 shell dumpsys media_session` — brak aktywnego odtwarzania) → instalacja `app/build/outputs/apk/full/debug/app-full-armeabi-v7a-debug.apk`, md5, testy z „wątek 9 NASTĘPNE (1)” + Odkrywaj + YouTube Dźwięk + Baahubali ▲ + Calendar Wstecz; potem zgłoszenia (1) Home i (5) ekran napisów na starcie (odtworzyć na TV, `ForgeKeys` w logu); serwer logów (właściciel zalogowany w DirectAdmin).
+
 ## WĄTEK 9 (19.11 ~17:30) — wynik i następne kroki (nadrzędne wobec listy „wątek 8” niżej)
 - build108 compile OK (FullLog, lektor 321ba3643). build109 compile OK. build110 = DUŻA paczka APK armeabi-v7a (`/tmp/build110.log`).
 - Zrobione w kodzie (175657dbb, e1b5a3e7f):
