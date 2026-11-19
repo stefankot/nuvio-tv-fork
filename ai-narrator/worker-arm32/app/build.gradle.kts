@@ -52,4 +52,14 @@ tasks.register("verifyNativeWorker") {
         }
     }
 }
-tasks.named("preBuild") { dependsOn("verifyNativeWorker") }
+tasks.register("verifyReleaseSigner") {
+    doLast {
+        check(keyFile.isNotBlank() && releaseAlias.isNotBlank() &&
+            releaseKeyPassword.isNotBlank() && releaseStorePassword.isNotBlank()) {
+            "The optional ARM32 APK must use the SAME NUVIO_RELEASE_* keystore as NuvioTV"
+        }
+    }
+}
+tasks.matching { it.name == "assembleRelease" }.configureEach {
+    dependsOn("verifyNativeWorker", "verifyReleaseSigner")
+}
