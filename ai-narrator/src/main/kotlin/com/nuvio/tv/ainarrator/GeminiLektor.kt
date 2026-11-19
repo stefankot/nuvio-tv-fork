@@ -187,12 +187,8 @@ object LektorVoiceChoice {
             android.util.Log.i("ForkLektor", "ustawienia: silnik głosu $cur → $next")
             android.widget.Toast.makeText(c, "Lektor: ${label(c, null)}", android.widget.Toast.LENGTH_SHORT).show()
         },
-        ModuleAction("Lektor Chirp: głos (30 polskich)", SettingsLevel.ESSENTIAL, "Kolejne naciśnięcia przełączają głos; najpierw męskie, potem żeńskie") { c ->
-            val list = ChirpLektor.CHIRP_VOICES
-            val next = list[(list.indexOf(ChirpLektor.voice(c)) + 1) % list.size]
-            ForkFeatures.setStr(c, ChirpLektor.K_CHIRP_VOICE, next)
-            android.util.Log.i("ForkLektor", "ustawienia: głos Chirp → $next")
-            android.widget.Toast.makeText(c, "Głos lektora Chirp: $next", android.widget.Toast.LENGTH_SHORT).show()
+        ModuleAction("Lektor Chirp: wybierz głos (próbki)", SettingsLevel.ESSENTIAL, "30 polskich głosów; zaznaczenie odtwarza próbkę, „Wybierz” zapisuje") { c ->
+            ChirpVoicePicker.open(c)
         },
         ModuleAction("Lektor Gemini: barwa głosu (Kore / Puck / Charon / Aoede)", SettingsLevel.ESSENTIAL, "Kolejne naciśnięcia przełączają głos") { c ->
             val p = NarratorPreferences(c); val o = p.load()
