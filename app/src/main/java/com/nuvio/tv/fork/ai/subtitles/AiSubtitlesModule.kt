@@ -101,19 +101,19 @@ fun AiSubtitlesScreen() {
     LazyColumn(Modifier.fillMaxSize().padding(48.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { Text("AI napisy: tłumaczenie na polski", style = MaterialTheme.typography.headlineMedium) }
         item { Text("Dostawca: Google Gemini. Wysyłany jest tylko tekst napisów (oryginał i dwa pomocnicze), bez obrazu i dźwięku. Żądania mają store=false; o retencji decydują zasady Google dla płatnego API.") }
-        item { Text("Klucz API: ${AiKeyStore.mask(AiKeyStore.read(c))} (szyfrowany kluczem Android Keystore)") }
+        item { check(refresh >= 0) /* odśwież napis po zmianie */; Text("Klucz API: ${AiKeyStore.mask(AiKeyStore.read(c))} (szyfrowany kluczem Android Keystore)") }
         // Klucz wpisywany na telefonie przez kod QR (polecenie właściciela 19.11; wzór Reshaped: klucz Seekr).
         item { AiKeyPhoneEntry { sent -> if (sent.trim().length >= 20) { runCatching { AiKeyStore.write(c, sent) }; message = "Klucz zapisany (z telefonu)"; refresh++ } else message = "Za krótki klucz" } }
         item { Button(onClick = { runCatching { AiKeyStore.write(c, null) }; message = "Klucz usunięty"; refresh++ }) { Text("Usuń klucz") } }
-        item {
+        item { check(refresh >= 0) /* odśwież napis po zmianie */
             val on = AiSettings.textConsent(c)
             Button(onClick = { ForkFeatures.set(c, AiSettings.K_CONSENT_TEXT, !on); refresh++ }) {
                 Text(if (on) "Zgoda na wysyłanie tekstu napisów do Google: TAK (naciśnij, aby cofnąć)" else "Zgoda na wysyłanie tekstu napisów do Google: NIE (naciśnij, aby wyrazić)")
             }
         }
-        item { Button(onClick = { cycle(c, AiSettings.K_MODEL, ModelPricing.models, ModelPricing.DEFAULT_MODEL); refresh++ }) { Text("Model: ${AiSettings.model(c)}" + (ModelPricing.priceFor(AiSettings.model(c))?.let { "  ($${it.inputPerM}/$${it.outputPerM} za 1M tokenów)" } ?: "")) } }
-        item { Button(onClick = { cycle(c, AiSettings.K_TITLE, AiSettings.titleLimits, "1.0"); refresh++ }) { Text("Limit na film/odcinek: $${AiSettings.titleLimit(c)}") } }
-        item { Button(onClick = { cycle(c, AiSettings.K_DAY, AiSettings.dayLimits, "3.0"); refresh++ }) { Text("Limit dzienny: $${AiSettings.dayLimit(c)} (dziś wydano ok. $${"%.3f".format(java.util.Locale.ROOT, spentToday ?: 0.0)})") } }
+        item { check(refresh >= 0) /* odśwież napis po zmianie */; Button(onClick = { cycle(c, AiSettings.K_MODEL, ModelPricing.models, ModelPricing.DEFAULT_MODEL); refresh++ }) { Text("Model: ${AiSettings.model(c)}" + (ModelPricing.priceFor(AiSettings.model(c))?.let { "  ($${it.inputPerM}/$${it.outputPerM} za 1M tokenów)" } ?: "")) } }
+        item { check(refresh >= 0) /* odśwież napis po zmianie */; Button(onClick = { cycle(c, AiSettings.K_TITLE, AiSettings.titleLimits, "1.0"); refresh++ }) { Text("Limit na film/odcinek: $${AiSettings.titleLimit(c)}") } }
+        item { check(refresh >= 0) /* odśwież napis po zmianie */; Button(onClick = { cycle(c, AiSettings.K_DAY, AiSettings.dayLimits, "3.0"); refresh++ }) { Text("Limit dzienny: $${AiSettings.dayLimit(c)} (dziś wydano ok. $${"%.3f".format(java.util.Locale.ROOT, spentToday ?: 0.0)})") } }
         item { Text("Limity liczy aplikacja z danych zwróconych przez Google; rozliczenie Google może się nieznacznie różnić i przychodzić z opóźnieniem.", style = MaterialTheme.typography.bodySmall) }
         if (message.isNotEmpty()) item { Text(message, style = MaterialTheme.typography.titleMedium) }
         item { Text("Zapisane tłumaczenia (${docs.size})", style = MaterialTheme.typography.titleMedium) }

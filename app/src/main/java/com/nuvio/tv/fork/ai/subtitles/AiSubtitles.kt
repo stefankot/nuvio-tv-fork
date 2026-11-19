@@ -29,7 +29,7 @@ object AiSettings {
     fun review(c: Context) = ForkFeatures.enabled(c, K_REVIEW, true)
     fun fallbackOriginal(c: Context) = ForkFeatures.enabled(c, K_FALLBACK, true)
     fun notice(c: Context) = ForkFeatures.enabled(c, K_NOTICE, true)
-    fun textConsent(c: Context) = ForkFeatures.enabled(c, K_CONSENT_TEXT, false)
+    fun textConsent(c: Context) = ForkFeatures.enabled(c, K_CONSENT_TEXT, true) // właściciel 19.11: zgoda domyślnie włączona (można wyłączyć)
 }
 
 /** API key encrypted with an Android Keystore key (it is decrypted in app memory while used). */
