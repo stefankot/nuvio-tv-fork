@@ -29,6 +29,20 @@ Zasady właściciela z tego wątku: nigdy nie czekać na build bez kodowania; ka
 Kolejność testu paczki 2: Główna → plakat serialu → ▼ (pigułki, odcinki, fokus na 1. odcinku) → OK odcinek (strona odcinka, Wznów) → Wstecz (ten sam odcinek) → ▼ Zwiastuny (OK = zwiastun, Wstecz) → Obsada (OK → osoba: fokus 1. plakat, ▲ biografia) → Wstecz; film: hero „O filmie” → obsada; menu → Szukaj (fokus „a”, wpisz frazę, zakładki, wynik → strona, TV → Live TV Szukaj); menu → konto (profile: fokus na bieżącym); menu → Biblioteka (pusta: Przeglądaj → Główna); menu → Ustawienia (tylko poziom NOOB: fokus „Profile”). Wyniki per ekran w sekcji PACZKA 2, błędy poprawić wszystkie i jeden build.
 Potem: paczka 3 (20 ekranów, mapa tras najpierw), potem pętla testów JVM (handoff §5) i przejście regresyjne 35 ekranów.
 
+## NIUNIA — DESIGN SYSTEM v2, PACZKA 3 — MAPA (szkic, implementacja po zaliczeniu paczki 2)
+| makieta | stan w aplikacji | plik |
+|---|---|---|
+| LiveTV / LiveTVFav / LiveTVRow | Live TV: przewodnik, filtr Ulubione, wybrany rząd kanału | `livetv/NiuniaLiveTv.kt` |
+| LiveTVSearch / LiveTVDiscover | Live TV tryb Szukaj / Odkrywaj | `livetv/NiuniaLiveSearch.kt`, `NiuniaLiveDiscover.kt` |
+| PlayerSubs | odtwarzacz: panel „Audio, lektor i napisy”, zakładka Napisy (Napisy AI) | `player/NiuniaPlayerChrome.kt` |
+| PlayerSeries / PlayerSeriesInfo | odtwarzacz serialu: ▼ rząd odcinków, ▼▼ szczegóły | `player/NiuniaPlayerChrome.kt`, `NiuniaPlayerInfo.kt` |
+| PlayerFilmInfo | odtwarzacz filmu: ▼▼ / długie OK na pasku → szczegóły | `player/NiuniaPlayerInfo.kt` |
+| PlayerLeanback / PlayerLeanbackInfo | odtwarzacz YouTube i jego szczegóły | `player/NiuniaYouTubePlayer.kt` |
+| PlayerLive / Delay / Archive / Info / Group | odtwarzacz IPTV: na żywo, opóźnienie, archiwum, szczegóły, ta sama kategoria | `live/NiuniaLivePlayer.kt` |
+| HomePage | Główna przewinięta (pełna strona rzędów) | `home/NiuniaHome.kt` |
+| MoviePage / SeriesPage | strona filmu / serialu pod hero (pełna) | `detail/NiuniaDetail.kt` |
+| Posters | warianty NiuniaMediaCard PosterCard — tylko testy JVM | `components/NiuniaPoster.kt` + testy |
+
 ## NIUNIA — DESIGN SYSTEM v2, PACZKA 2 (wątek 20.11 wieczór, ta sama gałąź `claude/nuvio-tv-handoff-batch-1-4537d7`) — W TOKU
 Mapa ekranów paczki 2 → miejsce w aplikacji:
 | makieta | stan w aplikacji | plik | jak wejść |
