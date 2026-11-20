@@ -362,4 +362,105 @@ object NiuniaScreens {
     )
 
     val batch2: List<NiuniaFocusMap> = listOf(Episodes, DetailMore, Episode, Movie, Search, SearchResults, Profiles, Person, Library, Settings)
+
+    // ---------------------------------------------------------------- paczka 3
+
+    /** Live TV: filtry (fokus „Wszystkie”), Szukaj/Dziś/Odkrywaj u góry, przewodnik; Wstecz → menu. */
+    val LiveTV = NiuniaFocusMap(
+        screen = "LiveTV",
+        rows = listOf(listOf("search", "day", "discover"), listOf("all", "fav", "cw", "cat1"), listOf("cell1", "cell2", "cell3"), listOf("cell4", "cell5")),
+        initial = "all", back = "Sidebar",
+        ok = mapOf("all" to "LiveTV", "fav" to "LiveTVFav", "search" to "LiveTVSearch", "discover" to "LiveTVDiscover", "cell1" to "PlayerLive"),
+    )
+    /** Live TV, filtr Ulubione (fokus na pigułce). */
+    val LiveTVFav = LiveTV.copy(screen = "LiveTVFav", initial = "fav")
+    /** Live TV, wybrany rząd kanału: fokus na komórce programu. */
+    val LiveTVRow = LiveTV.copy(screen = "LiveTVRow", initial = "cell1")
+    /** Live TV → Szukaj: klawiatura (fokus „a”), drzewo kategorii, wyniki; Wstecz → przewodnik. */
+    val LiveTVSearch = NiuniaFocusMap(
+        screen = "LiveTVSearch",
+        rows = listOf(listOf("abc", "123", "tree1", "res1"), listOf("a", "b", "c", "d", "e", "f", "tree2", "res2"), listOf("space", "del", "clear")),
+        initial = "a", back = "LiveTV",
+        ok = mapOf("res1" to "PlayerLive"),
+    )
+    /** Live TV → Odkrywaj: rzędy kafli (fokus na 1. „Teraz”); Wstecz → przewodnik (decyzja: tryb ekranu Live TV). */
+    val LiveTVDiscover = NiuniaFocusMap(
+        screen = "LiveTVDiscover",
+        rows = listOf(listOf("now1", "now2", "now3"), listOf("cat1", "cat2", "cat3")),
+        initial = "now1", back = "LiveTV",
+        ok = mapOf("now1" to "PlayerLive"),
+    )
+    /** Odtwarzacz, panel na zakładce Napisy: fokus na Napisach AI (albo bieżących napisach); Wstecz → odtwarzacz. */
+    val PlayerSubs = NiuniaFocusMap(
+        screen = "PlayerSubs",
+        rows = listOf(listOf("tab-audio", "tab-lektor", "tab-subs"), listOf("ai"), listOf("pl-file"), listOf("en-embedded"), listOf("off"), listOf("more")),
+        initial = "ai", back = "Player",
+        ok = mapOf("tab-lektor" to "PlayerPanel"),
+    )
+    /** Odtwarzacz serialu po ▼: rząd odcinków (fokus na bieżącym), „Szczegóły serialu”; Wstecz → pasek. */
+    val PlayerSeries = NiuniaFocusMap(
+        screen = "PlayerSeries",
+        rows = listOf(listOf("seek"), listOf("e1", "e2", "e3", "e4", "e5"), listOf("details")),
+        initial = "e3", back = "Player",
+        ok = mapOf("e4" to "Player", "details" to "PlayerSeriesInfo"),
+    )
+    /** Szczegóły serialu (▼▼): sezony, odcinki (fokus na bieżącym), obsada, podobne; Wstecz → rząd. */
+    val PlayerSeriesInfo = NiuniaFocusMap(
+        screen = "PlayerSeriesInfo",
+        rows = listOf(listOf("library", "trailer"), listOf("s1", "s2"), listOf("e1", "e2", "e3", "e4", "e5"), listOf("c1", "c2", "c3"), listOf("p1", "p2", "p3")),
+        initial = "e3", back = "PlayerSeries",
+        ok = mapOf("e3" to "PlayerSeries", "trailer" to "PlayerLeanback"),
+    )
+    /** Szczegóły filmu (▼▼ albo długie OK na pasku): fokus na 1. osobie; Wstecz → rząd/pasek. */
+    val PlayerFilmInfo = NiuniaFocusMap(
+        screen = "PlayerFilmInfo",
+        rows = listOf(listOf("library", "trailer"), listOf("c1", "c2", "c3", "c4", "c5"), listOf("p1", "p2", "p3")),
+        initial = "c1", back = "Player",
+        ok = mapOf("trailer" to "PlayerLeanback"),
+    )
+    /** Odtwarzacz YouTube: fokus na pasku (rozdziały), ▲ ikony, ▼ rząd; długie OK na pasku → szczegóły. */
+    val PlayerLeanback = NiuniaFocusMap(
+        screen = "PlayerLeanback",
+        rows = listOf(listOf("subscribe", "subs", "like", "dislike", "desc", "save", "settings"), listOf("seek"), listOf("v1", "v2", "v3")),
+        initial = "seek", back = "Sidebar",
+        ok = mapOf("desc" to "PlayerLeanbackInfo"),
+        longOk = mapOf("seek" to "PlayerLeanbackInfo"),
+    )
+    /** Szczegóły YouTube: fokus na bieżącym rozdziale; Wstecz → odtwarzacz. */
+    val PlayerLeanbackInfo = NiuniaFocusMap(
+        screen = "PlayerLeanbackInfo",
+        rows = listOf(listOf("subscribe", "like"), listOf("ch1", "ch2", "ch3", "ch4", "ch5"), listOf("v1", "v2", "v3"), listOf("all")),
+        initial = "ch2", back = "PlayerLeanback",
+        ok = mapOf("ch2" to "PlayerLeanback"),
+    )
+    /** IPTV na żywo: decyzja 20.11 — ▲▼ zmienia kanał, ► wchodzi w sterowanie (fokus na pasek), przyciski pod paskiem. */
+    val PlayerLive = NiuniaFocusMap(
+        screen = "PlayerLive",
+        rows = listOf(listOf("seek"), listOf("restart", "pause", "info", "more"), listOf("g1", "g2", "g3")),
+        initial = "seek", back = "LiveTV",
+        ok = mapOf("pause" to "PlayerLiveDelay", "restart" to "PlayerLiveArchive", "info" to "PlayerLiveInfo", "more" to "PlayerLiveGroup"),
+    )
+    val PlayerLiveDelay = PlayerLive.copy(screen = "PlayerLiveDelay", ok = PlayerLive.ok + ("live" to "PlayerLive"),
+        rows = listOf(listOf("seek"), listOf("restart", "pause", "live", "info", "more"), listOf("g1", "g2", "g3")))
+    val PlayerLiveArchive = PlayerLive.copy(screen = "PlayerLiveArchive")
+    /** Szczegóły programu IPTV: fokus na „Obserwuj”; Wstecz → odtwarzacz. */
+    val PlayerLiveInfo = NiuniaFocusMap(
+        screen = "PlayerLiveInfo",
+        rows = listOf(listOf("follow"), listOf("u1", "u2", "u3")),
+        initial = "follow", back = "PlayerLive",
+    )
+    /** Ta sama kategoria: kafle programów (fokus na 1.); Wstecz → odtwarzacz. */
+    val PlayerLiveGroup = NiuniaFocusMap(
+        screen = "PlayerLiveGroup",
+        rows = listOf(listOf("t1", "t2", "t3", "t4")),
+        initial = "t1", back = "PlayerLive",
+        ok = mapOf("t1" to "PlayerLive"),
+    )
+    /** Pełne strony: Główna przewinięta, strona filmu i serialu (fokus na Odtwórz / Wznów). */
+    val HomePage = Main.copy(screen = "HomePage")
+    val MoviePage = Movie.copy(screen = "MoviePage", back = "HomePage")
+    val SeriesPage = Detail.copy(screen = "SeriesPage", back = "HomePage")
+
+    val batch3: List<NiuniaFocusMap> = listOf(LiveTV, LiveTVFav, LiveTVRow, LiveTVSearch, LiveTVDiscover, PlayerSubs, PlayerSeries, PlayerSeriesInfo,
+        PlayerFilmInfo, PlayerLeanback, PlayerLeanbackInfo, PlayerLive, PlayerLiveDelay, PlayerLiveArchive, PlayerLiveInfo, PlayerLiveGroup, HomePage, MoviePage, SeriesPage)
 }

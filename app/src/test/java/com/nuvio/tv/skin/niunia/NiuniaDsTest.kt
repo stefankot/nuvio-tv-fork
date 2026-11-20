@@ -154,7 +154,7 @@ class NiuniaDsTest {
     }
 
     @Test fun `bez zawijania na krawedziach`() {
-        (NiuniaScreens.batch1 + NiuniaScreens.batch2).forEach { map ->
+        (NiuniaScreens.batch1 + NiuniaScreens.batch2 + NiuniaScreens.batch3).forEach { map ->
             map.rows.forEach { row ->
                 assertEquals("${map.screen}: ◄ z ${row.first()}", row.first(), map.move(row.first(), NiuniaDir.Left))
                 assertEquals("${map.screen}: ► z ${row.last()}", row.last(), map.move(row.last(), NiuniaDir.Right))
@@ -165,7 +165,7 @@ class NiuniaDsTest {
     }
 
     @Test fun `kazdy element osiagalny ze startu`() {
-        (NiuniaScreens.batch1 + NiuniaScreens.batch2).forEach { map ->
+        (NiuniaScreens.batch1 + NiuniaScreens.batch2 + NiuniaScreens.batch3).forEach { map ->
             val seen = mutableSetOf(map.initial); var frontier = listOf(map.initial)
             while (frontier.isNotEmpty()) {
                 frontier = frontier.flatMap { id -> NiuniaDir.entries.map { map.move(id, it) } }.filter { seen.add(it) }
@@ -209,6 +209,23 @@ class NiuniaDsTest {
         assertEquals("s1", NiuniaScreens.Person.initial); assertEquals("bio", NiuniaScreens.Person.move("s1", NiuniaDir.Up))
         assertEquals("Main", NiuniaScreens.Library.okTarget("browse"))
         assertEquals("profiles", NiuniaScreens.Settings.initial); assertEquals("Sidebar", NiuniaScreens.Settings.back)
+    }
+
+    @Test fun `paczka 3 - fokus startowy, cele i liczba ekranow`() {
+        assertEquals(35 - 1, (NiuniaScreens.batch1 + NiuniaScreens.batch2 + NiuniaScreens.batch3).map { it.screen }.filter { it != "PlayerPanel" }.size) // Posters = tylko testy
+        assertEquals("all", NiuniaScreens.LiveTV.initial); assertEquals("fav", NiuniaScreens.LiveTVFav.initial); assertEquals("cell1", NiuniaScreens.LiveTVRow.initial)
+        assertEquals("ai", NiuniaScreens.PlayerSubs.initial)
+        assertEquals("PlayerSeriesInfo", NiuniaScreens.PlayerSeries.okTarget("details"))
+        assertEquals("PlayerLeanbackInfo", NiuniaScreens.PlayerLeanback.longOkTarget("seek"))
+        assertEquals("PlayerLiveDelay", NiuniaScreens.PlayerLive.okTarget("pause")); assertEquals("PlayerLive", NiuniaScreens.PlayerLiveDelay.okTarget("live"))
+        assertEquals("seek", NiuniaScreens.PlayerLive.initial) // decyzja 20.11 (makieta: Pauza)
+        assertEquals("HomePage", NiuniaScreens.SeriesPage.back)
+    }
+
+    @Test fun `znaczniki stanu IPTV`() {
+        assertEquals(com.nuvio.tv.skin.niunia.components.NiuniaTagKind.Live, com.nuvio.tv.skin.niunia.player.niuniaStateTag(com.nuvio.tv.skin.niunia.player.NiuniaPlayState.LIVE))
+        assertEquals(com.nuvio.tv.skin.niunia.components.NiuniaTagKind.Delay, com.nuvio.tv.skin.niunia.player.niuniaStateTag(com.nuvio.tv.skin.niunia.player.NiuniaPlayState.DELAY))
+        assertEquals(com.nuvio.tv.skin.niunia.components.NiuniaTagKind.Archive, com.nuvio.tv.skin.niunia.player.niuniaStateTag(com.nuvio.tv.skin.niunia.player.NiuniaPlayState.ARCHIVE))
     }
 
     @Test fun `karta odcinka - zostalo postep meta`() {
