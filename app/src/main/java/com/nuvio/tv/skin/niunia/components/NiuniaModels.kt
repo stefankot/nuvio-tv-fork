@@ -210,7 +210,7 @@ data class NiuniaFocusMap(
     val all: List<String> get() = rows.flatten()
 }
 
-/** Mapy stanów ekranów z makiety (rebuild/project/*.dc.html). Paczka 1: Main, HomeRows, Sidebar, Detail, Player. */
+/** Mapy stanów ekranów z makiety (rebuild/project, pliki .dc.html). Paczka 1: Main, HomeRows, Sidebar, Detail, Player. */
 object NiuniaScreens {
     /** Główna: hero (Odtwórz ma fokus, długie OK → strona filmu), ▼ → rzędy (HomeRows). Bez Wstecz (wyjście z aplikacji). */
     val Main = NiuniaFocusMap(
