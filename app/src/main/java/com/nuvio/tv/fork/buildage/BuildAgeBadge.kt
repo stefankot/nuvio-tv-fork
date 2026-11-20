@@ -30,7 +30,7 @@ private const val ASSET = "fork/build_time.txt" // zapisuje fork-tools/build.sh 
 @Composable
 fun BuildAgeBadge() {
     val c = LocalContext.current
-    if (!com.nuvio.tv.BuildConfig.DEBUG) return
+    if (com.nuvio.tv.BuildConfig.BUILD_TYPE != "debug") return // BuildConfig.DEBUG = false (build debug bez „debuggable”)
     val enabled = remember(c) { com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(c, "fork_build_age", default = true) }
     if (!enabled) return
     val builtMs = remember(c) { readBuildTime(c) } ?: return
