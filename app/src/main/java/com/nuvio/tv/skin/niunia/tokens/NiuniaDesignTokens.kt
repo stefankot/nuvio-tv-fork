@@ -33,7 +33,7 @@ object NiuniaColor {
     /** Primary text, 100%. */
     val Text = Color(0xFFFFFFFF)
     /** Secondary text, key letters, icons at rest. */
-    val Text70 = Color(0xB2FFFFFF)
+    val Text70 = Color(0xB3FFFFFF)
     /** Tertiary text, hints, inactive shelf titles, disabled. */
     val Text50 = Color(0x80FFFFFF)
     /** Secondary button, text field, hairline. */
@@ -63,7 +63,7 @@ object NiuniaColor {
     /** Dim behind a Dialog. */
     val Scrim = Color(0x99000000)
     /** Unfocused 'Next' cards; glass veil in players. */
-    val Scrim30 = Color(0x4C000000)
+    val Scrim30 = Color(0x4D000000)
     /** Glass sheet/panel tint (blur 48, saturation 1.6). */
     val Glass = Color(0x8C1E1E22)
     /** Glass tab bar (blur 30, saturation 1.6) and tool tray. */
@@ -79,7 +79,7 @@ object NiuniaColor {
     /** Role: variant surface (M3 surface-variant) = white 12% solid equivalent. */
     val SurfaceVariant = Color(0x1FFFFFFF)
     /** Role: content on variant surface. */
-    val OnSurfaceVariant = Color(0xB2FFFFFF)
+    val OnSurfaceVariant = Color(0xB3FFFFFF)
     /** Role: focused fill (M3 inverse-surface). */
     val InverseSurface = Color(0xFFFFFFFF)
     /** Role: content on a focused fill. */
@@ -127,11 +127,11 @@ object NiuniaColor {
     /** Series stack layer 2 dimming. */
     val Stack2 = Color(0x9E000000)
     /** Secondary text on a focused (white) element; 9.3:1. */
-    val OnFocus70 = Color(0xB2111111)
+    val OnFocus70 = Color(0xB3111111)
     /** Outline of age box. */
-    val LineStrong = Color(0xB2FFFFFF)
+    val LineStrong = Color(0xB3FFFFFF)
     /** Format tag fill (4K, HDR). */
-    val Fmt = Color(0xB2FFFFFF)
+    val Fmt = Color(0xB3FFFFFF)
     /** Text on format tag. */
     val OnFmt = Color(0xFF1C1C1E)
     /** Fill of the LIVE tag; white text 5.2:1 (live #e5484d gave 3.9:1). */

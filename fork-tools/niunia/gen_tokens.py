@@ -43,7 +43,7 @@ def parse_color(v: str) -> int:
         nums = [x.strip() for x in m.group(1).split(",")]
         r, g, b = (int(float(x)) for x in nums[:3])
         a = float(nums[3]) if len(nums) > 3 else 1.0
-        return (round(a * 255) << 24) | (r << 16) | (g << 8) | b
+        return (int(a * 255 + 0.5) << 24) | (r << 16) | (g << 8) | b
     if v == "transparent":
         return 0
     raise ValueError(f"nieznany kolor: {v}")
