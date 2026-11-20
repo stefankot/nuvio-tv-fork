@@ -14,7 +14,9 @@ Zgłoszenie (JMGO build134): „regulacja głośności lektora/tła nie działa�
 - 936e90439: plakaty z zapasem (`rawPosterUrl` przez CustomPosterFallbackInterceptor — wzór kaptain.stream często nie działa), pionowy plakat ze wzoru dla pozycji poziomych (`niuniaPortrait`), przyciski bez czarnego cienia w spoczynku, hero przewija listę na górę (był ucięty).
 - Napis „built-1h” w prawym dolnym rogu (5647c5d58, d7a0ce1b5): `fork/buildage/BuildAgeBadge.kt`, czas z `assets/fork/build_time.txt` zapisywanego przez `build.sh` tuż przed Gradle.
 - Ustawienia przez `prefs.sh` (mockup): `discover_location=IN_SEARCH` (Odkrywaj z menu do wyszukiwarki; UWAGA: po `set` NIE robić od razu `restart` — synchronizacja profilu z chmurą wysyła zmianę po 1,5 s, restart wcześniej = chmura nadpisuje), `fork_calendar=false`, `hero_catalog_keys` = Watchly rec movie+series (baner miał 0 pozycji), lektor_volume=70, lektor_duck=-3.
-- Na JMGO build134 (md5 997ae1d6d7b4d332d9b50c61dbba86e3). Build136 (wszystko do d7a0ce1b5 + lektor 8f74b632a) w kolejce → zainstalować, sprawdzić: menu (▶/OK/Wstecz), plakaty, hero, napis built-.
+- **Na JMGO build138** (md5 11b4d1ec0058cd6da473d244f97247e3, zgodny, `compile -m speed`) = wszystko do c99a1d4a7: skórka (menu, plakaty, hero), lektor 8f74b632a (głośność), auto jakość w dół tylko po zacięciu (c99a1d4a7, `fork/echo/EchoAutoQualityGuard.kt`; log JMGO 15:44: 4K→1080p przy 14 s bufora bez zacięcia, napisy przepadły; log `.stage/zrodla/`). Build136 padł (Mac uśpiony, lint OOM), 137 — demon Gradle padł; 137b OK.
+- PACZKA DO NASTĘPNEGO BUILDA: feffaa4bf napis „built-…” (warunek BUILD_TYPE — w build138 nie widać, bo BuildConfig.DEBUG=false).
+- Do sprawdzenia przez właściciela: menu Niunii (▶/OK/Wstecz), plakaty, hero, czy źródło nie schodzi już samo na gorsze (log `ForkEcho: auto jakość: …`, `AUTO_QUALITY: down` tylko po `REBUFFER`).
 - Niezrobione w skórce: biblioteka bez wyboru listy/sortowania, Live TV bez źródła nie ma jak dodać źródła z Niunii.
 
 ## SKÓRKA NIUNIA — ETAP 3 (wątek równoległy, 20.11, gałąź skin-niunia) — NIEZBUDOWANE
