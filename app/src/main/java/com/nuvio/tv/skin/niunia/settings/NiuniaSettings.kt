@@ -34,7 +34,7 @@ import com.nuvio.tv.ui.screens.settings.ForkFeatures
 private const val TAG = "ForkNiunia"
 
 /** Wiersz ustawień NOOB: nagłówek (bez akcji) albo pozycja z wartością i strzałką. */
-internal sealed interface NiuniaSettingsItem {
+sealed interface NiuniaSettingsItem {
     data class Header(val title: String) : NiuniaSettingsItem
     data class Row(val key: String, val label: String, val value: String? = null, val chevron: Boolean = true, val action: () -> Unit) : NiuniaSettingsItem
 }
