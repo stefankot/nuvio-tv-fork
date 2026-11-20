@@ -44,6 +44,8 @@ Potem: paczka 3 (20 ekranów, mapa tras najpierw), potem pętla testów JVM (han
 | MoviePage / SeriesPage | strona filmu / serialu pod hero (pełna) | `detail/NiuniaDetail.kt` |
 | Posters | warianty NiuniaMediaCard PosterCard — tylko testy JVM | `components/NiuniaPoster.kt` + testy |
 
+## NAJPIERW (stan 20.11 ~20:50): build151 NA JMGO (md5 04b4c719f51816eaf508db9b000dc29d, testy 49/49). Poprawki paczki 2 nr 1–5 potwierdzone na TV; do sprawdzenia 6, 8, 9, B3-1, Library, Settings NOOB, reszta paczki 3, błąd B3-2. Pełny stan i prompt dla następnego konta: `~/Desktop/nuvio-tv-interface/HANDOFF-niunia-2.md` (ostatnia sekcja).
+
 ## NIUNIA PACZKA 3 — TEST JMGO (build147, 20.11 ~20:20; właściciel: wszystkie testy na JMGO)
 LiveTV (fokus „Wszystkie”), LiveTVFav (pusto, brak ulubionych), LiveTVRow — ZALICZONE. B3-1: „LIVE” w stopce przewodnika ręcznie na starej czerwieni (`NiuniaLiveTv.kt` ~338) → NiuniaTag Live. **B3-2 (poważne):** kanał gra z MiniGuide i paskiem Reshaped (angielskie podpowiedzi) — odtwarzacz IPTV Niuni się nie pokazuje, stany PlayerLive* nie do przetestowania; do zbadania (który MiniGuide działa przy skórce Niunia). Reszta paczki 3 — do przejścia (szczegóły: `~/Desktop/nuvio-tv-interface/HANDOFF-niunia-2.md`). build150 (v7a, poprawki paczki 2) w toku.
 
