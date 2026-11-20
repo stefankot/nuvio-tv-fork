@@ -120,6 +120,7 @@ fun NiuniaPlayerChrome(
     val firstButton = remember { FocusRequester() }
     var moreOpen by remember { mutableStateOf(false) }
     var panelOpen by remember { mutableStateOf(false) }
+    var panelTab by remember { mutableIntStateOf(-1) }
     val audioButton = remember { FocusRequester() }
     // Po zamknięciu panelu fokus wraca na „Dźwięk” (element, z którego wszedł) — bez tego fokus spadał na korzeń i nakładka znikała.
     var panelWasOpen by remember { mutableStateOf(false) }
@@ -127,7 +128,7 @@ fun NiuniaPlayerChrome(
         if (panelOpen) { panelWasOpen = true; return@LaunchedEffect }
         if (!panelWasOpen) return@LaunchedEffect
         kotlinx.coroutines.delay(60)
-        try { audioButton.requestFocus(); Log.i(TAG, "odtwarzacz: panel zamknięty, fokus → Dźwięk") } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus po panelu: ${e.javaClass.simpleName}: ${e.message}") }
+        try { (if (panelTab == 2) firstButton else audioButton).requestFocus(); Log.i(TAG, "odtwarzacz: panel zamknięty, fokus → ${if (panelTab == 2) "Napisy" else "Dźwięk"}") } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus po panelu: ${e.javaClass.simpleName}: ${e.message}") }
     }
     var okDownAt by remember { mutableStateOf(0L) }
     var okLong by remember { mutableStateOf(false) }
@@ -218,12 +219,13 @@ fun NiuniaPlayerChrome(
                     },
                     horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12), verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    NiuniaButton(onClick = { onEvent(PlayerEvent.OnShowSubtitleOverlay); resetHide() }, icon = "subtitles",
-                        description = stringResource(R.string.niunia_player_subtitles), focusRequester = firstButton)
+                    // Makieta PlayerSubs: ikona napisów otwiera ten sam panel na zakładce „Napisy”.
+                    NiuniaButton(onClick = { panelTab = 2; panelOpen = true; Log.i(TAG, "odtwarzacz: panel → Napisy"); resetHide() }, icon = "subtitles",
+                        description = stringResource(R.string.niunia_player_subtitles), focusRequester = firstButton, active = panelOpen && panelTab == 2)
                     NiuniaButton(onClick = { onEvent(PlayerEvent.OnShowQualityOverlay); resetHide() }, glyph = quality, icon = if (quality == null) "settings" else null,
                         description = stringResource(R.string.niunia_player_quality) + (quality?.let { ": $it" } ?: ""))
-                    NiuniaButton(onClick = { panelOpen = true; Log.i(TAG, "odtwarzacz: panel ${context.getString(R.string.niunia_ds_panel_title)}"); resetHide() }, icon = "audio",
-                        description = stringResource(R.string.niunia_player_audio), active = panelOpen, focusRequester = audioButton)
+                    NiuniaButton(onClick = { panelTab = -1; panelOpen = true; Log.i(TAG, "odtwarzacz: panel ${context.getString(R.string.niunia_ds_panel_title)}"); resetHide() }, icon = "audio",
+                        description = stringResource(R.string.niunia_player_audio), active = panelOpen && panelTab != 2, focusRequester = audioButton)
                 }
             }
             Spacer(Modifier.height(NiuniaSpace.PlayerGap))
@@ -268,11 +270,16 @@ fun NiuniaPlayerChrome(
         // „Więcej” — szklany panel po prawej (canvas .glass: 360 szer., od y 40, promień 28 po lewej).
         // Rząd odcinków: wystaje u dołu, ▼ go podnosi (4 kafle 16:9 i kawałek piątego).
         if (hasRow && series) {
-            NiuniaPlayerRow(
-                uiState, episodes, focus = rowFocus, onEvent = { onEvent(it); resetHide() },
-                onUp = { go(0); true }, onDown = { go(2); true },
-                modifier = Modifier.align(Alignment.BottomStart).offset(y = rowShift).padding(bottom = NiuniaSpace.AfterRow),
-            )
+            Column(Modifier.align(Alignment.BottomStart).offset(y = rowShift).padding(bottom = NiuniaSpacing.Space16)) {
+                NiuniaPlayerRow(
+                    uiState, episodes, focus = rowFocus, onEvent = { onEvent(it); resetHide() },
+                    onUp = { go(0); true }, onDown = { go(2); true },
+                )
+                // Makieta PlayerSeries: „▼ Szczegóły serialu” od lewej (decyzja 20.11) — to samo co ▼ z rzędu.
+                NiuniaButton(onClick = { Log.i(TAG, "odtwarzacz: Szczegóły serialu"); go(2) }, label = stringResource(R.string.niunia_ds_series_details),
+                    icon = "chevron-down", kind = NiuniaButtonKind.Chip,
+                    modifier = Modifier.padding(start = NiuniaSpacing.Space40, top = NiuniaSpacing.Space16))
+            }
         } else if (hasRow) {
             NiuniaSimilarRow(
                 similar, focus = rowFocus, onUp = { go(0); true }, onDown = { go(2); true },
@@ -311,6 +318,8 @@ fun NiuniaPlayerChrome(
         AnimatedVisibility(panelOpen, modifier = Modifier.align(Alignment.TopEnd), enter = slideInHorizontally { it }, exit = slideOutHorizontally { it }) {
             BackHandler { panelOpen = false; Log.i(TAG, "Wstecz → odtwarzacz (panel zamknięty)") }
             NiuniaAudioPanel(
+                uiState = uiState,
+                initialTab = panelTab,
                 close = { panelOpen = false },
                 onEvent = { onEvent(it); resetHide() },
                 openMore = { panelOpen = false; moreOpen = true },
@@ -330,10 +339,10 @@ fun NiuniaPlayerChrome(
  * „Głośność lektora”. Audio: ścieżka dźwiękowa i więcej opcji (źródła, jakość, test łącza). Napisy: wybór napisów.
  */
 @Composable
-internal fun NiuniaAudioPanel(close: () -> Unit, onEvent: (PlayerEvent) -> Unit, openMore: () -> Unit, toast: (String) -> Unit) {
+internal fun NiuniaAudioPanel(uiState: PlayerUiState, initialTab: Int = -1, close: () -> Unit, onEvent: (PlayerEvent) -> Unit, openMore: () -> Unit, toast: (String) -> Unit) {
     val ctx = LocalContext.current
     val lektorOn = com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctx, "module_lektor")
-    var tab by remember { mutableIntStateOf(if (lektorOn) 1 else 0) }
+    var tab by remember { mutableIntStateOf(if (initialTab >= 0) initialTab else if (lektorOn) 1 else 0) }
     val first = remember { FocusRequester() }
     LaunchedEffect(tab) {
         Log.i(TAG, "odtwarzacz: panel, zakładka $tab, fokus startowy")
@@ -356,13 +365,79 @@ internal fun NiuniaAudioPanel(close: () -> Unit, onEvent: (PlayerEvent) -> Unit,
                 NiuniaListRow(stringResource(R.string.lektor_volume_row), onClick = { m.cycleVolume(ctx); rev++ }, value = rev.let { m.volumeLabel(ctx) }, focusRequester = first)
                 NiuniaListRow(stringResource(R.string.lektor_duck_row), onClick = { m.cycleDuck(ctx); rev++ }, value = rev.let { m.duckLabel(ctx) })
             }
-            2 -> NiuniaListRow(stringResource(R.string.niunia_ds_subtitles_choose), onClick = { close(); onEvent(PlayerEvent.OnShowSubtitleOverlay) }, trailing = NiuniaTrailing.Chevron, focusRequester = first)
+            2 -> NiuniaSubtitlesTab(uiState, first, onEvent, toast, more = { close(); onEvent(PlayerEvent.OnShowSubtitleOverlay) })
             else -> {
                 NiuniaListRow(stringResource(R.string.niunia_ds_audio_track), onClick = { close(); onEvent(PlayerEvent.OnShowAudioOverlay) }, trailing = NiuniaTrailing.Chevron, focusRequester = first)
                 NiuniaListRow(stringResource(R.string.niunia_ds_more_options), onClick = openMore, trailing = NiuniaTrailing.Chevron)
             }
         }
     }
+}
+
+/**
+ * Zakładka „Napisy” (makieta `PlayerSubs`): Napisy AI · polski (stan tłumaczenia, OK = tłumacz / pokaż oryginał),
+ * napisy wbudowane, pliki z dodatków (najpierw polskie), „Wyłączone”, na końcu pełny wybór napisów Nuvio.
+ * Bieżące napisy mają ✓; fokus startowy na bieżących (albo na Napisach AI).
+ */
+@Composable
+internal fun NiuniaSubtitlesTab(uiState: PlayerUiState, first: FocusRequester, onEvent: (PlayerEvent) -> Unit, toast: (String) -> Unit, more: () -> Unit) {
+    val ctx = LocalContext.current
+    val aiOn = com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctx, "module_ai_subtitles", true)
+    val ai by com.nuvio.tv.fork.ai.subtitles.AiSubtitles.state.collectAsState()
+    val selectedAddon = uiState.selectedAddonSubtitle
+    val embedded = uiState.subtitleTracks
+    val addons = remember(uiState.addonSubtitles) {
+        uiState.addonSubtitles.sortedByDescending { com.nuvio.tv.fork.ai.subtitles.AuxiliaryLanguagePolicy.primaryLanguage(it.lang) == "pl" }.take(6)
+    }
+    val off = selectedAddon == null && embedded.none { it.isSelected || it.index == uiState.selectedSubtitleTrackIndex }
+    val aiPublished = ai?.published == true
+    LaunchedEffect(embedded.size, addons.size) { Log.i(TAG, "odtwarzacz: napisy — wbudowane=${embedded.size}, z dodatków=${uiState.addonSubtitles.size}, AI=${if (aiPublished) "pokazane" else if (com.nuvio.tv.fork.ai.subtitles.AiSubtitles.running) "w toku" else "nie"}") }
+    if (aiOn) {
+        val running = com.nuvio.tv.fork.ai.subtitles.AiSubtitles.running
+        val reason = com.nuvio.tv.fork.ai.subtitles.AiSubtitles.unavailableReason(ctx)
+        NiuniaListRow(
+            stringResource(R.string.niunia_ds_subs_ai),
+            supporting = when {
+                aiPublished -> stringResource(R.string.niunia_ds_subs_ai_shown)
+                running -> ai?.let { "${it.doneBlocks}/${it.totalBlocks}" } ?: stringResource(R.string.niunia_ds_subs_ai_running)
+                reason != null -> reason
+                else -> stringResource(R.string.niunia_ds_subs_ai_start)
+            },
+            trailing = if (aiPublished) NiuniaTrailing.Check else NiuniaTrailing.None,
+            focusRequester = if (aiPublished || (off && selectedAddon == null)) first else null,
+            onClick = {
+                when {
+                    aiPublished -> toast(com.nuvio.tv.fork.ai.subtitles.AiSubtitles.showOriginal())
+                    running -> toast(ctx.getString(R.string.niunia_ds_subs_ai_running))
+                    reason != null -> toast(reason)
+                    else -> toast(com.nuvio.tv.fork.ai.subtitles.AiSubtitles.start(ctx, com.nuvio.tv.fork.ai.subtitles.AiMode.WATCH, retranslate = false))
+                }
+            },
+        )
+    }
+    embedded.forEach { t ->
+        val sel = t.isSelected || t.index == uiState.selectedSubtitleTrackIndex
+        NiuniaListRow(
+            listOfNotNull(t.name.ifBlank { null } ?: t.language, stringResource(R.string.niunia_ds_subs_embedded)).joinToString(" · "),
+            trailing = if (sel && selectedAddon == null) NiuniaTrailing.Check else NiuniaTrailing.None,
+            focusRequester = if (sel && selectedAddon == null && !aiPublished) first else null,
+            onClick = { onEvent(PlayerEvent.OnSelectSubtitleTrack(t.index)) },
+        )
+    }
+    addons.forEach { sub ->
+        val sel = selectedAddon?.id == sub.id
+        NiuniaListRow(
+            listOf(java.util.Locale(sub.lang.take(2)).getDisplayLanguage(java.util.Locale("pl")).ifBlank { sub.lang }, stringResource(R.string.niunia_ds_subs_file)).joinToString(" · "),
+            supporting = sub.addonName,
+            trailing = if (sel) NiuniaTrailing.Check else NiuniaTrailing.None,
+            focusRequester = if (sel && !aiPublished) first else null,
+            onClick = { onEvent(PlayerEvent.OnSelectAddonSubtitle(sub)) },
+        )
+    }
+    NiuniaListRow(stringResource(R.string.niunia_ds_subs_off), trailing = if (off && !aiPublished) NiuniaTrailing.Check else NiuniaTrailing.None,
+        focusRequester = if (!aiOn && off) first else null, onClick = { onEvent(PlayerEvent.OnDisableSubtitles) })
+    NiuniaListRow(stringResource(R.string.niunia_ds_subtitles_choose), trailing = NiuniaTrailing.Chevron,
+        focusRequester = if (!aiOn && !off && embedded.isEmpty() && addons.isEmpty()) first else null, onClick = more)
 }
 
 /** Napis w kółku przycisku jakości z grającego strumienia: UHD / HD / SD; null = nieznana. */

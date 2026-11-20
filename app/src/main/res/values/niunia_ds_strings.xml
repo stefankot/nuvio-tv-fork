@@ -52,4 +52,12 @@
     <string name="niunia_ds_search_kbd_digits">123</string>
     <string name="niunia_ds_search_tv_open">Szukaj „%1$s” w telewizji</string>
     <string name="niunia_ds_search_tv_hint">Programy i kanały z przewodnika</string>
+    <string name="niunia_ds_subs_ai">Napisy AI · polski</string>
+    <string name="niunia_ds_subs_ai_shown">Pokazane — OK wraca do oryginału</string>
+    <string name="niunia_ds_subs_ai_running">Tłumaczenie trwa</string>
+    <string name="niunia_ds_subs_ai_start">Przetłumacz na polski i oglądaj</string>
+    <string name="niunia_ds_subs_embedded">wbudowane</string>
+    <string name="niunia_ds_subs_file">plik zewnętrzny</string>
+    <string name="niunia_ds_subs_off">Wyłączone</string>
+    <string name="niunia_ds_series_details">Szczegóły serialu</string>
 </resources>
