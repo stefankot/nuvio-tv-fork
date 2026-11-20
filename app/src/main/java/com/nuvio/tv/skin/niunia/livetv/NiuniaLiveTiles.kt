@@ -38,7 +38,8 @@ import com.nuvio.tv.reshaped.livetv.LiveTvRepository
 import com.nuvio.tv.skin.kicia.livetv.forgeChannelLogo
 import com.nuvio.tv.skin.niunia.components.NiuniaSeriesStack
 import com.nuvio.tv.skin.niunia.components.NiuniaStatusDot
-import com.nuvio.tv.skin.niunia.components.niuniaFocusable
+import com.nuvio.tv.skin.niunia.components.niuniaFocusLook
+import com.nuvio.tv.skin.niunia.components.niuniaOk
 import com.nuvio.tv.skin.niunia.tokens.NiuniaColors
 import com.nuvio.tv.skin.niunia.tokens.NiuniaDims
 import com.nuvio.tv.skin.niunia.tokens.NiuniaText
@@ -60,11 +61,13 @@ internal fun NiuniaLiveTileCard(
     val logo = forgeChannelLogo(tile.channel) ?: LiveTvRepository.uiState.value.logoFor(tile.channel)
     val image = p?.image?.takeIf { it.isNotBlank() }
     var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(NiuniaDims.RadiusCard)
+    val shape = RoundedCornerShape(com.nuvio.tv.skin.niunia.tokens.NiuniaRadius.Radius16) // DS v2: karty 16
     NiuniaSeriesStack(tile.series, image ?: logo, NiuniaDims.WideW, NiuniaDims.WideH) {
         Box(
             Modifier.size(NiuniaDims.WideW, NiuniaDims.WideH)
-                .niuniaFocusable(shape, focusRequester = focusRequester, onFocus = { focused = it; onFocus(it) }, onOk = onOk)
+                // DS v2 (NowCard / ChannelCard): uniesienie, ×1,1, cień i obwódka 3 dp.
+                .niuniaOk(caption(tile), focusRequester, onFocus = { focused = it; onFocus(it) }, onClick = onOk)
+                .niuniaFocusLook(com.nuvio.tv.skin.niunia.components.NiuniaFocusStyle.Lift, focused, shape)
                 .clip(shape).background(NiuniaColors.Surface),
         ) {
             if (p == null) {
@@ -88,24 +91,22 @@ internal fun NiuniaLiveTileCard(
             }
             if (badge != null) {
                 val newOne = tile.mark == NiuniaTileMark.NEW && longBadge
-                Text(badge, style = NiuniaText.Caption.copy(fontSize = 10.sp, lineHeight = 16.sp), color = if (newOne) NiuniaColors.OnFocus else NiuniaColors.Text,
-                    modifier = Modifier.padding(start = if (dot != null) 24.dp else 7.dp, top = 7.dp)
-                        .background(if (newOne) NiuniaColors.Focus else NiuniaColors.Badge, RoundedCornerShape(8.dp)).padding(horizontal = 6.dp))
+                com.nuvio.tv.skin.niunia.components.NiuniaTag(badge,
+                    if (newOne) com.nuvio.tv.skin.niunia.components.NiuniaTagKind.BadgeStrong else com.nuvio.tv.skin.niunia.components.NiuniaTagKind.Badge,
+                    Modifier.padding(start = if (dot != null) 26.dp else 8.dp, top = 8.dp))
             }
             Row(
                 Modifier.align(Alignment.BottomStart).fillMaxWidth()
-                    .background(Brush.verticalGradient(listOf(Color.Transparent, Color(0xA6000000))))
-                    .padding(start = 8.dp, end = 8.dp, top = 22.dp, bottom = 7.dp),
-                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    .background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimCaption.brush())
+                    .padding(start = 8.dp, end = 8.dp, top = 20.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                if (tile.withChannel) Icon(Icons.Filled.PlayArrow, null, tint = if (focused) NiuniaColors.Text else NiuniaColors.Text70, modifier = Modifier.size(10.dp))
-                tile.progress?.let { f ->
-                    Box(Modifier.width(22.dp).height(3.dp).clip(RoundedCornerShape(2.dp)).background(Color(0x59FFFFFF))) {
-                        Box(Modifier.fillMaxWidth(f).height(3.dp).background(NiuniaColors.Text))
-                    }
-                }
-                Text(caption(tile), style = NiuniaText.Caption, color = if (focused) NiuniaColors.Text else NiuniaColors.Text70, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                // Pasek podpisu NMediaCard: ▶ 12, mini postęp 24×4, podpis 12/16.
+                if (tile.withChannel) com.nuvio.tv.skin.niunia.components.NiuniaIcon("play-small", size = 12.dp)
+                tile.progress?.let { f -> com.nuvio.tv.skin.niunia.components.NiuniaProgress(f) }
+                Text(caption(tile), style = com.nuvio.tv.skin.niunia.tokens.NiuniaType.Caption, color = NiuniaColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
+            Box(Modifier.matchParentSize().background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.Gloss.brush()))
         }
     }
 }
