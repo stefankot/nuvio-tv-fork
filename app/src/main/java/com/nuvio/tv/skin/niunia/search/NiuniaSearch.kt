@@ -240,10 +240,23 @@ private fun Results(
         labels.forEach { (t, res) -> NiuniaButton(onClick = { onTab(t) }, label = stringResource(res), kind = NiuniaButtonKind.Tab, selected = t == tab) }
     }
     val shown = results.filter { niuniaSearchTabMatches(tab, it.first.rawType) }
+    // Zakładka TV: programy i kanały z przewodnika szuka Live TV → Szukaj (ta sama fraza); tu karta przejścia.
+    if (tab == NiuniaSearchTab.Tv && submitted.isNotBlank()) {
+        NiuniaResultCard(
+            title = stringResource(R.string.niunia_ds_search_tv_open, submitted), subtitle = stringResource(R.string.niunia_ds_search_tv_hint),
+            image = null, thumb = NiuniaResultThumb.Wide,
+            onClick = {
+                Log.i(TAG, "wyszukiwarka: TV → Live TV, Szukaj „$submitted”")
+                com.nuvio.tv.skin.kicia.livetv.ForgeTvSearchMemory.lastQuery = submitted
+                com.nuvio.tv.skin.niunia.livetv.NiuniaLiveStart.openSearch = true
+                if (!com.nuvio.tv.skin.niunia.nav.NiuniaNavActions.open(com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE)) com.nuvio.tv.skin.niunia.livetv.NiuniaLiveStart.openSearch = false
+            },
+        )
+    }
     when {
         searchingNow && results.isEmpty() -> NiuniaText(stringResource(R.string.niunia_search_searching), variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary)
         results.isEmpty() && submitted.isNotBlank() -> NiuniaText(stringResource(R.string.niunia_search_none, submitted), variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary)
-        shown.isEmpty() && results.isNotEmpty() -> NiuniaText(stringResource(R.string.niunia_ds_search_tab_empty), variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Tertiary)
+        shown.isEmpty() && results.isNotEmpty() && tab != NiuniaSearchTab.Tv -> NiuniaText(stringResource(R.string.niunia_ds_search_tab_empty), variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Tertiary)
     }
     LazyVerticalGrid(
         columns = GridCells.Fixed(2), modifier = Modifier.niuniaTrapArrows("wyniki"),

@@ -101,6 +101,12 @@ private const val PAST_DAYS = 7
 /** Ekrany Live TV Niuni w jednej trasie (Wstecz wraca do przewodnika). */
 private enum class LiveMode { GUIDE, DISCOVER, SEARCH }
 
+/** Wejście do Live TV od razu w trybie Szukaj (z wyników głównej wyszukiwarki, zakładka TV). Jednorazowe. */
+internal object NiuniaLiveStart {
+    @Volatile var openSearch: Boolean = false
+    fun consumeSearch(): Boolean = openSearch.also { openSearch = false }
+}
+
 /**
  * Live TV Niuni (canvas v4: `LiveTV`, `LiveTVFav`, `LiveTVRow`, `LiveTVDiscover`, `LiveTVSearch`; decyzje właściciela 20.11).
  * U góry po prawej Szukaj · Dziś · Odkrywaj; rząd kafelków i linia filtrów (Wszystkie — fokus na wejściu, Ulubione,
@@ -122,7 +128,7 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
     val resume by TvStore.resume.collectAsState()
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) { while (true) { delay(30_000); now = System.currentTimeMillis() } }
-    var mode by remember { mutableStateOf(LiveMode.GUIDE) }
+    var mode by remember { mutableStateOf(if (NiuniaLiveStart.consumeSearch()) LiveMode.SEARCH.also { Log.i(TAG, "live tv: start w trybie Szukaj") } else LiveMode.GUIDE) }
     var filter by remember { mutableStateOf<NiuniaLiveFilter>(NiuniaLiveFilter.All) }
     var dayOffset by remember { mutableIntStateOf(0) }
     var dayPicker by remember { mutableStateOf(false) }

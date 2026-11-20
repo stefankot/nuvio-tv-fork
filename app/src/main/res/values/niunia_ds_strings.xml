@@ -50,4 +50,6 @@
     <string name="niunia_ds_search_delete">Usuń</string>
     <string name="niunia_ds_search_kbd_letters">abc</string>
     <string name="niunia_ds_search_kbd_digits">123</string>
+    <string name="niunia_ds_search_tv_open">Szukaj „%1$s” w telewizji</string>
+    <string name="niunia_ds_search_tv_hint">Programy i kanały z przewodnika</string>
 </resources>
