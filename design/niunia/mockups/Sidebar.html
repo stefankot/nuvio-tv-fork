@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Menu open</title>
+<link rel="stylesheet" href="../design-system/nuvio.css">
+</head>
+<body>
+<x-dc>
+<helmet style="display:none">
+<style>
+@font-face{font-family:"Satoshi";font-weight:500;src:url("../assets/1e176e56501f5c559f5bba979ff9a5a3.ttf") format("truetype")}
+@font-face{font-family:"Satoshi";font-weight:700;src:url("../assets/706e7b3cd512de8f42078b1941e47ab4.ttf") format("truetype")}
+body{margin:0}
+a{color:inherit;text-decoration:none}
+</style>
+</helmet>
+<div class="stage">
+  <img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt="">
+  <div class="scrim-l"></div>
+
+  <div class="hero" style="top:204px">
+    <img class="tlogo" src="../assets/577bde72411f052caa810c268935f701.png" alt="The Odyssey" style="width:370px">
+    <div class="meta" style="margin-top:10px"><span>Film · Przygodowy · Dramat · 2026 · 2 godz. 53 min</span><span class="fmt">TMDB 80%</span></div>
+    <div class="t14 dim clamp2" style="margin-top:6px">Odysseus, the legendary King of Ithaca, embarks on a long and perilous journey home following the Trojan War.</div>
+  </div>
+  <div class="actions" style="top:370px">
+    <span class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z" fill="currentColor"></path></svg>Odtwórz</span>
+    <span class="btn rnd"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
+    <span class="btn rnd"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg></span>
+    <span class="btn bare"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span>
+  </div>
+  <div class="dots" style="top:432px" aria-hidden="true"><i class="sel"></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="shelf-title" style="top:456px">Oglądaj dalej</div>
+  <div class="rail" style="top:482px">
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span>
+  </div>
+
+  <div class="scrim-side"></div>
+  <nav class="side" aria-label="Menu główne">
+    <a class="side-me" href="Profiles.html"><span class="av">M</span><span><b>Mila</b><small>Zmień profil</small></span></a>
+    <a class="side-item" href="Search.html"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"></circle><path d="M20 20l-4-4"></path></svg></span>Szukaj</a>
+    <a class="side-item foc" href="Main.html"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"></path></svg></span>Główna</a>
+    <a class="side-item" href="LiveTV.html"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"></rect><path d="M8 21h8"></path></svg></span>Live TV</a>
+    <button class="side-item"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="3"></rect><path d="M10 9.5l4.5 2.5-4.5 2.5z" fill="currentColor"></path></svg></span>YouTube</button>
+    <a class="side-item" href="Library.html"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="8" width="16" height="12" rx="2"></rect><path d="M8 8V6a4 4 0 0 1 8 0v2"></path></svg></span>Biblioteka</a>
+    <a class="side-item" href="Settings.html"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9L7 7M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"></path></svg></span>Ustawienia</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":540}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

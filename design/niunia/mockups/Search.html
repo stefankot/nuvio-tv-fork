@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Search</title>
+<link rel="stylesheet" href="../design-system/nuvio.css">
+</head>
+<body>
+<x-dc>
+<helmet style="display:none">
+<style>
+@font-face{font-family:"Satoshi";font-weight:500;src:url("../assets/1e176e56501f5c559f5bba979ff9a5a3.ttf") format("truetype")}
+@font-face{font-family:"Satoshi";font-weight:700;src:url("../assets/706e7b3cd512de8f42078b1941e47ab4.ttf") format("truetype")}
+body{margin:0}
+a{color:inherit;text-decoration:none}
+</style>
+</helmet>
+<div class="stage">
+  <a class="nav" href="Sidebar.html" aria-label="Otwórz menu"><svg class="chev" viewBox="0 0 10 16" aria-hidden="true"><path d="M7 2L2 8l5 6"></path></svg><span class="navpill"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"></circle><path d="M20 20l-4-4"></path></svg></span>Szukaj</span></a>
+
+  <div class="sfield" style="top:74px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"></circle><path d="M20 20l-4-4"></path></svg><span>Filmy, seriale, TV, YouTube i osoby</span></div>
+  <div class="hr" style="left:296px;top:132px;width:624px"></div>
+
+  <div class="seg" style="left:40px;top:134px" aria-hidden="true"><span class="on">abc</span><span>123</span></div>
+  <div class="kbd" style="left:37px;top:174px">
+    <a class="key foc" href="SearchResults.html">a</a><button class="key">b</button><button class="key">c</button><button class="key">d</button><button class="key">e</button><button class="key">f</button>
+    <button class="key">g</button><button class="key">h</button><button class="key">i</button><button class="key">j</button><button class="key">k</button><button class="key">l</button>
+    <button class="key">m</button><button class="key">n</button><button class="key">o</button><button class="key">p</button><button class="key">q</button><button class="key">r</button>
+    <button class="key">s</button><button class="key">t</button><button class="key">u</button><button class="key">v</button><button class="key">w</button><button class="key">x</button>
+    <button class="key">y</button><button class="key">z</button>
+  </div>
+  <div class="kbd2" style="left:40px;top:370px">
+    <button class="key2">SPACJA</button>
+    <button class="key2" aria-label="Usuń"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:22px;height:22px"><path d="M9 5h11v14H9l-6-7z" fill="currentColor" stroke="none"></path><path d="M12 9l5 6M17 9l-5 6" stroke="#2c2c2e"></path></svg></button>
+    <button class="key2">WYCZYŚĆ</button>
+  </div>
+
+  <div style="position:absolute;left:32px;top:408px;width:224px;display:flex;flex-direction:column;gap:2px" aria-label="Ostatnio wyszukiwane">
+    <div class="t12 dim5" style="padding:0 8px 4px">Ostatnio wyszukiwane</div>
+    <button class="row" style="height:28px;padding:0 8px;gap:8px;font:500 14px/20px var(--font);color:var(--text-70)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px"><circle cx="12" cy="12" r="8"></circle><path d="M12 8v4l3 2"></path></svg><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">madden</span></button><button class="row" style="height:28px;padding:0 8px;gap:8px;font:500 14px/20px var(--font);color:var(--text-70)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px"><circle cx="12" cy="12" r="8"></circle><path d="M12 8v4l3 2"></path></svg><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">rings of power</span></button><button class="row" style="height:28px;padding:0 8px;gap:8px;font:500 14px/20px var(--font);color:var(--text-70)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px"><circle cx="12" cy="12" r="8"></circle><path d="M12 8v4l3 2"></path></svg><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">fakty</span></button>
+  </div>
+
+  <div class="shelf-title" style="left:296px;top:146px">Przeglądaj</div>
+  <div class="rail" style="left:296px;top:174px">
+    <a class="card p" href="Movie.html"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="tlabel">Filmy</span></a>
+    <a class="card p" href="Detail.html"><img class="fill" src="../assets/bd54bb8559424a89f47121776f422d70.jpg" alt=""><span class="tlabel">Seriale</span></a>
+    <a class="card p" href="LiveTV.html"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="tlabel">Live TV</span></a>
+    <span class="card p"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="tlabel">Dramat</span></span>
+    <span class="card p"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="tlabel">Sci-Fi</span></span>
+  </div>
+  <div class="rail" style="left:296px;top:424px">
+    <span class="card p"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span>
+    <span class="card p"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span>
+    <span class="card p"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span>
+    <span class="card p"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span>
+    <span class="card p"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":540}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

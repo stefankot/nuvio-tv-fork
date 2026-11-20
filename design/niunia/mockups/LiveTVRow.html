@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Live TV, channel row selected</title>
+<link rel="stylesheet" href="../design-system/nuvio.css">
+</head>
+<body>
+<x-dc>
+<helmet style="display:none">
+<style>
+@font-face{font-family:"Satoshi";font-weight:500;src:url("../assets/1e176e56501f5c559f5bba979ff9a5a3.ttf") format("truetype")}
+@font-face{font-family:"Satoshi";font-weight:700;src:url("../assets/706e7b3cd512de8f42078b1941e47ab4.ttf") format("truetype")}
+body{margin:0}
+a{color:inherit;text-decoration:none}
+</style>
+</helmet>
+<div class="stage" style="height:700px">
+  <a class="nav" href="Sidebar.html" aria-label="Otwórz menu"><svg class="chev" viewBox="0 0 10 16" aria-hidden="true"><path d="M7 2L2 8l5 6"></path></svg><span class="navpill"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"></rect><path d="M8 21h8"></path></svg></span>Live TV</span></a>
+
+  <div class="topbar">
+    <a class="btn sec" href="LiveTVSearch.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>Szukaj</a>
+    <button class="btn sec" aria-haspopup="listbox"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M4 10h16M9 3v4M15 3v4"></path></svg>Dziś</button>
+    <a class="btn sec" href="LiveTVDiscover.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M15.5 8.5l-2 5-5 2 2-5z"></path></svg>Odkrywaj</a>
+  </div>
+
+  <div class="ehero" role="img" aria-label="Podgląd na żywo: TVN">
+    <img class="blur" src="../assets/a5b5ca0be6b351798b07b6fecd2a78e7.jpg" alt="">
+    <img class="sharp" src="../assets/a5b5ca0be6b351798b07b6fecd2a78e7.jpg" alt="">
+    <span class="lv"><span class="dot" style="position:static;display:inline-block"></span>Na żywo · TVN</span>
+  </div>
+  <div style="position:absolute;left:40px;top:84px;width:470px">
+    <div class="t28" style="font-weight:700">Madden</div>
+    <div class="meta" style="margin-top:8px;font-size:13px"><span class="tag" style="background:var(--live);color:#fff">LIVE</span><span class="t14b">20:00 – 21:30 · TVN</span><span class="age">12</span><span class="fmt">HD</span><span style="display:inline-flex;align-items:center;gap:6px;color:var(--archive);margin-left:6px"><span class="dot arch" style="position:static;display:inline-block"></span>OK — od początku</span></div>
+    <div class="t14 dim clamp2" style="margin-top:8px">Trener wraca do drużyny, którą kiedyś zostawił, i ma jeden sezon, żeby ją podnieść. Mecz otwarcia zaczyna się źle…</div>
+  </div>
+  <div style="position:absolute;left:40px;top:236px;display:flex;gap:8px">
+    <button class="btn sec sm">Wszystkie</button>
+  </div>
+
+  <div class="eruler" style="left:214px;top:292px">20:30</div>
+  <div class="eruler" style="left:434px;top:292px">21:00</div>
+  <div class="eruler" style="left:654px;top:292px">21:30</div>
+  <div class="eruler" style="left:874px;top:292px">22:00</div>
+  <div class="ech" style="top:316px"><span class="num">1</span><span class="logo">TVP1</span></div>
+  <button class="ecell now" style="left:214px;top:316px;width:253px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M10 8.5l5 3.5-5 3.5z" fill="currentColor" stroke="none"></path></svg><span>The Odyssey</span></button>
+  <button class="ecell" style="left:471px;top:316px;width:529px"><span>Resident Evil</span></button>
+  <div class="ech sel" style="top:364px"><span class="num">2</span><span class="logo">TVN</span></div>
+  <a class="ecell now foc" href="Player.html" style="left:214px;top:364px;width:436px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M10 8.5l5 3.5-5 3.5z" fill="currentColor" stroke="none"></path></svg><span>Madden</span></a>
+  <button class="ecell" style="left:654px;top:364px;width:346px"><span>Guarding Stars · E2</span></button>
+  <div class="ech" style="top:412px"><span class="num">3</span><span class="logo">Polsat</span></div>
+  <button class="ecell now" style="left:214px;top:412px;width:33px"><span></span></button>
+  <button class="ecell now" style="left:251px;top:412px;width:749px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M10 8.5l5 3.5-5 3.5z" fill="currentColor" stroke="none"></path></svg><span>Other Mommy</span></button>
+  <div class="ech" style="top:460px"><span class="num">4</span><span class="logo">TV4</span></div>
+  <button class="ecell now" style="left:214px;top:460px;width:399px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M10 8.5l5 3.5-5 3.5z" fill="currentColor" stroke="none"></path></svg><span>VisionQuest · E5</span></button>
+  <button class="ecell" style="left:617px;top:460px;width:383px"><span>Avengers: Doomsday</span></button>
+  <div class="ech" style="top:508px"><span class="num">5</span><span class="logo">TVP2</span></div>
+  <button class="ecell now" style="left:214px;top:508px;width:729px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M10 8.5l5 3.5-5 3.5z" fill="currentColor" stroke="none"></path></svg><span>The Hunger Games: Sunrise on the Reaping</span></button>
+  <button class="ecell" style="left:947px;top:508px;width:53px"><span></span></button>
+  <div class="ech" style="top:556px"><span class="num">7</span><span class="logo">TV Puls</span></div>
+  <button class="ecell now" style="left:214px;top:556px;width:326px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M10 8.5l5 3.5-5 3.5z" fill="currentColor" stroke="none"></path></svg><span>Kabaret na żywo</span></button>
+  <button class="ecell" style="left:544px;top:556px;width:216px"><span>Sitcom: odc. 12</span></button>
+  <button class="ecell" style="left:764px;top:556px;width:236px"><span>Wieczór komedii</span></button>
+  <div class="ech" style="top:604px"><span class="num">8</span><span class="logo">TVP Info</span></div>
+  <button class="ecell now" style="left:214px;top:604px;width:216px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M10 8.5l5 3.5-5 3.5z" fill="currentColor" stroke="none"></path></svg><span>Serwis info</span></button>
+  <button class="ecell" style="left:434px;top:604px;width:436px"><span>Debata dnia</span></button>
+  <span class="echev" style="left:10px;top:364px" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></span>
+  <span class="echev r" style="left:920px;top:364px" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span>
+  <div class="enow" aria-hidden="true" style="left:294px;top:310px;height:338px"></div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":700}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

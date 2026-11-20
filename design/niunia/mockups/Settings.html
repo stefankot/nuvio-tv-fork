@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Ustawienia</title>
+<link rel="stylesheet" href="../design-system/nuvio.css">
+</head>
+<body>
+<x-dc>
+<helmet style="display:none">
+<style>
+@font-face{font-family:"Satoshi";font-weight:500;src:url("../assets/1e176e56501f5c559f5bba979ff9a5a3.ttf") format("truetype")}
+@font-face{font-family:"Satoshi";font-weight:700;src:url("../assets/706e7b3cd512de8f42078b1941e47ab4.ttf") format("truetype")}
+body{margin:0}
+a{color:inherit;text-decoration:none}
+</style>
+</helmet>
+<div class="stage">
+  <a class="nav" href="Sidebar.html" aria-label="Otwórz menu"><svg class="chev" viewBox="0 0 10 16" aria-hidden="true"><path d="M7 2L2 8l5 6"></path></svg><span class="navpill"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9L7 7M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"></path></svg></span>Ustawienia</span></a>
+
+  <svg style="position:absolute;left:130px;top:124px;width:270px;height:270px" viewBox="0 0 100 100" aria-hidden="true"><defs><clipPath id="pc"><circle cx="50" cy="50" r="44"></circle></clipPath></defs><circle cx="50" cy="50" r="46.5" fill="none" stroke="#58585a" stroke-width="5"></circle><circle cx="50" cy="40" r="18" fill="#58585a"></circle><ellipse cx="50" cy="92" rx="32" ry="24" fill="#58585a" clip-path="url(#pc)"></ellipse></svg>
+
+  <div class="slist" style="left:540px;top:80px;width:380px">
+    <a class="srow foc" href="Profiles.html">Profile<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></a>
+    <div class="slabel">Wygląd</div>
+    <button class="srow">Skórka<span class="val">Niunia</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+    <div class="slabel">Odtwarzanie</div>
+    <button class="srow">Lektor<span class="val">Włączony</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+    <button class="srow">Napisy i AutoSync<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+    <button class="srow">Napisy AI<span class="val">Gdy brak polskich</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+    <div class="slabel">Źródła</div>
+    <button class="srow">Playlisty, EPG i YouTube<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+    <div class="slabel">Ogólne</div>
+    <button class="srow">Język<span class="val">Polski</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+    <button class="srow">Pomoc i dziennik błędów<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":540}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

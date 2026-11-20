@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Player IPTV, group</title>
+<link rel="stylesheet" href="../design-system/nuvio.css">
+</head>
+<body>
+<x-dc>
+<helmet style="display:none">
+<style>
+@font-face{font-family:"Satoshi";font-weight:500;src:url("../assets/1e176e56501f5c559f5bba979ff9a5a3.ttf") format("truetype")}
+@font-face{font-family:"Satoshi";font-weight:700;src:url("../assets/706e7b3cd512de8f42078b1941e47ab4.ttf") format("truetype")}
+body{margin:0}
+a{color:inherit;text-decoration:none}
+</style>
+</helmet>
+<div class="stage" style="background:radial-gradient(120% 90% at 72% 25%,#2b4c7e 0%,#0f1d33 55%,#06090f 100%)">
+  <div class="t12 dim5" style="position:absolute;right:40px;top:28px;letter-spacing:1px">OBRAZ KANAŁU</div>
+  <div style="position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,0) 20%,rgba(0,0,0,.6) 48%,rgba(0,0,0,.9) 100%)"></div>
+
+  <div style="position:absolute;left:40px;top:132px;width:560px">
+    <div class="t14b" style="letter-spacing:1px">19:00 – 19:30</div>
+    <div class="meta dim" style="margin-top:6px;font-size:15px"><span>Wiadomości · na żywo</span></div>
+    <div class="t32" style="margin-top:6px">Fakty</div>
+  </div>
+
+  <div class="pline" style="top:244px"><span class="t12">19:00</span><div class="ptrack"><i style="width:40%;background:var(--live)"></i><b style="left:40%;background:var(--live)"></b><span class="plab" style="left:40%;color:var(--live)">LIVE</span></div><span class="t12 dim">19:30</span></div>
+
+  <div style="position:absolute;left:40px;top:278px;width:110px;display:flex;flex-direction:column;align-items:flex-start;gap:0">
+    <button aria-label="Poprzedni kanał"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:26px;height:26px;stroke-width:2.4;margin:-4px 0"><path d="M6 15l6-6 6 6"></path></svg></button>
+    <span class="chlogo" aria-label="Kanał TVN">TVN</span>
+    <button aria-label="Następny kanał"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:26px;height:26px;stroke-width:2.4;margin:-4px 0"><path d="M6 9l6 6 6-6"></path></svg></button>
+  </div>
+  <div style="position:absolute;left:170px;top:290px;display:flex"><button class="btn rnd" aria-label="Od początku"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"></path><path d="M4 4v4h4"></path></svg></button></div>
+  <div style="position:absolute;left:226px;top:290px;display:flex">
+    <button class="btn rnd" aria-label="Pauza"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"></path></svg></button>
+  </div>
+  <div class="actions" style="left:auto;right:40px;top:290px">
+    <button class="btn rnd" aria-label="Dodaj do ulubionych"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+    <button class="btn rnd" aria-label="Informacje o programie"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg></button>
+    <button class="btn rnd" aria-label="Więcej"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h.01M12 12h.01M18 12h.01" stroke-width="3"></path></svg></button>
+  </div>
+
+  <div class="shelf-title on" style="top:378px">Wiadomości <span class="t13 dim5" style="font-weight:500">· na innych kanałach</span></div>
+  <div class="rail" style="top:408px">
+    <a class="card w foc" href="Player.html" style="background:linear-gradient(150deg,#3a4a66,#1c2333)"><span class="badge">Za 18 min</span><span style="position:absolute;left:12px;bottom:12px"><span class="t16b" style="display:block">Wiadomości</span><span class="t12 dim">TVP1 · 19:30</span></span></a>
+    <span class="card w" style="background:linear-gradient(150deg,#4a3a3a,#231b1b)"><span class="dot arch" role="img" aria-label="Archiwum"></span><span style="position:absolute;left:12px;bottom:12px"><span class="t16b" style="display:block">Wydarzenia</span><span class="t12 dim">Polsat · 18:50</span></span></span>
+    <span class="card w" style="background:linear-gradient(150deg,#3a4a44,#1b2320)"><span class="dot arch" role="img" aria-label="Archiwum"></span><span style="position:absolute;left:12px;bottom:12px"><span class="t16b" style="display:block">Panorama</span><span class="t12 dim">TVP2 · 18:00</span></span></span>
+    <span class="card w" style="background:linear-gradient(150deg,#46405a,#201d2a)"><span class="dot arch" role="img" aria-label="Archiwum"></span><span style="position:absolute;left:12px;bottom:12px"><span class="t16b" style="display:block">Teleexpress</span><span class="t12 dim">TVP1 · 17:00</span></span></span>
+    <span class="card w" style="background:linear-gradient(150deg,#3a3a4a,#1b1b23)"><span class="dot arch" role="img" aria-label="Archiwum"></span><span style="position:absolute;left:12px;bottom:12px"><span class="t16b" style="display:block">Wiadomości</span><span class="t12 dim">TVP1 · 16:30</span></span></span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":540}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Live TV, Ulubione</title>
+<link rel="stylesheet" href="../design-system/nuvio.css">
+</head>
+<body>
+<x-dc>
+<helmet style="display:none">
+<style>
+@font-face{font-family:"Satoshi";font-weight:500;src:url("../assets/1e176e56501f5c559f5bba979ff9a5a3.ttf") format("truetype")}
+@font-face{font-family:"Satoshi";font-weight:700;src:url("../assets/706e7b3cd512de8f42078b1941e47ab4.ttf") format("truetype")}
+body{margin:0}
+a{color:inherit;text-decoration:none}
+</style>
+</helmet>
+<div class="stage" style="height:700px">
+  <a class="nav" href="Sidebar.html" aria-label="Otwórz menu"><svg class="chev" viewBox="0 0 10 16" aria-hidden="true"><path d="M7 2L2 8l5 6"></path></svg><span class="navpill"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"></rect><path d="M8 21h8"></path></svg></span>Live TV</span></a>
+
+  <div class="topbar">
+    <a class="btn sec" href="LiveTVSearch.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>Szukaj</a>
+    <button class="btn sec" aria-haspopup="listbox"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M4 10h16M9 3v4M15 3v4"></path></svg>Dziś</button>
+    <a class="btn sec" href="LiveTVDiscover.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M15.5 8.5l-2 5-5 2 2-5z"></path></svg>Odkrywaj</a>
+  </div>
+
+  <div class="rail" style="top:80px" aria-label="Ulubione">
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/ef7d461bdc97be8787fe7e2c7f1e7c0b.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/ef7d461bdc97be8787fe7e2c7f1e7c0b.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/ef7d461bdc97be8787fe7e2c7f1e7c0b.jpg" alt=""><span class="badge" style="background:var(--focus);color:var(--on-focus)">Nowy odcinek</span><span class="cap"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4l14 8-14 8z" fill="currentColor"></path></svg>VisionQuest · E5 · TV4</span></span></span>
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/528b2ba2e99428d6c529fb1cd47cca63.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/528b2ba2e99428d6c529fb1cd47cca63.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/528b2ba2e99428d6c529fb1cd47cca63.jpg" alt=""><span class="badge" style="background:var(--focus);color:var(--on-focus)">Nowy odcinek</span><span class="cap"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4l14 8-14 8z" fill="currentColor"></path></svg>Guarding Stars · E2 · TVN</span></span></span>
+    <span class="card"><img class="fill" src="../assets/a5b5ca0be6b351798b07b6fecd2a78e7.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4l14 8-14 8z" fill="currentColor"></path></svg><span class="mini"><i style="width:46%"></i></span>Madden · TVN</span></span>
+    <span class="card"><img class="fill" src="../assets/37aa077e7488da320f03c98f1ea24f8b.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4l14 8-14 8z" fill="currentColor"></path></svg><span class="mini"><i style="width:32%"></i></span>Hunger Games · TVP2</span></span>
+  </div>
+
+  <div role="toolbar" aria-label="Filtry przewodnika" style="position:absolute;left:40px;right:0;top:236px;display:flex;gap:6px;align-items:center;white-space:nowrap;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)">
+    <button class="pill">Wszystkie</button><button class="pill foc">Ulubione</button><button class="pill">Oglądaj dalej</button><span aria-hidden="true" style="width:1px;height:20px;background:var(--line);flex:none;margin:0 4px"></span><button class="pill">Informacje</button><button class="pill">Filmy i seriale</button><button class="pill">Sport</button><button class="pill">Dokumentalne</button><button class="pill">Dla dzieci</button><button class="pill">Muzyka</button><button class="pill">Styl życia</button><button class="pill">Regionalne</button><button class="pill">Zagraniczne</button>
+  </div>
+
+  <div class="eruler" style="left:214px;top:292px">20:30</div>
+  <div class="eruler" style="left:434px;top:292px">21:00</div>
+  <div class="eruler" style="left:654px;top:292px">21:30</div>
+  <div class="eruler" style="left:874px;top:292px">22:00</div>
+  <div class="ech" style="top:316px"><span class="num">2</span><span class="logo">TVN</span></div>
+  <button class="ecell now" style="left:214px;top:316px;width:436px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M10 8.5l5 3.5-5 3.5z" fill="currentColor" stroke="none"></path></svg><span>Madden</span></button>
+  <button class="ecell" style="left:654px;top:316px;width:346px"><span>Guarding Stars · E2</span> <span class="chipb" style="margin-left:2px">NOWY</span></button>
+  <div class="ech" style="top:364px"><span class="num">4</span><span class="logo">TV4</span></div>
+  <button class="ecell now" style="left:214px;top:364px;width:399px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M10 8.5l5 3.5-5 3.5z" fill="currentColor" stroke="none"></path></svg><span>VisionQuest · E5</span> <span class="chipb" style="margin-left:2px">NOWY</span></button>
+  <button class="ecell" style="left:617px;top:364px;width:383px"><span>Avengers: Doomsday</span></button>
+  <div class="ech" style="top:412px"><span class="num">5</span><span class="logo">TVP2</span></div>
+  <button class="ecell now" style="left:214px;top:412px;width:729px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M10 8.5l5 3.5-5 3.5z" fill="currentColor" stroke="none"></path></svg><span>The Hunger Games: Sunrise on the Reaping</span></button>
+  <button class="ecell" style="left:947px;top:412px;width:53px"><span></span></button>
+  <div class="enow" aria-hidden="true" style="left:294px;top:310px;height:146px"></div>
+
+  <div style="position:absolute;left:40px;top:640px;display:flex;gap:8px;align-items:center">
+    <span class="tag" style="background:var(--live);color:#fff">LIVE</span><span class="t14 dim">Madden · TVN · 20:00 – 21:30</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":700}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

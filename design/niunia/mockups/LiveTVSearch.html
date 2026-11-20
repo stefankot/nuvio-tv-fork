@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Live TV, Szukaj</title>
+<link rel="stylesheet" href="../design-system/nuvio.css">
+</head>
+<body>
+<x-dc>
+<helmet style="display:none">
+<style>
+@font-face{font-family:"Satoshi";font-weight:500;src:url("../assets/1e176e56501f5c559f5bba979ff9a5a3.ttf") format("truetype")}
+@font-face{font-family:"Satoshi";font-weight:700;src:url("../assets/706e7b3cd512de8f42078b1941e47ab4.ttf") format("truetype")}
+body{margin:0}
+a{color:inherit;text-decoration:none}
+</style>
+</helmet>
+<div class="stage" style="height:700px">
+    <a class="nav" href="Sidebar.html" aria-label="Otwórz menu"><svg class="chev" viewBox="0 0 10 16" aria-hidden="true"><path d="M7 2L2 8l5 6"></path></svg><span class="navpill"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"></rect><path d="M8 21h8"></path></svg></span>Live TV</span></a>
+
+  <div class="topbar">
+    <button class="btn sec on" aria-current="page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>Szukaj</button>
+    <button class="btn sec" aria-haspopup="listbox"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M4 10h16M9 3v4M15 3v4"></path></svg>Dziś</button>
+    <a class="btn sec" href="LiveTVDiscover.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M15.5 8.5l-2 5-5 2 2-5z"></path></svg>Odkrywaj</a>
+  </div>
+
+  <div class="sfield" style="top:84px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"></circle><path d="M20 20l-4-4"></path></svg><span style="color:#fff">kom</span><span style="width:2px;height:28px;background:#fff;margin-left:-8px"></span><span class="t14 dim5" style="margin-left:12px">96 programów · 2 kanały · 9 kategorii</span></div>
+  <div class="hr" style="left:296px;top:142px;width:624px"></div>
+
+  <div class="seg" style="left:40px;top:164px" aria-hidden="true"><span class="on">abc</span><span>123</span></div>
+  <div class="kbd" style="left:37px;top:204px">
+    <button class="key">a</button><button class="key">b</button><button class="key">c</button><button class="key">d</button><button class="key">e</button><button class="key">f</button>
+    <button class="key">g</button><button class="key">h</button><button class="key">i</button><button class="key">j</button><button class="key">k</button><button class="key">l</button>
+    <button class="key foc">m</button><button class="key">n</button><button class="key">o</button><button class="key">p</button><button class="key">q</button><button class="key">r</button>
+    <button class="key">s</button><button class="key">t</button><button class="key">u</button><button class="key">v</button><button class="key">w</button><button class="key">x</button>
+    <button class="key">y</button><button class="key">z</button>
+  </div>
+  <div class="kbd2" style="left:40px;top:400px">
+    <button class="key2">SPACJA</button>
+    <button class="key2" aria-label="Usuń"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:22px;height:22px"><path d="M9 5h11v14H9l-6-7z" fill="currentColor" stroke="none"></path><path d="M12 9l5 6M17 9l-5 6" stroke="#2c2c2e"></path></svg></button>
+    <button class="key2">WYCZYŚĆ</button>
+  </div>
+
+
+  <div style="position:absolute;left:32px;top:446px;width:224px;display:flex;flex-direction:column;gap:2px" aria-label="Podpowiedzi">
+    <div class="t12 dim5" style="padding:0 8px 4px">Podpowiedzi</div>
+    <button class="row" style="height:28px;padding:0 8px;gap:8px;font:500 14px/20px var(--font);color:var(--text-70)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px"><circle cx="11" cy="11" r="6"></circle><path d="M20 20l-4-4"></path></svg><span>komedia romantyczna</span></button>
+    <button class="row" style="height:28px;padding:0 8px;gap:8px;font:500 14px/20px var(--font);color:var(--text-70)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px"><circle cx="11" cy="11" r="6"></circle><path d="M20 20l-4-4"></path></svg><span>kabaret na żywo</span></button>
+    <button class="row" style="height:28px;padding:0 8px;gap:8px;font:500 14px/20px var(--font);color:var(--text-70)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px"><circle cx="11" cy="11" r="6"></circle><path d="M20 20l-4-4"></path></svg><span>komediowe seriale</span></button>
+    <button class="row" style="height:28px;padding:0 8px;gap:8px;font:500 14px/20px var(--font);color:var(--text-70)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px"><circle cx="11" cy="11" r="6"></circle><path d="M20 20l-4-4"></path></svg><span>kino komedia</span></button>
+  </div>
+
+  <div class="shelf-title on" style="left:296px;top:156px">Kategorie <span class="t13 dim5" style="font-weight:500">· 9 z 604 pasuje</span></div>
+  <div class="panel" role="tree" aria-label="Drzewo kategorii" style="position:absolute;left:290px;top:186px;width:270px;height:490px;padding:6px;overflow:hidden;display:flex;flex-direction:column;gap:1px;-webkit-mask-image:linear-gradient(#000 88%,transparent);mask-image:linear-gradient(#000 88%,transparent)">
+      <button class="row" style="height:30px;padding:0 10px 0 8px;gap:6px;font:500 14px/20px var(--font)"><span style="width:12px;display:inline-block"></span><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Wszystkie programy</span><span class="t12 dim5" style="font-weight:500">4 812</span></button>
+      <button class="row" style="height:30px;padding:0 10px 0 8px;gap:6px;font:500 14px/20px var(--font)"><span style="width:12px;display:inline-block"></span><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Ulubione</span><span class="t12 dim5" style="font-weight:500">23</span></button>
+      <button class="row" style="height:30px;padding:0 10px 0 8px;gap:6px;font:500 14px/20px var(--font)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:12px;height:12px"><path d="M6 9l6 6 6-6"></path></svg><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Filmy</span><span class="t12 dim5" style="font-weight:500">612</span></button>
+      <button class="row" style="height:30px;padding:0 10px 0 24px;gap:6px;font:500 14px/20px var(--font)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:12px;height:12px"><path d="M6 9l6 6 6-6"></path></svg><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><b style="color:#fff">Kom</b>edia</span><span class="t12 dim5" style="font-weight:500">148</span></button>
+      <button class="row" aria-selected="true" style="height:30px;background:var(--fill-24);padding:0 10px 0 40px;gap:6px;font:500 14px/20px var(--font)"><span style="width:12px;display:inline-block"></span><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><b style="color:#fff">kom</b>edia</span><span class="t12 dim" style="font-weight:500">96</span></button>
+      <button class="row" style="height:30px;padding:0 10px 0 40px;gap:6px;font:500 14px/20px var(--font)"><span style="width:12px;display:inline-block"></span><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text-70)"><b style="color:#fff">kom</b>edia romantyczna</span><span class="t12 dim5" style="font-weight:500">31</span></button>
+      <button class="row" style="height:30px;padding:0 10px 0 40px;gap:6px;font:500 14px/20px var(--font)"><span style="width:12px;display:inline-block"></span><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text-70)"><b style="color:#fff">kom</b>edia obyczajowa</span><span class="t12 dim5" style="font-weight:500">14</span></button>
+      <button class="row" style="height:30px;padding:0 10px 0 40px;gap:6px;font:500 14px/20px var(--font)"><span style="width:12px;display:inline-block"></span><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text-70)">czarna <b style="color:#fff">kom</b>edia</span><span class="t12 dim5" style="font-weight:500">7</span></button>
+      <button class="row" style="height:30px;padding:0 10px 0 24px;gap:6px;font:500 14px/20px var(--font)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:12px;height:12px"><path d="M9 6l6 6-6 6"></path></svg><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Dramat</span><span class="t12 dim5" style="font-weight:500">201</span></button>
+      <button class="row" style="height:30px;padding:0 10px 0 8px;gap:6px;font:500 14px/20px var(--font)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:12px;height:12px"><path d="M6 9l6 6 6-6"></path></svg><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Seriale</span><span class="t12 dim5" style="font-weight:500">903</span></button>
+      <button class="row" style="height:30px;padding:0 10px 0 24px;gap:6px;font:500 14px/20px var(--font)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:12px;height:12px"><path d="M6 9l6 6 6-6"></path></svg><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><b style="color:#fff">Kom</b>ediowe</span><span class="t12 dim5" style="font-weight:500">122</span></button>
+      <button class="row" style="height:30px;padding:0 10px 0 40px;gap:6px;font:500 14px/20px var(--font)"><span style="width:12px;display:inline-block"></span><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text-70)">sitcom</span><span class="t12 dim5" style="font-weight:500">64</span></button>
+      <button class="row" style="height:30px;padding:0 10px 0 40px;gap:6px;font:500 14px/20px var(--font)"><span style="width:12px;display:inline-block"></span><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text-70)">serial <b style="color:#fff">kom</b>ediowy</span><span class="t12 dim5" style="font-weight:500">58</span></button>
+      <button class="row" style="height:30px;padding:0 10px 0 8px;gap:6px;font:500 14px/20px var(--font)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:12px;height:12px"><path d="M6 9l6 6 6-6"></path></svg><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Rozrywka</span><span class="t12 dim5" style="font-weight:500">540</span></button>
+      <button class="row" style="height:30px;padding:0 10px 0 24px;gap:6px;font:500 14px/20px var(--font)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:12px;height:12px"><path d="M6 9l6 6 6-6"></path></svg><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Talk-show i kabaret</span><span class="t12 dim5" style="font-weight:500">77</span></button>
+      <button class="row" style="height:30px;padding:0 10px 0 40px;gap:6px;font:500 14px/20px var(--font)"><span style="width:12px;display:inline-block"></span><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text-70)">kabaret <b style="color:#fff">kom</b>ediowy</span><span class="t12 dim5" style="font-weight:500">19</span></button>
+      <button class="row" style="height:30px;padding:0 10px 0 8px;gap:6px;font:500 14px/20px var(--font)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:12px;height:12px"><path d="M9 6l6 6-6 6"></path></svg><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Sport</span><span class="t12 dim5" style="font-weight:500">388</span></button>
+      <button class="row" style="height:30px;padding:0 10px 0 8px;gap:6px;font:500 14px/20px var(--font)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:12px;height:12px"><path d="M9 6l6 6-6 6"></path></svg><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Informacje i publicystyka</span><span class="t12 dim5" style="font-weight:500">455</span></button>
+      <button class="row" style="height:30px;padding:0 10px 0 8px;gap:6px;font:500 14px/20px var(--font)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:12px;height:12px"><path d="M9 6l6 6-6 6"></path></svg><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Dokument i nauka</span><span class="t12 dim5" style="font-weight:500">297</span></button>
+      <button class="row" style="height:30px;padding:0 10px 0 8px;gap:6px;font:500 14px/20px var(--font)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:12px;height:12px"><path d="M9 6l6 6-6 6"></path></svg><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Dla dzieci</span><span class="t12 dim5" style="font-weight:500">341</span></button>
+      <button class="row" style="height:30px;padding:0 10px 0 8px;gap:6px;font:500 14px/20px var(--font)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:12px;height:12px"><path d="M9 6l6 6-6 6"></path></svg><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Muzyka</span><span class="t12 dim5" style="font-weight:500">96</span></button>
+      <button class="row" style="height:30px;padding:0 10px 0 8px;gap:6px;font:500 14px/20px var(--font)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:12px;height:12px"><path d="M9 6l6 6-6 6"></path></svg><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Styl życia</span><span class="t12 dim5" style="font-weight:500">188</span></button>
+      <button class="row" style="height:30px;padding:0 10px 0 8px;gap:6px;font:500 14px/20px var(--font)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:12px;height:12px"><path d="M9 6l6 6-6 6"></path></svg><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Edukacja i religia</span><span class="t12 dim5" style="font-weight:500">74</span></button>
+      <button class="row" style="height:30px;padding:0 10px 0 8px;gap:6px;font:500 14px/20px var(--font)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:12px;height:12px"><path d="M9 6l6 6-6 6"></path></svg><span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Inne</span><span class="t12 dim5" style="font-weight:500">61</span></button>
+  </div>
+
+  <div class="shelf-title" style="left:584px;top:156px">Programy <span class="t13 dim5" style="font-weight:500">· 96</span></div>
+  <div class="seg" style="left:auto;right:40px;top:150px;width:150px" aria-label="Widok wyników"><span>Rzędy</span><span class="on">Siatka</span></div>
+  <div style="position:absolute;left:584px;top:194px;display:grid;grid-template-columns:repeat(2,160px);gap:20px 16px">
+      <span class="card"><img class="fill" src="../assets/a5b5ca0be6b351798b07b6fecd2a78e7.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap">Kabaret na żywo · TV4 · teraz</span></span>
+      <span class="card"><img class="fill" src="../assets/ed19b74ced653b6f700910ca9c947d12.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">Komedia na wieczór · TVN · wczoraj 21:30</span></span>
+      <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/ef7d461bdc97be8787fe7e2c7f1e7c0b.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/ef7d461bdc97be8787fe7e2c7f1e7c0b.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/ef7d461bdc97be8787fe7e2c7f1e7c0b.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">Sitcom: odc. 12 · TVN · 20:00</span></span></span>
+      <span class="card"><img class="fill" src="../assets/37aa077e7488da320f03c98f1ea24f8b.jpg" alt=""><span class="cap">Wieczór komedii · TV Puls · Dziś 22:00</span></span>
+      <span class="card"><img class="fill" src="../assets/d330d126843031ba62e3390cba71a337.jpg" alt=""><span class="cap">Komedia romantyczna · TVP1 · Sob 20:15</span></span>
+      <span class="card"><img class="fill" src="../assets/528b2ba2e99428d6c529fb1cd47cca63.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap">Stand-up · TVP2 · teraz</span></span>
+  </div>
+  <div class="t13 dim5" style="position:absolute;left:584px;top:614px">Kanały · 2 &nbsp;·&nbsp; TV4 Komedia, Kino Komedia</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":700}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Home</title>
+<link rel="stylesheet" href="../design-system/nuvio.css">
+</head>
+<body>
+<x-dc>
+<helmet style="display:none">
+<style>
+@font-face{font-family:"Satoshi";font-weight:500;src:url("../assets/1e176e56501f5c559f5bba979ff9a5a3.ttf") format("truetype")}
+@font-face{font-family:"Satoshi";font-weight:700;src:url("../assets/706e7b3cd512de8f42078b1941e47ab4.ttf") format("truetype")}
+body{margin:0}
+a{color:inherit;text-decoration:none}
+</style>
+</helmet>
+<div class="stage">
+  <img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt="">
+  <div class="scrim-l"></div>
+
+  <a class="nav" href="Sidebar.html" aria-label="Otwórz menu"><svg class="chev" viewBox="0 0 10 16" aria-hidden="true"><path d="M7 2L2 8l5 6"></path></svg><span class="navpill"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"></path></svg></span>Główna</span></a>
+
+  <div class="hero" style="top:204px">
+    <img class="tlogo" src="../assets/577bde72411f052caa810c268935f701.png" alt="The Odyssey" style="width:370px">
+    <div class="meta" style="margin-top:10px"><span>Film · Przygodowy · Dramat · 2026 · 2 godz. 53 min</span><span class="fmt">TMDB 80%</span></div>
+    <div class="t14 dim clamp2" style="margin-top:6px">Odysseus, the legendary King of Ithaca, embarks on a long and perilous journey home following the Trojan War.</div>
+  </div>
+  <div class="actions" style="top:370px">
+    <a class="btn foc" href="Player.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z" fill="currentColor"></path></svg>Odtwórz</a>
+    <button class="btn rnd" aria-label="Dodaj do biblioteki"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+    <a class="btn rnd" href="Movie.html" aria-label="Szczegóły"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg></a>
+    <a class="btn bare" href="HomeRows.html" aria-label="Następny wyróżniony tytuł"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></a>
+  </div>
+  <div class="dots" style="top:432px" aria-hidden="true"><i class="sel"></i><i></i><i></i><i></i><i></i><i></i></div>
+
+  <div class="shelf-title" style="top:456px">Oglądaj dalej</div>
+  <a class="rail" href="HomeRows.html" style="top:482px">
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="cap"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4l14 8-14 8z" fill="currentColor"></path></svg><span class="mini"><i style="width:40%"></i></span>S1, E1 · 39m</span></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="badge">Nowy</span><span class="cap"><span class="mini"><i style="width:55%"></i></span>Guarding Stars</span></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="cap"><span class="mini"><i style="width:20%"></i></span>Resident Evil</span></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="cap"><span class="mini"><i style="width:80%"></i></span>VisionQuest</span></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="cap"><span class="mini"><i style="width:35%"></i></span>Madden</span></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span>
+  </a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":540}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Player YouTube</title>
+<link rel="stylesheet" href="../design-system/nuvio.css">
+</head>
+<body>
+<x-dc>
+<helmet style="display:none">
+<style>
+@font-face{font-family:"Satoshi";font-weight:500;src:url("../assets/1e176e56501f5c559f5bba979ff9a5a3.ttf") format("truetype")}
+@font-face{font-family:"Satoshi";font-weight:700;src:url("../assets/706e7b3cd512de8f42078b1941e47ab4.ttf") format("truetype")}
+body{margin:0}
+a{color:inherit;text-decoration:none}
+</style>
+</helmet>
+<div class="stage">
+  <img class="fill" src="../assets/7f1a3068289221cd5ca9f10f83c39d14.jpg" alt="">
+  <div style="position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,0) 30%,rgba(0,0,0,.6) 52%,rgba(0,0,0,.85) 100%)"></div>
+
+  <div style="position:absolute;left:40px;top:232px;width:420px">
+    <div class="t12 dim">KANAŁ FILMOWY</div>
+    <div class="t24 clamp2" style="margin:6px 0 8px">Pierścienie Władzy: jak powstawał Númenor</div>
+    <div class="meta dim" style="font-size:13px"><span>412 tys. wyświetleń · 5 dni temu · 21 min</span><span class="fmt">4K</span></div>
+  </div>
+
+  <div style="position:absolute;right:48px;top:328px;display:flex;gap:5px;align-items:center">
+    <button class="btn sec sm" style="height:36px;margin-right:8px">Subskrybuj</button>
+    <span class="av" style="width:40px;height:40px" aria-label="Kanał">KF</span>
+      <button class="btn rnd" aria-label="Napisy"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="M10 10.5a2 2 0 1 0 0 3M17 10.5a2 2 0 1 0 0 3"></path></svg></button>
+      <button class="btn rnd" aria-label="Podoba mi się"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11v9H4v-9zM7 11l4-8a2 2 0 0 1 3 2l-1 5h6a2 2 0 0 1 2 2l-2 7a2 2 0 0 1-2 1H7"></path></svg></button>
+      <button class="btn rnd" aria-label="Nie podoba mi się"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 13V4H4v9zM7 13l4 8a2 2 0 0 0 3-2l-1-5h6a2 2 0 0 0 2-2l-2-7a2 2 0 0 0-2-1H7"></path></svg></button>
+      <button class="btn rnd" aria-label="Opis filmu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6M9 12h6M9 16h3"></path></svg></button>
+      <button class="btn rnd" aria-label="Zapisz na playliście"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="13" height="13" rx="2"></rect><path d="M4 16V5a1 1 0 0 1 1-1h11M13.5 10.5v6M10.5 13.5h6"></path></svg></button>
+      <button class="btn rnd" aria-label="Ustawienia odtwarzania"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"></path></svg></button>
+  </div>
+
+  <div class="pline" style="top:398px"><span class="t12">8:36</span><div class="ptrack foc"><i style="width:40.4%;background:var(--live)"></i><i class="gap" style="left:7.2%"></i><i class="gap" style="left:43.5%"></i><i class="gap" style="left:56.4%"></i><i class="gap" style="left:86.7%"></i><b style="left:40.4%;background:#fff"></b></div><span class="t12">21:29</span></div>
+  <div class="t13 dim" style="position:absolute;left:40px;top:420px">Plan zdjęciowy</div>
+
+  <div class="rail" style="top:448px">
+    <span class="card w" style="opacity:.55"><img class="fill" src="../assets/d58b2f09bd2788df7e2c6a276f31ce14.jpg" alt="Inny film kanału"></span>
+    <span class="card w"><img class="fill" src="../assets/79b96edbd6e4bc5f533f0db058aba281.jpg" alt="Inny film kanału"></span>
+    <span class="card w" style="opacity:.55"><img class="fill" src="../assets/6c2237979b1f553ff671deb71f8eafde.jpg" alt="Inny film kanału"></span>
+    <span class="card w" style="opacity:.55"><img class="fill" src="../assets/ba28973e36b821a10909d2e71bbe970e.jpg" alt="Inny film kanału"></span>
+    <span class="card w" style="opacity:.55"><img class="fill" src="../assets/c9129ba9cc9fb7b7ee2f5670517c1e9e.jpg" alt="Inny film kanału"></span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":540}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Player, Napisy AI</title>
+<link rel="stylesheet" href="../design-system/nuvio.css">
+</head>
+<body>
+<x-dc>
+<helmet style="display:none">
+<style>
+@font-face{font-family:"Satoshi";font-weight:500;src:url("../assets/1e176e56501f5c559f5bba979ff9a5a3.ttf") format("truetype")}
+@font-face{font-family:"Satoshi";font-weight:700;src:url("../assets/706e7b3cd512de8f42078b1941e47ab4.ttf") format("truetype")}
+body{margin:0}
+a{color:inherit;text-decoration:none}
+</style>
+</helmet>
+<div class="stage">
+  <img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt="">
+  <div style="position:absolute;left:0;right:0;bottom:0;height:300px;background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.75))"></div>
+
+  <div class="frost" role="status" style="position:absolute;left:40px;top:28px;max-width:420px;padding:10px 14px;border-radius:var(--radius-16);display:flex;gap:10px;align-items:center">
+    <span class="chipb">AI</span><span class="t14">Polskie napisy nie pasują do filmu — włączono Napisy AI</span>
+  </div>
+  
+  <div style="position:absolute;left:40px;top:330px;width:520px">
+    <div class="t12 dim">FILM</div>
+    <img class="tlogo" src="../assets/577bde72411f052caa810c268935f701.png" alt="The Odyssey" style="width:300px;margin:8px 0 6px">
+    <div class="meta dim" style="margin-top:4px;font-size:13px"><span>2026 · 2 godz. 53 min · Christopher Nolan</span><span class="fmt">4K</span></div>
+  </div>
+  <div class="pline" style="top:412px"><span class="t12">52:10</span><div class="ptrack"><i style="width:30%"></i><b style="left:30%;background:#fff"></b></div><span class="t12 dim">−2:00:50</span></div>
+  <div style="position:absolute;right:40px;top:342px;display:flex;gap:12px">
+    <button class="btn rnd on" aria-label="Napisy" aria-expanded="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="M10 10.5a2 2 0 1 0 0 3M17 10.5a2 2 0 1 0 0 3"></path></svg></button>
+    <button class="btn rnd t12" aria-label="Jakość: Ultra HD" style="font-size:10px;letter-spacing:.3px">UHD</button>
+    <button class="btn rnd" aria-label="Dźwięk"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h4l5 4V6L8 10zM16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"></path></svg></button>
+  </div>
+
+  <div class="rail" style="top:502px" aria-label="Podobne">
+    <span class="card w"><img class="fill" src="../assets/bd54bb8559424a89f47121776f422d70.jpg" alt=""><span class="cap">The Rings of Power</span></span>
+    <span class="card w"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="cap">Resident Evil</span></span>
+    <span class="card w"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="cap">VisionQuest</span></span>
+    <span class="card w"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="cap">Guarding Stars</span></span>
+    <span class="card w"><img class="fill" src="../assets/37aa077e7488da320f03c98f1ea24f8b.jpg" alt=""><span class="cap">The Hunger Games</span></span>
+  </div>
+
+  <div class="glass" role="dialog" aria-label="Audio, lektor i napisy" style="position:absolute;right:0;top:20px;width:360px;height:304px;padding:16px;display:flex;flex-direction:column;gap:2px">
+    <div style="display:flex;gap:8px;margin-bottom:8px"><button class="pill">Audio</button><button class="pill">Lektor</button><button class="pill sel">Napisy</button></div>
+    <button class="row foc" style="height:52px"><span style="flex:1"><span style="display:flex;align-items:center">Napisy AI · polski<span class="chipb" style="margin-left:8px">AUTO</span></span><span class="t12" style="display:block;font-weight:500">Włączone same: brak dobrych polskich napisów</span></span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="margin-left:8px"><path d="M5 12l5 5 9-10"></path></svg></button>
+    <button class="row" style="height:52px"><span style="flex:1"><span style="display:flex;align-items:center">Polski · plik zewnętrzny</span><span class="t12 dim5" style="display:block;font-weight:500">Autosync nie dopasował (słabe dopasowanie)</span></span></button>
+    <button class="row" style="height:44px"><span style="flex:1"><span style="display:flex;align-items:center">Angielski · wbudowane</span></span></button>
+    <button class="row" style="height:44px"><span style="flex:1"><span style="display:flex;align-items:center">Wyłączone</span></span></button>
+    <button class="row" style="height:44px"><span style="flex:1"><span style="display:flex;align-items:center">Napisy AI, gdy brak dobrych polskich</span></span><span class="t14 dim">Tak</span></button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":540}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,416 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Detail.dc.html": {
+      "h": 540,
+      "is_interactive": true,
+      "title": "Series detail",
+      "w": 960,
+      "x": 0,
+      "y": 900
+    },
+    "DetailMore.dc.html": {
+      "h": 540,
+      "is_interactive": true,
+      "title": "Series, cast and about",
+      "w": 960,
+      "x": 2080,
+      "y": 900
+    },
+    "Episode.dc.html": {
+      "h": 540,
+      "is_interactive": true,
+      "title": "Episode detail",
+      "w": 960,
+      "x": 3120,
+      "y": 900
+    },
+    "Episodes.dc.html": {
+      "h": 540,
+      "is_interactive": true,
+      "title": "Series, episodes",
+      "w": 960,
+      "x": 1040,
+      "y": 900
+    },
+    "HomePage.dc.html": {
+      "h": 3381,
+      "is_interactive": true,
+      "title": "Home, full page",
+      "w": 960,
+      "x": 0,
+      "y": 7821
+    },
+    "HomeRows.dc.html": {
+      "h": 540,
+      "is_interactive": true,
+      "title": "Home, scrolled to rows",
+      "w": 960,
+      "x": 1040,
+      "y": 0
+    },
+    "Library.dc.html": {
+      "h": 540,
+      "is_interactive": true,
+      "title": "Library, empty",
+      "w": 960,
+      "x": 3120,
+      "y": 1800
+    },
+    "LiveTV.dc.html": {
+      "h": 700,
+      "is_interactive": true,
+      "title": "Live TV guide, Wszystkie (ostatnio oglądane)",
+      "w": 960,
+      "x": 0,
+      "y": 2700
+    },
+    "LiveTVFav.dc.html": {
+      "h": 700,
+      "is_interactive": true,
+      "title": "Live TV, Ulubione (nowe odcinki)",
+      "w": 960,
+      "x": 1040,
+      "y": 2700
+    },
+    "LiveTVRow.dc.html": {
+      "h": 700,
+      "is_interactive": true,
+      "title": "Live TV, channel row selected (timeline scrolls)",
+      "w": 960,
+      "x": 2080,
+      "y": 2700
+    },
+    "Main.dc.html": {
+      "h": 540,
+      "is_interactive": true,
+      "title": "Home",
+      "w": 960,
+      "x": 0,
+      "y": 0
+    },
+    "Movie.dc.html": {
+      "h": 540,
+      "is_interactive": true,
+      "title": "Movie detail",
+      "w": 960,
+      "x": 4160,
+      "y": 900
+    },
+    "MoviePage.dc.html": {
+      "h": 1594,
+      "is_interactive": true,
+      "title": "Movie, full page",
+      "w": 960,
+      "x": 2080,
+      "y": 7821
+    },
+    "Person.dc.html": {
+      "h": 540,
+      "is_interactive": true,
+      "title": "Person",
+      "w": 960,
+      "x": 2080,
+      "y": 1800
+    },
+    "Player.dc.html": {
+      "h": 540,
+      "is_interactive": true,
+      "title": "Player - main, all video sources apart from IPTV and Youtube",
+      "w": 960,
+      "x": 0,
+      "y": 5490
+    },
+    "PlayerLeanback.dc.html": {
+      "h": 540,
+      "is_interactive": true,
+      "title": "Player YouTube (tylko materiały z YouTube)",
+      "w": 960,
+      "x": 5200,
+      "y": 5490
+    },
+    "PlayerLive.dc.html": {
+      "h": 540,
+      "is_interactive": true,
+      "title": "Player IPTV 1/3: na żywo (czerwony)",
+      "w": 960,
+      "x": 7280,
+      "y": 5490
+    },
+    "PlayerLiveGroup.dc.html": {
+      "h": 540,
+      "is_interactive": true,
+      "title": "Player IPTV, group (row raised)",
+      "w": 960,
+      "x": 11440,
+      "y": 5490
+    },
+    "PlayerSubs.dc.html": {
+      "h": 540,
+      "is_interactive": true,
+      "title": "Player - main, Napisy AI (auto)",
+      "w": 960,
+      "x": 2080,
+      "y": 5490
+    },
+    "Posters.dc.html": {
+      "h": 540,
+      "title": "Poster variants",
+      "w": 960,
+      "x": 0,
+      "y": 6921
+    },
+    "Profiles.dc.html": {
+      "h": 540,
+      "is_interactive": true,
+      "title": "Switch profile",
+      "w": 960,
+      "x": 3120,
+      "y": 0
+    },
+    "Search.dc.html": {
+      "h": 540,
+      "is_interactive": true,
+      "title": "Search",
+      "w": 960,
+      "x": 0,
+      "y": 1800
+    },
+    "SearchResults.dc.html": {
+      "h": 540,
+      "is_interactive": true,
+      "title": "Search results",
+      "w": 960,
+      "x": 1040,
+      "y": 1800
+    },
+    "SeriesPage.dc.html": {
+      "h": 1933,
+      "is_interactive": true,
+      "title": "Series, full page",
+      "w": 960,
+      "x": 1040,
+      "y": 7821
+    },
+    "Settings.dc.html": {
+      "h": 540,
+      "is_interactive": true,
+      "title": "Ustawienia — wygląd dla trybu NOOB (najprostszy z 3 poziomów; Prosty i Zaawansowany bez zmian)",
+      "w": 960,
+      "x": 4160,
+      "y": 1800
+    },
+    "Sidebar.dc.html": {
+      "h": 540,
+      "is_interactive": true,
+      "title": "Menu open",
+      "w": 960,
+      "x": 2080,
+      "y": 0
+    },
+    "LiveTVDiscover.dc.html": {
+      "x": 4160,
+      "y": 2700,
+      "w": 960,
+      "h": 2430,
+      "title": "Live TV, Odkrywaj (wszystkie zbiory programów)",
+      "is_interactive": true
+    },
+    "LiveTVSearch.dc.html": {
+      "x": 3120,
+      "y": 2700,
+      "w": 960,
+      "h": 700,
+      "title": "Live TV, Szukaj (drzewo kategorii + klawiatura + wyniki)",
+      "is_interactive": true
+    },
+    "PlayerLiveDelay.dc.html": {
+      "x": 8320,
+      "y": 5490,
+      "w": 960,
+      "h": 540,
+      "title": "Player IPTV 2/3: z opóźnieniem (żółty)",
+      "is_interactive": true
+    },
+    "PlayerLiveArchive.dc.html": {
+      "x": 9360,
+      "y": 5490,
+      "w": 960,
+      "h": 540,
+      "title": "Player IPTV 3/3: z archiwum (biały), fokus na przyciskach",
+      "is_interactive": true
+    },
+    "PlayerSeries.dc.html": {
+      "x": 3120,
+      "y": 5490,
+      "w": 960,
+      "h": 540,
+      "title": "Player main, serial: ▼ lista odcinków",
+      "is_interactive": true
+    },
+    "PlayerSeriesInfo.dc.html": {
+      "x": 4160,
+      "y": 5490,
+      "w": 960,
+      "h": 1038,
+      "title": "Player main, serial: ▼▼ szczegóły (pola Meta)",
+      "is_interactive": true
+    },
+    "PlayerFilmInfo.dc.html": {
+      "x": 1040,
+      "y": 5490,
+      "w": 960,
+      "h": 853,
+      "title": "Player main, film: ▼▼ szczegóły (pola Meta)",
+      "is_interactive": true
+    },
+    "PlayerLeanbackInfo.dc.html": {
+      "x": 6240,
+      "y": 5490,
+      "w": 960,
+      "h": 751,
+      "title": "Player YouTube: ▼▼ szczegóły (pola YtVideoInfo)",
+      "is_interactive": true
+    },
+    "PlayerLiveInfo.dc.html": {
+      "x": 10400,
+      "y": 5490,
+      "w": 960,
+      "h": 1071,
+      "title": "Player IPTV: ▼▼ szczegóły programu (pola EPG + strona programu)",
+      "is_interactive": true
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-11-19T15:00:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "noteOrder": [
+    "t",
+    "rowA",
+    "rowB",
+    "rowC",
+    "rowD",
+    "rowF",
+    "rowG",
+    "rowE",
+    "flows"
+  ],
+  "notes": {
+    "flows": {
+      "fill": "blue",
+      "text": "Flows (press Play on any screen and click):\n• Home pill → Menu → Search, Home, Live TV, Library, Settings\n• Profile pill or menu header → Switch profile\n• Home: Play → Player, (i) → Movie, › or Continue Watching → Home rows\n• Home rows: focused episode → Series detail\n• Series detail: resume → Player, row below → Episodes, doc button → Cast and about\n• Episodes: episode 1 → Episode detail → Player; Trailers → Cast and about\n• Cast: first person → Person → Series detail\n• Search: key a → Results → Movie or Series\n• Live TV: focused programme → Player\nBACK has no click equivalent; each tab's top-left pill returns to the menu.\n• Full pages: Home → Spotlight / Rings of Power → Series page; Odyssey → Movie page; Morfydd Clark → Person\n• Player IPTV: cykliczny program → na dole inne odcinki serii (archiwum / wkrótce); niecykliczny → programy z innych kanałów z najmniejszej gałęzi (liścia) drzewa kategorii aplikacji, np. „Wiadomości” zamiast całych „Informacji i publicystyki”; gałąź wyżej tylko gdy liść pusty (▼ podnosi rząd). Zamiast tytułu logo programu: TVDB → TMDB → epg.ovh → playlista; tekst tylko bez logo. Logo kanału z epg.ovh.\n• Player YouTube (układ jak odtwarzacz YouTube na TV) — tylko dla materiałów z YouTube (zakładka YouTube, zwiastuny); filmy i seriale z innych źródeł → Player, kanały IPTV → Player IPTV. Tytuł filmu w panelu po lewej, kanał · wyświetlenia · data; po prawej Subskrybuj, awatar kanału, napisy, 👍 👎, opis, zapisz na playliście, ustawienia; pasek z rozdziałami, pod nim czas, rozdział, długość; na dole wystają miniatury innych filmów.\n• Player główny, Napisy: opcja „Napisy AI · polski” włącza się sama, gdy nie ma dobrych polskich napisów (brak, autosync zawiódł / słabe dopasowanie); dymek informuje o przełączeniu, przy pozycji etykieta AUTO; przełącznik „Napisy AI, gdy brak dobrych polskich”.\n• Live TV: wybór w linii filtrów zmienia przewodnik i rząd kafelków na górze. Wszystkie → ostatnio oglądane z postępem; Ulubione → ulubione kanały/programy, znacznik „Nowy odcinek” (kafel) i NOWY (komórka EPG); kategoria → programy z tej kategorii (teraz i wkrótce).\n• Live TV, wybrany rząd kanału w EPG: krawędzie linii programów przechodzą gradientem w tło (lewa i prawa), na nich strzałki ‹ › — sygnał, że oś czasu przewija się w bok; programy poza widokiem wystają spod gradientu. Na kafelkach zamiast LIVE / Archiwum tylko kropka: czerwona = na żywo, zielona = archiwum.\n• Live TV → Odkrywaj (obok Dziś): wszystkie zbiory programów, które aplikacja już liczy: Ulubione (przypominają o nowych odcinkach), Dla ciebie, Nowe odcinki Twoich programów, Teraz na żywo, 3 najliczniejsze kategorie EPG teraz, Najnowsze w archiwum, Polecane, Popularne, Wkrótce, Ostatnio oglądane kanały i programy.",
+      "w": 560,
+      "x": 5440,
+      "y": 0
+    },
+    "rowA": {
+      "kind": "title1",
+      "maxW": 5120,
+      "text": "Home and navigation",
+      "w": 240,
+      "x": 0,
+      "y": -260
+    },
+    "rowB": {
+      "kind": "title1",
+      "maxW": 5120,
+      "text": "Series and movie detail",
+      "w": 240,
+      "x": 0,
+      "y": 640
+    },
+    "rowC": {
+      "kind": "title1",
+      "maxW": 5120,
+      "text": "Search, people, library, settings",
+      "w": 240,
+      "x": 0,
+      "y": 1540
+    },
+    "rowD": {
+      "kind": "title1",
+      "maxW": 5120,
+      "text": "Live TV",
+      "w": 240,
+      "x": 0,
+      "y": 2440
+    },
+    "rowE": {
+      "kind": "title1",
+      "maxW": 5120,
+      "text": "Full pages (TMDB content)",
+      "w": 240,
+      "x": 0,
+      "y": 7561
+    },
+    "rowF": {
+      "kind": "title1",
+      "maxW": 5120,
+      "text": "Players",
+      "w": 240,
+      "x": 0,
+      "y": 5230
+    },
+    "t": {
+      "kind": "title1",
+      "maxW": 5120,
+      "text": "Nuvio TV: Apple TV style, 960x540 dp",
+      "w": 240,
+      "x": 0,
+      "y": -560
+    },
+    "rowG": {
+      "kind": "title1",
+      "maxW": 5120,
+      "text": "Components",
+      "w": 240,
+      "x": 0,
+      "y": 6661
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "HomeRows.dc.html",
+    "Sidebar.dc.html",
+    "Profiles.dc.html",
+    "Detail.dc.html",
+    "Episodes.dc.html",
+    "DetailMore.dc.html",
+    "Episode.dc.html",
+    "Movie.dc.html",
+    "Search.dc.html",
+    "SearchResults.dc.html",
+    "Person.dc.html",
+    "Library.dc.html",
+    "Settings.dc.html",
+    "LiveTV.dc.html",
+    "LiveTVFav.dc.html",
+    "LiveTVRow.dc.html",
+    "LiveTVSearch.dc.html",
+    "LiveTVDiscover.dc.html",
+    "Player.dc.html",
+    "PlayerFilmInfo.dc.html",
+    "PlayerSubs.dc.html",
+    "PlayerSeries.dc.html",
+    "PlayerSeriesInfo.dc.html",
+    "PlayerLeanback.dc.html",
+    "PlayerLeanbackInfo.dc.html",
+    "PlayerLive.dc.html",
+    "PlayerLiveDelay.dc.html",
+    "PlayerLiveArchive.dc.html",
+    "PlayerLiveInfo.dc.html",
+    "PlayerLiveGroup.dc.html",
+    "Posters.dc.html",
+    "HomePage.dc.html",
+    "SeriesPage.dc.html",
+    "MoviePage.dc.html"
+  ],
+  "pages": [],
+  "title": "Nuvio TV Apple TV Style App"
+}

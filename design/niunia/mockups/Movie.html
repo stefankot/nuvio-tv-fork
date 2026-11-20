@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Movie detail</title>
+<link rel="stylesheet" href="../design-system/nuvio.css">
+</head>
+<body>
+<x-dc>
+<helmet style="display:none">
+<style>
+@font-face{font-family:"Satoshi";font-weight:500;src:url("../assets/1e176e56501f5c559f5bba979ff9a5a3.ttf") format("truetype")}
+@font-face{font-family:"Satoshi";font-weight:700;src:url("../assets/706e7b3cd512de8f42078b1941e47ab4.ttf") format("truetype")}
+body{margin:0}
+a{color:inherit;text-decoration:none}
+</style>
+</helmet>
+<div class="stage">
+  <img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt="">
+  <div class="scrim-l"></div>
+
+  <div class="hero" style="top:222px;width:420px">
+    <img class="tlogo" src="../assets/577bde72411f052caa810c268935f701.png" alt="The Odyssey" style="width:400px">
+    <div class="meta" style="margin-top:8px"><span>Film · Przygodowy · Dramat</span></div>
+    <div class="t13 dim clamp3" style="margin-top:8px">Odysseus, King of Ithaca, makes the long and perilous journey home after the Trojan War, facing the Cyclops Polyphemus, the Sirens and the sorceress Circe on his way back to Penelope.</div>
+    <div class="meta dim" style="margin-top:8px;font-size:13px"><span>17 lip 2026 · 2 godz. 53 min</span><span class="fmt">TMDB 80%</span><span class="fmt">4K</span><span class="age">CC</span></div>
+  </div>
+  <div class="actions" style="top:426px">
+    <a class="btn foc" href="Player.html" style="min-width:0;padding:0 26px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z" fill="currentColor"></path></svg>Odtwórz</a>
+    <button class="btn rnd" aria-label="Dodaj do biblioteki"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+    <button class="btn rnd" aria-label="O filmie"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="12" height="16" rx="2"></rect><path d="M9 9h6M9 13h6"></path></svg></button>
+  </div>
+  <div class="credits" style="right:40px;top:394px;width:250px">Obsada <b>Matt Damon, Tom Holland, Anne Hathaway, Robert Pattinson</b><br>Reżyseria i scenariusz <b>Christopher Nolan</b><br>Universal Pictures · Syncopy</div>
+
+  <div class="rail" style="top:516px">
+    <span class="card w"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span>
+    <span class="card w"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":540}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

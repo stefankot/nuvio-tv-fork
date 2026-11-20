@@ -1,0 +1,296 @@
+/* Nuvio TV design system (Apple TV style): tokens, then component classes. Stage = 960x540 dp. */
+:root{--bg:#2c2c2e;--surface:#3a3a3c;--surface-2:#3d3d3f;--focus:#f2f2f2;--on-focus:#111;--text:#fff;--text-70:rgba(255,255,255,.7);--text-50:rgba(255,255,255,.5);--fill-12:rgba(255,255,255,.12);--fill-24:rgba(255,255,255,.24);--fill-36:rgba(255,255,255,.36);--line:rgba(255,255,255,.12);--live:#e5484d;--delay:#f5c542;--archive:#3dd68c;--switch-on:#30d158;--chrome:rgba(40,40,42,.62);--btn:rgba(22,22,24,.55);--glass:rgba(30,30,34,.55);--frost:rgba(255,255,255,.12);--badge:rgba(0,0,0,.5);--rating-4:#3fd070;--gloss:rgba(255,255,255,.08);--avatar:#a5dcb0;--on-avatar:#14361f;
+--radius-3:3px;--radius-6:6px;--radius-12:12px;--radius-16:16px;--radius-22:22px;--radius-28:28px;--radius-full:999px;
+--shadow-poster:0 6px 16px rgba(0,0,0,.3);--shadow-focus:0 18px 36px rgba(0,0,0,.55);--shadow-button-focus:0 10px 24px rgba(0,0,0,.4);--shadow-chrome:inset 0 0 0 1px rgba(255,255,255,.08),0 6px 18px rgba(0,0,0,.25);
+--scale-focus:1.1;--scale-button:1.06;--lift-focus:-4px;
+--font:"Satoshi",-apple-system,"Helvetica Neue",Arial,sans-serif}
+*{box-sizing:border-box}
+a{color:inherit;text-decoration:none}
+button{border:0;margin:0;padding:0;background:none;color:inherit;font:inherit;text-align:inherit;cursor:pointer}
+.stage{width:960px;height:540px;position:relative;overflow:hidden;background:var(--bg);color:var(--text);font:500 16px/22px var(--font)}
+
+/* Type */
+.t12{font:700 12px/16px var(--font)}.t13{font:500 13px/18px var(--font)}.t14{font:500 14px/20px var(--font)}.t14b{font:700 14px/20px var(--font)}.t16b{font:700 16px/22px var(--font)}.t18{font:700 18px/24px var(--font)}.t20{font:700 20px/26px var(--font)}.t24{font:700 24px/30px var(--font)}.t28{font:500 28px/34px var(--font)}.t32{font:700 32px/38px var(--font)}
+.logo{font:700 40px/44px var(--font);text-transform:uppercase;letter-spacing:-.5px;text-shadow:0 2px 14px rgba(0,0,0,.3)}
+.logo.thin{font-weight:500;letter-spacing:1px}
+/* NTitleLogo: transparent title art; set its width inline, height follows the art; text .logo is the fallback */
+.tlogo{display:block;width:360px;max-width:100%;height:auto;max-height:120px;object-fit:contain;object-position:left bottom;filter:drop-shadow(0 2px 12px rgba(0,0,0,.35))}
+.tlogo.c{object-position:center bottom;margin:0 auto}
+.dim{color:var(--text-70)}.dim5{color:var(--text-50)}
+.ell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.clamp2,.clamp3,.clamp4{display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}.clamp2{-webkit-line-clamp:2}.clamp3{-webkit-line-clamp:3}.clamp4{-webkit-line-clamp:4}
+.fill{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ic{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* Backdrops */
+.scrim-l{position:absolute;inset:0;background:linear-gradient(90deg,rgba(24,24,26,.9) 0%,rgba(24,24,26,.55) 38%,rgba(24,24,26,0) 68%)}
+.scrim-b{position:absolute;left:0;right:0;bottom:0;height:220px;background:linear-gradient(rgba(44,44,46,0),var(--bg) 88%)}
+.blur{filter:blur(36px) saturate(1.2);transform:scale(1.15)}
+.dimmer{position:absolute;inset:0;background:linear-gradient(rgba(30,30,32,.5),rgba(30,30,32,.78) 65%,var(--bg))}
+.hr{position:absolute;height:1px;background:var(--line)}
+
+/* NNavigation: collapsed "< Tab" pill top-left, profile pill top-right (Home only) */
+.nav{position:absolute;left:20px;top:28px;display:flex;align-items:center;gap:3px;z-index:5}
+.chev{width:10px;height:16px;stroke:var(--text-70);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+/* top-right actions: same line and height as the collapsed nav pill; every button icon + label */
+.topbar{position:absolute;right:40px;top:28px;display:flex;gap:8px;align-items:center;z-index:5}
+.topbar .btn{height:34px;min-width:0;padding:0 14px 0 10px;font:700 15px/20px var(--font);gap:6px}
+.topbar .btn .ic{width:18px;height:18px}
+.navpill{height:34px;padding:0 14px 0 4px;border-radius:var(--radius-full);background:var(--chrome);backdrop-filter:blur(30px) saturate(1.5);box-shadow:var(--shadow-chrome);display:flex;align-items:center;gap:8px;font:700 15px/20px var(--font)}
+.ico{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center;flex:none}
+.ico .ic{width:14px;height:14px}
+.me{position:absolute;right:40px;top:22px;height:40px;padding:0 16px 0 5px;border-radius:var(--radius-full);background:var(--chrome);backdrop-filter:blur(30px);box-shadow:var(--shadow-chrome);display:flex;align-items:center;gap:10px;font:500 14px/20px var(--font);z-index:5}
+.av{width:30px;height:30px;border-radius:50%;background:var(--avatar);color:var(--on-avatar);display:grid;place-items:center;font:700 14px/1 var(--font);flex:none}
+
+/* NSidebar: opened by BACK at a tab's top */
+.side{position:absolute;left:18px;top:18px;width:180px;padding:12px 8px;border-radius:var(--radius-22);background:rgba(44,44,46,.74);backdrop-filter:blur(40px) saturate(1.6);box-shadow:inset 0 0 0 1px var(--line),0 20px 50px rgba(0,0,0,.45);display:flex;flex-direction:column;gap:2px;z-index:6}
+.side-me{display:flex;align-items:center;gap:10px;padding:4px 8px 16px}
+.side-me b{display:block;font:700 14px/18px var(--font)}.side-me small{display:block;font:500 11px/14px var(--font);color:var(--text-50)}
+.side-item{height:36px;border-radius:var(--radius-full);display:flex;align-items:center;gap:10px;padding:0 10px;font:500 14px/20px var(--font);color:#fff;width:100%}
+.side-item .ico{width:22px;height:22px;background:rgba(255,255,255,.16)}.side-item .ico .ic{width:12px;height:12px}
+.side-item.sel{background:rgba(255,255,255,.16)}
+.side-item.foc{background:var(--focus);color:var(--on-focus);transform:scale(1.04);box-shadow:var(--shadow-button-focus)}
+.side-item.foc .ico{background:rgba(0,0,0,.1)}
+.scrim-side{position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.5),rgba(0,0,0,0) 45%)}
+
+/* NProfileSwitcher */
+.pcard{position:absolute;display:flex;gap:10px;padding:10px;border-radius:var(--radius-22);background:rgba(50,50,52,.78);backdrop-filter:blur(40px);box-shadow:inset 0 0 0 1px var(--line),0 16px 40px rgba(0,0,0,.4);z-index:6}
+.prof{width:86px;display:flex;flex-direction:column;align-items:center;gap:6px;font:500 12px/16px var(--font);color:var(--text-70);position:relative}
+.pav{width:80px;height:80px;border-radius:50%;display:grid;place-items:center;background:var(--fill-24);font:700 30px/1 var(--font)}
+.pav .ic{width:30px;height:30px}
+.prof.foc{color:#fff}.prof.foc .pav{transform:scale(1.08);box-shadow:0 10px 24px rgba(0,0,0,.4)}
+.tick{position:absolute;right:2px;top:0;width:20px;height:20px;border-radius:50%;background:var(--switch-on);color:#fff;display:grid;place-items:center}.tick .ic{width:12px;height:12px;stroke-width:3}
+
+/* NButton: dark translucent at rest, solid white when focused */
+.actions{position:absolute;left:40px;display:flex;gap:14px;align-items:center}
+.btn{height:40px;min-width:200px;padding:0 24px;border-radius:var(--radius-full);background:var(--btn);color:#fff;font:700 16px/22px var(--font);display:inline-flex;align-items:center;justify-content:center;gap:8px;backdrop-filter:blur(20px) saturate(1.4);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.btn.sec{min-width:0}
+.btn.rnd{min-width:0;width:40px;padding:0}
+.btn.sm{height:34px;min-width:0;font:700 14px/20px var(--font);padding:0 16px}
+.btn.bare{min-width:0;width:28px;padding:0;background:none;box-shadow:none;backdrop-filter:none}.btn.bare .ic{width:24px;height:24px;stroke-width:2.6}
+.btn.on{background:var(--fill-36)}
+.btn.foc{background:var(--focus);color:var(--on-focus);transform:scale(var(--scale-button));box-shadow:var(--shadow-button-focus)}
+.btn .mini{width:26px}
+.btn.foc .mini{background:rgba(0,0,0,.18)}.btn.foc .mini i{background:var(--on-focus)}
+.pill{height:34px;padding:0 16px;border-radius:var(--radius-full);font:700 15px/20px var(--font);display:inline-flex;align-items:center;color:var(--text-50)}
+.pill.sel{background:var(--fill-24);color:#fff}
+.pill.foc{background:var(--focus);color:var(--on-focus)}
+.tabs{position:absolute;display:flex;gap:2px;padding:4px;border-radius:var(--radius-full);background:rgba(0,0,0,.18)}
+
+/* NMeta: genre line, age box, format badges, credits */
+.hero{position:absolute;left:40px;width:400px}
+.meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font:500 14px/20px var(--font)}
+.age{display:inline-flex;align-items:center;height:14px;padding:0 4px;border-radius:var(--radius-3);box-shadow:inset 0 0 0 1px rgba(255,255,255,.7);font:700 9px/1 var(--font)}
+.fmt{display:inline-flex;align-items:center;height:14px;padding:0 4px;border-radius:var(--radius-3);background:rgba(255,255,255,.6);color:#1c1c1e;font:700 9px/1 var(--font)}
+.chipb{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:7px;background:rgba(0,0,0,.35);box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);font:700 11px/1 var(--font)}
+.credits{position:absolute;font:500 13px/18px var(--font);color:var(--text-50)}.credits b{font-weight:500;color:#fff}
+
+/* NMediaCard: landscape 160x114, wide 205x115, portrait 130x195, round 130 */
+.card{width:160px;height:114px;border-radius:var(--radius-12);box-shadow:var(--shadow-poster);flex:none;position:relative;overflow:hidden;background:var(--surface);display:block}
+.card.w{width:205px;height:115px}
+.card.p{width:130px;height:195px}
+.card.r{width:130px;height:130px;border-radius:50%}
+.card::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(135deg,var(--gloss),rgba(255,255,255,0) 45%);pointer-events:none}
+.card.foc{transform:scale(var(--scale-focus)) translateY(var(--lift-focus));box-shadow:var(--shadow-focus);z-index:2}
+.cap{position:absolute;left:0;right:0;bottom:0;padding:22px 8px 7px;background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.65));display:flex;align-items:center;gap:6px;font:700 11px/14px var(--font);color:var(--text-70)}
+.cap .ic{width:9px;height:9px}
+.card.foc .cap{color:#fff}
+.fcap{position:absolute;left:0;right:0;bottom:0;padding:30px 8px 8px;text-align:center;font:700 11px/14px var(--font);background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.7));display:none}
+.card.foc .fcap{display:block}
+/* status dot on tiles: red = live, green = archive (replaces LIVE / Archiwum labels app-wide) */
+.dot{position:absolute;left:9px;top:9px;width:10px;height:10px;border-radius:50%;background:var(--live);z-index:1}
+.dot.arch{background:var(--archive)}
+.badge{position:absolute;left:7px;top:7px;height:16px;padding:0 6px;border-radius:8px;background:var(--badge);font:700 10px/16px var(--font);color:#fff}
+.tlabel{position:absolute;left:10px;bottom:10px;font:700 15px/20px var(--font);text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.ph{display:grid;place-items:center;text-align:center;padding:12px;font:700 13px/18px var(--font);color:var(--text-70)}
+/* NPoster: portrait cover with a top label tab, progressive blur, dominant-colour tint and a logo/title + genre · avg rating footer.
+   Per poster set --dom (dominant colour of the lower art), --tab (sampled under the label) and --tabfg inline. */
+.poster{--dom:#333;--tab:#ddd;--tabfg:#111}
+.pblur{position:absolute;inset:0;pointer-events:none}
+.pblur i{position:absolute;inset:0;display:block}
+.pblur i:nth-child(1){backdrop-filter:blur(2px);-webkit-mask-image:linear-gradient(transparent 56%,#000 72%);mask-image:linear-gradient(transparent 56%,#000 72%)}
+.pblur i:nth-child(2){backdrop-filter:blur(6px);-webkit-mask-image:linear-gradient(transparent 66%,#000 84%);mask-image:linear-gradient(transparent 66%,#000 84%)}
+.pblur i:nth-child(3){backdrop-filter:blur(14px);-webkit-mask-image:linear-gradient(transparent 78%,#000 96%);mask-image:linear-gradient(transparent 78%,#000 96%)}
+.ptint{position:absolute;inset:0;pointer-events:none;background:radial-gradient(70% 30% at 0% 100%,var(--dom) 0%,transparent 100%),radial-gradient(70% 30% at 100% 100%,var(--dom) 0%,transparent 100%),radial-gradient(65% 26% at 50% 80%,color-mix(in srgb,var(--dom) 35%,transparent) 0%,transparent 100%),linear-gradient(rgba(0,0,0,0) 60%,color-mix(in srgb,var(--dom) 70%,#000) 100%)}
+.ptab{position:absolute;top:0;left:50%;transform:translateX(-50%);padding:3px 9px 4px;border-radius:0 0 8px 8px;background:var(--tab);color:var(--tabfg,#111);font:700 11px/14px var(--font);white-space:nowrap;z-index:1;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.pfoot{position:absolute;left:8px;right:8px;bottom:10px;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;z-index:1}
+.plogo{display:block;max-width:112px;max-height:36px;width:auto;height:auto;filter:drop-shadow(0 1px 6px rgba(0,0,0,.45))}
+.ptitle{font:700 12px/14px var(--font);text-transform:uppercase;letter-spacing:.8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-shadow:0 1px 6px rgba(0,0,0,.4)}
+.pmeta{font:700 12px/16px var(--font);color:rgba(255,255,255,.9);white-space:nowrap;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+.card.foc .pmeta{color:#fff}
+/* Variant .baked: the art already carries the title logo (TMDB poster with a language), so the footer is genre · rating only
+   and the blur/tint start low and stay light, leaving the printed logo sharp. */
+.poster.baked .pblur i:nth-child(1),.poster.baked .pblur i:nth-child(2){display:none}
+.poster.baked .pblur i:nth-child(3){backdrop-filter:blur(8px);-webkit-mask-image:linear-gradient(transparent 82%,#000 97%);mask-image:linear-gradient(transparent 82%,#000 97%)}
+.poster.baked .ptint{background:radial-gradient(60% 26% at 0% 100%,var(--dom) 0%,transparent 100%),radial-gradient(60% 26% at 100% 100%,var(--dom) 0%,transparent 100%),radial-gradient(70% 22% at 50% 100%,color-mix(in srgb,var(--dom) 60%,transparent) 0%,transparent 100%),linear-gradient(rgba(0,0,0,0) 72%,color-mix(in srgb,var(--dom) 75%,#000) 100%)}
+.poster.baked .pfoot{bottom:9px}
+/* Size .f: large spotlight cover 280x350 (landscape art cropped), bigger logo + tagline */
+.card.f{width:280px;height:350px}
+.card.f .plogo{max-width:220px;max-height:64px}
+.card.f .pfoot{bottom:16px;gap:6px}
+.card.f .pmeta{font-size:14px;line-height:18px}
+.ptag{display:none;font:500 12px/16px var(--font);color:rgba(255,255,255,.72)}
+.card.f .ptag{display:block}
+/* Tab colour: --tab = average of the art right under the label (top-centre), --tabfg = #111 or #fff by luminance. Both set per poster. */
+.mini{width:22px;height:3px;border-radius:2px;background:rgba(255,255,255,.35);position:relative;flex:none}
+.mini i{position:absolute;inset:0 auto 0 0;background:#fff;border-radius:2px}
+.person{width:130px;display:flex;flex-direction:column;align-items:flex-start;gap:10px;text-align:left}
+.person b{font:700 14px/18px var(--font);max-width:150px}.person small{display:block;font:500 12px/16px var(--font);color:var(--text-50)}
+.initials{width:100%;height:100%;display:grid;place-items:center;font:700 34px/1 var(--font);color:var(--text-50);background:linear-gradient(160deg,#4a4a4c,#343436)}
+
+/* NCollection: row titles are grey; the row holding focus turns white */
+.shelf-title{position:absolute;left:40px;font:700 16px/22px var(--font);color:var(--text-50)}
+.shelf-title.on{color:#fff}
+.rail{position:absolute;left:40px;display:flex;gap:20px}
+.dots{position:absolute;left:40px;display:flex;gap:5px;align-items:center;padding:4px 6px;border-radius:9px;background:rgba(0,0,0,.25)}
+.dots i{width:5px;height:5px;border-radius:3px;background:rgba(255,255,255,.4)}
+.dots i.sel{width:14px;background:#fff}
+
+/* NEpisode: still + text block; focused block sits on a frosted card */
+.ep{width:205px;display:flex;flex-direction:column;gap:6px}
+.eptext{padding:8px 10px;border-radius:14px}
+.eptext small{display:block;font:700 10px/14px var(--font);color:var(--text-50);letter-spacing:.3px}
+.eptext b{display:block;font:700 14px/18px var(--font)}
+.eptext p{margin:2px 0 4px;font:500 12px/16px var(--font);color:var(--text-70)}
+.eptext .meta{font:500 11px/14px var(--font);color:var(--text-50)}
+.frost{background:var(--frost);backdrop-filter:blur(30px) saturate(1.4);box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),0 10px 24px rgba(0,0,0,.25)}
+.panel{background:rgba(255,255,255,.07);border-radius:var(--radius-16)}
+
+/* NSearch: field, abc/123 toggle, letter grid, result cards */
+.sfield{position:absolute;left:40px;right:40px;display:flex;align-items:center;gap:12px;font:700 26px/34px var(--font);color:var(--text-50)}
+.sfield .ic{width:30px;height:30px;stroke-width:2.6}
+.seg{position:absolute;width:216px;height:32px;padding:3px;border-radius:16px;background:rgba(255,255,255,.06);display:grid;grid-template-columns:1fr 1fr}
+.seg span{border-radius:13px;display:grid;place-items:center;font:500 13px/1 var(--font);color:var(--text-70)}
+.seg .on{background:var(--fill-24);color:#fff}
+.kbd{position:absolute;display:grid;grid-template-columns:repeat(6,34px);column-gap:3px;row-gap:4px}
+.key{height:34px;border-radius:9px;display:grid;place-items:center;font:500 20px/1 var(--font);color:var(--text-70)}
+.key.foc{background:#fff;color:#111;transform:scale(1.12);box-shadow:var(--shadow-button-focus)}
+.kbd2{position:absolute;width:216px;display:flex;justify-content:space-between;align-items:center}
+.key2{height:28px;padding:0 8px;border-radius:8px;font:500 13px/28px var(--font);color:var(--text-70);display:inline-flex;align-items:center}
+.qchip{position:absolute;height:32px;padding:0 12px;border-radius:16px;background:var(--fill-12);display:flex;align-items:center;gap:6px;font:500 18px/1 var(--font)}
+.qchip .ic{width:16px;height:16px}
+.rgrid{position:absolute;display:grid;grid-template-columns:repeat(2,280px);gap:20px}
+.rcard{width:280px;height:80px;border-radius:14px;background:rgba(255,255,255,.1);display:flex;align-items:center;gap:12px;padding:0 12px}
+.rcard img{width:40px;height:60px;border-radius:4px;object-fit:cover;flex:none}
+.rcard b{display:block;font:500 15px/20px var(--font)}.rcard small{display:block;font:500 12px/16px var(--font);color:var(--text-50)}
+.rcard.foc{background:var(--focus);color:var(--on-focus);transform:scale(1.04);box-shadow:var(--shadow-focus)}
+.rcard.foc small{color:rgba(0,0,0,.55)}
+
+/* NSettingsList */
+.slist{position:absolute;display:flex;flex-direction:column;gap:6px}
+.srow{height:34px;border-radius:var(--radius-12);background:var(--surface-2);display:flex;align-items:center;gap:8px;padding:0 10px 0 14px;font:700 14px/20px var(--font);color:#fff;width:100%;text-align:left}
+.srow .val{margin-left:auto;font:500 14px/20px var(--font);color:var(--text-50)}
+.srow .ic{width:16px;height:16px;color:var(--text-50);margin-left:auto}
+.srow .val~.ic{margin-left:0}
+.srow.foc{background:#ececec;color:#111;transform:scale(1.03);box-shadow:0 10px 24px rgba(0,0,0,.35)}
+.srow.foc .ic{color:#555}
+.slabel{margin-top:12px;padding:0 12px;font:500 13px/18px var(--font);color:var(--text-50);text-transform:uppercase}
+
+/* NTag, NListRow, NIndicator, NOverlay, NEpgGrid */
+.tag{height:22px;padding:0 8px;border-radius:var(--radius-6);font:700 12px/16px var(--font);display:inline-flex;align-items:center}
+.row{width:100%;height:44px;border-radius:var(--radius-12);background:transparent;display:flex;align-items:center;padding:0 16px;text-align:left}
+.row.foc{background:var(--focus);color:var(--on-focus)}
+.prog{height:4px;border-radius:2px;background:var(--fill-24);position:relative}
+.prog i{position:absolute;inset:0 auto 0 0;background:#fff;border-radius:2px}
+.glass{background:var(--glass);backdrop-filter:blur(48px) saturate(1.6);box-shadow:inset 0 0 0 1px var(--line);border-radius:var(--radius-28) 0 0 var(--radius-28)}
+.cell{position:absolute;height:44px;border-radius:var(--radius-12);background:var(--surface);padding:0 12px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;overflow:hidden;white-space:nowrap;text-align:left}
+.cell>span{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.cell.now{background:var(--fill-24)}
+.cell.foc{background:var(--focus);color:var(--on-focus);transform:scale(1.03);box-shadow:var(--shadow-button-focus);z-index:1}
+.cell small{font:500 12px/16px var(--font);color:var(--text-70)}
+.cell.foc small{color:rgba(0,0,0,.6)}
+.ch{position:absolute;left:40px;width:100px;height:44px;border-radius:var(--radius-12);background:var(--surface);display:flex;align-items:center;gap:8px;padding:0 8px;font:700 12px/16px var(--font)}
+.ch i{width:28px;height:28px;border-radius:var(--radius-6);background:var(--fill-24);flex:none}
+.day{width:56px;height:60px;border-radius:var(--radius-12);background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:.5}
+.day.sel{background:var(--fill-24);opacity:1}
+
+/* EPG: selected channel row — edges fade into the background, chevrons say the timeline scrolls */
+.tfade{position:absolute;height:44px;width:64px;z-index:3;display:flex;align-items:center;pointer-events:none;color:var(--text-70)}
+.tfade.l{background:linear-gradient(90deg,var(--bg) 35%,rgba(44,44,46,0));justify-content:flex-start;padding-left:4px}
+.tfade.r{background:linear-gradient(270deg,var(--bg) 35%,rgba(44,44,46,0));justify-content:flex-end;padding-right:4px}
+.tfade .ic{width:18px;height:18px;stroke-width:2.6}
+
+/* IPTV series: discreet stack under the tile — 2 layers of the tile's own picture: middle upside down, last one turned 90° and showing half of the picture's height; narrower and darker */
+.stack{position:relative;display:block;flex:none}
+.stack>.card{z-index:1}
+.stack>.sl{position:absolute;left:8px;right:8px;top:5px;bottom:-5px;border-radius:var(--radius-12);overflow:hidden;filter:brightness(.55);box-shadow:var(--shadow-poster)}
+.stack>.sl.b{left:16px;right:16px;top:10px;bottom:-10px;filter:brightness(.38)}
+.stack>.sl img{width:100%;height:100%;object-fit:cover;display:block}
+.stack>.sl:not(.b) img{transform:scaleY(-1)}
+.stack>.sl.b{container-type:size}
+.stack>.sl.b img{position:absolute;left:50%;top:50%;width:200cqh;height:100cqw;transform:translate(-50%,-50%) rotate(90deg)}
+.stack.foc-in>.sl{transform:translateY(-4px)}
+
+/* IPTV UX pass 20.11 */
+.ch .chn{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell.clip-l{padding-left:40px}
+.tmark{position:absolute;font:500 11px/16px var(--font);color:var(--text-50);opacity:.6}
+.tfade{width:48px}
+
+/* EPG grid, broadcaster-style layout (owner 20.11): channel column = number + logo, single-line programme cells,
+   rows bleed to the right edge, on-now cells start with ▶, focus = outline, chevrons at the ends of the selected row */
+.ech{position:absolute;left:40px;width:166px;height:44px;border-radius:var(--radius-6);background:var(--surface);display:flex;align-items:center;gap:10px;padding:0 10px}
+.ech .num{width:24px;font:500 15px/1 var(--font);color:var(--text-70);text-align:center;flex:none}
+.ech .logo{flex:1;height:30px;border-radius:var(--radius-6);display:grid;place-items:center;font:700 16px/1 var(--font);letter-spacing:.3px;color:#fff;white-space:nowrap;overflow:hidden}
+.ech.sel{background:var(--fill-24)}
+.ecell{position:absolute;height:44px;border-radius:var(--radius-6);background:var(--surface);display:flex;align-items:center;gap:8px;padding:0 12px;font:500 15px/20px var(--font);color:var(--text-70);white-space:nowrap;overflow:hidden}
+.ecell>span{overflow:hidden;text-overflow:ellipsis}
+.ecell.now{color:#fff}
+.ecell .ic{width:16px;height:16px;flex:none}
+.ecell.foc{background:var(--fill-24);color:#fff;box-shadow:inset 0 0 0 2px var(--focus)}
+.echev{position:absolute;width:24px;height:44px;display:grid;place-items:center;color:var(--focus);z-index:3}
+.echev .ic{width:20px;height:20px;stroke-width:3}
+.echev.r{background:linear-gradient(270deg,var(--bg) 40%,rgba(44,44,46,0));width:40px;justify-items:end;padding-right:6px}
+.eruler{position:absolute;font:500 12px/16px var(--font);color:var(--text-70)}
+.enow{position:absolute;width:2px;background:var(--live);z-index:2}
+.enow::before{content:"";position:absolute;left:-5px;top:-6px;border:6px solid transparent;border-top-color:var(--live)}
+.ehero{position:absolute;right:0;top:0;width:520px;height:290px;pointer-events:none}
+.ehero>img,.ehero>video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ehero .blur{filter:blur(28px) saturate(1.2);opacity:.55;transform:scale(1.15);-webkit-mask-image:radial-gradient(120% 120% at 100% 0,#000 35%,transparent 75%);mask-image:radial-gradient(120% 120% at 100% 0,#000 35%,transparent 75%)}
+.ehero .sharp{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 45%),linear-gradient(#000 55%,transparent 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent 0,#000 45%),linear-gradient(#000 55%,transparent 100%);mask-composite:intersect}
+.ehero .lv{position:absolute;right:40px;bottom:44px;display:flex;align-items:center;gap:6px;font:700 12px/16px var(--font);color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+
+/* IPTV player, 3 states (owner 20.11): live = red, delayed (time-shift of a programme still on air) = yellow, archive = white */
+.pst{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:var(--radius-6);font:700 12px/16px var(--font);letter-spacing:.8px}
+.pst.live{background:var(--live);color:#fff}.pst.delay{background:var(--delay);color:#1b1500}.pst.arch{background:var(--focus);color:var(--on-focus)}
+.pbar{position:absolute;height:4px;border-radius:2px;background:var(--fill-24)}
+.pbar>i{position:absolute;top:0;bottom:0;left:0;border-radius:2px}
+.pbar>.buf{background:var(--fill-36)}
+.pbar>.edge{width:3px;left:auto;top:-4px;bottom:-4px;border-radius:2px;background:var(--live)}
+.pbar>.knob{width:14px;height:14px;top:-5px;bottom:auto;left:auto;margin-left:-7px;border-radius:50%}
+.plab{position:absolute;font:700 12px/16px var(--font);letter-spacing:1.2px;transform:translateX(-50%)}
+.chsw{position:absolute;left:40px;width:110px;display:flex;flex-direction:column;align-items:flex-start;gap:0}
+.chsw .ch{position:relative;left:0;top:0;width:110px}
+.chsw.on .ch{background:var(--fill-24);box-shadow:inset 0 0 0 1px var(--line)}
+.chsw .ic{width:26px;height:26px;stroke-width:2.4;color:var(--text-70);margin:-4px 0}
+.phint{position:absolute;font:500 12px/16px var(--font);color:var(--text-50)}
+.chlogo{display:grid;place-items:center start;height:36px;max-width:110px;font:700 22px/1 var(--font);letter-spacing:.3px;color:#fff;white-space:nowrap;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+.chlogo img{max-height:36px;max-width:110px;object-fit:contain;display:block}
+.chsw.on .ic{color:#fff}
+
+/* One progress line for every player (owner 20.11), the main player's: time · 8dp rounded track with 16dp knob · time.
+   Fill colour = state: white (main, archive), red (live, YouTube), yellow (delayed). Labels under the track follow the % */
+.pline{position:absolute;left:40px;width:880px;display:flex;align-items:center;gap:12px}
+.pline>.t12{white-space:nowrap}
+.ptrack{flex:1;height:8px;border-radius:4px;background:var(--fill-24);position:relative}
+.ptrack>i{position:absolute;top:0;bottom:0;left:0;border-radius:4px;background:#fff}
+.ptrack>i.buf{background:var(--fill-36)}
+.ptrack>i.gap{width:3px;left:auto;background:rgba(0,0,0,.55);border-radius:0}
+.ptrack>i.edge{width:3px;left:auto;top:-4px;bottom:-4px;border-radius:2px;background:var(--live)}
+.ptrack>b{position:absolute;top:-4px;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:#fff}
+.ptrack>.plab{top:14px}
+
+/* Full pages under the hero (owner 20.11): the hero picture very blurred as the background, programme logo pinned at the top */
+.pagebg{position:absolute;left:0;right:0;bottom:0;overflow:hidden;z-index:0}
+.pagebg img{position:absolute;inset:-80px;width:calc(100% + 160px);height:calc(100% + 160px);object-fit:cover;filter:blur(60px) saturate(1.3) brightness(.45)}
+.pagelogo{position:absolute;left:50%;transform:translateX(-50%);z-index:1;max-height:64px;max-width:320px;width:auto;object-fit:contain}
+/* Player: deep blur when the details sheet is up */
+.pdeep{position:absolute;inset:-60px;width:calc(100% + 120px);height:calc(100% + 120px);object-fit:cover;filter:blur(70px) saturate(1.2) brightness(.4)}
+.stage>.rail,.stage>.shelf-title,.stage>.panel,.stage>div[style*="display:flex"]{z-index:1}
+
+/* Satoshi has no ★ ▼ ► ◄ glyphs: they are drawn as inline SVG so no system font slips in */
+.istar{display:inline-block;width:.85em;height:.85em;vertical-align:-.08em;fill:currentColor}
+.ptrack.foc{height:10px;margin-block:-1px}
+.ptrack.foc>b{width:20px;height:20px;top:-5px;margin-left:-10px;box-shadow:0 0 0 5px rgba(255,255,255,.28)}
+/* Player spacing (owner 20.11): 30dp between the progress line and the row of buttons, above or below it, in every player */
+:root{--player-gap:30px}

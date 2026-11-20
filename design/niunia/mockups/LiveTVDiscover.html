@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Live TV, Odkrywaj</title>
+<link rel="stylesheet" href="../design-system/nuvio.css">
+</head>
+<body>
+<x-dc>
+<helmet style="display:none">
+<style>
+@font-face{font-family:"Satoshi";font-weight:500;src:url("../assets/1e176e56501f5c559f5bba979ff9a5a3.ttf") format("truetype")}
+@font-face{font-family:"Satoshi";font-weight:700;src:url("../assets/706e7b3cd512de8f42078b1941e47ab4.ttf") format("truetype")}
+body{margin:0}
+a{color:inherit;text-decoration:none}
+</style>
+</helmet>
+<div class="stage" style="height:2430px">
+    <a class="nav" href="Sidebar.html" aria-label="Otwórz menu"><svg class="chev" viewBox="0 0 10 16" aria-hidden="true"><path d="M7 2L2 8l5 6"></path></svg><span class="navpill"><span class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"></rect><path d="M8 21h8"></path></svg></span>Live TV</span></a>
+
+  <div class="topbar">
+    <a class="btn sec" href="LiveTVSearch.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>Szukaj</a>
+    <a class="btn sec" href="LiveTV.html" aria-haspopup="listbox"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M4 10h16M9 3v4M15 3v4"></path></svg>Dziś</a>
+    <button class="btn sec on" aria-current="page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M15.5 8.5l-2 5-5 2 2-5z"></path></svg>Odkrywaj</button>
+  </div>
+
+  <div class="shelf-title on" style="top:96px">Ulubione</div>
+  <div class="rail" style="top:126px">
+    <span class="card foc"><img class="fill" src="../assets/d58b2f09bd2788df7e2c6a276f31ce14.jpg" alt=""><span class="badge">Nowy</span><span class="cap">Madden</span></span>
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/ed19b74ced653b6f700910ca9c947d12.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/ed19b74ced653b6f700910ca9c947d12.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/ed19b74ced653b6f700910ca9c947d12.jpg" alt=""><span class="badge">Nowy</span><span class="cap">Guarding Stars</span></span></span>
+    <span class="card"><img class="fill" src="../assets/ba28973e36b821a10909d2e71bbe970e.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap">The Odyssey</span></span>
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/79b96edbd6e4bc5f533f0db058aba281.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/79b96edbd6e4bc5f533f0db058aba281.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/79b96edbd6e4bc5f533f0db058aba281.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">VisionQuest</span></span></span>
+    <span class="card"><img class="fill" src="../assets/6c2237979b1f553ff671deb71f8eafde.jpg" alt=""><span class="cap">Hunger Games · Pt 20:15</span></span>
+    <span class="card"><img class="fill" src="../assets/a5b5ca0be6b351798b07b6fecd2a78e7.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">Resident Evil</span></span>
+  </div>
+
+  <div class="shelf-title" style="top:274px">Dla ciebie</div>
+  <div class="rail" style="top:304px">
+    <span class="card"><img class="fill" src="../assets/a5b5ca0be6b351798b07b6fecd2a78e7.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="badge" style="left:24px">Wznów</span><span class="cap"><span class="mini"><i style="width:40%"></i></span>Madden</span></span>
+    <span class="card"><img class="fill" src="../assets/ed19b74ced653b6f700910ca9c947d12.jpg" alt=""><span class="badge">Nowy</span><span class="cap">The Odyssey</span></span>
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/ef7d461bdc97be8787fe7e2c7f1e7c0b.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/ef7d461bdc97be8787fe7e2c7f1e7c0b.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/ef7d461bdc97be8787fe7e2c7f1e7c0b.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap">VisionQuest</span></span></span>
+    <span class="card"><img class="fill" src="../assets/37aa077e7488da320f03c98f1ea24f8b.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="badge" style="left:24px">Wznów</span><span class="cap"><span class="mini"><i style="width:70%"></i></span>Hunger Games</span></span>
+    <span class="card"><img class="fill" src="../assets/d330d126843031ba62e3390cba71a337.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap">Resident Evil</span></span>
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/528b2ba2e99428d6c529fb1cd47cca63.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/528b2ba2e99428d6c529fb1cd47cca63.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/528b2ba2e99428d6c529fb1cd47cca63.jpg" alt=""><span class="badge">Nowy</span><span class="cap">Guarding Stars</span></span></span>
+  </div>
+
+  <div class="shelf-title" style="top:452px">Teraz na żywo</div>
+  <div class="rail" style="top:482px">
+    <span class="card"><img class="fill" src="../assets/d58b2f09bd2788df7e2c6a276f31ce14.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap"><span class="mini"><i style="width:63%"></i></span>Madden</span></span>
+    <span class="card"><img class="fill" src="../assets/ba28973e36b821a10909d2e71bbe970e.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap"><span class="mini"><i style="width:46%"></i></span>The Odyssey</span></span>
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/79b96edbd6e4bc5f533f0db058aba281.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/79b96edbd6e4bc5f533f0db058aba281.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/79b96edbd6e4bc5f533f0db058aba281.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap"><span class="mini"><i style="width:48%"></i></span>VisionQuest</span></span></span>
+    <span class="card"><img class="fill" src="../assets/6c2237979b1f553ff671deb71f8eafde.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap"><span class="mini"><i style="width:32%"></i></span>Hunger Games</span></span>
+    <span class="card"><img class="fill" src="../assets/a5b5ca0be6b351798b07b6fecd2a78e7.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap"><span class="mini"><i style="width:15%"></i></span>Resident Evil</span></span>
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/ed19b74ced653b6f700910ca9c947d12.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/ed19b74ced653b6f700910ca9c947d12.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/ed19b74ced653b6f700910ca9c947d12.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap"><span class="mini"><i style="width:80%"></i></span>Guarding Stars</span></span></span>
+  </div>
+
+  <div class="shelf-title" style="top:630px">Nowe odcinki</div>
+  <div class="rail" style="top:660px">
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="badge">Nowy</span><span class="cap">Other Mommy · Dziś 21:30</span></span></span>
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">The Rings of Power</span></span></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="badge">Wkrótce</span><span class="cap">The Beast · Pt 20:15</span></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="badge">Nowy</span><span class="cap">Fakty · Dziś 22:00</span></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">Wiadomości</span></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="badge">Wkrótce</span><span class="cap">Avengers: Doomsday · Sob 18:00</span></span>
+  </div>
+
+  <div class="shelf-title" style="top:808px">Ostatnio oglądane</div>
+  <div class="rail" style="top:838px">
+    <span class="card"><img class="fill" src="../assets/528b2ba2e99428d6c529fb1cd47cca63.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap"><span class="mini"><i style="width:72%"></i></span>Fakty</span></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap"><span class="mini"><i style="width:35%"></i></span>Wiadomości</span></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap"><span class="mini"><i style="width:88%"></i></span>Avengers: Doomsday</span></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap"><span class="mini"><i style="width:10%"></i></span>Madden</span></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap"><span class="mini"><i style="width:50%"></i></span>The Odyssey</span></span>
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap"><span class="mini"><i style="width:64%"></i></span>VisionQuest</span></span></span>
+  </div>
+
+  <div class="shelf-title" style="top:986px">Ostatnie kanały</div>
+  <div class="rail" style="top:1016px">
+    <span class="card" style="display:grid;place-items:center;background:var(--surface)"><span style="display:flex;flex-direction:column;align-items:center;gap:8px"><i style="width:44px;height:44px;border-radius:var(--radius-12);background:var(--fill-24);display:block"></i><span class="t14b">TVN</span></span><span class="dot" role="img" aria-label="Na żywo"></span></span>
+    <span class="card" style="display:grid;place-items:center;background:var(--surface)"><span style="display:flex;flex-direction:column;align-items:center;gap:8px"><i style="width:44px;height:44px;border-radius:var(--radius-12);background:var(--fill-24);display:block"></i><span class="t14b">TVN</span></span><span class="dot" role="img" aria-label="Na żywo"></span></span>
+    <span class="card" style="display:grid;place-items:center;background:var(--surface)"><span style="display:flex;flex-direction:column;align-items:center;gap:8px"><i style="width:44px;height:44px;border-radius:var(--radius-12);background:var(--fill-24);display:block"></i><span class="t14b">TV4</span></span><span class="dot" role="img" aria-label="Na żywo"></span></span>
+    <span class="card" style="display:grid;place-items:center;background:var(--surface)"><span style="display:flex;flex-direction:column;align-items:center;gap:8px"><i style="width:44px;height:44px;border-radius:var(--radius-12);background:var(--fill-24);display:block"></i><span class="t14b">TVP1</span></span><span class="dot" role="img" aria-label="Na żywo"></span></span>
+    <span class="card" style="display:grid;place-items:center;background:var(--surface)"><span style="display:flex;flex-direction:column;align-items:center;gap:8px"><i style="width:44px;height:44px;border-radius:var(--radius-12);background:var(--fill-24);display:block"></i><span class="t14b">TV Puls</span></span><span class="dot" role="img" aria-label="Na żywo"></span></span>
+    <span class="card" style="display:grid;place-items:center;background:var(--surface)"><span style="display:flex;flex-direction:column;align-items:center;gap:8px"><i style="width:44px;height:44px;border-radius:var(--radius-12);background:var(--fill-24);display:block"></i><span class="t14b">TVP1</span></span><span class="dot" role="img" aria-label="Na żywo"></span></span>
+  </div>
+
+  <div class="shelf-title" style="top:1164px">Sport</div>
+  <div class="rail" style="top:1194px">
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/ef7d461bdc97be8787fe7e2c7f1e7c0b.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/ef7d461bdc97be8787fe7e2c7f1e7c0b.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/ef7d461bdc97be8787fe7e2c7f1e7c0b.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap"><span class="mini"><i style="width:20%"></i></span>Other Mommy</span></span></span>
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/37aa077e7488da320f03c98f1ea24f8b.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/37aa077e7488da320f03c98f1ea24f8b.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/37aa077e7488da320f03c98f1ea24f8b.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap"><span class="mini"><i style="width:55%"></i></span>The Rings of Power</span></span></span>
+    <span class="card"><img class="fill" src="../assets/d330d126843031ba62e3390cba71a337.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap"><span class="mini"><i style="width:70%"></i></span>The Beast</span></span>
+    <span class="card"><img class="fill" src="../assets/528b2ba2e99428d6c529fb1cd47cca63.jpg" alt=""><span class="cap">Fakty · Dziś 22:00</span></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">Wiadomości</span></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">Avengers: Doomsday</span></span>
+  </div>
+
+  <div class="shelf-title" style="top:1342px">Filmy</div>
+  <div class="rail" style="top:1372px">
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap"><span class="mini"><i style="width:35%"></i></span>Madden</span></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap"><span class="mini"><i style="width:12%"></i></span>The Odyssey</span></span>
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="cap">VisionQuest · Dziś 21:05</span></span></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="cap">Hunger Games · Dziś 23:40</span></span>
+    <span class="card"><img class="fill" src="../assets/d58b2f09bd2788df7e2c6a276f31ce14.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">Resident Evil</span></span>
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/ba28973e36b821a10909d2e71bbe970e.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/ba28973e36b821a10909d2e71bbe970e.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/ba28973e36b821a10909d2e71bbe970e.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">Guarding Stars</span></span></span>
+  </div>
+
+  <div class="shelf-title" style="top:1520px">Informacje</div>
+  <div class="rail" style="top:1550px">
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/79b96edbd6e4bc5f533f0db058aba281.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/79b96edbd6e4bc5f533f0db058aba281.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/79b96edbd6e4bc5f533f0db058aba281.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap"><span class="mini"><i style="width:40%"></i></span>Other Mommy</span></span></span>
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/6c2237979b1f553ff671deb71f8eafde.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/6c2237979b1f553ff671deb71f8eafde.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/6c2237979b1f553ff671deb71f8eafde.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">The Rings of Power</span></span></span>
+    <span class="card"><img class="fill" src="../assets/a5b5ca0be6b351798b07b6fecd2a78e7.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">The Beast</span></span>
+    <span class="card"><img class="fill" src="../assets/ed19b74ced653b6f700910ca9c947d12.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">Fakty</span></span>
+    <span class="card"><img class="fill" src="../assets/ef7d461bdc97be8787fe7e2c7f1e7c0b.jpg" alt=""><span class="cap">Wiadomości · Dziś 22:10</span></span>
+    <span class="card"><img class="fill" src="../assets/37aa077e7488da320f03c98f1ea24f8b.jpg" alt=""><span class="cap">Avengers: Doomsday · Jutro 06:00</span></span>
+  </div>
+
+  <div class="shelf-title" style="top:1698px">Polecane</div>
+  <div class="rail" style="top:1728px">
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">Other Mommy</span></span></span>
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap">The Rings of Power</span></span></span>
+    <span class="card"><img class="fill" src="../assets/d58b2f09bd2788df7e2c6a276f31ce14.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">The Beast</span></span>
+    <span class="card"><img class="fill" src="../assets/ba28973e36b821a10909d2e71bbe970e.jpg" alt=""><span class="cap">Fakty · Dziś 21:30</span></span>
+    <span class="card"><img class="fill" src="../assets/79b96edbd6e4bc5f533f0db058aba281.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">Wiadomości</span></span>
+    <span class="card"><img class="fill" src="../assets/6c2237979b1f553ff671deb71f8eafde.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap">Avengers: Doomsday</span></span>
+  </div>
+
+  <div class="shelf-title" style="top:1876px">Popularne</div>
+  <div class="rail" style="top:1906px">
+    <span class="card"><img class="fill" src="../assets/a5b5ca0be6b351798b07b6fecd2a78e7.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap">Madden</span></span>
+    <span class="card"><img class="fill" src="../assets/ed19b74ced653b6f700910ca9c947d12.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">The Odyssey</span></span>
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/ef7d461bdc97be8787fe7e2c7f1e7c0b.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/ef7d461bdc97be8787fe7e2c7f1e7c0b.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/ef7d461bdc97be8787fe7e2c7f1e7c0b.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap">VisionQuest</span></span></span>
+    <span class="card"><img class="fill" src="../assets/37aa077e7488da320f03c98f1ea24f8b.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">Hunger Games</span></span>
+    <span class="card"><img class="fill" src="../assets/d330d126843031ba62e3390cba71a337.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">Resident Evil</span></span>
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/528b2ba2e99428d6c529fb1cd47cca63.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/528b2ba2e99428d6c529fb1cd47cca63.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/528b2ba2e99428d6c529fb1cd47cca63.jpg" alt=""><span class="dot" role="img" aria-label="Na żywo"></span><span class="cap">Guarding Stars</span></span></span>
+  </div>
+
+  <div class="shelf-title" style="top:2054px">Wkrótce</div>
+  <div class="rail" style="top:2084px">
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="cap">Other Mommy · Za 15 min</span></span></span>
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="cap">The Rings of Power · Dziś 21:30</span></span></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="cap">The Beast · Dziś 22:00</span></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="cap">Fakty · Dziś 23:15</span></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="cap">Wiadomości · Jutro 08:00</span></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="cap">Avengers: Doomsday · Jutro 20:15</span></span>
+  </div>
+
+  <div class="shelf-title" style="top:2232px">Archiwum</div>
+  <div class="rail" style="top:2262px">
+    <span class="card"><img class="fill" src="../assets/d330d126843031ba62e3390cba71a337.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">Madden</span></span>
+    <span class="card"><img class="fill" src="../assets/528b2ba2e99428d6c529fb1cd47cca63.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">The Odyssey</span></span>
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">VisionQuest</span></span></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">Hunger Games</span></span>
+    <span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">Resident Evil</span></span>
+    <span class="stack"><span class="sl b" aria-hidden="true"><img src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span><span class="sl" aria-hidden="true"><img src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""></span><span class="card"><img class="fill" src="../assets/69f7a2078d3a7233c2a140859feff3ce.jpg" alt=""><span class="dot arch" role="img" aria-label="Archiwum"></span><span class="cap">Guarding Stars</span></span></span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":2430}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
