@@ -325,8 +325,12 @@ internal fun niuniaStateTag(state: NiuniaPlayState): NiuniaTagKind = when (state
     else -> NiuniaTagKind.Live
 }
 
-/** Przyciemnienie dołu kadru (gradient z makiet odtwarzaczy). */
+/**
+ * Przyciemnienie dołu kadru = token DS `ScrimPlayer` (jak w odtwarzaczu filmu). Test JMGO build152: ręczny gradient
+ * (przezroczysty do 34%, 55% krycia dopiero w 67%) zostawiał tytuł w archiwum IPTV nieczytelny na jasnym obrazie.
+ */
+@Suppress("UNUSED_PARAMETER")
 @Composable
 internal fun BoxScope.NiuniaPlayerScrim(from: Float = 0.34f) {
-    Box(Modifier.matchParentSize().background(Brush.verticalGradient(0f to Color.Transparent, from to Color.Transparent, ((from + 1f) / 2f) to Color(0x8C000000), 1f to Color(0xE6000000))))
+    com.nuvio.tv.skin.niunia.components.NiuniaSurface(com.nuvio.tv.skin.niunia.components.NiuniaSurfaceKind.ScrimPlayer, Modifier.matchParentSize())
 }

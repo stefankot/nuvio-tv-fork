@@ -461,17 +461,19 @@ private fun GuideRow(
             if (visible.isEmpty()) {
                 Cell(stringResource(R.string.niunia_live_no_guide), 0.dp, dpFor(WINDOW_MS), live = false, focused = focused, cut = false, new = false)
             }
+            // Test JMGO build152: strzałka ‹ (Edge) zasłaniała początek tytułu programu, który zaczyna się równo z oknem.
+            val leftEdge = focused && schedule.any { it.startEpochMs < winStart } && winStart > minStart
             visible.forEach { p ->
                 val start = maxOf(p.startEpochMs, winStart)
                 val stop = minOf(p.stopEpochMs, winEnd)
                 val i = schedule.indexOf(p)
                 Cell(p.title, dpFor(start - winStart), (dpFor(stop - start) - 4.dp).coerceAtLeast(4.dp), live = isLive(p, now),
-                    focused = focused && i == sel, cut = focused && p.startEpochMs < winStart, new = (ch.guideKey + "|" + p.startEpochMs) in newKeys)
+                    focused = focused && i == sel, cut = focused && (p.startEpochMs < winStart || leftEdge && p.startEpochMs <= winStart), new = (ch.guideKey + "|" + p.startEpochMs) in newKeys)
             }
             if (now in winStart until winEnd) Box(Modifier.offset(x = dpFor(now - winStart) - 1.dp).width(2.dp).height(ROW_H).background(NiuniaColors.Live))
             if (focused) {
                 // Końce osi przechodzą w tło ze strzałkami, gdy dalej są programy (canvas LiveTVRow).
-                if (schedule.any { it.startEpochMs < winStart } && winStart > minStart) Edge(left = true)
+                if (leftEdge) Edge(left = true)
                 if (schedule.any { it.stopEpochMs > winEnd }) Box(Modifier.align(Alignment.CenterEnd)) { Edge(left = false) }
             }
         }
