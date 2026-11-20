@@ -3,6 +3,12 @@
 Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–13: `plan/archiwum/TERAZ-historia-watki-1-13.md` (tylko `grep`, nie czytaj całości).
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
+## NIUNIA — LIVE TV OD NOWA + HERO (wątek 20.11 ~14:00, gałąź skin-niunia) — SKOMPILOWANE, NIEZBUDOWANE (paczka do następnego builda)
+Opis: `.stage/niunia/WPIECIE.md` „Po wdrożeniu” pkt 13–14; `plan/DECYZJE.md` (20.11).
+Commity: 1a7bd268f (Live TV: przewodnik, filtry, Odkrywaj, Szukaj, stos serialu — pliki `skin/niunia/livetv/NiuniaLive*.kt`, `components/NiuniaSeriesStack.kt`, `res/values/niunia_tv_strings.xml`), potem hero (`components/NiuniaHeroPage.kt`, `home/NiuniaHome.kt`, `detail/NiuniaDetail.kt`). Kompilacje kontrolne `/tmp/compile-niunia7.log`, `/tmp/compile-niunia9.log` OK (z NuvioFork-build).
+Test na TV: Live TV — fokus na „Wszystkie”, filtry zmieniają kafelki i przewodnik, ◄► po programach przesuwa oś, ▲▼ kanał, strzałki ‹ › w rzędzie z fokusem, OK na żywo/archiwum, „Dziś” (dni), Odkrywaj (rzędy), Szukaj (klawiatura, drzewo, Rzędy/Siatka); Główna i strona filmu/serialu — hero bez przesunięcia, ▼ = animacja (rozmycie, logo na środku), ▲/Wstecz = hero, chodzenie po kaflach bez skakania rzędu.
+DALEJ (wdrożenie wszystkich ekranów): główna wyszukiwarka wg `SearchResults` (zakładki Wszystko/Filmy/Seriale/TV/YouTube/Osoby, podpowiedzi pod klawiaturą), Ustawienia NOOB wg `Settings`, strona odcinka (`Episode`), Napisy AI (`PlayerSubs` — nowa funkcja), 3. poziom drzewa kategorii w Szukaj TV.
+
 ## NIUNIA — ODTWARZACZE YOUTUBE / IPTV / „PODOBNE” + MENU (wątek 20.11 ~13:30, gałąź skin-niunia) — build140 NA JMGO
 Opis i decyzje: `.stage/niunia/WPIECIE.md` „Po wdrożeniu” pkt 8–12 (PL), `~/Desktop/appletv/skin/SKIN.md` items 8–12 (EN), znaczniki na końcu obu plików; `plan/DECYZJE.md` (20.11).
 Commity: 0d2b8084e (zmiany z Cowork pkt 1–4), 587038f58 (menu: Wstecz i ▶ zawsze do treści), a0744f968 (odtwarzacze).

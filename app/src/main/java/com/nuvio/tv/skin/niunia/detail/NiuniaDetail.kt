@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -84,12 +85,6 @@ fun NiuniaDetail(
     val series = meta.type == ContentType.SERIES || meta.videos.isNotEmpty()
     val playFocus = remember { FocusRequester() }
     var focusedRow by remember { mutableIntStateOf(0) }
-    // WPIECIE.md „Po wdrożeniu” pkt 2: pierwsze ▼ z hero przewija o pełny ekran (hero znika), ▲ wraca tym samym skokiem.
-    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
-    val belowHero: () -> Unit = { if (listState.firstVisibleItemIndex == 0) scope.launch { listState.animateScrollToItem(1) } }
-    val toHero: () -> Unit = { if (listState.firstVisibleItemIndex != 0 || listState.firstVisibleItemScrollOffset != 0) scope.launch { listState.animateScrollToItem(0) } }
-
     LaunchedEffect(meta.id) {
         Log.i(TAG, "szczegóły: ${meta.rawType} „${meta.name}” (sezony=${uiState.seasons.size}, odcinki=${uiState.episodesForSeason.size}, podobne=${uiState.moreLikeThis.size}, obsada=${meta.castMembers.size}, wznów=${uiState.nextToWatch?.isResume == true})")
         try { playFocus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "szczegóły: fokus startowy: ${e.javaClass.simpleName}: ${e.message}") }
@@ -105,47 +100,54 @@ fun NiuniaDetail(
         }
     }
 
-    // Pod hero: obraz z hero bardzo rozmyty (API 31+; starsze — mocne przyciemnienie), na górze logo programu na środku.
-    Box(Modifier.fillMaxSize().background(NiuniaColors.Bg)) {
-    val blurOk = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
-    AsyncImage(model = meta.backdropUrl ?: meta.poster, contentDescription = null, contentScale = ContentScale.Crop,
-        modifier = Modifier.fillMaxSize().then(if (blurOk) Modifier.blur(60.dp) else Modifier))
-    Box(Modifier.fillMaxSize().background(if (blurOk) Color(0x99000000) else Color(0xE62C2C2E)))
-    LazyColumn(Modifier.fillMaxSize(), state = listState, contentPadding = PaddingValues(bottom = 48.dp)) {
-        item(key = "hero") {
+    // Właściciel 20.11: hero poza listą (był przesunięty o ujemny margines). ▼ z hero: napisy hero wyjeżdżają do góry, tło dostaje
+    // bardzo mocne rozmycie, a strona pod hero wjeżdża od dołu — na górze logo programu na środku (przypięte), niżej rzędy.
+    com.nuvio.tv.skin.niunia.components.NiuniaHeroPage(
+        background = meta.backdropUrl ?: meta.poster,
+        heroFocus = playFocus,
+        what = "szczegóły",
+        hero = {
             Hero(meta, uiState, series, heroVideo, playFocus, play,
                 onLibrary = { Log.i(TAG, "szczegóły: biblioteka (było ${uiState.isInLibrary})"); viewModel.onEvent(MetaDetailsEvent.OnToggleLibrary) },
-                onFocus = { focusedRow = 0; toHero() })
-        }
-        item(key = "page_logo") { PageLogo(meta) }
+                onFocus = { focusedRow = 0 })
+        },
+        below = {
+    PageLogo(meta)
+    Box(Modifier.padding(top = 144.dp).fillMaxSize().clipToBounds()) {
+    com.nuvio.tv.skin.niunia.components.NiuniaVerticalScroll(pivot = 50.dp) {
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(top = 16.dp, bottom = 48.dp)) {
         if (series && uiState.seasons.isNotEmpty()) {
-            item(key = "seasons") {
-                SeasonTabs(uiState.seasons, uiState.selectedSeason, onFocus = belowHero) {
-                    Log.i(TAG, "szczegóły: sezon $it"); viewModel.onEvent(MetaDetailsEvent.OnSeasonSelected(it))
+            item(key = "episodes") {
+                com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
+                    SeasonTabs(uiState.seasons, uiState.selectedSeason, onFocus = { focusedRow = 1 }) {
+                        Log.i(TAG, "szczegóły: sezon $it"); viewModel.onEvent(MetaDetailsEvent.OnSeasonSelected(it))
+                    }
                 }
-            }
-            item(key = "episodes_${uiState.selectedSeason}") {
+                com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
                 LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
                     items(uiState.episodesForSeason, key = { it.id }) { video ->
                         val progress = uiState.episodeProgressMap[(video.season ?: 0) to (video.episode ?: 0)]?.progressPercentage
                         val watched = (video.season ?: 0) to (video.episode ?: 0) in uiState.watchedEpisodes
-                        EpisodeCard(video, progress, watched, onFocus = { focusedRow = 1; belowHero() }, onOk = { Log.i(TAG, "szczegóły: odcinek S${video.season}:O${video.episode}"); playEpisode(video) })
+                        EpisodeCard(video, progress, watched, onFocus = { focusedRow = 1 }, onOk = { Log.i(TAG, "szczegóły: odcinek S${video.season}:O${video.episode}"); playEpisode(video) })
                     }
+                }
                 }
             }
         }
         if (uiState.moreLikeThis.isNotEmpty()) {
             item(key = "more") {
                 RowTitle(stringResource(R.string.niunia_detail_more_like), on = focusedRow == 2)
+                com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
                 LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
                     items(uiState.moreLikeThis, key = { "${it.rawType}_${it.id}" }) { item ->
                         NiuniaPoster(
                             art = item.poster, fallback = item.rawPosterUrl, title = item.name, logo = item.logo, meta = NiuniaLabels.meta(item),
                             label = NiuniaLabels.label(context, item, 0, rankingRow = false), baked = item.poster != null,
-                            onFocus = { if (it) { focusedRow = 2; belowHero() } },
+                            onFocus = { if (it) focusedRow = 2 },
                             onOk = { onNavigateToDetail(item.id, item.rawType, null) },
                         )
                     }
+                }
                 }
             }
         }
@@ -153,20 +155,25 @@ fun NiuniaDetail(
         if (cast.isNotEmpty()) {
             item(key = "cast") {
                 RowTitle(stringResource(R.string.niunia_detail_cast), on = focusedRow == 3)
+                com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
                 LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
                     items(cast.take(20), key = { "${it.name}_${it.character}" }) { person ->
-                        PersonCard(person, onFocus = { focusedRow = 3; belowHero() }, onOk = {
+                        PersonCard(person, onFocus = { focusedRow = 3 }, onOk = {
                             val id = person.tmdbId
                             if (id != null) onNavigateToCastDetail(id, person.name, false)
                             else Log.i(TAG, "szczegóły: ${person.name} bez id TMDB — brak strony osoby")
                         })
                     }
                 }
+                }
             }
         }
         item(key = "info") { InfoPanel(meta) }
     }
     }
+    }
+        },
+    )
 }
 
 /** Logo programu na środku u góry części pod hero (jedyny wyjątek od „bez centrowania”), do 64 dp wysokości, 40 dp odstępu niżej. */
@@ -178,8 +185,10 @@ private fun PageLogo(meta: Meta) {
                 modifier = Modifier.width(320.dp).height(64.dp))
         }
     } else {
-        Text(meta.name, style = NiuniaText.Logo.copy(fontSize = 32.sp, lineHeight = 38.sp), maxLines = 1, overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(start = NiuniaDims.Gutter, top = NiuniaSpace.TopAfterHero, bottom = 40.dp))
+        Box(Modifier.fillMaxWidth().padding(top = NiuniaSpace.TopAfterHero, bottom = 40.dp).height(64.dp), contentAlignment = Alignment.Center) {
+            Text(meta.name, style = NiuniaText.Logo.copy(fontSize = 32.sp, lineHeight = 38.sp), maxLines = 1, overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(horizontal = 160.dp))
+        }
     }
 }
 
@@ -196,8 +205,7 @@ private fun Hero(
     onLibrary: () -> Unit,
     onFocus: () -> Unit,
 ) {
-    Box(Modifier.fillMaxWidth().height(540.dp)) {
-        AsyncImage(model = meta.backdropUrl ?: meta.poster, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+    Box(Modifier.fillMaxSize()) { // tło rysuje NiuniaHeroPage
         // canvas .scrim-l; bez szarego gradientu na dole hero (WPIECIE.md „Po wdrożeniu” pkt 2).
         Box(Modifier.fillMaxSize().background(Brush.horizontalGradient(0f to NiuniaColors.ScrimLeft, 0.55f to Color(0x6618181A), 1f to Color.Transparent)))
         Column(Modifier.offset(x = 40.dp, y = 150.dp).width(430.dp)) {

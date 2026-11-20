@@ -86,73 +86,77 @@ fun NiuniaHome(
     val posterPattern = remember(uiState.customPosterUrlPattern, uiState.customPosterEnabledScreens) {
         com.nuvio.tv.core.poster.patternForScreen(uiState.customPosterUrlPattern, com.nuvio.tv.core.poster.CustomPosterScreen.HOME, uiState.customPosterEnabledScreens)
     }
-    // Hero ucięty od góry: po powrocie z rzędów (▲) lista przewijała się tylko tyle, by pokazać przycisk.
-    // Fokus w hero = lista na samą górę (jak w projekcie: hero zawsze w całości).
-    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
-    // WPIECIE.md „Po wdrożeniu” pkt 2: zejście z hero (▼) przewija o pełny ekran — hero znika całkowicie,
-    // pierwszy tytuł rzędu 40 dp od góry; ▲ z pierwszego rzędu wraca do hero tym samym skokiem (onFocusInside).
     val hasHero = heroes.isNotEmpty()
-    val belowHero: () -> Unit = {
-        if (hasHero && listState.firstVisibleItemIndex == 0) scope.launch { listState.animateScrollToItem(1) }
-    }
+    val hero = heroes.getOrNull(heroIndex % heroes.size.coerceAtLeast(1))
     LaunchedEffect(heroes.size, uiState.catalogRows.size) {
         Log.i(TAG, "ekran główny: hero=${heroes.size}, dalej oglądaj=${uiState.continueWatchingItems.size}, rzędy=${uiState.catalogRows.size}")
     }
 
-    LazyColumn(
-        state = listState,
-        modifier = Modifier.fillMaxSize().background(NiuniaColors.Bg),
-        contentPadding = PaddingValues(bottom = 48.dp),
-    ) {
-        var firstBelow = true // pierwszy rząd pod hero dostaje 40 dp od góry
-        heroes.getOrNull(heroIndex % heroes.size.coerceAtLeast(1))?.let { hero ->
-            item(key = "niunia_hero") {
-                Hero(
-                    item = hero, index = heroIndex, count = heroes.size, focus = heroFocus,
-                    onFocusInside = { if (listState.firstVisibleItemIndex != 0 || listState.firstVisibleItemScrollOffset != 0) scope.launch { listState.animateScrollToItem(0) } },
-                    onOpen = { onNavigateToDetail(hero.id, hero.rawType, uiState.catalogRows.firstOrNull()?.addonBaseUrl ?: "") },
-                    onNext = { heroIndex = (heroIndex + 1) % heroes.size },
-                )
-            }
-        }
-        if (uiState.continueWatchingItems.isNotEmpty()) {
-            val top = firstBelow; firstBelow = false
-            item(key = "niunia_cw") {
-                RowTitle(stringResource(R.string.niunia_row_continue), on = focusedRow == -2, first = top)
-                LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
-                    items(uiState.continueWatchingItems, key = { cwKey(it) }) { cw ->
-                        ContinueCard(cw, onFocus = { if (it) { focusedRow = -2; belowHero() } }, onOk = { onContinueWatchingClick(cw) })
+    // Właściciel 20.11: hero poza listą (był przesunięty o ujemny margines), ▼ = animacja: hero wyjeżdża, tło rozmyte, rzędy wjeżdżają.
+    val rows: @Composable () -> Unit = {
+        com.nuvio.tv.skin.niunia.components.NiuniaVerticalScroll {
+            LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 48.dp)) {
+                var firstBelow = true // pierwszy rząd 40 dp od góry
+                if (uiState.continueWatchingItems.isNotEmpty()) {
+                    val top = firstBelow; firstBelow = false
+                    item(key = "niunia_cw") {
+                        RowTitle(stringResource(R.string.niunia_row_continue), on = focusedRow == -2, first = top)
+                        com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
+                            LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
+                                items(uiState.continueWatchingItems, key = { cwKey(it) }) { cw ->
+                                    ContinueCard(cw, onFocus = { if (it) focusedRow = -2 }, onOk = { onContinueWatchingClick(cw) })
+                                }
+                            }
+                        }
                     }
                 }
-            }
-        }
-        uiState.catalogRows.forEachIndexed { rowIndex, row ->
-            if (row.items.isEmpty()) return@forEachIndexed
-            val top = firstBelow; firstBelow = false
-            item(key = "niunia_row_${row.addonId}_${row.catalogId}_${row.rawType}") {
-                val ranking = NiuniaLabels.isRankingRow(row.catalogName)
-                RowTitle(row.catalogName, on = focusedRow == rowIndex, first = top)
-                LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
-                    itemsIndexed(row.items, key = { _, it -> it.id }) { i, item ->
-                        val (art, fallback) = remember(item, posterPattern) { niuniaPortrait(item, posterPattern) }
-                        NiuniaPoster(
-                            art = art,
-                            fallback = fallback,
-                            title = item.name,
-                            logo = item.logo,
-                            meta = NiuniaLabels.meta(item),
-                            label = NiuniaLabels.label(context, item, i, ranking),
-                            // Plakaty z dodatków zwykle mają tytuł w grafice → wariant „baked” (decyzja: plan/DECYZJE.md, Niunia).
-                            baked = art != null,
-                            onFocus = { if (it) { focusedRow = rowIndex; onItemFocus(item); belowHero() } },
-                            onOk = { onNavigateToDetail(item.id, item.rawType, row.addonBaseUrl) },
-                        )
+                uiState.catalogRows.forEachIndexed { rowIndex, row ->
+                    if (row.items.isEmpty()) return@forEachIndexed
+                    val top = firstBelow; firstBelow = false
+                    item(key = "niunia_row_${row.addonId}_${row.catalogId}_${row.rawType}") {
+                        val ranking = NiuniaLabels.isRankingRow(row.catalogName)
+                        RowTitle(row.catalogName, on = focusedRow == rowIndex, first = top)
+                        com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
+                            LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
+                                itemsIndexed(row.items, key = { _, it -> it.id }) { i, item ->
+                                    val (art, fallback) = remember(item, posterPattern) { niuniaPortrait(item, posterPattern) }
+                                    NiuniaPoster(
+                                        art = art,
+                                        fallback = fallback,
+                                        title = item.name,
+                                        logo = item.logo,
+                                        meta = NiuniaLabels.meta(item),
+                                        label = NiuniaLabels.label(context, item, i, ranking),
+                                        // Plakaty z dodatków zwykle mają tytuł w grafice → wariant „baked” (decyzja: plan/DECYZJE.md, Niunia).
+                                        baked = art != null,
+                                        onFocus = { if (it) { focusedRow = rowIndex; onItemFocus(item) } },
+                                        onOk = { onNavigateToDetail(item.id, item.rawType, row.addonBaseUrl) },
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
     }
+    if (hero == null) {
+        Box(Modifier.fillMaxSize().background(NiuniaColors.Bg)) { rows() }
+        return
+    }
+    com.nuvio.tv.skin.niunia.components.NiuniaHeroPage(
+        background = hero.background ?: hero.landscapePoster ?: hero.poster,
+        heroFocus = heroFocus,
+        what = "ekran główny",
+        hero = {
+            Hero(
+                item = hero, index = heroIndex, count = heroes.size, focus = heroFocus,
+                onOpen = { onNavigateToDetail(hero.id, hero.rawType, uiState.catalogRows.firstOrNull()?.addonBaseUrl ?: "") },
+                onNext = { heroIndex = (heroIndex + 1) % heroes.size },
+            )
+        },
+        below = { rows() },
+    )
 }
 
 private fun cwKey(cw: ContinueWatchingItem): String = when (cw) {
@@ -172,14 +176,12 @@ private fun RowTitle(text: String, on: Boolean, first: Boolean = false) {
 private fun rowPadding() = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = NiuniaSpace.TitleToRow - 22.dp, bottom = NiuniaSpace.AfterRow)
 
 @Composable
-private fun Hero(item: MetaPreview, index: Int, count: Int, focus: FocusRequester, onFocusInside: () -> Unit, onOpen: () -> Unit, onNext: () -> Unit) {
+private fun Hero(item: MetaPreview, index: Int, count: Int, focus: FocusRequester, onOpen: () -> Unit, onNext: () -> Unit) {
     LaunchedEffect(Unit) {
         try { focus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "fokus hero: ${e.javaClass.simpleName}: ${e.message}") }
     }
-    // Hero na cały ekran (pkt 2): po ▼ znika w całości.
-    val screenH = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp
-    Box(Modifier.fillMaxWidth().height(screenH)) {
-        AsyncImage(model = item.background ?: item.landscapePoster ?: item.poster, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+    // Hero na cały ekran; tło rysuje NiuniaHeroPage (rozmywa się po ▼).
+    Box(Modifier.fillMaxSize()) {
         Box(Modifier.fillMaxSize().background(Brush.horizontalGradient(0f to NiuniaColors.ScrimLeft, .38f to Color(0x8C18181A), .68f to Color.Transparent)))
         // Bez szarego gradientu na dole hero (WPIECIE.md „Po wdrożeniu” pkt 2); zostaje tylko lewy scrim pod tekstem.
         Column(Modifier.align(Alignment.BottomStart).padding(start = NiuniaDims.Gutter, bottom = 40.dp).width(420.dp)) {
@@ -192,7 +194,7 @@ private fun Hero(item: MetaPreview, index: Int, count: Int, focus: FocusRequeste
             val meta = listOfNotNull(item.genres.take(2).joinToString(" · ").ifBlank { null }, item.releaseInfo, item.runtime, item.ageRating).joinToString(" · ")
             if (meta.isNotBlank()) Text(meta, style = NiuniaText.Meta, modifier = Modifier.padding(top = 10.dp), maxLines = 1)
             if (!item.description.isNullOrBlank()) Text(item.description, style = NiuniaText.Body, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 6.dp))
-            Row(Modifier.padding(top = 18.dp).onFocusChanged { if (it.hasFocus) onFocusInside() }, horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.padding(top = 18.dp), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
                 NiuniaButton(stringResource(R.string.niunia_hero_open), onOpen, primary = true, focusRequester = focus)
                 if (count > 1) NiuniaRoundButton("›", stringResource(R.string.niunia_hero_next), onNext)
             }
