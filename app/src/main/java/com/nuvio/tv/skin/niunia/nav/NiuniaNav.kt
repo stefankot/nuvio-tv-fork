@@ -259,7 +259,7 @@ private fun ProfileRow(
 ) {
     com.nuvio.tv.skin.niunia.components.NiuniaListRow(
         label = entry.label,
-        onClick = { onClick(entry) },
+        onClick = { com.nuvio.tv.skin.niunia.profile.NiuniaProfileSwitch.fromMenu = true; onClick(entry) },
         kind = com.nuvio.tv.skin.niunia.components.NiuniaRowKind.Account,
         supporting = stringResource(R.string.niunia_nav_switch_profile),
         leading = { Avatar(entry.label, hex, 32) },

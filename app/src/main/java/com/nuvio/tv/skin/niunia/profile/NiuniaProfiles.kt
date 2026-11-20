@@ -89,11 +89,21 @@ fun NiuniaProfiles(
 
     fun select(profile: UserProfile) {
         Log.i(TAG, "profile: wybrano id=${profile.id}")
+        NiuniaProfileSwitch.fromMenu = false
         onProfileClicked()
         viewModel.selectProfile(profile.id, onComplete = onProfileSelected, onFailure = {
             Log.w(TAG, "profile: wybór id=${profile.id} nieudany")
             onProfileSelectionFailed()
         })
+    }
+
+    // Test JMGO build151: Wstecz po „Zmień profil” z menu wychodził z aplikacji (ekran wyboru jest ekranem startowym Nuvio).
+    // Otwarty z menu → Wstecz wraca do bieżącego profilu (bez PIN-u); na starcie aplikacji zostaje zachowanie Nuvio.
+    val current = profiles.firstOrNull { it.id == activeId }
+    BackHandler(enabled = NiuniaProfileSwitch.fromMenu && pinFor == null && current != null && pinEnabled[current.id] != true) {
+        Log.i(TAG, "profile: Wstecz → bieżący profil")
+        NiuniaProfileSwitch.fromMenu = false
+        current?.let { select(it) }
     }
 
     Box(Modifier.fillMaxSize().background(com.nuvio.tv.skin.niunia.tokens.NiuniaColor.Bg)) {
@@ -254,4 +264,9 @@ private fun NiuniaPinDialog(profileName: String, error: String?, working: Boolea
             }
         }
     }
+}
+
+/** Ekran wyboru profilu otwarty z menu („Zmień profil”), nie na starcie aplikacji. */
+object NiuniaProfileSwitch {
+    @Volatile var fromMenu: Boolean = false
 }
