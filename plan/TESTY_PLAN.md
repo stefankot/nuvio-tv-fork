@@ -1,5 +1,7 @@
 # Plan testów (20.11.2026)
 
+**URUCHAMIANIE: tylko gdy właściciel napisze „wykonaj testy”** (wtedy: build z `:app:testFullDebugUnitTest :app:assembleFullDebug -PforkAbi=arm64-v8a`, emulator, `bash fork-tools/test/smoke.sh`). Test dymny tylko w skórce Niunia.
+
 Cel: najmniej pracy, najwięcej wykrytych błędów. Dwa poziomy, oba uruchamiane w JEDNYM buildzie paczki:
 
 1. **Testy jednostkowe (JVM, `:app:testFullDebugUnitTest`)** — czysta logika każdego modułu; sekundy na test, bez urządzenia.
@@ -26,7 +28,7 @@ Kolejność w paczce: commit poprawek → `build.sh <nazwa> :app:testFullDebugUn
 | fork/echo, family, net, tvdb, skin/kicia (UI) | — | tylko test dymny (głównie Compose/sieć); dopisywać, gdy padnie błąd |
 
 ## Test dymny (emulator) — scenariusze
-Dla skórek: niunia, kicia, nuvio (ustawiane `prefs.sh set sp:fork_skin skin <id>` + restart):
+Tylko skórka Niunia (`prefs.sh set sp:fork_skin skin niunia`; inne skórki tylko na wyraźne polecenie):
 1. Start (`am start`), 20 s → proces żyje, brak `FATAL` w buforze crash.
 2. Menu: każda zakładka po kolei (OK) → ekran się otwiera, proces żyje, fokus wraca do treści (▶ / ▼).
 3. W treści: OK na pierwszej pozycji → szczegóły → Wstecz.

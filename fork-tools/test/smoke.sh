@@ -1,5 +1,5 @@
 #!/bin/bash
-# smoke.sh [skórki...] : test dymny na emulatorze (ANDROID_SERIAL, domyślnie emulator-5554). Dla każdej skórki: start,
+# smoke.sh [skórki...] : test dymny na emulatorze (domyślnie tylko skórka Niunia — polecenie właściciela 20.11) (ANDROID_SERIAL, domyślnie emulator-5554). Dla każdej skórki: start,
 # każda zakładka menu (Wstecz z treści → menu, ▼ do kolejnej pozycji, OK), na każdym ekranie ▶ do treści, OK, Wstecz.
 # Wynik: .stage/smoke/<data>.txt (crashe, wyjątki Fork*, fokus po każdym kroku). Kod 1 = był crash.
 set -u
@@ -7,7 +7,7 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"; S="$ROOT/fork-tools/test"
 export ANDROID_SERIAL="${ANDROID_SERIAL:-emulator-5554}"
 PKG=com.nuviodebug.com; ACT=$PKG/com.nuvio.tv.launcher.AppIconDefault
 OUT="$ROOT/.stage/smoke/$(date +%Y%m%d-%H%M).txt"; mkdir -p "$(dirname "$OUT")"
-SKINS=("${@:-niunia kicia nuvio}"); [ $# -eq 0 ] && SKINS=(niunia kicia nuvio)
+SKINS=("$@"); [ $# -eq 0 ] && SKINS=(niunia)
 crash=0
 log() { echo "$*" | tee -a "$OUT"; }
 alive() { adb shell pidof $PKG >/dev/null 2>&1; }

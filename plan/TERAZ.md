@@ -6,6 +6,8 @@ Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcj
 ## LEKTOR: REGULACJA GŁOŚNOŚCI (wątek równoległy, 20.11, commit 42db78904)
 Zgłoszenie (JMGO build134): „regulacja głośności lektora/tła nie działa”. Przyczyna: mikser czytał wartości poprawnie (co bufor), ale w odtwarzaczu nie było żadnej regulacji, a 2 przyciski w Ustawieniach → Moduły → Lektor przełączały wartość po cichu (stały tytuł, bez komunikatu, bez logu). Naprawa: `LektorModule.cycleVolume/cycleDuck` (komunikat „Głośność lektora: 50%”, log `ForkLektor: ustawienia: głos=…%, ściszanie filmu=… dB`), zakres głos 70/50/30/100/130 %, film −6/−3/bez/−10/−14 dB; w Niunii panel „Więcej” → wiersze „Głośność lektora” i „Ściszanie filmu pod lektorem” (OK = następna wartość, działa od razu na grający film, panel zostaje otwarty). Teksty `lektor_strings.xml`. Build135 (`/tmp/build135-lektor-glosnosc.log`) w kolejce za build134. Domyślna nakładka (bez skórki) i Kicia: tylko Ustawienia.
 
+## TESTY (20.11): plan `plan/TESTY_PLAN.md`, test dymny `fork-tools/test/smoke.sh` (tylko Niunia, emulator), nowe testy JVM fba2fc059 — URUCHAMIAĆ DOPIERO, gdy właściciel napisze „wykonaj testy”.
+
 ## NIUNIA — CRASH I NAWIGACJA (wątek 20.11 rano, gałąź skin-niunia)
 - Crash na starcie build131 (2 s): menu Niunii ładowało ikony SVG z `res/raw` przez `painterResource` → `ResourceResolutionException res/5d.svg`. Naprawa 2f5a5fc6b (Coil, jak PillNavigationBar). Build132 bez crasha.
 - Menu Niunii: nie dało się wyjść do treści (▶ robiło „fokus w dół” = następna pozycja panelu). f41999741: ▶ / OK na zakładce / ▼ z ostatniej → treść, Wstecz zamyka menu (na Głównej — wyjście jak dotąd); kolejność zakładek wg mockupu (Szukaj, Główna, Live TV, YouTube, Biblioteka, Ustawienia) w `ForkHooks.drawerOrder`.
