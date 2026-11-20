@@ -263,4 +263,94 @@ object NiuniaScreens {
     )
 
     val batch1: List<NiuniaFocusMap> = listOf(Main, HomeRows, Sidebar, Detail, Player, PlayerPanel)
+
+    // ---------------------------------------------------------------- paczka 2
+
+    /** Odcinki (strona pod hero): pigułki sezonów, rząd odcinków (fokus na 1.), Zwiastuny; OK odcinek → Episode; Wstecz → Detail. */
+    val Episodes = NiuniaFocusMap(
+        screen = "Episodes",
+        rows = listOf(listOf("s1", "s2"), listOf("e1", "e2", "e3", "e4", "e5"), listOf("t1", "t2", "t3", "t4")),
+        initial = "e1", back = "Detail",
+        ok = mapOf("e1" to "Episode", "t1" to "DetailMore"),
+        longOk = mapOf("e1" to "Player"),
+    )
+
+    /** Obsada i opis: obsada (fokus na 1. osobie → Person), panel opisu z „Więcej”; Wstecz → Detail. */
+    val DetailMore = NiuniaFocusMap(
+        screen = "DetailMore",
+        rows = listOf(listOf("c1", "c2", "c3", "c4", "c5", "c6", "c7"), listOf("more")),
+        initial = "c1", back = "Detail",
+        ok = mapOf("c1" to "Person"),
+    )
+
+    /** Strona odcinka: Wznów (fokus) → Player, O odcinku → DetailMore; Wstecz → Episodes. */
+    val Episode = NiuniaFocusMap(
+        screen = "Episode",
+        rows = listOf(listOf("resume", "about")),
+        initial = "resume", back = "Episodes",
+        ok = mapOf("resume" to "Player", "about" to "DetailMore"),
+    )
+
+    /** Strona filmu: Odtwórz (fokus), +, O filmie → MoviePage; Wstecz → Main. */
+    val Movie = NiuniaFocusMap(
+        screen = "Movie",
+        rows = listOf(listOf("play", "library", "about"), listOf("trailers")),
+        initial = "play", back = "Main",
+        ok = mapOf("play" to "Player", "about" to "MoviePage"),
+    )
+
+    /** Wyszukiwarka: klawiatura (fokus „a”), frazy pod nią, Przeglądaj i Polecane z prawej; Wstecz → menu. */
+    val Search = NiuniaFocusMap(
+        screen = "Search",
+        rows = listOf(
+            listOf("abc", "123", "browse1", "browse2", "browse3"),
+            listOf("a", "b", "c", "d", "e", "f", "rec1", "rec2"),
+            listOf("space", "del", "clear"),
+            listOf("recent1"), listOf("recent2"), listOf("recent3"),
+        ),
+        initial = "a", back = "Sidebar",
+        ok = mapOf("a" to "SearchResults", "browse1" to "Movie", "browse2" to "Detail", "browse3" to "LiveTV"),
+    )
+
+    /** Wyniki: zakładki, siatka 2 kolumn (fokus na 1. wyniku), podpowiedzi pod klawiaturą; WYCZYŚĆ → Search; Wstecz → Search. */
+    val SearchResults = NiuniaFocusMap(
+        screen = "SearchResults",
+        rows = listOf(listOf("all", "movies", "series", "tv", "youtube", "people"), listOf("r1", "r2"), listOf("r3", "r4"), listOf("r5", "r6")),
+        initial = "r1", back = "Search",
+        ok = mapOf("r1" to "Movie", "r2" to "Detail", "r3" to "PlayerLive", "r4" to "PlayerLeanback", "r6" to "Person"),
+    )
+
+    /** Profile: bieżący profil (fokus) i „Dodaj profil”; Wstecz → Main. */
+    val Profiles = NiuniaFocusMap(
+        screen = "Profiles",
+        rows = listOf(listOf("me", "add")),
+        initial = "me", back = "Main",
+        ok = mapOf("me" to "Main"),
+    )
+
+    /** Osoba: biografia (▲), Seriale (fokus na 1.), Filmy; Wstecz → DetailMore. */
+    val Person = NiuniaFocusMap(
+        screen = "Person",
+        rows = listOf(listOf("bio"), listOf("s1", "s2", "s3", "s4", "s5"), listOf("m1", "m2", "m3", "m4", "m5", "m6")),
+        initial = "s1", back = "DetailMore",
+        ok = mapOf("s1" to "Detail"),
+    )
+
+    /** Pusta biblioteka: jedyny przycisk „Przeglądaj filmy i seriale” → Main; Wstecz → menu. */
+    val Library = NiuniaFocusMap(
+        screen = "Library",
+        rows = listOf(listOf("browse")),
+        initial = "browse", back = "Sidebar",
+        ok = mapOf("browse" to "Main"),
+    )
+
+    /** Ustawienia NOOB: jedna lista, fokus „Profile”; Wstecz → menu. */
+    val Settings = NiuniaFocusMap(
+        screen = "Settings",
+        rows = listOf(listOf("profiles"), listOf("skin"), listOf("lektor"), listOf("subs"), listOf("ai"), listOf("sources"), listOf("lang"), listOf("help")),
+        initial = "profiles", back = "Sidebar",
+        ok = mapOf("profiles" to "Profiles"),
+    )
+
+    val batch2: List<NiuniaFocusMap> = listOf(Episodes, DetailMore, Episode, Movie, Search, SearchResults, Profiles, Person, Library, Settings)
 }

@@ -138,7 +138,7 @@ class NiuniaDsTest {
     }
 
     @Test fun `bez zawijania na krawedziach`() {
-        NiuniaScreens.batch1.forEach { map ->
+        (NiuniaScreens.batch1 + NiuniaScreens.batch2).forEach { map ->
             map.rows.forEach { row ->
                 assertEquals("${map.screen}: ◄ z ${row.first()}", row.first(), map.move(row.first(), NiuniaDir.Left))
                 assertEquals("${map.screen}: ► z ${row.last()}", row.last(), map.move(row.last(), NiuniaDir.Right))
@@ -149,7 +149,7 @@ class NiuniaDsTest {
     }
 
     @Test fun `kazdy element osiagalny ze startu`() {
-        NiuniaScreens.batch1.forEach { map ->
+        (NiuniaScreens.batch1 + NiuniaScreens.batch2).forEach { map ->
             val seen = mutableSetOf(map.initial); var frontier = listOf(map.initial)
             while (frontier.isNotEmpty()) {
                 frontier = frontier.flatMap { id -> NiuniaDir.entries.map { map.move(id, it) } }.filter { seen.add(it) }
@@ -180,6 +180,46 @@ class NiuniaDsTest {
         assertEquals("seek", p.move("audio", NiuniaDir.Down))
         val m = NiuniaScreens.Main.copy(disabled = setOf("library"))
         assertEquals("info", m.move("play", NiuniaDir.Right)) // wyłączony pomijany
+    }
+
+    @Test fun `paczka 2 - fokus startowy i cele z makiet`() {
+        assertEquals("e1", NiuniaScreens.Episodes.initial); assertEquals("Episode", NiuniaScreens.Episodes.okTarget("e1"))
+        assertEquals("c1", NiuniaScreens.DetailMore.initial); assertEquals("Person", NiuniaScreens.DetailMore.okTarget("c1"))
+        assertEquals("resume", NiuniaScreens.Episode.initial); assertEquals("Episodes", NiuniaScreens.Episode.back)
+        assertEquals("play", NiuniaScreens.Movie.initial); assertEquals("MoviePage", NiuniaScreens.Movie.okTarget("about"))
+        assertEquals("a", NiuniaScreens.Search.initial); assertEquals("SearchResults", NiuniaScreens.Search.okTarget("a"))
+        assertEquals("r1", NiuniaScreens.SearchResults.initial); assertEquals("Search", NiuniaScreens.SearchResults.back)
+        assertEquals("me", NiuniaScreens.Profiles.initial)
+        assertEquals("s1", NiuniaScreens.Person.initial); assertEquals("bio", NiuniaScreens.Person.move("s1", NiuniaDir.Up))
+        assertEquals("Main", NiuniaScreens.Library.okTarget("browse"))
+        assertEquals("profiles", NiuniaScreens.Settings.initial); assertEquals("Sidebar", NiuniaScreens.Settings.back)
+    }
+
+    @Test fun `karta odcinka - zostalo postep meta`() {
+        val v = com.nuvio.tv.domain.model.Video(id = "e1", title = "Cień", released = "2022-09-02T00:00:00Z", thumbnail = null, season = 1, episode = 1, overview = null, runtime = 65)
+        val inProgress = com.nuvio.tv.skin.niunia.detail.niuniaEpisodeModel(v, positionMs = 26 * 60_000L, durationMs = 65 * 60_000L, watched = false)
+        assertEquals("39m", inProgress.caption); assertEquals(40, inProgress.progress); assertEquals("2 wrz 2022 · 65 min", inProgress.meta)
+        val fresh = com.nuvio.tv.skin.niunia.detail.niuniaEpisodeModel(v, null, null, watched = false)
+        assertEquals("65m", fresh.caption); assertNull(fresh.progress)
+        assertEquals(100, com.nuvio.tv.skin.niunia.detail.niuniaEpisodeModel(v, null, null, watched = true).progress)
+    }
+
+    @Test fun `wyszukiwarka - zakladki i podpowiedzi`() {
+        val t = com.nuvio.tv.skin.niunia.search.NiuniaSearchTab.entries
+        assertTrue(com.nuvio.tv.skin.niunia.search.niuniaSearchTabMatches(t[0], "movie"))
+        assertTrue(com.nuvio.tv.skin.niunia.search.niuniaSearchTabMatches(com.nuvio.tv.skin.niunia.search.NiuniaSearchTab.Movies, "movie"))
+        assertFalse(com.nuvio.tv.skin.niunia.search.niuniaSearchTabMatches(com.nuvio.tv.skin.niunia.search.NiuniaSearchTab.Movies, "series"))
+        assertTrue(com.nuvio.tv.skin.niunia.search.niuniaSearchTabMatches(com.nuvio.tv.skin.niunia.search.NiuniaSearchTab.Series, "anime"))
+        assertEquals(listOf("the odyssey", "the rings of power", "the beast"),
+            com.nuvio.tv.skin.niunia.search.niuniaSearchSuggestions("the", emptyList(), listOf("The Odyssey", "The Rings of Power", "The Beast", "The Batman", "Dune")))
+        assertEquals(listOf("the odyssey"), com.nuvio.tv.skin.niunia.search.niuniaSearchSuggestions("odys", listOf("The Odyssey"), listOf("The Odyssey")))
+        assertTrue(com.nuvio.tv.skin.niunia.search.niuniaSearchSuggestions(" ", listOf("x"), listOf("x")).isEmpty())
+    }
+
+    @Test fun `inicjaly`() {
+        assertEquals("MC", com.nuvio.tv.skin.niunia.components.niuniaInitials("Morfydd Clark"))
+        assertEquals("JP", com.nuvio.tv.skin.niunia.components.niuniaInitials("Jean-Pierre"))
+        assertEquals("C", com.nuvio.tv.skin.niunia.components.niuniaInitials("Cher"))
     }
 
     // ------------------------------------------------------------------ drobne funkcje ekranów

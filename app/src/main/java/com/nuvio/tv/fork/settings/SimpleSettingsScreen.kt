@@ -85,6 +85,35 @@ private fun SimpleSettingsScreen(navigate: (String) -> Unit, onLevelChanged: () 
         androidx.compose.runtime.withFrameNanos { }
         runCatching { first.requestFocus() }.onFailure { android.util.Log.w("ForkSettingsNav", "fokus NOOB: ${it.javaClass.simpleName}: ${it.message}") }
     }
+    // 20.11: skórka Niunia — układ z makiety Settings (sylwetka + jedna lista), te same pozycje i przełączniki.
+    if (com.nuvio.tv.skin.niunia.nav.niuniaNavActive()) {
+        val lektor = ForkFeatures.enabled(c, "module_lektor")
+        com.nuvio.tv.skin.niunia.settings.NiuniaSettingsNoob(
+            items = listOf(
+                com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Row("profile", "Profile") { navigate(Screen.ManageProfiles.route) },
+                com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Row("account", "Konto", "Logowanie") { navigate(Screen.Account.route) },
+                com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Header("Wygląd"),
+                com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Row("skin", "Skórka", "Niunia") { navigate(Screen.LayoutSettings.route) },
+                com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Header("Odtwarzanie"),
+                com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Row("lektor", "Lektor", if (lektor) "Włączony" else "Wyłączony") { navigate(MODULES_ROUTE) },
+                com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Row("subs", "Napisy i AutoSync") { navigate(Screen.PlaybackSettings.route) },
+                com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Header("Źródła"),
+                com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Row("sources", "Dodatki") { navigate(Screen.AddonManager.route) },
+                com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Row("tv_search", "Szukaj w telewizji") { navigate("fork_tv_search") },
+                com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Header("Ogólne"),
+                com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Row("modules", "Wszystkie moduły") { navigate(MODULES_ROUTE) },
+                com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Row("help", "Pomoc i dziennik błędów") { navigate(TOOLS_ROUTE) },
+            ) + actions.map { (_, a) -> com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Row("akcja:" + a.title, a.title) { com.nuvio.tv.fork.family.FamilyUsage.feature("akcja:" + a.title); a.run(c) } },
+            footer = {
+                androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    toggles.forEach { (_, s) -> com.nuvio.tv.skin.niunia.settings.NiuniaSettingsToggle(s.key, s.title, s.defaultValue) }
+                    com.nuvio.tv.skin.niunia.components.NiuniaListRow("Poziom ustawień", onClick = null, kind = com.nuvio.tv.skin.niunia.components.NiuniaRowKind.Header)
+                    LevelPicker(current = UiLevel.SIMPLE, onChanged = onLevelChanged)
+                }
+            },
+        )
+        return
+    }
     // 19.11 (właściciel): wygląd jak reszta menu (tokeny skórki), jedna kolumna — wszystko na jednym ekranie.
     androidx.compose.foundation.layout.Box(Modifier.fillMaxSize().background(com.nuvio.tv.skin.kicia.tokens.ForgeColors.Bg), contentAlignment = androidx.compose.ui.Alignment.TopCenter) {
         LazyColumn(

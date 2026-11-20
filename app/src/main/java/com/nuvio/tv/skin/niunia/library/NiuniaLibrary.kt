@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -41,11 +42,23 @@ fun NiuniaLibrary(onNavigateToDetail: (String, String, String?) -> Unit, viewMod
     val items = state.visibleItems
     LaunchedEffect(items.size) { Log.i(TAG, "biblioteka: ${items.size} pozycji") }
     if (items.isEmpty()) {
-        // Pkt 3 (canvas v86): bez centrowania w poziomie — komunikat od lewej (40 dp).
-        Box(Modifier.fillMaxSize().background(NiuniaColors.Bg).padding(start = NiuniaDims.Gutter), contentAlignment = Alignment.CenterStart) {
-            Column(horizontalAlignment = Alignment.Start) {
-                Text(stringResource(R.string.niunia_library_empty), style = NiuniaText.Meta.copy(fontSize = NiuniaText.Meta.fontSize), textAlign = TextAlign.Start)
-                Text(stringResource(R.string.niunia_library_empty_hint), style = NiuniaText.Body, color = NiuniaColors.Text50, textAlign = TextAlign.Start, modifier = Modifier.padding(top = 4.dp))
+        // Makieta Library (NContentBlock empty): tytuł 20/26, podpowiedź 14/20 w 70%, przycisk „Przeglądaj filmy i seriale” z fokusem.
+        // Pionowo na środku, poziomo od lewej 40 dp (decyzja: nic nie centrujemy w poziomie).
+        val browse = remember { androidx.compose.ui.focus.FocusRequester() }
+        com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(browse)
+        LaunchedEffect(Unit) {
+            Log.i(TAG, "biblioteka: pusta, fokus startowy → Przeglądaj")
+            try { browse.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "biblioteka: fokus: ${e.javaClass.simpleName}: ${e.message}") }
+        }
+        Box(Modifier.fillMaxSize().background(com.nuvio.tv.skin.niunia.tokens.NiuniaColor.Bg).padding(start = com.nuvio.tv.skin.niunia.tokens.NiuniaSpacing.Space40), contentAlignment = Alignment.CenterStart) {
+            com.nuvio.tv.skin.niunia.components.NiuniaContentBlock(com.nuvio.tv.skin.niunia.components.NiuniaBlockKind.Empty) {
+                com.nuvio.tv.skin.niunia.components.NiuniaText(stringResource(R.string.niunia_ds_library_empty), variant = com.nuvio.tv.skin.niunia.components.NiuniaTextVariant.TitleSection)
+                com.nuvio.tv.skin.niunia.components.NiuniaText(stringResource(R.string.niunia_ds_library_hint), variant = com.nuvio.tv.skin.niunia.components.NiuniaTextVariant.BodySmall, tone = com.nuvio.tv.skin.niunia.components.NiuniaTone.Secondary)
+                com.nuvio.tv.skin.niunia.components.NiuniaButton(
+                    onClick = { if (!com.nuvio.tv.skin.niunia.nav.NiuniaNavActions.open("home")) Log.w(TAG, "biblioteka: Przeglądaj — brak przejścia") },
+                    label = stringResource(R.string.niunia_ds_library_browse), compact = true, focusRequester = browse,
+                    modifier = Modifier.padding(top = com.nuvio.tv.skin.niunia.tokens.NiuniaSpacing.Space8),
+                )
             }
         }
         return

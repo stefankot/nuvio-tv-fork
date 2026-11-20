@@ -21,6 +21,21 @@ Mapa ekranów paczki 1 → trasa w aplikacji (`DEV=192.168.31.252:5555 python3 f
 - Detail — ZALICZONE z poprawkami: wygląd jak makieta (chip lektora, logo, „S1, E1 · tytuł:”, data + znaczniki, Wznów „35m” z postępem, twórcy po prawej, kadry odcinków), krawędzie przycisków stoją, „O serialu” → strona pod hero, Wstecz → hero. Błędy: fokus startowy na „+” zamiast „Wznów” (podmiana przycisku po wczytaniu postępu), „Obsada” z twórcami → poprawione (build143). „Gotowe” nad pierwszym kadrem = Toast wyszukiwania źródeł (nie Niunia).
 - Player — CZĘŚCIOWO: nakładka jak makieta (FILM, logo, 2025 + HD, ikony Napisy/HD/Dźwięk, czasy), fokus startowy na pasku, ▲ → Napisy, panel „Audio, lektor i napisy” z fokusem „Głośność lektora”, OK zmienia wartość od razu, ▼ rząd Podobne (12, TMDB), ▼▼ szczegóły. Błędy: ► za ostatnią ikoną przewijał film i chował nakładkę; napisy filmu zachodziły na blok informacji; etykieta „Ściszanie filmu pod lektor…” ucięta → poprawione (build143). Wstecz z panelu/szczegółów chowa całą nakładkę — BLOKADA (nowe wpięcie, `plan/BLOKADY.md`). Podczas testu „Ściszanie” przestawione i przywrócone na „bez ściszania”.
 
+## NIUNIA — DESIGN SYSTEM v2, PACZKA 2 (wątek 20.11 wieczór, ta sama gałąź `claude/nuvio-tv-handoff-batch-1-4537d7`) — W TOKU
+Mapa ekranów paczki 2 → miejsce w aplikacji:
+| makieta | stan w aplikacji | plik | jak wejść |
+|---|---|---|---|
+| Episodes | strona serialu pod hero: pigułki sezonów, rząd odcinków (EpisodeCard), Zwiastuny | `detail/NiuniaDetail.kt` | `detail/<id>/series` + ▼ |
+| DetailMore | strona pod hero niżej: Obsada i twórcy (CastCard), Opis + Informacje + Języki | `detail/NiuniaDetail.kt` | jw. + ▼▼ albo „O serialu” |
+| Episode | strona odcinka (stan strony serialu): hero kadru, Wznów/Odtwórz, O odcinku | `detail/NiuniaDetail.kt` | OK na odcinku (długie OK = od razu odtwarzaj) |
+| Movie | strona filmu (hero jak Detail, „O filmie” → strona pod hero) | `detail/NiuniaDetail.kt` | `detail/<id>/movie` |
+| Search | wyszukiwarka: klawiatura, ostatnio szukane, Przeglądaj | `search/NiuniaSearch.kt` | trasa `search` |
+| SearchResults | wyniki: zakładki Wszystko/Filmy/Seriale/TV/YouTube/Osoby, siatka 2 kolumn ResultCard, podpowiedzi | `search/NiuniaSearch.kt` | `search` + litery |
+| Profiles | wybór profilu: nakładka `profiles` nad hero Głównej | `profile/NiuniaProfiles.kt` | menu → konto |
+| Person | strona osoby: awatar 120, nazwisko, opis, rzędy Seriale/Filmy | `person/NiuniaPerson.kt` | OK na osobie w Obsadzie |
+| Library | biblioteka (pusta: komunikat + „Przeglądaj filmy i seriale”) | `library/NiuniaLibrary.kt` | trasa `library` |
+| Settings | Ustawienia, tylko poziom NOOB (decyzja 20.11): sylwetka po lewej, jedna lista z nagłówkami | `fork/settings/Simple…` | trasa `settings` (poziom NOOB) |
+
 ## NIUNIA — LIVE TV OD NOWA + HERO (wątek 20.11 ~14:00, gałąź skin-niunia) — build141 NA JMGO
 Opis: `.stage/niunia/WPIECIE.md` „Po wdrożeniu” pkt 13–15; `plan/DECYZJE.md` (20.11).
 Commity: 1a7bd268f (Live TV: przewodnik, filtry, Odkrywaj, Szukaj, stos serialu), 410af3b48 (hero poza listą, animacja ▼, rzędy bez skakania), potem poprawki po teście (pkt 15, NIESKOMPILOWANE).

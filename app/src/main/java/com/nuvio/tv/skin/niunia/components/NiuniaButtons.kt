@@ -59,6 +59,8 @@ fun NiuniaButton(
     small: Boolean = false,
     compact: Boolean = false,
     progress: Float? = null,
+    trailing: String? = null,
+    labelFirst: Boolean = false,
     active: Boolean = false,
     selected: Boolean = false,
     enabled: Boolean = true,
@@ -129,9 +131,12 @@ fun NiuniaButton(
     ) {
         if (icon != null) NiuniaIcon(icon, size = if (kind == NiuniaButtonKind.Bare) NiuniaSize.Icon16 else NiuniaSize.Icon20, tint = fg)
         if (glyph != null) Text(glyph, style = NiuniaType.Caption, color = fg, maxLines = 1)
+        // Kolejność jak w makiecie: zwykle ikona · postęp · etykieta; [labelFirst] = ikona · etykieta · postęp · [trailing] („Wznów ━ 39m”).
+        if (labelFirst && label != null && !square) Text(label, style = textStyle, color = fg, maxLines = 1, overflow = TextOverflow.Clip)
         if (progress != null) NiuniaProgress(progress, onFocus = focused)
-        if (label != null && !square) Text(label, style = textStyle, color = fg, maxLines = 1, overflow = TextOverflow.Clip)
+        if (!labelFirst && label != null && !square) Text(label, style = textStyle, color = fg, maxLines = 1, overflow = TextOverflow.Clip)
         else if (label != null && kind == NiuniaButtonKind.Key) Text(label, style = textStyle, color = fg, maxLines = 1)
+        if (trailing != null) Text(trailing, style = textStyle, color = fg, maxLines = 1)
     }
 }
 

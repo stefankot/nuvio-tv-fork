@@ -82,6 +82,12 @@ object NiuniaContentFocus {
     var requester: FocusRequester? = null
 }
 
+/** Przejście do zakładki menu z ekranu Niuni (np. pusta biblioteka → Główna); ustawia [NiuniaNavBar]. */
+object NiuniaNavActions {
+    @Volatile var openRoute: ((String) -> Boolean)? = null
+    fun open(route: String): Boolean = openRoute?.invoke(route) ?: false.also { Log.w(TAG, "menu: brak paska — nie przejdę do $route") }
+}
+
 /** Ekran Niuni: [requester] dostaje fokus po wyjściu z menu (dopóki ekran jest na ekranie). */
 @Composable
 fun NiuniaRegisterContentFocus(requester: FocusRequester?) {
@@ -157,6 +163,12 @@ internal fun NiuniaNavBar(
         exitAfterSwitch = false
     }
     val homeKey = items.firstOrNull { it.route == "home" }?.key
+    androidx.compose.runtime.SideEffect {
+        NiuniaNavActions.openRoute = { route ->
+            val e = items.firstOrNull { it.route == route }
+            if (e == null) false else { Log.i(TAG, "menu: przejście z ekranu → $route"); onEntryClick(e); true }
+        }
+    }
 
     Box(modifier.fillMaxSize()) {
         // Przyciemnienie od lewej, gdy panel jest otwarty (.scrim-side).
