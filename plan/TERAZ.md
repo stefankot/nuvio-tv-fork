@@ -14,7 +14,12 @@ Mapa ekranów paczki 1 → trasa w aplikacji (`DEV=192.168.31.252:5555 python3 f
 | Sidebar | Główna z otwartym menu (fokus „Główna”) | `home` + Wstecz albo ◄ z hero |
 | Detail | strona serialu (fokus Wznów/Odtwórz) | `detail/<id>/series` albo OK na kafelku serialu |
 | Player | odtwarzacz (fokus pasek; ▲ ikony; dźwięk → panel z fokusem „Głośność lektora”) | Odtwórz na stronie tytułu |
-Wyniki testu na JMGO: (niżej, po buildzie).
+**build142 NA JMGO** (md5 d7e124a433f123a2a449ddbbb8364270, zgodny po `adb pull`, `compile -m speed`; testy JVM Niunia 36/36). Przejście pilotem (uiautomator + zrzuty `.stage/niunia/b142-*.png`):
+- Main — ZALICZONE: ładowanie ~2 s, fokus startowy „Odtwórz” (40,362 dp, 160×44), ►: + → i → › → krawędź (bez zawijania), ▲ → menu; wygląd jak makieta. Błąd: długość „148” bez jednostki → poprawione (build143).
+- Sidebar — ZALICZONE: fokus „Główna” (zaznaczona 24%), konto u góry, ▲ na górze stoi, Wstecz → „Odtwórz”. Uwaga: ◄ z pierwszego kafla rzędów też otwiera menu (zachowanie PillNavScaffold).
+- HomeRows — ZALICZONE z poprawką: ▼ z hero → 1. kafel „Oglądaj dalej”, ▼ następny rząd, Wstecz → hero. Błąd: po Wstecz ze strony tytułu i po wyjściu z menu fokus szedł na hero zamiast na element, z którego się wyszło → `NiuniaHomeMemory` (build143).
+- Detail — ZALICZONE z poprawkami: wygląd jak makieta (chip lektora, logo, „S1, E1 · tytuł:”, data + znaczniki, Wznów „35m” z postępem, twórcy po prawej, kadry odcinków), krawędzie przycisków stoją, „O serialu” → strona pod hero, Wstecz → hero. Błędy: fokus startowy na „+” zamiast „Wznów” (podmiana przycisku po wczytaniu postępu), „Obsada” z twórcami → poprawione (build143). „Gotowe” nad pierwszym kadrem = Toast wyszukiwania źródeł (nie Niunia).
+- Player — CZĘŚCIOWO: nakładka jak makieta (FILM, logo, 2025 + HD, ikony Napisy/HD/Dźwięk, czasy), fokus startowy na pasku, ▲ → Napisy, panel „Audio, lektor i napisy” z fokusem „Głośność lektora”, OK zmienia wartość od razu, ▼ rząd Podobne (12, TMDB), ▼▼ szczegóły. Błędy: ► za ostatnią ikoną przewijał film i chował nakładkę; napisy filmu zachodziły na blok informacji; etykieta „Ściszanie filmu pod lektor…” ucięta → poprawione (build143). Wstecz z panelu/szczegółów chowa całą nakładkę — BLOKADA (nowe wpięcie, `plan/BLOKADY.md`). Podczas testu „Ściszanie” przestawione i przywrócone na „bez ściszania”.
 
 ## NIUNIA — LIVE TV OD NOWA + HERO (wątek 20.11 ~14:00, gałąź skin-niunia) — build141 NA JMGO
 Opis: `.stage/niunia/WPIECIE.md` „Po wdrożeniu” pkt 13–15; `plan/DECYZJE.md` (20.11).
