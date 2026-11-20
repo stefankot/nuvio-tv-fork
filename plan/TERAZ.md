@@ -3,6 +3,19 @@
 Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–13: `plan/archiwum/TERAZ-historia-watki-1-13.md` (tylko `grep`, nie czytaj całości).
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
+## NIUNIA — DESIGN SYSTEM v2, PACZKA 1 (wątek 20.11 wieczór, HANDOFF `~/Desktop/nuvio-tv-interface/HANDOFF-niunia.md`)
+Gałąź robocza `claude/nuvio-tv-handoff-batch-1-4537d7` (worktree `.claude/worktrees/…`, od `skin-niunia` 3871a001b). Build z `NuvioFork-build` (odłączony HEAD na commicie paczki).
+Zrobione: generator tokenów `fork-tools/niunia/gen_tokens.py` → `skin/niunia/tokens/NiuniaDesignTokens.kt` + `NiuniaIconPaths.kt` (33 ikony z bundle) + kopia JSON do testów; komponenty `components/Niunia{Atoms,Buttons,Molecules,Organisms,Models}.kt` (NSurface/NText/NIcon/NMedia/NIndicator/NControl, NButton/NTag/NListRow/NMediaCard/NContentBlock, NCollection/NHero/NNavigation tab-pill+sidebar/NOverlay panel/NInput seek; OK/długie OK 520 ms/wciśnięcie 0,97 w `niuniaOk`); mapy fokusu `NiuniaScreens` (czysty Kotlin); ekrany: Główna (hero wg Main + wystający rząd, rzędy wg HomeRows), menu (Sidebar), strona serialu/filmu (hero wg Detail), odtwarzacz (Player + panel). Testy `NiuniaTokensTest`, `NiuniaDsTest`. Decyzje: `plan/DECYZJE.md` (20.11 design system v2).
+Mapa ekranów paczki 1 → trasa w aplikacji (`DEV=192.168.31.252:5555 python3 fork-tools/uitest/crawl.py <trasa>`):
+| makieta | stan w aplikacji | jak wejść |
+|---|---|---|
+| Main | Główna, hero, fokus Odtwórz | trasa `home` |
+| HomeRows | Główna po ▼ (rzędy, fokus 1. kafel „Oglądaj dalej”) | `home` + ▼ |
+| Sidebar | Główna z otwartym menu (fokus „Główna”) | `home` + Wstecz albo ◄ z hero |
+| Detail | strona serialu (fokus Wznów/Odtwórz) | `detail/<id>/series` albo OK na kafelku serialu |
+| Player | odtwarzacz (fokus pasek; ▲ ikony; dźwięk → panel z fokusem „Głośność lektora”) | Odtwórz na stronie tytułu |
+Wyniki testu na JMGO: (niżej, po buildzie).
+
 ## NIUNIA — LIVE TV OD NOWA + HERO (wątek 20.11 ~14:00, gałąź skin-niunia) — build141 NA JMGO
 Opis: `.stage/niunia/WPIECIE.md` „Po wdrożeniu” pkt 13–15; `plan/DECYZJE.md` (20.11).
 Commity: 1a7bd268f (Live TV: przewodnik, filtry, Odkrywaj, Szukaj, stos serialu), 410af3b48 (hero poza listą, animacja ▼, rzędy bez skakania), potem poprawki po teście (pkt 15, NIESKOMPILOWANE).

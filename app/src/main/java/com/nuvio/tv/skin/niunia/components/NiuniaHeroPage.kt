@@ -57,9 +57,10 @@ fun NiuniaHeroPage(
     what: String,
     hero: @Composable BoxScope.() -> Unit,
     below: @Composable BoxScope.() -> Unit,
+    belowFocusRequester: FocusRequester? = null,
 ) {
     var down by remember { mutableStateOf(false) }
-    val belowFocus = remember { FocusRequester() }
+    val belowFocus = belowFocusRequester ?: remember { FocusRequester() }
     val t by animateFloatAsState(if (down) 1f else 0f, tween(520, easing = FastOutSlowInEasing), label = "niuniaHeroPage")
     val blurOk = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val blurPx = with(LocalDensity.current) { 60.dp.toPx() }

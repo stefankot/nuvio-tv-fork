@@ -1,5 +1,20 @@
 package com.nuvio.tv.skin.niunia.player
 
+import com.nuvio.tv.skin.niunia.components.NiuniaButton
+import com.nuvio.tv.skin.niunia.components.NiuniaButtonKind
+import com.nuvio.tv.skin.niunia.components.NiuniaCollection
+import com.nuvio.tv.skin.niunia.components.NiuniaCollectionKind
+import com.nuvio.tv.skin.niunia.components.NiuniaListRow
+import com.nuvio.tv.skin.niunia.components.NiuniaPanelOverlay
+import com.nuvio.tv.skin.niunia.components.NiuniaPlayerInfoBlock
+import com.nuvio.tv.skin.niunia.components.NiuniaSeekBar
+import com.nuvio.tv.skin.niunia.components.NiuniaSeekState
+import com.nuvio.tv.skin.niunia.components.NiuniaSurface
+import com.nuvio.tv.skin.niunia.components.NiuniaSurfaceKind
+import com.nuvio.tv.skin.niunia.components.NiuniaTrailing
+import com.nuvio.tv.skin.niunia.tokens.NiuniaSpacing
+import kotlinx.coroutines.launch
+
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -103,6 +118,10 @@ fun NiuniaPlayerChrome(
     var barFocused by remember { mutableStateOf(false) }
     val firstButton = remember { FocusRequester() }
     var moreOpen by remember { mutableStateOf(false) }
+    var panelOpen by remember { mutableStateOf(false) }
+    var okDownAt by remember { mutableStateOf(0L) }
+    var okLong by remember { mutableStateOf(false) }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
     var controlsTopPx by remember { mutableFloatStateOf(0f) }
     var rootHeightPx by remember { mutableFloatStateOf(0f) }
     val series = uiState.currentSeason != null && uiState.currentEpisode != null
@@ -131,7 +150,7 @@ fun NiuniaPlayerChrome(
         kotlinx.coroutines.delay(60)
         try {
             when (level) {
-                0 -> firstButton.requestFocus()
+                0 -> progressBarFocusRequester.requestFocus()
                 1 -> rowFocus.requestFocus()
             }
         } catch (e: IllegalStateException) { if (level != 2) Log.w(TAG, "odtwarzacz: fokus poziomu $level: ${e.message}") }
@@ -162,67 +181,77 @@ fun NiuniaPlayerChrome(
             .onPreviewKeyEvent { if (it.type == KeyEventType.KeyDown) resetHide(); false }
             .onGloballyPositioned { rootHeightPx = it.size.height.toFloat() },
     ) {
-        Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(300.dp).background(Brush.verticalGradient(listOf(Color.Transparent, Color(0xBF000000)))))
-        Column(Modifier.align(Alignment.BottomStart).offset(y = controlsShift).padding(start = 40.dp, end = 40.dp, bottom = 46.dp).fillMaxWidth()) {
-            // Tytuł (canvas: 40, 330).
-            Text(stringResource(if (series) R.string.niunia_player_series else R.string.niunia_player_movie).uppercase(), style = NiuniaText.Caption.copy(fontSize = 12.sp, lineHeight = 16.sp), color = NiuniaColors.Text70)
+        // Makieta `Player` (layout player-peek): scrim od dołu, wiersz „informacje | napisy · jakość · dźwięk”, 30 dp, pasek postępu.
+        NiuniaSurface(NiuniaSurfaceKind.ScrimPlayer, Modifier.fillMaxSize())
+        Column(Modifier.align(Alignment.BottomStart).offset(y = controlsShift).padding(start = NiuniaSpacing.Space40, end = NiuniaSpacing.Space40, bottom = 46.dp).fillMaxWidth()) {
             val title = if (series) uiState.contentName ?: uiState.title else uiState.title
-            if (uiState.logo != null) {
-                AsyncImage(model = uiState.logo, contentDescription = title, contentScale = ContentScale.Fit, alignment = Alignment.CenterStart,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 6.dp).width(300.dp).height(64.dp))
-            } else {
-                Text(title, style = NiuniaText.Logo.copy(fontSize = 32.sp, lineHeight = 38.sp), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.width(520.dp))
-            }
             val meta = listOfNotNull(
                 uiState.releaseYear?.takeIf { it.isNotBlank() && !series },
                 if (series) "S${uiState.currentSeason}:O${uiState.currentEpisode}" else null,
                 uiState.currentEpisodeTitle?.takeIf { series && it.isNotBlank() },
                 speedLabel(uiState.playbackSpeed).takeIf { uiState.playbackSpeed != 1f },
             ).joinToString(" · ")
-            if (meta.isNotEmpty()) Text(meta, style = NiuniaText.Body.copy(fontSize = 13.sp), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.dp))
-            Spacer(Modifier.height(20.dp).onGloballyPositioned { controlsTopPx = it.positionInRoot().y })
-            // Pasek postępu (canvas: y 420, 8 dp, kółko 16 dp).
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(formatScrubTime(scrub.state.markerMs ?: scrub.state.positionMs), style = NiuniaText.Caption.copy(fontSize = 12.sp), color = NiuniaColors.Text)
-                val duration = scrub.state.durationMs.coerceAtLeast(1L).toFloat()
-                val played = (scrub.state.positionMs / duration).coerceIn(0f, 1f)
-                val marker = scrub.state.markerMs?.let { (it / duration).coerceIn(0f, 1f) }
-                Canvas(
-                    Modifier
-                        .weight(1f)
-                        .height(16.dp)
-                        .focusRequester(progressBarFocusRequester)
-                        .focusRequester(playPauseFocusRequester)
-                        .onFocusChanged { barFocused = it.isFocused; if (it.isFocused) resetHide() }
-                        .forgeScrubKeys(scrub, onTogglePause = { onEvent(PlayerEvent.OnPlayPause); resetHide() },
-                            onUp = { false },
-                            onDown = { try { firstButton.requestFocus(); true } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: ▼ z paska: ${e.message}"); false } })
-                        .focusable(),
+            val quality = niuniaQualityGlyph(uiState.streamInfoData?.videoHeight, uiState.currentStreamName)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
+                NiuniaPlayerInfoBlock(
+                    eyebrow = stringResource(if (series) R.string.niunia_player_series else R.string.niunia_player_movie),
+                    logo = uiState.logo, title = title, meta = meta.ifBlank { null }, quality = quality,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                Row(
+                    Modifier.onPreviewKeyEvent {
+                        if (it.type == KeyEventType.KeyDown && it.key == Key.DirectionDown) {
+                            try { progressBarFocusRequester.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: ▼ z ikon: ${e.message}") }
+                            true
+                        } else false
+                    },
+                    horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12), verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    val h = (if (barFocused) 8.dp else 6.dp).toPx()
-                    val y = (size.height - h) / 2f
-                    drawRoundRect(Color.White.copy(alpha = 0.24f), Offset(0f, y), Size(size.width, h), CornerRadius(h / 2f))
-                    drawRoundRect(Color.White, Offset(0f, y), Size(size.width * played, h), CornerRadius(h / 2f))
-                    val knob = (marker ?: played) * size.width
-                    if (barFocused) drawCircle(Color.White, radius = 8.dp.toPx(), center = Offset(knob, size.height / 2f))
+                    NiuniaButton(onClick = { onEvent(PlayerEvent.OnShowSubtitleOverlay); resetHide() }, icon = "subtitles",
+                        description = stringResource(R.string.niunia_player_subtitles), focusRequester = firstButton)
+                    NiuniaButton(onClick = { onEvent(PlayerEvent.OnShowQualityOverlay); resetHide() }, glyph = quality, icon = if (quality == null) "settings" else null,
+                        description = stringResource(R.string.niunia_player_quality) + (quality?.let { ": $it" } ?: ""))
+                    NiuniaButton(onClick = { panelOpen = true; Log.i(TAG, "odtwarzacz: panel ${context.getString(R.string.niunia_ds_panel_title)}"); resetHide() }, icon = "audio",
+                        description = stringResource(R.string.niunia_player_audio), active = panelOpen)
                 }
-                Text("−" + formatScrubTime((scrub.state.durationMs - scrub.state.positionMs).coerceAtLeast(0)), style = NiuniaText.Caption.copy(fontSize = 12.sp), color = NiuniaColors.Text70)
             }
-            // Przyciski (canvas: y 454, odstęp 12).
-            Row(
-                Modifier.padding(top = NiuniaSpace.PlayerGap).onPreviewKeyEvent {
-                    if (it.type == KeyEventType.KeyDown && it.key == Key.DirectionDown) { go(if (hasRow) 1 else 2); true } else false
-                },
-                horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically,
-            ) {
-                SmallButton(if (uiState.isPlaying) "❚❚" else "▶", round = true, focusRequester = firstButton) { onEvent(PlayerEvent.OnPlayPause); resetHide() }
-                SmallButton(stringResource(R.string.niunia_player_info)) { onEvent(PlayerEvent.OnShowStreamInfo); resetHide() }
-                SmallButton(stringResource(R.string.niunia_player_audio)) { onEvent(PlayerEvent.OnShowAudioOverlay); resetHide() }
-                SmallButton(stringResource(R.string.niunia_player_subtitles)) { onEvent(PlayerEvent.OnShowSubtitleOverlay); resetHide() }
-                if (series) SmallButton(stringResource(R.string.niunia_player_episodes)) { onEvent(PlayerEvent.OnShowEpisodesPanel); resetHide() }
-                SmallButton(stringResource(R.string.niunia_player_speed, speedLabel(uiState.playbackSpeed))) { onEvent(PlayerEvent.OnShowSpeedDialog); resetHide() }
-                SmallButton(stringResource(R.string.niunia_player_more)) { moreOpen = true; Log.i(TAG, "odtwarzacz: panel Więcej"); resetHide() }
-            }
+            Spacer(Modifier.height(NiuniaSpace.PlayerGap).onGloballyPositioned { controlsTopPx = it.positionInRoot().y })
+            val duration = scrub.state.durationMs.coerceAtLeast(1L)
+            NiuniaSeekBar(
+                state = NiuniaSeekState.of(scrub.state.positionMs, duration),
+                start = formatScrubTime(scrub.state.markerMs ?: scrub.state.positionMs),
+                end = "\u2212" + formatScrubTime((scrub.state.durationMs - scrub.state.positionMs).coerceAtLeast(0)),
+                focused = barFocused,
+                marker = scrub.state.markerMs?.let { (it.toFloat() / duration).coerceIn(0f, 1f) },
+                trackModifier = Modifier
+                    .focusRequester(progressBarFocusRequester)
+                    .focusRequester(playPauseFocusRequester)
+                    .onFocusChanged { barFocused = it.isFocused; if (it.isFocused) resetHide() }
+                    .onPreviewKeyEvent { e ->
+                        // Długie OK na pasku (520 ms) = szczegóły filmu/serialu (makieta: long-href PlayerFilmInfo); krótkie = pauza (pasek).
+                        val ok = e.key == Key.DirectionCenter || e.key == Key.Enter || e.key == Key.NumPadEnter
+                        if (!ok) return@onPreviewKeyEvent false
+                        when (e.type) {
+                            KeyEventType.KeyDown -> {
+                                if (okDownAt == 0L) {
+                                    okDownAt = System.currentTimeMillis(); okLong = false
+                                    val mark = okDownAt
+                                    scope.launch {
+                                        kotlinx.coroutines.delay(com.nuvio.tv.skin.niunia.tokens.NiuniaMotion.LongPress.toLong())
+                                        if (okDownAt == mark) { okLong = true; Log.i(TAG, "długie OK → pasek: szczegóły"); go(2) }
+                                    }
+                                }
+                                false
+                            }
+                            KeyEventType.KeyUp -> { val consumed = okLong; okDownAt = 0L; okLong = false; consumed }
+                            else -> false
+                        }
+                    }
+                    .forgeScrubKeys(scrub, onTogglePause = { Log.i(TAG, "OK → pasek: pauza/odtwarzanie"); onEvent(PlayerEvent.OnPlayPause); resetHide() },
+                        onUp = { try { firstButton.requestFocus(); true } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: ▲ z paska: ${e.message}"); false } },
+                        onDown = { go(if (hasRow) 1 else 2); true })
+                    .focusable(),
+            )
         }
 
         // „Więcej” — szklany panel po prawej (canvas .glass: 360 szer., od y 40, promień 28 po lewej).
@@ -248,16 +277,77 @@ fun NiuniaPlayerChrome(
                 extras.playTrailer(uiState.contentName ?: uiState.title, uiState.releaseYear, viewModel.controller.contentType ?: if (series) "series" else "movie")
             },
         )
-        BackHandler(enabled = level > 0 && !moreOpen && !trailerOpen) { go(if (level == 2 && hasRow) 1 else 0) }
+        BackHandler(enabled = level > 0 && !moreOpen && !panelOpen && !trailerOpen) { go(if (level == 2 && hasRow) 1 else 0) }
         extrasState.trailer?.let { t -> NiuniaTrailerOverlay(t) { extras.closeTrailer() } }
 
-        SideEffect { ForgeSheetOpen.open = moreOpen || level > 0 || trailerOpen }
+        SideEffect { ForgeSheetOpen.open = moreOpen || panelOpen || level > 0 || trailerOpen }
         DisposableEffect(Unit) { onDispose { ForgeSheetOpen.open = false } }
-        LaunchedEffect(moreOpen, level) { while (moreOpen || level > 0) { resetHide(); kotlinx.coroutines.delay(2_000) } }
+        LaunchedEffect(moreOpen, panelOpen, level) { while (moreOpen || panelOpen || level > 0) { resetHide(); kotlinx.coroutines.delay(2_000) } }
+        AnimatedVisibility(panelOpen, modifier = Modifier.align(Alignment.TopEnd), enter = slideInHorizontally { it }, exit = slideOutHorizontally { it }) {
+            BackHandler { panelOpen = false; Log.i(TAG, "Wstecz → odtwarzacz (panel zamknięty)") }
+            NiuniaAudioPanel(
+                close = { panelOpen = false },
+                onEvent = { onEvent(it); resetHide() },
+                openMore = { panelOpen = false; moreOpen = true },
+                toast = { msg -> Toast.makeText(context, msg, Toast.LENGTH_SHORT).show() },
+            )
+        }
         AnimatedVisibility(moreOpen, modifier = Modifier.align(Alignment.TopEnd).padding(top = 40.dp), enter = slideInHorizontally { it }, exit = slideOutHorizontally { it }) {
             BackHandler { moreOpen = false }
             NiuniaMorePanel(series = series, speed = uiState.playbackSpeed, close = { moreOpen = false }, onEvent = onEvent, toast = { msg -> Toast.makeText(context, msg, Toast.LENGTH_SHORT).show() })
         }
+    }
+}
+
+/**
+ * Panel „Audio, lektor i napisy” (makieta `Player`, NOverlay panel): zakładki Audio · Lektor · Napisy (decyzja 20.11).
+ * Lektor: włącz/wyłącz, głośność lektora i ściszanie filmu (OK = następna wartość, panel zostaje otwarty); fokus startowy
+ * „Głośność lektora”. Audio: ścieżka dźwiękowa i więcej opcji (źródła, jakość, test łącza). Napisy: wybór napisów.
+ */
+@Composable
+internal fun NiuniaAudioPanel(close: () -> Unit, onEvent: (PlayerEvent) -> Unit, openMore: () -> Unit, toast: (String) -> Unit) {
+    val ctx = LocalContext.current
+    val lektorOn = com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctx, "module_lektor")
+    var tab by remember { mutableIntStateOf(if (lektorOn) 1 else 0) }
+    val first = remember { FocusRequester() }
+    LaunchedEffect(tab) {
+        Log.i(TAG, "odtwarzacz: panel, zakładka $tab, fokus startowy")
+        try { first.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus panelu: ${e.javaClass.simpleName}: ${e.message}") }
+    }
+    NiuniaPanelOverlay(stringResource(R.string.niunia_ds_panel_title), Modifier.focusGroup()) {
+        NiuniaCollection(NiuniaCollectionKind.Chips, Modifier.padding(bottom = NiuniaSpacing.Space8)) {
+            NiuniaButton(onClick = { tab = 0 }, label = stringResource(R.string.niunia_ds_tab_audio), kind = NiuniaButtonKind.Chip, selected = tab == 0)
+            if (lektorOn) NiuniaButton(onClick = { tab = 1 }, label = stringResource(R.string.niunia_ds_tab_lektor), kind = NiuniaButtonKind.Chip, selected = tab == 1)
+            NiuniaButton(onClick = { tab = 2 }, label = stringResource(R.string.niunia_player_subtitles), kind = NiuniaButtonKind.Chip, selected = tab == 2)
+        }
+        when (tab) {
+            1 -> {
+                var rev by remember { mutableIntStateOf(0) }
+                val m = com.nuvio.tv.fork.lektor.LektorModule
+                val on = rev.let { com.nuvio.tv.fork.lektor.LektorEngine.enabled }
+                NiuniaListRow(stringResource(R.string.niunia_ds_tab_lektor), onClick = { toast(com.nuvio.tv.fork.lektor.LektorController.toggle(ctx)); rev++ },
+                    value = stringResource(if (on) R.string.niunia_player_on else R.string.niunia_player_off))
+                NiuniaListRow(stringResource(R.string.lektor_volume_row), onClick = { m.cycleVolume(ctx); rev++ }, value = rev.let { m.volumeLabel(ctx) }, focusRequester = first)
+                NiuniaListRow(stringResource(R.string.lektor_duck_row), onClick = { m.cycleDuck(ctx); rev++ }, value = rev.let { m.duckLabel(ctx) })
+            }
+            2 -> NiuniaListRow(stringResource(R.string.niunia_ds_subtitles_choose), onClick = { close(); onEvent(PlayerEvent.OnShowSubtitleOverlay) }, trailing = NiuniaTrailing.Chevron, focusRequester = first)
+            else -> {
+                NiuniaListRow(stringResource(R.string.niunia_ds_audio_track), onClick = { close(); onEvent(PlayerEvent.OnShowAudioOverlay) }, trailing = NiuniaTrailing.Chevron, focusRequester = first)
+                NiuniaListRow(stringResource(R.string.niunia_ds_more_options), onClick = openMore, trailing = NiuniaTrailing.Chevron)
+            }
+        }
+    }
+}
+
+/** Napis w kółku przycisku jakości z grającego strumienia: UHD / HD / SD; null = nieznana. */
+internal fun niuniaQualityGlyph(videoHeight: Int?, streamName: String?): String? {
+    if (videoHeight != null && videoHeight > 0) return when { videoHeight >= 1800 -> "UHD"; videoHeight >= 700 -> "HD"; else -> "SD" }
+    val n = streamName?.lowercase() ?: return null
+    return when {
+        Regex("""2160|\b4k\b|uhd""").containsMatchIn(n) -> "UHD"
+        Regex("""1080|720|\bhd\b""").containsMatchIn(n) -> "HD"
+        Regex("""480|360|\bsd\b""").containsMatchIn(n) -> "SD"
+        else -> null
     }
 }
 

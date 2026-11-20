@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Skórka Niunia: teksty ekranów z design systemu Nuvio TV v2 (paczka 1: Główna, menu, strona serialu, odtwarzacz). -->
+<resources>
+    <string name="niunia_ds_add_library">Dodaj do biblioteki</string>
+    <string name="niunia_ds_details">Szczegóły</string>
+    <string name="niunia_ds_next_featured">Następny wyróżniony tytuł</string>
+    <string name="niunia_ds_open_menu">Otwórz menu</string>
+    <string name="niunia_ds_about_series">O serialu</string>
+    <string name="niunia_ds_about_movie">O filmie</string>
+    <string name="niunia_ds_watch_lektor">Obejrzyj z lektorem</string>
+    <string name="niunia_ds_cast">Obsada</string>
+    <string name="niunia_ds_resume_left">Wznów, zostało %1$s</string>
+    <string name="niunia_ds_seasons_one">1 sezon</string>
+    <string name="niunia_ds_seasons_few">%1$d sezony</string>
+    <string name="niunia_ds_seasons_many">%1$d sezonów</string>
+    <string name="niunia_ds_progress">Postęp filmu</string>
+    <string name="niunia_ds_panel_title">Audio, lektor i napisy</string>
+    <string name="niunia_ds_tab_audio">Audio</string>
+    <string name="niunia_ds_tab_lektor">Lektor</string>
+    <string name="niunia_ds_lektor_voice">Głos lektora</string>
+    <string name="niunia_ds_expressive">Ekspresyjność</string>
+    <string name="niunia_ds_audio_track">Ścieżka dźwiękowa</string>
+    <string name="niunia_ds_subtitles_choose">Wybierz napisy</string>
+    <string name="niunia_ds_more_options">Więcej opcji</string>
+    <string name="niunia_ds_no_play">Nie udało się otworzyć tego tytułu</string>
+</resources>

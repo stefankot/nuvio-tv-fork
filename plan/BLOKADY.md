@@ -44,3 +44,4 @@ Czego brakuje: adres IP projektora JMGO z włączonym debugowaniem sieciowym (po
 Co może dostarczyć właściciel: IP JMGO (Ustawienia → Sieć) i włączenie debugowania USB/sieciowego.
 
 - 2026-11-17 JMGO H931 (192.168.31.252): instalacja forka niemożliwa: `INSTALL_FAILED_DUPLICATE_PERMISSION` (`com.nuvio.reshaped.tv.permission.MIGRATE` należy do zainstalowanej aplikacji `com.nuvioreshaped.tv`). Poprzednia instalacja forka (podpis inny niż mój build, z 16.11) została odinstalowana, bo blokowała aktualizację. Żeby zmierzyć JMGO: właściciel odinstalowuje `com.nuvioreshaped.tv` na JMGO albo zgadza się na wariant builda z inną nazwą uprawnienia. Pomiary idą na Xiaomi.
+- 20.11 Niunia panel lektora w odtwarzaczu (makieta Player): „Głos lektora” i „Ekspresyjność” — brak API (głos tylko w Ustawienia → Moduły → Lektor przez `LektorVoiceChoice.actions()`, poziom emocji nie istnieje w `LektorScript`). Do zrobienia razem z wątkiem lektora.
