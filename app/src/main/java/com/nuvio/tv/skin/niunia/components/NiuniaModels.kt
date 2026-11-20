@@ -105,6 +105,15 @@ fun niuniaCardParts(
     )
 }
 
+/** Stopka plakatu (nuvio.js posterFoot): logo tytułu, tytuł tekstem, albo nic (grafika ma już tytuł — „baked”). */
+enum class NiuniaPosterFoot { Logo, Title, None }
+
+fun niuniaPosterFoot(baked: Boolean, logo: String?): NiuniaPosterFoot = when {
+    baked -> NiuniaPosterFoot.None
+    !logo.isNullOrBlank() -> NiuniaPosterFoot.Logo
+    else -> NiuniaPosterFoot.Title
+}
+
 // ---------------------------------------------------------------- NInput seek
 
 enum class NiuniaSeekTone { Main, Live, Delay, Archive }

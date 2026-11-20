@@ -74,6 +74,22 @@ class NiuniaDsTest {
         assertNull(niuniaCardParts(NiuniaCardPreset.StillCard, badge = " ").badge)
     }
 
+    @Test fun `plakaty - warianty z makiety Posters`() {
+        // zwykła grafika z tytułem w obrazie (baked): bez stopki z tytułem
+        assertEquals(com.nuvio.tv.skin.niunia.components.NiuniaPosterFoot.None, com.nuvio.tv.skin.niunia.components.niuniaPosterFoot(baked = true, logo = "l.png"))
+        // logo tytułu w stopce
+        assertEquals(com.nuvio.tv.skin.niunia.components.NiuniaPosterFoot.Logo, com.nuvio.tv.skin.niunia.components.niuniaPosterFoot(baked = false, logo = "l.png"))
+        // tytuł tekstem, gdy nie ma logo
+        assertEquals(com.nuvio.tv.skin.niunia.components.NiuniaPosterFoot.Title, com.nuvio.tv.skin.niunia.components.niuniaPosterFoot(baked = false, logo = " "))
+        // kropka statusu i etykieta na plakacie (PosterCard status="live")
+        val live = niuniaCardParts(NiuniaCardPreset.PosterCard, status = NiuniaCardStatus.Live)
+        assertEquals(NiuniaCardStatus.Live, live.statusDot); assertTrue(live.posterFoot)
+        // spotlight ma stopkę jak plakat
+        assertTrue(niuniaCardParts(NiuniaCardPreset.SpotlightCard).posterFoot)
+        // stan błędu pokazuje tytuł jako zapas
+        assertEquals("Resident Evil", niuniaCardParts(NiuniaCardPreset.PosterCard, NiuniaCardState.Error, title = "Resident Evil").fallbackLabel)
+    }
+
     // ------------------------------------------------------------------ NInput seek
 
     @Test fun `pasek na zywo czerwony bez bufora`() {
