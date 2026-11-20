@@ -356,8 +356,14 @@ private fun restoreModifier(key: String, restore: FocusRequester): Modifier {
     LaunchedEffect(key) {
         if (!NiuniaHomeMemory.restorePending) return@LaunchedEffect
         NiuniaHomeMemory.restorePending = false
-        kotlinx.coroutines.delay(80)
-        try { restore.requestFocus(); Log.i(TAG, "ekran główny: fokus wraca na $key") } catch (e: IllegalStateException) { Log.w(TAG, "ekran główny: powrót fokusu: ${e.javaClass.simpleName}: ${e.message}") }
+        // Pierwsza klatka, zanim domyślny fokus trafi do menu (wcześniej po 80 ms menu zdążyło się na chwilę otworzyć).
+        androidx.compose.runtime.withFrameNanos { }
+        val ok = try { restore.requestFocus(); true } catch (e: IllegalStateException) { Log.w(TAG, "ekran główny: powrót fokusu (1. klatka): ${e.javaClass.simpleName}: ${e.message}"); false }
+        if (!ok) {
+            kotlinx.coroutines.delay(80)
+            try { restore.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "ekran główny: powrót fokusu: ${e.javaClass.simpleName}: ${e.message}") }
+        }
+        Log.i(TAG, "ekran główny: fokus wraca na $key")
     }
     return Modifier.focusRequester(restore)
 }
