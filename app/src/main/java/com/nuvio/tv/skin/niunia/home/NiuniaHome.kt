@@ -81,6 +81,8 @@ fun NiuniaHome(
     var heroIndex by remember { mutableIntStateOf(0) }
     var focusedRow by remember { mutableIntStateOf(-1) }
     val heroFocus = remember { FocusRequester() }
+    // Fork 20.11: wyjście z menu (▶, Wstecz, ta sama zakładka) wraca na przycisk hero.
+    com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(if (heroes.isNotEmpty()) heroFocus else null)
     val posterPattern = remember(uiState.customPosterUrlPattern, uiState.customPosterEnabledScreens) {
         com.nuvio.tv.core.poster.patternForScreen(uiState.customPosterUrlPattern, com.nuvio.tv.core.poster.CustomPosterScreen.HOME, uiState.customPosterEnabledScreens)
     }

@@ -66,8 +66,26 @@ import com.nuvio.tv.skin.niunia.tokens.NiuniaColors
 import com.nuvio.tv.ui.reshaped.pillnav.PillNavBarState
 import com.nuvio.tv.ui.reshaped.pillnav.PillNavEntry
 import com.nuvio.tv.ui.reshaped.pillnav.PillNavEntryKind
+import kotlinx.coroutines.launch
 
 private const val TAG = "ForkNiunia"
+
+/**
+ * Fork 20.11 (właściciel: „po wyborze Główna menu zamyka się na chwilę i wraca; Wstecz i ▶ mają wychodzić z menu”):
+ * ekran Niuni podaje tu element, na który wraca fokus po wyjściu z menu (Główna: przycisk hero). Bez niego — ▶ w treść.
+ */
+object NiuniaContentFocus {
+    var requester: FocusRequester? = null
+}
+
+/** Ekran Niuni: [requester] dostaje fokus po wyjściu z menu (dopóki ekran jest na ekranie). */
+@Composable
+fun NiuniaRegisterContentFocus(requester: FocusRequester?) {
+    androidx.compose.runtime.DisposableEffect(requester) {
+        NiuniaContentFocus.requester = requester
+        onDispose { if (NiuniaContentFocus.requester === requester) NiuniaContentFocus.requester = null }
+    }
+}
 
 /** Wpięcie (PillNavigationBar): true = aktywna skórka Niunia, pasek rysuje [NiuniaNavBar]. */
 @Composable
@@ -101,12 +119,30 @@ internal fun NiuniaNavBar(
     val ordered = listOfNotNull(profile) + items
     val selected = entries.firstOrNull { it.key == selectedKey } ?: items.firstOrNull()
     val focusManager = LocalFocusManager.current
-    // Wyjście z panelu do treści ekranu: w prawo (panel jest pionowy, „w dół” trafiało w następną pozycję menu),
-    // a gdy w prawo nic nie ma — requester treści z PillNavScaffold (onExitDown).
+    // Wyjście z panelu do treści ekranu. Fork 20.11: na czas wyjścia pozycje menu nie przyjmują fokusu — wcześniej, gdy
+    // w prawo nic nie było, onExitDown robił „fokus w dół”, który w pionowym panelu trafiał w następną pozycję menu
+    // (menu zamykało się na chwilę i wracało). Kolejność: element ekranu Niuni → w prawo → requester treści.
+    var leaving by remember { mutableStateOf(false) }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val ctx = LocalContext.current
     fun exitToContent(why: String) {
-        val moved = try { focusManager.moveFocus(FocusDirection.Right) } catch (e: IllegalStateException) { Log.w(TAG, "menu → treść: ${e.javaClass.simpleName}: ${e.message}"); false }
-        if (!moved || state.hasFocus) onExitDown()
-        Log.i(TAG, "menu → treść ($why), w prawo=${moved}")
+        scope.launch {
+            leaving = true
+            withFrameNanos { }
+            val target = NiuniaContentFocus.requester
+            var how = "element ekranu"
+            val ok = target != null && try { target.requestFocus(); true } catch (e: IllegalStateException) { Log.w(TAG, "menu → treść (element ekranu): ${e.javaClass.simpleName}: ${e.message}"); false }
+            if (!ok) {
+                how = "w prawo"
+                val moved = try { focusManager.moveFocus(FocusDirection.Right) } catch (e: IllegalStateException) { Log.w(TAG, "menu → treść: ${e.javaClass.simpleName}: ${e.message}"); false }
+                if (!moved || state.hasFocus) { how = "requester treści"; onExitDown() }
+            }
+            withFrameNanos { }
+            withFrameNanos { }
+            leaving = false
+            Log.i(TAG, "menu → treść ($why): $how, menu otwarte=${state.hasFocus}")
+            if (state.hasFocus) com.nuvio.tv.fork.ForkLog.say(ctx, TAG, "Nie udało się zamknąć menu")
+        }
     }
     // OK na zakładce: po przejściu na nowy ekran fokus idzie do jego treści (nie zostaje w menu).
     var exitAfterSwitch by remember { mutableStateOf(false) }
@@ -154,8 +190,8 @@ internal fun NiuniaNavBar(
                 .padding(horizontal = 8.dp, vertical = 12.dp)
                 .onFocusChanged { if (state.hasFocus != it.hasFocus) { state.hasFocus = it.hasFocus; Log.i(TAG, "menu: " + if (it.hasFocus) "otwarte" else "zamknięte") } }
                 .onPreviewKeyEvent { e ->
-                    // Wstecz w otwartym menu: zamyka je (fokus do treści). Na ekranie Główna — jak dotąd (wyjście z aplikacji).
-                    if (e.key == Key.Back && selectedKey != homeKey) {
+                    // Wstecz w otwartym menu: zamyka je (fokus do treści) — także na Głównej (właściciel 20.11).
+                    if (e.key == Key.Back) {
                         if (e.type == KeyEventType.KeyUp) exitToContent("Wstecz")
                         return@onPreviewKeyEvent true
                     }
@@ -172,11 +208,17 @@ internal fun NiuniaNavBar(
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             ordered.forEach { entry ->
-                if (entry.kind == PillNavEntryKind.Profile) ProfileRow(entry, activeProfileColorHex, interactive && open || interactive && entry.key == selected?.key, requesterFor(entry.key), state, onEntryClick)
-                else SideItem(entry, entry.key == selectedKey, interactive && (open || entry.key == selected?.key), requesterFor(entry.key), state, activeProfileColorHex) {
-                    onEntryClick(it)
-                    // Ten sam ekran: PillNavScaffold sam oddaje fokus treści; inny: po przejściu (exitAfterSwitch).
-                    if (it.key != selectedKey) exitAfterSwitch = true
+                if (entry.kind == PillNavEntryKind.Profile) ProfileRow(entry, activeProfileColorHex, !leaving && (interactive && open || interactive && entry.key == selected?.key), requesterFor(entry.key), state, onEntryClick)
+                else SideItem(entry, entry.key == selectedKey, !leaving && interactive && (open || entry.key == selected?.key), requesterFor(entry.key), state, activeProfileColorHex) {
+                    if (it.key == selectedKey) {
+                        // Ta sama zakładka (np. Główna na Głównej): bez ponownego przejścia — tylko wyjście do treści
+                        // (ponowne wejście PillNavScaffold oddawało fokus treści i „w dół” z powrotem do menu).
+                        Log.i(TAG, "menu: ta sama zakładka ${it.key} → treść")
+                        exitToContent("ta sama zakładka")
+                    } else {
+                        onEntryClick(it)
+                        exitAfterSwitch = true
+                    }
                 }
             }
         }
