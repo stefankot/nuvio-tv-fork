@@ -368,6 +368,7 @@ fun PlayerScreen(
     val handleBackPress = handleBackPress@{
         if (externalHandoffInProgress) return@handleBackPress
         if (viewModel.seekPreview.handleBack(uiState)) return@handleBackPress
+        if (com.nuvio.tv.skin.niunia.player.NiuniaPlayerBack.consume()) return@handleBackPress // Fork hook: skin (Wstecz krok po kroku w nakładce skórki)
         if (postPlayRecommendationState.canReturnToPlayer && !uiState.playbackEnded) {
             returnToPlayerFromPostPlay()
             viewModel.hideControls()

@@ -292,6 +292,20 @@ fun NiuniaPlayerChrome(
         extrasState.trailer?.let { t -> NiuniaTrailerOverlay(t) { extras.closeTrailer() } }
 
         SideEffect { ForgeSheetOpen.open = moreOpen || panelOpen || level > 0 || trailerOpen }
+        // Wstecz krok po kroku przez wpięcie w PlayerScreen.handleBackPress (makieta Player: panel → odtwarzacz; ▼▼ → ▼ → pasek).
+        val hasRowNow by androidx.compose.runtime.rememberUpdatedState(hasRow)
+        DisposableEffect(Unit) {
+            NiuniaPlayerBack.handler = {
+                when {
+                    extras.state.value.trailer != null -> { Log.i(TAG, "Wstecz → odtwarzacz (zwiastun zamknięty)"); extras.closeTrailer(); true }
+                    moreOpen -> { moreOpen = false; Log.i(TAG, "Wstecz → odtwarzacz (Więcej zamknięte)"); true }
+                    panelOpen -> { panelOpen = false; Log.i(TAG, "Wstecz → odtwarzacz (panel zamknięty)"); true }
+                    level > 0 -> { val to = if (level == 2 && hasRowNow) 1 else 0; Log.i(TAG, "Wstecz → poziom $to"); go(to); true }
+                    else -> false
+                }
+            }
+            onDispose { NiuniaPlayerBack.handler = null }
+        }
         DisposableEffect(Unit) { onDispose { ForgeSheetOpen.open = false } }
         LaunchedEffect(moreOpen, panelOpen, level) { while (moreOpen || panelOpen || level > 0) { resetHide(); kotlinx.coroutines.delay(2_000) } }
         AnimatedVisibility(panelOpen, modifier = Modifier.align(Alignment.TopEnd), enter = slideInHorizontally { it }, exit = slideOutHorizontally { it }) {

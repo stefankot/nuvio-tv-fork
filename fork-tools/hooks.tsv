@@ -81,3 +81,4 @@ app/src/main/java/com/nuvio/tv/ui/reshaped/pillnav/PillNavigationBar.kt	// Fork 
 app/src/main/java/com/nuvio/tv/ui/screens/cast/CastDetailScreen.kt	Fork hook: skin (strona osoby skórki)	CastDetailContent(	skin	skin: strona osoby (Niunia)	
 app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	Fork hook: skin (Live TV skórki)	LIVE_TV_ROUTE	skin	skin: Live TV (Niunia)	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerAutoQuality.kt	Fork hook: echo (w dół tylko po zacięciu)	autoQualityPolicy.config =	echo	Auto jakość: bez wczesnego schodzenia w dół (EchoAutoQualityGuard)	
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	// Fork hook: skin (Wstecz krok po kroku w nakładce skórki)	seekPreview.handleBack	skin	skin: Wstecz najpierw do nakładki skórki (panel, poziomy Niuni)	
