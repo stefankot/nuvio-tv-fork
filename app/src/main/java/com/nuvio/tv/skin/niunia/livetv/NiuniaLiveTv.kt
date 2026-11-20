@@ -2,7 +2,9 @@ package com.nuvio.tv.skin.niunia.livetv
 
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,13 +20,22 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.CalendarToday
+import androidx.compose.material.icons.outlined.Explore
+import androidx.compose.material.icons.outlined.PlayCircle
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,7 +44,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -45,63 +67,123 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.nuvio.tv.R
+import com.nuvio.tv.fork.tv.AlertKind
+import com.nuvio.tv.fork.tv.TvStore
+import com.nuvio.tv.reshaped.livetv.LiveTvCatchupLinks
 import com.nuvio.tv.reshaped.livetv.LiveTvChannel
 import com.nuvio.tv.reshaped.livetv.LiveTvProgramme
 import com.nuvio.tv.reshaped.livetv.LiveTvRepository
+import com.nuvio.tv.skin.kicia.livetv.ForgeEpgCategories
+import com.nuvio.tv.skin.kicia.livetv.forgeChannelLogo
+import com.nuvio.tv.skin.kicia.livetv.rememberForgeLogoVersion
 import com.nuvio.tv.skin.niunia.components.niuniaFocusable
 import com.nuvio.tv.skin.niunia.tokens.NiuniaColors
 import com.nuvio.tv.skin.niunia.tokens.NiuniaDims
 import com.nuvio.tv.skin.niunia.tokens.NiuniaText
 import com.nuvio.tv.ui.reshaped.livetv.LiveTvScreenModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Calendar
 
 private const val TAG = "ForkNiunia"
-private const val HOUR_MS = 3_600_000L
-private const val WINDOW_MS = 165 * 60_000L // 2 h 45 min na osi (canvas: 20:00 → 22:45)
-private val HOUR_DP = 280.dp // canvas: 280 dp na godzinę (152 → 432)
-private val CHANNEL_COL = 112.dp // canvas: kanały od x 40, programy od x 152
+private const val HALF_MS = 30 * MIN_MS
+private val HALF_DP = 220.dp // canvas: 220 dp na pół godziny (20:30 → 214, 21:00 → 434)
+private val GRID_X = 214.dp // canvas: komórki od x 214, kolumna kanału 40..206
+private val CH_W = 166.dp
+private val CELL_H = 44.dp
 private val ROW_H = 48.dp
+private const val WINDOW_MS = 105 * MIN_MS // 746 dp do prawej krawędzi ≈ 1 h 42 min
+private const val PAST_DAYS = 7
+
+/** Ekrany Live TV Niuni w jednej trasie (Wstecz wraca do przewodnika). */
+private enum class LiveMode { GUIDE, DISCOVER, SEARCH }
 
 /**
- * Live TV Niunii (canvas: LiveTV): rząd „Teraz w telewizji” (kadr programu albo logo, plakietka LIVE, „Kanał · do HH:MM” z paskiem),
- * „Przewodnik” z pigułkami kategorii, oś czasu (pełne pół godziny wstecz + 2 h 45 min) z czerwoną linią „teraz”,
- * kanały po lewej i komórki programów (trwający = jaśniejszy, fokus = biały). Na dole linia programu z fokusem.
- * Dane: [LiveTvRepository] (kanały, program teraz, ramówka); OK = kanał na żywo (ta sama trasa odtwarzacza co w Live TV Nuvio).
- * Archiwum, ulubione, źródła i ukrywanie kategorii zostają w Live TV Nuvio (skórka Nuvio/Kicia).
+ * Live TV Niuni (canvas v4: `LiveTV`, `LiveTVFav`, `LiveTVRow`, `LiveTVDiscover`, `LiveTVSearch`; decyzje właściciela 20.11).
+ * U góry po prawej Szukaj · Dziś · Odkrywaj; rząd kafelków i linia filtrów (Wszystkie — fokus na wejściu, Ulubione,
+ * Oglądaj dalej, kategorie z EPG) zmieniają jednocześnie kafelki i przewodnik. Przewodnik jak u nadawców: numer + logo,
+ * komórki w jednej linii, ▶ przy trwającym, fokus = biała obwódka, podziałka co 30 min, czerwona linia „teraz”;
+ * w rzędzie z fokusem końce osi przechodzą w tło ze strzałkami ‹ ›. Pod przewodnikiem opis programu z fokusem.
+ * Dane: [LiveTvRepository], [TvStore], [ForgeEpgCategories] — bez nowych źródeł.
  */
 @Composable
 fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltViewModel()) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     remember(viewModel) { viewModel.ensureLoaded() }
+    rememberForgeLogoVersion()
     val state by LiveTvRepository.uiState.collectAsState()
-    var group by remember { mutableStateOf<String?>(null) }
+    val favShows by TvStore.favoriteShows.collectAsState()
+    val alerts by TvStore.alerts.collectAsState()
+    val recent by TvStore.recent.collectAsState()
+    val resume by TvStore.resume.collectAsState()
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
-    var focusedInfo by remember { mutableStateOf<String?>(null) }
-    var launching by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { while (true) { delay(30_000); now = System.currentTimeMillis() } }
+    var mode by remember { mutableStateOf(LiveMode.GUIDE) }
+    var filter by remember { mutableStateOf<NiuniaLiveFilter>(NiuniaLiveFilter.All) }
+    var dayOffset by remember { mutableIntStateOf(0) }
+    var dayPicker by remember { mutableStateOf(false) }
+    var launching by remember { mutableStateOf(false) }
+    val allFocus = remember { FocusRequester() }
+    com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(if (mode == LiveMode.GUIDE) allFocus else null)
 
     val shown = state.shownChannels
-    val groups = remember(shown) { shown.map { it.group }.filter { it.isNotBlank() }.distinct() }
-    val channels = remember(shown, group) { if (group == null) shown else shown.filter { it.group == group } }
-    val windowStart = remember(now) { Calendar.getInstance().apply { timeInMillis = now; set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0); set(Calendar.MINUTE, if (get(Calendar.MINUTE) >= 30) 30 else 0) }.timeInMillis }
-    val onAir = remember(channels, state.currentProgrammes, now) {
-        channels.mapNotNull { ch -> state.currentProgrammes[ch.guideKey]?.takeIf { it.stopEpochMs > now }?.let { ch to it } }.take(8)
+    val categories = remember(shown, state.hiddenGroups) { NiuniaLiveFilters.categories(context, shown, state.hiddenGroups) }
+    val filtered = remember(shown, filter, state.favoriteUrls, favShows, alerts) {
+        when (val f = filter) {
+            is NiuniaLiveFilter.Category -> ForgeEpgCategories.filter(shown, f.key, state.hiddenChannelKeys, "") ?: shown
+            else -> shown
+        }
     }
-    LaunchedEffect(shown.size, state.isLoaded) {
-        Log.i(TAG, "live tv: ${shown.size} kanałów, kategorie=${groups.size}, teraz w TV=${onAir.size}, wczytane=${state.isLoaded}")
+    val tiles = remember(filter, filtered, state.currentProgrammes, now / (5 * MIN_MS), recent, resume, favShows, alerts) {
+        when (filter) {
+            NiuniaLiveFilter.All -> recentTiles(shown, state.currentProgrammes, now)
+            NiuniaLiveFilter.Favourites -> favouriteTiles(shown, state.favoriteUrls, state.currentProgrammes, now)
+            NiuniaLiveFilter.Continue -> continueTiles(shown, now)
+            is NiuniaLiveFilter.Category -> categoryTiles(filtered, state.currentProgrammes, now)
+        }
+    }
+    val guideChannels = remember(filter, filtered, tiles, state.favoriteUrls) {
+        when (filter) {
+            NiuniaLiveFilter.Favourites -> favouriteChannels(shown, state.favoriteUrls, tiles)
+            NiuniaLiveFilter.Continue -> tiles.map { it.channel }.distinctBy { it.streamUrl }.ifEmpty { shown }
+            else -> filtered
+        }
+    }
+    val numbers = remember(shown) { HashMap<String, Int>().also { m -> shown.forEachIndexed { i, ch -> m.putIfAbsent(ch.streamUrl, i + 1) } } }
+    val newKeys = remember(alerts) { alerts.filter { it.kind == AlertKind.NEW_EPISODE }.mapTo(HashSet()) { it.airing.guideKey + "|" + it.airing.startMs } }
+    LaunchedEffect(filter.id, tiles.size, guideChannels.size) {
+        Log.i(TAG, "live tv: filtr=${filterName(filter)}, kafelki=${tiles.size}, kanały=${guideChannels.size}")
     }
 
-    fun play(channel: LiveTvChannel) {
+    fun play(channel: LiveTvChannel, programme: LiveTvProgramme?, list: List<LiveTvChannel>) {
         if (launching) return
+        val t = System.currentTimeMillis()
+        if (programme != null && programme.startEpochMs > t) {
+            Log.i(TAG, "live tv: „${programme.title}” jeszcze nie leci (${hhmm(programme.startEpochMs)})")
+            Toast.makeText(context, context.getString(R.string.niunia_tv_not_yet, whenLabel(programme.startEpochMs, t)), Toast.LENGTH_SHORT).show()
+            return
+        }
+        val past = programme != null && programme.stopEpochMs <= t
+        if (past && !LiveTvCatchupLinks.isPlayable(channel.catchup, programme!!, t)) {
+            Log.i(TAG, "live tv: „${programme.title}” nie ma w archiwum kanału ${channel.name}")
+            Toast.makeText(context, R.string.niunia_tv_no_archive, Toast.LENGTH_SHORT).show()
+            return
+        }
         launching = true
         scope.launch {
             try {
-                LiveTvRepository.setZapList(channels, folderKey = group)
-                val route = com.nuvio.tv.ui.reshaped.livetv.liveTvPlayerRoute(channel, viewModel.profileId)
-                Log.i(TAG, "live tv: odtwarzam kanał ${channel.id} (${channel.group})")
+                LiveTvRepository.setZapList(list.takeIf { l -> l.any { it.streamUrl == channel.streamUrl } } ?: shown, folderKey = (filter as? NiuniaLiveFilter.Category)?.key)
+                val route = if (past) com.nuvio.tv.ui.reshaped.livetv.liveTvCatchupRoute(channel, programme!!, viewModel.profileId)
+                else com.nuvio.tv.ui.reshaped.livetv.liveTvPlayerRoute(channel, viewModel.profileId)
+                if (route == null) {
+                    Log.w(TAG, "live tv: archiwum ${channel.name} „${programme?.title}” — brak linku")
+                    Toast.makeText(context, R.string.niunia_tv_no_archive, Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                Log.i(TAG, "live tv: odtwarzam ${channel.name}" + (if (past) " archiwum „${programme?.title}”" else " na żywo"))
                 viewModel.launchedUrl = channel.streamUrl
                 onPlay(route)
             } catch (e: kotlinx.coroutines.CancellationException) {
@@ -116,142 +198,387 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
     }
 
     if (!state.hasSource || (state.isLoaded && shown.isEmpty())) {
-        Box(Modifier.fillMaxSize().background(NiuniaColors.Bg).padding(start = NiuniaDims.Gutter), contentAlignment = Alignment.CenterStart) { // pkt 3: od lewej
+        Box(Modifier.fillMaxSize().background(NiuniaColors.Bg).padding(start = NiuniaDims.Gutter), contentAlignment = Alignment.CenterStart) {
             Text(stringResource(if (!state.hasSource) R.string.niunia_live_no_source else R.string.niunia_live_empty), style = NiuniaText.Meta, color = NiuniaColors.Text70)
         }
         return
     }
 
-    Column(Modifier.fillMaxSize().background(NiuniaColors.Bg).padding(top = 76.dp)) {
-        if (onAir.isNotEmpty()) {
-            LazyRow(contentPadding = PaddingValues(horizontal = NiuniaDims.Gutter, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
-                items(onAir, key = { it.first.id }) { (ch, p) ->
-                    OnAirCard(ch, p, state.logoFor(ch), now, onFocus = { focusedInfo = info(ch, p) }, onOk = { play(ch) })
+    BackHandler(enabled = mode != LiveMode.GUIDE || dayPicker) {
+        Log.i(TAG, "live tv: Wstecz → przewodnik")
+        if (dayPicker) dayPicker = false else mode = LiveMode.GUIDE
+    }
+
+    Box(Modifier.fillMaxSize().background(NiuniaColors.Bg)) {
+        when (mode) {
+            LiveMode.GUIDE -> Guide(
+                tiles = tiles, filter = filter, categories = categories, channels = guideChannels, numbers = numbers,
+                now = now, dayOffset = dayOffset, guideVersion = state.guideVersion, newKeys = newKeys, allFocus = allFocus,
+                onFilter = { f ->
+                    if (f is NiuniaLiveFilter.Category) NiuniaLiveFilters.used(context, f.key)
+                    filter = f
+                },
+                onPlay = { ch, p -> play(ch, p, guideChannels) },
+            )
+            LiveMode.DISCOVER -> NiuniaLiveDiscover(shown, state.favoriteUrls, state.currentProgrammes, now) { ch, p -> play(ch, p, shown) }
+            LiveMode.SEARCH -> NiuniaLiveSearch(shown, state.currentProgrammes, now) { ch, p -> play(ch, p, shown) }
+        }
+        TopBar(
+            mode = mode, dayLabel = dayLabel(dayOffset, now),
+            onSearch = { Log.i(TAG, "live tv: Szukaj"); mode = LiveMode.SEARCH },
+            onDay = { dayPicker = true },
+            onDiscover = { Log.i(TAG, "live tv: Odkrywaj"); mode = LiveMode.DISCOVER },
+        )
+        if (dayPicker) DayPicker(dayOffset, now) { d ->
+            Log.i(TAG, "live tv: dzień ${dayLabel(d, now)}")
+            dayOffset = d; dayPicker = false; mode = LiveMode.GUIDE
+        }
+    }
+}
+
+private fun filterName(f: NiuniaLiveFilter) = when (f) {
+    NiuniaLiveFilter.All -> "wszystkie"
+    NiuniaLiveFilter.Favourites -> "ulubione"
+    NiuniaLiveFilter.Continue -> "oglądaj dalej"
+    is NiuniaLiveFilter.Category -> f.name
+}
+
+private fun dayLabel(offset: Int, now: Long): String = when (offset) {
+    0 -> "Dziś"
+    -1 -> "Wczoraj"
+    1 -> "Jutro"
+    else -> whenLabel(now + offset * DAY_MS, now).substringBefore(' ')
+}
+
+private fun windowStartFor(t: Long): Long = Calendar.getInstance().apply {
+    timeInMillis = t; set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0); set(Calendar.MINUTE, if (get(Calendar.MINUTE) >= 30) 30 else 0)
+}.timeInMillis
+
+private fun dpFor(ms: Long): Dp = HALF_DP * (ms.toFloat() / HALF_MS)
+
+@Composable
+private fun Guide(
+    tiles: List<NiuniaLiveTile>,
+    filter: NiuniaLiveFilter,
+    categories: List<NiuniaLiveFilter.Category>,
+    channels: List<LiveTvChannel>,
+    numbers: Map<String, Int>,
+    now: Long,
+    dayOffset: Int,
+    guideVersion: Int,
+    newKeys: Set<String>,
+    allFocus: FocusRequester,
+    onFilter: (NiuniaLiveFilter) -> Unit,
+    onPlay: (LiveTvChannel, LiveTvProgramme?) -> Unit,
+) {
+    var winStart by remember(dayOffset) { mutableLongStateOf(windowStartFor(now + dayOffset * DAY_MS)) }
+    val focusTime = remember(dayOffset) { mutableLongStateOf(maxOf(now + dayOffset * DAY_MS, 0L)) }
+    var info by remember { mutableStateOf<Pair<LiveTvChannel, LiveTvProgramme?>?>(null) }
+    val minStart = remember(now) { windowStartFor(now) - PAST_DAYS * DAY_MS }
+    LaunchedEffect(Unit) {
+        delay(80)
+        try { allFocus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "live tv: fokus „Wszystkie”: ${e.javaClass.simpleName}: ${e.message}") }
+    }
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 60.dp)) {
+        item(key = "rail") {
+            Box(Modifier.fillMaxWidth().height(236.dp)) {
+                if (tiles.isEmpty()) {
+                    Text(stringResource(R.string.niunia_tv_rail_empty), style = NiuniaText.Body, color = NiuniaColors.Text50, modifier = Modifier.padding(start = NiuniaDims.Gutter, top = 128.dp))
+                } else {
+                    LazyRow(Modifier.padding(top = 74.dp), contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 6.dp, bottom = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
+                        items(tiles, key = { it.key }) { t ->
+                            NiuniaLiveTileCard(t, longBadge = true, onFocus = { if (it) info = t.channel to t.programme }, onOk = { onPlay(t.channel, t.programme) })
+                        }
+                    }
                 }
             }
         }
-        // Przewodnik + kategorie (canvas: y 246).
-        Row(Modifier.padding(start = NiuniaDims.Gutter, top = 14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.niunia_live_guide), style = NiuniaText.Button.copy(fontSize = 20.sp, lineHeight = 26.sp), color = NiuniaColors.Text, modifier = Modifier.padding(end = 16.dp))
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(end = NiuniaDims.Gutter)) {
-                item { Pill(stringResource(R.string.niunia_live_all), selected = group == null) { group = null } }
-                items(groups.take(40)) { g -> Pill(state.groupNames[g] ?: g, selected = group == g) { Log.i(TAG, "live tv: kategoria „$g”"); group = g } }
+        item(key = "filters") {
+            LazyRow(Modifier.fillMaxWidth().height(56.dp), contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = 120.dp), horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.Top) {
+                item { FilterPill(stringResource(R.string.niunia_live_all), filter == NiuniaLiveFilter.All, allFocus) { onFilter(NiuniaLiveFilter.All) } }
+                item { FilterPill(stringResource(R.string.niunia_tv_favourites), filter == NiuniaLiveFilter.Favourites) { onFilter(NiuniaLiveFilter.Favourites) } }
+                item { FilterPill(stringResource(R.string.niunia_tv_continue), filter == NiuniaLiveFilter.Continue) { onFilter(NiuniaLiveFilter.Continue) } }
+                if (categories.isNotEmpty()) item { Box(Modifier.padding(horizontal = 4.dp, vertical = 7.dp).width(1.dp).height(20.dp).background(NiuniaColors.Line)) }
+                items(categories, key = { it.key }) { c -> FilterPill(c.name, (filter as? NiuniaLiveFilter.Category)?.key == c.key) { onFilter(c) } }
             }
         }
-        // Oś czasu.
-        Box(Modifier.fillMaxWidth().height(24.dp).padding(start = NiuniaDims.Gutter + CHANNEL_COL, top = 6.dp)) {
-            var t = windowStart
-            while (t < windowStart + WINDOW_MS) {
-                Text(hhmm(t), style = NiuniaText.Caption.copy(fontSize = 12.sp), color = NiuniaColors.Text50, modifier = Modifier.offset(x = dpFor(t - windowStart)))
-                t += HOUR_MS / 2
-            }
+        item(key = "ruler") { Ruler(winStart, now) }
+        if (channels.isEmpty()) item(key = "none") {
+            Text(stringResource(R.string.niunia_live_empty), style = NiuniaText.Body, color = NiuniaColors.Text50, modifier = Modifier.padding(start = NiuniaDims.Gutter, top = 12.dp))
         }
-        Box(Modifier.weight(1f).fillMaxWidth()) {
-            LazyColumn(contentPadding = PaddingValues(bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                items(channels, key = { "${it.sourceId}_${it.id}" }) { ch ->
-                    ChannelRow(ch, state.logoFor(ch), windowStart, now, state.guideVersion,
-                        onFocus = { p -> focusedInfo = if (p != null) info(ch, p) else ch.name },
-                        onOk = { play(ch) })
-                }
-            }
-            // Linia „teraz” (canvas: 2 dp, kolor live, kropka 10 dp).
-            val x = NiuniaDims.Gutter + CHANNEL_COL + dpFor(now - windowStart)
-            Box(Modifier.offset(x = x - 4.dp, y = (-4).dp).size(10.dp).background(NiuniaColors.Live, CircleShape))
-            Box(Modifier.offset(x = x).width(2.dp).fillMaxSize().background(NiuniaColors.Live))
+        items(channels, key = { "${it.sourceId}_${it.id}" }) { ch ->
+            GuideRow(
+                ch, numbers[ch.streamUrl] ?: 0, winStart, minStart, now, guideVersion, focusTime, newKeys,
+                onWindow = { winStart = it },
+                onFocus = { p -> info = ch to p },
+                onOk = { p -> onPlay(ch, p) },
+            )
         }
-        Row(Modifier.padding(start = NiuniaDims.Gutter, top = 6.dp, bottom = 14.dp).height(22.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("LIVE", style = NiuniaText.Caption.copy(fontWeight = FontWeight.Bold), color = NiuniaColors.Text, modifier = Modifier.background(NiuniaColors.Live, RoundedCornerShape(6.dp)).padding(horizontal = 6.dp, vertical = 1.dp))
-            Text(focusedInfo.orEmpty(), style = NiuniaText.Body, color = NiuniaColors.Text70, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 8.dp))
+    }
+    // Opis programu z fokusem (canvas: linia pod przewodnikiem).
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomStart) {
+        val (ch, p) = info ?: return@Box
+        Row(
+            Modifier.fillMaxWidth().background(Brush.verticalGradient(listOf(Color.Transparent, NiuniaColors.Bg, NiuniaColors.Bg)))
+                .padding(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 18.dp, bottom = 16.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (p != null && isLive(p, now)) Text("LIVE", style = NiuniaText.Caption.copy(fontSize = 12.sp, lineHeight = 16.sp), color = NiuniaColors.Text,
+                modifier = Modifier.background(NiuniaColors.Live, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 3.dp))
+            val text = if (p == null) ch.name else listOf(p.title, ch.name, "${hhmm(p.startEpochMs)} – ${hhmm(p.stopEpochMs)}").joinToString(" · ")
+            Text(text, style = NiuniaText.Body, color = NiuniaColors.Text70, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }
 
-private fun info(ch: LiveTvChannel, p: LiveTvProgramme) = "${ch.name} · ${p.title} · ${hhmm(p.startEpochMs)} – ${hhmm(p.stopEpochMs)}"
-
-private fun dpFor(ms: Long): Dp = HOUR_DP * (ms.toFloat() / HOUR_MS)
-
-private fun hhmm(ms: Long): String = Calendar.getInstance().run { timeInMillis = ms; "%02d:%02d".format(get(Calendar.HOUR_OF_DAY), get(Calendar.MINUTE)) }
-
-/** canvas .card (160×114): kadr programu albo logo kanału, plakietka LIVE, podpis z paskiem postępu. */
+/** Pigułka filtra (canvas `.pill` 34 dp: zwykła = szary napis, wybrana = białe 24 %, fokus = białe tło). */
 @Composable
-private fun OnAirCard(ch: LiveTvChannel, p: LiveTvProgramme, logo: String?, now: Long, onFocus: () -> Unit, onOk: () -> Unit) {
-    val shape = RoundedCornerShape(NiuniaDims.RadiusCard)
-    Box(
-        Modifier.size(NiuniaDims.WideW, NiuniaDims.WideH)
-            .niuniaFocusable(shape, onFocus = { if (it) onFocus() }, onOk = onOk)
-            .clip(shape).background(NiuniaColors.Surface),
-    ) {
-        if (p.image != null) AsyncImage(model = p.image, contentDescription = p.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
-        else if (logo != null) AsyncImage(model = logo, contentDescription = ch.name, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize().padding(24.dp))
-        // Kropka statusu zamiast napisu „LIVE” na kafelku (decyzja 20.11); napis LIVE zostaje tylko w opisie na dole.
-        com.nuvio.tv.skin.niunia.components.NiuniaStatusDot(live = true)
-        Column(Modifier.align(Alignment.BottomStart).fillMaxWidth().background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color.Transparent, Color(0xCC000000)))).padding(8.dp)) {
-            val f = ((now - p.startEpochMs).toFloat() / (p.stopEpochMs - p.startEpochMs).coerceAtLeast(1)).coerceIn(0f, 1f)
-            Box(Modifier.fillMaxWidth(0.5f).height(3.dp).clip(RoundedCornerShape(2.dp)).background(NiuniaColors.Fill36)) {
-                Box(Modifier.fillMaxWidth(f).height(3.dp).background(NiuniaColors.Text))
-            }
-            Text(stringResource(R.string.niunia_live_until, ch.name, hhmm(p.stopEpochMs)), style = NiuniaText.Caption, color = NiuniaColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.dp))
-        }
-    }
-}
-
-/** Jeden kanał: logo + nazwa (canvas .ch), potem komórki programów w oknie czasu (canvas .cell, .now, .foc). */
-@Composable
-private fun ChannelRow(ch: LiveTvChannel, logo: String?, windowStart: Long, now: Long, guideVersion: Int, onFocus: (LiveTvProgramme?) -> Unit, onOk: () -> Unit) {
-    val windowEnd = windowStart + WINDOW_MS
-    val programmes = remember(ch.guideKey, guideVersion, windowStart) {
-        LiveTvRepository.schedule(ch.guideKey).filter { it.stopEpochMs > windowStart && it.startEpochMs < windowEnd }
-    }
-    Box(Modifier.fillMaxWidth().height(ROW_H).padding(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter)) {
-        Row(Modifier.width(CHANNEL_COL - 8.dp).height(ROW_H), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(28.dp).clip(RoundedCornerShape(6.dp)).background(NiuniaColors.Fill12), contentAlignment = Alignment.Center) {
-                if (logo != null) AsyncImage(model = logo, contentDescription = null, contentScale = ContentScale.Fit, modifier = Modifier.size(24.dp))
-            }
-            Text(ch.name, style = NiuniaText.Body.copy(fontSize = 13.sp, fontWeight = FontWeight.Bold), color = NiuniaColors.Text70, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 8.dp))
-        }
-        Box(Modifier.offset(x = CHANNEL_COL).fillMaxWidth().height(ROW_H)) {
-            if (programmes.isEmpty()) {
-                Cell(stringResource(R.string.niunia_live_no_guide), null, x = 0.dp, w = dpFor(WINDOW_MS) - 4.dp, now = true, onFocus = { onFocus(null) }, onOk = onOk)
-            } else {
-                programmes.forEach { p ->
-                    val start = maxOf(p.startEpochMs, windowStart)
-                    val stop = minOf(p.stopEpochMs, windowEnd)
-                    Cell(p.title, "${hhmm(p.startEpochMs)} – ${hhmm(p.stopEpochMs)}", x = dpFor(start - windowStart), w = (dpFor(stop - start) - 4.dp).coerceAtLeast(24.dp),
-                        now = now in p.startEpochMs until p.stopEpochMs, onFocus = { onFocus(p) }, onOk = onOk)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun Cell(title: String, time: String?, x: Dp, w: Dp, now: Boolean, onFocus: () -> Unit, onOk: () -> Unit) {
-    var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(12.dp)
-    Column(
-        Modifier.offset(x = x).width(w).height(ROW_H)
-            .niuniaFocusable(shape, scale = 1f, lift = false, onFocus = { focused = it; if (it) onFocus() }, onOk = onOk)
-            .background(when { focused -> NiuniaColors.Focus; now -> NiuniaColors.Fill24; else -> NiuniaColors.Fill12 }, shape)
-            .padding(horizontal = 10.dp),
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(title, style = NiuniaText.Meta.copy(fontWeight = FontWeight.Bold), color = if (focused) NiuniaColors.OnFocus else NiuniaColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        if (time != null) Text(time, style = NiuniaText.Caption.copy(fontSize = 11.sp), color = if (focused) NiuniaColors.OnFocus.copy(alpha = 0.7f) else NiuniaColors.Text50, maxLines = 1)
-    }
-}
-
-/** Pigułka kategorii (canvas .btn.sec.sm: 34 wys.; wybrana = białe 24 %, fokus = białe tło). */
-@Composable
-private fun Pill(text: String, selected: Boolean, onOk: () -> Unit) {
+private fun FilterPill(text: String, selected: Boolean, requester: FocusRequester? = null, onOk: () -> Unit) {
     var focused by remember { mutableStateOf(false) }
     val shape = RoundedCornerShape(50)
     Box(
         Modifier.height(34.dp)
-            .niuniaFocusable(shape, scale = NiuniaDims.ScaleButton, lift = false, onFocus = { focused = it }, onOk = onOk)
-            .background(when { focused -> NiuniaColors.Focus; selected -> NiuniaColors.Fill24; else -> NiuniaColors.Btn }, shape)
+            .niuniaFocusable(shape, scale = NiuniaDims.ScaleButton, lift = false, focusRequester = requester, onFocus = { focused = it }, onOk = onOk)
+            .background(when { focused -> NiuniaColors.Focus; selected -> NiuniaColors.Fill24; else -> Color.Transparent }, shape)
             .padding(horizontal = 16.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text, style = NiuniaText.Button.copy(fontSize = 14.sp, lineHeight = 20.sp), color = if (focused) NiuniaColors.OnFocus else NiuniaColors.Text, maxLines = 1)
+        Text(text, style = NiuniaText.Button.copy(fontSize = 15.sp, lineHeight = 20.sp),
+            color = when { focused -> NiuniaColors.OnFocus; selected -> NiuniaColors.Text; else -> NiuniaColors.Text50 }, maxLines = 1)
+    }
+}
+
+/** Podziałka co 30 min (słabsza kreska) i znacznik „teraz” nad czerwoną linią. */
+@Composable
+private fun Ruler(winStart: Long, now: Long) {
+    Box(Modifier.fillMaxWidth().height(24.dp).clipToBounds()) {
+        var t = winStart
+        while (t < winStart + WINDOW_MS) {
+            Box(Modifier.offset(x = GRID_X + dpFor(t - winStart), y = 2.dp).width(1.dp).height(14.dp).background(NiuniaColors.Line))
+            Text(hhmm(t), style = NiuniaText.Caption.copy(fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium), color = NiuniaColors.Text70,
+                modifier = Modifier.offset(x = GRID_X + dpFor(t - winStart) + 5.dp))
+            t += HALF_MS
+        }
+        if (now in winStart until winStart + WINDOW_MS) {
+            val x = GRID_X + dpFor(now - winStart)
+            Box(Modifier.offset(x = x - 5.dp, y = 12.dp).size(12.dp, 12.dp).clip(TriangleShape).background(NiuniaColors.Live))
+        }
+    }
+}
+
+private val TriangleShape = androidx.compose.foundation.shape.GenericShape { size, _ ->
+    moveTo(0f, 0f); lineTo(size.width, 0f); lineTo(size.width / 2f, size.height); close()
+}
+
+/**
+ * Rząd kanału: jeden element z fokusem (◄► chodzą po programach i przewijają wspólną oś czasu, ▲▼ zmieniają kanał
+ * na ten sam czas — [focusTime]). OK = trwający na żywo, miniony z archiwum.
+ */
+@Composable
+private fun GuideRow(
+    ch: LiveTvChannel,
+    number: Int,
+    winStart: Long,
+    minStart: Long,
+    now: Long,
+    guideVersion: Int,
+    focusTime: androidx.compose.runtime.MutableLongState,
+    newKeys: Set<String>,
+    onWindow: (Long) -> Unit,
+    onFocus: (LiveTvProgramme?) -> Unit,
+    onOk: (LiveTvProgramme?) -> Unit,
+) {
+    val winEnd = winStart + WINDOW_MS
+    val schedule = remember(ch.guideKey, guideVersion) { LiveTvRepository.schedule(ch.guideKey) }
+    val visible = remember(schedule, winStart) { schedule.filter { it.stopEpochMs > winStart && it.startEpochMs < winEnd } }
+    var focused by remember { mutableStateOf(false) }
+    var sel by remember { mutableIntStateOf(-1) }
+    val logo = forgeChannelLogo(ch)
+
+    fun pick(t: Long): Int = schedule.indexOfFirst { t >= it.startEpochMs && t < it.stopEpochMs }.takeIf { it >= 0 }
+        ?: schedule.indexOfFirst { it.startEpochMs >= t }.takeIf { it >= 0 } ?: (schedule.size - 1)
+
+    fun show(i: Int) {
+        val p = schedule[i]
+        var w = winStart
+        while (p.startEpochMs >= w + WINDOW_MS - HALF_MS / 2) w += HALF_MS
+        while (p.stopEpochMs <= w + MIN_MS && w > minStart) w -= HALF_MS
+        if (p.startEpochMs < w && p.stopEpochMs <= w + HALF_MS && w > minStart) w = maxOf(minStart, windowStartFor(p.startEpochMs))
+        if (w != winStart) onWindow(w)
+        sel = i
+        focusTime.longValue = maxOf(p.startEpochMs, w)
+        onFocus(p)
+    }
+
+    Box(
+        Modifier.fillMaxWidth().height(ROW_H)
+            .onFocusChanged { st ->
+                if (st.isFocused != focused) {
+                    focused = st.isFocused
+                    if (focused) {
+                        if (schedule.isEmpty()) onFocus(null) else { sel = pick(maxOf(focusTime.longValue, winStart)); onFocus(schedule[sel]) }
+                    }
+                }
+            }
+            .onPreviewKeyEvent { e ->
+                if (e.type != KeyEventType.KeyDown || schedule.isEmpty()) return@onPreviewKeyEvent false
+                when (e.key) {
+                    Key.DirectionRight -> {
+                        if (sel < schedule.size - 1) { show(sel + 1); true } else false
+                    }
+                    Key.DirectionLeft -> {
+                        if (sel > 0 && schedule[sel - 1].stopEpochMs > minStart) { show(sel - 1); true } else false
+                    }
+                    else -> false
+                }
+            }
+            .niuniaFocusable(RoundedCornerShape(6.dp), scale = 1f, lift = false) { onOk(schedule.getOrNull(sel)) },
+    ) {
+        // Kanał: numer + logo (epg.ovh), bez logo — nazwa pogrubiona.
+        Row(
+            Modifier.padding(start = NiuniaDims.Gutter).size(CH_W, CELL_H).background(if (focused) NiuniaColors.Fill24 else NiuniaColors.Surface, RoundedCornerShape(6.dp)).padding(horizontal = 10.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(if (number > 0) number.toString() else "", style = NiuniaText.Meta.copy(fontSize = 15.sp), color = NiuniaColors.Text70, modifier = Modifier.width(24.dp), maxLines = 1)
+            Box(Modifier.weight(1f).height(30.dp), contentAlignment = Alignment.Center) {
+                if (logo != null) AsyncImage(model = logo, contentDescription = ch.name, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize())
+                else Text(ch.name, style = NiuniaText.Button, color = NiuniaColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+        }
+        Box(Modifier.padding(start = GRID_X).fillMaxSize().clipToBounds()) {
+            if (visible.isEmpty()) {
+                Cell(stringResource(R.string.niunia_live_no_guide), 0.dp, dpFor(WINDOW_MS), live = false, focused = focused, cut = false, new = false)
+            }
+            visible.forEach { p ->
+                val start = maxOf(p.startEpochMs, winStart)
+                val stop = minOf(p.stopEpochMs, winEnd)
+                val i = schedule.indexOf(p)
+                Cell(p.title, dpFor(start - winStart), (dpFor(stop - start) - 4.dp).coerceAtLeast(4.dp), live = isLive(p, now),
+                    focused = focused && i == sel, cut = focused && p.startEpochMs < winStart, new = (ch.guideKey + "|" + p.startEpochMs) in newKeys)
+            }
+            if (now in winStart until winEnd) Box(Modifier.offset(x = dpFor(now - winStart) - 1.dp).width(2.dp).height(ROW_H).background(NiuniaColors.Live))
+            if (focused) {
+                // Końce osi przechodzą w tło ze strzałkami, gdy dalej są programy (canvas LiveTVRow).
+                if (schedule.any { it.startEpochMs < winStart } && winStart > minStart) Edge(left = true)
+                if (schedule.any { it.stopEpochMs > winEnd }) Box(Modifier.align(Alignment.CenterEnd)) { Edge(left = false) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun Edge(left: Boolean) {
+    val bg = NiuniaColors.Bg
+    Box(
+        Modifier.size(64.dp, CELL_H).background(Brush.horizontalGradient(if (left) listOf(bg, bg.copy(alpha = 0f)) else listOf(bg.copy(alpha = 0f), bg))),
+        contentAlignment = if (left) Alignment.CenterStart else Alignment.CenterEnd,
+    ) {
+        Icon(if (left) Icons.AutoMirrored.Filled.KeyboardArrowLeft else Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = NiuniaColors.Focus,
+            modifier = Modifier.padding(horizontal = 4.dp).size(26.dp))
+    }
+}
+
+/** Komórka programu (canvas `.ecell`): jedna linia, trwający = biały napis i ▶, fokus = biała obwódka 2 dp. */
+@Composable
+private fun Cell(title: String, x: Dp, w: Dp, live: Boolean, focused: Boolean, cut: Boolean, new: Boolean) {
+    val shape = RoundedCornerShape(6.dp)
+    Row(
+        Modifier.offset(x = x).size(w, CELL_H).clip(shape)
+            .background(if (focused) NiuniaColors.Fill24 else NiuniaColors.Surface, shape)
+            .then(if (focused) Modifier.border(2.dp, NiuniaColors.Focus, shape) else Modifier)
+            .padding(start = if (cut) 40.dp else 12.dp, end = 12.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        if (live && w > 40.dp) Icon(Icons.Outlined.PlayCircle, null, tint = NiuniaColors.Text, modifier = Modifier.size(16.dp))
+        if (w > 28.dp) Text(title, style = NiuniaText.Meta.copy(fontSize = 15.sp), color = if (live || focused) NiuniaColors.Text else NiuniaColors.Text70,
+            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+        if (new && w > 120.dp) Text(stringResource(R.string.niunia_tv_new_chip), style = NiuniaText.Caption, color = NiuniaColors.Text,
+            modifier = Modifier.background(Color(0x59000000), RoundedCornerShape(7.dp)).border(1.dp, Color(0x59FFFFFF), RoundedCornerShape(7.dp)).padding(horizontal = 8.dp, vertical = 3.dp))
+    }
+}
+
+/** Prawy górny róg, w linii zwiniętej nawigacji: Szukaj · Dziś · Odkrywaj (ikona + napis; bieżący ekran podświetlony). */
+@Composable
+private fun TopBar(mode: LiveMode, dayLabel: String, onSearch: () -> Unit, onDay: () -> Unit, onDiscover: () -> Unit) {
+    Row(Modifier.fillMaxWidth().padding(top = 28.dp, end = NiuniaDims.Gutter), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
+        TopButton(Icons.Outlined.Search, stringResource(R.string.niunia_tv_search), mode == LiveMode.SEARCH, onSearch)
+        TopButton(Icons.Outlined.CalendarToday, dayLabel, false, onDay)
+        TopButton(Icons.Outlined.Explore, stringResource(R.string.niunia_tv_discover), mode == LiveMode.DISCOVER, onDiscover)
+    }
+}
+
+@Composable
+private fun TopButton(icon: ImageVector, text: String, on: Boolean, onOk: () -> Unit) {
+    var focused by remember { mutableStateOf(false) }
+    val shape = RoundedCornerShape(50)
+    Row(
+        Modifier.height(34.dp).niuniaFocusable(shape, scale = NiuniaDims.ScaleButton, lift = false, onFocus = { focused = it }, onOk = onOk)
+            .background(when { focused -> NiuniaColors.Focus; on -> NiuniaColors.Fill36; else -> NiuniaColors.Btn }, shape)
+            .padding(start = 10.dp, end = 14.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        val c = if (focused) NiuniaColors.OnFocus else NiuniaColors.Text
+        Icon(icon, null, tint = c, modifier = Modifier.size(18.dp))
+        Text(text, style = NiuniaText.Button.copy(fontSize = 15.sp, lineHeight = 20.sp), color = c, maxLines = 1)
+    }
+}
+
+/** „Dziś”: lista dni otwierana przyciskiem (tydzień archiwum wstecz + 3 dni przodu, canvas `.day`). */
+@Composable
+private fun DayPicker(current: Int, now: Long, onPick: (Int) -> Unit) {
+    val first = remember { FocusRequester() }
+    LaunchedEffect(Unit) { try { first.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "live tv: fokus dnia: ${e.javaClass.simpleName}: ${e.message}") } }
+    Box(Modifier.fillMaxSize().background(Color(0xB3000000)).padding(top = 80.dp), contentAlignment = Alignment.TopEnd) {
+        Row(Modifier.padding(end = NiuniaDims.Gutter).background(NiuniaColors.Surface2, RoundedCornerShape(16.dp)).padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            (-PAST_DAYS..3).forEach { d ->
+                var focused by remember { mutableStateOf(false) }
+                val shape = RoundedCornerShape(NiuniaDims.RadiusCard)
+                val day = Calendar.getInstance().apply { timeInMillis = now + d * DAY_MS }
+                Column(
+                    Modifier.size(56.dp, 60.dp)
+                        .niuniaFocusable(shape, scale = NiuniaDims.ScaleButton, lift = false, focusRequester = if (d == current) first else null, onFocus = { focused = it }) { onPick(d) }
+                        .background(when { focused -> NiuniaColors.Focus; d == current -> NiuniaColors.Fill24; else -> NiuniaColors.Surface }, shape),
+                    verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    val c = if (focused) NiuniaColors.OnFocus else NiuniaColors.Text
+                    Text(dayLabel(d, now), style = NiuniaText.Caption, color = c, maxLines = 1)
+                    Text(day.get(Calendar.DAY_OF_MONTH).toString(), style = NiuniaText.Button.copy(fontSize = 20.sp, lineHeight = 26.sp), color = c)
+                }
+            }
+        }
+    }
+}
+
+/** Wspólne dla Odkrywaj i Szukaj: obliczenie poza wątkiem UI z logiem błędu. */
+@Composable
+internal fun <T> rememberComputed(vararg keys: Any?, empty: T, what: String, block: suspend () -> T): T {
+    var value by remember { mutableStateOf(empty) }
+    LaunchedEffect(*keys) {
+        value = try {
+            withContext(Dispatchers.Default) { block() }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.w(TAG, "live tv: $what: ${e.javaClass.simpleName}: ${e.message}")
+            empty
+        }
+    }
+    return value
+}
+
+/** Rząd kafelków z tytułem (Odkrywaj, wyniki Szukaj „Rzędy”). */
+@Composable
+internal fun NiuniaLiveShelf(title: String, tiles: List<NiuniaLiveTile>, longBadge: Boolean, first: FocusRequester? = null, onPlay: (LiveTvChannel, LiveTvProgramme?) -> Unit) {
+    var on by remember { mutableStateOf(false) }
+    Column(Modifier.padding(bottom = 16.dp)) {
+        Text(title, style = NiuniaText.Row, color = if (on) NiuniaColors.Text else NiuniaColors.Text50, modifier = Modifier.padding(start = NiuniaDims.Gutter))
+        LazyRow(contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 10.dp, bottom = 14.dp), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap),
+            modifier = Modifier.onFocusChanged { on = it.hasFocus }) {
+            itemsIndexed(tiles, key = { _, t -> t.key }) { i, t ->
+                NiuniaLiveTileCard(t, longBadge, focusRequester = if (i == 0) first else null) { onPlay(t.channel, t.programme) }
+            }
+        }
     }
 }

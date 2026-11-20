@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Live TV Niuni (canvas LiveTV, LiveTVFav, LiveTVRow, LiveTVDiscover, LiveTVSearch), 20.11 -->
+    <string name="niunia_tv_search">Szukaj</string>
+    <string name="niunia_tv_discover">Odkrywaj</string>
+    <string name="niunia_tv_favourites">Ulubione</string>
+    <string name="niunia_tv_continue">Oglądaj dalej</string>
+    <string name="niunia_tv_badge_new_episode">Nowy odcinek</string>
+    <string name="niunia_tv_badge_new">Nowy</string>
+    <string name="niunia_tv_badge_resume">Wznów</string>
+    <string name="niunia_tv_badge_soon">Wkrótce</string>
+    <string name="niunia_tv_new_chip">NOWY</string>
+    <string name="niunia_tv_not_yet">Ten program zacznie się: %1$s</string>
+    <string name="niunia_tv_no_archive">Tego programu nie ma w archiwum kanału.</string>
+    <string name="niunia_tv_rail_empty">Nic tu jeszcze nie ma.</string>
+    <string name="niunia_tv_loading">Wczytuję programy…</string>
+    <string name="niunia_tv_row_foryou">Dla ciebie</string>
+    <string name="niunia_tv_row_live">Teraz na żywo</string>
+    <string name="niunia_tv_row_new">Nowe odcinki</string>
+    <string name="niunia_tv_row_recent">Ostatnio oglądane</string>
+    <string name="niunia_tv_row_channels">Ostatnie kanały</string>
+    <string name="niunia_tv_row_recommended">Polecane</string>
+    <string name="niunia_tv_row_popular">Popularne</string>
+    <string name="niunia_tv_row_soon">Wkrótce</string>
+    <string name="niunia_tv_row_archive">Archiwum</string>
+    <string name="niunia_tv_all_programmes">Wszystkie programy</string>
+    <string name="niunia_tv_search_hint">Program, kanał, kategoria</string>
+    <string name="niunia_tv_search_counts">%1$d programów · %2$d kanałów · %3$d kategorii</string>
+    <string name="niunia_tv_recent_searches">Ostatnio wyszukiwane</string>
+    <string name="niunia_tv_suggestions">Podpowiedzi</string>
+    <string name="niunia_tv_categories">Kategorie</string>
+    <string name="niunia_tv_categories_match">%1$d z %2$d pasuje</string>
+    <string name="niunia_tv_programmes">Programy</string>
+    <string name="niunia_tv_channels">Kanały</string>
+    <string name="niunia_tv_view_rows">Rzędy</string>
+    <string name="niunia_tv_view_grid">Siatka</string>
+    <string name="niunia_tv_search_start">Wpisz nazwę albo wybierz kategorię.</string>
+    <string name="niunia_tv_search_none">Nic nie znaleziono.</string>
+</resources>
