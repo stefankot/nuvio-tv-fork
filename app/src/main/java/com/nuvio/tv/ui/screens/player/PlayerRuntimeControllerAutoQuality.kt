@@ -137,11 +137,7 @@ private fun PlayerRuntimeController.autoQualityTick() {
     }
 
     // With Hot swap on, changes barely interrupt playback, so Auto acts sooner (see AutoQualityPolicy.SENSITIVE).
-    autoQualityPolicy.config = if (BetaFeatures.settings(context).autoQualityHotSwap) {
-        AutoQualityPolicy.SENSITIVE
-    } else {
-        AutoQualityPolicy.DEFAULT
-    }
+    autoQualityPolicy.config = com.nuvio.tv.fork.echo.EchoAutoQualityGuard.config(context, BetaFeatures.settings(context).autoQualityHotSwap) // Fork hook: echo (w dół tylko po zacięciu)
     val now = SystemClock.elapsedRealtime()
     // A new source (any switch, or the first one): judge it afresh.
     if (currentStreamUrl != autoQualitySeenStreamUrl) {
