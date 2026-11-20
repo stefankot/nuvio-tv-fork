@@ -23,6 +23,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -102,8 +104,13 @@ fun NiuniaHome(
     var heroIndex by remember { mutableIntStateOf(0) }
     var focusedRow by remember { mutableIntStateOf(-1) }
     val heroFocus = remember { FocusRequester() }
-    // Fork 20.11: wyjście z menu (▶, Wstecz, ta sama zakładka) wraca na przycisk hero.
-    com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(if (heroes.isNotEmpty()) heroFocus else null)
+    // Powrót fokusu na element, z którego się wyszło (focus-and-keys.md pkt 5): po Wstecz ze strony tytułu i po wyjściu z menu.
+    val restoreFocus = remember { FocusRequester() }
+    val memory = NiuniaHomeMemory
+    var memDown by remember { mutableStateOf(memory.down && memory.key != null) }
+    com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(if (memDown) restoreFocus else if (heroes.isNotEmpty()) heroFocus else null)
+    remember { memory.restorePending = memDown; 0 }
+    fun rememberFocus(key: String, row: Int, index: Int) { memory.key = key; memory.row = row; memory.index = index; memory.down = true; memDown = true }
     val posterPattern = remember(uiState.customPosterUrlPattern, uiState.customPosterEnabledScreens) {
         com.nuvio.tv.core.poster.patternForScreen(uiState.customPosterUrlPattern, com.nuvio.tv.core.poster.CustomPosterScreen.HOME, uiState.customPosterEnabledScreens)
     }
@@ -116,16 +123,20 @@ fun NiuniaHome(
     // Właściciel 20.11: hero poza listą (był przesunięty o ujemny margines), ▼ = animacja: hero wyjeżdża, tło rozmyte, rzędy wjeżdżają.
     val rows: @Composable () -> Unit = {
         com.nuvio.tv.skin.niunia.components.NiuniaVerticalScroll {
-            LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 48.dp)) {
+            val colState = androidx.compose.foundation.lazy.rememberLazyListState(initialFirstVisibleItemIndex = if (memory.down) memory.row.coerceAtLeast(0) else 0)
+            LazyColumn(state = colState, modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 48.dp)) {
                 var firstBelow = true // pierwszy rząd 40 dp od góry
                 if (uiState.continueWatchingItems.isNotEmpty()) {
                     val top = firstBelow; firstBelow = false
                     item(key = "niunia_cw") {
                         RowTitle(stringResource(R.string.niunia_row_continue), on = focusedRow == -2, first = top)
                         com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
-                            LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
-                                items(uiState.continueWatchingItems, key = { cwKey(it) }) { cw ->
-                                    ContinueCard(cw, onFocus = { if (it) focusedRow = -2 }, onOk = { Log.i(TAG, "rzędy: Oglądaj dalej → ${niuniaCwContentId(cw)}"); onContinueWatchingClick(cw) })
+                            val st = androidx.compose.foundation.lazy.rememberLazyListState(initialFirstVisibleItemIndex = if (memory.down && memory.key?.startsWith("cw:") == true) memory.index else 0)
+                            LazyRow(state = st, contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
+                                itemsIndexed(uiState.continueWatchingItems, key = { _, it -> cwKey(it) }) { i, cw ->
+                                    val k = "cw:" + cwKey(cw)
+                                    ContinueCard(cw, modifier = restoreModifier(k, restoreFocus), onFocus = { if (it) { focusedRow = -2; rememberFocus(k, 0, i) } },
+                                        onOk = { Log.i(TAG, "rzędy: Oglądaj dalej → ${niuniaCwContentId(cw)}"); onContinueWatchingClick(cw) })
                                 }
                             }
                         }
@@ -138,8 +149,12 @@ fun NiuniaHome(
                         val ranking = NiuniaLabels.isRankingRow(row.catalogName)
                         RowTitle(row.catalogName, on = focusedRow == rowIndex, first = top)
                         com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
-                            LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
+                            val rowKey = "r:${row.addonId}_${row.catalogId}_${row.rawType}:"
+                            val st = androidx.compose.foundation.lazy.rememberLazyListState(initialFirstVisibleItemIndex = if (memory.down && memory.key?.startsWith(rowKey) == true) memory.index else 0)
+                            val colIndex = rowIndex + if (uiState.continueWatchingItems.isNotEmpty()) 1 else 0
+                            LazyRow(state = st, contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
                                 itemsIndexed(row.items, key = { _, it -> it.id }) { i, item ->
+                                    val k = rowKey + item.id
                                     val (art, fallback) = remember(item, posterPattern) { niuniaPortrait(item, posterPattern) }
                                     NiuniaPoster(
                                         art = art,
@@ -150,8 +165,9 @@ fun NiuniaHome(
                                         label = NiuniaLabels.label(context, item, i, ranking),
                                         // Plakaty z dodatków zwykle mają tytuł w grafice → wariant „baked” (decyzja: plan/DECYZJE.md, Niunia).
                                         baked = art != null,
-                                        onFocus = { if (it) { focusedRow = rowIndex; onItemFocus(item) } },
-                                        onOk = { onNavigateToDetail(item.id, item.rawType, row.addonBaseUrl) },
+                                        modifier = restoreModifier(k, restoreFocus),
+                                        onFocus = { if (it) { focusedRow = rowIndex; onItemFocus(item); rememberFocus(k, colIndex, i) } },
+                                        onOk = { Log.i(TAG, "rzędy: OK → strona tytułu ${item.id}"); onNavigateToDetail(item.id, item.rawType, row.addonBaseUrl) },
                                     )
                                 }
                             }
@@ -176,6 +192,8 @@ fun NiuniaHome(
                 item = hero, index = heroIndex, count = heroes.size, focus = heroFocus,
                 inLibrary = uiState.posterLibraryMembership[com.nuvio.tv.ui.screens.home.homeItemStatusKey(hero.id, hero.apiType)] == true,
                 peek = uiState.continueWatchingItems,
+                takeFocus = !memDown,
+                onHeroFocus = { memory.down = false; memDown = false },
                 onPlay = {
                     // Odtwórz: tytuł z „Oglądaj dalej” wznawia się od razu; inny — strona tytułu z fokusem na Odtwórz (bez nowego wpięcia, plan/DECYZJE.md).
                     val cw = uiState.continueWatchingItems.firstOrNull { c -> niuniaCwContentId(c) == hero.id }
@@ -222,12 +240,15 @@ private fun Hero(
     focus: FocusRequester,
     inLibrary: Boolean,
     peek: List<ContinueWatchingItem>,
+    takeFocus: Boolean,
+    onHeroFocus: () -> Unit,
     onPlay: () -> Unit,
     onOpen: () -> Unit,
     onLibrary: () -> Unit,
     onNext: () -> Unit,
 ) {
     LaunchedEffect(Unit) {
+        if (!takeFocus) return@LaunchedEffect
         Log.i(TAG, "ekran główny: fokus startowy → ${NiuniaScreens.Main.initial}")
         try { focus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "fokus hero: ${e.javaClass.simpleName}: ${e.message}") }
     }
@@ -242,7 +263,7 @@ private fun Hero(
             NiuniaContentBlock(NiuniaBlockKind.Info) {
                 NiuniaLogo(item.logo, item.name, NiuniaLogoSize.Hero)
                 val type = if (item.rawType == "series") ctx.getString(R.string.niunia_player_series) else ctx.getString(R.string.niunia_player_movie)
-                val meta = listOfNotNull(type, item.genres.take(2).joinToString(" · ").ifBlank { null }, item.releaseInfo?.takeIf { it.isNotBlank() }, item.runtime?.takeIf { it.isNotBlank() })
+                val meta = listOfNotNull(type, item.genres.take(2).joinToString(" · ").ifBlank { null }, item.releaseInfo?.takeIf { it.isNotBlank() }, niuniaRuntime(item.runtime)?.let { (h, m) -> if (h > 0) ctx.getString(R.string.niunia_hours_minutes, h, m) else ctx.getString(R.string.niunia_minutes, m) } ?: item.runtime?.takeIf { it.isNotBlank() })
                     .joinToString(" · ")
                 NiuniaMetaLine(meta, tone = NiuniaTone.Primary) {
                     item.imdbRating?.takeIf { it > 0f }?.let { NiuniaTag("IMDb %.1f".format(java.util.Locale.US, it), NiuniaTagKind.Quality) }
@@ -251,7 +272,7 @@ private fun Hero(
                 if (!item.description.isNullOrBlank()) NiuniaText(item.description, variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 2)
             }
             NiuniaCollection(NiuniaCollectionKind.Actions) {
-                NiuniaButton(onClick = onPlay, label = stringResource(R.string.niunia_detail_play), icon = "play", focusRequester = focus, onLongClick = onOpen)
+                NiuniaButton(onClick = onPlay, label = stringResource(R.string.niunia_detail_play), icon = "play", focusRequester = focus, onLongClick = onOpen, onFocus = { if (it) onHeroFocus() })
                 NiuniaButton(onClick = onLibrary, icon = if (inLibrary) "check" else "plus",
                     description = stringResource(if (inLibrary) R.string.niunia_pinfo_in_library else R.string.niunia_ds_add_library))
                 NiuniaButton(onClick = onOpen, icon = "info", description = stringResource(R.string.niunia_ds_details))
@@ -272,13 +293,14 @@ private fun Hero(
 
 /** Karta „Oglądaj dalej” = NMediaCard ContinueWatchingCard: ▶, postęp, „S1, E1 · 39m” (zostało). */
 @Composable
-private fun ContinueCard(cw: ContinueWatchingItem, focusable: Boolean = true, onFocus: (Boolean) -> Unit, onOk: () -> Unit) {
+private fun ContinueCard(cw: ContinueWatchingItem, modifier: Modifier = Modifier, focusable: Boolean = true, onFocus: (Boolean) -> Unit, onOk: () -> Unit) {
     val ctx = LocalContext.current
     val m = remember(cw) { niuniaContinueModel(cw) }
     NiuniaMediaCard(
         preset = NiuniaCardPreset.ContinueWatchingCard,
         image = m.image,
         onClick = onOk,
+        modifier = modifier,
         title = m.title,
         caption = m.caption,
         progress = m.progress,
@@ -306,4 +328,36 @@ internal fun niuniaContinueModel(cw: ContinueWatchingItem): NiuniaContinueModel 
         cw.info.name, "S${cw.info.season}, E${cw.info.episode}", cw.info.thumbnail ?: cw.info.backdrop ?: cw.info.poster, null,
         nextUp = true, newSeason = cw.info.isNewSeasonRelease,
     )
+}
+
+/** Długość z dodatku („148”, „148 min”, „2h 28min”) → (godziny, minuty); null = nieznany zapis. */
+internal fun niuniaRuntime(raw: String?): Pair<Int, Int>? {
+    val t = raw?.trim()?.lowercase() ?: return null
+    Regex("""^(\d+)\s*(min|m)?$""").matchEntire(t)?.let { val m = it.groupValues[1].toInt(); return if (m <= 0) null else m / 60 to m % 60 }
+    Regex("""^(\d+)\s*h(?:\s*(\d+)\s*(?:min|m)?)?$""").matchEntire(t)?.let { return it.groupValues[1].toInt() to (it.groupValues[2].toIntOrNull() ?: 0) }
+    return null
+}
+
+/** Ostatni element rzędów Głównej z fokusem (przeżywa przejście na stronę tytułu i z powrotem). */
+internal object NiuniaHomeMemory {
+    /** Stan Compose: requester powrotu fokusu przechodzi na ostatni element (wyjście z menu). */
+    var key: String? by androidx.compose.runtime.mutableStateOf(null)
+    /** Jednorazowy powrót fokusu po wejściu na ekran (Wstecz ze strony tytułu). */
+    var restorePending: Boolean = false
+    var row: Int = 0
+    var index: Int = 0
+    var down: Boolean = false
+}
+
+/** Element zapamiętany w [NiuniaHomeMemory] dostaje [restore] i fokus po wejściu na ekran. */
+@Composable
+private fun restoreModifier(key: String, restore: FocusRequester): Modifier {
+    if (!NiuniaHomeMemory.down || NiuniaHomeMemory.key != key) return Modifier
+    LaunchedEffect(key) {
+        if (!NiuniaHomeMemory.restorePending) return@LaunchedEffect
+        NiuniaHomeMemory.restorePending = false
+        kotlinx.coroutines.delay(80)
+        try { restore.requestFocus(); Log.i(TAG, "ekran główny: fokus wraca na $key") } catch (e: IllegalStateException) { Log.w(TAG, "ekran główny: powrót fokusu: ${e.javaClass.simpleName}: ${e.message}") }
+    }
+    return Modifier.focusRequester(restore)
 }

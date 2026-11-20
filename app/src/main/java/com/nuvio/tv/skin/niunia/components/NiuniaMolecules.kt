@@ -127,7 +127,9 @@ fun NiuniaListRow(
             }
         } else if (icon != null) NiuniaIcon(icon, size = NiuniaSize.Icon16, tint = if (focused) NiuniaColor.OnFocus70 else if (kind == NiuniaRowKind.Suggestion) NiuniaColor.Text50 else fg)
         Column(Modifier.weight(1f)) {
-            Text(label, style = labelStyle, color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            // Wiersze panelu odtwarzacza: etykieta do 2 linii zamiast wielokropka (długa wartość, np. „bez ściszania”).
+            Text(label, style = labelStyle, color = fg, maxLines = if (kind == NiuniaRowKind.Track) 2 else 1, overflow = TextOverflow.Ellipsis,
+                modifier = if (kind == NiuniaRowKind.Track) Modifier.padding(vertical = NiuniaSpacing.Space4) else Modifier)
             if (supporting != null) Text(supporting, style = NiuniaType.CaptionRegular, color = if (focused) NiuniaColor.OnFocus70 else NiuniaColor.Text50, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         if (count != null) Text(count, style = NiuniaType.CaptionRegular, color = sub, maxLines = 1)

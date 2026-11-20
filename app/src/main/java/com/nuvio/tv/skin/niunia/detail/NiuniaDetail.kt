@@ -269,16 +269,19 @@ private fun Hero(
                 Row(horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12), verticalAlignment = Alignment.CenterVertically) {
                     val left = resume?.let { p -> ((p.duration - p.position).coerceAtLeast(0) / 60_000L).toInt() }?.takeIf { it > 0 }
                     val epLabel = next?.let { n -> if (n.nextSeason != null && n.nextEpisode != null) "S${n.nextSeason}, E${n.nextEpisode}" else null }
-                    if (resume != null && left != null) {
-                        NiuniaButton(
-                            onClick = onPlay, label = "${left}m", icon = "play", compact = true, progress = resume.progressPercentage.coerceIn(0f, 1f),
-                            description = stringResource(R.string.niunia_ds_resume_left, listOfNotNull(epLabel, "$left min").joinToString(", ")),
-                            focusRequester = playFocus, onFocus = { if (it) onFocus() },
-                        )
-                    } else {
-                        val label = if (series && heroVideo != null) stringResource(R.string.niunia_detail_play_episode, heroVideo.season ?: 1, heroVideo.episode ?: 1) else stringResource(R.string.niunia_detail_play)
-                        NiuniaButton(onClick = onPlay, label = label, icon = "play", focusRequester = playFocus, onFocus = { if (it) onFocus() })
+                    // Jeden przycisk (nie if/else): dane „Wznów” przychodzą po pierwszej klatce, a podmiana kompozycji gubiła fokus startowy.
+                    val resumeOn = resume != null && left != null
+                    val label = when {
+                        resumeOn -> "${left}m"
+                        series && heroVideo != null -> stringResource(R.string.niunia_detail_play_episode, heroVideo.season ?: 1, heroVideo.episode ?: 1)
+                        else -> stringResource(R.string.niunia_detail_play)
                     }
+                    NiuniaButton(
+                        onClick = onPlay, label = label, icon = "play", compact = resumeOn,
+                        progress = if (resumeOn) resume!!.progressPercentage.coerceIn(0f, 1f) else null,
+                        description = if (resumeOn) stringResource(R.string.niunia_ds_resume_left, listOfNotNull(epLabel, "$left min").joinToString(", ")) else label,
+                        focusRequester = playFocus, onFocus = { if (it) onFocus() },
+                    )
                     NiuniaButton(onClick = onLibrary, icon = if (uiState.isInLibrary) "check" else "plus",
                         description = stringResource(if (uiState.isInLibrary) R.string.niunia_pinfo_in_library else R.string.niunia_ds_add_library), onFocus = { if (it) onFocus() })
                     NiuniaButton(onClick = onAbout, icon = "about",
@@ -317,11 +320,19 @@ internal fun niuniaDetailMetaLine(ctx: android.content.Context, meta: Meta, seri
     } else meta.runtime?.takeIf { it.isNotBlank() && !series },
 ).joinToString(" · ")
 
+/** Aktorzy do linii „Obsada”: bez twórców i reżyserów (TMDB podaje ich na początku listy), najpierw osoby z rolą. */
+internal fun niuniaStars(meta: Meta, n: Int = 3): List<String> {
+    val crew = (meta.writer + meta.director).toSet()
+    val members = meta.castMembers.filter { it.name !in crew }
+    val withRole = members.filter { !it.character.isNullOrBlank() }
+    return (withRole.ifEmpty { members }.map { it.name }.ifEmpty { meta.cast.filter { it !in crew } }).take(n)
+}
+
 /** NContentBlock `credits`: „Obsada **…**”, „Twórcy/Reżyseria **…**”, 14/20 w 50%, nazwiska pogrubione białe. */
 @Composable
 private fun Credits(meta: Meta, series: Boolean, modifier: Modifier) {
-    val stars = meta.castMembers.map { it.name }.ifEmpty { meta.cast }.take(3)
     val makers = (if (series) meta.writer.ifEmpty { meta.director } else meta.director).take(2)
+    val stars = niuniaStars(meta)
     if (stars.isEmpty() && makers.isEmpty()) return
     NiuniaContentBlock(NiuniaBlockKind.Credits, modifier) {
         if (stars.isNotEmpty()) NText("${stringResource(R.string.niunia_ds_cast)} **${stars.joinToString(", ")}**", variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Tertiary, lines = 2)

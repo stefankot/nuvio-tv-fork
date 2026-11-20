@@ -14,6 +14,7 @@ import com.nuvio.tv.skin.niunia.components.niuniaEpgNowX
 import com.nuvio.tv.skin.niunia.components.niuniaRichText
 import com.nuvio.tv.skin.niunia.components.niuniaTime
 import com.nuvio.tv.skin.niunia.detail.niuniaDate
+import com.nuvio.tv.skin.niunia.home.niuniaRuntime
 import com.nuvio.tv.skin.niunia.player.niuniaQualityGlyph
 import com.nuvio.tv.skin.niunia.tokens.NiuniaColor
 import com.nuvio.tv.skin.niunia.tokens.NiuniaIconPaths
@@ -196,6 +197,14 @@ class NiuniaDsTest {
         assertEquals("2 wrz 2022", niuniaDate("2022-09-02T00:00:00Z"))
         assertNull(niuniaDate("2022"))
         assertNull(niuniaDate(null))
+    }
+
+    @Test fun `dlugosc filmu z dodatku`() {
+        assertEquals(2 to 28, niuniaRuntime("148"))
+        assertEquals(0 to 45, niuniaRuntime("45 min"))
+        assertEquals(2 to 5, niuniaRuntime("2h 5min"))
+        assertNull(niuniaRuntime("około dwóch godzin"))
+        assertNull(niuniaRuntime(null))
     }
 
     @Test fun `pogrubienie z gwiazdek`() {

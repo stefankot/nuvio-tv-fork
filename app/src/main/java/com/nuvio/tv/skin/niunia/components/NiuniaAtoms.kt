@@ -56,6 +56,7 @@ import androidx.compose.ui.graphics.vector.addPathNodes
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
@@ -145,6 +146,30 @@ fun Modifier.niuniaOk(
         }
         .focusable(enabled)
         .graphicsLayer { scaleX = press; scaleY = press }
+}
+
+/**
+ * Brak zawijania i „przeciekania” strzałek: ruch fokusu w obrębie grupy, a na krawędzi strzałka zostaje zjedzona
+ * (inaczej trafia do ekranu pod spodem — w odtwarzaczu ◄► przewijały film i chowały nakładkę). [dirs] = które strzałki pilnować.
+ */
+@Composable
+fun Modifier.niuniaTrapArrows(
+    name: String,
+    dirs: Set<androidx.compose.ui.focus.FocusDirection> = setOf(androidx.compose.ui.focus.FocusDirection.Left, androidx.compose.ui.focus.FocusDirection.Right),
+): Modifier {
+    val fm = androidx.compose.ui.platform.LocalFocusManager.current
+    return this.onKeyEvent { e ->
+        val dir = when (e.key) {
+            Key.DirectionLeft -> androidx.compose.ui.focus.FocusDirection.Left
+            Key.DirectionRight -> androidx.compose.ui.focus.FocusDirection.Right
+            Key.DirectionUp -> androidx.compose.ui.focus.FocusDirection.Up
+            Key.DirectionDown -> androidx.compose.ui.focus.FocusDirection.Down
+            else -> null
+        }
+        if (dir == null || dir !in dirs) return@onKeyEvent false
+        if (e.type == KeyEventType.KeyDown && !fm.moveFocus(dir)) Log.i(DS_TAG, "$name: krawędź $dir")
+        true
+    }
 }
 
 /** Wygląd fokusu (focus-and-keys.md): Lift = uniesienie 4 dp, skala 1,1, cień i obwódka 3 dp; Button = skala 1,08 i cień; Fill = bez skali. */

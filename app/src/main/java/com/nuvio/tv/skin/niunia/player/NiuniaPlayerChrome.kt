@@ -12,6 +12,7 @@ import com.nuvio.tv.skin.niunia.components.NiuniaSeekState
 import com.nuvio.tv.skin.niunia.components.NiuniaSurface
 import com.nuvio.tv.skin.niunia.components.NiuniaSurfaceKind
 import com.nuvio.tv.skin.niunia.components.NiuniaTrailing
+import com.nuvio.tv.skin.niunia.components.niuniaTrapArrows
 import com.nuvio.tv.skin.niunia.tokens.NiuniaSpacing
 import kotlinx.coroutines.launch
 
@@ -119,6 +120,15 @@ fun NiuniaPlayerChrome(
     val firstButton = remember { FocusRequester() }
     var moreOpen by remember { mutableStateOf(false) }
     var panelOpen by remember { mutableStateOf(false) }
+    val audioButton = remember { FocusRequester() }
+    // Po zamknięciu panelu fokus wraca na „Dźwięk” (element, z którego wszedł) — bez tego fokus spadał na korzeń i nakładka znikała.
+    var panelWasOpen by remember { mutableStateOf(false) }
+    LaunchedEffect(panelOpen) {
+        if (panelOpen) { panelWasOpen = true; return@LaunchedEffect }
+        if (!panelWasOpen) return@LaunchedEffect
+        kotlinx.coroutines.delay(60)
+        try { audioButton.requestFocus(); Log.i(TAG, "odtwarzacz: panel zamknięty, fokus → Dźwięk") } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus po panelu: ${e.javaClass.simpleName}: ${e.message}") }
+    }
     var okDownAt by remember { mutableStateOf(0L) }
     var okLong by remember { mutableStateOf(false) }
     val scope = androidx.compose.runtime.rememberCoroutineScope()
@@ -192,14 +202,15 @@ fun NiuniaPlayerChrome(
                 speedLabel(uiState.playbackSpeed).takeIf { uiState.playbackSpeed != 1f },
             ).joinToString(" · ")
             val quality = niuniaQualityGlyph(uiState.streamInfoData?.videoHeight, uiState.currentStreamName)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
+            // Napisy filmu nad całym blokiem sterowania (informacje i ikony stoją obok siebie nad paskiem).
+            Row(Modifier.fillMaxWidth().onGloballyPositioned { controlsTopPx = it.positionInRoot().y }, horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
                 NiuniaPlayerInfoBlock(
                     eyebrow = stringResource(if (series) R.string.niunia_player_series else R.string.niunia_player_movie),
                     logo = uiState.logo, title = title, meta = meta.ifBlank { null }, quality = quality,
                     modifier = Modifier.weight(1f, fill = false),
                 )
                 Row(
-                    Modifier.onPreviewKeyEvent {
+                    Modifier.niuniaTrapArrows("odtwarzacz: ikony", setOf(androidx.compose.ui.focus.FocusDirection.Left, androidx.compose.ui.focus.FocusDirection.Right, androidx.compose.ui.focus.FocusDirection.Up)).onPreviewKeyEvent {
                         if (it.type == KeyEventType.KeyDown && it.key == Key.DirectionDown) {
                             try { progressBarFocusRequester.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: ▼ z ikon: ${e.message}") }
                             true
@@ -212,10 +223,10 @@ fun NiuniaPlayerChrome(
                     NiuniaButton(onClick = { onEvent(PlayerEvent.OnShowQualityOverlay); resetHide() }, glyph = quality, icon = if (quality == null) "settings" else null,
                         description = stringResource(R.string.niunia_player_quality) + (quality?.let { ": $it" } ?: ""))
                     NiuniaButton(onClick = { panelOpen = true; Log.i(TAG, "odtwarzacz: panel ${context.getString(R.string.niunia_ds_panel_title)}"); resetHide() }, icon = "audio",
-                        description = stringResource(R.string.niunia_player_audio), active = panelOpen)
+                        description = stringResource(R.string.niunia_player_audio), active = panelOpen, focusRequester = audioButton)
                 }
             }
-            Spacer(Modifier.height(NiuniaSpace.PlayerGap).onGloballyPositioned { controlsTopPx = it.positionInRoot().y })
+            Spacer(Modifier.height(NiuniaSpace.PlayerGap))
             val duration = scrub.state.durationMs.coerceAtLeast(1L)
             NiuniaSeekBar(
                 state = NiuniaSeekState.of(scrub.state.positionMs, duration),
@@ -314,7 +325,8 @@ internal fun NiuniaAudioPanel(close: () -> Unit, onEvent: (PlayerEvent) -> Unit,
         Log.i(TAG, "odtwarzacz: panel, zakładka $tab, fokus startowy")
         try { first.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus panelu: ${e.javaClass.simpleName}: ${e.message}") }
     }
-    NiuniaPanelOverlay(stringResource(R.string.niunia_ds_panel_title), Modifier.focusGroup()) {
+    NiuniaPanelOverlay(stringResource(R.string.niunia_ds_panel_title), Modifier.niuniaTrapArrows("odtwarzacz: panel", setOf(
+        androidx.compose.ui.focus.FocusDirection.Left, androidx.compose.ui.focus.FocusDirection.Right, androidx.compose.ui.focus.FocusDirection.Up, androidx.compose.ui.focus.FocusDirection.Down)).focusGroup()) {
         NiuniaCollection(NiuniaCollectionKind.Chips, Modifier.padding(bottom = NiuniaSpacing.Space8)) {
             NiuniaButton(onClick = { tab = 0 }, label = stringResource(R.string.niunia_ds_tab_audio), kind = NiuniaButtonKind.Chip, selected = tab == 0)
             if (lektorOn) NiuniaButton(onClick = { tab = 1 }, label = stringResource(R.string.niunia_ds_tab_lektor), kind = NiuniaButtonKind.Chip, selected = tab == 1)
