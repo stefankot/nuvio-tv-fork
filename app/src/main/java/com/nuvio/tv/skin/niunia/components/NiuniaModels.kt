@@ -91,7 +91,8 @@ fun niuniaCardParts(
     status: NiuniaCardStatus? = null,
 ): NiuniaCardParts {
     val ready = state == NiuniaCardState.Ready
-    val landscape = preset.kind == NiuniaCardKind.Landscape || preset.kind == NiuniaCardKind.Wide
+    val landscape = preset.kind == NiuniaCardKind.Landscape || preset.kind == NiuniaCardKind.Wide ||
+        preset.kind == NiuniaCardKind.Episode || preset.kind == NiuniaCardKind.Trailer // kadr odcinka/zwiastunu ma pasek podpisu
     return NiuniaCardParts(
         shimmer = state == NiuniaCardState.Loading,
         fallbackLabel = if (state == NiuniaCardState.Error) title.orEmpty() else null,

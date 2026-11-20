@@ -329,7 +329,8 @@ fun NiuniaMedia(src: Any?, modifier: Modifier = Modifier, alt: String? = null, f
             model = src, contentDescription = alt, contentScale = contentScale, modifier = Modifier.fillMaxSize(),
             onError = { st -> failed = true; Log.w(DS_TAG, "NMedia: ImageLoadError: ${st.result.throwable.javaClass.simpleName}: ${st.result.throwable.message}") },
         )
-        if (failed) Box(Modifier.fillMaxSize().background(NiuniaColor.Surface).padding(NiuniaSpacing.Space12), contentAlignment = Alignment.Center) {
+        // Bez podpisu (np. awatar profilu) zapas jest przezroczysty — pod spodem zostaje kolor i inicjał.
+        if (failed && fallbackLabel != null) Box(Modifier.fillMaxSize().background(NiuniaColor.Surface).padding(NiuniaSpacing.Space12), contentAlignment = Alignment.Center) {
             if (!fallbackLabel.isNullOrBlank()) NiuniaText(fallbackLabel, variant = NiuniaTextVariant.LabelSmall, tone = NiuniaTone.Secondary, lines = 3, align = TextAlign.Center)
         }
     }

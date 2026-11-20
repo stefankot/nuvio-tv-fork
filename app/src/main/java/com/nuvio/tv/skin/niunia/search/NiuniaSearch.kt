@@ -105,6 +105,7 @@ fun NiuniaSearch(viewModel: SearchViewModel, onNavigateToDetail: (String, String
     fun type(q: String) { viewModel.onEvent(SearchEvent.QueryChanged(q)) }
     com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(firstKey)
     LaunchedEffect(Unit) {
+        viewModel.ensureDiscoverLoaded() // „Przeglądaj” (gatunki) i „Polecane” — jak ekran odkrywania Nuvio (test JMGO build147: puste)
         Log.i(TAG, "wyszukiwarka: fokus startowy → klawisz a")
         try { firstKey.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "wyszukiwarka: fokus klawiatury: ${e.javaClass.simpleName}: ${e.message}") }
     }

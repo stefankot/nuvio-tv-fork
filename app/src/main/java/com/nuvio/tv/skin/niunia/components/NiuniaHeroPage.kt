@@ -58,6 +58,8 @@ fun NiuniaHeroPage(
     hero: @Composable BoxScope.() -> Unit,
     below: @Composable BoxScope.() -> Unit,
     belowFocusRequester: FocusRequester? = null,
+    /** Element, na który ▼ z hero ma trafić (np. 1. odcinek — makieta Episodes); null = pierwszy w stronie pod hero. */
+    belowEnter: FocusRequester? = null,
 ) {
     var down by remember { mutableStateOf(false) }
     val belowFocus = belowFocusRequester ?: remember { FocusRequester() }
@@ -82,7 +84,7 @@ fun NiuniaHeroPage(
             Modifier.fillMaxSize()
                 .graphicsLayer { alpha = 1f - t; translationY = -h * t }
                 .onFocusChanged { if (it.hasFocus && down) { down = false; Log.i(TAG, "$what: ▲ → hero") } }
-                .focusProperties { exit = { dir -> if (dir == FocusDirection.Down) belowFocus else FocusRequester.Default } }
+                .focusProperties { exit = { dir -> if (dir == FocusDirection.Down) (belowEnter ?: belowFocus) else FocusRequester.Default } }
                 .focusGroup(),
             content = hero,
         )

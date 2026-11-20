@@ -249,6 +249,13 @@ class NiuniaDsTest {
         assertTrue(com.nuvio.tv.skin.niunia.search.niuniaSearchSuggestions(" ", listOf("x"), listOf("x")).isEmpty())
     }
 
+    @Test fun `jezyk po polsku i kadr odcinka z podpisem`() {
+        assertEquals("angielski", com.nuvio.tv.skin.niunia.detail.niuniaLanguageName("en"))
+        assertEquals("polski", com.nuvio.tv.skin.niunia.detail.niuniaLanguageName("pl-PL"))
+        assertEquals("angielski, polski", com.nuvio.tv.skin.niunia.detail.niuniaLanguageName("angielski, polski"))
+        assertTrue(niuniaCardParts(NiuniaCardPreset.EpisodeCard, caption = "39m", play = true, progress = 40).hasCaptionBand)
+    }
+
     @Test fun `inicjaly`() {
         assertEquals("MC", com.nuvio.tv.skin.niunia.components.niuniaInitials("Morfydd Clark"))
         assertEquals("JP", com.nuvio.tv.skin.niunia.components.niuniaInitials("Jean-Pierre"))

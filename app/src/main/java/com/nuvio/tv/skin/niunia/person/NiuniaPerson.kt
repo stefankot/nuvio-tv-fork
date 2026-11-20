@@ -80,6 +80,8 @@ fun NiuniaPerson(
     com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(firstFocus)
 
     // Układ stack-tight: od góry 40 dp, odstęp 24 między blokami.
+    // Przewijanie tylko, gdy element wychodzi poza ekran (test JMGO build147: nagłówek z imieniem uciekał za górną krawędź).
+    com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
     LazyColumn(Modifier.fillMaxSize().background(com.nuvio.tv.skin.niunia.tokens.NiuniaColor.Bg), contentPadding = PaddingValues(top = 40.dp, bottom = 48.dp)) {
         item(key = "head") {
             // NContentBlock profile-head: awatar 120, obok imię 32/38, linia 14/20 w 50%, biografia 3 linie w 70%.
@@ -131,6 +133,7 @@ fun NiuniaPerson(
                 }
             }
         }
+    }
     }
 }
 

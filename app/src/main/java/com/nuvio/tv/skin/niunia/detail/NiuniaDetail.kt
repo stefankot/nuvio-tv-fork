@@ -8,6 +8,7 @@ import com.nuvio.tv.skin.niunia.components.NiuniaFact
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.foundation.focusGroup
 import com.nuvio.tv.skin.niunia.components.NiuniaCardPreset
 import com.nuvio.tv.skin.niunia.components.NiuniaCollection
@@ -130,6 +131,7 @@ fun NiuniaDetail(
 
     val aboutFocus = remember { FocusRequester() }
     val episodeReturn = remember { FocusRequester() }
+    val firstEpisode = remember { FocusRequester() }
     var episodeOpen by remember { mutableStateOf<Video?>(null) }
     var lastEpisodeId by remember { mutableStateOf<String?>(null) }
     var fullDescription by remember { mutableStateOf(false) }
@@ -144,6 +146,8 @@ fun NiuniaDetail(
     }
 
     Box(Modifier.fillMaxSize()) {
+    // Strona odcinka nad stroną serialu: fokus nie może wejść pod spód (test JMGO build147: ▲ z „Wznów” trafiał w hero pod spodem).
+    Box(Modifier.fillMaxSize().focusProperties { enter = { if (episodeOpen != null) FocusRequester.Cancel else FocusRequester.Default } }.focusGroup()) {
     // Właściciel 20.11: hero poza listą. ▼ z hero: napisy hero wyjeżdżają, tło mocno rozmyte (Android 11: przyciemnione),
     // strona pod hero wjeżdża od dołu — logo programu na środku (przypięte), niżej rzędy wg makiet Episodes i DetailMore.
     com.nuvio.tv.skin.niunia.components.NiuniaHeroPage(
@@ -157,6 +161,7 @@ fun NiuniaDetail(
                 onFocus = { focusedRow = 0 })
         },
         belowFocusRequester = belowFocus,
+        belowEnter = if (series && uiState.episodesForSeason.isNotEmpty()) firstEpisode else null,
         below = {
             PageLogo(meta)
             Box(Modifier.padding(top = 144.dp).fillMaxSize().clipToBounds()) {
@@ -181,7 +186,7 @@ fun NiuniaDetail(
                             item(key = "episodes") {
                                 com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
                                     LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space20)) {
-                                        items(uiState.episodesForSeason, key = { it.id }) { video ->
+                                        itemsIndexed(uiState.episodesForSeason, key = { _, it -> it.id }) { idx, video ->
                                             val key = (video.season ?: 0) to (video.episode ?: 0)
                                             val wp = uiState.episodeProgressMap[key]
                                             val watched = key in uiState.watchedEpisodes
@@ -190,7 +195,8 @@ fun NiuniaDetail(
                                                 image = video.thumbnail, eyebrow = stringResource(R.string.niunia_detail_episode, video.episode ?: 0),
                                                 title = video.title, description = video.overview, meta = m.meta, caption = m.caption, progress = m.progress, play = true,
                                                 current = video.id == heroVideo?.id,
-                                                modifier = if (video.id == lastEpisodeId) Modifier.focusRequester(episodeReturn) else Modifier,
+                                                modifier = (if (video.id == lastEpisodeId) Modifier.focusRequester(episodeReturn) else Modifier)
+                                                    .then(if (idx == 0) Modifier.focusRequester(firstEpisode) else Modifier),
                                                 onFocus = { if (it) focusedRow = 1 },
                                                 onClick = { Log.i(TAG, "szczegóły: odcinek S${video.season}:O${video.episode} → strona odcinka"); lastEpisodeId = video.id; episodeOpen = video },
                                                 onLongClick = { Log.i(TAG, "szczegóły: długie OK → odtwórz S${video.season}:O${video.episode}"); playEpisode(video) },
@@ -271,6 +277,7 @@ fun NiuniaDetail(
             }
         },
     )
+    }
     // Episode: strona odcinka nad stroną serialu; Wstecz → rząd odcinków (fokus na tym samym odcinku).
     episodeOpen?.let { ep ->
         EpisodePage(meta, ep, uiState,
@@ -330,7 +337,7 @@ private fun AboutSection(meta: Meta, series: Boolean, uiState: MetaDetailsUiStat
             (meta.networks + meta.productionCompanies).map { it.name }.distinct().take(2).joinToString(" · ").ifBlank { null },
         )
         if (info.isNotEmpty()) NiuniaFact(stringResource(R.string.niunia_detail_info), info, Modifier.weight(1f))
-        val lang = meta.language?.takeIf { it.isNotBlank() }
+        val lang = meta.language?.takeIf { it.isNotBlank() }?.let { niuniaLanguageName(it) }
         if (lang != null) NiuniaFact(stringResource(R.string.niunia_ds_languages), listOf(ctx.getString(R.string.niunia_ds_original, lang)), Modifier.weight(1f))
     }
 }
@@ -436,7 +443,7 @@ private fun Hero(
                 if (description != null) NText(if (prefix != null) "**$prefix:** $description" else description, variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 3)
                 val dateLine = listOfNotNull(
                     niuniaDate(ep?.released ?: meta.released),
-                    (ep?.runtime?.let { "$it min" } ?: meta.runtime?.takeIf { it.isNotBlank() }),
+                    (ep?.runtime?.let { "$it min" } ?: niuniaRuntimeLabel(ctx, meta.runtime)),
                 ).joinToString(" · ")
                 NiuniaMetaLine(dateLine.ifBlank { null }) {
                     meta.imdbRating?.takeIf { it > 0f }?.let { NiuniaTag("IMDb %.1f".format(java.util.Locale.US, it), NiuniaTagKind.Quality) }
@@ -474,6 +481,14 @@ private fun Hero(
     }
 }
 
+/** Kod języka („en”, „pl-PL”) → nazwa po polsku („angielski”); pełna nazwa zostaje bez zmian. */
+internal fun niuniaLanguageName(raw: String): String {
+    val t = raw.trim()
+    if (t.length > 5 || t.contains(' ')) return t
+    val name = java.util.Locale(t.substringBefore('-').substringBefore('_').lowercase()).getDisplayLanguage(java.util.Locale("pl", "PL"))
+    return if (name.isBlank() || name.equals(t, ignoreCase = true)) t else name
+}
+
 /** „2 wrz 2022” z daty ISO (pierwsze 10 znaków); inaczej null. */
 internal fun niuniaDate(iso: String?): String? {
     val d = iso?.take(10) ?: return null
@@ -492,8 +507,13 @@ internal fun niuniaDetailMetaLine(ctx: android.content.Context, meta: Meta, seri
         seasons == 1 -> ctx.getString(R.string.niunia_ds_seasons_one)
         seasons % 10 in 2..4 && seasons % 100 !in 12..14 -> ctx.getString(R.string.niunia_ds_seasons_few, seasons)
         else -> ctx.getString(R.string.niunia_ds_seasons_many, seasons)
-    } else meta.runtime?.takeIf { it.isNotBlank() && !series },
+    } else niuniaRuntimeLabel(ctx, meta.runtime).takeIf { !series },
 ).joinToString(" · ")
+
+/** „107” → „1 godz. 47 min”; nieznany zapis zostaje. */
+internal fun niuniaRuntimeLabel(ctx: android.content.Context, raw: String?): String? =
+    com.nuvio.tv.skin.niunia.home.niuniaRuntime(raw)?.let { (h, m) -> if (h > 0) ctx.getString(R.string.niunia_hours_minutes, h, m) else ctx.getString(R.string.niunia_minutes, m) }
+        ?: raw?.takeIf { it.isNotBlank() }
 
 /** Aktorzy do linii „Obsada”: bez twórców i reżyserów (TMDB podaje ich na początku listy), najpierw osoby z rolą. */
 internal fun niuniaStars(meta: Meta, n: Int = 3): List<String> {
