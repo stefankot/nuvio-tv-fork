@@ -204,10 +204,11 @@ private fun Browse(state: com.nuvio.tv.ui.screens.search.SearchUiState, ctx: and
         Tile(ctx.getString(R.string.niunia_ds_search_tab_series)) { viewModel.onEvent(SearchEvent.SelectDiscoverType("series")) },
         Tile("Live TV") { com.nuvio.tv.skin.niunia.nav.NiuniaNavActions.open(com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE) },
     ) + genres.map { g -> Tile(g) { viewModel.onEvent(SearchEvent.SelectDiscoverGenre(g)) } }
+    val shownTiles = tiles.distinctBy { it.label } // klucze LazyRow muszą być unikalne (gatunek „Filmy” itp.)
     Column(verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
         NiuniaCollectionHeader(stringResource(R.string.niunia_search_browse), active = active == 0)
         LazyRow(Modifier.niuniaTrapArrows("przeglądaj"), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space20), contentPadding = PaddingValues(end = NiuniaSpacing.Space40)) {
-            items(tiles, key = { it.label }) { t ->
+            items(shownTiles, key = { it.label }) { t ->
                 NiuniaMediaCard(NiuniaCardPreset.PosterCard, image = null, label = t.label, title = t.label,
                     onFocus = { if (it) active = 0 }, onClick = { Log.i(TAG, "wyszukiwarka: przeglądaj → ${t.label}"); t.action() })
             }
