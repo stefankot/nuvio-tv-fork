@@ -6,6 +6,7 @@ import com.nuvio.tv.skin.api.SkinScreen
 import com.nuvio.tv.ui.screens.home.ContinueWatchingItem
 import com.nuvio.tv.ui.screens.home.HomeUiState
 import com.nuvio.tv.ui.screens.home.HomeViewModel
+import com.nuvio.tv.ui.screens.home.togglePosterLibrary
 
 /**
  * Niunia — własny projekt właściciela (canvas „Nuvio TV Apple TV Style App”, specyfikacja ~/Desktop/appletv/skin/SKIN.md).
@@ -24,6 +25,7 @@ object NiuniaSkin : Skin {
                 onNavigateToDetail = a["onNavigateToDetail"] as (String, String, String) -> Unit,
                 onContinueWatchingClick = a["onContinueWatchingClick"] as (ContinueWatchingItem) -> Unit,
                 onItemFocus = { vm.onItemFocus(it) },
+                onToggleLibrary = { item, addon -> vm.togglePosterLibrary(item, addon) },
             ); true
         }
         "search" -> SkinScreen { a ->

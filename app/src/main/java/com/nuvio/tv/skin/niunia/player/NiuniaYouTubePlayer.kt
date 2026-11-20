@@ -192,7 +192,7 @@ fun NiuniaYouTubeChrome(
                 Text(info?.title?.takeIf { it.isNotBlank() } ?: uiState.title, style = NiuniaText.Logo.copy(fontSize = 24.sp, lineHeight = 30.sp), maxLines = 2, overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(top = 6.dp, bottom = 8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    val meta = listOfNotNull(info?.viewCount, info?.publishedDate, niuniaMinutes(context, timeline.duration)).joinToString(" · ")
+                    val meta = listOfNotNull(NiuniaYtText.views(info?.viewCount), NiuniaYtText.date(info?.publishedDate), niuniaMinutes(context, timeline.duration)).joinToString(" · ")
                     if (meta.isNotEmpty()) Text(meta, style = NiuniaText.Body.copy(fontSize = 13.sp, lineHeight = 18.sp), color = NiuniaColors.Text70, maxLines = 1)
                     niuniaQuality(uiState)?.let { NiuniaChip(it, filled = true) }
                 }
@@ -352,7 +352,7 @@ private fun NiuniaYouTubeDetails(
             Column(Modifier.padding(start = NiuniaDims.Gutter, top = 8.dp).width(680.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(info?.title ?: "", style = NiuniaText.Logo.copy(fontSize = 24.sp, lineHeight = 30.sp), maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(listOfNotNull(info?.viewCount, info?.publishedDate, minutes).joinToString(" · "), style = NiuniaText.Body, color = NiuniaColors.Text70, maxLines = 1)
+                    Text(listOfNotNull(NiuniaYtText.views(info?.viewCount), NiuniaYtText.date(info?.publishedDate), minutes).joinToString(" · "), style = NiuniaText.Body, color = NiuniaColors.Text70, maxLines = 1)
                     quality?.let { NiuniaChip(it, filled = true) }
                 }
                 Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {

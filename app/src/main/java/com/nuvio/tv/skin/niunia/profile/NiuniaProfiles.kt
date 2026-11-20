@@ -1,5 +1,7 @@
 package com.nuvio.tv.skin.niunia.profile
 
+import com.nuvio.tv.skin.niunia.components.niuniaTrapArrows
+
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -87,6 +89,7 @@ fun NiuniaProfiles(
 
     fun select(profile: UserProfile) {
         Log.i(TAG, "profile: wybrano id=${profile.id}")
+        NiuniaProfileSwitch.fromMenu = false
         onProfileClicked()
         viewModel.selectProfile(profile.id, onComplete = onProfileSelected, onFailure = {
             Log.w(TAG, "profile: wybór id=${profile.id} nieudany")
@@ -94,50 +97,55 @@ fun NiuniaProfiles(
         })
     }
 
-    Box(Modifier.fillMaxSize().background(NiuniaColors.Bg)) {
-        // Pigułka nawigacji (canvas .nav: 20, 28): „‹ [ikona] Zmień profil”.
-        Row(Modifier.offset(x = 20.dp, y = 28.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("‹", style = NiuniaText.Button, color = NiuniaColors.Text70, modifier = Modifier.padding(end = 8.dp))
-            Box(Modifier.height(32.dp).clip(RoundedCornerShape(50)).background(NiuniaColors.Chrome).padding(horizontal = 14.dp), contentAlignment = Alignment.Center) {
-                Text(stringResource(R.string.niunia_profiles_title), style = NiuniaText.Meta, color = NiuniaColors.Text70)
-            }
-        }
-        // Karta profili (canvas .pcard: 26, 70; promień 22, tło rgba(50,50,52,.78), obwódka 1 dp line).
+    // Test JMGO build151: Wstecz po „Zmień profil” z menu wychodził z aplikacji (ekran wyboru jest ekranem startowym Nuvio).
+    // Otwarty z menu → Wstecz wraca do bieżącego profilu (bez PIN-u); na starcie aplikacji zostaje zachowanie Nuvio.
+    val current = profiles.firstOrNull { it.id == activeId }
+    BackHandler(enabled = NiuniaProfileSwitch.fromMenu && pinFor == null && current != null && pinEnabled[current.id] != true) {
+        Log.i(TAG, "profile: Wstecz → bieżący profil")
+        NiuniaProfileSwitch.fromMenu = false
+        current?.let { select(it) }
+    }
+
+    Box(Modifier.fillMaxSize().background(com.nuvio.tv.skin.niunia.tokens.NiuniaColor.Bg)) {
+        // Makieta Profiles: pigułka „‹ (profil) Zmień profil” (x 20, y 24), pod nią nakładka `profiles` (x 20, y 72): szkło
+        // (Android 11 bez rozmycia: `panel`), promień 28, karty ProfileCard 72 dp co 12; bieżący profil z ✓ i fokusem startowym.
+        com.nuvio.tv.skin.niunia.components.NiuniaTabPill(stringResource(R.string.niunia_profiles_title), "profile",
+            Modifier.padding(start = com.nuvio.tv.skin.niunia.tokens.NiuniaSpacing.Space20, top = com.nuvio.tv.skin.niunia.tokens.NiuniaSize.NavTop))
+        val shape = RoundedCornerShape(com.nuvio.tv.skin.niunia.tokens.NiuniaRadius.Radius28)
         Row(
             Modifier
-                .offset(x = 26.dp, y = 70.dp)
-                .clip(RoundedCornerShape(22.dp))
-                .background(Color(0xC7323234))
-                .border(1.dp, NiuniaColors.Line, RoundedCornerShape(22.dp))
+                .padding(start = com.nuvio.tv.skin.niunia.tokens.NiuniaSpacing.Space20, top = com.nuvio.tv.skin.niunia.tokens.NiuniaSize.NavTop + com.nuvio.tv.skin.niunia.tokens.NiuniaSize.H44 + com.nuvio.tv.skin.niunia.tokens.NiuniaSpacing.Space4)
+                .clip(shape)
+                .background(com.nuvio.tv.skin.niunia.tokens.NiuniaColor.Panel)
+                .border(1.dp, com.nuvio.tv.skin.niunia.tokens.NiuniaColor.Fill12, shape)
                 .horizontalScroll(rememberScrollState())
-                .padding(10.dp)
+                .padding(horizontal = com.nuvio.tv.skin.niunia.tokens.NiuniaSpacing.Space16, vertical = com.nuvio.tv.skin.niunia.tokens.NiuniaSpacing.Space12)
+                .niuniaTrapArrows("profile")
                 .focusGroup(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(com.nuvio.tv.skin.niunia.tokens.NiuniaSpacing.Space12),
         ) {
+            val startIndex = profiles.indexOfFirst { it.id == activeId }.coerceAtLeast(0)
             profiles.forEachIndexed { index, profile ->
-                ProfileItem(
-                    name = profile.name,
-                    focusRequester = if (index == 0) first else null,
-                    current = profile.id == activeId,
-                    onFocus = { onProfileFocusChanged?.invoke(profile.avatarColorHex, profile.profileBackgroundUrl, null) },
-                    onOk = {
-                        if (pinEnabled[profile.id] == true) { pinError = null; pinFor = profile } else select(profile)
-                    },
-                ) {
-                    Text(com.nuvio.tv.skin.kicia.profile.forgeInitial(profile.name), style = NiuniaText.Logo.copy(fontSize = 30.sp, lineHeight = 30.sp))
-                    avatarUrls[profile.id]?.let { url ->
-                        AsyncImage(model = url, contentDescription = profile.name, contentScale = ContentScale.Crop, modifier = Modifier.size(80.dp).clip(CircleShape))
-                    }
-                }
+                val me = profile.id == activeId
+                com.nuvio.tv.skin.niunia.components.NiuniaProfileCard(
+                    title = profile.name,
+                    initials = com.nuvio.tv.skin.kicia.profile.forgeInitial(profile.name),
+                    me = true,
+                    current = me,
+                    color = runCatching { Color(android.graphics.Color.parseColor(profile.avatarColorHex)) }
+                        .onFailure { Log.w(TAG, "profile: kolor ${profile.avatarColorHex}: ${it.javaClass.simpleName}: ${it.message}") }.getOrNull(),
+                    photo = avatarUrls[profile.id],
+                    focusRequester = if (index == startIndex) first else null,
+                    onFocus = { if (it) onProfileFocusChanged?.invoke(profile.avatarColorHex, profile.profileBackgroundUrl, null) },
+                    onClick = { if (pinEnabled[profile.id] == true) { pinError = null; pinFor = profile } else select(profile) },
+                )
             }
             if (canAdd) {
-                ProfileItem(
-                    name = stringResource(R.string.niunia_profiles_add),
+                com.nuvio.tv.skin.niunia.components.NiuniaProfileCard(
+                    title = stringResource(R.string.niunia_profiles_add), icon = "plus",
                     focusRequester = if (profiles.isEmpty()) first else null,
-                    current = false,
-                    onFocus = {},
-                    onOk = { Log.i(TAG, "profile: dodaj profil"); onAddProfile() },
-                ) { Text("+", style = NiuniaText.Logo.copy(fontSize = 30.sp, lineHeight = 30.sp)) }
+                    onClick = { Log.i(TAG, "profile: dodaj profil"); onAddProfile() },
+                )
             }
         }
 
@@ -256,4 +264,9 @@ private fun NiuniaPinDialog(profileName: String, error: String?, working: Boolea
             }
         }
     }
+}
+
+/** Ekran wyboru profilu otwarty z menu („Zmień profil”), nie na starcie aplikacji. */
+object NiuniaProfileSwitch {
+    @Volatile var fromMenu: Boolean = false
 }

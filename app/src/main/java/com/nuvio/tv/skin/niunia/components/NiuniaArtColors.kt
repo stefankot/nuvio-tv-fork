@@ -70,7 +70,7 @@ internal fun sample(bmp: Bitmap, cardAspect: Float): ArtColors {
     val x0 = (w - cw) / 2f; val y0 = (h - ch) / 2f
     val tab = average(bmp, x0 + cw * .25f, y0, x0 + cw * .75f, y0 + max(1f, ch * .09f))
     val low = average(bmp, x0, y0 + ch * .62f, x0 + cw, y0 + ch)
-    val tabText = if (luminance(tab) > .22f) Color(0xFF111111) else Color(0xFFFFFFFF)
+    val tabText = niuniaTabTextColor(tab)
     return ArtColors(tab, tabText, darken(low, .42f))
 }
 
@@ -85,6 +85,9 @@ private fun average(bmp: Bitmap, l: Float, t: Float, r: Float, b: Float): Color 
     if (n == 0) return Color(0xFF333333)
     return Color((rs / n).toInt(), (gs / n).toInt(), (bs / n).toInt())
 }
+
+/** Tekst etykiety na kolorze spod niej (WPIECIE.md §5): jasne tło (luminancja > 0,22) → czarny #111, ciemne → biały. */
+internal fun niuniaTabTextColor(tab: Color): Color = if (luminance(tab) > .22f) Color(0xFF111111) else Color(0xFFFFFFFF)
 
 private fun luminance(c: Color): Float {
     fun lin(v: Float) = if (v <= .04045f) v / 12.92f else ((v + .055f) / 1.055f).toDouble().pow(2.4).toFloat()

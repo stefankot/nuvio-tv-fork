@@ -1,4 +1,34 @@
+@file:OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
+
 package com.nuvio.tv.skin.niunia.detail
+
+import com.nuvio.tv.skin.niunia.components.NiuniaBlockKind
+import com.nuvio.tv.skin.niunia.components.NiuniaButtonKind
+import com.nuvio.tv.skin.niunia.components.NiuniaCastCard
+import com.nuvio.tv.skin.niunia.components.NiuniaEpisodeCard
+import com.nuvio.tv.skin.niunia.components.NiuniaFact
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.foundation.focusGroup
+import com.nuvio.tv.skin.niunia.components.NiuniaCardPreset
+import com.nuvio.tv.skin.niunia.components.NiuniaCollection
+import com.nuvio.tv.skin.niunia.components.NiuniaCollectionKind
+import com.nuvio.tv.skin.niunia.components.NiuniaContentBlock
+import com.nuvio.tv.skin.niunia.components.NiuniaLogo
+import com.nuvio.tv.skin.niunia.components.NiuniaLogoSize
+import com.nuvio.tv.skin.niunia.components.NiuniaMediaCard
+import com.nuvio.tv.skin.niunia.components.NiuniaMetaLine
+import com.nuvio.tv.skin.niunia.components.NiuniaSurface
+import com.nuvio.tv.skin.niunia.components.NiuniaSurfaceKind
+import com.nuvio.tv.skin.niunia.components.NiuniaTag
+import com.nuvio.tv.skin.niunia.components.NiuniaTagKind
+import com.nuvio.tv.skin.niunia.components.NiuniaTextVariant
+import com.nuvio.tv.skin.niunia.components.NiuniaTone
+import com.nuvio.tv.skin.niunia.components.NiuniaText as NText
+import com.nuvio.tv.skin.niunia.tokens.NiuniaSize
+import com.nuvio.tv.skin.niunia.tokens.NiuniaSpacing
 
 import android.util.Log
 import androidx.compose.foundation.background
@@ -84,6 +114,7 @@ fun NiuniaDetail(
     val context = LocalContext.current
     val series = meta.type == ContentType.SERIES || meta.videos.isNotEmpty()
     val playFocus = remember { FocusRequester() }
+    val belowFocus = remember { FocusRequester() }
     var focusedRow by remember { mutableIntStateOf(0) }
     LaunchedEffect(meta.id) {
         Log.i(TAG, "szczegóły: ${meta.rawType} „${meta.name}” (sezony=${uiState.seasons.size}, odcinki=${uiState.episodesForSeason.size}, podobne=${uiState.moreLikeThis.size}, obsada=${meta.castMembers.size}, wznów=${uiState.nextToWatch?.isResume == true})")
@@ -100,8 +131,27 @@ fun NiuniaDetail(
         }
     }
 
-    // Właściciel 20.11: hero poza listą (był przesunięty o ujemny margines). ▼ z hero: napisy hero wyjeżdżają do góry, tło dostaje
-    // bardzo mocne rozmycie, a strona pod hero wjeżdża od dołu — na górze logo programu na środku (przypięte), niżej rzędy.
+    val aboutFocus = remember { FocusRequester() }
+    val episodeReturn = remember { FocusRequester() }
+    val firstEpisode = remember { FocusRequester() }
+    var episodeOpen by remember { mutableStateOf<Video?>(null) }
+    var lastEpisodeId by remember { mutableStateOf<String?>(null) }
+    var fullDescription by remember { mutableStateOf(false) }
+    val extras: com.nuvio.tv.skin.niunia.player.NiuniaPlayerExtrasViewModel = androidx.hilt.navigation.compose.hiltViewModel()
+    val extrasState by extras.state.collectAsState()
+    fun focusAbout(why: String) {
+        Log.i(TAG, "szczegóły: $why → Obsada i opis (DetailMore)")
+        try { aboutFocus.requestFocus() } catch (e: IllegalStateException) {
+            Log.w(TAG, "szczegóły: $why: ${e.javaClass.simpleName}: ${e.message} — fokus na stronę pod hero")
+            try { belowFocus.requestFocus() } catch (e2: IllegalStateException) { Log.w(TAG, "szczegóły: $why: ${e2.javaClass.simpleName}: ${e2.message}") }
+        }
+    }
+
+    Box(Modifier.fillMaxSize()) {
+    // Strona odcinka nad stroną serialu: fokus nie może wejść pod spód (test JMGO build147: ▲ z „Wznów” trafiał w hero pod spodem).
+    Box(Modifier.fillMaxSize().focusProperties { enter = { if (episodeOpen != null) FocusRequester.Cancel else FocusRequester.Default } }.focusGroup()) {
+    // Właściciel 20.11: hero poza listą. ▼ z hero: napisy hero wyjeżdżają, tło mocno rozmyte (Android 11: przyciemnione),
+    // strona pod hero wjeżdża od dołu — logo programu na środku (przypięte), niżej rzędy wg makiet Episodes i DetailMore.
     com.nuvio.tv.skin.niunia.components.NiuniaHeroPage(
         background = meta.backdropUrl ?: meta.poster,
         heroFocus = playFocus,
@@ -109,71 +159,231 @@ fun NiuniaDetail(
         hero = {
             Hero(meta, uiState, series, heroVideo, playFocus, play,
                 onLibrary = { Log.i(TAG, "szczegóły: biblioteka (było ${uiState.isInLibrary})"); viewModel.onEvent(MetaDetailsEvent.OnToggleLibrary) },
+                onAbout = { focusAbout(if (series) "O serialu" else "O filmie") },
                 onFocus = { focusedRow = 0 })
         },
+        belowFocusRequester = belowFocus,
+        belowEnter = if (series && uiState.episodesForSeason.isNotEmpty()) firstEpisode else null,
         below = {
-    PageLogo(meta)
-    Box(Modifier.padding(top = 144.dp).fillMaxSize().clipToBounds()) {
-    com.nuvio.tv.skin.niunia.components.NiuniaVerticalScroll(pivot = 50.dp) {
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(top = 16.dp, bottom = 48.dp)) {
-        if (series && uiState.seasons.isNotEmpty()) {
-            item(key = "episodes") {
-                com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
-                    SeasonTabs(uiState.seasons, uiState.selectedSeason, onFocus = { focusedRow = 1 }) {
-                        Log.i(TAG, "szczegóły: sezon $it"); viewModel.onEvent(MetaDetailsEvent.OnSeasonSelected(it))
+            PageLogo(meta)
+            Box(Modifier.padding(top = 144.dp).fillMaxSize().clipToBounds()) {
+                com.nuvio.tv.skin.niunia.components.NiuniaVerticalScroll(pivot = 50.dp) {
+                    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(top = 16.dp, bottom = 48.dp)) {
+                        // Episodes: pigułki sezonów (wybrany 24%), potem rząd odcinków (EpisodeCard).
+                        if (series && uiState.seasons.isNotEmpty()) {
+                            item(key = "seasons") {
+                                com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
+                                    LazyRow(contentPadding = PaddingValues(horizontal = NiuniaSpacing.Space40), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space4)) {
+                                        items(uiState.seasons) { sn ->
+                                            NiuniaButton(
+                                                onClick = { Log.i(TAG, "szczegóły: sezon $sn"); viewModel.onEvent(MetaDetailsEvent.OnSeasonSelected(sn)) },
+                                                label = if (sn == 0) stringResource(R.string.niunia_detail_specials) else stringResource(R.string.niunia_detail_season, sn),
+                                                kind = NiuniaButtonKind.Chip, selected = sn == uiState.selectedSeason,
+                                                onFocus = { if (it) focusedRow = 1 },
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            item(key = "episodes") {
+                                com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
+                                    LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space20)) {
+                                        itemsIndexed(uiState.episodesForSeason, key = { _, it -> it.id }) { idx, video ->
+                                            val key = (video.season ?: 0) to (video.episode ?: 0)
+                                            val wp = uiState.episodeProgressMap[key]
+                                            val watched = key in uiState.watchedEpisodes
+                                            val m = niuniaEpisodeModel(video, wp?.position, wp?.duration, watched)
+                                            NiuniaEpisodeCard(
+                                                image = video.thumbnail, eyebrow = stringResource(R.string.niunia_detail_episode, video.episode ?: 0),
+                                                title = video.title, description = video.overview, meta = m.meta, caption = m.caption, progress = m.progress, play = true,
+                                                current = video.id == heroVideo?.id,
+                                                modifier = (if (video.id == lastEpisodeId) Modifier.focusRequester(episodeReturn) else Modifier)
+                                                    .then(if (idx == 0) Modifier.focusRequester(firstEpisode) else Modifier),
+                                                onFocus = { if (it) focusedRow = 1 },
+                                                onClick = { Log.i(TAG, "szczegóły: odcinek S${video.season}:O${video.episode} → strona odcinka"); lastEpisodeId = video.id; episodeOpen = video },
+                                                onLongClick = { Log.i(TAG, "szczegóły: długie OK → odtwórz S${video.season}:O${video.episode}"); playEpisode(video) },
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // Zwiastuny (TrailerCard): OK = zwiastun na pełnym ekranie (ta sama nakładka co w odtwarzaczu Niuni).
+                        val trailers = meta.trailers.filter { !it.ytId.isNullOrBlank() }.take(8)
+                        if (trailers.isNotEmpty()) {
+                            item(key = "trailers") {
+                                RowTitle(stringResource(R.string.niunia_ds_trailers), on = focusedRow == 4)
+                                com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
+                                    LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space20)) {
+                                        itemsIndexed(trailers) { i, t ->
+                                            NiuniaEpisodeCard(
+                                                image = "https://img.youtube.com/vi/${t.ytId}/hqdefault.jpg", trailer = true, play = true,
+                                                title = t.name?.takeIf { it.isNotBlank() } ?: stringResource(R.string.niunia_ds_trailer_n, i + 1),
+                                                onFocus = { if (it) focusedRow = 4 },
+                                                onClick = {
+                                                    Log.i(TAG, "szczegóły: zwiastun ${i + 1}/${trailers.size}")
+                                                    extras.playTrailer(meta.name, meta.releaseInfo, meta.apiType)
+                                                },
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (uiState.moreLikeThis.isNotEmpty()) {
+                            item(key = "more") {
+                                RowTitle(stringResource(R.string.niunia_detail_more_like), on = focusedRow == 2)
+                                com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
+                                    LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
+                                        items(uiState.moreLikeThis, key = { "${it.rawType}_${it.id}" }) { item ->
+                                            NiuniaPoster(
+                                                art = item.poster, fallback = item.rawPosterUrl, title = item.name, logo = item.logo, meta = NiuniaLabels.meta(item),
+                                                label = NiuniaLabels.label(context, item, 0, rankingRow = false), baked = item.poster != null,
+                                                onFocus = { if (it) focusedRow = 2 },
+                                                onOk = { Log.i(TAG, "szczegóły: podobne → ${item.id}"); onNavigateToDetail(item.id, item.rawType, null) },
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // DetailMore: Obsada i twórcy (CastCard), fokus startowy tej części = pierwsza osoba.
+                        val cast = meta.castMembers.ifEmpty { meta.cast.map { MetaCastMember(name = it) } }
+                        if (cast.isNotEmpty()) {
+                            item(key = "cast") {
+                                RowTitle(stringResource(R.string.niunia_detail_cast), on = focusedRow == 3)
+                                com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
+                                    LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space20)) {
+                                        itemsIndexed(cast.take(20), key = { i, it -> "${i}_${it.name}" }) { i, person ->
+                                            NiuniaCastCard(
+                                                name = person.name, role = person.character, photo = person.photo,
+                                                modifier = if (i == 0) Modifier.focusRequester(aboutFocus) else Modifier,
+                                                onFocus = { if (it) focusedRow = 3 },
+                                                onClick = {
+                                                    val id = person.tmdbId
+                                                    if (id != null) { Log.i(TAG, "szczegóły: osoba → ${person.name}"); onNavigateToCastDetail(id, person.name, false) }
+                                                    else { Log.i(TAG, "szczegóły: ${person.name} bez id TMDB — brak strony osoby"); com.nuvio.tv.fork.ForkLog.say(context, TAG, context.getString(R.string.niunia_ds_no_play)) }
+                                                },
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        item(key = "about") {
+                            AboutSection(meta, series, uiState, full = fullDescription, onMore = { fullDescription = !fullDescription; Log.i(TAG, "szczegóły: opis ${if (fullDescription) "cały" else "skrócony"}") },
+                                onFocus = { focusedRow = 5 }, active = focusedRow == 5)
+                        }
                     }
-                }
-                com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
-                LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
-                    items(uiState.episodesForSeason, key = { it.id }) { video ->
-                        val progress = uiState.episodeProgressMap[(video.season ?: 0) to (video.episode ?: 0)]?.progressPercentage
-                        val watched = (video.season ?: 0) to (video.episode ?: 0) in uiState.watchedEpisodes
-                        EpisodeCard(video, progress, watched, onFocus = { focusedRow = 1 }, onOk = { Log.i(TAG, "szczegóły: odcinek S${video.season}:O${video.episode}"); playEpisode(video) })
-                    }
-                }
                 }
             }
-        }
-        if (uiState.moreLikeThis.isNotEmpty()) {
-            item(key = "more") {
-                RowTitle(stringResource(R.string.niunia_detail_more_like), on = focusedRow == 2)
-                com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
-                LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
-                    items(uiState.moreLikeThis, key = { "${it.rawType}_${it.id}" }) { item ->
-                        NiuniaPoster(
-                            art = item.poster, fallback = item.rawPosterUrl, title = item.name, logo = item.logo, meta = NiuniaLabels.meta(item),
-                            label = NiuniaLabels.label(context, item, 0, rankingRow = false), baked = item.poster != null,
-                            onFocus = { if (it) focusedRow = 2 },
-                            onOk = { onNavigateToDetail(item.id, item.rawType, null) },
-                        )
-                    }
-                }
-                }
-            }
-        }
-        val cast = meta.castMembers.ifEmpty { meta.cast.map { MetaCastMember(name = it) } }
-        if (cast.isNotEmpty()) {
-            item(key = "cast") {
-                RowTitle(stringResource(R.string.niunia_detail_cast), on = focusedRow == 3)
-                com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
-                LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
-                    items(cast.take(20), key = { "${it.name}_${it.character}" }) { person ->
-                        PersonCard(person, onFocus = { focusedRow = 3 }, onOk = {
-                            val id = person.tmdbId
-                            if (id != null) onNavigateToCastDetail(id, person.name, false)
-                            else Log.i(TAG, "szczegóły: ${person.name} bez id TMDB — brak strony osoby")
-                        })
-                    }
-                }
-                }
-            }
-        }
-        item(key = "info") { InfoPanel(meta) }
-    }
-    }
-    }
         },
     )
+    }
+    // Episode: strona odcinka nad stroną serialu; Wstecz → rząd odcinków (fokus na tym samym odcinku).
+    episodeOpen?.let { ep ->
+        EpisodePage(meta, ep, uiState,
+            onPlay = { Log.i(TAG, "odcinek: odtwórz S${ep.season}:O${ep.episode}"); playEpisode(ep) },
+            onAbout = { episodeOpen = null; focusAbout("O odcinku") },
+            onBack = {
+                Log.i(TAG, "odcinek: Wstecz → odcinki")
+                episodeOpen = null
+            })
+    }
+    LaunchedEffect(episodeOpen) {
+        if (episodeOpen == null && lastEpisodeId != null) {
+            kotlinx.coroutines.delay(80)
+            try { episodeReturn.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odcinek: powrót fokusu: ${e.javaClass.simpleName}: ${e.message}") }
+        }
+    }
+    extrasState.trailer?.let { t -> com.nuvio.tv.skin.niunia.player.NiuniaTrailerOverlay(t) { extras.closeTrailer() } }
+    LaunchedEffect(extrasState.message) { extrasState.message?.let { com.nuvio.tv.fork.ForkLog.say(context, TAG, it); extras.clearMessage() } }
+    }
+}
+
+/** Dane karty odcinka: „39m” (zostało) albo „65m” (długość), postęp %, meta „2 wrz 2022 · 65 min”. */
+internal data class NiuniaEpisodeModel(val caption: String?, val progress: Int?, val meta: String?)
+
+internal fun niuniaEpisodeModel(video: Video, positionMs: Long?, durationMs: Long?, watched: Boolean): NiuniaEpisodeModel {
+    val dur = durationMs?.takeIf { it > 0 }
+    val pos = positionMs?.takeIf { it > 0 }
+    val inProgress = !watched && dur != null && pos != null && pos < dur
+    val left = if (inProgress) ((dur!! - pos!!) / 60_000L).toInt().takeIf { it > 0 } else null
+    val caption = left?.let { "${it}m" } ?: video.runtime?.let { "${it}m" }
+    val progress = if (watched) 100 else if (inProgress) ((pos!!.toFloat() / dur!!) * 100).toInt().coerceIn(0, 100) else null
+    val meta = listOfNotNull(niuniaDate(video.released), video.runtime?.let { "$it min" }).joinToString(" · ").ifBlank { null }
+    return NiuniaEpisodeModel(caption, progress, meta)
+}
+
+/** DetailMore „Opis”: panel z opisem (3 linie, „Więcej” = cały) + Informacje + Języki (tylko pola, które są). */
+@Composable
+private fun AboutSection(meta: Meta, series: Boolean, uiState: MetaDetailsUiState, full: Boolean, onMore: () -> Unit, onFocus: () -> Unit, active: Boolean) {
+    val ctx = LocalContext.current
+    RowTitle(stringResource(R.string.niunia_ds_description), on = active)
+    Row(Modifier.padding(start = NiuniaSpacing.Space40, end = NiuniaSpacing.Space40, top = NiuniaSpacing.Space12, bottom = NiuniaSpacing.Space40),
+        horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space40), verticalAlignment = Alignment.Top) {
+        NiuniaContentBlock(NiuniaBlockKind.Panel) {
+            NText(meta.description?.takeIf { it.isNotBlank() } ?: meta.name, variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = if (full) Int.MAX_VALUE else 3)
+            NiuniaButton(onClick = onMore, label = stringResource(R.string.niunia_player_more), kind = NiuniaButtonKind.Chip, selected = full,
+                description = stringResource(R.string.niunia_ds_show_full), onFocus = { if (it) onFocus() })
+        }
+        val episodes = meta.videos.count { (it.season ?: 0) > 0 }
+        val info = listOfNotNull(
+            niuniaDate(meta.released)?.let { ctx.getString(R.string.niunia_ds_premiere, it) },
+            if (series) listOfNotNull(
+                uiState.seasons.count { it > 0 }.takeIf { it > 0 }?.let { n -> when { n == 1 -> ctx.getString(R.string.niunia_ds_seasons_one); n % 10 in 2..4 && n % 100 !in 12..14 -> ctx.getString(R.string.niunia_ds_seasons_few, n); else -> ctx.getString(R.string.niunia_ds_seasons_many, n) } },
+                episodes.takeIf { it > 0 }?.let { ctx.getString(R.string.niunia_ds_episodes_count, it) },
+            ).joinToString(" · ").ifBlank { null } else meta.runtime?.takeIf { it.isNotBlank() },
+            (if (series) meta.writer.ifEmpty { meta.director } else meta.director).take(2).joinToString(", ").ifBlank { null }
+                ?.let { ctx.getString(if (series) R.string.niunia_ds_creators_line else R.string.niunia_ds_director_line, it) },
+            (meta.networks + meta.productionCompanies).map { it.name }.distinct().take(2).joinToString(" · ").ifBlank { null },
+        )
+        if (info.isNotEmpty()) NiuniaFact(stringResource(R.string.niunia_detail_info), info, Modifier.weight(1f))
+        val lang = meta.language?.takeIf { it.isNotBlank() }?.let { niuniaLanguageName(it) }
+        if (lang != null) NiuniaFact(stringResource(R.string.niunia_ds_languages), listOf(ctx.getString(R.string.niunia_ds_original, lang)), Modifier.weight(1f))
+    }
+}
+
+/**
+ * Strona odcinka (makieta `Episode`, NHero immersive na całą planszę): logo małe, tytuł odcinka 32/38, „Serial · gatunki”,
+ * „**S1, E1 ·** opis” (2 linie), data · długość ze znacznikami, Wznów (etykieta, postęp, „39m”) / Odtwórz — fokus startowy,
+ * „O odcinku” → Obsada i opis. Wstecz → rząd odcinków.
+ */
+@Composable
+private fun EpisodePage(meta: Meta, ep: Video, uiState: MetaDetailsUiState, onPlay: () -> Unit, onAbout: () -> Unit, onBack: () -> Unit) {
+    val ctx = LocalContext.current
+    val focus = remember { FocusRequester() }
+    androidx.activity.compose.BackHandler { onBack() }
+    LaunchedEffect(ep.id) {
+        Log.i(TAG, "odcinek: S${ep.season}:O${ep.episode} „${ep.title}”, fokus startowy → Wznów/Odtwórz")
+        kotlinx.coroutines.delay(60)
+        try { focus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odcinek: fokus: ${e.javaClass.simpleName}: ${e.message}") }
+    }
+    val wp = uiState.episodeProgressMap[(ep.season ?: 0) to (ep.episode ?: 0)]
+    val watched = ((ep.season ?: 0) to (ep.episode ?: 0)) in uiState.watchedEpisodes
+    val m = niuniaEpisodeModel(ep, wp?.position, wp?.duration, watched)
+    val resume = m.progress != null && m.progress in 1..99
+    Box(Modifier.fillMaxSize().focusGroup()) {
+        com.nuvio.tv.skin.niunia.components.NiuniaHeroBackdrop(com.nuvio.tv.skin.niunia.components.NiuniaHeroKind.Immersive, ep.thumbnail ?: meta.backdropUrl ?: meta.poster)
+        Column(Modifier.align(Alignment.BottomStart).padding(start = NiuniaSpacing.Space40, end = NiuniaSpacing.Space40, bottom = NiuniaSpacing.Space40),
+            verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space16)) {
+            NiuniaContentBlock(NiuniaBlockKind.Info) {
+                NiuniaLogo(meta.logo, meta.name, NiuniaLogoSize.Small)
+                NText(ep.title.ifBlank { ctx.getString(R.string.niunia_detail_episode, ep.episode ?: 0) }, variant = NiuniaTextVariant.TitleScreen, lines = 2)
+                NText(listOfNotNull(ctx.getString(R.string.niunia_player_series), meta.genres.take(2).joinToString(" · ").ifBlank { null }).joinToString(" · "), variant = NiuniaTextVariant.BodySmall, lines = 1)
+                val text = ep.overview?.takeIf { it.isNotBlank() }
+                if (text != null) NText("**S${ep.season}, E${ep.episode} ·** $text", variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 2)
+                NiuniaMetaLine(m.meta) { meta.ageRating?.takeIf { it.isNotBlank() }?.let { NiuniaTag(it, NiuniaTagKind.Age) } }
+            }
+            NiuniaCollection(NiuniaCollectionKind.Actions) {
+                if (resume) NiuniaButton(onClick = onPlay, label = stringResource(R.string.niunia_detail_resume), icon = "play", labelFirst = true,
+                    progress = m.progress!! / 100f, trailing = m.caption, focusRequester = focus,
+                    description = stringResource(R.string.niunia_ds_resume_left, m.caption ?: ""))
+                else NiuniaButton(onClick = onPlay, label = stringResource(R.string.niunia_detail_play), icon = "play", focusRequester = focus)
+                NiuniaButton(onClick = onAbout, icon = "about", description = stringResource(R.string.niunia_ds_about_episode))
+            }
+        }
+    }
 }
 
 /** Logo programu na środku u góry części pod hero (jedyny wyjątek od „bez centrowania”), do 64 dp wysokości, 40 dp odstępu niżej. */
@@ -194,6 +404,12 @@ private fun PageLogo(meta: Meta) {
 
 private fun rowPadding() = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = NiuniaSpace.TitleToRow - 22.dp, bottom = NiuniaSpace.AfterRow)
 
+/**
+ * Hero strony filmu/serialu wg makiety `Detail` (NHero immersive, `peek`): chip „Obejrzyj z lektorem” (gdy moduł lektora
+ * jest włączony), logo, linia „Serial · gatunki · N sezonów”, opis odcinka z pogrubionym „S1, E1 · tytuł:”, linia daty i
+ * długości ze znacznikami, wiersz akcji (Wznów z postępem i „39m” / Odtwórz — fokus startowy; biblioteka; O serialu) z obsadą
+ * i twórcami po prawej, u dołu wystające kadry odcinków (▼ → strona pod hero = `Episodes`).
+ */
 @Composable
 private fun Hero(
     meta: Meta,
@@ -203,77 +419,126 @@ private fun Hero(
     playFocus: FocusRequester,
     onPlay: () -> Unit,
     onLibrary: () -> Unit,
+    onAbout: () -> Unit,
     onFocus: () -> Unit,
 ) {
+    val ctx = LocalContext.current
+    val next = uiState.nextToWatch
+    val resume = next?.takeIf { it.isResume }?.watchProgress
+    // Serial: kadry odcinków (Detail); film: kadry zwiastunów (Movie). Tylko obraz — ▼ przenosi na stronę pod hero.
+    val stills: List<Pair<String?, String>> = if (series) uiState.episodesForSeason.take(5).map { it.thumbnail to it.title }
+        else meta.trailers.filter { !it.ytId.isNullOrBlank() }.take(4).map { "https://img.youtube.com/vi/${it.ytId}/hqdefault.jpg" to (it.name ?: meta.name) }
     Box(Modifier.fillMaxSize()) { // tło rysuje NiuniaHeroPage
-        // canvas .scrim-l; bez szarego gradientu na dole hero (WPIECIE.md „Po wdrożeniu” pkt 2).
-        Box(Modifier.fillMaxSize().background(Brush.horizontalGradient(0f to NiuniaColors.ScrimLeft, 0.55f to Color(0x6618181A), 1f to Color.Transparent)))
-        Column(Modifier.offset(x = 40.dp, y = 150.dp).width(430.dp)) {
-            if (meta.logo != null) {
-                AsyncImage(model = meta.logo, contentDescription = meta.name, contentScale = ContentScale.Fit, alignment = Alignment.CenterStart, modifier = Modifier.width(330.dp).height(96.dp))
-            } else {
-                Text(meta.name, style = NiuniaText.Logo, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            }
-            Text(metaLine(meta, series, uiState.seasons.size), style = NiuniaText.Meta.copy(fontSize = 13.sp), color = NiuniaColors.Text70, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 10.dp))
-            val episodeLine = heroVideo?.takeIf { series }?.let { v ->
-                listOfNotNull("S${v.season}, O${v.episode}", v.title.takeIf { it.isNotBlank() }).joinToString(" · ")
-            }
-            if (episodeLine != null) Text(episodeLine, style = NiuniaText.Meta.copy(fontSize = 13.sp), color = NiuniaColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 8.dp))
-            val description = (heroVideo?.overview?.takeIf { series && it.isNotBlank() } ?: meta.description)?.takeIf { it.isNotBlank() }
-            if (description != null) Text(description, style = NiuniaText.Body.copy(fontSize = 13.sp, lineHeight = 18.sp), maxLines = 3, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 6.dp))
-            Row(Modifier.padding(top = 22.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                val next = uiState.nextToWatch
-                val playText = when {
-                    next?.isResume == true -> stringResource(R.string.niunia_detail_resume)
-                    series && heroVideo != null -> stringResource(R.string.niunia_detail_play_episode, heroVideo.season ?: 1, heroVideo.episode ?: 1)
-                    else -> stringResource(R.string.niunia_detail_play)
+        NiuniaSurface(NiuniaSurfaceKind.ScrimHero, Modifier.fillMaxSize())
+        Column(
+            Modifier.align(Alignment.BottomStart).offset(y = if (stills.isNotEmpty()) NiuniaSize.Peek else -NiuniaSpacing.Space40)
+                .padding(horizontal = NiuniaSpacing.Space40).fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space16),
+        ) {
+            NiuniaContentBlock(NiuniaBlockKind.Info) {
+                if (com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctx, "module_lektor")) NiuniaTag(stringResource(R.string.niunia_ds_watch_lektor), NiuniaTagKind.Chip)
+                NiuniaLogo(meta.logo, meta.name, NiuniaLogoSize.Hero)
+                NText(niuniaDetailMetaLine(ctx, meta, series, uiState.seasons.size), variant = NiuniaTextVariant.BodySmall, lines = 1)
+                val ep = heroVideo?.takeIf { series }
+                val description = (ep?.overview?.takeIf { it.isNotBlank() } ?: meta.description)?.takeIf { it.isNotBlank() }
+                val prefix = ep?.let { v -> listOfNotNull("S${v.season}, E${v.episode}", v.title.takeIf { it.isNotBlank() }).joinToString(" · ") }
+                if (description != null) NText(if (prefix != null) "**$prefix:** $description" else description, variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 3)
+                val dateLine = listOfNotNull(
+                    niuniaDate(ep?.released ?: meta.released),
+                    (ep?.runtime?.let { "$it min" } ?: niuniaRuntimeLabel(ctx, meta.runtime)),
+                ).joinToString(" · ")
+                NiuniaMetaLine(dateLine.ifBlank { null }) {
+                    meta.imdbRating?.takeIf { it > 0f }?.let { NiuniaTag("IMDb %.1f".format(java.util.Locale.US, it), NiuniaTagKind.Quality) }
+                    meta.ageRating?.takeIf { it.isNotBlank() }?.let { NiuniaTag(it, NiuniaTagKind.Age) }
                 }
-                Column(horizontalAlignment = Alignment.Start) {
-                    NiuniaButton(text = "▶  $playText", onOk = onPlay, primary = true, focusRequester = playFocus,
-                        modifier = Modifier.niuniaRowFocus(onFocus))
-                    val progress = next?.takeIf { it.isResume }?.watchProgress?.progressPercentage
-                    if (progress != null && progress > 0f) {
-                        // canvas .mini: cienki pasek postępu pod przyciskiem
-                        Box(Modifier.padding(top = 6.dp).width(120.dp).height(3.dp).clip(RoundedCornerShape(2.dp)).background(NiuniaColors.Fill24)) {
-                            Box(Modifier.fillMaxWidth(progress.coerceIn(0f, 1f)).height(3.dp).background(NiuniaColors.Text))
-                        }
+            }
+            NiuniaCollection(NiuniaCollectionKind.SplitRow) {
+                Row(horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12), verticalAlignment = Alignment.CenterVertically) {
+                    val left = resume?.let { p -> ((p.duration - p.position).coerceAtLeast(0) / 60_000L).toInt() }?.takeIf { it > 0 }
+                    val epLabel = next?.let { n -> if (n.nextSeason != null && n.nextEpisode != null) "S${n.nextSeason}, E${n.nextEpisode}" else null }
+                    // Jeden przycisk (nie if/else): dane „Wznów” przychodzą po pierwszej klatce, a podmiana kompozycji gubiła fokus startowy.
+                    val resumeOn = resume != null && left != null
+                    val label = when {
+                        resumeOn -> "${left}m"
+                        series && heroVideo != null -> stringResource(R.string.niunia_detail_play_episode, heroVideo.season ?: 1, heroVideo.episode ?: 1)
+                        else -> stringResource(R.string.niunia_detail_play)
                     }
+                    NiuniaButton(
+                        onClick = onPlay, label = label, icon = "play", compact = resumeOn,
+                        progress = if (resumeOn) resume!!.progressPercentage.coerceIn(0f, 1f) else null,
+                        description = if (resumeOn) stringResource(R.string.niunia_ds_resume_left, listOfNotNull(epLabel, "$left min").joinToString(", ")) else label,
+                        focusRequester = playFocus, onFocus = { if (it) onFocus() },
+                    )
+                    NiuniaButton(onClick = onLibrary, icon = if (uiState.isInLibrary) "check" else "plus",
+                        description = stringResource(if (uiState.isInLibrary) R.string.niunia_pinfo_in_library else R.string.niunia_ds_add_library), onFocus = { if (it) onFocus() })
+                    NiuniaButton(onClick = onAbout, icon = "about",
+                        description = stringResource(if (series) R.string.niunia_ds_about_series else R.string.niunia_ds_about_movie), onFocus = { if (it) onFocus() })
                 }
-                NiuniaButton(text = if (uiState.isInLibrary) "✓" else "+", onOk = onLibrary, modifier = Modifier.niuniaRowFocus(onFocus))
+                Credits(meta, series, Modifier)
+            }
+            if (stills.isNotEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space20)) {
+                stills.forEach { (img, t) -> NiuniaMediaCard(NiuniaCardPreset.StillCard, img, onClick = null, title = t, focusable = false) }
             }
         }
-        Credits(meta, series, Modifier.align(Alignment.TopEnd).offset(x = (-40).dp, y = 410.dp).width(250.dp))
     }
 }
 
-private fun Modifier.niuniaRowFocus(onFocus: () -> Unit): Modifier =
-    this.onFocusChanged { if (it.hasFocus) onFocus() }
+/** Kod języka („en”, „pl-PL”) → nazwa po polsku („angielski”); pełna nazwa zostaje bez zmian. */
+internal fun niuniaLanguageName(raw: String): String {
+    val t = raw.trim()
+    if (t.length > 5 || t.contains(' ')) return t
+    val name = java.util.Locale(t.substringBefore('-').substringBefore('_').lowercase()).getDisplayLanguage(java.util.Locale("pl", "PL"))
+    return if (name.isBlank() || name.equals(t, ignoreCase = true)) t else name
+}
 
-/** canvas .credits: „Występują …” i „Twórcy / Reżyseria …”, 12/16, szare etykiety. */
+/** „2 wrz 2022” z daty ISO (pierwsze 10 znaków); inaczej null. */
+internal fun niuniaDate(iso: String?): String? {
+    val d = iso?.take(10) ?: return null
+    val m = Regex("""(\d{4})-(\d{2})-(\d{2})""").matchEntire(d) ?: return null
+    val months = listOf("sty", "lut", "mar", "kwi", "maj", "cze", "lip", "sie", "wrz", "paź", "lis", "gru")
+    val (y, mo, day) = m.destructured
+    return "${day.toInt()} ${months.getOrNull(mo.toInt() - 1) ?: return null} $y"
+}
+
+/** „Serial · Fantasy · Dramat · 2 sezony” / „Film · Przygodowy · 2026 · 2 godz. 53 min”. */
+internal fun niuniaDetailMetaLine(ctx: android.content.Context, meta: Meta, series: Boolean, seasons: Int): String = listOfNotNull(
+    ctx.getString(if (series) R.string.niunia_player_series else R.string.niunia_player_movie),
+    meta.genres.take(2).joinToString(" · ").ifBlank { null },
+    meta.releaseInfo?.takeIf { it.isNotBlank() && !series },
+    if (series && seasons > 0) when {
+        seasons == 1 -> ctx.getString(R.string.niunia_ds_seasons_one)
+        seasons % 10 in 2..4 && seasons % 100 !in 12..14 -> ctx.getString(R.string.niunia_ds_seasons_few, seasons)
+        else -> ctx.getString(R.string.niunia_ds_seasons_many, seasons)
+    } else niuniaRuntimeLabel(ctx, meta.runtime).takeIf { !series },
+).joinToString(" · ")
+
+/** „107” → „1 godz. 47 min”; nieznany zapis zostaje. */
+internal fun niuniaRuntimeLabel(ctx: android.content.Context, raw: String?): String? =
+    com.nuvio.tv.skin.niunia.home.niuniaRuntime(raw)?.let { (h, m) -> if (h > 0) ctx.getString(R.string.niunia_hours_minutes, h, m) else ctx.getString(R.string.niunia_minutes, m) }
+        ?: raw?.takeIf { it.isNotBlank() }
+
+/** Aktorzy do linii „Obsada”: bez twórców i reżyserów (TMDB podaje ich na początku listy), najpierw osoby z rolą. */
+internal fun niuniaStars(meta: Meta, n: Int = 3): List<String> {
+    val crew = (meta.writer + meta.director).toSet()
+    val members = meta.castMembers.filter { it.name !in crew }
+    val withRole = members.filter { !it.character.isNullOrBlank() }
+    return (withRole.ifEmpty { members }.map { it.name }.ifEmpty { meta.cast.filter { it !in crew } }).take(n)
+}
+
+/** NContentBlock `credits`: „Obsada **…**”, „Twórcy/Reżyseria **…**”, 14/20 w 50%, nazwiska pogrubione białe. */
 @Composable
 private fun Credits(meta: Meta, series: Boolean, modifier: Modifier) {
-    val stars = meta.castMembers.map { it.name }.ifEmpty { meta.cast }.take(3)
     val makers = (if (series) meta.writer.ifEmpty { meta.director } else meta.director).take(2)
+    val stars = niuniaStars(meta)
     if (stars.isEmpty() && makers.isEmpty()) return
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        if (stars.isNotEmpty()) CreditLine(stringResource(R.string.niunia_detail_starring), stars.joinToString(", "))
-        if (makers.isNotEmpty()) CreditLine(stringResource(if (series) R.string.niunia_detail_created_by else R.string.niunia_detail_directed_by), makers.joinToString(", "))
+    NiuniaContentBlock(NiuniaBlockKind.Credits, modifier) {
+        if (stars.isNotEmpty()) NText("${stringResource(R.string.niunia_ds_cast)} **${stars.joinToString(", ")}**", variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Tertiary, lines = 2)
+        if (makers.isNotEmpty()) NText("${stringResource(if (series) R.string.niunia_detail_created_by else R.string.niunia_detail_directed_by)} **${makers.joinToString(", ")}**",
+            variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Tertiary, lines = 2)
+        val studios = (meta.networks + meta.productionCompanies).map { it.name }.distinct().take(2)
+        if (!series && studios.isNotEmpty()) NText(studios.joinToString(" · "), variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Tertiary, lines = 1)
     }
 }
-
-@Composable
-private fun CreditLine(label: String, value: String) {
-    Text("$label  $value", style = NiuniaText.Caption.copy(fontSize = 12.sp, lineHeight = 16.sp), color = NiuniaColors.Text70, maxLines = 2, overflow = TextOverflow.Ellipsis)
-}
-
-private fun metaLine(meta: Meta, series: Boolean, seasons: Int): String = listOfNotNull(
-    if (series) "Serial" else "Film",
-    meta.genres.take(2).joinToString(" · ").ifBlank { null },
-    meta.releaseInfo?.takeIf { it.isNotBlank() },
-    if (series && seasons > 0) (if (seasons == 1) "1 sezon" else if (seasons in 2..4) "$seasons sezony" else "$seasons sezonów") else meta.runtime?.takeIf { it.isNotBlank() },
-    meta.ageRating?.takeIf { it.isNotBlank() },
-    meta.imdbRating?.takeIf { it > 0f }?.let { "IMDb %.1f".format(java.util.Locale.US, it) },
-).joinToString(" · ")
 
 /** canvas .tabs: pigułki sezonów (wybrany = białe 24%, fokus = białe tło). */
 @Composable

@@ -23,6 +23,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,13 +48,33 @@ import coil3.compose.AsyncImage
 import com.nuvio.tv.R
 import com.nuvio.tv.domain.model.MetaPreview
 import com.nuvio.tv.skin.niunia.NiuniaLabels
+import com.nuvio.tv.skin.niunia.components.NiuniaBlockKind
 import com.nuvio.tv.skin.niunia.components.NiuniaButton
+import com.nuvio.tv.skin.niunia.components.NiuniaButtonKind
+import com.nuvio.tv.skin.niunia.components.NiuniaCardPreset
+import com.nuvio.tv.skin.niunia.components.NiuniaCollection
+import com.nuvio.tv.skin.niunia.components.NiuniaCollectionHeader
+import com.nuvio.tv.skin.niunia.components.NiuniaCollectionKind
+import com.nuvio.tv.skin.niunia.components.NiuniaContentBlock
+import com.nuvio.tv.skin.niunia.components.NiuniaDots
+import com.nuvio.tv.skin.niunia.components.NiuniaLogo
+import com.nuvio.tv.skin.niunia.components.NiuniaLogoSize
+import com.nuvio.tv.skin.niunia.components.NiuniaMediaCard
+import com.nuvio.tv.skin.niunia.components.NiuniaMetaLine
+import com.nuvio.tv.skin.niunia.components.NiuniaScreens
+import com.nuvio.tv.skin.niunia.components.NiuniaSurface
+import com.nuvio.tv.skin.niunia.components.NiuniaSurfaceKind
+import com.nuvio.tv.skin.niunia.components.NiuniaTag
+import com.nuvio.tv.skin.niunia.components.NiuniaTagKind
+import com.nuvio.tv.skin.niunia.components.NiuniaText
+import com.nuvio.tv.skin.niunia.components.NiuniaTextVariant
+import com.nuvio.tv.skin.niunia.components.NiuniaTone
+import com.nuvio.tv.skin.niunia.tokens.NiuniaSize
+import com.nuvio.tv.skin.niunia.tokens.NiuniaSpacing
+import androidx.compose.foundation.layout.offset
 import com.nuvio.tv.skin.niunia.components.NiuniaPoster
-import com.nuvio.tv.skin.niunia.components.NiuniaRoundButton
-import com.nuvio.tv.skin.niunia.components.niuniaFocusable
 import com.nuvio.tv.skin.niunia.tokens.NiuniaColors
 import com.nuvio.tv.skin.niunia.tokens.NiuniaDims
-import com.nuvio.tv.skin.niunia.tokens.NiuniaText
 import com.nuvio.tv.skin.niunia.tokens.NiuniaSpace
 import com.nuvio.tv.ui.screens.home.ContinueWatchingItem
 import com.nuvio.tv.ui.screens.home.HomeUiState
@@ -69,6 +91,7 @@ fun NiuniaHome(
     onNavigateToDetail: (String, String, String) -> Unit,
     onContinueWatchingClick: (ContinueWatchingItem) -> Unit,
     onItemFocus: (MetaPreview) -> Unit,
+    onToggleLibrary: (MetaPreview, String) -> Unit = { _, _ -> },
 ) {
     val context = LocalContext.current
     // Baner: tylko filmy i seriale z dużym obrazem tła (bez pozycji „narzędziowych” dodatków, np. „Delete all files”).
@@ -81,8 +104,13 @@ fun NiuniaHome(
     var heroIndex by remember { mutableIntStateOf(0) }
     var focusedRow by remember { mutableIntStateOf(-1) }
     val heroFocus = remember { FocusRequester() }
-    // Fork 20.11: wyjście z menu (▶, Wstecz, ta sama zakładka) wraca na przycisk hero.
-    com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(if (heroes.isNotEmpty()) heroFocus else null)
+    // Powrót fokusu na element, z którego się wyszło (focus-and-keys.md pkt 5): po Wstecz ze strony tytułu i po wyjściu z menu.
+    val restoreFocus = remember { FocusRequester() }
+    val memory = NiuniaHomeMemory
+    var memDown by remember { mutableStateOf(memory.down && memory.key != null) }
+    com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(if (memDown) restoreFocus else if (heroes.isNotEmpty()) heroFocus else null)
+    remember { memory.restorePending = memDown; 0 }
+    fun rememberFocus(key: String, row: Int, index: Int) { memory.key = key; memory.row = row; memory.index = index; memory.down = true; memDown = true }
     val posterPattern = remember(uiState.customPosterUrlPattern, uiState.customPosterEnabledScreens) {
         com.nuvio.tv.core.poster.patternForScreen(uiState.customPosterUrlPattern, com.nuvio.tv.core.poster.CustomPosterScreen.HOME, uiState.customPosterEnabledScreens)
     }
@@ -95,16 +123,20 @@ fun NiuniaHome(
     // Właściciel 20.11: hero poza listą (był przesunięty o ujemny margines), ▼ = animacja: hero wyjeżdża, tło rozmyte, rzędy wjeżdżają.
     val rows: @Composable () -> Unit = {
         com.nuvio.tv.skin.niunia.components.NiuniaVerticalScroll {
-            LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 48.dp)) {
+            val colState = androidx.compose.foundation.lazy.rememberLazyListState(initialFirstVisibleItemIndex = if (memory.down) memory.row.coerceAtLeast(0) else 0)
+            LazyColumn(state = colState, modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 48.dp)) {
                 var firstBelow = true // pierwszy rząd 40 dp od góry
                 if (uiState.continueWatchingItems.isNotEmpty()) {
                     val top = firstBelow; firstBelow = false
                     item(key = "niunia_cw") {
                         RowTitle(stringResource(R.string.niunia_row_continue), on = focusedRow == -2, first = top)
                         com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
-                            LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
-                                items(uiState.continueWatchingItems, key = { cwKey(it) }) { cw ->
-                                    ContinueCard(cw, onFocus = { if (it) focusedRow = -2 }, onOk = { onContinueWatchingClick(cw) })
+                            val st = androidx.compose.foundation.lazy.rememberLazyListState(initialFirstVisibleItemIndex = if (memory.down && memory.key?.startsWith("cw:") == true) memory.index else 0)
+                            LazyRow(state = st, contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
+                                itemsIndexed(uiState.continueWatchingItems, key = { _, it -> cwKey(it) }) { i, cw ->
+                                    val k = "cw:" + cwKey(cw)
+                                    ContinueCard(cw, modifier = restoreModifier(k, restoreFocus), onFocus = { if (it) { focusedRow = -2; rememberFocus(k, 0, i) } },
+                                        onOk = { Log.i(TAG, "rzędy: Oglądaj dalej → ${niuniaCwContentId(cw)}"); onContinueWatchingClick(cw) })
                                 }
                             }
                         }
@@ -117,8 +149,12 @@ fun NiuniaHome(
                         val ranking = NiuniaLabels.isRankingRow(row.catalogName)
                         RowTitle(row.catalogName, on = focusedRow == rowIndex, first = top)
                         com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
-                            LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
+                            val rowKey = "r:${row.addonId}_${row.catalogId}_${row.rawType}:"
+                            val st = androidx.compose.foundation.lazy.rememberLazyListState(initialFirstVisibleItemIndex = if (memory.down && memory.key?.startsWith(rowKey) == true) memory.index else 0)
+                            val colIndex = rowIndex + if (uiState.continueWatchingItems.isNotEmpty()) 1 else 0
+                            LazyRow(state = st, contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
                                 itemsIndexed(row.items, key = { _, it -> it.id }) { i, item ->
+                                    val k = rowKey + item.id
                                     val (art, fallback) = remember(item, posterPattern) { niuniaPortrait(item, posterPattern) }
                                     NiuniaPoster(
                                         art = art,
@@ -129,8 +165,9 @@ fun NiuniaHome(
                                         label = NiuniaLabels.label(context, item, i, ranking),
                                         // Plakaty z dodatków zwykle mają tytuł w grafice → wariant „baked” (decyzja: plan/DECYZJE.md, Niunia).
                                         baked = art != null,
-                                        onFocus = { if (it) { focusedRow = rowIndex; onItemFocus(item) } },
-                                        onOk = { onNavigateToDetail(item.id, item.rawType, row.addonBaseUrl) },
+                                        modifier = restoreModifier(k, restoreFocus),
+                                        onFocus = { if (it) { focusedRow = rowIndex; onItemFocus(item); rememberFocus(k, colIndex, i) } },
+                                        onOk = { Log.i(TAG, "rzędy: OK → strona tytułu ${item.id}"); onNavigateToDetail(item.id, item.rawType, row.addonBaseUrl) },
                                     )
                                 }
                             }
@@ -149,10 +186,22 @@ fun NiuniaHome(
         heroFocus = heroFocus,
         what = "ekran główny",
         hero = {
+            val addon = uiState.catalogRows.firstOrNull { r -> r.items.any { it.id == hero.id } }?.addonBaseUrl ?: uiState.catalogRows.firstOrNull()?.addonBaseUrl ?: ""
+            val open = { Log.i(TAG, "ekran główny: hero → strona tytułu ${hero.id}"); onNavigateToDetail(hero.id, hero.rawType, addon) }
             Hero(
                 item = hero, index = heroIndex, count = heroes.size, focus = heroFocus,
-                onOpen = { onNavigateToDetail(hero.id, hero.rawType, uiState.catalogRows.firstOrNull()?.addonBaseUrl ?: "") },
-                onNext = { heroIndex = (heroIndex + 1) % heroes.size },
+                inLibrary = uiState.posterLibraryMembership[com.nuvio.tv.ui.screens.home.homeItemStatusKey(hero.id, hero.apiType)] == true,
+                peek = uiState.continueWatchingItems,
+                takeFocus = !memDown,
+                onHeroFocus = { memory.down = false; memDown = false },
+                onPlay = {
+                    // Odtwórz: tytuł z „Oglądaj dalej” wznawia się od razu; inny — strona tytułu z fokusem na Odtwórz (bez nowego wpięcia, plan/DECYZJE.md).
+                    val cw = uiState.continueWatchingItems.firstOrNull { c -> niuniaCwContentId(c) == hero.id }
+                    if (cw != null) { Log.i(TAG, "ekran główny: Odtwórz → wznów ${hero.id}"); onContinueWatchingClick(cw) } else open()
+                },
+                onOpen = open,
+                onLibrary = { Log.i(TAG, "ekran główny: biblioteka ${hero.id}"); onToggleLibrary(hero, addon) },
+                onNext = { heroIndex = (heroIndex + 1) % heroes.size; Log.i(TAG, "ekran główny: następny tytuł ${heroIndex + 1}/${heroes.size}") },
             )
         },
         below = { rows() },
@@ -167,79 +216,154 @@ private fun cwKey(cw: ContinueWatchingItem): String = when (cw) {
 /** Tytuł rzędu: 22 dp wysokości; rząd zaczyna się 34 dp od góry tytułu, po rzędzie 36 dp (decyzja właściciela). */
 @Composable
 private fun RowTitle(text: String, on: Boolean, first: Boolean = false) {
-    Text(
-        text, style = NiuniaText.Row, color = if (on) NiuniaColors.Text else NiuniaColors.Text50, maxLines = 1,
-        modifier = Modifier.padding(start = NiuniaDims.Gutter, top = if (first) NiuniaSpace.TopAfterHero else 0.dp).height(22.dp),
-    )
+    NiuniaCollectionHeader(text, active = on, modifier = Modifier.padding(start = NiuniaSpacing.Space40, top = if (first) NiuniaSpace.TopAfterHero else 0.dp).height(22.dp))
+}
+
+private fun niuniaCwContentId(cw: ContinueWatchingItem): String = when (cw) {
+    is ContinueWatchingItem.InProgress -> cw.progress.contentId
+    is ContinueWatchingItem.NextUp -> cw.info.contentId
 }
 
 private fun rowPadding() = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = NiuniaSpace.TitleToRow - 22.dp, bottom = NiuniaSpace.AfterRow)
 
+/**
+ * Hero Głównej wg makiety `Main` (NHero immersive, wysokość planszy, `peek`): logo, linia meta ze znacznikiem oceny, opis 2 linie,
+ * akcje (Odtwórz — fokus startowy, długie OK = strona tytułu; + biblioteka; i = szczegóły; › następny tytuł), kropki karuzeli,
+ * u dołu wystający rząd „Oglądaj dalej” (56 dp pod krawędzią; ▼ przenosi do rzędów — stan `HomeRows`).
+ * Tło (obraz + rozmycie po ▼) rysuje NiuniaHeroPage.
+ */
 @Composable
-private fun Hero(item: MetaPreview, index: Int, count: Int, focus: FocusRequester, onOpen: () -> Unit, onNext: () -> Unit) {
+private fun Hero(
+    item: MetaPreview,
+    index: Int,
+    count: Int,
+    focus: FocusRequester,
+    inLibrary: Boolean,
+    peek: List<ContinueWatchingItem>,
+    takeFocus: Boolean,
+    onHeroFocus: () -> Unit,
+    onPlay: () -> Unit,
+    onOpen: () -> Unit,
+    onLibrary: () -> Unit,
+    onNext: () -> Unit,
+) {
     LaunchedEffect(Unit) {
+        if (!takeFocus) return@LaunchedEffect
+        Log.i(TAG, "ekran główny: fokus startowy → ${NiuniaScreens.Main.initial}")
         try { focus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "fokus hero: ${e.javaClass.simpleName}: ${e.message}") }
     }
-    // Hero na cały ekran; tło rysuje NiuniaHeroPage (rozmywa się po ▼).
+    val ctx = LocalContext.current
     Box(Modifier.fillMaxSize()) {
-        Box(Modifier.fillMaxSize().background(Brush.horizontalGradient(0f to NiuniaColors.ScrimLeft, .38f to Color(0x8C18181A), .68f to Color.Transparent)))
-        // Bez szarego gradientu na dole hero (WPIECIE.md „Po wdrożeniu” pkt 2); zostaje tylko lewy scrim pod tekstem.
-        Column(Modifier.align(Alignment.BottomStart).padding(start = NiuniaDims.Gutter, bottom = 40.dp).width(420.dp)) {
-            if (!item.logo.isNullOrBlank()) {
-                AsyncImage(model = item.logo, contentDescription = item.name, contentScale = ContentScale.Fit, alignment = Alignment.BottomStart,
-                    modifier = Modifier.widthIn(max = 370.dp).heightIn(max = 110.dp))
-            } else {
-                Text(item.name.uppercase(), style = NiuniaText.Logo, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            }
-            val meta = listOfNotNull(item.genres.take(2).joinToString(" · ").ifBlank { null }, item.releaseInfo, item.runtime, item.ageRating).joinToString(" · ")
-            if (meta.isNotBlank()) Text(meta, style = NiuniaText.Meta, modifier = Modifier.padding(top = 10.dp), maxLines = 1)
-            if (!item.description.isNullOrBlank()) Text(item.description, style = NiuniaText.Body, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 6.dp))
-            Row(Modifier.padding(top = 18.dp), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                NiuniaButton(stringResource(R.string.niunia_hero_open), onOpen, primary = true, focusRequester = focus)
-                if (count > 1) NiuniaRoundButton("›", stringResource(R.string.niunia_hero_next), onNext)
-            }
-            if (count > 1) Dots(index % count, count)
-        }
-    }
-}
-
-@Composable
-private fun Dots(selected: Int, count: Int) {
-    Row(Modifier.padding(top = 14.dp).background(Color(0x40000000), RoundedCornerShape(9.dp)).padding(horizontal = 6.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-        repeat(count.coerceAtMost(10)) { i ->
-            Box(Modifier.size(width = if (i == selected) 14.dp else 5.dp, height = 5.dp).background(if (i == selected) Color.White else Color(0x66FFFFFF), RoundedCornerShape(3.dp)))
-        }
-    }
-}
-
-@Composable
-private fun ContinueCard(cw: ContinueWatchingItem, onFocus: (Boolean) -> Unit, onOk: () -> Unit) {
-    val (image, caption, fraction) = when (cw) {
-        is ContinueWatchingItem.InProgress -> {
-            val p = cw.progress
-            val f = p.progressPercent?.div(100f) ?: if (p.duration > 0) p.position.toFloat() / p.duration else 0f
-            val cap = if (p.season != null && p.episode != null) "S${p.season}, E${p.episode}" else p.name
-            Triple(cw.episodeThumbnail ?: p.backdrop ?: p.poster, cap, f.coerceIn(0f, 1f))
-        }
-        is ContinueWatchingItem.NextUp -> Triple(cw.info.thumbnail ?: cw.info.backdrop ?: cw.info.poster, "S${cw.info.season}, E${cw.info.episode}", 0f)
-    }
-    val shape = RoundedCornerShape(NiuniaDims.RadiusCard)
-    Box(Modifier.size(NiuniaDims.WideW, NiuniaDims.WideH).niuniaFocusable(shape, onFocus = onFocus, onOk = onOk).clip(shape).background(NiuniaColors.Surface)) {
-        AsyncImage(model = image, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
-        Row(
-            Modifier.align(Alignment.BottomStart).fillMaxWidth()
-                .background(Brush.verticalGradient(listOf(Color.Transparent, Color(0xA6000000))))
-                .padding(start = 8.dp, end = 8.dp, top = 22.dp, bottom = 7.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically,
+        NiuniaSurface(NiuniaSurfaceKind.ScrimHero, Modifier.fillMaxSize())
+        Column(
+            Modifier.align(Alignment.BottomStart).offset(y = if (peek.isNotEmpty()) NiuniaSize.Peek else -NiuniaSpacing.Space40)
+                .padding(horizontal = NiuniaSpacing.Space40),
+            verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space16),
         ) {
-            if (fraction > 0f) {
-                Box(Modifier.size(width = 22.dp, height = 3.dp).background(Color(0x59FFFFFF), RoundedCornerShape(2.dp))) {
-                    Box(Modifier.size(width = (22 * fraction).dp, height = 3.dp).background(Color.White, RoundedCornerShape(2.dp)))
+            NiuniaContentBlock(NiuniaBlockKind.Info) {
+                NiuniaLogo(item.logo, item.name, NiuniaLogoSize.Hero)
+                val type = if (item.rawType == "series") ctx.getString(R.string.niunia_player_series) else ctx.getString(R.string.niunia_player_movie)
+                val meta = listOfNotNull(type, item.genres.take(2).joinToString(" · ").ifBlank { null }, item.releaseInfo?.takeIf { it.isNotBlank() }, niuniaRuntime(item.runtime)?.let { (h, m) -> if (h > 0) ctx.getString(R.string.niunia_hours_minutes, h, m) else ctx.getString(R.string.niunia_minutes, m) } ?: item.runtime?.takeIf { it.isNotBlank() })
+                    .joinToString(" · ")
+                NiuniaMetaLine(meta, tone = NiuniaTone.Primary) {
+                    item.imdbRating?.takeIf { it > 0f }?.let { NiuniaTag("IMDb %.1f".format(java.util.Locale.US, it), NiuniaTagKind.Quality) }
+                    item.ageRating?.takeIf { it.isNotBlank() }?.let { NiuniaTag(it, NiuniaTagKind.Age) }
+                }
+                if (!item.description.isNullOrBlank()) NiuniaText(item.description, variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 2)
+            }
+            NiuniaCollection(NiuniaCollectionKind.Actions) {
+                NiuniaButton(onClick = onPlay, label = stringResource(R.string.niunia_detail_play), icon = "play", focusRequester = focus, onLongClick = onOpen, onFocus = { if (it) onHeroFocus() })
+                NiuniaButton(onClick = onLibrary, icon = if (inLibrary) "check" else "plus",
+                    description = stringResource(if (inLibrary) R.string.niunia_pinfo_in_library else R.string.niunia_ds_add_library))
+                NiuniaButton(onClick = onOpen, icon = "info", description = stringResource(R.string.niunia_ds_details))
+                if (count > 1) NiuniaButton(onClick = onNext, icon = "chevron-right", kind = NiuniaButtonKind.Bare, description = stringResource(R.string.niunia_ds_next_featured))
+            }
+            if (count > 1) NiuniaDots(count.coerceAtMost(10), index % count.coerceAtMost(10))
+            if (peek.isNotEmpty()) {
+                Column(verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
+                    NiuniaCollectionHeader(stringResource(R.string.niunia_row_continue), active = false)
+                    Row(horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space20)) {
+                        peek.take(5).forEach { ContinueCard(it, focusable = false, onFocus = {}, onOk = {}) }
+                    }
                 }
             }
-            Text(caption, style = NiuniaText.Caption, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
-    Spacer(Modifier.width(0.dp))
+}
+
+/** Karta „Oglądaj dalej” = NMediaCard ContinueWatchingCard: ▶, postęp, „S1, E1 · 39m” (zostało). */
+@Composable
+private fun ContinueCard(cw: ContinueWatchingItem, modifier: Modifier = Modifier, focusable: Boolean = true, onFocus: (Boolean) -> Unit, onOk: () -> Unit) {
+    val ctx = LocalContext.current
+    val m = remember(cw) { niuniaContinueModel(cw) }
+    NiuniaMediaCard(
+        preset = NiuniaCardPreset.ContinueWatchingCard,
+        image = m.image,
+        onClick = onOk,
+        modifier = modifier,
+        title = m.title,
+        caption = m.caption,
+        progress = m.progress,
+        play = m.progress != null,
+        badge = if (m.nextUp) ctx.getString(R.string.niunia_label_new).takeIf { m.newSeason } else null,
+        description = listOfNotNull(m.title, m.caption).joinToString(", "),
+        focusable = focusable,
+        onFocus = onFocus,
+    )
+}
+
+/** Dane karty „Oglądaj dalej” (czysta funkcja, test w NiuniaDsTest). */
+internal data class NiuniaContinueModel(val title: String, val caption: String?, val image: String?, val progress: Int?, val nextUp: Boolean, val newSeason: Boolean)
+
+internal fun niuniaContinueModel(cw: ContinueWatchingItem): NiuniaContinueModel = when (cw) {
+    is ContinueWatchingItem.InProgress -> {
+        val p = cw.progress
+        val fraction = p.progressPercent?.div(100f) ?: if (p.duration > 0) p.position.toFloat() / p.duration else 0f
+        val leftMin = if (p.duration > 0) ((p.duration - p.position).coerceAtLeast(0) / 60_000L).toInt() else null
+        val ep = if (p.season != null && p.episode != null) "S${p.season}, E${p.episode}" else null
+        val caption = listOfNotNull(ep ?: p.name, leftMin?.takeIf { it > 0 }?.let { "${it}m" }).joinToString(" · ")
+        NiuniaContinueModel(p.name, caption, cw.episodeThumbnail ?: p.backdrop ?: p.poster, (fraction * 100).toInt().coerceIn(0, 100), nextUp = false, newSeason = false)
+    }
+    is ContinueWatchingItem.NextUp -> NiuniaContinueModel(
+        cw.info.name, "S${cw.info.season}, E${cw.info.episode}", cw.info.thumbnail ?: cw.info.backdrop ?: cw.info.poster, null,
+        nextUp = true, newSeason = cw.info.isNewSeasonRelease,
+    )
+}
+
+/** Długość z dodatku („148”, „148 min”, „2h 28min”) → (godziny, minuty); null = nieznany zapis. */
+internal fun niuniaRuntime(raw: String?): Pair<Int, Int>? {
+    val t = raw?.trim()?.lowercase() ?: return null
+    Regex("""^(\d+)\s*(min|m)?$""").matchEntire(t)?.let { val m = it.groupValues[1].toInt(); return if (m <= 0) null else m / 60 to m % 60 }
+    Regex("""^(\d+)\s*h(?:\s*(\d+)\s*(?:min|m)?)?$""").matchEntire(t)?.let { return it.groupValues[1].toInt() to (it.groupValues[2].toIntOrNull() ?: 0) }
+    return null
+}
+
+/** Ostatni element rzędów Głównej z fokusem (przeżywa przejście na stronę tytułu i z powrotem). */
+internal object NiuniaHomeMemory {
+    /** Stan Compose: requester powrotu fokusu przechodzi na ostatni element (wyjście z menu). */
+    var key: String? by androidx.compose.runtime.mutableStateOf(null)
+    /** Jednorazowy powrót fokusu po wejściu na ekran (Wstecz ze strony tytułu). */
+    var restorePending: Boolean = false
+    var row: Int = 0
+    var index: Int = 0
+    var down: Boolean = false
+}
+
+/** Element zapamiętany w [NiuniaHomeMemory] dostaje [restore] i fokus po wejściu na ekran. */
+@Composable
+private fun restoreModifier(key: String, restore: FocusRequester): Modifier {
+    if (!NiuniaHomeMemory.down || NiuniaHomeMemory.key != key) return Modifier
+    LaunchedEffect(key) {
+        if (!NiuniaHomeMemory.restorePending) return@LaunchedEffect
+        NiuniaHomeMemory.restorePending = false
+        // Pierwsza klatka, zanim domyślny fokus trafi do menu (wcześniej po 80 ms menu zdążyło się na chwilę otworzyć).
+        androidx.compose.runtime.withFrameNanos { }
+        val ok = try { restore.requestFocus(); true } catch (e: IllegalStateException) { Log.w(TAG, "ekran główny: powrót fokusu (1. klatka): ${e.javaClass.simpleName}: ${e.message}"); false }
+        if (!ok) {
+            kotlinx.coroutines.delay(80)
+            try { restore.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "ekran główny: powrót fokusu: ${e.javaClass.simpleName}: ${e.message}") }
+        }
+        Log.i(TAG, "ekran główny: fokus wraca na $key")
+    }
+    return Modifier.focusRequester(restore)
 }

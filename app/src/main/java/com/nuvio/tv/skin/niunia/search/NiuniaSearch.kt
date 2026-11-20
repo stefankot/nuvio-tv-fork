@@ -11,17 +11,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -29,166 +31,270 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
 import com.nuvio.tv.R
 import com.nuvio.tv.domain.model.MetaPreview
 import com.nuvio.tv.skin.niunia.NiuniaLabels
+import com.nuvio.tv.skin.niunia.components.NiuniaButton
+import com.nuvio.tv.skin.niunia.components.NiuniaButtonKind
+import com.nuvio.tv.skin.niunia.components.NiuniaCardPreset
+import com.nuvio.tv.skin.niunia.components.NiuniaCollection
+import com.nuvio.tv.skin.niunia.components.NiuniaCollectionHeader
+import com.nuvio.tv.skin.niunia.components.NiuniaCollectionKind
+import com.nuvio.tv.skin.niunia.components.NiuniaIcon
+import com.nuvio.tv.skin.niunia.components.NiuniaListRow
+import com.nuvio.tv.skin.niunia.components.NiuniaMediaCard
 import com.nuvio.tv.skin.niunia.components.NiuniaPoster
-import com.nuvio.tv.skin.niunia.components.niuniaFocusable
-import com.nuvio.tv.skin.niunia.tokens.NiuniaColors
-import com.nuvio.tv.skin.niunia.tokens.NiuniaDims
-import com.nuvio.tv.skin.niunia.tokens.NiuniaText
+import com.nuvio.tv.skin.niunia.components.NiuniaResultCard
+import com.nuvio.tv.skin.niunia.components.NiuniaResultThumb
+import com.nuvio.tv.skin.niunia.components.NiuniaRowKind
+import com.nuvio.tv.skin.niunia.components.NiuniaText
+import com.nuvio.tv.skin.niunia.components.NiuniaTextVariant
+import com.nuvio.tv.skin.niunia.components.NiuniaTone
+import com.nuvio.tv.skin.niunia.components.niuniaTrapArrows
+import com.nuvio.tv.skin.niunia.tokens.NiuniaColor
+import com.nuvio.tv.skin.niunia.tokens.NiuniaSize
+import com.nuvio.tv.skin.niunia.tokens.NiuniaSpacing
+import com.nuvio.tv.skin.niunia.tokens.NiuniaType
 import com.nuvio.tv.ui.screens.search.SearchEvent
 import com.nuvio.tv.ui.screens.search.SearchViewModel
 
 private const val TAG = "ForkNiunia"
-private val LETTERS = ('a'..'z').map { it.toString() }
-private val DIGITS = ('1'..'9').map { it.toString() } + "0"
+
+/** Zakładki wyników (decyzja 20.11, makieta SearchResults). */
+internal enum class NiuniaSearchTab { All, Movies, Series, Tv, YouTube, People }
+
+/** Czy wynik pasuje do zakładki (czysta funkcja, test w NiuniaDsTest). */
+internal fun niuniaSearchTabMatches(tab: NiuniaSearchTab, rawType: String): Boolean = when (tab) {
+    NiuniaSearchTab.All -> true
+    NiuniaSearchTab.Movies -> rawType == "movie"
+    NiuniaSearchTab.Series -> rawType == "series" || rawType == "anime"
+    NiuniaSearchTab.Tv -> rawType == "tv" || rawType == "channel"
+    NiuniaSearchTab.YouTube -> rawType.startsWith("youtube")
+    NiuniaSearchTab.People -> rawType == "person"
+}
+
+/** Podpowiedzi pod klawiaturą: do 3 fraz z podpowiedzi wyszukiwarki, a gdy ich brak — z tytułów wyników zawierających frazę. */
+internal fun niuniaSearchSuggestions(query: String, fromEngine: List<String>, titles: List<String>): List<String> {
+    val q = query.trim().lowercase()
+    if (q.isEmpty()) return emptyList()
+    val fromTitles = titles.map { it.lowercase() }.filter { it.contains(q) && it != q }
+    return (fromEngine.map { it.lowercase() } + fromTitles).distinct().take(3)
+}
 
 /**
- * Wyszukiwarka Niunii (canvas: Search, SearchResults): z lewej pole i klawiatura liter 6 w rzędzie (abc / 123,
- * SPACJA, ⌫, WYCZYŚĆ), z prawej: bez zapytania — ostatnie wyszukiwania i „Przeglądaj” (plakaty z odkrywania),
- * z zapytaniem — karty wyników (miniatura, tytuł, typ · rok). Dane i zdarzenia: [SearchViewModel] Nuvio.
+ * Wyszukiwarka Niuni wg makiet `Search` i `SearchResults` (NScreen split: lewa kolumna 216 dp, prawa od x 296):
+ * u góry pole (32/38, ikona lupy, kursor), z lewej klawiatura design systemu (abc/123, klawisze 36 dp po 6, SPACJA ⌫ WYCZYŚĆ)
+ * i lista „Ostatnio wyszukiwane” / „Podpowiedzi”; z prawej bez frazy: „Przeglądaj” (Filmy, Seriale, Live TV, gatunki) i „Polecane”;
+ * z frazą: zakładki Wszystko · Filmy · Seriale · TV · YouTube · Osoby i siatka 2 kolumn kart wyników. Dane: [SearchViewModel].
  */
 @Composable
 fun NiuniaSearch(viewModel: SearchViewModel, onNavigateToDetail: (String, String, String) -> Unit) {
     val state by viewModel.uiState.collectAsState()
+    val ctx = LocalContext.current
     var digits by remember { mutableStateOf(false) }
+    var tab by remember { mutableStateOf(NiuniaSearchTab.All) }
     val firstKey = remember { FocusRequester() }
-    fun type(q: String) = viewModel.onEvent(SearchEvent.QueryChanged(q))
+    fun type(q: String) { viewModel.onEvent(SearchEvent.QueryChanged(q)) }
+    com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(firstKey)
     LaunchedEffect(Unit) {
-        try { firstKey.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "fokus klawiatury: ${e.javaClass.simpleName}: ${e.message}") }
+        viewModel.ensureDiscoverLoaded() // „Przeglądaj” (gatunki) i „Polecane” — jak ekran odkrywania Nuvio (test JMGO build147: puste)
+        Log.i(TAG, "wyszukiwarka: fokus startowy → klawisz a")
+        try { firstKey.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "wyszukiwarka: fokus klawiatury: ${e.javaClass.simpleName}: ${e.message}") }
     }
     val results: List<Pair<MetaPreview, String>> = remember(state.catalogRows) {
         state.catalogRows.flatMap { row -> row.items.map { it to row.addonBaseUrl } }.distinctBy { it.first.id }
     }
     LaunchedEffect(results.size, state.submittedQuery) {
-        if (state.submittedQuery.isNotBlank()) Log.i(TAG, "wyszukiwarka: ${results.size} wyników")
+        if (state.submittedQuery.isNotBlank()) Log.i(TAG, "wyszukiwarka: „${state.submittedQuery}” → ${results.size} wyników")
     }
+    val searching = state.query.isNotBlank()
 
-    Row(Modifier.fillMaxSize().background(NiuniaColors.Bg).padding(start = NiuniaDims.Gutter, top = 74.dp, end = NiuniaDims.Gutter)) {
-        Column(Modifier.width(220.dp)) {
-            Text(
-                state.query.ifBlank { stringResource(R.string.niunia_search_hint) },
-                style = NiuniaText.Logo.copy(fontSize = 22.sp, lineHeight = 28.sp),
-                color = if (state.query.isBlank()) NiuniaColors.Text50 else NiuniaColors.Text,
-                maxLines = 2, overflow = TextOverflow.Ellipsis,
-            )
-            Row(Modifier.padding(top = 18.dp).fillMaxWidth().background(NiuniaColors.Fill12.copy(alpha = .06f), RoundedCornerShape(16.dp)).padding(3.dp)) {
-                Seg("abc", !digits, Modifier.weight(1f)) { digits = false }
-                Seg("123", digits, Modifier.weight(1f)) { digits = true }
-            }
-            val keys = if (digits) DIGITS else LETTERS
-            Column(Modifier.padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                keys.chunked(6).forEachIndexed { r, line ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                        line.forEachIndexed { c, k ->
-                            Key(k, if (r == 0 && c == 0) firstKey else null) { type(state.query + k) }
+    Box(Modifier.fillMaxSize().background(NiuniaColor.Bg)) {
+        Column(Modifier.fillMaxSize().padding(start = NiuniaSpacing.Space40, end = NiuniaSpacing.Space40, top = NiuniaSize.NavTop + NiuniaSize.H44)) {
+            SearchField(state.query, ctx.getString(R.string.niunia_ds_search_placeholder))
+            Row(Modifier.padding(top = NiuniaSpacing.Space12).fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space40)) {
+                // Lewa kolumna: klawiatura + lista fraz.
+                Column(Modifier.width(NiuniaSize.SplitCol), verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
+                    Keyboard(
+                        digits = digits, firstKey = firstKey,
+                        onMode = { digits = it; Log.i(TAG, "wyszukiwarka: klawiatura ${if (it) "123" else "abc"}") },
+                        onKey = { k -> type(state.query + k) },
+                        onSpace = { type(state.query + " ") },
+                        onDelete = { type(state.query.dropLast(1)) },
+                        onClear = { Log.i(TAG, "wyszukiwarka: wyczyść"); type(""); tab = NiuniaSearchTab.All },
+                    )
+                    val phrases = if (searching) niuniaSearchSuggestions(state.query, state.suggestions, results.map { it.first.name }) else state.recentSearches.take(3)
+                    if (phrases.isNotEmpty()) Column(verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space4)) {
+                        NiuniaText(stringResource(if (searching) R.string.niunia_ds_search_suggestions else R.string.niunia_search_recent),
+                            Modifier.padding(horizontal = NiuniaSpacing.Space8), variant = NiuniaTextVariant.CaptionRegular, tone = NiuniaTone.Tertiary)
+                        phrases.forEach { ph ->
+                            NiuniaListRow(ph, onClick = { Log.i(TAG, "wyszukiwarka: fraza „$ph”"); type(ph); viewModel.onEvent(SearchEvent.SubmitSearch) },
+                                kind = NiuniaRowKind.Suggestion, icon = if (searching) "search" else "history")
                         }
                     }
                 }
-            }
-            Row(Modifier.padding(top = 12.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                SmallKey(stringResource(R.string.niunia_search_space)) { type(state.query + " ") }
-                SmallKey("⌫") { type(state.query.dropLast(1)) }
-                SmallKey(stringResource(R.string.niunia_search_clear)) { type("") }
-            }
-        }
-        Column(Modifier.padding(start = 36.dp).fillMaxSize()) {
-            if (state.query.isBlank()) {
-                if (state.recentSearches.isNotEmpty()) {
-                    Text(stringResource(R.string.niunia_search_recent), style = NiuniaText.Row, color = NiuniaColors.Text50)
-                    Row(Modifier.padding(top = 10.dp, bottom = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        state.recentSearches.take(5).forEach { q -> Chip(q) { type(q) } }
-                    }
-                }
-                Text(stringResource(R.string.niunia_search_browse), style = NiuniaText.Row, color = NiuniaColors.Text50)
-                LazyVerticalGrid(
-                    columns = GridCells.Adaptive(NiuniaDims.PosterW), contentPadding = PaddingValues(vertical = 14.dp),
-                    horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap), verticalArrangement = Arrangement.spacedBy(24.dp),
-                ) {
-                    items(state.discoverResults.take(24), key = { it.id }) { item ->
-                        NiuniaPoster(art = item.poster, fallback = item.rawPosterUrl, title = item.name, logo = item.logo, meta = NiuniaLabels.meta(item), label = null, baked = item.poster != null,
-                            onOk = { onNavigateToDetail(item.id, item.rawType, "") })
-                    }
-                }
-            } else {
-                Text(stringResource(R.string.niunia_search_top), style = NiuniaText.Row, color = NiuniaColors.Text)
-                if (state.isSearching && results.isEmpty()) {
-                    Text(stringResource(R.string.niunia_search_searching), style = NiuniaText.Body, modifier = Modifier.padding(top = 14.dp))
-                } else if (results.isEmpty() && state.submittedQuery.isNotBlank()) {
-                    Text(stringResource(R.string.niunia_search_none, state.submittedQuery), style = NiuniaText.Body, modifier = Modifier.padding(top = 14.dp))
-                }
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2), contentPadding = PaddingValues(vertical = 14.dp),
-                    horizontalArrangement = Arrangement.spacedBy(20.dp), verticalArrangement = Arrangement.spacedBy(20.dp),
-                ) {
-                    items(results, key = { it.first.id }) { (item, addon) -> ResultCard(item) { onNavigateToDetail(item.id, item.rawType, addon) } }
+                // Prawa kolumna.
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space24)) {
+                    if (!searching) Browse(state, ctx, viewModel, onNavigateToDetail)
+                    else Results(state.isSearching, state.submittedQuery, results, tab, onTab = { tab = it; Log.i(TAG, "wyszukiwarka: zakładka $it") }, onNavigateToDetail)
                 }
             }
         }
     }
 }
 
+/** NInput search: lupa 28, tekst 32/38 (podpowiedź w 50%), kursor 2 dp, linia 1 dp u dołu. */
 @Composable
-private fun Seg(text: String, on: Boolean, modifier: Modifier, onOk: () -> Unit) {
-    val shape = RoundedCornerShape(13.dp)
-    Box(modifier.height(26.dp).niuniaFocusable(shape, scale = 1.04f, lift = false, onOk = onOk).background(if (on) NiuniaColors.Fill24 else NiuniaColors.Bg.copy(alpha = 0f), shape),
-        contentAlignment = Alignment.Center) {
-        Text(text, style = NiuniaText.Caption, color = if (on) NiuniaColors.Text else NiuniaColors.Text70)
+private fun SearchField(query: String, placeholder: String) {
+    Column {
+        Row(Modifier.height(NiuniaSize.H44), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
+            NiuniaIcon("search", size = NiuniaSize.Icon28, tint = NiuniaColor.Text70)
+            if (query.isBlank()) Text(placeholder, style = NiuniaType.TitleScreen, color = NiuniaColor.Text50, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            else {
+                Text(query, style = NiuniaType.TitleScreen, color = NiuniaColor.White, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                Box(Modifier.width(NiuniaSize.CaretW).height(NiuniaSize.Icon28).background(NiuniaColor.White))
+            }
+        }
+        Box(Modifier.fillMaxWidth().height(1.dp).background(NiuniaColor.Line))
     }
 }
 
+/** NCollection search-keyboard: przełącznik abc/123 (segmenty), klawisze 36×36 po 6 w rzędzie (odstęp 4), SPACJA · ⌫ · WYCZYŚĆ. */
 @Composable
-private fun Key(k: String, requester: FocusRequester?, onOk: () -> Unit) {
-    var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(9.dp)
-    Box(Modifier.size(34.dp).niuniaFocusable(shape, scale = 1.12f, lift = false, focusRequester = requester, onFocus = { focused = it }, onOk = onOk)
-        .background(if (focused) NiuniaColors.Focus else NiuniaColors.Bg.copy(alpha = 0f), shape), contentAlignment = Alignment.Center) {
-        Text(k, style = NiuniaText.Logo.copy(fontSize = 20.sp, lineHeight = 20.sp), color = if (focused) NiuniaColors.OnFocus else NiuniaColors.Text70)
+private fun Keyboard(digits: Boolean, firstKey: FocusRequester, onMode: (Boolean) -> Unit, onKey: (String) -> Unit, onSpace: () -> Unit, onDelete: () -> Unit, onClear: () -> Unit) {
+    val keys = (if (digits) "1234567890" else "abcdefghijklmnopqrstuvwxyz").map { it.toString() }
+    Column(Modifier.niuniaTrapArrows("klawiatura", setOf(androidx.compose.ui.focus.FocusDirection.Left, androidx.compose.ui.focus.FocusDirection.Right)),
+        verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
+        Row(Modifier.width(NiuniaSize.SplitCol).clip(CircleShape).background(NiuniaColor.Fill12).padding(NiuniaSpacing.Space4)) {
+            NiuniaButton(onClick = { onMode(false) }, label = stringResource(R.string.niunia_ds_search_kbd_letters), kind = NiuniaButtonKind.Segment, selected = !digits, modifier = Modifier.weight(1f))
+            NiuniaButton(onClick = { onMode(true) }, label = stringResource(R.string.niunia_ds_search_kbd_digits), kind = NiuniaButtonKind.Segment, selected = digits, modifier = Modifier.weight(1f))
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(NiuniaSize.KeyboardGap)) {
+            keys.chunked(6).forEachIndexed { r, line ->
+                Row {
+                    line.forEachIndexed { c, k ->
+                        NiuniaButton(onClick = { onKey(k) }, label = k, kind = NiuniaButtonKind.Key, description = k, focusRequester = if (r == 0 && c == 0) firstKey else null)
+                    }
+                }
+            }
+        }
+        Row(Modifier.width(NiuniaSize.SplitCol), horizontalArrangement = Arrangement.SpaceBetween) {
+            NiuniaButton(onClick = onSpace, label = stringResource(R.string.niunia_search_space), kind = NiuniaButtonKind.KeyWide)
+            NiuniaButton(onClick = onDelete, icon = "backspace", kind = NiuniaButtonKind.KeyWide, description = stringResource(R.string.niunia_ds_search_delete))
+            NiuniaButton(onClick = onClear, label = stringResource(R.string.niunia_search_clear), kind = NiuniaButtonKind.KeyWide)
+        }
     }
 }
 
+/** Bez frazy: „Przeglądaj” (karty-etykiety: Filmy, Seriale, Live TV, gatunki odkrywania) i „Polecane” (plakaty z odkrywania). */
 @Composable
-private fun SmallKey(text: String, onOk: () -> Unit) {
-    var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(8.dp)
-    Box(Modifier.height(28.dp).niuniaFocusable(shape, scale = 1.06f, lift = false, onFocus = { focused = it }, onOk = onOk)
-        .background(if (focused) NiuniaColors.Focus else NiuniaColors.Bg.copy(alpha = 0f), shape).padding(horizontal = 8.dp), contentAlignment = Alignment.Center) {
-        Text(text, style = NiuniaText.Caption.copy(fontSize = 13.sp), color = if (focused) NiuniaColors.OnFocus else NiuniaColors.Text70)
+private fun Browse(state: com.nuvio.tv.ui.screens.search.SearchUiState, ctx: android.content.Context, viewModel: SearchViewModel, onNavigateToDetail: (String, String, String) -> Unit) {
+    var active by remember { mutableIntStateOf(-1) }
+    data class Tile(val label: String, val action: () -> Unit)
+    // Test JMGO build151: wybrany katalog bywa bez gatunków → gatunki z pierwszego katalogu tego typu (lub dowolnego), który je ma.
+    val selected = state.discoverCatalogs.firstOrNull { it.key == state.selectedDiscoverCatalogKey }
+    val genreCatalog = selected?.takeIf { it.genres.isNotEmpty() }
+        ?: state.discoverCatalogs.firstOrNull { it.genres.isNotEmpty() && it.type == selected?.type }
+        ?: state.discoverCatalogs.firstOrNull { it.genres.isNotEmpty() }
+    val genres = genreCatalog?.genres.orEmpty().take(6)
+    val tiles = listOf(
+        Tile(ctx.getString(R.string.niunia_ds_search_tab_movies)) { viewModel.onEvent(SearchEvent.SelectDiscoverType("movie")) },
+        Tile(ctx.getString(R.string.niunia_ds_search_tab_series)) { viewModel.onEvent(SearchEvent.SelectDiscoverType("series")) },
+        Tile("Live TV") { com.nuvio.tv.skin.niunia.nav.NiuniaNavActions.open(com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE) },
+    ) + genres.map { g -> Tile(com.nuvio.tv.skin.niunia.components.NiuniaGenres.pl(g) ?: g) {
+        if (genreCatalog != null && genreCatalog.key != state.selectedDiscoverCatalogKey) viewModel.onEvent(SearchEvent.SelectDiscoverCatalog(genreCatalog.key))
+        viewModel.onEvent(SearchEvent.SelectDiscoverGenre(g))
+    } }
+    val shownTiles = tiles.distinctBy { it.label } // klucze LazyRow muszą być unikalne (gatunek „Filmy” itp.)
+    Column(verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
+        NiuniaCollectionHeader(stringResource(R.string.niunia_search_browse), active = active == 0)
+        LazyRow(Modifier.niuniaTrapArrows("przeglądaj"), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space20), contentPadding = PaddingValues(end = NiuniaSpacing.Space40)) {
+            items(shownTiles, key = { it.label }) { t ->
+                NiuniaMediaCard(NiuniaCardPreset.PosterCard, image = null, label = t.label, title = t.label,
+                    onFocus = { if (it) active = 0 }, onClick = { Log.i(TAG, "wyszukiwarka: przeglądaj → ${t.label}"); t.action() })
+            }
+        }
+    }
+    if (state.discoverResults.isNotEmpty()) Column(verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
+        NiuniaCollectionHeader(stringResource(R.string.niunia_ds_search_recommended), active = active == 1)
+        LazyRow(Modifier.niuniaTrapArrows("polecane"), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space20), contentPadding = PaddingValues(end = NiuniaSpacing.Space40)) {
+            items(state.discoverResults.take(24), key = { it.id }) { item ->
+                NiuniaPoster(art = item.poster, fallback = item.rawPosterUrl, title = item.name, logo = item.logo, meta = NiuniaLabels.meta(item), label = null, baked = item.poster != null,
+                    onFocus = { if (it) active = 1 },
+                    onOk = { Log.i(TAG, "wyszukiwarka: polecane → ${item.id}"); onNavigateToDetail(item.id, item.rawType, "") })
+            }
+        }
     }
 }
 
+/** Z frazą: zakładki w pigułce, siatka 2 kolumn kart wyników (280×80, odstęp 20 / 16). */
 @Composable
-private fun Chip(text: String, onOk: () -> Unit) {
-    var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(50)
-    Box(Modifier.height(32.dp).niuniaFocusable(shape, scale = 1.06f, lift = false, onFocus = { focused = it }, onOk = onOk)
-        .background(if (focused) NiuniaColors.Focus else NiuniaColors.Fill12, shape).padding(horizontal = 14.dp), contentAlignment = Alignment.Center) {
-        Text(text, style = NiuniaText.Meta, color = if (focused) NiuniaColors.OnFocus else NiuniaColors.Text, maxLines = 1)
+private fun Results(
+    searchingNow: Boolean, submitted: String, results: List<Pair<MetaPreview, String>>,
+    tab: NiuniaSearchTab, onTab: (NiuniaSearchTab) -> Unit, onNavigateToDetail: (String, String, String) -> Unit,
+) {
+    val labels = listOf(
+        NiuniaSearchTab.All to R.string.niunia_ds_search_tab_all, NiuniaSearchTab.Movies to R.string.niunia_ds_search_tab_movies,
+        NiuniaSearchTab.Series to R.string.niunia_ds_search_tab_series, NiuniaSearchTab.Tv to R.string.niunia_ds_search_tab_tv,
+        NiuniaSearchTab.YouTube to R.string.niunia_ds_search_tab_youtube, NiuniaSearchTab.People to R.string.niunia_ds_search_tab_people,
+    )
+    NiuniaCollection(NiuniaCollectionKind.Tabs, Modifier.niuniaTrapArrows("zakładki")) {
+        labels.forEach { (t, res) -> NiuniaButton(onClick = { onTab(t) }, label = stringResource(res), kind = NiuniaButtonKind.Tab, selected = t == tab) }
     }
-}
-
-@Composable
-private fun ResultCard(item: MetaPreview, onOk: () -> Unit) {
-    var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(14.dp)
-    Row(
-        Modifier.fillMaxWidth().height(80.dp).niuniaFocusable(shape, scale = 1.04f, lift = false, onFocus = { focused = it }, onOk = onOk)
-            .background(if (focused) NiuniaColors.Focus else NiuniaColors.Fill12.copy(alpha = .1f), shape).padding(horizontal = 12.dp),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
+    val shown = results.filter { niuniaSearchTabMatches(tab, it.first.rawType) }
+    // Zakładka TV: programy i kanały z przewodnika szuka Live TV → Szukaj (ta sama fraza); tu karta przejścia.
+    if (tab == NiuniaSearchTab.Tv && submitted.isNotBlank()) {
+        NiuniaResultCard(
+            title = stringResource(R.string.niunia_ds_search_tv_open, submitted), subtitle = stringResource(R.string.niunia_ds_search_tv_hint),
+            image = null, thumb = NiuniaResultThumb.Wide,
+            onClick = {
+                Log.i(TAG, "wyszukiwarka: TV → Live TV, Szukaj „$submitted”")
+                com.nuvio.tv.skin.kicia.livetv.ForgeTvSearchMemory.lastQuery = submitted
+                com.nuvio.tv.skin.niunia.livetv.NiuniaLiveStart.openSearch = true
+                if (!com.nuvio.tv.skin.niunia.nav.NiuniaNavActions.open(com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE)) com.nuvio.tv.skin.niunia.livetv.NiuniaLiveStart.openSearch = false
+            },
+        )
+    }
+    when {
+        searchingNow && results.isEmpty() -> NiuniaText(stringResource(R.string.niunia_search_searching), variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary)
+        results.isEmpty() && submitted.isNotBlank() -> NiuniaText(stringResource(R.string.niunia_search_none, submitted), variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary)
+        shown.isEmpty() && results.isNotEmpty() && tab != NiuniaSearchTab.Tv -> NiuniaText(stringResource(R.string.niunia_ds_search_tab_empty), variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Tertiary)
+    }
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2), modifier = Modifier.niuniaTrapArrows("wyniki"),
+        contentPadding = PaddingValues(top = NiuniaSpacing.Space8, bottom = NiuniaSpacing.Space40),
+        horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space16), verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space20),
     ) {
-        AsyncImage(model = item.poster, contentDescription = null, contentScale = ContentScale.Crop,
-            modifier = Modifier.size(40.dp, 60.dp).clip(RoundedCornerShape(4.dp)).background(NiuniaColors.Surface))
-        Column {
-            Text(item.name, style = NiuniaText.Meta.copy(fontSize = 15.sp), color = if (focused) NiuniaColors.OnFocus else NiuniaColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            val sub = listOfNotNull(item.genres.firstOrNull(), item.releaseInfo).joinToString(" · ")
-            if (sub.isNotBlank()) Text(sub, style = NiuniaText.Caption.copy(fontSize = 12.sp), color = if (focused) NiuniaColors.OnFocus.copy(alpha = .6f) else NiuniaColors.Text50, maxLines = 1)
+        items(shown, key = { it.first.id }) { (item, addon) ->
+            NiuniaResultCard(
+                title = item.name,
+                subtitle = niuniaResultSubtitle(item),
+                image = item.poster,
+                thumb = if (item.rawType == "tv" || item.rawType == "channel" || item.rawType.startsWith("youtube")) NiuniaResultThumb.Wide else NiuniaResultThumb.Poster,
+                onClick = { Log.i(TAG, "wyszukiwarka: wynik → ${item.rawType} ${item.id}"); onNavigateToDetail(item.id, item.rawType, addon) },
+            )
         }
     }
+}
+
+/** „Film · Przygodowy · 2026” / „Serial · Fantasy · 2022”. */
+internal fun niuniaResultSubtitle(item: MetaPreview): String = listOfNotNull(
+    when (item.rawType) { "movie" -> "Film"; "series", "anime" -> "Serial"; "tv", "channel" -> "TV"; else -> null },
+    com.nuvio.tv.skin.niunia.components.NiuniaGenres.pl(item.genres.firstOrNull()),
+    item.releaseInfo?.takeIf { it.isNotBlank() }?.take(4),
+).joinToString(" · ")
+
+@Suppress("unused")
+private fun highlight(label: String, q: String) = buildAnnotatedString {
+    val i = label.lowercase().indexOf(q.lowercase())
+    if (i < 0 || q.isBlank()) { append(label); return@buildAnnotatedString }
+    append(label.substring(0, i)); withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = NiuniaColor.Text)) { append(label.substring(i, i + q.length)) }; append(label.substring(i + q.length))
 }

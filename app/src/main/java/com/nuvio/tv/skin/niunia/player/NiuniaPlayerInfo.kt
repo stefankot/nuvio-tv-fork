@@ -113,35 +113,23 @@ internal fun NiuniaPlayerRow(
     }
 }
 
+/** Kafel odcinka = NMediaCard StillCard (makieta PlayerSeries): ▶, postęp, „E3 · Adar”, plakietka „Teraz”; rozmiar z decyzji 200×113. */
 @Composable
 private fun EpisodeTile(ui: PlayerUiState, v: Video, focus: FocusRequester?, onOk: () -> Unit) {
-    var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(NiuniaDims.RadiusCard)
     val now = v.season == ui.currentSeason && v.episode == ui.currentEpisode
     val progress = ui.episodeWatchProgressMap[(v.season ?: 0) to (v.episode ?: 0)]?.progressPercentage
-    Column(Modifier.width(NiuniaSpace.TileW)) {
-        Box(
-            Modifier.size(NiuniaSpace.TileW, NiuniaSpace.TileH)
-                .niuniaFocusable(shape, focusRequester = focus, onFocus = { focused = it }, onOk = onOk)
-                .clip(shape).background(NiuniaColors.Surface),
-        ) {
-            AsyncImage(model = v.thumbnail ?: ui.backdrop, contentDescription = v.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
-            if (now) {
-                Text(stringResource(R.string.niunia_pinfo_now), style = NiuniaText.Tab, color = NiuniaColors.OnFocus,
-                    modifier = Modifier.padding(8.dp).background(NiuniaColors.Focus, RoundedCornerShape(6.dp)).padding(horizontal = 6.dp, vertical = 1.dp))
-            }
-            if (progress != null && progress > 0f) {
-                Box(Modifier.align(Alignment.BottomStart).padding(8.dp).fillMaxWidth(0.6f).height(3.dp).clip(RoundedCornerShape(2.dp)).background(NiuniaColors.Fill36)) {
-                    Box(Modifier.fillMaxWidth(progress.coerceIn(0f, 1f)).height(3.dp).background(NiuniaColors.Text))
-                }
-            }
-        }
-        Text(
-            listOfNotNull(v.episode?.let { stringResource(R.string.niunia_pinfo_episode_short, it) }, v.title.takeIf { it.isNotBlank() }).joinToString(" · "),
-            style = NiuniaText.Caption.copy(fontSize = 12.sp, lineHeight = 16.sp), color = if (focused) NiuniaColors.Text else NiuniaColors.Text70,
-            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 6.dp),
-        )
-    }
+    com.nuvio.tv.skin.niunia.components.NiuniaMediaCard(
+        preset = com.nuvio.tv.skin.niunia.components.NiuniaCardPreset.StillCard,
+        image = v.thumbnail ?: ui.backdrop,
+        onClick = onOk,
+        width = NiuniaSpace.TileW, height = NiuniaSpace.TileH,
+        caption = listOfNotNull(v.episode?.let { "E$it" }, v.title.takeIf { it.isNotBlank() }).joinToString(" · "),
+        play = true,
+        progress = progress?.takeIf { it > 0f }?.let { (it * 100).toInt() },
+        badge = if (now) stringResource(R.string.niunia_pinfo_now) else null, badgeStrong = true,
+        title = v.title,
+        focusRequester = focus,
+    )
 }
 
 /**
@@ -206,13 +194,14 @@ internal fun NiuniaPlayerDetails(
                     Text(it, style = NiuniaText.Body, color = NiuniaColors.Text70, maxLines = 3, overflow = TextOverflow.Ellipsis)
                 }
                 Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    NiuniaPillButton(stringResource(if (extras.inLibrary) R.string.niunia_pinfo_in_library else R.string.niunia_pinfo_add_library),
-                        icon = if (extras.inLibrary) Icons.Outlined.Check else Icons.Outlined.Add, focusRequester = fallback) {
-                        Log.i(TAG, "odtwarzacz: szczegóły → biblioteka (było ${extras.inLibrary})"); onLibrary()
-                    }
-                    NiuniaPillButton(stringResource(if (extras.trailerLoading) R.string.niunia_pinfo_trailer_loading else R.string.niunia_pinfo_trailer), icon = Icons.Outlined.PlayArrow) {
-                        Log.i(TAG, "odtwarzacz: szczegóły → zwiastun"); onTrailer()
-                    }
+                    com.nuvio.tv.skin.niunia.components.NiuniaButton(
+                        onClick = { Log.i(TAG, "odtwarzacz: szczegóły → biblioteka (było ${extras.inLibrary})"); onLibrary() },
+                        label = stringResource(if (extras.inLibrary) R.string.niunia_pinfo_in_library else R.string.niunia_pinfo_add_library),
+                        icon = if (extras.inLibrary) "check" else "plus", small = true, focusRequester = fallback)
+                    com.nuvio.tv.skin.niunia.components.NiuniaButton(
+                        onClick = { Log.i(TAG, "odtwarzacz: szczegóły → zwiastun"); onTrailer() },
+                        label = stringResource(if (extras.trailerLoading) R.string.niunia_pinfo_trailer_loading else R.string.niunia_pinfo_trailer),
+                        icon = "play-small", small = true)
                 }
             }
             Spacer(Modifier.height(NiuniaSpace.AfterRow))
@@ -235,9 +224,12 @@ internal fun NiuniaPlayerDetails(
                 LazyRow(
                     modifier = Modifier.padding(top = NiuniaSpace.TitleToRow - 22.dp),
                     contentPadding = PaddingValues(horizontal = NiuniaDims.Gutter),
-                    horizontalArrangement = Arrangement.spacedBy(24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(com.nuvio.tv.skin.niunia.tokens.NiuniaSpacing.Space20),
                 ) {
-                    items(cast.size) { i -> PersonInitials(cast[i], if (i == 0 && !hasEpisodes) first else null) }
+                    items(cast.size) { i ->
+                        com.nuvio.tv.skin.niunia.components.NiuniaCastCard(cast[i].name, cast[i].character, cast[i].photo, onClick = { Log.i(TAG, "odtwarzacz: szczegóły → osoba ${cast[i].name} (bez przejścia z odtwarzacza)") },
+                            small = true, focusRequester = if (i == 0 && !hasEpisodes) first else null)
+                    }
                 }
                 Spacer(Modifier.height(NiuniaSpace.AfterRow))
             }
@@ -274,16 +266,19 @@ internal fun NiuniaSimilarRow(
         horizontalArrangement = Arrangement.spacedBy(NiuniaSpace.TileGap),
     ) {
         itemsIndexed(items, key = { _, m -> "${m.rawType}_${m.id}" }) { i, m ->
-            var focused by remember { mutableStateOf(false) }
-            Box(Modifier.niuniaFocusable(RoundedCornerShape(NiuniaDims.RadiusCard), scale = 1f, lift = false, focusRequester = if (i == 0) focus else null, onFocus = { focused = it }, onOk = {
-                val nav = com.nuvio.tv.skin.kicia.youtube.ForgeYouTubeHost.nav
-                Log.i(TAG, "odtwarzacz: podobne → ${m.rawType} ${m.id} (nawigacja=${nav != null})")
-                try { nav?.navigate(com.nuvio.tv.ui.navigation.Screen.Detail.createRoute(m.id, m.rawType)) } catch (e: IllegalArgumentException) {
-                    Log.w(TAG, "odtwarzacz: podobne — trasa: ${e.javaClass.simpleName}: ${e.message}")
-                }
-            })) {
-                NiuniaWideTile(m.background ?: m.poster, if (captions) m.name else null, focused, fallbackTitle = m.name.takeIf { m.background == null && m.poster == null })
-            }
+            com.nuvio.tv.skin.niunia.components.NiuniaMediaCard(
+                preset = com.nuvio.tv.skin.niunia.components.NiuniaCardPreset.StillCard,
+                image = m.background ?: m.poster, width = NiuniaSpace.TileW, height = NiuniaSpace.TileH,
+                caption = if (captions) m.name else null, title = m.name,
+                focusRequester = if (i == 0) focus else null,
+                onClick = {
+                    val nav = com.nuvio.tv.skin.kicia.youtube.ForgeYouTubeHost.nav
+                    Log.i(TAG, "odtwarzacz: podobne → ${m.rawType} ${m.id} (nawigacja=${nav != null})")
+                    try { nav?.navigate(com.nuvio.tv.ui.navigation.Screen.Detail.createRoute(m.id, m.rawType)) } catch (e: IllegalArgumentException) {
+                        Log.w(TAG, "odtwarzacz: podobne — trasa: ${e.javaClass.simpleName}: ${e.message}")
+                    }
+                },
+            )
         }
     }
 }
@@ -306,23 +301,16 @@ internal fun NiuniaTrailerOverlay(source: com.nuvio.tv.data.trailer.TrailerPlayb
 
 @Composable
 private fun SectionTitle(text: String, modifier: Modifier = Modifier) {
-    Text(text, style = NiuniaText.Row, color = NiuniaColors.Text, maxLines = 1, modifier = modifier)
+    com.nuvio.tv.skin.niunia.components.NiuniaCollectionHeader(text, active = true, modifier = modifier)
 }
 
+/** Pigułka sezonu = NButton chip (wybrany 24%, fokus biały). */
 @Composable
 private fun SeasonPill(season: Int, selected: Boolean, onOk: () -> Unit) {
-    var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(50)
-    Box(
-        Modifier.height(28.dp)
-            .niuniaFocusable(shape, scale = NiuniaDims.ScaleButton, lift = false, onFocus = { focused = it }, onOk = onOk)
-            .background(when { focused -> NiuniaColors.Focus; selected -> NiuniaColors.Fill24; else -> Color.Transparent }, shape)
-            .padding(horizontal = 12.dp),
-        contentAlignment = Alignment.CenterStart,
-    ) {
-        Text(if (season == 0) stringResource(R.string.niunia_detail_specials) else stringResource(R.string.niunia_detail_season, season),
-            style = NiuniaText.Button.copy(fontSize = 13.sp, lineHeight = 18.sp), color = if (focused) NiuniaColors.OnFocus else if (selected) NiuniaColors.Text else NiuniaColors.Text70)
-    }
+    com.nuvio.tv.skin.niunia.components.NiuniaButton(
+        onClick = onOk, kind = com.nuvio.tv.skin.niunia.components.NiuniaButtonKind.Chip, selected = selected,
+        label = if (season == 0) stringResource(R.string.niunia_detail_specials) else stringResource(R.string.niunia_detail_season, season),
+    )
 }
 
 /** Osoba: kółko z inicjałami (bez zdjęć), imię i rola — wszystko od lewej (pkt 3). */

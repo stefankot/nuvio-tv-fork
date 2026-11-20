@@ -92,7 +92,11 @@ internal fun NiuniaLiveSearch(
         try { firstKey.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "szukaj tv: fokus klawiatury: ${e.javaClass.simpleName}: ${e.message}") }
     }
 
-    val tree = rememberComputed(channels, empty = emptyList<ForgeEpgCategories.Node>(), what = "drzewo kategorii") { ForgeEpgCategories.programmeTree(channels, now) }
+    // Indeks kategorii wczytuje się w tle (plik + odczyt przewodnika) — drzewo liczone ponownie, gdy się zmieni.
+    val catVersion by androidx.compose.runtime.produceState(ForgeEpgCategories.programmeVersion()) {
+        while (true) { delay(1_500); value = ForgeEpgCategories.programmeVersion() }
+    }
+    val tree = rememberComputed(channels, catVersion, empty = emptyList<ForgeEpgCategories.Node>(), what = "drzewo kategorii") { ForgeEpgCategories.programmeTree(channels, now) }
     val total = remember(tree) { tree.sumOf { it.count } }
     val treeRows = remember(tree, query, category, favShows) {
         val q = ForgeEpgCategories.norm(query.trim())
@@ -157,7 +161,7 @@ internal fun NiuniaLiveSearch(
             }
             Column(Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 (if (digits) DIGITS else LETTERS).chunked(6).forEachIndexed { r, line ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(0.dp)) {
                         line.forEachIndexed { c, k -> Key(k, if (r == 0 && c == 0) firstKey else null) { type(query + k) } }
                     }
                 }
@@ -275,32 +279,19 @@ private fun Suggestion(text: String, icon: ImageVector, onOk: () -> Unit) {
 
 @Composable
 private fun Seg(text: String, on: Boolean, modifier: Modifier, onOk: () -> Unit) {
-    var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(13.dp)
-    Box(modifier.height(26.dp).niuniaFocusable(shape, scale = 1.04f, lift = false, onFocus = { focused = it }, onOk = onOk)
-        .background(when { focused -> NiuniaColors.Focus; on -> NiuniaColors.Fill24; else -> Color.Transparent }, shape), contentAlignment = Alignment.Center) {
-        Text(text, style = NiuniaText.Caption.copy(fontSize = 13.sp, fontWeight = FontWeight.Medium), color = when { focused -> NiuniaColors.OnFocus; on -> NiuniaColors.Text; else -> NiuniaColors.Text70 })
-    }
+    // NButton segment (klawiatura design systemu): 28 dp, wybrany 24 %, fokus biały.
+    com.nuvio.tv.skin.niunia.components.NiuniaButton(onClick = onOk, label = text, kind = com.nuvio.tv.skin.niunia.components.NiuniaButtonKind.Segment, selected = on, modifier = modifier)
 }
 
 @Composable
 private fun Key(k: String, requester: FocusRequester?, onOk: () -> Unit) {
-    var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(9.dp)
-    Box(Modifier.size(34.dp).niuniaFocusable(shape, scale = 1.12f, lift = false, focusRequester = requester, onFocus = { focused = it }, onOk = onOk)
-        .background(if (focused) Color.White else Color.Transparent, shape), contentAlignment = Alignment.Center) {
-        Text(k, style = NiuniaText.Logo.copy(fontSize = 20.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium), color = if (focused) NiuniaColors.OnFocus else NiuniaColors.Text70)
-    }
+    // NButton key: 36×36, promień 16, fokus białe tło bez skali.
+    com.nuvio.tv.skin.niunia.components.NiuniaButton(onClick = onOk, label = k, kind = com.nuvio.tv.skin.niunia.components.NiuniaButtonKind.Key, description = k, focusRequester = requester)
 }
 
 @Composable
 private fun SmallKey(text: String?, icon: ImageVector?, onOk: () -> Unit) {
-    var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(8.dp)
-    Box(Modifier.height(30.dp).niuniaFocusable(shape, scale = 1.06f, lift = false, onFocus = { focused = it }, onOk = onOk)
-        .background(if (focused) NiuniaColors.Focus else NiuniaColors.Fill12, shape).padding(horizontal = 10.dp), contentAlignment = Alignment.Center) {
-        val c = if (focused) NiuniaColors.OnFocus else NiuniaColors.Text70
-        if (icon != null) Icon(icon, null, tint = c, modifier = Modifier.size(18.dp))
-        if (text != null) Text(text, style = NiuniaText.Caption.copy(fontSize = 12.sp), color = c)
-    }
+    // NButton key-wide (SPACJA, ⌫, WYCZYŚĆ): 36 dp, 12/16.
+    com.nuvio.tv.skin.niunia.components.NiuniaButton(onClick = onOk, label = text, icon = if (icon != null) "backspace" else null,
+        kind = com.nuvio.tv.skin.niunia.components.NiuniaButtonKind.KeyWide, description = text ?: "Usuń")
 }

@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,15 +63,19 @@ fun NiuniaPoster(
     tagline: String? = null,
     onFocus: ((Boolean) -> Unit)? = null,
     fallback: String? = null,
+    onLongOk: (() -> Unit)? = null,
 ) {
-    val shape = RoundedCornerShape(NiuniaDims.RadiusCard)
+    val shape = RoundedCornerShape(com.nuvio.tv.skin.niunia.tokens.NiuniaRadius.Radius16) // DS v2: karty 16
+    var focused by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     val colors = rememberArtColors(art, width.value / height.value, fallback)
     val context = androidx.compose.ui.platform.LocalContext.current
     val model = androidx.compose.runtime.remember(art, fallback) { niuniaImageRequest(context, art, fallback) }
     Box(
         modifier
             .size(width, height)
-            .niuniaFocusable(shape, onFocus = onFocus, onOk = onOk)
+            // DS v2: uniesienie 4 dp, ×1,1, cień i obwódka 3 dp; OK / długie OK (520 ms) przez niuniaOk.
+            .niuniaOk(title, onFocus = { focused = it; onFocus?.invoke(it) }, onLongClick = onLongOk, onClick = onOk)
+            .niuniaFocusLook(NiuniaFocusStyle.Lift, focused, shape)
             .clip(shape)
             .background(NiuniaColors.Surface)
     ) {
@@ -81,10 +87,10 @@ fun NiuniaPoster(
         Tint(colors.dominant, baked)
         if (label != null) {
             Text(
-                label, style = NiuniaText.Tab, color = colors.tabText, maxLines = 1,
+                label, style = com.nuvio.tv.skin.niunia.tokens.NiuniaType.Caption, color = colors.tabText, maxLines = 1,
                 modifier = Modifier.align(Alignment.TopCenter)
-                    .background(colors.tab, RoundedCornerShape(bottomStart = NiuniaDims.RadiusTab, bottomEnd = NiuniaDims.RadiusTab))
-                    .padding(horizontal = 9.dp, vertical = 3.dp),
+                    .background(colors.tab, RoundedCornerShape(bottomStart = com.nuvio.tv.skin.niunia.tokens.NiuniaRadius.Radius6, bottomEnd = com.nuvio.tv.skin.niunia.tokens.NiuniaRadius.Radius6))
+                    .padding(horizontal = com.nuvio.tv.skin.niunia.tokens.NiuniaSpacing.Space8, vertical = com.nuvio.tv.skin.niunia.tokens.NiuniaSpacing.Space4),
             )
         }
         Column(
@@ -92,8 +98,9 @@ fun NiuniaPoster(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(5.dp),
         ) {
-            if (!baked) {
-                if (!logo.isNullOrBlank()) {
+            val foot = niuniaPosterFoot(baked, logo)
+            if (foot != NiuniaPosterFoot.None) {
+                if (foot == NiuniaPosterFoot.Logo) {
                     AsyncImage(
                         model = logo, contentDescription = title, contentScale = ContentScale.Fit,
                         modifier = Modifier.widthIn(max = if (large) 220.dp else 112.dp).heightIn(max = if (large) 64.dp else 36.dp),

@@ -1,5 +1,18 @@
 package com.nuvio.tv.skin.niunia.player
 
+import com.nuvio.tv.skin.niunia.components.NiuniaFocusStyle
+import com.nuvio.tv.skin.niunia.components.NiuniaMedia
+import com.nuvio.tv.skin.niunia.components.NiuniaProgress
+import com.nuvio.tv.skin.niunia.components.NiuniaTag
+import com.nuvio.tv.skin.niunia.components.NiuniaTagKind
+import com.nuvio.tv.skin.niunia.components.niuniaFocusLook
+import com.nuvio.tv.skin.niunia.components.niuniaOk
+import com.nuvio.tv.skin.niunia.tokens.NiuniaColor as DsColor
+import com.nuvio.tv.skin.niunia.tokens.NiuniaRadius as DsRadius
+import com.nuvio.tv.skin.niunia.tokens.NiuniaSize as DsSize
+import com.nuvio.tv.skin.niunia.tokens.NiuniaSpacing as DsSpacing
+import com.nuvio.tv.skin.niunia.tokens.NiuniaType as DsType
+
 import android.os.Build
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -117,18 +130,17 @@ internal fun BoxScope.NiuniaTrackLabel(text: String, at: Float, trackWidth: Dp, 
 /** Okrągły przycisk 40×40 z ikoną (.btn.rnd); fokus = białe tło, ciemna ikona. Etykieta pod spodem (opcjonalnie). */
 @Composable
 internal fun NiuniaIconCircle(icon: ImageVector, description: String, focused: Boolean, label: String? = null, modifier: Modifier = Modifier) {
+    // NButton icon (design system v2): 44 dp, w spoczynku `button` z linią 1 dp, fokus biały ×1,08 z cieniem.
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier) {
-        val s by animateFloatAsState(if (focused) NiuniaDims.ScaleButton else 1f, tween(180), label = "niuniaCircle")
         Box(
-            Modifier.size(40.dp).graphicsLayer { scaleX = s; scaleY = s }
-                .shadow(if (focused) 10.dp else 0.dp, CircleShape, clip = false)
-                .background(if (focused) NiuniaColors.Focus else NiuniaColors.Btn, CircleShape)
-                .then(if (focused) Modifier else Modifier.border(1.dp, Color(0x14FFFFFF), CircleShape)),
+            Modifier.size(DsSize.H44).niuniaFocusLook(NiuniaFocusStyle.Button, focused, CircleShape)
+                .background(if (focused) DsColor.Focus else DsColor.Button, CircleShape)
+                .then(if (focused) Modifier else Modifier.border(1.dp, DsColor.Fill12, CircleShape)),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(icon, contentDescription = description, tint = if (focused) NiuniaColors.OnFocus else NiuniaColors.Text, modifier = Modifier.size(20.dp))
+            Icon(icon, contentDescription = description, tint = if (focused) DsColor.OnFocus else DsColor.White, modifier = Modifier.size(DsSize.Icon20))
         }
-        if (label != null) Text(label, style = NiuniaText.Body.copy(fontSize = 13.sp, lineHeight = 18.sp), color = NiuniaColors.Text, maxLines = 1, modifier = Modifier.padding(top = 8.dp))
+        if (label != null) Text(label, style = DsType.BodySmall, color = DsColor.Text, maxLines = 1, modifier = Modifier.padding(top = DsSpacing.Space8))
     }
 }
 
@@ -136,26 +148,25 @@ internal fun NiuniaIconCircle(icon: ImageVector, description: String, focused: B
 @Composable
 internal fun NiuniaIconButton(icon: ImageVector, description: String, focusRequester: FocusRequester? = null, onFocus: ((Boolean) -> Unit)? = null, onOk: () -> Unit) {
     var focused by remember { mutableStateOf(false) }
-    Box(Modifier.size(40.dp).niuniaFocusable(CircleShape, scale = 1f, lift = false, focusRequester = focusRequester, onFocus = { focused = it; onFocus?.invoke(it) }, onOk = onOk)) {
+    Box(Modifier.size(DsSize.H44).niuniaOk(description, focusRequester, onFocus = { focused = it; onFocus?.invoke(it) }, onClick = onOk)) {
         NiuniaIconCircle(icon, description, focused)
     }
 }
 
-/** Mały przycisk z tekstem (.btn.sec.sm, 34 wys.; z ikoną opcjonalnie). */
+/** NButton small (36 dp, 14/20 pogrubione, odstęp 8; z ikoną albo kropką statusu). */
 @Composable
-internal fun NiuniaPill(text: String, focused: Boolean, icon: ImageVector? = null, height: Dp = 34.dp, dot: Color? = null, modifier: Modifier = Modifier) {
-    val shape = RoundedCornerShape(50)
-    val s by animateFloatAsState(if (focused) NiuniaDims.ScaleButton else 1f, tween(180), label = "niuniaPill")
+internal fun NiuniaPill(text: String, focused: Boolean, icon: ImageVector? = null, height: Dp = DsSize.H36, dot: Color? = null, modifier: Modifier = Modifier) {
+    val shape = CircleShape
     Row(
-        modifier.height(height).graphicsLayer { scaleX = s; scaleY = s }
-            .background(if (focused) NiuniaColors.Focus else NiuniaColors.Btn, shape)
-            .then(if (focused) Modifier else Modifier.border(1.dp, Color(0x14FFFFFF), shape))
-            .padding(start = if (icon != null || dot != null) 12.dp else 16.dp, end = 16.dp),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp),
+        modifier.height(height).niuniaFocusLook(NiuniaFocusStyle.Button, focused, shape)
+            .background(if (focused) DsColor.Focus else DsColor.Button, shape)
+            .then(if (focused) Modifier else Modifier.border(1.dp, DsColor.Fill12, shape))
+            .padding(start = if (icon != null || dot != null) DsSpacing.Space12 else DsSpacing.Space16, end = DsSpacing.Space16),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(DsSpacing.Space8),
     ) {
-        if (dot != null) Box(Modifier.size(10.dp).background(dot, CircleShape))
-        if (icon != null) Icon(icon, contentDescription = null, tint = if (focused) NiuniaColors.OnFocus else NiuniaColors.Text, modifier = Modifier.size(18.dp))
-        Text(text, style = NiuniaText.Button.copy(fontSize = 15.sp, lineHeight = 20.sp), color = if (focused) NiuniaColors.OnFocus else NiuniaColors.Text, maxLines = 1)
+        if (dot != null) Box(Modifier.size(DsSize.Dot).background(dot, CircleShape))
+        if (icon != null) Icon(icon, contentDescription = null, tint = if (focused) DsColor.OnFocus else DsColor.White, modifier = Modifier.size(DsSize.Icon20))
+        Text(text, style = DsType.LabelSmall, color = if (focused) DsColor.OnFocus else DsColor.White, maxLines = 1)
     }
 }
 
@@ -163,14 +174,15 @@ internal fun NiuniaPill(text: String, focused: Boolean, icon: ImageVector? = nul
 @Composable
 internal fun NiuniaPillButton(text: String, icon: ImageVector? = null, focusRequester: FocusRequester? = null, onFocus: ((Boolean) -> Unit)? = null, onOk: () -> Unit) {
     var focused by remember { mutableStateOf(false) }
-    Box(Modifier.niuniaFocusable(RoundedCornerShape(50), scale = 1f, lift = false, focusRequester = focusRequester, onFocus = { focused = it; onFocus?.invoke(it) }, onOk = onOk)) {
+    Box(Modifier.niuniaOk(text, focusRequester, onFocus = { focused = it; onFocus?.invoke(it) }, onClick = onOk)) {
         NiuniaPill(text, focused, icon)
     }
 }
 
 /**
- * Kafel 16:9 rzędu pod odtwarzaczem (.card.w; 200×113, 4 + kawałek piątego): obraz, podpis na dole (.cap),
- * kropka statusu albo znacznik (.badge) w lewym górnym rogu, przyciemnienie [dim] (YouTube: 55 % bez fokusu).
+ * Kafel 16:9 rzędu pod odtwarzaczem = NMediaCard StillCard (rozmiar z decyzji 200×113, 4 + kawałek piątego): obraz, pasek
+ * podpisu (`scrim-caption`), kropka statusu albo plakietka, nieaktywny [dim] (YouTube: 55 % bez fokusu, decyzja), postęp.
+ * Fokus: uniesienie 4 dp, ×1,1, cień i obwódka 3 dp.
  */
 @Composable
 internal fun NiuniaWideTile(
@@ -185,60 +197,54 @@ internal fun NiuniaWideTile(
     fallbackTitle: String? = null,
     fallbackSub: String? = null,
 ) {
-    val shape = RoundedCornerShape(NiuniaDims.RadiusCard)
-    val s by animateFloatAsState(if (focused) NiuniaDims.ScaleFocus else 1f, tween(180), label = "niuniaTile")
+    val shape = RoundedCornerShape(DsRadius.Radius16)
     Box(
         modifier.size(NiuniaSpace.TileW, NiuniaSpace.TileH)
-            .zIndex(if (focused) 1f else 0f)
-            .graphicsLayer { scaleX = s; scaleY = s; alpha = if (dim && !focused) 0.55f else 1f; translationY = if (focused) -4.dp.toPx() else 0f }
-            .shadow(if (focused) 18.dp else 6.dp, shape, clip = false)
+            .niuniaFocusLook(NiuniaFocusStyle.Lift, focused, shape)
+            .graphicsLayer { alpha = if (dim && !focused) 0.55f else 1f }
             .clip(shape)
-            .background(Brush.linearGradient(listOf(Color(0xFF3A4A66), Color(0xFF1C2333)))),
+            .background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.Tile1.brush()),
     ) {
-        if (image != null) AsyncImage(model = image, contentDescription = caption ?: fallbackTitle, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+        if (image != null) NiuniaMedia(image, Modifier.fillMaxSize(), alt = caption ?: fallbackTitle, fallbackLabel = fallbackTitle ?: caption)
         else if (fallbackTitle != null) {
-            Column(Modifier.align(Alignment.BottomStart).padding(12.dp)) {
-                Text(fallbackTitle, style = NiuniaText.Row, color = NiuniaColors.Text, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                fallbackSub?.let { Text(it, style = NiuniaText.Caption.copy(fontSize = 12.sp, lineHeight = 16.sp), color = NiuniaColors.Text70, maxLines = 1) }
+            Column(Modifier.align(Alignment.BottomStart).padding(DsSpacing.Space12)) {
+                Text(fallbackTitle, style = DsType.Label, color = DsColor.White, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                fallbackSub?.let { Text(it, style = DsType.CaptionRegular, color = DsColor.Text70, maxLines = 1) }
             }
         }
-        if (caption != null) {
-            Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().background(Brush.verticalGradient(listOf(Color.Transparent, Color(0xA6000000)))).padding(start = 8.dp, end = 8.dp, top = 22.dp, bottom = 7.dp)) {
-                Text(caption, style = NiuniaText.Caption.copy(fontSize = 11.sp, lineHeight = 14.sp), color = NiuniaColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
-        }
-        if (progress != null && progress > 0f) {
-            Box(Modifier.align(Alignment.BottomStart).padding(8.dp).fillMaxWidth(0.6f).height(3.dp).clip(RoundedCornerShape(2.dp)).background(NiuniaColors.Fill36)) {
-                Box(Modifier.fillMaxWidth(progress.coerceIn(0f, 1f)).height(3.dp).background(NiuniaColors.Text))
-            }
+        if (caption != null || (progress != null && progress > 0f)) Row(
+            Modifier.align(Alignment.BottomStart).fillMaxWidth().background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimCaption.brush())
+                .padding(start = DsSpacing.Space8, end = DsSpacing.Space8, top = DsSpacing.Space20, bottom = DsSpacing.Space8),
+            horizontalArrangement = Arrangement.spacedBy(DsSpacing.Space8), verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (progress != null && progress > 0f) NiuniaProgress(progress)
+            if (caption != null) Text(caption, style = DsType.Caption, color = DsColor.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         when {
             dot != null -> NiuniaStatusDot(live = dot, modifier = Modifier.align(Alignment.TopStart))
-            badge != null -> Text(badge, style = NiuniaText.Tab.copy(fontSize = 10.sp, lineHeight = 16.sp), color = NiuniaColors.Text,
-                modifier = Modifier.align(Alignment.TopStart).padding(7.dp).background(NiuniaColors.Badge, RoundedCornerShape(8.dp)).padding(horizontal = 6.dp))
+            badge != null -> NiuniaTag(badge, NiuniaTagKind.Badge, Modifier.align(Alignment.TopStart).padding(DsSpacing.Space8))
         }
+        Box(Modifier.matchParentSize().background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.Gloss.brush()))
     }
 }
 
-/** Kafel tekstowy w rozmiarze karty (.card 160×114 na tle surface): rozdziały YouTube, najbliższe emisje IPTV. */
+/** Kafel tekstowy = NMediaCard ChapterCard / ScheduleCard (160×114, `surface`, padding 12/16): fokus białe tło bez skali. */
 @Composable
 internal fun NiuniaTextTile(top: String, middle: String, bottomLeft: String?, bottomRight: String?, focused: Boolean, big: Boolean = false, modifier: Modifier = Modifier) {
-    val shape = RoundedCornerShape(NiuniaDims.RadiusCard)
-    val s by animateFloatAsState(if (focused) NiuniaDims.ScaleFocus else 1f, tween(180), label = "niuniaTextTile")
-    val fg = if (focused) NiuniaColors.OnFocus else NiuniaColors.Text
+    val shape = RoundedCornerShape(DsRadius.Radius16)
+    val fg = if (focused) DsColor.OnFocus else DsColor.Text
+    val sub = if (focused) DsColor.OnFocus70 else DsColor.Text70
     Column(
-        modifier.size(NiuniaDims.WideW, NiuniaDims.WideH).zIndex(if (focused) 1f else 0f)
-            .graphicsLayer { scaleX = s; scaleY = s }
-            .shadow(if (focused) 18.dp else 6.dp, shape, clip = false)
-            .background(if (focused) NiuniaColors.Focus else NiuniaColors.Surface, shape)
-            .padding(horizontal = 14.dp, vertical = 12.dp),
+        modifier.size(DsSize.LandscapeW, DsSize.LandscapeH).zIndex(if (focused) 1f else 0f)
+            .background(if (focused) DsColor.Focus else DsColor.Surface, shape)
+            .padding(horizontal = DsSpacing.Space16, vertical = DsSpacing.Space12),
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(top, style = NiuniaText.Caption.copy(fontSize = 12.sp, lineHeight = 16.sp, letterSpacing = 0.4.sp), color = fg.copy(alpha = 0.7f), maxLines = 1)
-        Text(middle, style = if (big) NiuniaText.Logo.copy(fontSize = 28.sp, lineHeight = 30.sp) else NiuniaText.Row, color = fg, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Text(top, style = DsType.Caption, color = sub, maxLines = 1)
+        Text(middle, style = if (big) DsType.TitleScreen else DsType.Label, color = fg, maxLines = 2, overflow = TextOverflow.Ellipsis)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(bottomLeft ?: " ", style = NiuniaText.Caption.copy(fontSize = 12.sp, lineHeight = 16.sp), color = fg.copy(alpha = if (big) 1f else 0.7f), maxLines = 1)
-            if (!bottomRight.isNullOrBlank()) Text(bottomRight, style = NiuniaText.Body.copy(fontSize = 12.sp, lineHeight = 16.sp), color = fg.copy(alpha = 0.5f), maxLines = 1)
+            Text(bottomLeft ?: " ", style = DsType.Caption, color = if (big) fg else sub, maxLines = 1)
+            if (!bottomRight.isNullOrBlank()) Text(bottomRight, style = DsType.CaptionRegular, color = if (focused) DsColor.OnFocus70 else DsColor.Text50, maxLines = 1)
         }
     }
 }
@@ -246,7 +252,7 @@ internal fun NiuniaTextTile(top: String, middle: String, bottomLeft: String?, bo
 /** Tytuł sekcji (.shelf-title: 16/22 bold; bez fokusu w sekcji 50 % bieli). */
 @Composable
 internal fun NiuniaShelfTitle(text: String, on: Boolean = true, modifier: Modifier = Modifier) {
-    Text(text, style = NiuniaText.Row, color = if (on) NiuniaColors.Text else NiuniaColors.Text50, maxLines = 1, modifier = modifier)
+    com.nuvio.tv.skin.niunia.components.NiuniaCollectionHeader(text, active = on, modifier = modifier)
 }
 
 /** Osoba: kółko z inicjałami (bez zdjęć, decyzja 20.11), imię i rola od lewej. */
@@ -303,24 +309,28 @@ internal fun NiuniaDeepBackground(image: Any?) {
 /** Znacznik wieku (.age: obwódka 70 % bieli, 9/1 bold) i jakości (.fmt: tło 60 % bieli). */
 @Composable
 internal fun NiuniaChip(text: String, filled: Boolean = false) {
-    val shape = RoundedCornerShape(3.dp)
-    Text(
-        text, style = NiuniaText.Tab.copy(fontSize = 9.sp, lineHeight = 14.sp), color = if (filled) Color(0xFF1C1C1E) else NiuniaColors.Text,
-        modifier = Modifier.then(if (filled) Modifier.background(Color(0x99FFFFFF), shape) else Modifier.border(1.dp, Color(0xB3FFFFFF), shape)).padding(horizontal = 4.dp),
-    )
+    // NTag: wypełniony = jakość (4K, HD), obrysowany = wiek / CC.
+    NiuniaTag(text, if (filled) NiuniaTagKind.Quality else NiuniaTagKind.Age)
 }
 
-/** Znacznik stanu IPTV (.pst): LIVE czerwony, −12:40 żółty, ARCHIWUM biały. */
+/** Znacznik stanu IPTV = NTag: LIVE `live-badge` (biały 5,2:1), opóźnienie `delay`, ARCHIWUM / film biały. */
 @Composable
 internal fun NiuniaStateChip(text: String, state: NiuniaPlayState) {
-    val bg = state.color()
-    val fg = when (state) { NiuniaPlayState.DELAY -> Color(0xFF1B1500); NiuniaPlayState.ARCHIVE, NiuniaPlayState.FILM -> NiuniaColors.OnFocus; else -> Color.White }
-    Text(text, style = NiuniaText.Caption.copy(fontSize = 12.sp, lineHeight = 20.sp, letterSpacing = 0.8.sp), color = fg,
-        modifier = Modifier.background(bg, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp))
+    NiuniaTag(text, niuniaStateTag(state))
 }
 
-/** Przyciemnienie dołu kadru (gradient z makiet odtwarzaczy). */
+internal fun niuniaStateTag(state: NiuniaPlayState): NiuniaTagKind = when (state) {
+    NiuniaPlayState.DELAY -> NiuniaTagKind.Delay
+    NiuniaPlayState.ARCHIVE, NiuniaPlayState.FILM -> NiuniaTagKind.Archive
+    else -> NiuniaTagKind.Live
+}
+
+/**
+ * Przyciemnienie dołu kadru = token DS `ScrimPlayer` (jak w odtwarzaczu filmu). Test JMGO build152: ręczny gradient
+ * (przezroczysty do 34%, 55% krycia dopiero w 67%) zostawiał tytuł w archiwum IPTV nieczytelny na jasnym obrazie.
+ */
+@Suppress("UNUSED_PARAMETER")
 @Composable
 internal fun BoxScope.NiuniaPlayerScrim(from: Float = 0.34f) {
-    Box(Modifier.matchParentSize().background(Brush.verticalGradient(0f to Color.Transparent, from to Color.Transparent, ((from + 1f) / 2f) to Color(0x8C000000), 1f to Color(0xE6000000))))
+    com.nuvio.tv.skin.niunia.components.NiuniaSurface(com.nuvio.tv.skin.niunia.components.NiuniaSurfaceKind.ScrimPlayer, Modifier.matchParentSize())
 }

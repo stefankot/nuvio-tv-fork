@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
+
 package com.nuvio.tv.skin.niunia.livetv
 
 import android.util.Log
@@ -48,6 +50,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -101,6 +104,12 @@ private const val PAST_DAYS = 7
 /** Ekrany Live TV Niuni w jednej trasie (Wstecz wraca do przewodnika). */
 private enum class LiveMode { GUIDE, DISCOVER, SEARCH }
 
+/** Wejście do Live TV od razu w trybie Szukaj (z wyników głównej wyszukiwarki, zakładka TV). Jednorazowe. */
+internal object NiuniaLiveStart {
+    @Volatile var openSearch: Boolean = false
+    fun consumeSearch(): Boolean = openSearch.also { openSearch = false }
+}
+
 /**
  * Live TV Niuni (canvas v4: `LiveTV`, `LiveTVFav`, `LiveTVRow`, `LiveTVDiscover`, `LiveTVSearch`; decyzje właściciela 20.11).
  * U góry po prawej Szukaj · Dziś · Odkrywaj; rząd kafelków i linia filtrów (Wszystkie — fokus na wejściu, Ulubione,
@@ -114,6 +123,8 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     remember(viewModel) { viewModel.ensureLoaded() }
+    // Test JMGO build151: bez tego (robiły to tylko ekrany Kici) indeks kategorii programów był pusty → „Kategorie · 0”.
+    remember { com.nuvio.tv.skin.kicia.ForgePrefs.ensure(context) }
     rememberForgeLogoVersion()
     val state by LiveTvRepository.uiState.collectAsState()
     val favShows by TvStore.favoriteShows.collectAsState()
@@ -122,7 +133,7 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
     val resume by TvStore.resume.collectAsState()
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) { while (true) { delay(30_000); now = System.currentTimeMillis() } }
-    var mode by remember { mutableStateOf(LiveMode.GUIDE) }
+    var mode by remember { mutableStateOf(if (NiuniaLiveStart.consumeSearch()) LiveMode.SEARCH.also { Log.i(TAG, "live tv: start w trybie Szukaj") } else LiveMode.GUIDE) }
     var filter by remember { mutableStateOf<NiuniaLiveFilter>(NiuniaLiveFilter.All) }
     var dayOffset by remember { mutableIntStateOf(0) }
     var dayPicker by remember { mutableStateOf(false) }
@@ -276,6 +287,7 @@ private fun Guide(
     val focusTime = remember(dayOffset) { mutableLongStateOf(maxOf(now + dayOffset * DAY_MS, 0L)) }
     var info by remember { mutableStateOf<Pair<LiveTvChannel, LiveTvProgramme?>?>(null) }
     val minStart = remember(now) { windowStartFor(now) - PAST_DAYS * DAY_MS }
+    val tilesFocus = remember { FocusRequester() }
     LaunchedEffect(Unit) {
         delay(80)
         try { allFocus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "live tv: fokus „Wszystkie”: ${e.javaClass.simpleName}: ${e.message}") }
@@ -286,7 +298,7 @@ private fun Guide(
             if (tiles.isEmpty()) {
                 Text(stringResource(R.string.niunia_tv_rail_empty), style = NiuniaText.Body, color = NiuniaColors.Text50, modifier = Modifier.padding(start = NiuniaDims.Gutter, top = 128.dp))
             } else com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
-                LazyRow(Modifier.padding(top = 74.dp), contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 6.dp, bottom = 16.dp),
+                LazyRow(Modifier.padding(top = 74.dp).focusRequester(tilesFocus).focusRestorer(), contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 6.dp, bottom = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
                     items(tiles, key = { it.key }) { t ->
                         NiuniaLiveTileCard(t, longBadge = true, onFocus = { if (it) info = t.channel to t.programme }, onOk = { onPlay(t.channel, t.programme) })
@@ -295,7 +307,11 @@ private fun Guide(
             }
         }
         com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
-            LazyRow(Modifier.fillMaxWidth().height(56.dp), contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = 120.dp), horizontalArrangement = Arrangement.spacedBy(6.dp),
+            // Test JMGO build151 (B3-3): ▲ z „Wszystkie” otwierał menu zamiast kafli nad pigułkami → wprost na kafle (ostatni z fokusem).
+            LazyRow(Modifier.fillMaxWidth().height(56.dp).onPreviewKeyEvent { e ->
+                if (e.type != KeyEventType.KeyDown || e.key != Key.DirectionUp || tiles.isEmpty()) return@onPreviewKeyEvent false
+                try { tilesFocus.requestFocus(); true } catch (ex: IllegalStateException) { Log.w(TAG, "live tv: ▲ na kafle: ${ex.javaClass.simpleName}: ${ex.message}"); false }
+            }, contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = 120.dp), horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.Top) {
                 item { FilterPill(stringResource(R.string.niunia_live_all), filter == NiuniaLiveFilter.All, allFocus) { onFilter(NiuniaLiveFilter.All) } }
                 item { FilterPill(stringResource(R.string.niunia_tv_favourites), filter == NiuniaLiveFilter.Favourites) { onFilter(NiuniaLiveFilter.Favourites) } }
@@ -329,8 +345,7 @@ private fun Guide(
                 .padding(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 18.dp, bottom = 16.dp),
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if (p != null && isLive(p, now)) Text("LIVE", style = NiuniaText.Caption.copy(fontSize = 12.sp, lineHeight = 16.sp), color = NiuniaColors.Text,
-                modifier = Modifier.background(NiuniaColors.Live, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 3.dp))
+            if (p != null && isLive(p, now)) com.nuvio.tv.skin.niunia.components.NiuniaTag(stringResource(R.string.niunia_live_live), com.nuvio.tv.skin.niunia.components.NiuniaTagKind.Live) // NTag live-badge (5,2:1)
             val text = if (p == null) ch.name else listOf(p.title, ch.name, "${hhmm(p.startEpochMs)} – ${hhmm(p.stopEpochMs)}").joinToString(" · ")
             Text(text, style = NiuniaText.Body, color = NiuniaColors.Text70, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
@@ -340,18 +355,9 @@ private fun Guide(
 /** Pigułka filtra (canvas `.pill` 34 dp: zwykła = szary napis, wybrana = białe 24 %, fokus = białe tło). */
 @Composable
 private fun FilterPill(text: String, selected: Boolean, requester: FocusRequester? = null, onOk: () -> Unit) {
-    var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(50)
-    Box(
-        Modifier.height(34.dp)
-            .niuniaFocusable(shape, scale = NiuniaDims.ScaleButton, lift = false, focusRequester = requester, onFocus = { focused = it }, onOk = onOk)
-            .background(when { focused -> NiuniaColors.Focus; selected -> NiuniaColors.Fill24; else -> Color.Transparent }, shape)
-            .padding(horizontal = 16.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(text, style = NiuniaText.Button.copy(fontSize = 15.sp, lineHeight = 20.sp),
-            color = when { focused -> NiuniaColors.OnFocus; selected -> NiuniaColors.Text; else -> NiuniaColors.Text50 }, maxLines = 1)
-    }
+    // NButton chip (design system v2): 36 dp, wybrany 24 %, fokus biały bez skali.
+    com.nuvio.tv.skin.niunia.components.NiuniaButton(onClick = onOk, label = text, kind = com.nuvio.tv.skin.niunia.components.NiuniaButtonKind.Chip,
+        selected = selected, focusRequester = requester)
 }
 
 /** Podziałka co 30 min (słabsza kreska) i znacznik „teraz” nad czerwoną linią. */
@@ -455,17 +461,19 @@ private fun GuideRow(
             if (visible.isEmpty()) {
                 Cell(stringResource(R.string.niunia_live_no_guide), 0.dp, dpFor(WINDOW_MS), live = false, focused = focused, cut = false, new = false)
             }
+            // Test JMGO build152: strzałka ‹ (Edge) zasłaniała początek tytułu programu, który zaczyna się równo z oknem.
+            val leftEdge = focused && schedule.any { it.startEpochMs < winStart } && winStart > minStart
             visible.forEach { p ->
                 val start = maxOf(p.startEpochMs, winStart)
                 val stop = minOf(p.stopEpochMs, winEnd)
                 val i = schedule.indexOf(p)
                 Cell(p.title, dpFor(start - winStart), (dpFor(stop - start) - 4.dp).coerceAtLeast(4.dp), live = isLive(p, now),
-                    focused = focused && i == sel, cut = focused && p.startEpochMs < winStart, new = (ch.guideKey + "|" + p.startEpochMs) in newKeys)
+                    focused = focused && i == sel, cut = focused && (p.startEpochMs < winStart || leftEdge && p.startEpochMs <= winStart), new = (ch.guideKey + "|" + p.startEpochMs) in newKeys)
             }
             if (now in winStart until winEnd) Box(Modifier.offset(x = dpFor(now - winStart) - 1.dp).width(2.dp).height(ROW_H).background(NiuniaColors.Live))
             if (focused) {
                 // Końce osi przechodzą w tło ze strzałkami, gdy dalej są programy (canvas LiveTVRow).
-                if (schedule.any { it.startEpochMs < winStart } && winStart > minStart) Edge(left = true)
+                if (leftEdge) Edge(left = true)
                 if (schedule.any { it.stopEpochMs > winEnd }) Box(Modifier.align(Alignment.CenterEnd)) { Edge(left = false) }
             }
         }
@@ -496,17 +504,16 @@ private fun Cell(title: String, x: Dp, w: Dp, live: Boolean, focused: Boolean, c
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         if (live && w > 40.dp) Icon(Icons.Outlined.PlayCircle, null, tint = NiuniaColors.Text, modifier = Modifier.size(16.dp))
-        if (w > 28.dp) Text(title, style = NiuniaText.Meta.copy(fontSize = 15.sp), color = if (live || focused) NiuniaColors.Text else NiuniaColors.Text70,
+        if (w > 28.dp) Text(title, style = com.nuvio.tv.skin.niunia.tokens.NiuniaType.BodySmall, color = if (live || focused) NiuniaColors.Text else NiuniaColors.Text70,
             maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-        if (new && w > 120.dp) Text(stringResource(R.string.niunia_tv_new_chip), style = NiuniaText.Caption, color = NiuniaColors.Text,
-            modifier = Modifier.background(Color(0x59000000), RoundedCornerShape(7.dp)).border(1.dp, Color(0x59FFFFFF), RoundedCornerShape(7.dp)).padding(horizontal = 8.dp, vertical = 3.dp))
+        if (new && w > 120.dp) com.nuvio.tv.skin.niunia.components.NiuniaTag(stringResource(R.string.niunia_tv_new_chip), com.nuvio.tv.skin.niunia.components.NiuniaTagKind.Chip)
     }
 }
 
 /** Prawy górny róg, w linii zwiniętej nawigacji: Szukaj · Dziś · Odkrywaj (ikona + napis; bieżący ekran podświetlony). */
 @Composable
 private fun TopBar(mode: LiveMode, dayLabel: String, onSearch: () -> Unit, onDay: () -> Unit, onDiscover: () -> Unit) {
-    Row(Modifier.fillMaxWidth().padding(top = 28.dp, end = NiuniaDims.Gutter), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
+    Row(Modifier.fillMaxWidth().padding(top = com.nuvio.tv.skin.niunia.tokens.NiuniaSize.NavTop, end = NiuniaDims.Gutter), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
         TopButton(Icons.Outlined.Search, stringResource(R.string.niunia_tv_search), mode == LiveMode.SEARCH, onSearch)
         TopButton(Icons.Outlined.CalendarToday, dayLabel, false, onDay)
         TopButton(Icons.Outlined.Explore, stringResource(R.string.niunia_tv_discover), mode == LiveMode.DISCOVER, onDiscover)
@@ -515,18 +522,13 @@ private fun TopBar(mode: LiveMode, dayLabel: String, onSearch: () -> Unit, onDay
 
 @Composable
 private fun TopButton(icon: ImageVector, text: String, on: Boolean, onOk: () -> Unit) {
-    var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(50)
-    Row(
-        Modifier.height(34.dp).niuniaFocusable(shape, scale = NiuniaDims.ScaleButton, lift = false, onFocus = { focused = it }, onOk = onOk)
-            .background(when { focused -> NiuniaColors.Focus; on -> NiuniaColors.Fill36; else -> NiuniaColors.Btn }, shape)
-            .padding(start = 10.dp, end = 14.dp),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        val c = if (focused) NiuniaColors.OnFocus else NiuniaColors.Text
-        Icon(icon, null, tint = c, modifier = Modifier.size(18.dp))
-        Text(text, style = NiuniaText.Button.copy(fontSize = 15.sp, lineHeight = 20.sp), color = c, maxLines = 1)
+    // NButton small z ikoną (36 dp); bieżący tryb = wypełnienie 36 % (`active`).
+    val name = when (icon) {
+        Icons.Outlined.Search -> "search"
+        Icons.Outlined.Explore -> "discover"
+        else -> "calendar"
     }
+    com.nuvio.tv.skin.niunia.components.NiuniaButton(onClick = onOk, label = text, icon = name, small = true, active = on)
 }
 
 /** „Dziś”: lista dni otwierana przyciskiem (tydzień archiwum wstecz + 3 dni przodu, canvas `.day`). */
