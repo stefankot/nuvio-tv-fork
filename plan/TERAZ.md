@@ -34,7 +34,10 @@ Mapa ekranów paczki 2 → miejsce w aplikacji:
 | Profiles | wybór profilu: nakładka `profiles` nad hero Głównej | `profile/NiuniaProfiles.kt` | menu → konto |
 | Person | strona osoby: awatar 120, nazwisko, opis, rzędy Seriale/Filmy | `person/NiuniaPerson.kt` | OK na osobie w Obsadzie |
 | Library | biblioteka (pusta: komunikat + „Przeglądaj filmy i seriale”) | `library/NiuniaLibrary.kt` | trasa `library` |
-| Settings | Ustawienia, tylko poziom NOOB (decyzja 20.11): sylwetka po lewej, jedna lista z nagłówkami | `fork/settings/Simple…` | trasa `settings` (poziom NOOB) |
+| Settings | Ustawienia, tylko poziom NOOB (decyzja 20.11): sylwetka po lewej, jedna lista z nagłówkami | `skin/niunia/settings/NiuniaSettings.kt` (gałąź w `fork/settings/SimpleSettingsScreen.kt`) | trasa `settings` (poziom NOOB) |
+
+Zrobione w kodzie (commit 8bd708694, build145 w toku): strona pod hero = pigułki sezonów + EpisodeCard (OK → strona odcinka, długie OK → odtwórz), Zwiastuny (OK → zwiastun na pełnym ekranie, nakładka z odtwarzacza Niuni), Podobne, Obsada i twórcy (CastCard, „O serialu/filmie” → 1. osoba), Opis + Informacje + Języki; strona odcinka (Wznów z „39m”, O odcinku); film: kadry zwiastunów pod hero, studio w twórcach; wyszukiwarka wg Search/SearchResults (pole 32/38, klawiatura DS, Ostatnio wyszukiwane / Podpowiedzi, Przeglądaj: Filmy/Seriale/Live TV/gatunki, Polecane, zakładki, siatka ResultCard); profile jako nakładka `profiles` (fokus na bieżącym); osoba (awatar 120, fokus na 1. plakacie, biografia ▲); pusta biblioteka (przycisk → Główna przez `NiuniaNavActions`, bez nowego wpięcia); Ustawienia NOOB. Mapy fokusu `NiuniaScreens.batch2` + testy.
+Luki (do BLOKADY po teście): zakładki TV / YouTube / Osoby w wynikach pokazują tylko to, co zwraca wyszukiwarka katalogów (źródła EPG, YouTube i osób nie są jeszcze podpięte); „Język” i „Napisy AI” z makiety Ustawień pominięte (brak ekranów).
 
 ## NIUNIA — LIVE TV OD NOWA + HERO (wątek 20.11 ~14:00, gałąź skin-niunia) — build141 NA JMGO
 Opis: `.stage/niunia/WPIECIE.md` „Po wdrożeniu” pkt 13–15; `plan/DECYZJE.md` (20.11).
