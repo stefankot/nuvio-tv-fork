@@ -309,20 +309,20 @@ internal fun NiuniaDeepBackground(image: Any?) {
 /** Znacznik wieku (.age: obwódka 70 % bieli, 9/1 bold) i jakości (.fmt: tło 60 % bieli). */
 @Composable
 internal fun NiuniaChip(text: String, filled: Boolean = false) {
-    val shape = RoundedCornerShape(3.dp)
-    Text(
-        text, style = NiuniaText.Tab.copy(fontSize = 9.sp, lineHeight = 14.sp), color = if (filled) Color(0xFF1C1C1E) else NiuniaColors.Text,
-        modifier = Modifier.then(if (filled) Modifier.background(Color(0x99FFFFFF), shape) else Modifier.border(1.dp, Color(0xB3FFFFFF), shape)).padding(horizontal = 4.dp),
-    )
+    // NTag: wypełniony = jakość (4K, HD), obrysowany = wiek / CC.
+    NiuniaTag(text, if (filled) NiuniaTagKind.Quality else NiuniaTagKind.Age)
 }
 
-/** Znacznik stanu IPTV (.pst): LIVE czerwony, −12:40 żółty, ARCHIWUM biały. */
+/** Znacznik stanu IPTV = NTag: LIVE `live-badge` (biały 5,2:1), opóźnienie `delay`, ARCHIWUM / film biały. */
 @Composable
 internal fun NiuniaStateChip(text: String, state: NiuniaPlayState) {
-    val bg = state.color()
-    val fg = when (state) { NiuniaPlayState.DELAY -> Color(0xFF1B1500); NiuniaPlayState.ARCHIVE, NiuniaPlayState.FILM -> NiuniaColors.OnFocus; else -> Color.White }
-    Text(text, style = NiuniaText.Caption.copy(fontSize = 12.sp, lineHeight = 20.sp, letterSpacing = 0.8.sp), color = fg,
-        modifier = Modifier.background(bg, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp))
+    NiuniaTag(text, niuniaStateTag(state))
+}
+
+internal fun niuniaStateTag(state: NiuniaPlayState): NiuniaTagKind = when (state) {
+    NiuniaPlayState.DELAY -> NiuniaTagKind.Delay
+    NiuniaPlayState.ARCHIVE, NiuniaPlayState.FILM -> NiuniaTagKind.Archive
+    else -> NiuniaTagKind.Live
 }
 
 /** Przyciemnienie dołu kadru (gradient z makiet odtwarzaczy). */
