@@ -346,18 +346,9 @@ private fun Guide(
 /** Pigułka filtra (canvas `.pill` 34 dp: zwykła = szary napis, wybrana = białe 24 %, fokus = białe tło). */
 @Composable
 private fun FilterPill(text: String, selected: Boolean, requester: FocusRequester? = null, onOk: () -> Unit) {
-    var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(50)
-    Box(
-        Modifier.height(34.dp)
-            .niuniaFocusable(shape, scale = NiuniaDims.ScaleButton, lift = false, focusRequester = requester, onFocus = { focused = it }, onOk = onOk)
-            .background(when { focused -> NiuniaColors.Focus; selected -> NiuniaColors.Fill24; else -> Color.Transparent }, shape)
-            .padding(horizontal = 16.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(text, style = NiuniaText.Button.copy(fontSize = 15.sp, lineHeight = 20.sp),
-            color = when { focused -> NiuniaColors.OnFocus; selected -> NiuniaColors.Text; else -> NiuniaColors.Text50 }, maxLines = 1)
-    }
+    // NButton chip (design system v2): 36 dp, wybrany 24 %, fokus biały bez skali.
+    com.nuvio.tv.skin.niunia.components.NiuniaButton(onClick = onOk, label = text, kind = com.nuvio.tv.skin.niunia.components.NiuniaButtonKind.Chip,
+        selected = selected, focusRequester = requester)
 }
 
 /** Podziałka co 30 min (słabsza kreska) i znacznik „teraz” nad czerwoną linią. */
@@ -502,17 +493,16 @@ private fun Cell(title: String, x: Dp, w: Dp, live: Boolean, focused: Boolean, c
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         if (live && w > 40.dp) Icon(Icons.Outlined.PlayCircle, null, tint = NiuniaColors.Text, modifier = Modifier.size(16.dp))
-        if (w > 28.dp) Text(title, style = NiuniaText.Meta.copy(fontSize = 15.sp), color = if (live || focused) NiuniaColors.Text else NiuniaColors.Text70,
+        if (w > 28.dp) Text(title, style = com.nuvio.tv.skin.niunia.tokens.NiuniaType.BodySmall, color = if (live || focused) NiuniaColors.Text else NiuniaColors.Text70,
             maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-        if (new && w > 120.dp) Text(stringResource(R.string.niunia_tv_new_chip), style = NiuniaText.Caption, color = NiuniaColors.Text,
-            modifier = Modifier.background(Color(0x59000000), RoundedCornerShape(7.dp)).border(1.dp, Color(0x59FFFFFF), RoundedCornerShape(7.dp)).padding(horizontal = 8.dp, vertical = 3.dp))
+        if (new && w > 120.dp) com.nuvio.tv.skin.niunia.components.NiuniaTag(stringResource(R.string.niunia_tv_new_chip), com.nuvio.tv.skin.niunia.components.NiuniaTagKind.Chip)
     }
 }
 
 /** Prawy górny róg, w linii zwiniętej nawigacji: Szukaj · Dziś · Odkrywaj (ikona + napis; bieżący ekran podświetlony). */
 @Composable
 private fun TopBar(mode: LiveMode, dayLabel: String, onSearch: () -> Unit, onDay: () -> Unit, onDiscover: () -> Unit) {
-    Row(Modifier.fillMaxWidth().padding(top = 28.dp, end = NiuniaDims.Gutter), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
+    Row(Modifier.fillMaxWidth().padding(top = com.nuvio.tv.skin.niunia.tokens.NiuniaSize.NavTop, end = NiuniaDims.Gutter), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
         TopButton(Icons.Outlined.Search, stringResource(R.string.niunia_tv_search), mode == LiveMode.SEARCH, onSearch)
         TopButton(Icons.Outlined.CalendarToday, dayLabel, false, onDay)
         TopButton(Icons.Outlined.Explore, stringResource(R.string.niunia_tv_discover), mode == LiveMode.DISCOVER, onDiscover)
@@ -521,18 +511,13 @@ private fun TopBar(mode: LiveMode, dayLabel: String, onSearch: () -> Unit, onDay
 
 @Composable
 private fun TopButton(icon: ImageVector, text: String, on: Boolean, onOk: () -> Unit) {
-    var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(50)
-    Row(
-        Modifier.height(34.dp).niuniaFocusable(shape, scale = NiuniaDims.ScaleButton, lift = false, onFocus = { focused = it }, onOk = onOk)
-            .background(when { focused -> NiuniaColors.Focus; on -> NiuniaColors.Fill36; else -> NiuniaColors.Btn }, shape)
-            .padding(start = 10.dp, end = 14.dp),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        val c = if (focused) NiuniaColors.OnFocus else NiuniaColors.Text
-        Icon(icon, null, tint = c, modifier = Modifier.size(18.dp))
-        Text(text, style = NiuniaText.Button.copy(fontSize = 15.sp, lineHeight = 20.sp), color = c, maxLines = 1)
+    // NButton small z ikoną (36 dp); bieżący tryb = wypełnienie 36 % (`active`).
+    val name = when (icon) {
+        Icons.Outlined.Search -> "search"
+        Icons.Outlined.Explore -> "discover"
+        else -> "calendar"
     }
+    com.nuvio.tv.skin.niunia.components.NiuniaButton(onClick = onOk, label = text, icon = name, small = true, active = on)
 }
 
 /** „Dziś”: lista dni otwierana przyciskiem (tydzień archiwum wstecz + 3 dni przodu, canvas `.day`). */
