@@ -209,7 +209,7 @@ private fun Browse(state: com.nuvio.tv.ui.screens.search.SearchUiState, ctx: and
         Tile(ctx.getString(R.string.niunia_ds_search_tab_movies)) { viewModel.onEvent(SearchEvent.SelectDiscoverType("movie")) },
         Tile(ctx.getString(R.string.niunia_ds_search_tab_series)) { viewModel.onEvent(SearchEvent.SelectDiscoverType("series")) },
         Tile("Live TV") { com.nuvio.tv.skin.niunia.nav.NiuniaNavActions.open(com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE) },
-    ) + genres.map { g -> Tile(g) {
+    ) + genres.map { g -> Tile(com.nuvio.tv.skin.niunia.components.NiuniaGenres.pl(g) ?: g) {
         if (genreCatalog != null && genreCatalog.key != state.selectedDiscoverCatalogKey) viewModel.onEvent(SearchEvent.SelectDiscoverCatalog(genreCatalog.key))
         viewModel.onEvent(SearchEvent.SelectDiscoverGenre(g))
     } }
@@ -288,7 +288,7 @@ private fun Results(
 /** „Film · Przygodowy · 2026” / „Serial · Fantasy · 2022”. */
 internal fun niuniaResultSubtitle(item: MetaPreview): String = listOfNotNull(
     when (item.rawType) { "movie" -> "Film"; "series", "anime" -> "Serial"; "tv", "channel" -> "TV"; else -> null },
-    item.genres.firstOrNull(),
+    com.nuvio.tv.skin.niunia.components.NiuniaGenres.pl(item.genres.firstOrNull()),
     item.releaseInfo?.takeIf { it.isNotBlank() }?.take(4),
 ).joinToString(" · ")
 

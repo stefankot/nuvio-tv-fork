@@ -386,11 +386,27 @@ internal fun NiuniaSubtitlesTab(uiState: PlayerUiState, first: FocusRequester, o
     val ai by com.nuvio.tv.fork.ai.subtitles.AiSubtitles.state.collectAsState()
     val selectedAddon = uiState.selectedAddonSubtitle
     val embedded = uiState.subtitleTracks
-    val addons = remember(uiState.addonSubtitles) {
-        uiState.addonSubtitles.sortedByDescending { com.nuvio.tv.fork.ai.subtitles.AuxiliaryLanguagePolicy.primaryLanguage(it.lang) == "pl" }.take(6)
+    val addons = remember(uiState.addonSubtitles, uiState.selectedAddonSubtitle) {
+        val top = uiState.addonSubtitles.sortedByDescending { com.nuvio.tv.fork.ai.subtitles.AuxiliaryLanguagePolicy.primaryLanguage(it.lang) == "pl" }.take(6)
+        // Test JMGO build151: wybrany plik spoza pierwszych 6 nie miał wiersza (brak ✓ i fokusu w panelu).
+        val chosen = uiState.selectedAddonSubtitle
+        if (chosen != null && top.none { it.id == chosen.id }) top + chosen else top
     }
     val off = selectedAddon == null && embedded.none { it.isSelected || it.index == uiState.selectedSubtitleTrackIndex }
     val aiPublished = ai?.published == true
+    // Test JMGO build151 (B3-9): gdy żaden wiersz nie dostał [first], fokus zostawał na pasku pod panelem.
+    // Jeden cel fokusu, zawsze istniejący wiersz: AI (pokazane) → bieżące wbudowane → bieżący plik → AI/„Wyłączone” → pierwszy wiersz.
+    val selEmbedded = embedded.firstOrNull { it.isSelected || it.index == uiState.selectedSubtitleTrackIndex }
+    val focusKey = when {
+        aiOn && aiPublished -> "ai"
+        selectedAddon == null && selEmbedded != null -> "e${selEmbedded.index}"
+        selectedAddon != null && addons.any { it.id == selectedAddon.id } -> "a${selectedAddon.id}"
+        aiOn -> "ai"
+        off -> "off"
+        embedded.isNotEmpty() -> "e${embedded.first().index}"
+        addons.isNotEmpty() -> "a${addons.first().id}"
+        else -> "off"
+    }
     LaunchedEffect(embedded.size, addons.size) { Log.i(TAG, "odtwarzacz: napisy — wbudowane=${embedded.size}, z dodatków=${uiState.addonSubtitles.size}, AI=${if (aiPublished) "pokazane" else if (com.nuvio.tv.fork.ai.subtitles.AiSubtitles.running) "w toku" else "nie"}") }
     if (aiOn) {
         val running = com.nuvio.tv.fork.ai.subtitles.AiSubtitles.running
@@ -404,7 +420,7 @@ internal fun NiuniaSubtitlesTab(uiState: PlayerUiState, first: FocusRequester, o
                 else -> stringResource(R.string.niunia_ds_subs_ai_start)
             },
             trailing = if (aiPublished) NiuniaTrailing.Check else NiuniaTrailing.None,
-            focusRequester = if (aiPublished || (off && selectedAddon == null)) first else null,
+            focusRequester = if (focusKey == "ai") first else null,
             onClick = {
                 when {
                     aiPublished -> toast(com.nuvio.tv.fork.ai.subtitles.AiSubtitles.showOriginal())
@@ -420,24 +436,24 @@ internal fun NiuniaSubtitlesTab(uiState: PlayerUiState, first: FocusRequester, o
         NiuniaListRow(
             listOfNotNull(t.name.ifBlank { null } ?: t.language, stringResource(R.string.niunia_ds_subs_embedded)).joinToString(" · "),
             trailing = if (sel && selectedAddon == null) NiuniaTrailing.Check else NiuniaTrailing.None,
-            focusRequester = if (sel && selectedAddon == null && !aiPublished) first else null,
+            focusRequester = if (focusKey == "e${t.index}") first else null,
             onClick = { onEvent(PlayerEvent.OnSelectSubtitleTrack(t.index)) },
         )
     }
     addons.forEach { sub ->
         val sel = selectedAddon?.id == sub.id
         NiuniaListRow(
-            listOf(java.util.Locale(sub.lang.take(2)).getDisplayLanguage(java.util.Locale("pl")).ifBlank { sub.lang }, stringResource(R.string.niunia_ds_subs_file)).joinToString(" · "),
+            listOf(niuniaLangName(sub.lang), stringResource(R.string.niunia_ds_subs_file)).joinToString(" · "),
             supporting = sub.addonName,
             trailing = if (sel) NiuniaTrailing.Check else NiuniaTrailing.None,
-            focusRequester = if (sel && !aiPublished) first else null,
+            focusRequester = if (focusKey == "a${sub.id}") first else null,
             onClick = { onEvent(PlayerEvent.OnSelectAddonSubtitle(sub)) },
         )
     }
     NiuniaListRow(stringResource(R.string.niunia_ds_subs_off), trailing = if (off && !aiPublished) NiuniaTrailing.Check else NiuniaTrailing.None,
-        focusRequester = if (!aiOn && off) first else null, onClick = { onEvent(PlayerEvent.OnDisableSubtitles) })
+        focusRequester = if (focusKey == "off") first else null, onClick = { onEvent(PlayerEvent.OnDisableSubtitles) })
     NiuniaListRow(stringResource(R.string.niunia_ds_subtitles_choose), trailing = NiuniaTrailing.Chevron,
-        focusRequester = if (!aiOn && !off && embedded.isEmpty() && addons.isEmpty()) first else null, onClick = more)
+        onClick = more)
 }
 
 /** Napis w kółku przycisku jakości z grającego strumienia: UHD / HD / SD; null = nieznana. */
@@ -537,3 +553,14 @@ private fun SmallButton(text: String, round: Boolean = false, focusRequester: Fo
 
 private fun speedLabel(speed: Float): String =
     ("%.2f".format(java.util.Locale("pl"), speed)).trimEnd('0').trimEnd(',') + "×"
+
+/** Nazwa języka po polsku z kodu 2- albo 3-literowego („pol”, „pl”, „pt-BR”); test JMGO build151: „pol” dawał „po”. */
+internal fun niuniaLangName(code: String): String {
+    val c = code.trim().lowercase().substringBefore('-').substringBefore('_')
+    if (c.isEmpty()) return code
+    val two = if (c.length == 3) (java.util.Locale.getISOLanguages().firstOrNull { l ->
+        try { java.util.Locale(l).isO3Language == c } catch (e: java.util.MissingResourceException) { false }
+    } ?: c) else c
+    val name = java.util.Locale(two).getDisplayLanguage(java.util.Locale("pl"))
+    return if (name.isBlank() || name.equals(two, ignoreCase = true)) code else name
+}

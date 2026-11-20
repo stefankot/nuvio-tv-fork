@@ -97,7 +97,7 @@ fun NiuniaLibrary(onNavigateToDetail: (String, String, String?) -> Unit, viewMod
             val rating = entry.imdbRating?.takeIf { it > 0f }?.let { "★ %.1f".format(java.util.Locale.US, it) }
             NiuniaPoster(
                 art = entry.poster, title = entry.name, logo = entry.logo,
-                meta = listOfNotNull(entry.genres.firstOrNull(), rating).joinToString(" · ").ifBlank { null },
+                meta = listOfNotNull(com.nuvio.tv.skin.niunia.components.NiuniaGenres.pl(entry.genres.firstOrNull()), rating).joinToString(" · ").ifBlank { null },
                 label = null, baked = entry.poster != null,
                 onOk = { onNavigateToDetail(entry.id, entry.type, entry.addonBaseUrl) },
                 modifier = if (index == 0) Modifier.focusRequester(first) else Modifier,

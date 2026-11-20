@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -192,6 +193,10 @@ internal fun NiuniaNavBar(
         // Panel boczny. Zawsze w drzewie, żeby PillNavScaffold mógł dać fokus pozycji (requesterFor); zamknięty = przezroczysty.
         com.nuvio.tv.skin.niunia.components.NiuniaSidebarPanel(
             Modifier
+                // Test JMGO build152: zamknięty panel leżał w swoim miejscu (przezroczysty), a wybrana pozycja przyjmuje fokus —
+                // ▼ z kafli Live TV i ▲ z pigułek trafiały w nią w środku ekranu. Zamknięty = zaparkowany nad ekranem:
+                // ▲ ze szczytu treści dalej otwiera menu, ze środka ekranu fokus idzie do najbliższego elementu treści.
+                .offset { if (!open && openFraction == 0f) androidx.compose.ui.unit.IntOffset(0, -20_000) else androidx.compose.ui.unit.IntOffset.Zero }
                 .graphicsLayer { alpha = openFraction; translationX = (1f - openFraction) * -24.dp.toPx() }
                 .shadow(if (open) 20.dp else 0.dp, RoundedCornerShape(NiuniaRadius.Radius28), clip = false)
                 .onFocusChanged { if (state.hasFocus != it.hasFocus) { state.hasFocus = it.hasFocus; Log.i(TAG, "menu: " + if (it.hasFocus) "otwarte" else "zamknięte") } }

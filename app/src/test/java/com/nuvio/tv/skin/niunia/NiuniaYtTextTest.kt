@@ -28,3 +28,13 @@ class NiuniaYtTextTest {
         assertEquals("wczoraj", NiuniaYtText.date("wczoraj"))
     }
 }
+
+/** Gatunki po polsku (test JMGO build152: „Action”, „Drama” w Szukaj i Bibliotece). */
+class NiuniaGenresTest {
+    @Test fun genres() {
+        assertEquals("Akcja", com.nuvio.tv.skin.niunia.components.NiuniaGenres.pl("Action"))
+        assertEquals("Sci-fi i fantasy", com.nuvio.tv.skin.niunia.components.NiuniaGenres.pl("Sci-Fi &amp; Fantasy"))
+        assertEquals("Komedia", com.nuvio.tv.skin.niunia.components.NiuniaGenres.pl("Komedia"))
+        assertNull(com.nuvio.tv.skin.niunia.components.NiuniaGenres.pl(" "))
+    }
+}
