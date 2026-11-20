@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -279,22 +280,21 @@ private fun Guide(
         delay(80)
         try { allFocus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "live tv: fokus „Wszystkie”: ${e.javaClass.simpleName}: ${e.message}") }
     }
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 60.dp)) {
-        item(key = "rail") {
-            Box(Modifier.fillMaxWidth().height(236.dp)) {
-                if (tiles.isEmpty()) {
-                    Text(stringResource(R.string.niunia_tv_rail_empty), style = NiuniaText.Body, color = NiuniaColors.Text50, modifier = Modifier.padding(start = NiuniaDims.Gutter, top = 128.dp))
-                } else {
-                    LazyRow(Modifier.padding(top = 74.dp), contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 6.dp, bottom = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
-                        items(tiles, key = { it.key }) { t ->
-                            NiuniaLiveTileCard(t, longBadge = true, onFocus = { if (it) info = t.channel to t.programme }, onOk = { onPlay(t.channel, t.programme) })
-                        }
+    // Test JMGO build141: nagłówek przewijał się pod przyciski u góry — kafelki, filtry i podziałka stoją, przewijają się tylko kanały.
+    Column(Modifier.fillMaxSize()) {
+        Box(Modifier.fillMaxWidth().height(236.dp)) {
+            if (tiles.isEmpty()) {
+                Text(stringResource(R.string.niunia_tv_rail_empty), style = NiuniaText.Body, color = NiuniaColors.Text50, modifier = Modifier.padding(start = NiuniaDims.Gutter, top = 128.dp))
+            } else com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
+                LazyRow(Modifier.padding(top = 74.dp), contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 6.dp, bottom = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
+                    items(tiles, key = { it.key }) { t ->
+                        NiuniaLiveTileCard(t, longBadge = true, onFocus = { if (it) info = t.channel to t.programme }, onOk = { onPlay(t.channel, t.programme) })
                     }
                 }
             }
         }
-        item(key = "filters") {
+        com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
             LazyRow(Modifier.fillMaxWidth().height(56.dp), contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = 120.dp), horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.Top) {
                 item { FilterPill(stringResource(R.string.niunia_live_all), filter == NiuniaLiveFilter.All, allFocus) { onFilter(NiuniaLiveFilter.All) } }
@@ -304,18 +304,22 @@ private fun Guide(
                 items(categories, key = { it.key }) { c -> FilterPill(c.name, (filter as? NiuniaLiveFilter.Category)?.key == c.key) { onFilter(c) } }
             }
         }
-        item(key = "ruler") { Ruler(winStart, now) }
-        if (channels.isEmpty()) item(key = "none") {
+        Ruler(winStart, now)
+        if (channels.isEmpty()) {
             Text(stringResource(R.string.niunia_live_empty), style = NiuniaText.Body, color = NiuniaColors.Text50, modifier = Modifier.padding(start = NiuniaDims.Gutter, top = 12.dp))
         }
-        items(channels, key = { "${it.sourceId}_${it.id}" }) { ch ->
-            GuideRow(
-                ch, numbers[ch.streamUrl] ?: 0, winStart, minStart, now, guideVersion, focusTime, newKeys,
-                onWindow = { winStart = it },
-                onFocus = { p -> info = ch to p },
-                onOk = { p -> onPlay(ch, p) },
-            )
-        }
+        Box(Modifier.fillMaxWidth().weight(1f)) { com.nuvio.tv.skin.niunia.components.NiuniaVerticalScroll(pivot = ROW_H) {
+            LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 56.dp)) {
+                items(channels, key = { "${it.sourceId}_${it.id}" }) { ch ->
+                    GuideRow(
+                        ch, numbers[ch.streamUrl] ?: 0, winStart, minStart, now, guideVersion, focusTime, newKeys,
+                        onWindow = { winStart = it },
+                        onFocus = { p -> info = ch to p },
+                        onOk = { p -> onPlay(ch, p) },
+                    )
+                }
+            }
+        } }
     }
     // Opis programu z fokusem (canvas: linia pod przewodnikiem).
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomStart) {
@@ -434,7 +438,7 @@ private fun GuideRow(
                     else -> false
                 }
             }
-            .niuniaFocusable(RoundedCornerShape(6.dp), scale = 1f, lift = false) { onOk(schedule.getOrNull(sel)) },
+            .clickable(interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }, indication = null) { onOk(schedule.getOrNull(sel)) },
     ) {
         // Kanał: numer + logo (epg.ovh), bez logo — nazwa pogrubiona.
         Row(
@@ -574,10 +578,12 @@ internal fun NiuniaLiveShelf(title: String, tiles: List<NiuniaLiveTile>, longBad
     var on by remember { mutableStateOf(false) }
     Column(Modifier.padding(bottom = 16.dp)) {
         Text(title, style = NiuniaText.Row, color = if (on) NiuniaColors.Text else NiuniaColors.Text50, modifier = Modifier.padding(start = NiuniaDims.Gutter))
-        LazyRow(contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 10.dp, bottom = 14.dp), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap),
-            modifier = Modifier.onFocusChanged { on = it.hasFocus }) {
-            itemsIndexed(tiles, key = { _, t -> t.key }) { i, t ->
-                NiuniaLiveTileCard(t, longBadge, focusRequester = if (i == 0) first else null) { onPlay(t.channel, t.programme) }
+        com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
+            LazyRow(contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 10.dp, bottom = 14.dp), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap),
+                modifier = Modifier.onFocusChanged { on = it.hasFocus }) {
+                itemsIndexed(tiles, key = { _, t -> t.key }) { i, t ->
+                    NiuniaLiveTileCard(t, longBadge, focusRequester = if (i == 0) first else null) { onPlay(t.channel, t.programme) }
+                }
             }
         }
     }

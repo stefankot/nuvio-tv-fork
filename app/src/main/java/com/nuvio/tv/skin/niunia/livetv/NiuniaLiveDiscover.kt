@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -59,9 +60,11 @@ internal fun NiuniaLiveDiscover(
     when {
         rows == null -> Text(context.getString(R.string.niunia_tv_loading), style = NiuniaText.Body, color = NiuniaColors.Text50, modifier = Modifier.padding(start = NiuniaDims.Gutter, top = 100.dp))
         rows.isEmpty() -> Text(context.getString(R.string.niunia_tv_rail_empty), style = NiuniaText.Body, color = NiuniaColors.Text50, modifier = Modifier.padding(start = NiuniaDims.Gutter, top = 100.dp))
-        else -> LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(top = 90.dp, bottom = 40.dp)) {
-            itemsIndexed(rows, key = { i, r -> "$i${r.title}" }) { i, r ->
-                NiuniaLiveShelf(r.title, r.tiles, longBadge = false, first = if (i == 0) first else null, onPlay = onPlay)
+        else -> com.nuvio.tv.skin.niunia.components.NiuniaVerticalScroll(pivot = 42.dp) { // rząd z fokusem zawsze tuż pod przyciskami u góry; lista ucięta pod nimi
+            LazyColumn(Modifier.fillMaxSize().padding(top = 80.dp).clipToBounds(), contentPadding = PaddingValues(top = 10.dp, bottom = 40.dp)) {
+                itemsIndexed(rows, key = { i, r -> "$i${r.title}" }) { i, r ->
+                    NiuniaLiveShelf(r.title, r.tiles, longBadge = false, first = if (i == 0) first else null, onPlay = onPlay)
+                }
             }
         }
     }

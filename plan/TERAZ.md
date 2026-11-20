@@ -3,11 +3,14 @@
 Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–13: `plan/archiwum/TERAZ-historia-watki-1-13.md` (tylko `grep`, nie czytaj całości).
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
-## NIUNIA — LIVE TV OD NOWA + HERO (wątek 20.11 ~14:00, gałąź skin-niunia) — SKOMPILOWANE, NIEZBUDOWANE (paczka do następnego builda)
-Opis: `.stage/niunia/WPIECIE.md` „Po wdrożeniu” pkt 13–14; `plan/DECYZJE.md` (20.11).
-Commity: 1a7bd268f (Live TV: przewodnik, filtry, Odkrywaj, Szukaj, stos serialu — pliki `skin/niunia/livetv/NiuniaLive*.kt`, `components/NiuniaSeriesStack.kt`, `res/values/niunia_tv_strings.xml`), potem hero (`components/NiuniaHeroPage.kt`, `home/NiuniaHome.kt`, `detail/NiuniaDetail.kt`). Kompilacje kontrolne `/tmp/compile-niunia7.log`, `/tmp/compile-niunia9.log` OK (z NuvioFork-build).
-Test na TV: Live TV — fokus na „Wszystkie”, filtry zmieniają kafelki i przewodnik, ◄► po programach przesuwa oś, ▲▼ kanał, strzałki ‹ › w rzędzie z fokusem, OK na żywo/archiwum, „Dziś” (dni), Odkrywaj (rzędy), Szukaj (klawiatura, drzewo, Rzędy/Siatka); Główna i strona filmu/serialu — hero bez przesunięcia, ▼ = animacja (rozmycie, logo na środku), ▲/Wstecz = hero, chodzenie po kaflach bez skakania rzędu.
-DALEJ (wdrożenie wszystkich ekranów): główna wyszukiwarka wg `SearchResults` (zakładki Wszystko/Filmy/Seriale/TV/YouTube/Osoby, podpowiedzi pod klawiaturą), Ustawienia NOOB wg `Settings`, strona odcinka (`Episode`), Napisy AI (`PlayerSubs` — nowa funkcja), 3. poziom drzewa kategorii w Szukaj TV.
+## NIUNIA — LIVE TV OD NOWA + HERO (wątek 20.11 ~14:00, gałąź skin-niunia) — build141 NA JMGO
+Opis: `.stage/niunia/WPIECIE.md` „Po wdrożeniu” pkt 13–15; `plan/DECYZJE.md` (20.11).
+Commity: 1a7bd268f (Live TV: przewodnik, filtry, Odkrywaj, Szukaj, stos serialu), 410af3b48 (hero poza listą, animacja ▼, rzędy bez skakania), potem poprawki po teście (pkt 15, NIESKOMPILOWANE).
+**build141 NA JMGO** (z NuvioFork-build, HEAD 410af3b48; md5 6aa1368f090539bc9c916afa11f92624, zgodny po `adb pull`, `compile -m speed`). Przy instalacji w forku był wstrzymany film (7:29).
+Test na JMGO (przerwany na polecenie właściciela „nie testuj teraz”): Live TV startuje bez awarii (`live tv: filtr=wszystkie, kafelki=15, kanały=325`), przewodnik, obwódka fokusu, linia „teraz”, kropki statusu i ▼ do rzędu kanału działają (zrzuty `.stage/niunia/b141-livetv*.png`). Znalezione i poprawione w kodzie (pkt 15): nagłówek przewijał się pod przyciski u góry, rząd kafelków i filtrów uciekał do lewej krawędzi, szary cień rzędu z fokusem. Niesprawdzone: hero/animacja, Odkrywaj, Szukaj, Dziś.
+PACZKA DO NASTĘPNEGO BUILDA: poprawki pkt 15 (`livetv/NiuniaLiveTv.kt`, `livetv/NiuniaLiveDiscover.kt`) — przed buildem kontrolna kompilacja (w NuvioFork-build już skopiowane).
+Test na TV (następny build): Live TV — fokus na „Wszystkie”, nagłówek stoi przy zejściu do przewodnika, filtry, ◄► oś, ‹ ›, OK na żywo/archiwum, Dziś, Odkrywaj, Szukaj; Główna i strona filmu/serialu — hero bez przesunięcia, ▼ animacja (na JMGO przyciemnienie zamiast rozmycia), ▲/Wstecz → hero, kafle bez skakania.
+DALEJ (wdrożenie wszystkich ekranów): główna wyszukiwarka wg `SearchResults` (zakładki, podpowiedzi), Ustawienia NOOB wg `Settings`, strona odcinka (`Episode`), Napisy AI (`PlayerSubs`), 3. poziom drzewa kategorii w Szukaj TV, stałe przewijanie na stronie osoby.
 
 ## NIUNIA — ODTWARZACZE YOUTUBE / IPTV / „PODOBNE” + MENU (wątek 20.11 ~13:30, gałąź skin-niunia) — build140 NA JMGO
 Opis i decyzje: `.stage/niunia/WPIECIE.md` „Po wdrożeniu” pkt 8–12 (PL), `~/Desktop/appletv/skin/SKIN.md` items 8–12 (EN), znaczniki na końcu obu plików; `plan/DECYZJE.md` (20.11).
