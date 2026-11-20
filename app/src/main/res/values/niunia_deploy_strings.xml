@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Niunia: teksty z wdrożenia „Po wdrożeniu” pkt 2–4 (strony szczegółów w odtwarzaczu, kropki statusu). -->
+<resources>
+    <string name="niunia_status_live">Na żywo</string>
+    <string name="niunia_status_archive">Archiwum</string>
+    <string name="niunia_pinfo_episodes">Odcinki</string>
+    <string name="niunia_pinfo_cast">Obsada i twórcy</string>
+    <string name="niunia_pinfo_info">Informacje</string>
+    <string name="niunia_pinfo_now">Teraz</string>
+    <string name="niunia_pinfo_episode_short">O%1$d</string>
+    <string name="niunia_pinfo_label_type">RODZAJ</string>
+    <string name="niunia_pinfo_label_year">PREMIERA</string>
+    <string name="niunia_pinfo_label_episode">ODCINEK</string>
+    <string name="niunia_pinfo_label_source">ŹRÓDŁO</string>
+</resources>

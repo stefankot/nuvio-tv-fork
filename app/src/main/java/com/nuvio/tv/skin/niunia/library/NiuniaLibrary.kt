@@ -41,10 +41,11 @@ fun NiuniaLibrary(onNavigateToDetail: (String, String, String?) -> Unit, viewMod
     val items = state.visibleItems
     LaunchedEffect(items.size) { Log.i(TAG, "biblioteka: ${items.size} pozycji") }
     if (items.isEmpty()) {
-        Box(Modifier.fillMaxSize().background(NiuniaColors.Bg), contentAlignment = Alignment.Center) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(stringResource(R.string.niunia_library_empty), style = NiuniaText.Meta.copy(fontSize = NiuniaText.Meta.fontSize), textAlign = TextAlign.Center)
-                Text(stringResource(R.string.niunia_library_empty_hint), style = NiuniaText.Body, color = NiuniaColors.Text50, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 4.dp))
+        // Pkt 3 (canvas v86): bez centrowania w poziomie — komunikat od lewej (40 dp).
+        Box(Modifier.fillMaxSize().background(NiuniaColors.Bg).padding(start = NiuniaDims.Gutter), contentAlignment = Alignment.CenterStart) {
+            Column(horizontalAlignment = Alignment.Start) {
+                Text(stringResource(R.string.niunia_library_empty), style = NiuniaText.Meta.copy(fontSize = NiuniaText.Meta.fontSize), textAlign = TextAlign.Start)
+                Text(stringResource(R.string.niunia_library_empty_hint), style = NiuniaText.Body, color = NiuniaColors.Text50, textAlign = TextAlign.Start, modifier = Modifier.padding(top = 4.dp))
             }
         }
         return

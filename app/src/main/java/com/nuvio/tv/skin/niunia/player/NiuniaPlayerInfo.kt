@@ -1,0 +1,299 @@
+package com.nuvio.tv.skin.niunia.player
+
+import android.os.Build
+import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import com.nuvio.tv.R
+import com.nuvio.tv.domain.model.MetaCastMember
+import com.nuvio.tv.domain.model.Video
+import com.nuvio.tv.skin.niunia.components.niuniaFocusable
+import com.nuvio.tv.skin.niunia.tokens.NiuniaColors
+import com.nuvio.tv.skin.niunia.tokens.NiuniaDims
+import com.nuvio.tv.skin.niunia.tokens.NiuniaSpace
+import com.nuvio.tv.skin.niunia.tokens.NiuniaText
+import com.nuvio.tv.ui.screens.player.PlayerEvent
+import com.nuvio.tv.ui.screens.player.PlayerUiState
+
+private const val TAG = "ForkNiunia"
+
+/** Odcinki bieżącego sezonu z danych odtwarzacza (puste, dopóki odtwarzacz ich nie wczytał). */
+internal fun niuniaSeasonEpisodes(ui: PlayerUiState): List<Video> {
+    val season = ui.episodesSelectedSeason ?: ui.currentSeason
+    return ui.episodes.ifEmpty { ui.episodesAll.filter { it.season == season } }
+}
+
+/**
+ * Rząd pod odtwarzaczem (canvas `PlayerSeries`, decyzja 20.11): kafle 16:9 200×113, 4 + kawałek piątego.
+ * Serial: odcinki sezonu (bieżący „Teraz”, postęp na każdym). ▲ wraca do przycisków, ▼ otwiera szczegóły.
+ */
+@Composable
+internal fun NiuniaPlayerRow(
+    ui: PlayerUiState,
+    episodes: List<Video>,
+    focus: FocusRequester,
+    onEvent: (PlayerEvent) -> Unit,
+    onUp: () -> Boolean,
+    onDown: () -> Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val current = episodes.indexOfFirst { it.season == ui.currentSeason && it.episode == ui.currentEpisode }.coerceAtLeast(0)
+    val state = rememberLazyListState(initialFirstVisibleItemIndex = current)
+    LazyRow(
+        state = state,
+        modifier = modifier.onPreviewKeyEvent {
+            if (it.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+            when (it.key) {
+                Key.DirectionUp -> onUp()
+                Key.DirectionDown -> onDown()
+                else -> false
+            }
+        },
+        contentPadding = PaddingValues(horizontal = NiuniaDims.Gutter),
+        horizontalArrangement = Arrangement.spacedBy(NiuniaSpace.TileGap),
+    ) {
+        itemsIndexed(episodes, key = { _, v -> v.id }) { i, v ->
+            EpisodeTile(ui, v, focus = if (i == current) focus else null) {
+                Log.i(TAG, "odtwarzacz: rząd → odcinek S${v.season}:O${v.episode}")
+                onEvent(PlayerEvent.OnEpisodeSelected(v))
+            }
+        }
+    }
+}
+
+@Composable
+private fun EpisodeTile(ui: PlayerUiState, v: Video, focus: FocusRequester?, onOk: () -> Unit) {
+    var focused by remember { mutableStateOf(false) }
+    val shape = RoundedCornerShape(NiuniaDims.RadiusCard)
+    val now = v.season == ui.currentSeason && v.episode == ui.currentEpisode
+    val progress = ui.episodeWatchProgressMap[(v.season ?: 0) to (v.episode ?: 0)]?.progressPercentage
+    Column(Modifier.width(NiuniaSpace.TileW)) {
+        Box(
+            Modifier.size(NiuniaSpace.TileW, NiuniaSpace.TileH)
+                .niuniaFocusable(shape, focusRequester = focus, onFocus = { focused = it }, onOk = onOk)
+                .clip(shape).background(NiuniaColors.Surface),
+        ) {
+            AsyncImage(model = v.thumbnail ?: ui.backdrop, contentDescription = v.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+            if (now) {
+                Text(stringResource(R.string.niunia_pinfo_now), style = NiuniaText.Tab, color = NiuniaColors.OnFocus,
+                    modifier = Modifier.padding(8.dp).background(NiuniaColors.Focus, RoundedCornerShape(6.dp)).padding(horizontal = 6.dp, vertical = 1.dp))
+            }
+            if (progress != null && progress > 0f) {
+                Box(Modifier.align(Alignment.BottomStart).padding(8.dp).fillMaxWidth(0.6f).height(3.dp).clip(RoundedCornerShape(2.dp)).background(NiuniaColors.Fill36)) {
+                    Box(Modifier.fillMaxWidth(progress.coerceIn(0f, 1f)).height(3.dp).background(NiuniaColors.Text))
+                }
+            }
+        }
+        Text(
+            listOfNotNull(v.episode?.let { stringResource(R.string.niunia_pinfo_episode_short, it) }, v.title.takeIf { it.isNotBlank() }).joinToString(" · "),
+            style = NiuniaText.Caption.copy(fontSize = 12.sp, lineHeight = 16.sp), color = if (focused) NiuniaColors.Text else NiuniaColors.Text70,
+            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 6.dp),
+        )
+    }
+}
+
+/**
+ * Szczegóły w odtwarzaczu (▼▼; canvas `PlayerFilmInfo`, `PlayerSeriesInfo`; WPIECIE.md „Po wdrożeniu” pkt 4, canvas v88):
+ * mocno rozmyte tło z obrazu programu (API 31+; starsze — mocne przyciemnienie), logo na środku u góry (jedyny centrowany
+ * element), nagłówek od lewej (40 dp, szer. 680): linia meta → opis max 3 linie. Sekcje: najpierw co obejrzeć (Odcinki
+ * z pigułkami sezonów w linii tytułu), potem ludzie (Obsada i twórcy — inicjały), na końcu fakty (Informacje, siatka 3 kolumn).
+ * Odstępy: tytuł → treść 34 dp, po treści 36 dp. Fokus po wejściu: pierwszy element pierwszej sekcji.
+ * Tylko pola, które odtwarzacz ma w [PlayerUiState] (bez akcji „Do biblioteki”/„Zwiastun” i „Podobne” — brak tych danych w odtwarzaczu).
+ */
+@Composable
+internal fun NiuniaPlayerDetails(ui: PlayerUiState, series: Boolean, onEvent: (PlayerEvent) -> Unit) {
+    val episodes = niuniaSeasonEpisodes(ui)
+    val cast = ui.castMembers.take(20)
+    val first = remember { FocusRequester() }
+    val fallback = remember { FocusRequester() }
+    val hasEpisodes = series && episodes.isNotEmpty()
+    LaunchedEffect(Unit) {
+        Log.i(TAG, "odtwarzacz: szczegóły (serial=$series, odcinki=${episodes.size}, obsada=${cast.size}, opis=${!ui.description.isNullOrBlank()})")
+        kotlinx.coroutines.delay(60)
+        val ok = try { (if (hasEpisodes || cast.isNotEmpty()) first else fallback).requestFocus(); true } catch (e: IllegalStateException) {
+            Log.w(TAG, "odtwarzacz: fokus szczegółów: ${e.javaClass.simpleName}: ${e.message}"); false
+        }
+        if (!ok) try { fallback.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus zapasowy szczegółów: ${e.message}") }
+    }
+    Box(Modifier.fillMaxSize().background(NiuniaColors.Bg)) {
+        val blurOk = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        if (ui.backdrop != null) {
+            AsyncImage(model = ui.backdrop, contentDescription = null, contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize().then(if (blurOk) Modifier.blur(60.dp) else Modifier))
+        }
+        // Rozmycie tylko natywne (ZASADY §2); na Androidzie 11 zamiast niego mocne przyciemnienie.
+        Box(Modifier.fillMaxSize().background(if (blurOk) Color(0x99000000) else Color(0xE6141416)))
+        Column(
+            Modifier.fillMaxSize()
+                .focusRequester(fallback)
+                .focusable()
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = NiuniaSpace.AfterRow),
+        ) {
+            // 1. Logo na środku (jedyny wyjątek od „bez centrowania”); bez logo — tytuł tekstem od lewej.
+            val title = if (series) ui.contentName ?: ui.title else ui.title
+            if (ui.logo != null) {
+                Box(Modifier.fillMaxWidth().padding(top = 28.dp), contentAlignment = Alignment.TopCenter) {
+                    AsyncImage(model = ui.logo, contentDescription = title, contentScale = ContentScale.Fit,
+                        modifier = Modifier.widthIn(max = 320.dp).heightIn(max = 64.dp))
+                }
+            } else {
+                Text(title, style = NiuniaText.Logo.copy(fontSize = 32.sp, lineHeight = 38.sp), maxLines = 2, overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(start = NiuniaDims.Gutter, top = 28.dp).width(680.dp))
+            }
+            // 2. Nagłówek od lewej.
+            Column(Modifier.padding(start = NiuniaDims.Gutter, top = 24.dp).width(680.dp)) {
+                val meta = listOfNotNull(
+                    stringResource(if (series) R.string.niunia_player_series else R.string.niunia_player_movie),
+                    ui.releaseYear?.takeIf { it.isNotBlank() },
+                    if (series) "S${ui.currentSeason}:O${ui.currentEpisode}" else null,
+                    ui.currentEpisodeTitle?.takeIf { series && it.isNotBlank() },
+                ).joinToString(" · ")
+                Text(meta, style = NiuniaText.Meta.copy(fontSize = 13.sp), color = NiuniaColors.Text70, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                ui.description?.takeIf { it.isNotBlank() }?.let {
+                    Text(it, style = NiuniaText.Body.copy(fontSize = 13.sp, lineHeight = 18.sp), maxLines = 3, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 8.dp))
+                }
+            }
+            Spacer(Modifier.height(NiuniaSpace.AfterRow))
+            // 3. Sekcje: co obejrzeć → ludzie → fakty.
+            if (hasEpisodes) {
+                Row(Modifier.padding(start = NiuniaDims.Gutter).height(22.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    SectionTitle(stringResource(R.string.niunia_pinfo_episodes))
+                    ui.episodesAvailableSeasons.forEach { s ->
+                        SeasonPill(s, selected = s == (ui.episodesSelectedSeason ?: ui.currentSeason)) {
+                            Log.i(TAG, "odtwarzacz: szczegóły → sezon $s"); onEvent(PlayerEvent.OnEpisodeSeasonSelected(s))
+                        }
+                    }
+                }
+                NiuniaPlayerRow(ui, episodes, focus = first, onEvent = onEvent, onUp = { false }, onDown = { false },
+                    modifier = Modifier.padding(top = NiuniaSpace.TitleToRow - 22.dp))
+                Spacer(Modifier.height(NiuniaSpace.AfterRow))
+            }
+            if (cast.isNotEmpty()) {
+                SectionTitle(stringResource(R.string.niunia_pinfo_cast), Modifier.padding(start = NiuniaDims.Gutter))
+                LazyRow(
+                    modifier = Modifier.padding(top = NiuniaSpace.TitleToRow - 22.dp),
+                    contentPadding = PaddingValues(horizontal = NiuniaDims.Gutter),
+                    horizontalArrangement = Arrangement.spacedBy(NiuniaSpace.TileGap),
+                ) {
+                    items(cast.size) { i -> PersonInitials(cast[i], if (i == 0 && !hasEpisodes) first else null) }
+                }
+                Spacer(Modifier.height(NiuniaSpace.AfterRow))
+            }
+            InfoGrid(ui, series)
+        }
+    }
+}
+
+@Composable
+private fun SectionTitle(text: String, modifier: Modifier = Modifier) {
+    Text(text, style = NiuniaText.Row, color = NiuniaColors.Text, maxLines = 1, modifier = modifier)
+}
+
+@Composable
+private fun SeasonPill(season: Int, selected: Boolean, onOk: () -> Unit) {
+    var focused by remember { mutableStateOf(false) }
+    val shape = RoundedCornerShape(50)
+    Box(
+        Modifier.height(28.dp)
+            .niuniaFocusable(shape, scale = NiuniaDims.ScaleButton, lift = false, onFocus = { focused = it }, onOk = onOk)
+            .background(when { focused -> NiuniaColors.Focus; selected -> NiuniaColors.Fill24; else -> Color.Transparent }, shape)
+            .padding(horizontal = 12.dp),
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        Text(if (season == 0) stringResource(R.string.niunia_detail_specials) else stringResource(R.string.niunia_detail_season, season),
+            style = NiuniaText.Button.copy(fontSize = 13.sp, lineHeight = 18.sp), color = if (focused) NiuniaColors.OnFocus else if (selected) NiuniaColors.Text else NiuniaColors.Text70)
+    }
+}
+
+/** Osoba: kółko z inicjałami (bez zdjęć), imię i rola — wszystko od lewej (pkt 3). */
+@Composable
+private fun PersonInitials(person: MetaCastMember, focus: FocusRequester?) {
+    var focused by remember { mutableStateOf(false) }
+    Column(Modifier.width(110.dp)) {
+        Box(
+            Modifier.size(96.dp).niuniaFocusable(CircleShape, focusRequester = focus, onFocus = { focused = it }, onOk = {}).clip(CircleShape).background(NiuniaColors.Surface2),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(initials(person.name), style = NiuniaText.Logo.copy(fontSize = 28.sp, lineHeight = 34.sp), color = NiuniaColors.Text50)
+        }
+        Text(person.name, style = NiuniaText.Meta.copy(fontWeight = FontWeight.Bold, fontSize = 13.sp), color = if (focused) NiuniaColors.Text else NiuniaColors.Text70,
+            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 8.dp))
+        person.character?.takeIf { it.isNotBlank() }?.let {
+            Text(it, style = NiuniaText.Body.copy(fontSize = 12.sp, lineHeight = 16.sp), color = NiuniaColors.Text50, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+private fun initials(name: String): String = name.split(' ').filter { it.isNotBlank() }.take(2).joinToString("") { it.first().uppercase() }
+
+/** Informacje: siatka 3 kolumn, etykieta wersalikami 12 sp + wartość 14 sp; puste pola pomijane. */
+@Composable
+private fun InfoGrid(ui: PlayerUiState, series: Boolean) {
+    val fields = listOfNotNull(
+        stringResource(R.string.niunia_pinfo_label_type) to stringResource(if (series) R.string.niunia_player_series else R.string.niunia_player_movie),
+        ui.releaseYear?.takeIf { it.isNotBlank() }?.let { stringResource(R.string.niunia_pinfo_label_year) to it },
+        if (series && ui.currentSeason != null) stringResource(R.string.niunia_pinfo_label_episode) to "S${ui.currentSeason}:O${ui.currentEpisode}" else null,
+        (ui.currentStreamAddonName ?: ui.currentStreamName)?.takeIf { it.isNotBlank() }?.let { stringResource(R.string.niunia_pinfo_label_source) to it },
+    )
+    SectionTitle(stringResource(R.string.niunia_pinfo_info), Modifier.padding(start = NiuniaDims.Gutter))
+    Column(Modifier.padding(start = NiuniaDims.Gutter, top = NiuniaSpace.TitleToRow - 22.dp).width(880.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        fields.chunked(3).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                row.forEach { (label, value) ->
+                    Column(Modifier.width(277.dp)) {
+                        Text(label, style = NiuniaText.Caption.copy(fontSize = 12.sp, lineHeight = 16.sp), color = NiuniaColors.Text50, maxLines = 1)
+                        Text(value, style = NiuniaText.Meta, color = NiuniaColors.Text, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    }
+                }
+            }
+        }
+    }
+}

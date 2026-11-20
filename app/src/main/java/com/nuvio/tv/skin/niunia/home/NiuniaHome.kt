@@ -53,6 +53,7 @@ import com.nuvio.tv.skin.niunia.components.niuniaFocusable
 import com.nuvio.tv.skin.niunia.tokens.NiuniaColors
 import com.nuvio.tv.skin.niunia.tokens.NiuniaDims
 import com.nuvio.tv.skin.niunia.tokens.NiuniaText
+import com.nuvio.tv.skin.niunia.tokens.NiuniaSpace
 import com.nuvio.tv.ui.screens.home.ContinueWatchingItem
 import com.nuvio.tv.ui.screens.home.HomeUiState
 
@@ -87,6 +88,12 @@ fun NiuniaHome(
     // Fokus w hero = lista na samą górę (jak w projekcie: hero zawsze w całości).
     val listState = androidx.compose.foundation.lazy.rememberLazyListState()
     val scope = androidx.compose.runtime.rememberCoroutineScope()
+    // WPIECIE.md „Po wdrożeniu” pkt 2: zejście z hero (▼) przewija o pełny ekran — hero znika całkowicie,
+    // pierwszy tytuł rzędu 40 dp od góry; ▲ z pierwszego rzędu wraca do hero tym samym skokiem (onFocusInside).
+    val hasHero = heroes.isNotEmpty()
+    val belowHero: () -> Unit = {
+        if (hasHero && listState.firstVisibleItemIndex == 0) scope.launch { listState.animateScrollToItem(1) }
+    }
     LaunchedEffect(heroes.size, uiState.catalogRows.size) {
         Log.i(TAG, "ekran główny: hero=${heroes.size}, dalej oglądaj=${uiState.continueWatchingItems.size}, rzędy=${uiState.catalogRows.size}")
     }
@@ -96,6 +103,7 @@ fun NiuniaHome(
         modifier = Modifier.fillMaxSize().background(NiuniaColors.Bg),
         contentPadding = PaddingValues(bottom = 48.dp),
     ) {
+        var firstBelow = true // pierwszy rząd pod hero dostaje 40 dp od góry
         heroes.getOrNull(heroIndex % heroes.size.coerceAtLeast(1))?.let { hero ->
             item(key = "niunia_hero") {
                 Hero(
@@ -107,21 +115,23 @@ fun NiuniaHome(
             }
         }
         if (uiState.continueWatchingItems.isNotEmpty()) {
+            val top = firstBelow; firstBelow = false
             item(key = "niunia_cw") {
-                RowTitle(stringResource(R.string.niunia_row_continue), on = focusedRow == -2)
-                LazyRow(contentPadding = PaddingValues(horizontal = NiuniaDims.Gutter, vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
+                RowTitle(stringResource(R.string.niunia_row_continue), on = focusedRow == -2, first = top)
+                LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
                     items(uiState.continueWatchingItems, key = { cwKey(it) }) { cw ->
-                        ContinueCard(cw, onFocus = { if (it) focusedRow = -2 }, onOk = { onContinueWatchingClick(cw) })
+                        ContinueCard(cw, onFocus = { if (it) { focusedRow = -2; belowHero() } }, onOk = { onContinueWatchingClick(cw) })
                     }
                 }
             }
         }
         uiState.catalogRows.forEachIndexed { rowIndex, row ->
             if (row.items.isEmpty()) return@forEachIndexed
+            val top = firstBelow; firstBelow = false
             item(key = "niunia_row_${row.addonId}_${row.catalogId}_${row.rawType}") {
                 val ranking = NiuniaLabels.isRankingRow(row.catalogName)
-                RowTitle(row.catalogName, on = focusedRow == rowIndex)
-                LazyRow(contentPadding = PaddingValues(horizontal = NiuniaDims.Gutter, vertical = 14.dp), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
+                RowTitle(row.catalogName, on = focusedRow == rowIndex, first = top)
+                LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
                     itemsIndexed(row.items, key = { _, it -> it.id }) { i, item ->
                         val (art, fallback) = remember(item, posterPattern) { niuniaPortrait(item, posterPattern) }
                         NiuniaPoster(
@@ -133,7 +143,7 @@ fun NiuniaHome(
                             label = NiuniaLabels.label(context, item, i, ranking),
                             // Plakaty z dodatków zwykle mają tytuł w grafice → wariant „baked” (decyzja: plan/DECYZJE.md, Niunia).
                             baked = art != null,
-                            onFocus = { if (it) { focusedRow = rowIndex; onItemFocus(item) } },
+                            onFocus = { if (it) { focusedRow = rowIndex; onItemFocus(item); belowHero() } },
                             onOk = { onNavigateToDetail(item.id, item.rawType, row.addonBaseUrl) },
                         )
                     }
@@ -148,23 +158,28 @@ private fun cwKey(cw: ContinueWatchingItem): String = when (cw) {
     is ContinueWatchingItem.NextUp -> "n_${cw.info.contentId}_${cw.info.videoId}"
 }
 
+/** Tytuł rzędu: 22 dp wysokości; rząd zaczyna się 34 dp od góry tytułu, po rzędzie 36 dp (decyzja właściciela). */
 @Composable
-private fun RowTitle(text: String, on: Boolean) {
+private fun RowTitle(text: String, on: Boolean, first: Boolean = false) {
     Text(
         text, style = NiuniaText.Row, color = if (on) NiuniaColors.Text else NiuniaColors.Text50, maxLines = 1,
-        modifier = Modifier.padding(start = NiuniaDims.Gutter, top = 18.dp),
+        modifier = Modifier.padding(start = NiuniaDims.Gutter, top = if (first) NiuniaSpace.TopAfterHero else 0.dp).height(22.dp),
     )
 }
+
+private fun rowPadding() = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = NiuniaSpace.TitleToRow - 22.dp, bottom = NiuniaSpace.AfterRow)
 
 @Composable
 private fun Hero(item: MetaPreview, index: Int, count: Int, focus: FocusRequester, onFocusInside: () -> Unit, onOpen: () -> Unit, onNext: () -> Unit) {
     LaunchedEffect(Unit) {
         try { focus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "fokus hero: ${e.javaClass.simpleName}: ${e.message}") }
     }
-    Box(Modifier.fillMaxWidth().height(480.dp)) {
+    // Hero na cały ekran (pkt 2): po ▼ znika w całości.
+    val screenH = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp
+    Box(Modifier.fillMaxWidth().height(screenH)) {
         AsyncImage(model = item.background ?: item.landscapePoster ?: item.poster, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
         Box(Modifier.fillMaxSize().background(Brush.horizontalGradient(0f to NiuniaColors.ScrimLeft, .38f to Color(0x8C18181A), .68f to Color.Transparent)))
-        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(.55f to Color.Transparent, 1f to NiuniaColors.Bg)))
+        // Bez szarego gradientu na dole hero (WPIECIE.md „Po wdrożeniu” pkt 2); zostaje tylko lewy scrim pod tekstem.
         Column(Modifier.align(Alignment.BottomStart).padding(start = NiuniaDims.Gutter, bottom = 40.dp).width(420.dp)) {
             if (!item.logo.isNullOrBlank()) {
                 AsyncImage(model = item.logo, contentDescription = item.name, contentScale = ContentScale.Fit, alignment = Alignment.BottomStart,

@@ -116,7 +116,7 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
     }
 
     if (!state.hasSource || (state.isLoaded && shown.isEmpty())) {
-        Box(Modifier.fillMaxSize().background(NiuniaColors.Bg), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxSize().background(NiuniaColors.Bg).padding(start = NiuniaDims.Gutter), contentAlignment = Alignment.CenterStart) { // pkt 3: od lewej
             Text(stringResource(if (!state.hasSource) R.string.niunia_live_no_source else R.string.niunia_live_empty), style = NiuniaText.Meta, color = NiuniaColors.Text70)
         }
         return
@@ -183,7 +183,8 @@ private fun OnAirCard(ch: LiveTvChannel, p: LiveTvProgramme, logo: String?, now:
     ) {
         if (p.image != null) AsyncImage(model = p.image, contentDescription = p.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
         else if (logo != null) AsyncImage(model = logo, contentDescription = ch.name, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize().padding(24.dp))
-        Text("LIVE", style = NiuniaText.Tab, color = NiuniaColors.Text, modifier = Modifier.padding(6.dp).background(NiuniaColors.Live, RoundedCornerShape(6.dp)).padding(horizontal = 6.dp, vertical = 1.dp))
+        // Kropka statusu zamiast napisu „LIVE” na kafelku (decyzja 20.11); napis LIVE zostaje tylko w opisie na dole.
+        com.nuvio.tv.skin.niunia.components.NiuniaStatusDot(live = true)
         Column(Modifier.align(Alignment.BottomStart).fillMaxWidth().background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color.Transparent, Color(0xCC000000)))).padding(8.dp)) {
             val f = ((now - p.startEpochMs).toFloat() / (p.stopEpochMs - p.startEpochMs).coerceAtLeast(1)).coerceIn(0f, 1f)
             Box(Modifier.fillMaxWidth(0.5f).height(3.dp).clip(RoundedCornerShape(2.dp)).background(NiuniaColors.Fill36)) {

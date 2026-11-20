@@ -180,7 +180,7 @@ private fun ProfileItem(
     avatar: @Composable () -> Unit,
 ) {
     var focused by remember { mutableStateOf(false) }
-    Column(Modifier.width(86.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(Modifier.width(86.dp), horizontalAlignment = Alignment.Start) { // pkt 3: od lewej
         Box {
             Box(
                 Modifier
@@ -200,7 +200,7 @@ private fun ProfileItem(
         Spacer(Modifier.height(6.dp))
         Text(
             name, style = NiuniaText.Meta.copy(fontSize = 12.sp, lineHeight = 16.sp), color = if (focused) NiuniaColors.Text else NiuniaColors.Text70,
-            maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
+            maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Start,
         )
     }
 }
@@ -215,10 +215,11 @@ private fun NiuniaPinDialog(profileName: String, error: String?, working: Boolea
     }
     LaunchedEffect(error) { if (error != null) digits = "" }
     val keys = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "⌫", "0", "OK")
-    Box(Modifier.fillMaxSize().background(Color(0x99000000)), contentAlignment = Alignment.Center) {
+    // Pkt 3 (canvas v86): okno od lewej krawędzi treści (40 dp), zawartość od lewej.
+    Box(Modifier.fillMaxSize().background(Color(0x99000000)).padding(start = 40.dp), contentAlignment = Alignment.CenterStart) {
         Column(
             Modifier.width(400.dp).clip(RoundedCornerShape(28.dp)).background(Color(0xF53A3A3C)).padding(24.dp).focusGroup(),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.Start,
         ) {
             Text(stringResource(R.string.niunia_profiles_pin, profileName), style = NiuniaText.Button.copy(fontSize = 20.sp, lineHeight = 26.sp), color = NiuniaColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
             if (error != null) Text(error, style = NiuniaText.Body, color = Color(0xFFFF7B80), modifier = Modifier.padding(top = 8.dp))

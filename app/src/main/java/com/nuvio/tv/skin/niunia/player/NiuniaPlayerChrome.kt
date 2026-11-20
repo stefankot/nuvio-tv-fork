@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -35,6 +36,8 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -49,7 +52,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
@@ -69,6 +74,7 @@ import com.nuvio.tv.skin.kicia.player.rememberForgeScrub
 import com.nuvio.tv.skin.niunia.components.niuniaFocusable
 import com.nuvio.tv.skin.niunia.tokens.NiuniaColors
 import com.nuvio.tv.skin.niunia.tokens.NiuniaText
+import com.nuvio.tv.skin.niunia.tokens.NiuniaSpace
 import com.nuvio.tv.ui.screens.player.PlayerEvent
 import com.nuvio.tv.ui.screens.player.PlayerUiState
 import com.nuvio.tv.ui.screens.player.PlayerViewModel
@@ -100,6 +106,29 @@ fun NiuniaPlayerChrome(
     var controlsTopPx by remember { mutableFloatStateOf(0f) }
     var rootHeightPx by remember { mutableFloatStateOf(0f) }
     val series = uiState.currentSeason != null && uiState.currentEpisode != null
+    // WPIECIE.md „Po wdrożeniu” pkt 4: ▼ z przycisków = rząd pod odtwarzaczem, kolejne ▼ = szczegóły; BACK cofa krok po kroku.
+    var level by remember { mutableIntStateOf(0) }
+    val episodes = niuniaSeasonEpisodes(uiState)
+    val hasRow = series && episodes.isNotEmpty()
+    val rowFocus = remember { FocusRequester() }
+    var moved by remember { mutableStateOf(false) }
+    fun go(to: Int) {
+        moved = true
+        Log.i(TAG, "odtwarzacz: poziom $level → $to (rząd=${if (hasRow) episodes.size else 0})")
+        level = to
+    }
+    LaunchedEffect(level) {
+        if (!moved) return@LaunchedEffect
+        kotlinx.coroutines.delay(60)
+        try {
+            when (level) {
+                0 -> firstButton.requestFocus()
+                1 -> rowFocus.requestFocus()
+            }
+        } catch (e: IllegalStateException) { if (level != 2) Log.w(TAG, "odtwarzacz: fokus poziomu $level: ${e.message}") }
+    }
+    val controlsShift by animateDpAsState(if (level >= 1) -(NiuniaSpace.TileH + 22.dp + NiuniaSpace.AfterRow - 26.dp) else 0.dp, label = "niuniaControlsShift")
+    val rowShift by animateDpAsState(if (level >= 1) 0.dp else NiuniaSpace.TileH + 22.dp + NiuniaSpace.AfterRow - NiuniaSpace.TilePeek, label = "niuniaRowShift")
 
     LaunchedEffect(controlsTopPx, rootHeightPx) {
         if (rootHeightPx > 0f && controlsTopPx > 0f) onSubtitleClearanceChanged((rootHeightPx - controlsTopPx).coerceAtLeast(0f))
@@ -125,7 +154,7 @@ fun NiuniaPlayerChrome(
             .onGloballyPositioned { rootHeightPx = it.size.height.toFloat() },
     ) {
         Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(300.dp).background(Brush.verticalGradient(listOf(Color.Transparent, Color(0xBF000000)))))
-        Column(Modifier.align(Alignment.BottomStart).padding(start = 40.dp, end = 40.dp, bottom = 46.dp).fillMaxWidth()) {
+        Column(Modifier.align(Alignment.BottomStart).offset(y = controlsShift).padding(start = 40.dp, end = 40.dp, bottom = 46.dp).fillMaxWidth()) {
             // Tytuł (canvas: 40, 330).
             Text(stringResource(if (series) R.string.niunia_player_series else R.string.niunia_player_movie).uppercase(), style = NiuniaText.Caption.copy(fontSize = 12.sp, lineHeight = 16.sp), color = NiuniaColors.Text70)
             val title = if (series) uiState.contentName ?: uiState.title else uiState.title
@@ -171,7 +200,12 @@ fun NiuniaPlayerChrome(
                 Text("−" + formatScrubTime((scrub.state.durationMs - scrub.state.positionMs).coerceAtLeast(0)), style = NiuniaText.Caption.copy(fontSize = 12.sp), color = NiuniaColors.Text70)
             }
             // Przyciski (canvas: y 454, odstęp 12).
-            Row(Modifier.padding(top = 18.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                Modifier.padding(top = NiuniaSpace.PlayerGap).onPreviewKeyEvent {
+                    if (it.type == KeyEventType.KeyDown && it.key == Key.DirectionDown) { go(if (hasRow) 1 else 2); true } else false
+                },
+                horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically,
+            ) {
                 SmallButton(if (uiState.isPlaying) "❚❚" else "▶", round = true, focusRequester = firstButton) { onEvent(PlayerEvent.OnPlayPause); resetHide() }
                 SmallButton(stringResource(R.string.niunia_player_info)) { onEvent(PlayerEvent.OnShowStreamInfo); resetHide() }
                 SmallButton(stringResource(R.string.niunia_player_audio)) { onEvent(PlayerEvent.OnShowAudioOverlay); resetHide() }
@@ -183,9 +217,20 @@ fun NiuniaPlayerChrome(
         }
 
         // „Więcej” — szklany panel po prawej (canvas .glass: 360 szer., od y 40, promień 28 po lewej).
-        SideEffect { ForgeSheetOpen.open = moreOpen }
+        // Rząd odcinków: wystaje u dołu, ▼ go podnosi (4 kafle 16:9 i kawałek piątego).
+        if (hasRow) {
+            NiuniaPlayerRow(
+                uiState, episodes, focus = rowFocus, onEvent = { onEvent(it); resetHide() },
+                onUp = { go(0); true }, onDown = { go(2); true },
+                modifier = Modifier.align(Alignment.BottomStart).offset(y = rowShift).padding(bottom = NiuniaSpace.AfterRow),
+            )
+        }
+        if (level == 2) NiuniaPlayerDetails(uiState, series, onEvent = { onEvent(it); resetHide() })
+        BackHandler(enabled = level > 0 && !moreOpen) { go(if (level == 2 && hasRow) 1 else 0) }
+
+        SideEffect { ForgeSheetOpen.open = moreOpen || level > 0 }
         DisposableEffect(Unit) { onDispose { ForgeSheetOpen.open = false } }
-        LaunchedEffect(moreOpen) { while (moreOpen) { resetHide(); kotlinx.coroutines.delay(2_000) } }
+        LaunchedEffect(moreOpen, level) { while (moreOpen || level > 0) { resetHide(); kotlinx.coroutines.delay(2_000) } }
         AnimatedVisibility(moreOpen, modifier = Modifier.align(Alignment.TopEnd).padding(top = 40.dp), enter = slideInHorizontally { it }, exit = slideOutHorizontally { it }) {
             BackHandler { moreOpen = false }
             MorePanel(series = series, speed = uiState.playbackSpeed, close = { moreOpen = false }, onEvent = onEvent, toast = { msg -> Toast.makeText(context, msg, Toast.LENGTH_SHORT).show() })
