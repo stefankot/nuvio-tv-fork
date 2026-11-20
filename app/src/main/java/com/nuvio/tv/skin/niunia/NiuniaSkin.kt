@@ -71,13 +71,26 @@ object NiuniaSkin : Skin {
         else -> null
     }
 
-    /** Nakładka odtwarzacza Niunii: filmy i seriale. Live TV ma własną nakładkę, YouTube — sterowanie Kicii (sesja YouTube). */
+    /** Nakładka odtwarzacza Niunii: filmy, seriale i YouTube. Live TV: wygląd Niuni rysuje MiniGuide (skin/niunia/live). */
     @Suppress("UNCHECKED_CAST")
     @androidx.compose.runtime.Composable
     override fun PlayerChrome(uiState: com.nuvio.tv.ui.screens.player.PlayerUiState, onEvent: (com.nuvio.tv.ui.screens.player.PlayerEvent) -> Unit, args: Map<String, Any?>): Boolean {
         val vm = args["viewModel"] as? com.nuvio.tv.ui.screens.player.PlayerViewModel ?: return false
         if (vm.playbackTimeline.value.isLive) return false
-        if ((com.nuvio.tv.skin.kicia.youtube.LocalForgeYouTubeSession.current ?: com.nuvio.tv.skin.kicia.youtube.ForgeYouTubeHost.session) != null) return false
+        // Fork 20.11: YouTube (karta YouTube, zwiastuny) — własny odtwarzacz Niuni wg canvasu PlayerLeanback.
+        val ytSession = com.nuvio.tv.skin.kicia.youtube.LocalForgeYouTubeSession.current ?: com.nuvio.tv.skin.kicia.youtube.ForgeYouTubeHost.session
+        if (com.nuvio.tv.skin.niunia.player.niuniaIsYouTube(vm.controller.contentId, ytSession)) {
+            com.nuvio.tv.skin.niunia.player.NiuniaYouTubeChrome(
+                uiState = uiState,
+                viewModel = vm,
+                session = ytSession,
+                progressBarFocusRequester = args["progressBar"] as androidx.compose.ui.focus.FocusRequester,
+                playPauseFocusRequester = args["playPause"] as androidx.compose.ui.focus.FocusRequester,
+                onEvent = onEvent,
+                onSubtitleClearanceChanged = (args["clearance"] as? (Float) -> Unit) ?: {},
+            )
+            return true
+        }
         com.nuvio.tv.skin.niunia.player.NiuniaPlayerChrome(
             uiState = uiState,
             viewModel = vm,

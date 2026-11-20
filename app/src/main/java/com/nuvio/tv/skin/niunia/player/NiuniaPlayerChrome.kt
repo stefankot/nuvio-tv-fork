@@ -109,12 +109,21 @@ fun NiuniaPlayerChrome(
     // WPIECIE.md „Po wdrożeniu” pkt 4: ▼ z przycisków = rząd pod odtwarzaczem, kolejne ▼ = szczegóły; BACK cofa krok po kroku.
     var level by remember { mutableIntStateOf(0) }
     val episodes = niuniaSeasonEpisodes(uiState)
-    val hasRow = series && episodes.isNotEmpty()
+    // Pkt 3 (20.11): film — ▼ podnosi rząd „Podobne”, dane z TMDB (TVDB nie ma podobnych), biblioteka i zwiastun.
+    val extras: NiuniaPlayerExtrasViewModel = androidx.hilt.navigation.compose.hiltViewModel()
+    val extrasState by extras.state.collectAsState()
+    LaunchedEffect(viewModel.controller.contentId) {
+        extras.load(viewModel.controller.contentId, viewModel.controller.contentType ?: if (series) "series" else "movie",
+            uiState.contentName ?: uiState.title, uiState.releaseYear, null, uiState.backdrop, uiState.logo, uiState.description)
+    }
+    LaunchedEffect(extrasState.message) { extrasState.message?.let { Toast.makeText(context, it, Toast.LENGTH_SHORT).show(); extras.clearMessage() } }
+    val similar = extrasState.similar
+    val hasRow = (series && episodes.isNotEmpty()) || (!series && similar.isNotEmpty())
     val rowFocus = remember { FocusRequester() }
     var moved by remember { mutableStateOf(false) }
     fun go(to: Int) {
         moved = true
-        Log.i(TAG, "odtwarzacz: poziom $level → $to (rząd=${if (hasRow) episodes.size else 0})")
+        Log.i(TAG, "odtwarzacz: poziom $level → $to (rząd=${if (!hasRow) 0 else if (series) episodes.size else similar.size}${if (series) " odcinków" else " podobnych"})")
         level = to
     }
     LaunchedEffect(level) {
@@ -218,28 +227,42 @@ fun NiuniaPlayerChrome(
 
         // „Więcej” — szklany panel po prawej (canvas .glass: 360 szer., od y 40, promień 28 po lewej).
         // Rząd odcinków: wystaje u dołu, ▼ go podnosi (4 kafle 16:9 i kawałek piątego).
-        if (hasRow) {
+        if (hasRow && series) {
             NiuniaPlayerRow(
                 uiState, episodes, focus = rowFocus, onEvent = { onEvent(it); resetHide() },
                 onUp = { go(0); true }, onDown = { go(2); true },
                 modifier = Modifier.align(Alignment.BottomStart).offset(y = rowShift).padding(bottom = NiuniaSpace.AfterRow),
             )
+        } else if (hasRow) {
+            NiuniaSimilarRow(
+                similar, focus = rowFocus, onUp = { go(0); true }, onDown = { go(2); true },
+                modifier = Modifier.align(Alignment.BottomStart).offset(y = rowShift).padding(bottom = NiuniaSpace.AfterRow),
+            )
         }
-        if (level == 2) NiuniaPlayerDetails(uiState, series, onEvent = { onEvent(it); resetHide() })
-        BackHandler(enabled = level > 0 && !moreOpen) { go(if (level == 2 && hasRow) 1 else 0) }
+        val trailerOpen = extrasState.trailer != null
+        if (level == 2) NiuniaPlayerDetails(
+            uiState, series, onEvent = { onEvent(it); resetHide() }, extras = extrasState,
+            onLibrary = { extras.toggleLibrary() },
+            onTrailer = {
+                if (uiState.isPlaying) onEvent(PlayerEvent.OnPlayPause)
+                extras.playTrailer(uiState.contentName ?: uiState.title, uiState.releaseYear, viewModel.controller.contentType ?: if (series) "series" else "movie")
+            },
+        )
+        BackHandler(enabled = level > 0 && !moreOpen && !trailerOpen) { go(if (level == 2 && hasRow) 1 else 0) }
+        extrasState.trailer?.let { t -> NiuniaTrailerOverlay(t) { extras.closeTrailer() } }
 
-        SideEffect { ForgeSheetOpen.open = moreOpen || level > 0 }
+        SideEffect { ForgeSheetOpen.open = moreOpen || level > 0 || trailerOpen }
         DisposableEffect(Unit) { onDispose { ForgeSheetOpen.open = false } }
         LaunchedEffect(moreOpen, level) { while (moreOpen || level > 0) { resetHide(); kotlinx.coroutines.delay(2_000) } }
         AnimatedVisibility(moreOpen, modifier = Modifier.align(Alignment.TopEnd).padding(top = 40.dp), enter = slideInHorizontally { it }, exit = slideOutHorizontally { it }) {
             BackHandler { moreOpen = false }
-            MorePanel(series = series, speed = uiState.playbackSpeed, close = { moreOpen = false }, onEvent = onEvent, toast = { msg -> Toast.makeText(context, msg, Toast.LENGTH_SHORT).show() })
+            NiuniaMorePanel(series = series, speed = uiState.playbackSpeed, close = { moreOpen = false }, onEvent = onEvent, toast = { msg -> Toast.makeText(context, msg, Toast.LENGTH_SHORT).show() })
         }
     }
 }
 
 @Composable
-private fun MorePanel(series: Boolean, speed: Float, close: () -> Unit, onEvent: (PlayerEvent) -> Unit, toast: (String) -> Unit) {
+internal fun NiuniaMorePanel(series: Boolean, speed: Float, close: () -> Unit, onEvent: (PlayerEvent) -> Unit, toast: (String) -> Unit) {
     val ctx = LocalContext.current
     val first = remember { FocusRequester() }
     LaunchedEffect(Unit) { try { first.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus panelu: ${e.message}") } }

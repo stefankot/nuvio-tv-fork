@@ -54,6 +54,11 @@ import coil3.compose.AsyncImage
 import com.nuvio.tv.R
 import com.nuvio.tv.domain.model.MetaCastMember
 import com.nuvio.tv.domain.model.Video
+import com.nuvio.tv.domain.model.MetaPreview
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.PlayArrow
 import com.nuvio.tv.skin.niunia.components.niuniaFocusable
 import com.nuvio.tv.skin.niunia.tokens.NiuniaColors
 import com.nuvio.tv.skin.niunia.tokens.NiuniaDims
@@ -148,32 +153,32 @@ private fun EpisodeTile(ui: PlayerUiState, v: Video, focus: FocusRequester?, onO
  * Tylko pola, które odtwarzacz ma w [PlayerUiState] (bez akcji „Do biblioteki”/„Zwiastun” i „Podobne” — brak tych danych w odtwarzaczu).
  */
 @Composable
-internal fun NiuniaPlayerDetails(ui: PlayerUiState, series: Boolean, onEvent: (PlayerEvent) -> Unit) {
+internal fun NiuniaPlayerDetails(
+    ui: PlayerUiState,
+    series: Boolean,
+    onEvent: (PlayerEvent) -> Unit,
+    extras: NiuniaExtrasState = NiuniaExtrasState(),
+    onLibrary: () -> Unit = {},
+    onTrailer: () -> Unit = {},
+) {
     val episodes = niuniaSeasonEpisodes(ui)
     val cast = ui.castMembers.take(20)
+    val similar = extras.similar
     val first = remember { FocusRequester() }
     val fallback = remember { FocusRequester() }
     val hasEpisodes = series && episodes.isNotEmpty()
     LaunchedEffect(Unit) {
-        Log.i(TAG, "odtwarzacz: szczegóły (serial=$series, odcinki=${episodes.size}, obsada=${cast.size}, opis=${!ui.description.isNullOrBlank()})")
+        Log.i(TAG, "odtwarzacz: szczegóły (serial=$series, odcinki=${episodes.size}, obsada=${cast.size}, podobne=${similar.size}, opis=${!ui.description.isNullOrBlank()})")
         kotlinx.coroutines.delay(60)
-        val ok = try { (if (hasEpisodes || cast.isNotEmpty()) first else fallback).requestFocus(); true } catch (e: IllegalStateException) {
+        val ok = try { (if (hasEpisodes || cast.isNotEmpty() || similar.isNotEmpty()) first else fallback).requestFocus(); true } catch (e: IllegalStateException) {
             Log.w(TAG, "odtwarzacz: fokus szczegółów: ${e.javaClass.simpleName}: ${e.message}"); false
         }
         if (!ok) try { fallback.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus zapasowy szczegółów: ${e.message}") }
     }
-    Box(Modifier.fillMaxSize().background(NiuniaColors.Bg)) {
-        val blurOk = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-        if (ui.backdrop != null) {
-            AsyncImage(model = ui.backdrop, contentDescription = null, contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize().then(if (blurOk) Modifier.blur(60.dp) else Modifier))
-        }
-        // Rozmycie tylko natywne (ZASADY §2); na Androidzie 11 zamiast niego mocne przyciemnienie.
-        Box(Modifier.fillMaxSize().background(if (blurOk) Color(0x99000000) else Color(0xE6141416)))
+    Box(Modifier.fillMaxSize()) {
+        NiuniaDeepBackground(ui.backdrop)
         Column(
             Modifier.fillMaxSize()
-                .focusRequester(fallback)
-                .focusable()
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = NiuniaSpace.AfterRow),
         ) {
@@ -188,21 +193,30 @@ internal fun NiuniaPlayerDetails(ui: PlayerUiState, series: Boolean, onEvent: (P
                 Text(title, style = NiuniaText.Logo.copy(fontSize = 32.sp, lineHeight = 38.sp), maxLines = 2, overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(start = NiuniaDims.Gutter, top = 28.dp).width(680.dp))
             }
-            // 2. Nagłówek od lewej.
-            Column(Modifier.padding(start = NiuniaDims.Gutter, top = 24.dp).width(680.dp)) {
+            // 2. Nagłówek od lewej: meta → opis max 3 linie → [+ Do biblioteki] [▶ Zwiastun].
+            Column(Modifier.padding(start = NiuniaDims.Gutter, top = 20.dp).width(680.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 val meta = listOfNotNull(
                     stringResource(if (series) R.string.niunia_player_series else R.string.niunia_player_movie),
                     ui.releaseYear?.takeIf { it.isNotBlank() },
                     if (series) "S${ui.currentSeason}:O${ui.currentEpisode}" else null,
                     ui.currentEpisodeTitle?.takeIf { series && it.isNotBlank() },
                 ).joinToString(" · ")
-                Text(meta, style = NiuniaText.Meta.copy(fontSize = 13.sp), color = NiuniaColors.Text70, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(meta, style = NiuniaText.Meta.copy(fontSize = 14.sp), color = NiuniaColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 ui.description?.takeIf { it.isNotBlank() }?.let {
-                    Text(it, style = NiuniaText.Body.copy(fontSize = 13.sp, lineHeight = 18.sp), maxLines = 3, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 8.dp))
+                    Text(it, style = NiuniaText.Body, color = NiuniaColors.Text70, maxLines = 3, overflow = TextOverflow.Ellipsis)
+                }
+                Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    NiuniaPillButton(stringResource(if (extras.inLibrary) R.string.niunia_pinfo_in_library else R.string.niunia_pinfo_add_library),
+                        icon = if (extras.inLibrary) Icons.Outlined.Check else Icons.Outlined.Add, focusRequester = fallback) {
+                        Log.i(TAG, "odtwarzacz: szczegóły → biblioteka (było ${extras.inLibrary})"); onLibrary()
+                    }
+                    NiuniaPillButton(stringResource(if (extras.trailerLoading) R.string.niunia_pinfo_trailer_loading else R.string.niunia_pinfo_trailer), icon = Icons.Outlined.PlayArrow) {
+                        Log.i(TAG, "odtwarzacz: szczegóły → zwiastun"); onTrailer()
+                    }
                 }
             }
             Spacer(Modifier.height(NiuniaSpace.AfterRow))
-            // 3. Sekcje: co obejrzeć → ludzie → fakty.
+            // 3. Sekcje: co obejrzeć → ludzie → podobne → fakty.
             if (hasEpisodes) {
                 Row(Modifier.padding(start = NiuniaDims.Gutter).height(22.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     SectionTitle(stringResource(R.string.niunia_pinfo_episodes))
@@ -221,14 +235,72 @@ internal fun NiuniaPlayerDetails(ui: PlayerUiState, series: Boolean, onEvent: (P
                 LazyRow(
                     modifier = Modifier.padding(top = NiuniaSpace.TitleToRow - 22.dp),
                     contentPadding = PaddingValues(horizontal = NiuniaDims.Gutter),
-                    horizontalArrangement = Arrangement.spacedBy(NiuniaSpace.TileGap),
+                    horizontalArrangement = Arrangement.spacedBy(24.dp),
                 ) {
                     items(cast.size) { i -> PersonInitials(cast[i], if (i == 0 && !hasEpisodes) first else null) }
                 }
                 Spacer(Modifier.height(NiuniaSpace.AfterRow))
             }
-            InfoGrid(ui, series)
+            if (similar.isNotEmpty()) {
+                SectionTitle(stringResource(R.string.niunia_pinfo_similar), Modifier.padding(start = NiuniaDims.Gutter))
+                NiuniaSimilarRow(similar, focus = if (!hasEpisodes && cast.isEmpty()) first else remember { FocusRequester() }, captions = true,
+                    onUp = { false }, onDown = { false }, modifier = Modifier.padding(top = NiuniaSpace.TitleToRow - 22.dp))
+                Spacer(Modifier.height(NiuniaSpace.AfterRow))
+            }
+            InfoGrid(ui, series, extras.similarSource)
         }
+    }
+}
+
+/**
+ * Rząd „Podobne” (film, pkt 3): kafle 16:9 200×113 (tło z TMDB, bez tła — plakat), 4 + kawałek piątego.
+ * OK otwiera stronę tytułu (trasa szczegółów; odtwarzacz zostaje na stosie). ▲/▼ jak rząd odcinków.
+ */
+@Composable
+internal fun NiuniaSimilarRow(
+    items: List<MetaPreview>,
+    focus: FocusRequester,
+    onUp: () -> Boolean,
+    onDown: () -> Boolean,
+    modifier: Modifier = Modifier,
+    captions: Boolean = true,
+) {
+    LazyRow(
+        modifier = modifier.onPreviewKeyEvent {
+            if (it.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+            when (it.key) { Key.DirectionUp -> onUp(); Key.DirectionDown -> onDown(); else -> false }
+        },
+        contentPadding = PaddingValues(horizontal = NiuniaDims.Gutter),
+        horizontalArrangement = Arrangement.spacedBy(NiuniaSpace.TileGap),
+    ) {
+        itemsIndexed(items, key = { _, m -> "${m.rawType}_${m.id}" }) { i, m ->
+            var focused by remember { mutableStateOf(false) }
+            Box(Modifier.niuniaFocusable(RoundedCornerShape(NiuniaDims.RadiusCard), scale = 1f, lift = false, focusRequester = if (i == 0) focus else null, onFocus = { focused = it }, onOk = {
+                val nav = com.nuvio.tv.skin.kicia.youtube.ForgeYouTubeHost.nav
+                Log.i(TAG, "odtwarzacz: podobne → ${m.rawType} ${m.id} (nawigacja=${nav != null})")
+                try { nav?.navigate(com.nuvio.tv.ui.navigation.Screen.Detail.createRoute(m.id, m.rawType)) } catch (e: IllegalArgumentException) {
+                    Log.w(TAG, "odtwarzacz: podobne — trasa: ${e.javaClass.simpleName}: ${e.message}")
+                }
+            })) {
+                NiuniaWideTile(m.background ?: m.poster, if (captions) m.name else null, focused, fallbackTitle = m.name.takeIf { m.background == null && m.poster == null })
+            }
+        }
+    }
+}
+
+/** Zwiastun na pełnym ekranie nad odtwarzaczem (film główny wstrzymany); Wstecz lub koniec zwiastuna zamyka. */
+@Composable
+internal fun NiuniaTrailerOverlay(source: com.nuvio.tv.data.trailer.TrailerPlaybackSource, onClose: () -> Unit) {
+    androidx.activity.compose.BackHandler { Log.i(TAG, "odtwarzacz: zwiastun zamknięty (Wstecz)"); onClose() }
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { try { focus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus zwiastuna: ${e.message}") } }
+    Box(Modifier.fillMaxSize().background(Color.Black).focusRequester(focus).focusable()) {
+        com.nuvio.tv.ui.components.TrailerPlayer(
+            trailerUrl = source.videoUrl, trailerAudioUrl = source.audioUrl, isPlaying = true,
+            onEnded = { Log.i(TAG, "odtwarzacz: zwiastun skończony"); onClose() },
+            onError = { Log.w(TAG, "odtwarzacz: zwiastun — błąd odtwarzania"); onClose() },
+            modifier = Modifier.fillMaxSize(),
+        )
     }
 }
 
@@ -276,12 +348,13 @@ private fun initials(name: String): String = name.split(' ').filter { it.isNotBl
 
 /** Informacje: siatka 3 kolumn, etykieta wersalikami 12 sp + wartość 14 sp; puste pola pomijane. */
 @Composable
-private fun InfoGrid(ui: PlayerUiState, series: Boolean) {
+private fun InfoGrid(ui: PlayerUiState, series: Boolean, dataSource: String? = null) {
     val fields = listOfNotNull(
         stringResource(R.string.niunia_pinfo_label_type) to stringResource(if (series) R.string.niunia_player_series else R.string.niunia_player_movie),
         ui.releaseYear?.takeIf { it.isNotBlank() }?.let { stringResource(R.string.niunia_pinfo_label_year) to it },
         if (series && ui.currentSeason != null) stringResource(R.string.niunia_pinfo_label_episode) to "S${ui.currentSeason}:O${ui.currentEpisode}" else null,
         (ui.currentStreamAddonName ?: ui.currentStreamName)?.takeIf { it.isNotBlank() }?.let { stringResource(R.string.niunia_pinfo_label_source) to it },
+        dataSource?.let { stringResource(R.string.niunia_pinfo_label_data) to it },
     )
     SectionTitle(stringResource(R.string.niunia_pinfo_info), Modifier.padding(start = NiuniaDims.Gutter))
     Column(Modifier.padding(start = NiuniaDims.Gutter, top = NiuniaSpace.TitleToRow - 22.dp).width(880.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {

@@ -204,6 +204,10 @@ object ForgeEpgCategories {
     fun programmePlace(guideKey: String, p: LiveTvProgramme): Place? =
         categoryOf(guideKey, p)?.let { c -> placeOfCat.getOrPut(c) { placeIn(ForgeCategoryRules.PROGRAMMES, c) } }
 
+    /** Fork 20.11 (Niunia, odtwarzacz IPTV): nazwy gałęzi i liścia programu („Informacje i publicystyka” › „Wiadomości”), null bez kategorii. */
+    fun programmePlaceNames(guideKey: String, p: LiveTvProgramme): Pair<String, String?>? =
+        programmePlace(guideKey, p)?.let { pl -> branchName(ForgeCategoryRules.PROGRAMMES, pl.branch) to pl.leaf?.let { leafName(ForgeCategoryRules.PROGRAMMES, pl.branch, it) } }
+
     /** Branch name of a programme ("Sport"), or null when the guide gives no category. */
     fun programmeBranchName(guideKey: String, p: LiveTvProgramme): String? =
         programmePlace(guideKey, p)?.takeIf { it.branch != OTHER }?.let { branchName(ForgeCategoryRules.PROGRAMMES, it.branch) }

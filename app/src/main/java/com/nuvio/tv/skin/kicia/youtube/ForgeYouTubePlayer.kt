@@ -48,6 +48,8 @@ class ForgeYouTubePanel internal constructor(internal val session: ForgeYouTubeS
     /** True when the key was used here (the panel opened). While the panel is open its own views take every key. */
     fun onPreviewKey(event: KeyEvent, controlsVisible: Boolean): Boolean {
         if (session == null || open) return false
+        // Fork 20.11: Niunia ma własny odtwarzacz YouTube (▼ = rząd „Więcej z kanału”); panel 1Tube tylko z jej przycisków.
+        if (com.nuvio.tv.skin.api.SkinPreferences.skin.value == com.nuvio.tv.skin.api.SkinId.NIUNIA) return false
         // test 15.11 (JMGO, B-3): ▼ from the bar (makieta 7.7b H3) never reached the bar — the player took it first
         if (event.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_DPAD_DOWN && (!controlsVisible || ForgeYouTubePanelRequests.barFocused)) {
             startHome = true
@@ -118,9 +120,16 @@ object ForgeYouTubePanelRequests {
 object ForgeYouTubeHost {
     var session by mutableStateOf<ForgeYouTubeSession?>(null)
         private set
+    /** Fork 20.11 (Niunia): nawigacja trasy odtwarzacza — rząd „Podobne” otwiera stronę filmu; null poza odtwarzaczem. */
+    var nav: androidx.navigation.NavHostController? = null
+        private set
 
     @Composable
     fun Bind(contentId: String?, navController: androidx.navigation.NavHostController) {
+        androidx.compose.runtime.DisposableEffect(navController) {
+            nav = navController
+            onDispose { if (nav === navController) nav = null }
+        }
         val videoId = contentId?.takeIf { com.nuvio.tv.youtube.YouTubeProgress.isYouTubeId(it) }
             ?.removePrefix(com.nuvio.tv.youtube.YouTubeProgress.ID_PREFIX)
         val vm = if (videoId != null) forgeSharedYouTubeViewModel() else null

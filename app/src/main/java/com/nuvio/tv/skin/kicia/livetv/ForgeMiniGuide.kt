@@ -105,6 +105,12 @@ internal object ForgeMiniGuideNav {
         if (nowPaused) pausedSinceMs = now
         else if (pausedSinceMs > 0L) { shiftMs += now - pausedSinceMs; pausedSinceMs = 0L }
     }
+    /** Fork 20.11 (Niunia): przesunięcie za transmisją na żywo w ms (0 = na żywo). */
+    fun shiftMs(): Long {
+        if (!paused) return 0L
+        val now = android.os.SystemClock.elapsedRealtime()
+        return shiftMs + if (pausedSinceMs > 0L) now - pausedSinceMs else 0L
+    }
     /** makieta 7.7 E19: „−N min” behind the live transmission (at least 1 while shifted). */
     fun shiftMinutes(): Int {
         val now = android.os.SystemClock.elapsedRealtime()
@@ -135,6 +141,7 @@ internal object ForgeMiniGuideNav {
 
     /** The key handler while the card is up: always consumes (Reshaped's card owns the keys then). */
     fun onKey(state: LiveTvPlayerState, event: KeyEvent): Boolean {
+        if (com.nuvio.tv.skin.niunia.live.NiuniaLive.active()) return com.nuvio.tv.skin.niunia.live.NiuniaLiveNav.onKey(state, event) // Fork 20.11: odtwarzacz IPTV Niuni
         val down = event.action == KeyEvent.ACTION_DOWN
         // Owner 10.11: a channel outside the zap list (hidden, filtered, a search) made this return false, and the key fell through
         // to the player's own controls. The channel is found among all of them too.
@@ -256,6 +263,8 @@ fun ForgeMiniGuideCard(
     /** v7.4 (07): the time picked while rewinding on this bar (the MiniGuide stays up); null when not rewinding. */
     scrubMs: Long? = null,
 ) {
+    // Fork 20.11: skórka Niunia rysuje odtwarzacz IPTV wg canvasu PlayerLive/PlayerLiveDelay/PlayerLiveArchive/PlayerLiveGroup.
+    if (com.nuvio.tv.skin.niunia.live.NiuniaLive.active()) { com.nuvio.tv.skin.niunia.live.NiuniaLivePlayer(channel, logo, now, clockMs, startOver, number, replay, playheadMs, scrubMs); return }
     val nav = ForgeMiniGuideNav
     LaunchedEffect(channel.streamUrl) { nav.reset() }
     val dispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
@@ -444,6 +453,7 @@ private fun ForgeMiniCircle(icon: ImageVector, focused: Boolean, label: String =
  */
 @Composable
 internal fun ForgeMiniGuideDetailHost(state: LiveTvPlayerState) {
+    com.nuvio.tv.skin.niunia.live.NiuniaLive.state = state // Fork 20.11: odtwarzacz IPTV Niuni (stan Live TV dla rysowania)
     ForgeReminderToast()
     val (channel, programme) = ForgeMiniGuideNav.detail ?: return
     val close = { ForgeMiniGuideNav.detail = null }

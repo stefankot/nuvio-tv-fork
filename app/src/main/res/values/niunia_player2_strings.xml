@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Niunia: odtwarzacz YouTube, odtwarzacz IPTV, „Podobne”/biblioteka/zwiastun w odtwarzaczu filmu (20.11). -->
+<resources>
+    <string name="niunia_minutes">%1$d min</string>
+    <string name="niunia_hours_minutes">%1$d godz. %2$d min</string>
+
+    <string name="niunia_yt_label">YOUTUBE</string>
+    <string name="niunia_yt_subscribe">Subskrybuj</string>
+    <string name="niunia_yt_subscribed">Subskrybujesz</string>
+    <string name="niunia_yt_like">Podoba mi się</string>
+    <string name="niunia_yt_dislike">Nie podoba mi się</string>
+    <string name="niunia_yt_description">Opis filmu</string>
+    <string name="niunia_yt_save">Zapisz na playliście</string>
+    <string name="niunia_yt_settings">Ustawienia odtwarzania</string>
+    <string name="niunia_yt_chapters">Rozdziały</string>
+    <string name="niunia_yt_now">teraz</string>
+    <string name="niunia_yt_more">Więcej z kanału</string>
+    <string name="niunia_yt_comments">Komentarze</string>
+    <string name="niunia_yt_all">Wszystkie</string>
+
+    <string name="niunia_pinfo_similar">Podobne</string>
+    <string name="niunia_pinfo_add_library">Do biblioteki</string>
+    <string name="niunia_pinfo_in_library">W bibliotece</string>
+    <string name="niunia_pinfo_trailer">Zwiastun</string>
+    <string name="niunia_pinfo_trailer_loading">Szukam zwiastuna…</string>
+    <string name="niunia_pinfo_no_trailer">Nie ma zwiastuna</string>
+    <string name="niunia_pinfo_library_confirm">Usuń z biblioteki na stronie tytułu</string>
+    <string name="niunia_pinfo_label_data">DANE</string>
+
+    <string name="niunia_live_live">LIVE</string>
+    <string name="niunia_live_archive">ARCHIWUM</string>
+    <string name="niunia_live_still_live">na żywo trwa</string>
+    <string name="niunia_live_restart">Od początku</string>
+    <string name="niunia_live_no_restart">Tego programu nie da się obejrzeć od początku</string>
+    <string name="niunia_live_pause">Pauza</string>
+    <string name="niunia_live_play">Wznów</string>
+    <string name="niunia_live_back_live">Na żywo</string>
+    <string name="niunia_live_fav">Dodaj do ulubionych</string>
+    <string name="niunia_live_info">Informacje o programie</string>
+    <string name="niunia_live_more">Dźwięk</string>
+    <string name="niunia_live_prev">Poprzedni kanał</string>
+    <string name="niunia_live_next">Następny kanał</string>
+    <string name="niunia_live_soon">Wkrótce</string>
+    <string name="niunia_live_in_min">Za %1$d min</string>
+    <string name="niunia_live_other_channels">na innych kanałach</string>
+    <string name="niunia_live_starts_at">Program zacznie się o %1$s</string>
+    <string name="niunia_live_follow">Obserwuj</string>
+    <string name="niunia_live_following">Obserwujesz</string>
+    <string name="niunia_live_archive_days">Archiwum %1$d dni</string>
+    <string name="niunia_live_archive_back">%1$d dni wstecz</string>
+    <string name="niunia_live_episodes">Odcinki</string>
+    <string name="niunia_live_episodes_season">Odcinki · Sezon %1$d</string>
+    <string name="niunia_live_upcoming">Najbliższe emisje</string>
+    <string name="niunia_live_repeat">Powtórka</string>
+    <string name="niunia_live_new_ep">Nowy odcinek</string>
+    <string name="niunia_live_today">DZIŚ</string>
+    <string name="niunia_live_tomorrow">JUTRO</string>
+    <string name="niunia_live_yesterday">Wczoraj</string>
+    <string name="niunia_live_type_series">Serial</string>
+    <string name="niunia_live_type_film">Film</string>
+    <string name="niunia_live_type_show">Program</string>
+    <string name="niunia_live_l_channel">Kanał</string>
+    <string name="niunia_live_l_category">Kategoria EPG</string>
+    <string name="niunia_live_l_airing">Emisja</string>
+    <string name="niunia_live_l_archive">Archiwum</string>
+    <string name="niunia_live_l_source">Źródło danych</string>
+</resources>
