@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
+
 package com.nuvio.tv.skin.niunia.livetv
 
 import android.util.Log
@@ -48,6 +50,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -120,6 +123,8 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     remember(viewModel) { viewModel.ensureLoaded() }
+    // Test JMGO build151: bez tego (robiły to tylko ekrany Kici) indeks kategorii programów był pusty → „Kategorie · 0”.
+    remember { com.nuvio.tv.skin.kicia.ForgePrefs.ensure(context) }
     rememberForgeLogoVersion()
     val state by LiveTvRepository.uiState.collectAsState()
     val favShows by TvStore.favoriteShows.collectAsState()
@@ -282,6 +287,7 @@ private fun Guide(
     val focusTime = remember(dayOffset) { mutableLongStateOf(maxOf(now + dayOffset * DAY_MS, 0L)) }
     var info by remember { mutableStateOf<Pair<LiveTvChannel, LiveTvProgramme?>?>(null) }
     val minStart = remember(now) { windowStartFor(now) - PAST_DAYS * DAY_MS }
+    val tilesFocus = remember { FocusRequester() }
     LaunchedEffect(Unit) {
         delay(80)
         try { allFocus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "live tv: fokus „Wszystkie”: ${e.javaClass.simpleName}: ${e.message}") }
@@ -292,7 +298,7 @@ private fun Guide(
             if (tiles.isEmpty()) {
                 Text(stringResource(R.string.niunia_tv_rail_empty), style = NiuniaText.Body, color = NiuniaColors.Text50, modifier = Modifier.padding(start = NiuniaDims.Gutter, top = 128.dp))
             } else com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
-                LazyRow(Modifier.padding(top = 74.dp), contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 6.dp, bottom = 16.dp),
+                LazyRow(Modifier.padding(top = 74.dp).focusRequester(tilesFocus).focusRestorer(), contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 6.dp, bottom = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
                     items(tiles, key = { it.key }) { t ->
                         NiuniaLiveTileCard(t, longBadge = true, onFocus = { if (it) info = t.channel to t.programme }, onOk = { onPlay(t.channel, t.programme) })
@@ -301,7 +307,11 @@ private fun Guide(
             }
         }
         com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
-            LazyRow(Modifier.fillMaxWidth().height(56.dp), contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = 120.dp), horizontalArrangement = Arrangement.spacedBy(6.dp),
+            // Test JMGO build151 (B3-3): ▲ z „Wszystkie” otwierał menu zamiast kafli nad pigułkami → wprost na kafle (ostatni z fokusem).
+            LazyRow(Modifier.fillMaxWidth().height(56.dp).onPreviewKeyEvent { e ->
+                if (e.type != KeyEventType.KeyDown || e.key != Key.DirectionUp || tiles.isEmpty()) return@onPreviewKeyEvent false
+                try { tilesFocus.requestFocus(); true } catch (ex: IllegalStateException) { Log.w(TAG, "live tv: ▲ na kafle: ${ex.javaClass.simpleName}: ${ex.message}"); false }
+            }, contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = 120.dp), horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.Top) {
                 item { FilterPill(stringResource(R.string.niunia_live_all), filter == NiuniaLiveFilter.All, allFocus) { onFilter(NiuniaLiveFilter.All) } }
                 item { FilterPill(stringResource(R.string.niunia_tv_favourites), filter == NiuniaLiveFilter.Favourites) { onFilter(NiuniaLiveFilter.Favourites) } }

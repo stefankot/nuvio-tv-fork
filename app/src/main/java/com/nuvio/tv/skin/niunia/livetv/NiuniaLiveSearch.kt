@@ -92,7 +92,11 @@ internal fun NiuniaLiveSearch(
         try { firstKey.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "szukaj tv: fokus klawiatury: ${e.javaClass.simpleName}: ${e.message}") }
     }
 
-    val tree = rememberComputed(channels, empty = emptyList<ForgeEpgCategories.Node>(), what = "drzewo kategorii") { ForgeEpgCategories.programmeTree(channels, now) }
+    // Indeks kategorii wczytuje się w tle (plik + odczyt przewodnika) — drzewo liczone ponownie, gdy się zmieni.
+    val catVersion by androidx.compose.runtime.produceState(ForgeEpgCategories.programmeVersion()) {
+        while (true) { delay(1_500); value = ForgeEpgCategories.programmeVersion() }
+    }
+    val tree = rememberComputed(channels, catVersion, empty = emptyList<ForgeEpgCategories.Node>(), what = "drzewo kategorii") { ForgeEpgCategories.programmeTree(channels, now) }
     val total = remember(tree) { tree.sumOf { it.count } }
     val treeRows = remember(tree, query, category, favShows) {
         val q = ForgeEpgCategories.norm(query.trim())

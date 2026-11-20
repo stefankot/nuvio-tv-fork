@@ -199,12 +199,20 @@ private fun Keyboard(digits: Boolean, firstKey: FocusRequester, onMode: (Boolean
 private fun Browse(state: com.nuvio.tv.ui.screens.search.SearchUiState, ctx: android.content.Context, viewModel: SearchViewModel, onNavigateToDetail: (String, String, String) -> Unit) {
     var active by remember { mutableIntStateOf(-1) }
     data class Tile(val label: String, val action: () -> Unit)
-    val genres = state.discoverCatalogs.firstOrNull { it.key == state.selectedDiscoverCatalogKey }?.genres.orEmpty().take(6)
+    // Test JMGO build151: wybrany katalog bywa bez gatunków → gatunki z pierwszego katalogu tego typu (lub dowolnego), który je ma.
+    val selected = state.discoverCatalogs.firstOrNull { it.key == state.selectedDiscoverCatalogKey }
+    val genreCatalog = selected?.takeIf { it.genres.isNotEmpty() }
+        ?: state.discoverCatalogs.firstOrNull { it.genres.isNotEmpty() && it.type == selected?.type }
+        ?: state.discoverCatalogs.firstOrNull { it.genres.isNotEmpty() }
+    val genres = genreCatalog?.genres.orEmpty().take(6)
     val tiles = listOf(
         Tile(ctx.getString(R.string.niunia_ds_search_tab_movies)) { viewModel.onEvent(SearchEvent.SelectDiscoverType("movie")) },
         Tile(ctx.getString(R.string.niunia_ds_search_tab_series)) { viewModel.onEvent(SearchEvent.SelectDiscoverType("series")) },
         Tile("Live TV") { com.nuvio.tv.skin.niunia.nav.NiuniaNavActions.open(com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE) },
-    ) + genres.map { g -> Tile(g) { viewModel.onEvent(SearchEvent.SelectDiscoverGenre(g)) } }
+    ) + genres.map { g -> Tile(g) {
+        if (genreCatalog != null && genreCatalog.key != state.selectedDiscoverCatalogKey) viewModel.onEvent(SearchEvent.SelectDiscoverCatalog(genreCatalog.key))
+        viewModel.onEvent(SearchEvent.SelectDiscoverGenre(g))
+    } }
     val shownTiles = tiles.distinctBy { it.label } // klucze LazyRow muszą być unikalne (gatunek „Filmy” itp.)
     Column(verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
         NiuniaCollectionHeader(stringResource(R.string.niunia_search_browse), active = active == 0)

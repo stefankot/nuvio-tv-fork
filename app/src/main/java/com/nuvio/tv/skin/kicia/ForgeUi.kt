@@ -36,7 +36,7 @@ object ForgeUi {
     val HOME_YOUTUBE: Boolean get() = ON
 
     /** Live TV channel card of the mockup (S09 MiniGuide look); zapping and keys stay Reshaped's. */
-    val NEW_MINIGUIDE: Boolean get() = ON
+    val NEW_MINIGUIDE: Boolean get() = ON || com.nuvio.tv.skin.niunia.live.NiuniaLive.active() // Fork 20.11 (B3-2): Niunia rysuje swój odtwarzacz IPTV na tej samej ścieżce
 
     /** Live TV opens on the guide with recently watched programmes above it (mockup S07 variant A, the default). */
     val GUIDE_A: Boolean get() = ON

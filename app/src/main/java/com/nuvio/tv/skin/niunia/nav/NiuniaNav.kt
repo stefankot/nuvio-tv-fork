@@ -86,6 +86,9 @@ object NiuniaContentFocus {
 object NiuniaNavActions {
     @Volatile var openRoute: ((String) -> Boolean)? = null
     fun open(route: String): Boolean = openRoute?.invoke(route) ?: false.also { Log.w(TAG, "menu: brak paska — nie przejdę do $route") }
+    /** Fokus na menu (bieżąca zakładka) — dla ekranów, z których ▲ nie trafia w menu samo (np. siatka Biblioteki). */
+    @Volatile var focusMenu: (() -> Boolean)? = null
+    fun toMenu(why: String): Boolean = (focusMenu?.invoke() ?: false).also { Log.i(TAG, "menu ← $why: ${if (it) "otwarte" else "brak paska"}") }
 }
 
 /** Ekran Niuni: [requester] dostaje fokus po wyjściu z menu (dopóki ekran jest na ekranie). */
@@ -167,6 +170,10 @@ internal fun NiuniaNavBar(
         NiuniaNavActions.openRoute = { route ->
             val e = items.firstOrNull { it.route == route }
             if (e == null) false else { Log.i(TAG, "menu: przejście z ekranu → $route"); onEntryClick(e); true }
+        }
+        NiuniaNavActions.focusMenu = {
+            val k = selected?.key
+            k != null && try { requesterFor(k).requestFocus(); true } catch (e: IllegalStateException) { Log.w(TAG, "menu ←: ${e.javaClass.simpleName}: ${e.message}"); false }
         }
     }
 

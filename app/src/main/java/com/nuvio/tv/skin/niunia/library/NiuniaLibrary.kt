@@ -11,6 +11,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.runtime.setValue
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -63,20 +71,37 @@ fun NiuniaLibrary(onNavigateToDetail: (String, String, String?) -> Unit, viewMod
         }
         return
     }
+    // Test JMGO build151: bez requestera wyjście z menu robiło „w prawo” i fokus lądował na 2. plakacie → 1. plakat.
+    val first = remember { androidx.compose.ui.focus.FocusRequester() }
+    com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(first)
+    // Test JMGO build151: ▲ z górnego rzędu (i ◀ z pierwszej kolumny) nie otwierał menu — siatka zjadała klawisz.
+    val grid = androidx.compose.foundation.lazy.grid.rememberLazyGridState()
+    var focusedIndex by remember { androidx.compose.runtime.mutableIntStateOf(-1) }
     LazyVerticalGrid(
         columns = GridCells.Adaptive(NiuniaDims.PosterW),
-        modifier = Modifier.fillMaxSize().background(NiuniaColors.Bg),
+        state = grid,
+        modifier = Modifier.fillMaxSize().background(NiuniaColors.Bg).onPreviewKeyEvent { e ->
+            if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+            val info = grid.layoutInfo.visibleItemsInfo.firstOrNull { it.index == focusedIndex } ?: return@onPreviewKeyEvent false
+            when {
+                e.key == Key.DirectionUp && info.row == 0 -> com.nuvio.tv.skin.niunia.nav.NiuniaNavActions.toMenu("biblioteka ▲")
+                e.key == Key.DirectionLeft && info.column == 0 -> com.nuvio.tv.skin.niunia.nav.NiuniaNavActions.toMenu("biblioteka ◀")
+                else -> false
+            }
+        },
         contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 84.dp, bottom = 48.dp),
         horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap),
         verticalArrangement = Arrangement.spacedBy(28.dp),
     ) {
-        items(items, key = { "${it.type}_${it.id}" }) { entry ->
+        itemsIndexed(items, key = { _, it -> "${it.type}_${it.id}" }) { index, entry ->
             val rating = entry.imdbRating?.takeIf { it > 0f }?.let { "★ %.1f".format(java.util.Locale.US, it) }
             NiuniaPoster(
                 art = entry.poster, title = entry.name, logo = entry.logo,
                 meta = listOfNotNull(entry.genres.firstOrNull(), rating).joinToString(" · ").ifBlank { null },
                 label = null, baked = entry.poster != null,
                 onOk = { onNavigateToDetail(entry.id, entry.type, entry.addonBaseUrl) },
+                modifier = if (index == 0) Modifier.focusRequester(first) else Modifier,
+                onFocus = { if (it) focusedIndex = index },
             )
         }
     }
