@@ -204,7 +204,7 @@ object KeRanking {
             // zapamiętany ręczny wybór (dodatek + rozdzielczość) nie może przebić języka ani gotowości pliku —
             // niegotowe (SourceReady) i obcy dubbing (ForeignDub) zawsze na koniec, kolejność w środku zostaje.
             val picked = preferred?.preferredFirst(withBad)?.first ?: withBad
-            picked.map { Triple(it, SourceReady.tier(it), ForeignDub.tier(it)) }.sortedWith(compareBy({ it.second }, { it.third })).map { it.first }.let { l -> runCatching { SlowProxy4k.demote(l) { s -> listOf(SourceReady.tier(s), ForeignDub.tier(s), polishTier(s), subsTier(s)) } }.logged("ForkSources", "SlowProxy4k").getOrDefault(l) }.also { logTop(it) } // klucze raz na źródło
+            picked.map { Triple(it, SourceReady.tier(it), ForeignDub.tier(it)) }.sortedWith(compareBy({ it.second }, { it.third })).map { it.first }.let { l -> runCatching { SlowProxy4k.demote(l) { s -> listOf(SourceReady.tier(s), ForeignDub.tier(s), polishTier(s), subsTier(s)) } }.logged("ForkSources", "SlowProxy4k").getOrDefault(l) }.let { l -> Placeholders.demote(l) }.also { logTop(it) } // klucze raz na źródło
         }.logged("ForkSources", "KeRanking.kt:173").getOrDefault(streams)
     }
 }

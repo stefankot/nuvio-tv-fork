@@ -87,3 +87,5 @@ app/src/main/java/com/nuvio/tv/core/debrid/DirectDebridStreamPreparer.kt	// Fork
 app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverlay.kt	LiveNoAsk.back(	KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_ESCAPE	live-no-ask	Wstecz w archiwum bez pytania	
 app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverlay.kt	LiveNoAsk.zapNow(	internal fun zap(step: Int)	live-no-ask	zmiana kanału w archiwum bez pytania	
 app/src/main/java/com/nuvio/tv/ui/theme/Type.kt	NiuniaTypePolicy.typography(	fun buildNuvioTypography	niunia-type	typografia Satoshi przy Niuni	
+app/src/main/java/com/nuvio/tv/core/player/AutoPlayRace.kt	Placeholders.tooSmall(	private suspend fun probe(	placeholders	klip not cached przegrywa wyścig	
+app/src/main/java/com/nuvio/tv/core/player/AutoPlayRace.kt	Placeholders.firstReal(	suspend fun pick(	placeholders	bez zwycięzcy: nie klip	

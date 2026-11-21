@@ -184,6 +184,8 @@ fun niuniaPortrait(item: com.nuvio.tv.domain.model.MetaPreview, pattern: String)
 fun niuniaRealPoster(item: com.nuvio.tv.domain.model.MetaPreview): Pair<String?, String?> {
     if (item.posterShape == com.nuvio.tv.domain.model.PosterShape.POSTER) return item.poster to item.rawPosterUrl
     val imdb = (item.imdbId ?: item.id).takeIf { it.startsWith("tt") }?.substringBefore(':')
-    if (imdb == null) { android.util.Log.i("ForkNiunia", "plakat pionowy ${item.id}: brak IMDb — grafika pozioma przycięta"); return item.poster to item.rawPosterUrl }
+    if (imdb == null) { if (posterLogged.add(item.id)) android.util.Log.i("ForkNiunia", "plakat pionowy ${item.id}: brak IMDb — grafika pozioma przycięta"); return item.poster to item.rawPosterUrl }
     return "https://images.metahub.space/poster/medium/$imdb/img" to (item.rawPosterUrl ?: item.poster)
 }
+
+private val posterLogged = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()

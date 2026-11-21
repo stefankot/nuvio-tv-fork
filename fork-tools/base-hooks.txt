@@ -31,3 +31,4 @@ app/src/main/java/com/nuvio/tv/core/debrid/DirectDebridStreamPreparer.kt
 app/src/test/java/com/nuvio/tv/core/debrid/DirectDebridStreamPreparerTest.kt
 app/src/test/java/com/nuvio/tv/core/player/StreamAutoPlaySelectorTest.kt
 gradle.properties
+app/src/main/java/com/nuvio/tv/core/player/AutoPlayRace.kt

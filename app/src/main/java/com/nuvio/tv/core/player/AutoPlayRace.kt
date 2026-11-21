@@ -268,7 +268,7 @@ object AutoPlayRace {
                 (through?.let { (_, tookMs) -> ", already through in ${tookMs}ms" } ?: "") +
                 " after ${SystemClock.elapsedRealtime() - startedAt}ms"
         )
-        return winner?.let(candidates::get) ?: first
+        return winner?.let(candidates::get) ?: com.nuvio.tv.fork.sources.Placeholders.firstReal(candidates) ?: first // Fork hook: placeholders
     }
 
     /** How long [stream]'s link took to deliver video, timed from now; null if it didn't within [RACE_TIMEOUT_MS]. */
@@ -349,6 +349,7 @@ object AutoPlayRace {
         ) {
             return "unrecognised data (${head.contentType ?: "no type"})"
         }
+        com.nuvio.tv.fork.sources.Placeholders.tooSmall(head.total, rawUrl)?.let { return it } // Fork hook: placeholders
         return if (bytes.size >= RACE_BYTES) null
         else if (head.complete) "ended after ${bytes.size} bytes (a placeholder clip)"
         else "only ${bytes.size} bytes"
