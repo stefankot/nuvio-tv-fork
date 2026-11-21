@@ -5,6 +5,9 @@ Zadania, których nie dało się dokończyć. Przeglądaj na początku każdego 
 Format wpisu:
 
 ```
+## Napisy YouTube podwójne (21.11, test JMGO build155)
+Tłumaczone napisy YouTube (Nuvio One + `YouTubeMpdServer`/`YouTubeCaptionTranslation`) pokazują każdą linię dwa razy (tekst wiersza „X\nX”). To moduł YouTube, nie skórka Niunia — zostawione dla wątku YouTube.
+
 ## B03-4 (data)
 Co próbowałem: ...
 Czego brakuje: ...
