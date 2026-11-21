@@ -44,7 +44,11 @@ Potem: paczka 3 (20 ekranów, mapa tras najpierw), potem pętla testów JVM (han
 | MoviePage / SeriesPage | strona filmu / serialu pod hero (pełna) | `detail/NiuniaDetail.kt` |
 | Posters | warianty NiuniaMediaCard PosterCard — tylko testy JVM | `components/NiuniaPoster.kt` + testy |
 
-## NAJPIERW (stan 21.11 ~19:55): build156 (v7a, c59007a3e = poprawki po teście build155) w toku → instalacja na JMGO (md5 przez `adb pull`, `compile -m speed`), ponowny test pozycji „DO PONOWNEGO TESTU” z sekcji „NIUNIA — TEST JMGO build155”, potem Settings NOOB + regresja 35 ekranów na emulatorze (arm64, AVD `nuvio_tv`; nigdy razem z Gradle).
+## NAJPIERW (stan 21.11 ~20:30): build157 (v7a, 6600b4167) NA JMGO (md5 ad4e03b7a1dea69bc7b3f91e51f930e4 zgodny, compile speed, testy Niuni 53/53). build158 (arm64, de01d9fb2 = + fokus panelu Więcej, nagłówek szczegółów serialu) w toku → emulator `nuvio_tv` (po buildzie!): Settings NOOB, potem regresja 35 ekranów (`NiuniaScreens` batch1–3), sprawdzić też panel Więcej (fokus na „Źródła”) i szczegóły serialu (nagłówek nieucięty). Potem v7a z tymi poprawkami na JMGO, gdy właściciel zechce.
+
+## NIUNIA — RETEST JMGO build157 (21.11 ~20:15)
+ZALICZONE: PlayerSeries (rząd 10 odcinków, fokus E2 „Teraz”, „Szczegóły serialu”), PlayerSeriesInfo (fokus na bieżącym odcinku, Wstecz → rząd), panel napisów — ▼ z „Wybierz napisy” zostaje w panelu, „Od początku” w całości, Wstecz w archiwum: nakładka → pytanie → przewodnik (bez pętli), YouTube szczegóły „4,34 mln subskrybentów”, „31 tys.”.
+ZNALEZIONE: panel „Więcej” otwarty z „Więcej opcji” bez fokusu (gubił go przy znikaniu panelu audio) → poprawione w build158 (ponawiana prośba o fokus); szczegóły serialu ucinały w połowie linię „Serial · S9:O2…” → przewinięcie na górę po fokusie (build158); OK na YouTube w „Oglądaj dalej” = „odtwarzanie niedostępne” (luka modułu YouTube → BLOKADY). Uwagi: pigułki sezonów w szczegółach serialu nie mieszczą „Sezon 9” (bieżący) na ekranie; zegar „Koniec o” zachodzi na krawędź panelu Więcej.
 
 ## NIUNIA — TEST JMGO build155 (21.11 ~19:10–19:55, konto 4)
 build155 na JMGO: md5 7fbe9acc7eac2ebfdf88883d75e86efa zgodny. Główna ładuje się w ok. 5–7 s (fokus „Odtwórz”).
