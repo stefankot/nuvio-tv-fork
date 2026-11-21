@@ -293,6 +293,7 @@ fun PlayerScreen(
             completed
         )
     }
+    liveTvPlayer.exit = exitPlayer // Fork hook: livetv (Wstecz w pytaniu archiwum wychodzi z odtwarzacza; jak Kicia 14.11)
     val exitPlayerFromError: () -> Unit = exitPlayerFromError@{
         if (exitDispatched) return@exitPlayerFromError
         exitDispatched = true

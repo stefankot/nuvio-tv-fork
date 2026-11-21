@@ -120,6 +120,7 @@ internal fun LazyListScope.reshapedSyncSettingsItems(onFocused: () -> Unit = {})
                                 status.failedDetail.takeIf(String::isNotBlank)?.let { "\n" + it }.orEmpty()
                             status.failed == ReshapedSyncFailure.SignedOut -> stringResource(R.string.reshaped_sync_failed_signed_out)
                             status.failed == ReshapedSyncFailure.NewerVersion -> stringResource(R.string.reshaped_sync_failed_newer)
+                            status.failed == ReshapedSyncFailure.UnreadableFile -> stringResource(R.string.reshaped_sync_failed_unreadable)
                             status.lastSyncedAtMs == 0L -> stringResource(R.string.reshaped_sync_never)
                             else -> stringResource(
                                 R.string.reshaped_sync_last,

@@ -19,6 +19,7 @@ interface CommandParser {
 class RuleParser(private val patterns: List<CommandPattern> = Patterns.all) : CommandParser {
     private val broad = setOf("channel.play", "play.title")
     private val ordered = patterns.filter { it.id !in broad } + patterns.filter { it.id in broad }
+    private val parametersByRegex = ordered.flatMap(CommandPattern::regexes).associateWith(::paramNames)
 
     override suspend fun parse(text: String, context: VoiceContext): VoiceCommandCall? = parseNow(text, context)
 
@@ -31,7 +32,11 @@ class RuleParser(private val patterns: List<CommandPattern> = Patterns.all) : Co
         for (p in ordered) {
             for (rx in p.regexes) {
                 val m = rx.find(n) ?: rx.find(d) ?: continue
-                val params = paramNames(rx).mapNotNull { name -> runCatching { m.groups[name]?.value }.logged("ForkVoice", "RuleParser.kt:33").getOrNull()?.let { name to it } }.toMap()
+                val params = parametersByRegex.getValue(rx).mapNotNull { name ->
+                    runCatching { m.groups[name]?.value }
+                        .logged("ForkVoice", "odczyt parametru komendy")
+                        .getOrNull()?.let { name to it }
+                }.toMap()
                 val call = VoiceCommandCall(p.id, params, 1f, p.needsConfirm)
                 when (p.id) {
                     "channel.play" -> channelHit = channelHit ?: call
@@ -50,5 +55,10 @@ class RuleParser(private val patterns: List<CommandPattern> = Patterns.all) : Co
         return null
     }
 
-    private fun paramNames(rx: Regex): List<String> = Regex("\\(\\?<([a-z_]+)>").findAll(rx.pattern).map { it.groupValues[1] }.toList()
+    private fun paramNames(rx: Regex): List<String> =
+        GROUP_NAME.findAll(rx.pattern).map { it.groupValues[1] }.toList()
+
+    private companion object {
+        val GROUP_NAME = Regex("\\(\\?<([a-z_]+)>")
+    }
 }

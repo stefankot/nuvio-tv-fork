@@ -29,6 +29,7 @@
     <string name="reshaped_sync_failed_network">Couldn\'t reach Google. It will try again later</string>
     <string name="reshaped_sync_failed_signed_out">Google access ended. Sign in again</string>
     <string name="reshaped_sync_failed_newer">Update Nuvio Reshaped on this device to keep syncing</string>
+    <string name="reshaped_sync_failed_unreadable">The Drive sync file could not be read and was kept unchanged</string>
     <string name="reshaped_sync_sign_out_title">Sign out of Google?</string>
     <string name="reshaped_sync_sign_out_description">This TV stops syncing. What was synced stays in your Google account.</string>
     <string name="reshaped_sync_sign_out">Sign out</string>

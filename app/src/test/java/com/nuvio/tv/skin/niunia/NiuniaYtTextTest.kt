@@ -37,4 +37,15 @@ class NiuniaGenresTest {
         assertEquals("Komedia", com.nuvio.tv.skin.niunia.components.NiuniaGenres.pl("Komedia"))
         assertNull(com.nuvio.tv.skin.niunia.components.NiuniaGenres.pl(" "))
     }
+
+    @Test
+    fun subscribersAndLikesInPolish() {
+        assertEquals("4,34 mln subskrybentów", NiuniaYtText.subscribers("4.34M subscribers"))
+        assertEquals("512 tys. subskrybentów", NiuniaYtText.subscribers("512K subscribers"))
+        assertEquals("1 subskrybent", NiuniaYtText.subscribers("1 subscriber"))
+        assertEquals("3 subskrybenci", NiuniaYtText.subscribers("3 subscribers"))
+        assertEquals("31 tys.", NiuniaYtText.count("31K"))
+        assertEquals("1,2 mln", NiuniaYtText.count("1.2M"))
+        assertEquals("Lubię to", NiuniaYtText.count("Lubię to"))
+    }
 }

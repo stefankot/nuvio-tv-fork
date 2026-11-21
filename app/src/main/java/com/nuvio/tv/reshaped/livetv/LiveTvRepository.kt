@@ -203,7 +203,7 @@ object LiveTvRepository {
                 customLists = store.customLists(),
                 hiddenGroups = store.hiddenGroups(),
                 groupNames = store.groupNames(),
-                sourceGroupOrders = store.sourceGroupOrders(),
+                sourceGroupOrders = store.sourceGroupOrders(sources),
                 hiddenChannelKeys = hiddenChannels,
                 recentChannel = store.recentChannel(),
                 isLoading = sources.isNotEmpty(),
@@ -943,7 +943,7 @@ object LiveTvRepository {
                             movedOrders?.let(store::saveSourceGroupOrders)
                             replaced?.let(store::markSyncRemoved)
                             // Added again after a removal: no longer removed.
-                            store.clearSyncRemoved(listOf(source.identity))
+                            store.clearSyncRemovedFor(source)
                             store.saveSources(sources)
                             if (source.type != LiveTvSourceType.M3u || source.url.isHttpUrl()) store.deletePlaylistFile(source.id)
                         }
@@ -2004,7 +2004,9 @@ object LiveTvRepository {
                             url, headers, file, LiveTvHttp.GUIDE_READ_TIMEOUT_S,
                             read = { input -> readXmlTvGuide(input, request, nowMs, window, spills = spills) },
                             keep = { guide -> guide.canReplaceSavedGuide },
+                            revalidate = !force && cached?.canReplaceSavedGuide != false,
                         )
+                        if (read == null) return cached ?: readXmlTvGuide(file, request, nowMs, window, spills)
                         if (read.canReplaceSavedGuide) return read
                         // A cut or malformed response must never replace a usable saved feed.
                         if (saved != 0L) return (cached ?: readXmlTvGuide(file, request, nowMs, window, spills)).afterFailedRefresh()

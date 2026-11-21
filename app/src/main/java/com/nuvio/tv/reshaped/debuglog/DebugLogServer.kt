@@ -92,10 +92,14 @@ border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.04);color:
 """.trimIndent()
     }
 
-    private fun html(body: String): Response = newFixedLengthResponse(Response.Status.OK, "text/html; charset=utf-8", body)
+    private fun html(body: String): Response = newFixedLengthResponse(Response.Status.OK, "text/html; charset=utf-8", body).apply {
+        addHeader("Cache-Control", "no-store")
+        addHeader("Referrer-Policy", "no-referrer")
+    }
 
     private fun text(name: String, body: String): Response =
-        newFixedLengthResponse(Response.Status.OK, "text/plain; charset=utf-8", body).apply {
+        newFixedLengthResponse(Response.Status.OK, "text/plain; charset=utf-8", redactDiagnosticExport(body)).apply {
+            addHeader("Cache-Control", "no-store")
             addHeader("Content-Disposition", "attachment; filename=\"$name\"")
         }
 

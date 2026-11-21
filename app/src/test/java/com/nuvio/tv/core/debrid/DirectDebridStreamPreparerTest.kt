@@ -1,5 +1,7 @@
 package com.nuvio.tv.core.debrid
 
+import com.nuvio.tv.data.local.PlayerSettings
+import com.nuvio.tv.data.local.StreamAutoPlayMode
 import com.nuvio.tv.domain.model.AddonStreams
 import com.nuvio.tv.domain.model.Stream
 import com.nuvio.tv.domain.model.StreamClientResolve
@@ -10,6 +12,26 @@ import org.junit.Test
 
 class DirectDebridStreamPreparerTest {
     private val preparer = DirectDebridStreamPreparer(dataStore = mockk(), resolver = mockk())
+
+    @Test
+    fun `preparation deduplicates equivalent links before applying the limit`() {
+        val first = debridStream("Addon A", "aaaaaa", "Movie.1080p.mkv")
+        val preferred = debridStream("Addon A", "bbbbbb", "Movie.2160p.mkv").copy(title = "Movie 2160p")
+        val duplicate = debridStream("Addon B", "BBBBBB", "movie.2160P.mkv").copy(title = "Movie 2160p")
+        val remaining = debridStream("Addon A", "cccccc", "Movie.720p.mkv")
+
+        val result = preparer.prioritizeCandidates(
+            streams = listOf(first, preferred, duplicate, remaining),
+            limit = 2,
+            playerSettings = PlayerSettings(
+                streamAutoPlayMode = StreamAutoPlayMode.REGEX_MATCH,
+                streamAutoPlayRegex = "2160p"
+            ),
+            installedAddonNames = setOf("Addon A", "Addon B")
+        )
+
+        assertEquals(listOf(preferred, first), result)
+    }
 
     @Test
     fun `replaces debrid streams with the same resolve fields in every addon, ignoring case`() {

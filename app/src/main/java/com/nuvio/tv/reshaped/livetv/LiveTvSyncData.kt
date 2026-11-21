@@ -1,5 +1,8 @@
 package com.nuvio.tv.reshaped.livetv
 
+/** Distinguishes exact pending removals from old, case-folded keys in local storage. */
+internal const val EXACT_SOURCE_REMOVAL_PREFIX = "v2|"
+
 /**
  * One profile's Live TV data that Reshaped sync carries between devices (see reshaped/sync).
  * Playlists imported from a file sync too: their file goes as its own Drive copy.

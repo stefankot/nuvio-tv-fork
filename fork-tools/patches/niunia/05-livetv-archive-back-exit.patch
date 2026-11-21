@@ -1,0 +1,12 @@
+diff --git a/app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt b/app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt
+index a07b2610d..65b2fa980 100644
+--- a/app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt
++++ b/app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt
+@@ -293,6 +293,7 @@ fun PlayerScreen(
+             completed
+         )
+     }
++    liveTvPlayer.exit = exitPlayer // Fork hook: livetv (Wstecz w pytaniu archiwum wychodzi z odtwarzacza; jak Kicia 14.11)
+     val exitPlayerFromError: () -> Unit = exitPlayerFromError@{
+         if (exitDispatched) return@exitPlayerFromError
+         exitDispatched = true

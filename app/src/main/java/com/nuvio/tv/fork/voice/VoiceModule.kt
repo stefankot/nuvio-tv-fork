@@ -119,7 +119,7 @@ object VoiceModule : ForkModule {
             val t = listen(c) { shown = "Błąd nasłuchu ($it)" }
             if (t == null) { kotlinx.coroutines.delay(3000); shown = ""; return@LaunchedEffect }
             val call = parser.parse(t, ctx)
-            Log.i("ForkVoice", "text='$t' -> ${call?.id} ${call?.params} conf=${call?.confidence}")
+            Log.i("ForkVoice", "command=${call?.id} confidence=${call?.confidence}")
             if (call == null) { shown = "Nie zrozumiałem: „$t”"; kotlinx.coroutines.delay(4000); shown = ""; return@LaunchedEffect }
             VoiceActions.lastMessage = null
             when (val d = Confidence.decide(listOf(call))) {

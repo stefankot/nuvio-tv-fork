@@ -359,11 +359,11 @@ private fun NiuniaYouTubeDetails(
                     NiuniaChannelAvatar(info, 40)
                     Column(Modifier.focusRequester(fallback).focusable()) {
                         Text(info?.author ?: "", style = NiuniaText.Meta.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold), maxLines = 1)
-                        info?.subscribers?.let { Text(it, style = NiuniaText.Caption.copy(fontSize = 12.sp), color = NiuniaColors.Text50, maxLines = 1) }
+                        NiuniaYtText.subscribers(info?.subscribers)?.let { Text(it, style = NiuniaText.Caption.copy(fontSize = 12.sp), color = NiuniaColors.Text50, maxLines = 1) }
                     }
                     Spacer(Modifier.width(8.dp))
                     NiuniaPillButton(stringResource(if (info?.subscribed == true) R.string.niunia_yt_subscribed else R.string.niunia_yt_subscribe)) { onSubscribe() }
-                    NiuniaPillButton(info?.likeCount ?: "", icon = if (info?.liked == true) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp) { onLike() }
+                    NiuniaPillButton(NiuniaYtText.count(info?.likeCount) ?: "", icon = if (info?.liked == true) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp) { onLike() }
                 }
             }
             Spacer(Modifier.height(NiuniaSpace.AfterRow))

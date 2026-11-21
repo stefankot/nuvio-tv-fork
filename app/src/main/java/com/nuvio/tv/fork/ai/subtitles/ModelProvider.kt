@@ -109,7 +109,7 @@ class GeminiProvider(
         val handle = job?.invokeOnCompletion { if (it != null) call.cancel() }
         try {
             call.execute().use { response ->
-                val body = response.body.let { b ->
+                val body = response.body?.let { b ->
                     val limit = MAX_RESPONSE_BYTES
                     val source = b.source(); source.request(limit + 1)
                     if (source.buffer.size > limit) throw ProviderException("Response too large", response.code, transient = false)

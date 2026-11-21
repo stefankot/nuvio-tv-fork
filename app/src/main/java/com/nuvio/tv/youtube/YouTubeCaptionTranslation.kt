@@ -122,7 +122,8 @@ internal object YouTubeCaptionTranslation {
                 }
                 return null
             }
-            val parts = JSONArray(response.body.string()).getJSONArray(0)
+            val body = response.body?.string() ?: return null
+            val parts = JSONArray(body).getJSONArray(0)
             val translated = buildString {
                 for (i in 0 until parts.length()) append(parts.getJSONArray(i).optString(0))
             }
@@ -143,7 +144,8 @@ internal object YouTubeCaptionTranslation {
                 Log.w(TAG, "mymemory -> HTTP ${response.code}")
                 return null
             }
-            val json = JSONObject(response.body.string())
+            val body = response.body?.string() ?: return null
+            val json = JSONObject(body)
             if (json.optBoolean("quotaFinished")) {
                 cool("mymemory")
                 Log.w(TAG, "mymemory is out of quota for today; using another translator")

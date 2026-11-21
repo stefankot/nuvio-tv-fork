@@ -1,6 +1,7 @@
 package com.nuvio.tv.reshaped.livetv
 
 import androidx.compose.runtime.Immutable
+import java.net.URI
 
 /** A channel as the list shows it. [streamUrl] is also its identity (favorites, last watched). */
 @Immutable
@@ -152,10 +153,36 @@ data class LiveTvSource(
     /** Two sources with the same identity are one: adding it again replaces it. */
     internal val identity: String
         get() = when (type) {
+            LiveTvSourceType.M3u -> "m3u|${sourceUrlKey(url)}"
+            LiveTvSourceType.Xtream -> "xtream|${sourceUrlKey(xtream.serverUrl)}|${xtream.username}"
+            LiveTvSourceType.Stalker -> "stalker|${sourceUrlKey(stalker.portalUrl)}|${stalker.macAddress}"
+        }
+
+    /** Keys written by older versions folded the entire URL, including its path and query. */
+    internal val legacyIdentity: String
+        get() = when (type) {
             LiveTvSourceType.M3u -> "m3u|${url.lowercase()}"
             LiveTvSourceType.Xtream -> "xtream|${xtream.serverUrl.lowercase()}|${xtream.username}"
             LiveTvSourceType.Stalker -> "stalker|${stalker.portalUrl.lowercase()}|${stalker.macAddress}"
         }
+}
+
+private fun sourceUrlKey(url: String): String {
+    val uri = runCatching { URI(url) }.getOrNull() ?: return url
+    val host = uri.host ?: return url
+    val scheme = uri.scheme?.lowercase() ?: return url
+    if (scheme != "http" && scheme != "https") return url
+    // Preserve the raw path, case-sensitive credentials and query. Imported filenames
+    // (which have no host) are left as entered.
+    return buildString {
+        append(scheme).append("://")
+        uri.rawUserInfo?.let { append(it).append('@') }
+        append(host.lowercase())
+        if (uri.port != -1) append(':').append(uri.port)
+        append(uri.rawPath.orEmpty())
+        uri.rawQuery?.let { append('?').append(it) }
+        uri.rawFragment?.let { append('#').append(it) }
+    }
 }
 
 @Immutable

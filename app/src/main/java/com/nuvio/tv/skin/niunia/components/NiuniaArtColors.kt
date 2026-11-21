@@ -47,6 +47,8 @@ fun rememberArtColors(url: String?, cardAspect: Float, fallback: String? = null)
                 .apply { if (!fallback.isNullOrBlank() && fallback != url) memoryCacheKeyExtras(mapOf(com.nuvio.tv.core.image.CustomPosterFallbackInterceptor.FALLBACK_URL_KEY to fallback)) }
                 .build()
             SingletonImageLoader.get(context).execute(request)
+        } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+            throw e // kafel zniknął z ekranu (przewijanie) — to nie błąd, log zalewał ForkNiunia (test JMGO build155)
         } catch (e: Exception) {
             Log.w(TAG, "próbka koloru: ${e.javaClass.simpleName}: ${e.message}"); null
         }
