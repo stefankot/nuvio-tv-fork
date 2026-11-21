@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -140,7 +141,9 @@ internal fun NiuniaIconCircle(icon: ImageVector, description: String, focused: B
         ) {
             Icon(icon, contentDescription = description, tint = if (focused) DsColor.OnFocus else DsColor.White, modifier = Modifier.size(DsSize.Icon20))
         }
-        if (label != null) Text(label, style = DsType.BodySmall, color = DsColor.Text, maxLines = 1, modifier = Modifier.padding(top = DsSpacing.Space8))
+        // Test JMGO build155: w kolumnie 64 dp „Od początku” zawijało się i zostawało „Od” → podpis bez zawijania, wystaje symetrycznie.
+        if (label != null) Text(label, style = DsType.BodySmall, color = DsColor.Text, maxLines = 1, softWrap = false,
+            modifier = Modifier.padding(top = DsSpacing.Space8).wrapContentWidth(unbounded = true))
     }
 }
 
