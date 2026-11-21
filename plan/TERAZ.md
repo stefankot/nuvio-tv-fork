@@ -4,6 +4,10 @@ Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–1
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
 
+## Polski dźwięk z innego wydania na JMGO (21.11)
+
+APK ARM32 z `21087fcbc` jest na projektorze. Zawiera poprawkę Auto Quality i automatyczny dobór audio oparty na Dublagem. Próby ExoPlayer na JMGO potwierdziły 4K z polskim AC3 5.1, korektę +600 ms, przewijanie, odrzucenie złego dopasowania i powrót do oryginalnego audio po utracie pliku. [Opis zmian, testów i przypięcia upstreamu](autoplay/POLSKI_DZWIEK_DUBLAGEM.md).
+
 ## Jakość po włączeniu lektora na JMGO (21.11)
 
 APK ARM32 z poprawką `ff8a3906a` przetestowany na projektorze. 4K pozostało po krótkich przerwach i przewinięciu. Długi zastój dał wznowienie w 1080p od 17,831 s. [Pomiary i opis](autoplay/AUTOJAKOSC_PO_LEKTORZE.md).
