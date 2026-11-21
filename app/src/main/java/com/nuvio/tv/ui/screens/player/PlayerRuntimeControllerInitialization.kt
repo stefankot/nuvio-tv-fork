@@ -1207,6 +1207,7 @@ internal fun PlayerRuntimeController.initializePlayer(
                         reason: Int
                     ) {
                         if (isReleasingPlayer || reason != Player.DISCONTINUITY_REASON_SEEK) return
+                        ignoreLocalBuffering("seek", graceMs = 4_000L) // Fork hook: seek is not a network stall
                         // Holding the seek button emits a discontinuity per step, and reading the
                         // span set on each one is real work on a cache holding thousands of spans.
                         val seekedToMs = newPosition.positionMs

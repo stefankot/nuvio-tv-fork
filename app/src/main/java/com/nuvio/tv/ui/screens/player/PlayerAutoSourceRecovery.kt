@@ -116,6 +116,13 @@ internal class PlayerAutoSourceRecovery(
                 continue
             }
             if (confirmed) {
+                if (failure == null && state.error == null && player.isChangingLocalPlayback(now)) {
+                    bufferingSince = null
+                    lastBufferedPosition = null
+                    samplePosition = position
+                    waitForSignal(1_000L)
+                    continue
+                }
                 val exo = player._exoPlayer
                 val wantsToPlay = exo?.playWhenReady ?: player.hasActivePlayIntent()
                 val isBuffering = exo?.let { it.playbackState == Player.STATE_BUFFERING }

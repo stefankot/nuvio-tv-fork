@@ -59,6 +59,7 @@ class PlayerAutoSourceRecoveryTest {
             every { player.releasePlayer(flushPlaybackState = false) } just Runs
             every { player.stopTorrentStream() } just Runs
             every { player.cancelAutoQualityChange(byViewer = false) } just Runs
+            every { player.isChangingLocalPlayback(any()) } returns false
             every { player.isSourceSwitching() } returns false
             every { player.streamCacheKey } returns null
             every { plan.startupState } returns null
