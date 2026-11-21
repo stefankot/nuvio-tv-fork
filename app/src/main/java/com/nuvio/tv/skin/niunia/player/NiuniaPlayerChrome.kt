@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
+
 package com.nuvio.tv.skin.niunia.player
 
 import com.nuvio.tv.skin.niunia.components.NiuniaButton
