@@ -4,6 +4,10 @@ Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–1
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
 
+## Autoodtwarzanie na JMGO (21.11, po buildzie 162o)
+
+Na JMGO jest APK ARM32 z poprawką autoodtwarzania i napisów (`25b549162`, scalenie `2f6fab0a1`, MD5 `7e3a155cc2304eba31be558fe8ec9049`). Na fizycznym projektorze sprawdzono zmianę źródła przy braku obrazu, wznowienie po awarii HLS, wyczerpanie prób i użycie polskich napisów z innego wydania. [Opis zmian i pomiary](autoplay/AUTOODTWARZANIE_I_NAPISY.md). Kolejka paczki poniżej pozostaje w historii wątku.
+
 ## NAJPIERW (paczka „oczywiste” 1–12, zapis 21.11 ~15:30) — po „kontynuuj” rób to, po kolei, bez pytań
 Gałąź `claude/paczka-oczywiste` (worktree `NuvioFork/.claude/worktrees/paczka-oczywiste`, od `claude/nuvio-tv-handoff-batch-1-4537d7` + scalone bea47e881). Opis zmian: `plan/DECYZJE.md` (21.11 Paczka „oczywiste”). check.sh OK (63).
 **build162o NA JMGO** (21.11 ~15:45; = 161o + `fork/sources/Placeholders`: klip „not cached yet” < 80 MB / < 3 min przegrywa wyścig i spada na koniec kolejności; zgłoszenie Godzilla Minus Zero / Godzilla II; md5 d631729857fd543193a031ce657af073 zgodny, `compile -m speed`). TEST: Godzilla II i Minus Zero — log `ForkSources: klip zastępczy …`, `klipy zastępcze na koniec`, `AutoPlayRace: lost … placeholder`. Uwaga: 4K REMUX 57 GB przy 7,7 MB/s nie nadąża (osobna sprawa).
