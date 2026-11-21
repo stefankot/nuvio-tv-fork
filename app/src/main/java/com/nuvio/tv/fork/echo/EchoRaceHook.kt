@@ -43,25 +43,31 @@ object EchoRaceHook {
         if (on(c) && !skip) AutoPlayRace.HeadStart(scope) else null
 
     fun offer(c: Context, h: AutoPlayRace.HeadStart?, streams: List<Stream>, s: PlayerSettings, installed: Set<String>) {
-        h ?: return
+        if (h?.acceptsMore != true) return
         h.offer(
             StreamAutoPlaySelector.raceCandidates(
                 streams = streams, mode = modeFor(c, s.streamAutoPlayMode), regexPattern = s.streamAutoPlayRegex,
                 source = s.streamAutoPlaySource, installedAddonNames = installed,
                 selectedAddons = s.streamAutoPlaySelectedAddons, selectedPlugins = s.streamAutoPlaySelectedPlugins,
-                preferences = prefs(c)
+                preferences = prefs(c),
+                rankFirstStream = false // Early probes start as soon as the first links arrive.
             )
         )
     }
 
     /** Linki do wyścigu dla wyboru [pick]; null = gra sam. */
-    fun field(c: Context, pick: Stream?, streams: List<Stream>, s: PlayerSettings, installed: Set<String>, binge: String?): List<Stream>? {
+    fun field(
+        c: Context, pick: Stream?, streams: List<Stream>, s: PlayerSettings,
+        installed: Set<String>, binge: String?, firstSourceOrder: List<Stream>?
+    ): List<Stream>? {
         if (pick == null || !on(c)) return null
+        val mode = modeFor(c, s.streamAutoPlayMode)
         val field = AutoPlayRace.fieldFor(
-            pick = pick, streams = streams, mode = modeFor(c, s.streamAutoPlayMode), regexPattern = s.streamAutoPlayRegex,
+            pick = pick, streams = streams, mode = mode, regexPattern = s.streamAutoPlayRegex,
             preferences = prefs(c), source = s.streamAutoPlaySource,
             installedAddonNames = installed, selectedAddons = s.streamAutoPlaySelectedAddons,
-            selectedPlugins = s.streamAutoPlaySelectedPlugins, bingeGroup = binge
+            selectedPlugins = s.streamAutoPlaySelectedPlugins, bingeGroup = binge,
+            eligibleMatches = firstSourceOrder?.takeIf { mode == com.nuvio.tv.data.local.StreamAutoPlayMode.FIRST_STREAM }
         ) ?: return null
         // Fork 19.11 (JMGO: wyścig wygrywał najszybszy link, także gorszy — hiszpański 720p zamiast angielskiego 1080p):
         // ścigają się tylko źródła równe pierwszemu z rankingu (ta sama rozdzielczość, gotowość pliku i język).

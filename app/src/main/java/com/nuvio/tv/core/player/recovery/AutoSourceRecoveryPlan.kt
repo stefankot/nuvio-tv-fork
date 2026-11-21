@@ -1,6 +1,10 @@
 package com.nuvio.tv.core.player.recovery
 
 import com.nuvio.tv.core.player.StreamAutoPlaySelector
+import com.nuvio.tv.core.stream.ReleaseFactsParser
+import com.nuvio.tv.domain.model.ReleaseResolution
+import com.nuvio.tv.domain.model.StreamDebridCacheState
+import com.nuvio.tv.fork.sources.Placeholders
 import com.nuvio.tv.data.local.PlayerSettings
 import com.nuvio.tv.data.local.StreamAutoPlayMode
 import com.nuvio.tv.data.local.StreamAutoPlaySource
@@ -24,11 +28,37 @@ data class AutoSourceRecoveryPlan(
     val profileId: Int,
     val videoId: String?,
     val attempted: Set<String> = emptySet(),
-    val startupState: StartupSourceRecovery.State? = null
+    val startupState: StartupSourceRecovery.State? = null,
+    private val firstSourceOrder: List<Stream>? = null
 ) {
-    suspend fun next(attempted: Set<String>): Stream? = withContext(Dispatchers.Default) {
+    private var rankedForRecovery = firstSourceOrder
+
+    fun withStreams(updated: List<Stream>): AutoSourceRecoveryPlan = copy(streams = updated, firstSourceOrder = null)
+
+    suspend fun next(attempted: Set<String>, maxPreferredHeight: Int? = null): Stream? = withContext(Dispatchers.Default) {
+        fun untried(stream: Stream): Boolean =
+            recoverySourceKey(stream) !in attempted &&
+                "url:${stream.getStreamUrl()}" !in attempted &&
+                !Placeholders.isMarked(stream.getStreamUrl()) &&
+                stream.debridCacheStatus?.state != StreamDebridCacheState.NOT_CACHED
+
+        val available = streams.filter(::untried)
+        val ranked = if (mode == StreamAutoPlayMode.FIRST_STREAM && !bingeGroupOnly) {
+            val order = rankedForRecovery ?: StreamAutoPlaySelector.orderFirstPlayableStreams(
+                streams, source, installedAddonNames, selectedAddons, selectedPlugins
+            ).also { rankedForRecovery = it }
+            val candidates = order.filter(::untried)
+            if (maxPreferredHeight == null) candidates else {
+                val (lighter, rest) = candidates.partition {
+                    val resolution = ReleaseFactsParser.resolutionOf(it)
+                    resolution != ReleaseResolution.UNKNOWN &&
+                        (resolution.label.removeSuffix("p").toIntOrNull() ?: Int.MAX_VALUE) <= maxPreferredHeight
+                }
+                lighter + rest
+            }
+        } else null
         StreamAutoPlaySelector.selectAutoPlayStreamAsync(
-            streams = streams.filter { recoverySourceKey(it) !in attempted && "url:${it.getStreamUrl()}" !in attempted },
+            streams = available,
             mode = mode,
             regexPattern = regex,
             rankedRegexPatterns = rankedRegex,
@@ -37,9 +67,10 @@ data class AutoSourceRecoveryPlan(
             selectedAddons = selectedAddons,
             selectedPlugins = selectedPlugins,
             preferredBingeGroup = preferredBingeGroup,
-            preferBingeGroupInSelection = preferredBingeGroup != null,
+            preferBingeGroupInSelection = preferredBingeGroup != null && maxPreferredHeight == null,
             bingeGroupOnly = bingeGroupOnly,
-            bingeKeepsFilters = true
+            bingeKeepsFilters = true,
+            firstSourceOrder = ranked
         )
     }
 
@@ -47,13 +78,14 @@ data class AutoSourceRecoveryPlan(
         fun create(
             streams: List<Stream>, settings: PlayerSettings, installedAddonNames: Set<String>,
             preferredBingeGroup: String?, initialSource: Stream?, profileId: Int, videoId: String?,
-            bingeGroupOnly: Boolean = settings.streamAutoPlayMode == StreamAutoPlayMode.MANUAL
+            bingeGroupOnly: Boolean = settings.streamAutoPlayMode == StreamAutoPlayMode.MANUAL,
+            firstSourceOrder: List<Stream>? = null
         ) = AutoSourceRecoveryPlan(
             streams.toList(), settings.streamAutoPlayMode, settings.streamAutoPlayRegex,
             settings.streamAutoPlayRankedRegex.toList(), settings.streamAutoPlaySource,
             installedAddonNames.toSet(), settings.streamAutoPlaySelectedAddons.toSet(),
             settings.streamAutoPlaySelectedPlugins.toSet(), preferredBingeGroup, bingeGroupOnly,
-            initialSource, profileId, videoId
+            initialSource, profileId, videoId, firstSourceOrder = firstSourceOrder
         )
     }
 }

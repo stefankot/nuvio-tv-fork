@@ -3,7 +3,21 @@ package com.nuvio.tv.core.player.recovery
 /** One foreground autoplay startup. Times come from a monotonic clock; player rebuilds do not reset them. */
 class StartupSourceRecovery(startedAtMs: Long, state: State? = null) {
     enum class Decision { Wait, NextSource, Complete, Stop }
-    data class State(val sessionStartedAtMs: Long, val attemptStartedAtMs: Long, val attempts: Int)
+    data class State(
+        val sessionStartedAtMs: Long,
+        val attemptStartedAtMs: Long,
+        val attempts: Int,
+        val handedOffAtMs: Long? = null
+    ) {
+        fun whenPlayerStarts(nowMs: Long): State {
+            val elapsedWithoutPlayer = handedOffAtMs?.let { (nowMs - it).coerceAtLeast(0L) } ?: return this
+            return copy(
+                sessionStartedAtMs = sessionStartedAtMs + elapsedWithoutPlayer,
+                attemptStartedAtMs = nowMs,
+                handedOffAtMs = null
+            )
+        }
+    }
 
     private val sessionStartedAtMs = state?.sessionStartedAtMs ?: startedAtMs
     private var attemptStartedAtMs = state?.attemptStartedAtMs ?: startedAtMs

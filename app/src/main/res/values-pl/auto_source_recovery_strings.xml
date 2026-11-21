@@ -1,0 +1,7 @@
+<resources>
+    <string name="settings_auto_source_recovery">Automatycznie zmieniaj źródło</string>
+    <string name="settings_auto_source_recovery_description">Jeśli film się nie uruchomi albo zatrzyma, wypróbuj kolejne źródło według ustawień autoodtwarzania.</string>
+    <string name="settings_auto_source_recovery_unavailable">Włącz autoodtwarzanie i wybierz odtwarzacz w aplikacji.</string>
+    <string name="player_auto_source_recovery_exhausted">Nie udało się odtworzyć filmu. Wybierz inne źródło.</string>
+    <string name="player_auto_source_recovery_trying">Szukam działającego źródła…</string>
+</resources>

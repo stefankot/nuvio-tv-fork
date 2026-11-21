@@ -38,9 +38,10 @@ object EchoSourcePreload {
     @Composable
     fun Run(meta: Meta?, next: NextToWatch?) {
         val c = LocalContext.current
-        val season = next?.nextSeason
-        val episode = next?.nextEpisode
-        val videoId = next?.nextVideoId
+        val firstEpisode = meta?.videos?.firstOrNull { (it.season ?: 0) > 0 && it.episode != null }
+        val season = next?.nextSeason ?: firstEpisode?.season
+        val episode = next?.nextEpisode ?: firstEpisode?.episode
+        val videoId = next?.nextVideoId ?: firstEpisode?.id
         LaunchedEffect(meta?.id, videoId) { start(c, meta, videoId, season, episode) }
         androidx.compose.runtime.DisposableEffect(Unit) { onDispose { com.nuvio.tv.fork.sources.ReadyState.clear(); lastKey = null } }
     }
@@ -60,7 +61,15 @@ object EchoSourcePreload {
             android.util.Log.i("EchoPreload", "start $key")
             val t0 = System.currentTimeMillis()
             runCatching {
-                repo.getStreamsFromAllAddons(type = type, videoId = videoId, season = if (isSeries) season else null, episode = if (isSeries) episode else null).collect { r -> if (r is com.nuvio.tv.core.network.NetworkResult.Success) com.nuvio.tv.fork.sources.ReadyState.update(r.data) }
+                repo.getStreamsFromAllAddons(
+                    type = type, videoId = videoId,
+                    season = season.takeIf { isSeries }, episode = episode.takeIf { isSeries }
+                ).collect { result ->
+                    if (result is com.nuvio.tv.core.network.NetworkResult.Success) {
+                        com.nuvio.tv.fork.sources.ReadyState.update(result.data)
+                        com.nuvio.tv.fork.sources.TrackScout.onSources(c, type, videoId, result.data.flatMap { it.streams })
+                    }
+                }
             }.logged("ForkEcho", "EchoSourcePreload.kt:61")
             android.util.Log.i("EchoPreload", "done $key in ${System.currentTimeMillis() - t0}ms")
         }

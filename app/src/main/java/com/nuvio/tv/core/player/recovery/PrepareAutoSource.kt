@@ -1,6 +1,7 @@
 package com.nuvio.tv.core.player.recovery
 
 import com.nuvio.tv.domain.model.Stream
+import com.nuvio.tv.fork.sources.Placeholders
 import kotlinx.coroutines.withTimeoutOrNull
 
 data class PreparedAutoSource<T>(val value: T, val plan: AutoSourceRecoveryPlan)
@@ -14,13 +15,17 @@ suspend fun <T : Any> prepareAutoSource(
 ): PreparedAutoSource<T>? {
     val policy = StartupSourceRecovery(nowMs(), plan.startupState)
     val attempted = plan.attempted.toMutableSet()
-    var candidate = plan.initialSource ?: return null
+    val initial = plan.initialSource ?: return null
+    var candidate = if (Placeholders.isMarked(initial.getStreamUrl())) {
+        attempted += recoverySourceKey(initial)
+        withTimeoutOrNull(policy.remainingMs(nowMs())) { selectNext(attempted) } ?: return null
+    } else initial
     while (true) {
         attempted += recoverySourceKey(candidate)
         val value = withTimeoutOrNull(policy.remainingMs(nowMs())) { resolve(candidate) }
         if (value != null) {
             return PreparedAutoSource(value, plan.copy(
-                initialSource = candidate, attempted = attempted.toSet(), startupState = policy.snapshot()
+                initialSource = candidate, attempted = attempted.toSet(), startupState = policy.snapshot().copy(handedOffAtMs = nowMs())
             ))
         }
         if (!policy.beginNextAttempt(nowMs())) return null

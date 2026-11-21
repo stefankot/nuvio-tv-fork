@@ -115,11 +115,12 @@ object AutoPlayRace {
         installedAddonNames: Set<String>,
         selectedAddons: Set<String>,
         selectedPlugins: Set<String>,
-        bingeGroup: String?
+        bingeGroup: String?,
+        eligibleMatches: List<Stream>? = null // Fork hook: shared first-source order
     ): List<Stream>? {
         if (!canRace(pick)) return null
         if (bingeGroup != null && pick.behaviorHints?.bingeGroup == bingeGroup) return null
-        val matches = StreamAutoPlaySelector.raceCandidates(
+        val matches = eligibleMatches ?: StreamAutoPlaySelector.raceCandidates(
             streams = streams,
             mode = mode,
             regexPattern = regexPattern,
@@ -199,6 +200,8 @@ object AutoPlayRace {
      */
     class HeadStart(private val scope: CoroutineScope) {
         private val checks = LinkedHashMap<String, Deferred<Long?>>()
+
+        val acceptsMore: Boolean get() = checks.size < AUTO_PLAY_RACE_SIZE // Fork hook: skip repeated autoplay ranking
 
         /** Starts checking those of [matches] (auto-play's matches so far) not checked yet, up to the cap. */
         fun offer(matches: List<Stream>) {

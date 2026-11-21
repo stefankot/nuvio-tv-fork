@@ -174,7 +174,7 @@ private fun PlayerRuntimeController.autoQualityTick() {
 /** Only while a direct stream plays normally: not during a switch, the intro, an error, live or the last minutes. */
 private fun PlayerRuntimeController.autoQualityCanJudge(): Boolean {
     val state = _uiState.value
-    if (isSourceSwitching() || !hasRenderedFirstFrame || state.error != null) return false
+    if (autoSourceRecovery?.isTryingSources == true || isSourceSwitching() || !hasRenderedFirstFrame || state.error != null) return false
     if (state.isTorrentStream || contentType.equals("cloud", ignoreCase = true)) return false
     if (PlaybackIntroState.active.value || state.showLoadingOverlay || state.playbackEnded) return false
     val timeline = _playbackTimeline.value
