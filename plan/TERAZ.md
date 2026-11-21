@@ -6,7 +6,8 @@ Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcj
 
 ## NAJPIERW (paczka „oczywiste” 1–12, zapis 21.11 ~15:30) — po „kontynuuj” rób to, po kolei, bez pytań
 Gałąź `claude/paczka-oczywiste` (worktree `NuvioFork/.claude/worktrees/paczka-oczywiste`, od `claude/nuvio-tv-handoff-batch-1-4537d7` + scalone bea47e881). Opis zmian: `plan/DECYZJE.md` (21.11 Paczka „oczywiste”). check.sh OK (63).
-**build161o NA JMGO** (v7a, z worktree paczki, commit 82eeaa75d; BUILD SUCCESSFUL 16 min — pierwszy build w nowym katalogu, swap prawie pełny; md5 b12c8098159cb5ad2e962b98af8a2e48 zgodny po `adb pull`, `compile -m speed`). NIC jeszcze nie przetestowane na TV.
+**build162o NA JMGO** (21.11 ~15:45; = 161o + `fork/sources/Placeholders`: klip „not cached yet” < 80 MB / < 3 min przegrywa wyścig i spada na koniec kolejności; zgłoszenie Godzilla Minus Zero / Godzilla II; md5 d631729857fd543193a031ce657af073 zgodny, `compile -m speed`). TEST: Godzilla II i Minus Zero — log `ForkSources: klip zastępczy …`, `klipy zastępcze na koniec`, `AutoPlayRace: lost … placeholder`. Uwaga: 4K REMUX 57 GB przy 7,7 MB/s nie nadąża (osobna sprawa).
+Wcześniej: build161o (v7a, z worktree paczki, commit 82eeaa75d; BUILD SUCCESSFUL 16 min — pierwszy build w nowym katalogu, swap prawie pełny; md5 b12c8098159cb5ad2e962b98af8a2e48 zgodny po `adb pull`, `compile -m speed`). NIC jeszcze nie przetestowane na TV.
 KOLEJKA:
 1. Test każdego punktu na JMGO wg `plan/DO_SPRAWDZENIA_NA_TV.md` sekcja „Paczka »oczywiste«” (uiautomator, `source fork-tools/niunia/walk.sh`, fokus na celu; ostrożnie — ktoś może oglądać). Logi: `ForkNiunia`, `ForkTv`, `ForkSubs`, `ForkLektor`, `ForkVoice`, `ForkAiSubtitles`.
 2. Pkt 1 — przyczyna „24 h” ustalona z kodu (nakładka filmowa Niuni brała długość strumienia panelu; komentarz Kicii „24 h ahead live, the archive's whole recording”), NIE potwierdzona na TV. Jeśli 24 h nadal widać — sprawdzić, która nakładka je pokazuje (Kicia MiniGuide? baza?).
