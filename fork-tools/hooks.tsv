@@ -82,3 +82,4 @@ app/src/main/java/com/nuvio/tv/ui/screens/cast/CastDetailScreen.kt	Fork hook: sk
 app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	Fork hook: skin (Live TV skórki)	LIVE_TV_ROUTE	skin	skin: Live TV (Niunia)	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerAutoQuality.kt	Fork hook: echo (w dół tylko po zacięciu)	autoQualityPolicy.config =	echo	Auto jakość: bez wczesnego schodzenia w dół (EchoAutoQualityGuard)	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	// Fork hook: skin (Wstecz krok po kroku w nakładce skórki)	seekPreview.handleBack	skin	skin: Wstecz najpierw do nakładki skórki (panel, poziomy Niuni)	
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	Fork hook: livetv (Wstecz w pytaniu archiwum	val exitPlayerFromError	livetv	Wstecz w pytaniu „Wrócić do transmisji na żywo?” wychodzi z odtwarzacza (exit było puste)	

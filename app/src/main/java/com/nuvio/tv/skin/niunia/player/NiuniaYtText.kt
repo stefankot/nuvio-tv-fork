@@ -9,6 +9,8 @@ object NiuniaYtText {
     private val VIEWS = Regex("""^\s*([\d.,]+)\s*([KMB])?\s*views?\s*$""", RegexOption.IGNORE_CASE)
     private val DATE = Regex("""^(?:(?:Published|Premiered|Streamed live)(?: on)?\s+)?([A-Za-z]{3})[a-z]*\.?\s+(\d{1,2}),\s*(\d{4})$""")
     private val AGO = Regex("""^(?:Streamed\s+)?(\d+)\s+(second|minute|hour|day|week|month|year)s?\s+ago$""", RegexOption.IGNORE_CASE)
+    private val SUBS = Regex("""^\s*([\d.,]+)\s*([KMB])?\s*subscribers?\s*$""", RegexOption.IGNORE_CASE)
+    private val COUNT = Regex("""^\s*([\d.,]+)\s*([KMB])?\s*$""", RegexOption.IGNORE_CASE)
     private val MONTHS = listOf("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec")
     private val PL_MONTHS = listOf("sty", "lut", "mar", "kwi", "maj", "cze", "lip", "sie", "wrz", "paź", "lis", "gru")
 
@@ -20,6 +22,29 @@ object NiuniaYtText {
         // „2.6M” → „2,6 mln”; „1,234” (separator tysięcy) → „1 234”.
         val n = if (unit.isEmpty()) num.replace(",", " ").replace(".", " ") else num.replace(".", ",")
         return "$n$unit wyśw."
+    }
+
+    /** Test JMGO build155: „4.34M subscribers” → „4,34 mln subskrybentów”. */
+    fun subscribers(raw: String?): String? {
+        val s = raw?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        val m = SUBS.matchEntire(s) ?: return s
+        val n = compact(m.groupValues[1], m.groupValues[2])
+        // Skrót (tys./mln) zawsze z dopełniaczem; dokładna liczba: 1 subskrybent, 2–4 subskrybenci, 5+ subskrybentów.
+        val exact = m.groupValues[1].filter { it.isDigit() }.toIntOrNull()
+        val word = if (m.groupValues[2].isEmpty() && exact != null) plural(exact, "subskrybent", "subskrybenci", "subskrybentów") else "subskrybentów"
+        return "$n $word"
+    }
+
+    /** Test JMGO build155: liczba polubień „31K” → „31 tys.”, „1.2M” → „1,2 mln”. */
+    fun count(raw: String?): String? {
+        val s = raw?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        val m = COUNT.matchEntire(s) ?: return s
+        return compact(m.groupValues[1], m.groupValues[2])
+    }
+
+    private fun compact(num: String, unitRaw: String): String {
+        val unit = when (unitRaw.uppercase()) { "K" -> " tys."; "M" -> " mln"; "B" -> " mld"; else -> "" }
+        return if (unit.isEmpty()) num.replace(",", " ").replace(".", " ") else num.replace(".", ",") + unit
     }
 
     fun date(raw: String?): String? {
