@@ -405,7 +405,7 @@ internal fun NiuniaLivePlayer(
                             channel.name,
                             if (playState == NiuniaPlayState.DELAY) stringResource(R.string.niunia_live_still_live) else null,
                         ).joinToString(" · ")
-                        Text(line, style = NiuniaText.Button.copy(fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 1.sp), color = NiuniaColors.Text, maxLines = 1)
+                        Text(line, style = NiuniaText.Button.copy(fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.sp), color = NiuniaColors.Text, maxLines = 1)
                     }
                     val meta = listOfNotNull(episodeText(shown?.episode), data.genre).joinToString(" · ")
                     if (meta.isNotEmpty()) Text(meta, style = NiuniaText.Body.copy(fontSize = 15.sp, lineHeight = 20.sp), color = NiuniaColors.Text70, maxLines = 1, modifier = Modifier.padding(top = 8.dp))
@@ -548,8 +548,8 @@ private fun ChannelSwitch(channel: LiveTvChannel, logo: String?, focused: Boolea
         Icon(Icons.Outlined.KeyboardArrowUp, contentDescription = stringResource(R.string.niunia_live_prev), tint = tint, modifier = Modifier.size(26.dp))
         val url = forgeChannelLogo(channel) ?: logo
         Box(Modifier.height(36.dp).widthIn(max = 102.dp), contentAlignment = Alignment.CenterStart) {
-            if (url != null) AsyncImage(model = url, contentDescription = channel.name, contentScale = ContentScale.Fit, alignment = Alignment.CenterStart, modifier = Modifier.height(32.dp).widthIn(max = 102.dp))
-            else Text(channel.name, style = NiuniaText.Logo.copy(fontSize = 22.sp, lineHeight = 26.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            com.nuvio.tv.skin.niunia.livetv.NiuniaChannelLogo(channel, Modifier.height(32.dp).widthIn(max = 102.dp), NiuniaText.Logo.copy(fontSize = 22.sp, lineHeight = 26.sp), Alignment.CenterStart) // Paczka „oczywiste” pkt 5
+
         }
         Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = stringResource(R.string.niunia_live_next), tint = tint, modifier = Modifier.size(26.dp))
     }

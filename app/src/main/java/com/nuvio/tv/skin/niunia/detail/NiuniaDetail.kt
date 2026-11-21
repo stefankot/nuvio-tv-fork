@@ -246,7 +246,7 @@ fun NiuniaDetail(
                                     LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
                                         items(uiState.moreLikeThis, key = { "${it.rawType}_${it.id}" }) { item ->
                                             NiuniaPoster(
-                                                art = item.poster, fallback = item.rawPosterUrl, title = item.name, logo = item.logo, meta = NiuniaLabels.meta(item),
+                                                art = com.nuvio.tv.skin.niunia.components.niuniaRealPoster(item).first, fallback = com.nuvio.tv.skin.niunia.components.niuniaRealPoster(item).second, title = item.name, logo = item.logo, meta = NiuniaLabels.meta(item),
                                                 label = NiuniaLabels.label(context, item, 0, rankingRow = false), baked = item.poster != null,
                                                 onFocus = { if (it) focusedRow = 2 },
                                                 onOk = { Log.i(TAG, "szczegóły: podobne → ${item.id}"); onNavigateToDetail(item.id, item.rawType, null) },

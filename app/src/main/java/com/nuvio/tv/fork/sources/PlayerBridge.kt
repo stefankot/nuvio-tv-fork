@@ -29,6 +29,7 @@ object PlayerBridge {
     private var lastError: String? = null
     fun set(s: PlayerUiState, e: (PlayerEvent) -> Unit) {
         state = s; send = e; perf(s); TryAnotherSource.onState(s)
+        com.nuvio.tv.fork.subs.PolishFirst.onState(appContext, s) { ev -> send(ev) } // pkt 7: polskie napisy, wbudowane przed dodatkami
         com.nuvio.tv.fork.diag.PlaybackDiag.onState(appContext, s) // diagnostyka testów (ForkDiag)
         com.nuvio.tv.fork.family.FamilyUsage.player(s.selectedSubtitleTrackIndex, s.selectedAudioTrackIndex, s.playbackSpeed, s.currentStreamUrl, s.isPlaying)
         if (s.error != null && s.error != lastError) com.nuvio.tv.fork.family.FamilyStats.playError(s.error, s.currentStreamName) // panel Rodzina
@@ -71,7 +72,10 @@ object PlayerBridge {
     /** Lektor czyta napisy z synchronizacji: wybierz polskie napisy z dodatku, jeśli żadne nie jest wybrane. */
     fun ensurePolishSubtitle() {
         val s = state ?: return
-        if (s.selectedAddonSubtitle != null) return
+        // Pkt 7 (21.11): polskie wbudowane mają pierwszeństwo — lektor czyta je wprost ([com.nuvio.tv.fork.lektor.LektorSources]).
+        if (s.subtitleTracks.any { com.nuvio.tv.fork.subs.PolishFirst.isPl(it.language) && !it.isForced }) return
+        // Pkt 7: wybrane obce napisy z dodatku (np. włoskie) nie blokują już polskich.
+        if (s.selectedAddonSubtitle != null && com.nuvio.tv.fork.subs.PolishFirst.isPl(s.selectedAddonSubtitle.lang)) return
         s.addonSubtitles.firstOrNull { it.lang.startsWith("pl", true) || it.lang.startsWith("pol", true) }?.let {
             send?.invoke(PlayerEvent.OnSelectAddonSubtitle(it))
             // Zgłoszenie 5 (19.11, „start filmu otwiera ekran napisów”): bazowe OnSelectAddonSubtitle zawsze pokazuje okno

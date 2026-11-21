@@ -84,3 +84,6 @@ app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerAutoQual
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	// Fork hook: skin (Wstecz krok po kroku w nakładce skórki)	seekPreview.handleBack	skin	skin: Wstecz najpierw do nakładki skórki (panel, poziomy Niuni)	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	Fork hook: livetv (Wstecz w pytaniu archiwum	val exitPlayerFromError	livetv	Wstecz w pytaniu „Wrócić do transmisji na żywo?” wychodzi z odtwarzacza (exit było puste)	
 app/src/main/java/com/nuvio/tv/core/debrid/DirectDebridStreamPreparer.kt	// Fork hook: debrid-preparation	prioritized	debrid	kolejność i budżet przygotowania źródeł	val prioritized = mutableListOf<Stream>()
+app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverlay.kt	LiveNoAsk.back(	KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_ESCAPE	live-no-ask	Wstecz w archiwum bez pytania	
+app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverlay.kt	LiveNoAsk.zapNow(	internal fun zap(step: Int)	live-no-ask	zmiana kanału w archiwum bez pytania	
+app/src/main/java/com/nuvio/tv/ui/theme/Type.kt	NiuniaTypePolicy.typography(	fun buildNuvioTypography	niunia-type	typografia Satoshi przy Niuni	

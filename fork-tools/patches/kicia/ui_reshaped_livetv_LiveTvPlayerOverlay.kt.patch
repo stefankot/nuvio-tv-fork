@@ -1,7 +1,8 @@
 diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverlay.kt b/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverlay.kt
+index 82e74ab..b3ea66b 100644
 --- a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverlay.kt
 +++ b/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverlay.kt
-@@ -178,11 +178,17 @@
+@@ -178,11 +178,17 @@ internal class LiveTvPlayerState(
      /** OK is down on the bare picture: a short press acts on release, a held one starts the programme over. */
      private var okHeld = false
  
@@ -21,7 +22,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
              infoOpen = false
          }
      }
-@@ -196,6 +202,40 @@
+@@ -196,6 +202,40 @@ internal class LiveTvPlayerState(
      /** The player, for the details the Now/Next card shows. */
      internal val player: PlayerRuntimeController get() = controller
  
@@ -62,7 +63,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
      /** Whether the player is showing a Live TV channel (read on each key; a memory lookup). */
      fun isActive(): Boolean = LiveTvPlaybackRegistry.isLiveTv(controller.currentStreamUrl)
  
-@@ -203,6 +243,17 @@
+@@ -203,6 +243,17 @@ internal class LiveTvPlayerState(
          if (currentListUrl == null && isActive()) {
              currentListUrl = LiveTvPlaybackRegistry.listUrlFor(controller.currentStreamUrl)
              bannerKey++
@@ -80,7 +81,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
          }
      }
  
-@@ -225,12 +276,34 @@
+@@ -225,12 +276,34 @@ internal class LiveTvPlayerState(
      fun onPreviewKey(event: KeyEvent, uiState: PlayerUiState): Boolean {
          // Fork patch: dostawca #10 - gdy trwa sesja Live TV (wybrano kanał), klawisze zostają Live TV nawet gdy strumień chwilowo nie jest zarejestrowany
          if (!isActive() && currentListUrl == null) return false
@@ -115,7 +116,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
          if (panelOpen && programmesChannel != null) {
              return when (event.keyCode) {
                  // Back to the channels, on the channel whose programmes these are.
-@@ -312,6 +385,11 @@
+@@ -312,6 +385,11 @@ internal class LiveTvPlayerState(
              // A past programme seeks and pauses like a film: only ▲▼ (back to live channels) and
              // Back on the bare picture (back to this channel live) stay Live TV's.
              if (uiState.showControls || nuvioOverlayOpen || uiState.error != null) return false
@@ -127,7 +128,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
              return when (event.keyCode) {
                  KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN -> {
                      if (down) zap(if (event.keyCode == KeyEvent.KEYCODE_DPAD_UP) -1 else 1)
-@@ -322,26 +400,30 @@
+@@ -322,26 +400,31 @@ internal class LiveTvPlayerState(
                  in SCRUB_KEYS -> {
                      // ◀ at the very start of one that seeks (a programme started over, which
                      // began early) reaches back past its start with the rewind bar.
@@ -145,6 +146,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
                      // A channel gone since (removed, or its source edited) leaves Back to the player.
                      val channel = currentChannel() ?: return false
 -                    if (!down) switchTo(channel)
++                    if (!down && com.nuvio.tv.fork.tv.LiveNoAsk.back(controller.context, ::hideInfo, exit)) return true // Fork hook: live-no-ask
 +                    if (!down) { if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_MINIGUIDE) { if (zapConfirm == null) { hideInfo(); zapConfirm = 0 } } else switchTo(channel) } // forge hook (owner 13.11): Back from the archive asks first, like ▲▼ (step 0 = this channel live)
                      true
                  }
@@ -162,7 +164,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
          return when (event.keyCode) {
              KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> {
                  // A short press acts on release (info, then the controls); held, the programme on
-@@ -363,7 +445,7 @@
+@@ -363,7 +446,7 @@ internal class LiveTvPlayerState(
                                  hideInfo()
                                  controller.onEvent(PlayerEvent.OnToggleControls)
                              }
@@ -171,7 +173,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
                          }
                      }
                  }
-@@ -375,10 +457,13 @@
+@@ -375,10 +458,13 @@ internal class LiveTvPlayerState(
                  true
              }
              KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN -> {
@@ -185,7 +187,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
                  // With the info card up, ◀ rewinds a channel the provider keeps (catch-up).
                  val rewind = infoOpen && currentChannel()?.catchup != null
                  if (down && event.repeatCount == 0) {
-@@ -393,6 +478,8 @@
+@@ -393,6 +479,8 @@ internal class LiveTvPlayerState(
                  true
              }
              KeyEvent.KEYCODE_DPAD_RIGHT -> {
@@ -194,13 +196,10 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
                  // A live channel has nothing to seek to: ▶ opens the controls (audio, subtitles).
                  if (down && event.repeatCount == 0) {
                      hideInfo()
-@@ -401,7 +488,60 @@
-                 true
-             }
-             else -> false
-+        }
-+    }
-+
+@@ -404,13 +492,67 @@ internal class LiveTvPlayerState(
+         }
+     }
+ 
 +    /**
 +     * forge hook 7.7b H9: with the controls hidden, ▲▼◀▶ act on RELEASE (short: ▲▼ zap, ◀▶ MiniGuide); held ≥ 520 ms the
 +     * long action runs once instead (◀ from the start, ▶ next episode, ▼ Szczegóły i odcinki, ▲ the MiniGuide) and the
@@ -249,22 +248,24 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
 +            }
 +            KeyEvent.KEYCODE_DPAD_DOWN -> shown?.let { com.nuvio.tv.skin.kicia.livetv.ForgeMiniGuideNav.detail = channel to it }
 +            KeyEvent.KEYCODE_DPAD_UP -> showInfo()
-         }
++        }
 +        // test 15.11 (B-4/B-5): no legend over the details (long ▼); after ◀ ▶ it waits for the Komunikat to be read
 +        if (code == KeyEvent.KEYCODE_DPAD_LEFT || code == KeyEvent.KEYCODE_DPAD_RIGHT) scope.launch { kotlinx.coroutines.delay(2_500); com.nuvio.tv.skin.kicia.livetv.ForgeRemoteLegend.offer(code) }
-     }
- 
++    }
++
      /** Where the playing channel was in the list last zapped, so a zap skips searching for it. */
-@@ -410,7 +550,7 @@
+     private var zapIndexHint = -1
+ 
      /** Fork patch: dostawca #10 - zmiana kanału podczas archiwum czeka na potwierdzenie. */
      internal var zapConfirm by mutableStateOf<Int?>(null)
  
 -    private fun zap(step: Int) {
 +    internal fun zap(step: Int) { // forge: internal (MiniGuide ▲▼)
++        if (isCatchup() && com.nuvio.tv.fork.tv.LiveNoAsk.zapNow(controller.context, step)) return zapNow(step) // Fork hook: live-no-ask
          if (isCatchup()) {
              if (zapConfirm == null) { hideInfo(); zapConfirm = step }
              return
-@@ -428,6 +568,7 @@
+@@ -428,6 +570,7 @@ internal class LiveTvPlayerState(
          val index = zapIndexHint.takeIf { it in list.indices && list[it].streamUrl == url } ?: list.indexOfFirst { it.streamUrl == url }
          val next = if (index < 0) 0 else Math.floorMod(index + step, list.size)
          zapIndexHint = next
@@ -272,7 +273,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
          switchTo(list[next])
      }
  
-@@ -479,6 +620,8 @@
+@@ -479,6 +622,8 @@ internal class LiveTvPlayerState(
  
      /** The rewind bar, while it shows (see [LiveTvScrub]). */
      var scrub by mutableStateOf<LiveTvScrub?>(null)
@@ -281,7 +282,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
          private set
      private var scrubJob: Job? = null
      /** OK went down while the rewind bar showed: its release plays the time picked. */
-@@ -498,16 +641,19 @@
+@@ -498,16 +643,19 @@ internal class LiveTvPlayerState(
          return (window.startMs + controller.playbackTimeline.value.currentPosition.coerceAtLeast(0L)).coerceAtMost(now)
      }
  
@@ -303,7 +304,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
          val now = LiveTvClock.nowEpochMs()
          val at = playheadMs(now)
          val from = LiveTvScrubSteps.rangeStart(LiveTvRepository.schedule(channel.guideKey), at, earliestMs(channel, now))
-@@ -549,6 +695,7 @@
+@@ -549,6 +697,7 @@ internal class LiveTvPlayerState(
          scrubJob = null
          scrubOkDown = false
          scrub = null
@@ -311,7 +312,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
      }
  
      /** Plays from the picked time: a replay from there, or the channel live when that is now. */
-@@ -562,6 +709,16 @@
+@@ -562,6 +711,16 @@ internal class LiveTvPlayerState(
              return
          }
          val start = bar.targetMs
@@ -328,7 +329,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
          switchJob?.cancel()
          switchJob = scope.launch {
              val replay = LiveTvRepository.replayChannel(channel, start)
-@@ -572,6 +729,9 @@
+@@ -572,6 +731,9 @@ internal class LiveTvPlayerState(
              currentListUrl = channel.streamUrl
              val programme = LiveTvRepository.schedule(channel.guideKey).firstOrNull { start >= it.startEpochMs && start < it.stopEpochMs }
              replayTitleProgramme = programme
@@ -338,7 +339,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
              controller._uiState.update { it.copy(title = programme?.title ?: channel.name, logo = LiveTvRepository.uiState.value.logoFor(channel)) }
              playReplay(channel, replay)
          }
-@@ -584,7 +744,7 @@
+@@ -584,7 +746,7 @@ internal class LiveTvPlayerState(
              return false
          }
          when (event.keyCode) {
@@ -347,7 +348,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
              in OK_KEYS -> if (down && event.repeatCount == 0) {
                  scrubOkDown = true
              } else if (!down && scrubOkDown) {
-@@ -632,7 +792,11 @@
+@@ -632,7 +794,11 @@ internal class LiveTvPlayerState(
          hideInfo()
          switchJob?.cancel()
          switchJob = scope.launch {
@@ -360,7 +361,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
              if (replay == null) {
                  // What plays stays as it was.
                  android.widget.Toast.makeText(controller.context, R.string.live_tv_catchup_failed, android.widget.Toast.LENGTH_SHORT).show()
-@@ -641,6 +805,8 @@
+@@ -641,6 +807,8 @@ internal class LiveTvPlayerState(
              currentListUrl = channel.streamUrl
              bannerKey++
              replayTitleProgramme = programme
@@ -369,13 +370,13 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
              controller._uiState.update { it.copy(title = programme.title, logo = LiveTvRepository.uiState.value.logoFor(channel)) }
              playReplay(channel, replay)
          }
-@@ -651,8 +817,30 @@
+@@ -651,8 +819,30 @@ internal class LiveTvPlayerState(
          LiveTvPlaybackRegistry.register(url, listUrl = channel.streamUrl, catchup = true, window = replay.window)
          replayFallback = replay.fallback?.let { url to it }
          controller.switchToSourceStream(channel.toStream(replay.playback))
 +        watchReplayStart(channel, url, replay.playback.streamUrl)
-     }
- 
++    }
++
 +    /**
 +     * forge hook (JMGO test 13.11: an archive hung 70 s on „Uruchamianie strumienia…” with no word): a replay that shows no
 +     * picture in [REPLAY_START_MS] tries its other link; with none, says so and goes back to the channel live.
@@ -393,14 +394,14 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
 +            replayTitleProgramme = null
 +            pickFromPanel(channel)
 +        }
-+    }
-+
+     }
+ 
 +    private val REPLAY_START_MS = 20_000L
 +
      /** The replay playing (its player URL) and the other link to play should the provider fail it. */
      private var replayFallback: Pair<String, LiveTvReplay>? = null
  
-@@ -676,7 +864,35 @@
+@@ -676,6 +866,34 @@ internal class LiveTvPlayerState(
      internal val replayingProgramme: LiveTvProgramme? get() = replayTitleProgramme?.takeIf { isCatchup() }
      /** The replay whose end has been acted on, so it is acted on once. */
      private var continuedWindow: LiveTvReplayWindow? = null
@@ -409,7 +410,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
 +    /** forge hook 7.7 E25/H10: the archive programme whose end shows the „Następny odcinek” card; null = no card. */
 +    internal var archiveEnd by mutableStateOf<LiveTvProgramme?>(null)
 +    private var endLogMs = 0L
- 
++
 +    /** forge 7.7 E25: after [ended], the next episode of the same programme still in the archive, else what followed on the channel. */
 +    internal fun nextAfterArchiveEnd(ended: LiveTvProgramme): Pair<LiveTvChannel, LiveTvProgramme>? {
 +        val channel = currentChannel() ?: return null
@@ -432,11 +433,10 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
 +        if (next.stopEpochMs <= LiveTvClock.nowEpochMs()) playCatchup(channel, next) else switchTo(channel, force = true)
 +    }
 +    private var replayBoundHit = false
-+
+ 
      /**
       * Follows a replay as it plays ([positionMs] into it, [durationMs] long when known): the title
-      * becomes the programme it has got to, and near its end the next part plays, or the channel
-@@ -693,6 +909,28 @@
+@@ -693,6 +911,28 @@ internal class LiveTvPlayerState(
                  if (controller._uiState.value.title != programme.title) controller._uiState.update { it.copy(title = programme.title) }
              }
          }
@@ -465,7 +465,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
          // A replay's length is known for HLS; a TS replay is as long as was asked for. One that
          // names no end runs on to live by itself, and is only followed should it stop.
          if (!window.bounded) return
-@@ -718,14 +956,16 @@
+@@ -718,14 +958,16 @@ internal class LiveTvPlayerState(
          }
      }
  
@@ -484,14 +484,14 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
          closePanel()
          // The loading screen and pause screen show the player's logo: the new channel's, from the first press.
          controller._uiState.update { it.copy(title = channel.name, logo = LiveTvRepository.uiState.value.logoFor(channel)) }
-@@ -739,9 +979,71 @@
+@@ -739,9 +981,71 @@ internal class LiveTvPlayerState(
                  listUrl = channel.streamUrl,
              )
              controller.switchToSourceStream(channel.toStream(playback))
 +            watchLiveStart(channel) // forge hook v7.4
-         }
-     }
- 
++        }
++    }
++
 +    /**
 +     * forge hook v7.4 (test 13.11: TVP 1 HD hung >100 s on „Uruchamianie strumienia…” with no word; owner: no fixed waits,
 +     * check every second). Each second until the first picture:
@@ -531,9 +531,9 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
 +                )
 +                controller.switchToSourceStream(channel.toStream(playback))
 +            }
-+        }
-+    }
-+
+         }
+     }
+ 
 +    /**
 +     * forge fix 15.11 (JMGO: the TV lost the internet for 2 min while AXN played, Nuvio's raw „Błąd odtwarzania” with a
 +     * Java exception stayed after the network came back): a live channel that drops while watched starts once more,
@@ -556,7 +556,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
      /** Switches the display to the playing channel's frame rate (see [LiveTvFrameRateMatch]). */
      internal suspend fun matchDisplay(fps: Float, raw: Float) = controller.matchDisplayToLiveTrack(fps, raw)
  
-@@ -773,9 +1075,14 @@
+@@ -773,9 +1077,14 @@ internal class LiveTvPlayerState(
      )
  
      private companion object {
@@ -572,7 +572,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
          /** A replay this near to now goes live rather than asking for a few seconds more. */
          const val REPLAY_CAUGHT_UP_MS = 90_000L
          const val INFO_MS = 6_000L
-@@ -785,6 +1092,8 @@
+@@ -785,6 +1094,8 @@ internal class LiveTvPlayerState(
          val SCRUB_KEYS = intArrayOf(KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_MEDIA_REWIND, KeyEvent.KEYCODE_MEDIA_FAST_FORWARD)
          val BACK_SCRUB_KEYS = intArrayOf(KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_MEDIA_REWIND)
          val OK_KEYS = intArrayOf(KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER)
@@ -581,7 +581,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
      }
  }
  
-@@ -860,6 +1169,7 @@
+@@ -860,6 +1171,7 @@ private fun BoxScope.LiveTvPlayerOverlayContent(state: LiveTvPlayerState, uiStat
      var bannerVisible by remember { mutableStateOf(false) }
      LaunchedEffect(state.bannerKey) {
          if (state.bannerKey == 0) return@LaunchedEffect
@@ -589,7 +589,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
          bannerVisible = true
          delay(BANNER_MS)
          bannerVisible = false
-@@ -898,12 +1208,33 @@
+@@ -898,12 +1210,33 @@ private fun BoxScope.LiveTvPlayerOverlayContent(state: LiveTvPlayerState, uiStat
                  clock = clock,
                  startOver = remember(channel, liveState.currentProgrammes, clock.value / 60_000L) { state.startOverProgramme(channel) != null },
                  rewind = channel.catchup != null,
@@ -624,7 +624,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
          // As the player's own seek bar comes and goes.
          enter = fadeIn(tween(150)),
          exit = fadeOut(tween(150)),
-@@ -923,6 +1254,7 @@
+@@ -923,6 +1256,7 @@ private fun BoxScope.LiveTvPlayerOverlayContent(state: LiveTvPlayerState, uiStat
      ) {
          LiveTvChannelPanel(state, liveState.currentProgrammes, clock)
      }
@@ -632,7 +632,7 @@ diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverl
  
  }
  
-@@ -1009,9 +1341,13 @@
+@@ -1009,9 +1343,13 @@ private fun LiveTvInfoCard(
      clock: State<Long>,
      startOver: Boolean,
      rewind: Boolean,

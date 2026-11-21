@@ -19,6 +19,15 @@ object LektorPcm {
             runCatching {
                 val c = com.nuvio.tv.fork.ai.subtitles.AiSubtitles.controller()
                 if (c == null) { Log.w(TAG, "PCM ($reason): brak odtwarzacza Exo"); return@runCatching }
+                // Paczka „oczywiste” pkt 8 (21.11, „przy wyłączonym ściszaniu film nie może być ściszony”): lektor zamienia Dolby
+                // na PCM, a przy zamianie 5.1 → stereo normalizacja downmiksu ściszała CAŁY film. Gdy lektor gra — bez normalizacji
+                // (poziom filmu jak bez lektora; miks ma miękki ogranicznik); po wyłączeniu — wartość z ustawień odtwarzacza.
+                val st = c.currentPlayerSettingsForReport
+                if (st.effectiveDownmixEnabled) {
+                    val normalize = !LektorEngine.enabled && !st.maintainOriginalAudioOnDownmix
+                    c.ffmpegAudioRenderer?.setDownmixNormalizationEnabled(normalize)
+                    Log.i(TAG, "PCM ($reason): normalizacja downmiksu=${normalize}")
+                }
                 c.playbackSpeedAwareAudioSink?.notifyAudioProcessingRequirementChanged()
                 c._exoPlayer?.let { p -> p.trackSelectionParameters = p.trackSelectionParameters.buildUpon().build() }
                 Log.i(TAG, "PCM ($reason): lektor=${LektorEngine.enabled}, ścieżka dźwięku wybrana ponownie")

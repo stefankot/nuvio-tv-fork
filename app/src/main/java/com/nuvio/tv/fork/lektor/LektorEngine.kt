@@ -175,8 +175,9 @@ class LektorAudioProcessor : BaseAudioProcessor() {
             v *= vGain
             i++
             for (c in 0 until ch) {
-                if (float) out.putFloat((inp.float * g + v).coerceIn(-1f, 1f))
-                else out.putShort(((inp.short / 32768f * g + v).coerceIn(-1f, 1f) * 32767f).toInt().toShort())
+                // Pkt 8: miękki ogranicznik zamiast twardego obcięcia (film bez normalizacji + głos nie charczy).
+                if (float) out.putFloat(softClip(inp.float * g + v))
+                else out.putShort((softClip(inp.short / 32768f * g + v) * 32767f).toInt().toShort())
             }
             frames++
         }
@@ -184,4 +185,12 @@ class LektorAudioProcessor : BaseAudioProcessor() {
         if (sum >= statsLogged + 25) { statsLogged = sum; android.util.Log.i(TAG, "mikser: kwestie czekały na poprzednią=$waits, ściszone przed końcem=$cuts, pominięte=$skipped") }
         out.flip()
     }
+}
+
+/** Pkt 8 (21.11): liniowo do 0,9, powyżej łagodne nasycenie do 1 (bez trzasków przy sumie filmu i głosu). */
+internal fun softClip(x: Float): Float {
+    val a = kotlin.math.abs(x)
+    if (a <= 0.9f) return x
+    val y = 0.9f + 0.1f * kotlin.math.tanh((a - 0.9f) / 0.1f)
+    return if (x < 0) -y else y
 }

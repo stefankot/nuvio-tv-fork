@@ -176,6 +176,11 @@ private fun Keyboard(digits: Boolean, firstKey: FocusRequester, onMode: (Boolean
         Row(Modifier.width(NiuniaSize.SplitCol).clip(CircleShape).background(NiuniaColor.Fill12).padding(NiuniaSpacing.Space4)) {
             NiuniaButton(onClick = { onMode(false) }, label = stringResource(R.string.niunia_ds_search_kbd_letters), kind = NiuniaButtonKind.Segment, selected = !digits, modifier = Modifier.weight(1f))
             NiuniaButton(onClick = { onMode(true) }, label = stringResource(R.string.niunia_ds_search_kbd_digits), kind = NiuniaButtonKind.Segment, selected = digits, modifier = Modifier.weight(1f))
+            // Paczka „oczywiste” pkt 12: wejście do sterowania głosem (moduł fork/voice; wyłączony moduł = brak przycisku).
+            val ctx = androidx.compose.ui.platform.LocalContext.current
+            if (com.nuvio.tv.fork.voice.VoiceEntry.visible(ctx)) NiuniaButton(onClick = { com.nuvio.tv.fork.voice.VoiceEntry.start(ctx, "wyszukiwarka") },
+                label = stringResource(R.string.voice_button), kind = NiuniaButtonKind.Segment, selected = false,
+                description = stringResource(R.string.voice_button_description), modifier = Modifier.weight(1f))
         }
         Column(verticalArrangement = Arrangement.spacedBy(NiuniaSize.KeyboardGap)) {
             keys.chunked(6).forEachIndexed { r, line ->
@@ -227,7 +232,7 @@ private fun Browse(state: com.nuvio.tv.ui.screens.search.SearchUiState, ctx: and
         NiuniaCollectionHeader(stringResource(R.string.niunia_ds_search_recommended), active = active == 1)
         LazyRow(Modifier.niuniaTrapArrows("polecane"), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space20), contentPadding = PaddingValues(end = NiuniaSpacing.Space40)) {
             items(state.discoverResults.take(24), key = { it.id }) { item ->
-                NiuniaPoster(art = item.poster, fallback = item.rawPosterUrl, title = item.name, logo = item.logo, meta = NiuniaLabels.meta(item), label = null, baked = item.poster != null,
+                NiuniaPoster(art = com.nuvio.tv.skin.niunia.components.niuniaRealPoster(item).first, fallback = com.nuvio.tv.skin.niunia.components.niuniaRealPoster(item).second, title = item.name, logo = item.logo, meta = NiuniaLabels.meta(item), label = null, baked = item.poster != null,
                     onFocus = { if (it) active = 1 },
                     onOk = { Log.i(TAG, "wyszukiwarka: polecane → ${item.id}"); onNavigateToDetail(item.id, item.rawType, "") })
             }

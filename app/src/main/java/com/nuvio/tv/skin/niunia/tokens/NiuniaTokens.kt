@@ -46,14 +46,15 @@ object NiuniaDims {
     const val ScaleButton = 1.06f
 }
 
+/** Pkt 9 (21.11): wszystkie style Satoshi (wcześniej bez rodziny = czcionka z ustawień aplikacji). */
 object NiuniaText {
-    val Logo = TextStyle(fontSize = 40.sp, lineHeight = 44.sp, fontWeight = FontWeight.Bold, color = NiuniaColors.Text)
-    val Row = TextStyle(fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold)
-    val Body = TextStyle(fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium, color = NiuniaColors.Text70)
-    val Meta = TextStyle(fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium, color = NiuniaColors.Text)
-    val Button = TextStyle(fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold)
-    val Tab = TextStyle(fontSize = 11.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold)
-    val PosterTitle = TextStyle(fontSize = 12.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold, color = NiuniaColors.Text, letterSpacing = 0.8.sp)
-    val PosterMeta = TextStyle(fontSize = 10.sp, lineHeight = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xCCFFFFFF))
-    val Caption = TextStyle(fontSize = 11.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold, color = NiuniaColors.Text70)
+    val Logo = TextStyle(fontFamily = com.nuvio.tv.skin.kicia.tokens.SatoshiFamily, fontSize = 40.sp, lineHeight = 44.sp, fontWeight = FontWeight.Bold, color = NiuniaColors.Text)
+    val Row = TextStyle(fontFamily = com.nuvio.tv.skin.kicia.tokens.SatoshiFamily, fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold)
+    val Body = TextStyle(fontFamily = com.nuvio.tv.skin.kicia.tokens.SatoshiFamily, fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium, color = NiuniaColors.Text70)
+    val Meta = TextStyle(fontFamily = com.nuvio.tv.skin.kicia.tokens.SatoshiFamily, fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium, color = NiuniaColors.Text)
+    val Button = TextStyle(fontFamily = com.nuvio.tv.skin.kicia.tokens.SatoshiFamily, fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold)
+    val Tab = TextStyle(fontFamily = com.nuvio.tv.skin.kicia.tokens.SatoshiFamily, fontSize = 11.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold)
+    val PosterTitle = TextStyle(fontFamily = com.nuvio.tv.skin.kicia.tokens.SatoshiFamily, fontSize = 12.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold, color = NiuniaColors.Text, letterSpacing = 0.8.sp)
+    val PosterMeta = TextStyle(fontFamily = com.nuvio.tv.skin.kicia.tokens.SatoshiFamily, fontSize = 10.sp, lineHeight = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xCCFFFFFF))
+    val Caption = TextStyle(fontFamily = com.nuvio.tv.skin.kicia.tokens.SatoshiFamily, fontSize = 11.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold, color = NiuniaColors.Text70)
 }

@@ -149,7 +149,7 @@ fun buildNuvioTypography(fontFamily: FontFamily): Typography = Typography( // fo
         lineHeight = if (com.nuvio.tv.skin.kicia.ForgeUi.ON) 16.sp else 14.sp,
         letterSpacing = 0.5.sp
     )
-).let { if (com.nuvio.tv.skin.kicia.ForgeUi.ON) com.nuvio.tv.skin.kicia.tokens.forgeAlignTypography(it) else it }
+).let { if (com.nuvio.tv.skin.kicia.ForgeUi.ON) com.nuvio.tv.skin.kicia.tokens.forgeAlignTypography(it) else it }.let { com.nuvio.tv.skin.niunia.tokens.NiuniaTypePolicy.typography(it) } // Fork hook: niunia-type (pkt 9: Satoshi, waga ≥ 500, odstęp ≤ 0)
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 val NuvioTypography = buildNuvioTypography(InterFamily)

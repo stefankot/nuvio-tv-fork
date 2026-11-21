@@ -124,7 +124,7 @@ fun NiuniaPerson(
                     itemsIndexed(list, key = { _, it -> "${it.rawType}_${it.id}" }) { i, item ->
                         NiuniaPoster(
                             modifier = if (firstRow && i == 0) Modifier.focusRequester(firstFocus) else Modifier,
-                            art = item.poster, fallback = item.rawPosterUrl, title = item.name, logo = item.logo, meta = NiuniaLabels.meta(item),
+                            art = com.nuvio.tv.skin.niunia.components.niuniaRealPoster(item).first, fallback = com.nuvio.tv.skin.niunia.components.niuniaRealPoster(item).second, title = item.name, logo = item.logo, meta = NiuniaLabels.meta(item),
                             label = NiuniaLabels.label(context, item, 0, rankingRow = false), baked = item.poster != null,
                             onFocus = { if (it) focusedRow = rowIndex },
                             onOk = { Log.i(TAG, "osoba: otwieram ${item.rawType} ${item.id}"); onNavigateToDetail(item.id, item.rawType, null) },
