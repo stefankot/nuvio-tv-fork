@@ -13,6 +13,8 @@ import com.nuvio.tv.core.streams.AutoQualitySample
 import com.nuvio.tv.core.streams.StreamQuality
 import com.nuvio.tv.core.streams.StreamQualityMenu
 import com.nuvio.tv.domain.model.Stream
+import com.nuvio.tv.core.stream.ReleaseFactsParser
+import com.nuvio.tv.fork.echo.EchoAutoQualityGuard
 import com.nuvio.tv.ui.newlook.NewLookNotifications
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -123,6 +125,18 @@ internal fun PlayerRuntimeController.cancelAutoQualityChange(byViewer: Boolean) 
     }
 }
 
+internal fun PlayerRuntimeController.isChangingLocalPlayback(nowMs: Long): Boolean =
+    EchoAutoQualityGuard.evidence(autoQualityPolicy).isLocalTransition(nowMs)
+
+internal fun PlayerRuntimeController.ignoreLocalBuffering(reason: String, graceMs: Long) {
+    val now = SystemClock.elapsedRealtime()
+    EchoAutoQualityGuard.evidence(autoQualityPolicy).localTransition(now, graceMs)
+    if (autoQualityPendingJob?.isActive == true || _uiState.value.autoQualityPending != null) {
+        cancelPendingAutoQualityChange()
+    }
+    Log.i("ForkEcho", "auto quality excludes local transition reason=$reason graceMs=$graceMs")
+}
+
 private fun PlayerRuntimeController.autoQualityTick() {
     val enabled = autoQualityAvailable()
     // Picked at the start of every playback while the setting is on, until a quality is picked by hand.
@@ -139,13 +153,21 @@ private fun PlayerRuntimeController.autoQualityTick() {
     // With Hot swap on, changes barely interrupt playback, so Auto acts sooner (see AutoQualityPolicy.SENSITIVE).
     autoQualityPolicy.config = com.nuvio.tv.fork.echo.EchoAutoQualityGuard.config(context, BetaFeatures.settings(context).autoQualityHotSwap) // Fork hook: echo (w dół tylko po zacięciu)
     val now = SystemClock.elapsedRealtime()
+    val evidence = EchoAutoQualityGuard.evidence(autoQualityPolicy)
     // A new source (any switch, or the first one): judge it afresh.
     if (currentStreamUrl != autoQualitySeenStreamUrl) {
         autoQualitySeenStreamUrl = currentStreamUrl
         autoQualityPolicy.onSourceChanged(now, wasDowngrade = autoQualityLastWasDowngrade)
         autoQualityLastWasDowngrade = false
+        evidence.clearSamples()
     }
-    if (autoQualityPendingJob?.isActive == true || !autoQualityCanJudge()) return
+    if (!autoQualityCanJudge()) {
+        evidence.clearSamples()
+        return
+    }
+    val sample = readAutoQualitySample(now) ?: return
+    evidence.observe(sample)
+    if (autoQualityPendingJob?.isActive == true || evidence.isLocalTransition(now)) return
 
     // The quality list comes from the title's source search, usually cached from the Streams screen.
     if (state.sourceAllStreams.isEmpty() && !state.isLoadingSourceStreams && !autoQualitySourcesRequested) {
@@ -164,11 +186,28 @@ private fun PlayerRuntimeController.autoQualityTick() {
         com.nuvio.tv.fork.echo.AutoQualityBackground.start(streams, language, { StreamQualityMenu.availableQualities(if (language == null) streams else com.nuvio.tv.fork.echo.AutoQualityBackground.parallelFilter(streams) { keepsLanguage(it, language) }) }) { autoQualityAvailableCache = AutoQualityAvailable(streams, language, it) }; return // Fork hook: auto jakość w tle (ANR JMGO)
     }
     val current = currentPlaybackQuality()
-    val sample = readAutoQualitySample(now) ?: return
     when (val decision = autoQualityPolicy.evaluate(sample, current, available, currentPlaybackBitrateBps())) {
         AutoQualityDecision.Stay -> Unit
-        is AutoQualityDecision.Change -> prepareAutoQualityChange(decision.target, decision.isUpgrade, current, decision.early)
+        is AutoQualityDecision.Change -> {
+            val guarded = EchoAutoQualityGuard.requiresStarvation(context)
+            if (!decision.isUpgrade && guarded && !evidence.permitsDowngrade(sample)) return
+            // Use each candidate's bitrate to decide whether an intermediate resolution fits.
+            val targets = if (!decision.isUpgrade && guarded && current != null) {
+                available.filter { it.ordinal in (current.ordinal + 1) until decision.target.ordinal }
+                    .sortedBy { it.ordinal } + decision.target
+            } else listOf(decision.target)
+            prepareAutoQualityChange(targets, decision.isUpgrade, current, decision.early)
+        }
     }
+}
+
+private fun PlayerRuntimeController.autoQualityChangeStillNeeded(isUpgrade: Boolean): Boolean {
+    val now = SystemClock.elapsedRealtime()
+    if (isChangingLocalPlayback(now)) return false
+    if (isUpgrade || !EchoAutoQualityGuard.requiresStarvation(context)) return true
+    if (!autoQualityCanJudge()) return false
+    val sample = readAutoQualitySample(now) ?: return false
+    return EchoAutoQualityGuard.evidence(autoQualityPolicy).permitsDowngrade(sample)
 }
 
 /** Only while a direct stream plays normally: not during a switch, the intro, an error, live or the last minutes. */
@@ -220,39 +259,36 @@ private fun PlayerRuntimeController.currentPlaybackBitrateBps(): Long? =
  * is left alone for a while and nothing is said.
  */
 private fun PlayerRuntimeController.prepareAutoQualityChange(
-    target: StreamQuality,
+    targets: List<StreamQuality>,
     isUpgrade: Boolean,
     from: StreamQuality?,
     early: Boolean
 ) {
     val requireAudio = hasPlayableAudio()
+    val origin = currentStreamUrl
     launchPendingAutoQualityJob {
-        var pick: Stream? = null
         var probes = 0
-        while (pick == null) {
-            val candidate = autoQualityCandidate(target, emptySet()) ?: break
-            if (!requireAudio || probes >= AUTO_MAX_AUDIO_PROBES) {
-                pick = candidate
-                break
-            }
-            probes++
-            when (probeAudio(candidate)) {
-                AudioTrackProbe.Result.NO_AUDIO -> {
-                    Log.i(PlayerRuntimeController.TAG, "AUTO_QUALITY: ${candidate.addonName} ${target.label} has no sound; skipped")
-                    silentSourceKeys += candidate.switchKey()
+        for (target in targets) {
+            while (currentStreamUrl == origin && autoQualityChangeStillNeeded(isUpgrade)) {
+                val candidate = autoQualityCandidate(target, emptySet()) ?: break
+                if (requireAudio && probes < AUTO_MAX_AUDIO_PROBES) {
+                    probes++
+                    if (probeAudio(candidate) == AudioTrackProbe.Result.NO_AUDIO) {
+                        Log.i(PlayerRuntimeController.TAG, "AUTO_QUALITY: ${candidate.addonName} ${target.label} has no sound; skipped")
+                        silentSourceKeys += candidate.switchKey()
+                        continue
+                    }
                 }
-                else -> pick = candidate
+                if (currentStreamUrl != origin || currentPlaybackQuality() == target || isSourceSwitching() ||
+                    !_uiState.value.autoQualityActive || !autoQualityCanJudge() || !autoQualityChangeStillNeeded(isUpgrade)
+                ) return@launchPendingAutoQualityJob
+                scheduleAutoQualityChange(target, isUpgrade, from, candidate, early = early)
+                return@launchPendingAutoQualityJob
             }
-        }
-        if (pick == null) {
+            if (currentStreamUrl != origin || !autoQualityChangeStillNeeded(isUpgrade)) return@launchPendingAutoQualityJob
             Log.i(PlayerRuntimeController.TAG, "AUTO_QUALITY: no ${target.label} source that plays and fits; staying")
             autoQualityPolicy.block(target, SystemClock.elapsedRealtime())
-            return@launchPendingAutoQualityJob
         }
-        // The check took a moment: still wanted, and still possible?
-        if (!_uiState.value.autoQualityActive || isSourceSwitching() || !autoQualityCanJudge()) return@launchPendingAutoQualityJob
-        if (currentPlaybackQuality() == target) return@launchPendingAutoQualityJob
-        scheduleAutoQualityChange(target, isUpgrade, from, pick, early = early)
     }
 }
 
@@ -289,6 +325,8 @@ internal fun PlayerRuntimeController.scheduleAutoQualityChange(
     early: Boolean = false,
     allowHotSwap: Boolean = true
 ) {
+    if (!autoQualityChangeStillNeeded(isUpgrade)) return
+    val origin = currentStreamUrl
     val settings = BetaFeatures.settings(context)
     if (allowHotSwap && (isUpgrade || early) && settings.autoQualityHotSwap &&
         startAutoQualityHotSwap(target, from, pick, isUpgrade)
@@ -318,8 +356,13 @@ internal fun PlayerRuntimeController.scheduleAutoQualityChange(
         delay(countdownSeconds * 1_000L)
         _uiState.update { it.copy(autoQualityPending = null) }
         // Picked by hand meanwhile, another switch under way, or already there: nothing to do.
-        if (!_uiState.value.autoQualityActive || isSourceSwitching()) return@launchPendingAutoQualityJob
-        if (currentPlaybackQuality() == target) return@launchPendingAutoQualityJob
+        if (!_uiState.value.autoQualityActive || isSourceSwitching() || currentStreamUrl != origin ||
+            currentPlaybackQuality() == target
+        ) return@launchPendingAutoQualityJob
+        if (!autoQualityChangeStillNeeded(isUpgrade)) {
+            Log.i("ForkEcho", "auto quality kept current source: conditions recovered during countdown")
+            return@launchPendingAutoQualityJob
+        }
         startAutoQualitySwitch(target, isUpgrade, pick)
     }
 }
@@ -356,7 +399,8 @@ private fun PlayerRuntimeController.autoQualityCandidate(target: StreamQuality, 
 /** The file's own bitrate (its size over the title's length) within [maxBitrateBps]; true when either is unknown. */
 private fun fitsConnection(stream: Stream, maxBitrateBps: Long?, durationMs: Long): Boolean {
     maxBitrateBps ?: return true
-    val bps = PlayerBitrateEstimator.fileBitrateBps(stream.behaviorHints?.videoSize, durationMs) ?: return true
+    val size = stream.behaviorHints?.videoSize ?: ReleaseFactsParser.factsFor(stream).size
+    val bps = PlayerBitrateEstimator.fileBitrateBps(size, durationMs) ?: return true
     return bps <= maxBitrateBps
 }
 
