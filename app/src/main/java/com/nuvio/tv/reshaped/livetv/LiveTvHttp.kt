@@ -20,6 +20,22 @@ import okhttp3.Request
 
 /** Live TV's own small HTTP client: playlists, provider APIs and guides, never playback. */
 internal object LiveTvHttp {
+    private data class GuideValidator(
+        val url: String,
+        val headers: Map<String, String>,
+        val modifiedMs: Long,
+        val length: Long,
+        val etag: String?,
+        val lastModified: String?,
+    ) {
+        fun matches(url: String, headers: Map<String, String>, file: File): Boolean =
+            this.url == url && this.headers == headers && file.isFile && modifiedMs == file.lastModified() && length == file.length()
+    }
+
+    private val guideValidators = object : LinkedHashMap<File, GuideValidator>(24, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<File, GuideValidator>?): Boolean = size > 24
+    }
+
     /** Also carries the list's channel previews, so they stay out of Nuvio's playback networking and speed learning. */
     internal val client: OkHttpClient by lazy {
         OkHttpClient.Builder()
@@ -103,25 +119,42 @@ internal object LiveTvHttp {
      * then read again: on a weak TV that roughly halves the wait. [target] is replaced only when
      * [keep] accepts what was read (an HTML error page keeps the guide saved before).
      */
-    suspend fun <T> downloadReading(
+    suspend fun <T : Any> downloadReading(
         url: String,
         headers: Map<String, String>,
         target: File,
         readTimeoutSeconds: Long,
         read: (InputStream) -> T,
         keep: (T) -> Boolean,
-    ): T =
+        revalidate: Boolean = true,
+    ): T? =
         interruptibleCall { calling ->
             val http = if (readTimeoutSeconds > 0) client.newBuilder().readTimeout(readTimeoutSeconds, TimeUnit.SECONDS).build() else client
+            val cached = if (revalidate) synchronized(guideValidators) {
+                guideValidators[target]?.takeIf { it.matches(url, headers, target) }
+            } else null
             val request = Request.Builder().url(url).apply {
                 headers.forEach { (name, value) -> header(name, value) }
+                cached?.etag?.let { header("If-None-Match", it) }
+                cached?.lastModified?.let { header("If-Modified-Since", it) }
             }.build()
             target.parentFile?.mkdirs()
             // Its own name: a download still stopping must not write into or delete this one.
             val temp = File.createTempFile(target.name, ".part", target.parentFile)
             try {
+                var etag: String? = null
+                var lastModified: String? = null
                 val result = calling(http.newCall(request)).execute().use { response ->
+                    if (response.code == 304 && cached?.matches(url, headers, target) == true) {
+                        target.setLastModified(System.currentTimeMillis())
+                        synchronized(guideValidators) {
+                            guideValidators[target] = cached.copy(modifiedMs = target.lastModified())
+                        }
+                        return@interruptibleCall null
+                    }
                     if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
+                    etag = response.header("ETag")
+                    lastModified = response.header("Last-Modified")
                     val body = response.body ?: throw IOException("Empty response")
                     BufferedInputStream(body.byteStream(), BUFFER_BYTES).use { buffered ->
                         val gzipped = buffered.startsWithGzipMagic()
@@ -136,7 +169,18 @@ internal object LiveTvHttp {
                         }
                     }
                 }
-                if (keep(result) && !temp.renameTo(target)) throw IOException("Could not save ${target.name}")
+                if (keep(result)) {
+                    if (!temp.renameTo(target)) throw IOException("Could not save ${target.name}")
+                    synchronized(guideValidators) {
+                        if (etag != null || lastModified != null) {
+                            guideValidators[target] = GuideValidator(
+                                url, headers.toMap(), target.lastModified(), target.length(), etag, lastModified,
+                            )
+                        } else {
+                            guideValidators.remove(target)
+                        }
+                    }
+                }
                 result
             } finally {
                 temp.delete()

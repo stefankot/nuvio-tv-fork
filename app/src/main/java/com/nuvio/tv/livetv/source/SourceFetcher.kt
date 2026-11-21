@@ -55,7 +55,8 @@ class SourceFetcher internal constructor(
         withCertificateRefusalAsReason {
             call.executeCancellable { response ->
                 if (!response.isSuccessful) throw SourceFetchException("HTTP ${response.code}")
-                val (kind, body) = sniff(response.body.byteStream(), maxTextBytes)
+                val input = response.body?.byteStream() ?: throw SourceFetchException("Empty response")
+                val (kind, body) = sniff(input, maxTextBytes)
                 read(kind, body)
             }
         }

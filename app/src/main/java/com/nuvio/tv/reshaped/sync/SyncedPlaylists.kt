@@ -4,11 +4,12 @@ import android.content.Context
 import android.util.Log
 import com.nuvio.tv.reshaped.livetv.LiveTvSource
 import com.nuvio.tv.reshaped.livetv.LiveTvSourceType
+import com.nuvio.tv.reshaped.livetv.LiveTvSetupServer
 import com.nuvio.tv.reshaped.livetv.LiveTvStorage
 import com.nuvio.tv.reshaped.livetv.isHttpUrl
 import java.io.File
+import java.security.DigestInputStream
 import java.security.MessageDigest
-import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -31,7 +32,15 @@ internal object SyncedPlaylists {
     data class Ref(val driveId: String, val hash: String)
 
     /** What this device last sent ([sent]) or fetched for a source, and the playlist file it was. */
-    class Record internal constructor(internal val ref: Ref, internal val length: Long, internal val modified: Long, internal val sent: Boolean)
+    data class Record internal constructor(
+        internal val ref: Ref,
+        internal val length: Long,
+        internal val modified: Long,
+        internal val sent: Boolean,
+        internal val verified: Boolean = true,
+    ) {
+        internal fun matches(file: File): Boolean = length == file.length() && modified == file.lastModified()
+    }
 
     /** A copy sent this round: kept as sent only once the sync file names it ([commit]). */
     class Sent internal constructor(internal val profileId: Int, internal val sourceId: String, internal val record: Record, internal val replaces: String?)
@@ -40,6 +49,15 @@ internal object SyncedPlaylists {
     class Uploads(val refs: Map<String, Ref>, val sent: List<Sent>)
 
     fun isImported(source: LiveTvSource): Boolean = source.type == LiveTvSourceType.M3u && !source.url.isHttpUrl()
+
+    fun hasLocalChanges(context: Context, profileId: Int, sources: List<LiveTvSource>): Boolean {
+        val store = LiveTvStorage(context.applicationContext, profileId)
+        return sources.any { source ->
+            if (!isImported(source)) return@any false
+            val file = store.playlistFile(source.id) ?: return@any false
+            record(context, profileId, source.id)?.matches(file) != true
+        }
+    }
 
     /**
      * The Drive copy of each imported playlist of [profileId] in [sources], by source id: the one
@@ -56,25 +74,26 @@ internal object SyncedPlaylists {
             try {
                 val file = store.playlistFile(source.id) ?: return@forEach
                 val saved = record(context, profileId, source.id)
-                if (saved != null && saved.length == file.length() && saved.modified == file.lastModified()) {
+                if (saved != null && saved.matches(file)) {
                     result[source.id] = saved.ref
                     return@forEach
                 }
-                val hash = runInterruptible(Dispatchers.IO) { sha1(file) }
-                if (saved != null && saved.ref.hash == hash) {
-                    saveRecord(context, profileId, source.id, Record(saved.ref, file.length(), file.lastModified(), saved.sent))
-                    result[source.id] = saved.ref
-                    return@forEach
-                }
-                val packed = File(context.cacheDir, "reshaped_sync_upload.m3u.gz")
+                val length = file.length()
+                val modified = file.lastModified()
+                val packed = File.createTempFile("reshaped_sync_upload_", ".m3u.gz", context.cacheDir)
                 try {
-                    runInterruptible(Dispatchers.IO) { gzip(file, packed) }
+                    val hash = runInterruptible(Dispatchers.IO) { gzipAndHash(file, packed) }
+                    if (saved != null && saved.ref.hash.equals(hash, ignoreCase = true)) {
+                        saveRecord(context, profileId, source.id, Record(saved.ref, length, modified, saved.sent))
+                        result[source.id] = saved.ref
+                        return@forEach
+                    }
                     val id = DriveAppFolder.upload(context, NAME_PREFIX + hash.take(12) + ".m3u.gz", packed)
                     val ref = Ref(id, hash)
                     result[source.id] = ref
                     // Saved (and the copy it replaces deleted) once the sync file names it: until
                     // then the other devices still fetch the old one.
-                    sent += Sent(profileId, source.id, Record(ref, file.length(), file.lastModified(), sent = true), saved?.takeIf { it.sent }?.ref?.driveId)
+                    sent += Sent(profileId, source.id, Record(ref, length, modified, sent = true), saved?.takeIf { it.sent }?.ref?.driveId)
                 } finally {
                     packed.delete()
                 }
@@ -103,18 +122,28 @@ internal object SyncedPlaylists {
         val store = LiveTvStorage(context.applicationContext, profileId)
         val saved = record(context, profileId, sourceId)
         val file = store.playlistFile(sourceId)
-        if (file != null && saved?.ref?.hash == ref.hash) return false
         return try {
-            val temp = File(context.cacheDir, "reshaped_sync_fetch.m3u")
+            if (file != null && saved != null && saved.ref.hash.equals(ref.hash, ignoreCase = true)) {
+                // An edit since the last sync is still local work. Do not replace it with the
+                // previous cloud version when upload of that edit has not completed.
+                if (!saved.matches(file)) return false
+                if (saved.verified || runInterruptible(Dispatchers.IO) { sha1(file).equals(ref.hash, ignoreCase = true) }) {
+                    if (!saved.verified || saved.ref != ref) {
+                        saveRecord(context, profileId, sourceId, saved.copy(
+                            ref = ref,
+                            sent = saved.sent && saved.ref.driveId == ref.driveId,
+                            verified = true,
+                        ))
+                    }
+                    return false
+                }
+            }
+            val temp = File.createTempFile("reshaped_sync_fetch_", ".m3u", context.cacheDir)
             try {
                 DriveAppFolder.download(context, ref.driveId) { input ->
-                    // Sent gzipped; read as is should the download already have been unpacked on the way.
-                    val buffered = java.io.BufferedInputStream(input, 64 * 1024)
-                    buffered.mark(2)
-                    val gzipped = buffered.read() == 0x1f && buffered.read() == 0x8b
-                    buffered.reset()
-                    val body = if (gzipped) GZIPInputStream(buffered, 64 * 1024) else buffered
-                    body.use { from -> temp.outputStream().use { from.copyTo(it, 64 * 1024) } }
+                    temp.outputStream().buffered().use { output ->
+                        copyVerifiedPlaylist(input, output, ref.hash, LiveTvSetupServer.MAX_PLAYLIST_BYTES)
+                    }
                 }
                 val written = runInterruptible(Dispatchers.IO) {
                     store.savePlaylistFile(sourceId) { out -> if (!temp.renameTo(out)) temp.copyTo(out, overwrite = true) }
@@ -173,23 +202,31 @@ internal object SyncedPlaylists {
         return digest.digest().joinToString("") { "%02x".format(it) }
     }
 
-    private fun gzip(source: File, target: File) {
-        source.inputStream().buffered(64 * 1024).use { input ->
+    private fun gzipAndHash(source: File, target: File): String {
+        val digest = MessageDigest.getInstance("SHA-1")
+        DigestInputStream(source.inputStream().buffered(64 * 1024), digest).use { input ->
             GZIPOutputStream(target.outputStream().buffered(64 * 1024), 64 * 1024).use { input.copyTo(it, 64 * 1024) }
         }
+        return digest.digest().joinToString("") { "%02x".format(it) }
     }
 
     private fun prefs(context: Context) = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
     private fun record(context: Context, profileId: Int, sourceId: String): Record? = runCatching {
         val json = JSONObject(prefs(context).getString("$profileId/$sourceId", null) ?: return null)
-        Record(Ref(json.getString("id"), json.getString("hash")), json.getLong("length"), json.getLong("modified"), json.optBoolean("sent"))
+        Record(
+            Ref(json.getString("id"), json.getString("hash")),
+            json.getLong("length"),
+            json.getLong("modified"),
+            json.optBoolean("sent"),
+            json.optBoolean("verified"),
+        )
     }.getOrNull()
 
     private fun saveRecord(context: Context, profileId: Int, sourceId: String, record: Record) {
         val json = JSONObject()
             .put("id", record.ref.driveId).put("hash", record.ref.hash)
-            .put("length", record.length).put("modified", record.modified).put("sent", record.sent)
+            .put("length", record.length).put("modified", record.modified).put("sent", record.sent).put("verified", record.verified)
         prefs(context).edit().putString("$profileId/$sourceId", json.toString()).apply()
     }
 }

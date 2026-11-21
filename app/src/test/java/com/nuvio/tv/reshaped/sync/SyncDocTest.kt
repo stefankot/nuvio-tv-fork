@@ -1,6 +1,7 @@
 package com.nuvio.tv.reshaped.sync
 
 import com.nuvio.tv.reshaped.livetv.inSyncOrder
+import kotlinx.serialization.json.JsonArray
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -56,6 +57,14 @@ class SyncDocTest {
     }
 
     @Test
+    fun extremeClockPreservesAnEncodableTimestamp() {
+        val original = mapOf(fav to mapOf("a" to SyncEntry(on, Long.MAX_VALUE - 1)))
+        val stamped = SyncDoc.stamp(original, mapOf(fav to emptyMap()), SyncDoc.stampTime(Long.MAX_VALUE, original))
+
+        assertEquals(stamped, SyncDoc.decodeRemote(SyncDoc.encode(stamped)))
+    }
+
+    @Test
     fun encodeDecodeRoundTrip() {
         val doc = device(emptyMap(), mapOf(fav to mapOf("a" to on), "settings/shared" to mapOf("n" to JsonPrimitive(300))), emptyMap(), 1_000)
         val removed = device(doc, mapOf(fav to emptyMap()), doc, 2_000)
@@ -79,6 +88,43 @@ class SyncDocTest {
     fun newerFormatIsRefused() {
         assertFailsWith<SyncDoc.NewerFormatException> { SyncDoc.decode("""{"v":99,"s":{}}""") }
         assertEquals(emptyMap(), SyncDoc.decode("not json"))
+    }
+
+    @Test
+    fun unreadableRemoteEntriesStopSyncWhileLocalSnapshotsRecoverGoodEntries() {
+        val partial = """{"v":1,"s":{"settings/tv":{"bad":{"t":{}},"good":{"t":14,"v":true}},"bad":[]}}"""
+        assertEquals(mapOf("good" to on), SyncDoc.values(SyncDoc.decode(partial), "settings/tv"))
+        assertFailsWith<SyncDoc.UnreadableFormatException> { SyncDoc.decodeRemote(partial) }
+        assertFailsWith<SyncDoc.UnreadableFormatException> { SyncDoc.decodeRemote("") }
+        assertFailsWith<SyncDoc.UnreadableFormatException> { SyncDoc.decodeRemote("""{"v":1}""") }
+        assertEquals(emptyMap(), SyncDoc.decodeRemote(SyncDoc.encode(emptyMap())))
+    }
+
+    @Test
+    fun canonicalSourceMigrationKeepsCaseSensitiveSiblingsAndTheOldOrder() {
+        val upper = list.copy(url = "https://LISTS.example/A.m3u?ref=Token")
+        val lower = other.copy(url = "https://lists.example/a.m3u?ref=token")
+        val sameHost = upper.copy(url = "HTTPS://lists.example/A.m3u?ref=Token")
+        assertEquals(upper.identity, sameHost.identity)
+        assertEquals(lower.identity, upper.legacyIdentity)
+        kotlin.test.assertNotEquals(upper.identity, lower.identity)
+
+        val prefix = LiveTvSections.prefix(1)
+        val sections = SyncDoc.stamp(emptyMap(), LiveTvSections.toSections(1, withSources(upper), emptyMap()), 1L)
+        val sources = LiveTvSections.sourceSections(1).first()
+        val old = mapOf(
+            sources to mapOf(upper.legacyIdentity to sections.getValue(sources).getValue(upper.identity)),
+            "${prefix}source_order" to mapOf("order" to SyncEntry(JsonArray(listOf(JsonPrimitive(upper.legacyIdentity))), 4L)),
+        )
+        val migrated = LiveTvSections.canonicalSourceKeys(1, old)
+        assertEquals(listOf(upper.identity), LiveTvSections.fromSections(1, migrated).sourceOrder)
+        assertEquals(upper.identity, LiveTvSections.removalIdentity(1, upper.legacyIdentity, old, emptyMap()))
+
+        val newSections = SyncDoc.stamp(emptyMap(), LiveTvSections.toSections(1, withSources(lower), emptyMap()), 10L)
+        val both = SyncDoc.merge(migrated, newSections)
+        assertEquals(setOf(upper.identity, lower.identity), LiveTvSections.fromSections(1, both).sources.map { it.identity }.toSet())
+        assertNull(LiveTvSections.removalIdentity(1, upper.legacyIdentity, both, emptyMap()))
+        assertEquals(lower.identity, LiveTvSections.removalIdentity(1, "v2|${lower.identity}", both, emptyMap()))
     }
 
     private val list = com.nuvio.tv.reshaped.livetv.LiveTvSource("s1", com.nuvio.tv.reshaped.livetv.LiveTvSourceType.M3u, "https://lists.example/a.m3u")

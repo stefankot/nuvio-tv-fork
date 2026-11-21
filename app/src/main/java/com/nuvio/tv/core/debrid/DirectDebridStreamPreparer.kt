@@ -1,5 +1,6 @@
 package com.nuvio.tv.core.debrid
 
+import android.os.SystemClock
 import android.util.Log
 import com.nuvio.tv.core.player.StreamAutoPlaySelector
 import com.nuvio.tv.data.local.DebridSettingsDataStore
@@ -85,7 +86,7 @@ class DirectDebridStreamPreparer @Inject constructor(
             .distinctBy { it.preparationKey() }
         if (candidates.isEmpty()) return emptyList()
 
-        val prioritized = mutableListOf<Stream>()
+        val prioritized = linkedSetOf<Stream>() // Fork hook: debrid-preparation
         val autoPlaySelection = StreamAutoPlaySelector.selectAutoPlayStream(
             streams = streams,
             mode = playerSettings.streamAutoPlayMode,
@@ -96,7 +97,8 @@ class DirectDebridStreamPreparer @Inject constructor(
             selectedPlugins = playerSettings.streamAutoPlaySelectedPlugins
         )
         if (autoPlaySelection?.let { it.isDirectDebrid() || it.isCachedLocalDebridTorrent() } == true) {
-            candidates.firstOrNull { it.preparationKey() == autoPlaySelection.preparationKey() }
+            val selectedKey = autoPlaySelection.preparationKey()
+            candidates.firstOrNull { it.preparationKey() == selectedKey }
                 ?.let(prioritized::add)
         }
 
@@ -107,17 +109,13 @@ class DirectDebridStreamPreparer @Inject constructor(
             if (regex != null) {
                 candidates
                     .filter { candidate ->
-                        prioritized.none { it.preparationKey() == candidate.preparationKey() } &&
-                            regex.containsMatchIn(candidate.searchableText())
+                        candidate !in prioritized && regex.containsMatchIn(candidate.searchableText())
                     }
                     .forEach(prioritized::add)
             }
         }
 
-        candidates
-            .filter { candidate -> prioritized.none { it.preparationKey() == candidate.preparationKey() } }
-            .forEach(prioritized::add)
-
+        if (prioritized.size < limit) prioritized.addAll(candidates)
         return prioritized.take(limit)
     }
 
@@ -145,9 +143,9 @@ class DirectDebridStreamPreparer @Inject constructor(
         }
     }
 
-    private suspend fun consumeBackgroundBudget(): Boolean {
-        val now = System.currentTimeMillis()
-        return budgetMutex.withLock {
+    private suspend fun consumeBackgroundBudget(): Boolean =
+        budgetMutex.withLock {
+            val now = SystemClock.elapsedRealtime()
             minuteStarts.removeOlderThan(now - BACKGROUND_PREPARES_PER_MINUTE_WINDOW_MS)
             hourStarts.removeOlderThan(now - BACKGROUND_PREPARES_PER_HOUR_WINDOW_MS)
             if (
@@ -161,7 +159,6 @@ class DirectDebridStreamPreparer @Inject constructor(
                 true
             }
         }
-    }
 }
 
 private const val MAX_BACKGROUND_PREPARES_PER_MINUTE = 6

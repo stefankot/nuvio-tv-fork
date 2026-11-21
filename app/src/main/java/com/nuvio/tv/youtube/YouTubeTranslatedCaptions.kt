@@ -59,7 +59,7 @@ internal class YouTubeTranslatedCaptions(
         val url = YouTubeMpdServer.segmentUrl(videoId, language, number) ?: return emptyList()
         val body = runCatching {
             http.newCall(Request.Builder().url(url).build()).execute().use { response ->
-                if (response.isSuccessful) response.body.string() else null
+                if (response.isSuccessful) response.body?.string() else null
             }
         }.getOrNull() ?: return emptyList()
         return parse(body)

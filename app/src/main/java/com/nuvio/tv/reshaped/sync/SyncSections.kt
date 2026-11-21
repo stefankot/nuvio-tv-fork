@@ -1,5 +1,6 @@
 package com.nuvio.tv.reshaped.sync
 
+import com.nuvio.tv.reshaped.livetv.EXACT_SOURCE_REMOVAL_PREFIX
 import com.nuvio.tv.reshaped.livetv.LiveTvCustomList
 import com.nuvio.tv.reshaped.livetv.LiveTvRecentChannel
 import com.nuvio.tv.reshaped.livetv.LiveTvSource
@@ -103,6 +104,66 @@ internal object LiveTvSections {
 
     /** The sections of [profileId]'s sources, by identity: links and logins, and imported playlists. */
     fun sourceSections(profileId: Int): List<String> = listOf(sources(profileId), imported(profileId))
+
+    /** Recover exact keys from stored source payloads before merging devices' documents. */
+    fun canonicalSourceKeys(profileId: Int, doc: SyncSections): SyncSections {
+        val changed = doc.toMutableMap()
+        val aliases = HashMap<String, MutableSet<String>>()
+        sourceSections(profileId).forEach { section ->
+            val entries = doc[section] ?: return@forEach
+            val canonical = LinkedHashMap<String, SyncEntry>()
+            entries.forEach { (key, entry) ->
+                val source = (entry.value as? JsonObject)?.toSource()
+                val exact = if (source != null && key == source.legacyIdentity) source.identity else key
+                if (key != exact) aliases.getOrPut(key, ::mutableSetOf).add(exact)
+                val previous = canonical[exact]
+                if (previous == null || entry.time > previous.time || entry.time == previous.time && exact == key) {
+                    canonical[exact] = entry
+                }
+            }
+            changed[section] = canonical
+        }
+        if (aliases.isEmpty()) return doc
+
+        fun keyFor(key: String): String = aliases[key]?.singleOrNull() ?: key
+        val groupSection = sourceGroupOrder(profileId)
+        doc[groupSection]?.let { entries ->
+            val canonical = LinkedHashMap<String, SyncEntry>()
+            entries.forEach { (key, entry) ->
+                val exact = keyFor(key)
+                val previous = canonical[exact]
+                if (previous == null || entry.time > previous.time || entry.time == previous.time && exact == key) {
+                    canonical[exact] = entry
+                }
+            }
+            changed[groupSection] = canonical
+        }
+        val orderSection = sourceOrder(profileId)
+        doc[orderSection]?.let { entries ->
+            val entry = entries["order"]
+            val order = entry?.value as? JsonArray
+            if (entry != null && order != null) {
+                val mapped = order.map { value ->
+                    val key = (value as? JsonPrimitive)?.contentOrNull
+                    if (key == null) value else JsonPrimitive(keyFor(key))
+                }.distinct()
+                changed[orderSection] = entries + ("order" to entry.copy(value = JsonArray(mapped)))
+            }
+        }
+        return changed
+    }
+
+    /** Older pending removals identify one source only when its saved payload is unambiguous. */
+    fun removalIdentity(profileId: Int, key: String, base: SyncSections, remote: SyncSections): String? {
+        if (key.startsWith(EXACT_SOURCE_REMOVAL_PREFIX)) return key.removePrefix(EXACT_SOURCE_REMOVAL_PREFIX)
+        for (doc in listOf(base, remote)) {
+            val candidates = knownSources(profileId, doc).values.mapNotNull { value ->
+                (value as? JsonObject)?.toSource()?.takeIf { it.legacyIdentity == key }?.identity
+            }.distinct()
+            if (candidates.isNotEmpty()) return candidates.singleOrNull()
+        }
+        return key
+    }
 
     /** Every source [doc] has for [profileId], by identity (imported ones from either section). */
     private fun knownSources(profileId: Int, doc: SyncSections): Map<String, JsonElement> =

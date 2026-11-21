@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reshaped_audio_sampling_title">Próbkowanie dźwięku z wyprzedzeniem</string>
+    <string name="reshaped_audio_sampling_description">Wybierz, ile danych AudioSync może wykorzystać na próbki dialogu spoza bieżącego fragmentu.</string>
+    <string name="reshaped_audio_sampling_full">Pełne</string>
+    <string name="reshaped_audio_sampling_limited">Ograniczone</string>
+    <string name="reshaped_audio_sampling_off">Wyłączone</string>
+</resources>

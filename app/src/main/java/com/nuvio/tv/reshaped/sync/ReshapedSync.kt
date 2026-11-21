@@ -37,7 +37,7 @@ internal data class ReshapedSyncStatus(
     val failedDetail: String = "",
 )
 
-internal enum class ReshapedSyncFailure { Network, SignedOut, NewerVersion }
+internal enum class ReshapedSyncFailure { Network, SignedOut, NewerVersion, UnreadableFile }
 
 /**
  * Keeps Reshaped settings and Live TV the same on the viewer's devices, through one small file
@@ -79,7 +79,6 @@ internal object ReshapedSync {
 
     @Volatile private var loaded = false
     @Volatile private var lastForegroundSyncMs = 0L
-    @Volatile private var driveFileId: String? = null
     private var changeJob: Job? = null
 
     /** Nuvio RS hook in NuvioApplication.onCreate: syncs as the app comes and goes. */
@@ -129,13 +128,11 @@ internal object ReshapedSync {
 
     /** A new Google account starts from its own file: forget what the last one had. */
     fun onSignedIn(context: Context) {
-        driveFileId = null
         baseFile(context).delete()
         syncNow(context)
     }
 
     fun onSignedOut(context: Context) {
-        driveFileId = null
         baseFile(context).delete()
         _status.update { it.copy(failed = null) }
     }
@@ -203,26 +200,43 @@ internal object ReshapedSync {
             val savedBase = withContext(Dispatchers.IO) { readBase(context) }
             // A profile syncing into another place than before (it now shares the main profile's)
             // joins what is there: nothing it lacks counts as deleted, what it has is added.
-            val base = if (sectionId != null && lastSection != sectionId) {
+            val profileBase = if (sectionId != null && lastSection != sectionId) {
                 savedBase.filterKeys { !it.startsWith(LiveTvSections.prefix(sectionId)) }
             } else {
                 savedBase
             }
+            val base = sectionId?.let { LiveTvSections.canonicalSourceKeys(it, profileBase) } ?: profileBase
             // Settings are read and set on the main thread, as their screens do.
             val settings = if (settingsOn) withContext(Dispatchers.Main) { ReshapedSyncedSettings.current(context) } else emptyMap()
             val liveTv = profileId?.let { LiveTvRepository.syncSnapshot(context, it) }
-            val removed = profileId?.let { LiveTvRepository.syncRemovedSources(context, it) }.orEmpty()
-            // Imported playlists changed here go up first, so the file can name their copies.
-            val uploads = if (profileId != null && liveTv != null) SyncedPlaylists.uploaded(context, profileId, liveTv.sources) else null
-            val playlists = uploads?.refs.orEmpty()
-            val current = settings + (
+            val pendingRemovals = profileId?.let { LiveTvRepository.syncRemovedSources(context, it) }.orEmpty()
+            fun localSections(playlists: Map<String, SyncedPlaylists.Ref>, removed: Set<String> = emptySet()) = settings + (
                 if (sectionId != null && liveTv != null) LiveTvSections.toSections(sectionId, liveTv, base, playlists, removed) else emptyMap()
             )
-            if (onlyIfChanged && SyncDoc.stamp(base, current, 0L) == base) return
+            if (onlyIfChanged && pendingRemovals.isEmpty() && SyncDoc.stamp(base, localSections(emptyMap()), 0L) == base &&
+                (profileId == null || liveTv == null || !SyncedPlaylists.hasLocalChanges(context, profileId, liveTv.sources))
+            ) return
             _status.update { it.copy(running = true) }
             try {
                 val remoteFile = DriveAppFolder.read(context)
-                val remote = remoteFile.others.fold(SyncDoc.decode(remoteFile.text)) { doc, (_, text) -> SyncDoc.merge(SyncDoc.decode(text), doc) }
+                val primary = remoteFile.primary
+                fun canonical(doc: SyncSections): SyncSections =
+                    sectionId?.let { LiveTvSections.canonicalSourceKeys(it, doc) } ?: doc
+
+                val rawPrimary = primary?.let { SyncDoc.decodeRemote(it.text) }.orEmpty()
+                val canonicalPrimary = canonical(rawPrimary)
+                val remote = remoteFile.others.fold(canonicalPrimary) { doc, copy ->
+                    SyncDoc.merge(canonical(SyncDoc.decodeRemote(copy.text)), doc)
+                }
+                val localSourceKeys = liveTv?.sources.orEmpty().mapTo(HashSet()) { it.identity }
+                val removalKeys = sectionId?.let { section ->
+                    pendingRemovals.associateWith { LiveTvSections.removalIdentity(section, it, profileBase, remote) }
+                }.orEmpty()
+                val removed = removalKeys.values.filterNotNull().toSet() - localSourceKeys
+                // Verify every remote copy before publishing any changes.
+                val uploads = if (profileId != null && liveTv != null) SyncedPlaylists.uploaded(context, profileId, liveTv.sources) else null
+                val playlists = uploads?.refs.orEmpty()
+                val current = localSections(playlists, removed)
                 val now = SyncDoc.stampTime(System.currentTimeMillis(), base, remote)
                 val local = withRemovals(SyncDoc.stamp(base, current, now), sectionId, removed, now)
                 val merged = SyncDoc.prune(
@@ -230,6 +244,9 @@ internal object ReshapedSync {
                     now,
                 )
 
+                if (merged != remote || primary == null || rawPrimary != canonicalPrimary || remoteFile.others.isNotEmpty()) {
+                    DriveAppFolder.write(context, primary, SyncDoc.encode(merged))
+                }
                 if (settingsOn) {
                     withContext(Dispatchers.Main) { ReshapedSyncedSettings.apply(context, settings, merged) }
                 }
@@ -248,32 +265,39 @@ internal object ReshapedSync {
                     // Imported playlists another device sent or changed are fetched before they load.
                     val refs = LiveTvSections.playlistRefs(sectionId, merged)
                     val reload = ArrayList<String>()
-                    val fetched = HashSet<String>()
+                    val attempted = HashMap<String, String>()
+                    val owners = liveTv.sources.associate { it.id to it.identity }.toMutableMap()
                     after.sources.forEach { source ->
                         val ref = refs[source.identity] ?: return@forEach
+                        val owner = owners[source.id]
+                        if (source.id.isBlank() || owner != null && owner != source.identity) return@forEach
+                        owners[source.id] = source.identity
+                        attempted[source.identity] = source.id
                         if (SyncedPlaylists.fetch(context, profileId, source.id, ref)) {
-                            fetched += source.identity
                             if (source.identity in localIds) reload += source.id
                         }
                     }
                     LiveTvRepository.applySync(context, profileId, liveTv, after)
                     reload.forEach { LiveTvRepository.reloadSource(profileId, it) }
-                    // A new source given another id here (its id was taken) fetches under that one.
-                    after.sources.filter { it.identity in fetched && it.identity !in localIds }.forEach { source ->
+                    // A new source whose incoming id collided must download under the assigned id.
+                    after.sources.filter { it.identity in refs && it.identity !in localIds }.forEach { source ->
                         val id = LiveTvRepository.sourceIdFor(context, profileId, source.identity) ?: return@forEach
-                        if (id != source.id && SyncedPlaylists.fetch(context, profileId, id, refs.getValue(source.identity))) {
+                        if (id != attempted[source.identity] && SyncedPlaylists.fetch(context, profileId, id, refs.getValue(source.identity))) {
                             LiveTvRepository.reloadSource(profileId, id)
                         }
                     }
                     // Every profile's copies stay, not only this one's.
                     SyncedPlaylists.deleteUnused(context, LiveTvSections.playlistDriveIds(merged) + playlists.values.map { it.driveId })
                 }
-                if (merged != remote || remoteFile.id == null || remoteFile.others.isNotEmpty()) {
-                    driveFileId = DriveAppFolder.write(context, remoteFile.id ?: driveFileId, SyncDoc.encode(merged))
-                } else {
-                    driveFileId = remoteFile.id
+                remoteFile.others.forEach { copy ->
+                    try {
+                        DriveAppFolder.delete(context, copy.id, copy.etag)
+                    } catch (cancel: CancellationException) {
+                        throw cancel
+                    } catch (_: java.io.IOException) {
+                        // A concurrent edit or transient error leaves the copy for the next merge.
+                    }
                 }
-                remoteFile.others.forEach { (id, _) -> runCatching { DriveAppFolder.delete(context, id) } }
                 uploads?.let { SyncedPlaylists.commit(context, it.sent) }
                 // Only what this device took in moves its base on: another profile's Live TV (or
                 // settings, or Live TV, while their sync is off) stays as this device last had it,
@@ -294,8 +318,12 @@ internal object ReshapedSync {
                 edit.apply()
                 // Removals the file now has (no source section lists them any more) are done.
                 if (profileId != null && sectionId != null) {
-                    val sent = removed.filter { identity ->
-                        LiveTvSections.sourceSections(sectionId).none { merged[it]?.get(identity)?.value != null }
+                    val sent = removalKeys.mapNotNull { (storedKey, identity) ->
+                        if (identity == null) return@mapNotNull null
+                        storedKey.takeIf {
+                            identity in localSourceKeys ||
+                                LiveTvSections.sourceSections(sectionId).none { merged[it]?.get(identity)?.value != null }
+                        }
                     }
                     LiveTvRepository.clearSyncRemoved(context, profileId, sent)
                 }
@@ -308,6 +336,7 @@ internal object ReshapedSync {
                 val failure = when (error) {
                     is DriveAppFolder.SignedOutException -> ReshapedSyncFailure.SignedOut
                     is SyncDoc.NewerFormatException -> ReshapedSyncFailure.NewerVersion
+                    is SyncDoc.UnreadableFormatException -> ReshapedSyncFailure.UnreadableFile
                     else -> ReshapedSyncFailure.Network
                 }
                 _status.update { it.copy(running = false, failed = failure, failedDetail = error.message.orEmpty()) }
@@ -380,11 +409,12 @@ internal object ReshapedSync {
     private fun writeBase(context: Context, sections: SyncSections) {
         val target = baseFile(context)
         target.parentFile?.mkdirs()
-        val temp = File(target.path + ".tmp")
-        temp.writeText(SyncDoc.encode(sections))
-        if (!temp.renameTo(target)) {
-            target.delete()
-            temp.renameTo(target)
+        val temp = File.createTempFile("sync_base_", ".tmp", target.parentFile)
+        try {
+            temp.writeText(SyncDoc.encode(sections))
+            if (!temp.renameTo(target)) throw java.io.IOException("Could not save sync snapshot")
+        } finally {
+            temp.delete()
         }
     }
 

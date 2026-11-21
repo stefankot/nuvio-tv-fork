@@ -128,19 +128,14 @@ internal class LiveTvStorage(context: Context, private val profileId: Int) {
     fun savePlaylistFile(sourceId: String, write: (File) -> Unit): File {
         val target = playlistFileFor(sourceId)
         playlistDir.mkdirs()
-        val temp = File(target.path + ".tmp")
+        val temp = File.createTempFile("playlist_", ".tmp", playlistDir)
         try {
             write(temp)
-        } catch (error: Throwable) {
-            // A failed or too large upload leaves no partial file behind.
+            if (!temp.renameTo(target)) throw java.io.IOException("Could not save playlist")
+            return target
+        } finally {
             temp.delete()
-            throw error
         }
-        if (!temp.renameTo(target)) {
-            target.delete()
-            temp.renameTo(target)
-        }
-        return target
     }
 
     fun deletePlaylistFile(sourceId: String) {
@@ -222,12 +217,17 @@ internal class LiveTvStorage(context: Context, private val profileId: Int) {
     }
 
     /** Each source's own category order (see [LiveTvUiState.sourceGroupOrders]), by source identity. */
-    fun sourceGroupOrders(): Map<String, List<String>> = runCatching {
+    fun sourceGroupOrders(knownSources: List<LiveTvSource> = sources()): Map<String, List<String>> = runCatching {
         val json = JSONObject(string(SOURCE_GROUP_ORDER) ?: return emptyMap())
-        json.keys().asSequence().associateWith { key ->
+        val orders = json.keys().asSequence().associateWith { key ->
             val array = json.optJSONArray(key)
             (0 until (array?.length() ?: 0)).mapNotNull { array?.optString(it) }
-        }.filterValues { it.isNotEmpty() }
+        }.filterValues { it.isNotEmpty() }.toMutableMap()
+        knownSources.groupBy(LiveTvSource::legacyIdentity).forEach { (legacy, matches) ->
+            val exact = matches.singleOrNull()?.identity ?: return@forEach
+            if (legacy != exact) orders.remove(legacy)?.let { orders.putIfAbsent(exact, it) }
+        }
+        orders
     }.getOrDefault(emptyMap())
 
     fun saveSourceGroupOrders(orders: Map<String, List<String>>) {
@@ -270,7 +270,13 @@ internal class LiveTvStorage(context: Context, private val profileId: Int) {
         string(SYNC_REMOVED)?.lineSequence()?.filter(String::isNotBlank)?.toHashSet().orEmpty()
 
     fun markSyncRemoved(identity: String) {
-        prefs.edit().putOrRemove(SYNC_REMOVED, (syncRemovedSources() + identity).joinToString("\n")).apply()
+        prefs.edit().putOrRemove(SYNC_REMOVED, (syncRemovedSources() + (EXACT_SOURCE_REMOVAL_PREFIX + identity)).joinToString("\n")).apply()
+    }
+
+    fun clearSyncRemovedFor(source: LiveTvSource) {
+        val exact = EXACT_SOURCE_REMOVAL_PREFIX + source.identity
+        val legacy = source.legacyIdentity.takeIf { it == source.identity }
+        clearSyncRemoved(listOfNotNull(exact, legacy))
     }
 
     /** Sync sent [identities]' removal; a source added back later is no longer removed. */

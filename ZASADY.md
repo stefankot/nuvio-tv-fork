@@ -35,6 +35,7 @@ Stare wersje: `plan/archiwum/zasady/` i historia gita.
 - Nigdy `./gradlew --stop`, `pkill` demona ani zatrzymywanie cudzego buildu.
 - Build tylko z DUŻEJ paczki poprawek, nigdy dla jednej. Drobne poprawki: commit bez buildu, lista paczki w `plan/TERAZ.md`; testy w tym czasie na ostatnim APK.
 - Jedna architektura: JMGO/Xiaomi `-PforkAbi=armeabi-v7a`, emulator `-PforkAbi=arm64-v8a`.
+- Buildy wykonywane przez Codexa zawsze dają jeden APK ARM32 z `-PforkAbi=armeabi-v7a` (21.11.2026).
 - Przed buildem: `df -h ~` (ok. 15 GB wolne), zamknij zbędne procesy (emulator). Pilnuj CPU.
 - W czasie builda nie czekaj bezczynnie: pisz dalej w `.stage/` (nie ruszaj plików, które Gradle czyta).
 

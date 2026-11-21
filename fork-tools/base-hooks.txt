@@ -27,3 +27,7 @@ app/src/main/java/com/nuvio/tv/ui/screens/account/AuthQrSignInScreen.kt
 app/src/main/AndroidManifest.xml
 app/src/main/res/xml/file_paths.xml
 app/src/main/java/com/nuvio/tv/ui/screens/cast/CastDetailScreen.kt
+app/src/main/java/com/nuvio/tv/core/debrid/DirectDebridStreamPreparer.kt
+app/src/test/java/com/nuvio/tv/core/debrid/DirectDebridStreamPreparerTest.kt
+app/src/test/java/com/nuvio/tv/core/player/StreamAutoPlaySelectorTest.kt
+gradle.properties

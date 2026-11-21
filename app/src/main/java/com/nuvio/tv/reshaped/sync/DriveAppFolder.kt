@@ -14,11 +14,10 @@ import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 
-/**
- * The synced file as read: its Drive id (null when there is none yet) and text. [others] are
- * copies two devices created at once on their first sync; sync merges them in, then deletes them.
- */
-internal data class DriveSyncFile(val id: String?, val text: String?, val others: List<Pair<String, String>> = emptyList())
+internal data class DriveDocument(val id: String, val text: String, val etag: String?)
+
+/** [others] are copies made in parallel on first sync. They are merged before cleanup. */
+internal data class DriveSyncFile(val primary: DriveDocument?, val others: List<DriveDocument> = emptyList())
 
 /**
  * Reads and writes Reshaped's one file in the viewer's Google Drive. With the drive.file scope
@@ -44,42 +43,54 @@ internal object DriveAppFolder {
         val files = call(context) { token -> Request.Builder().url(listUrl).header("Authorization", "Bearer $token").build() }
             .let { JSONObject(it).optJSONArray("files") ?: JSONArray() }
         val ids = (0 until files.length()).mapNotNull { files.optJSONObject(it)?.optString("id")?.takeIf(String::isNotBlank) }
-        val id = ids.firstOrNull() ?: return DriveSyncFile(null, null)
-        val others = ids.drop(1).mapNotNull { other -> runCatching { other to download(context, other) }.getOrNull() }
-        return DriveSyncFile(id, download(context, id), others)
+        val id = ids.firstOrNull() ?: return DriveSyncFile(null)
+        val primary = readDocument(context, id)
+        val others = ids.drop(1).mapNotNull { other ->
+            try {
+                readDocument(context, other)
+            } catch (_: NotFoundException) {
+                null
+            }
+        }
+        return DriveSyncFile(primary, others)
     }
 
-    private suspend fun download(context: Context, id: String): String = call(context) { token ->
-        Request.Builder().url("$FILES_URL/$id?alt=media").header("Authorization", "Bearer $token").build()
-    }
+    private suspend fun readDocument(context: Context, id: String): DriveDocument = rawCall(
+        context,
+        build = { token ->
+            Request.Builder().url("$FILES_URL/$id?alt=media").header("Authorization", "Bearer $token").build()
+        },
+        read = { response -> DriveDocument(id, response.body?.string().orEmpty(), response.header("ETag")) }
+    )
 
     /** Deletes the file [id]; one already gone is fine. */
-    suspend fun delete(context: Context, id: String) {
+    suspend fun delete(context: Context, id: String, etag: String? = null) {
         try {
-            call(context) { token -> Request.Builder().url("$FILES_URL/$id").header("Authorization", "Bearer $token").delete().build() }
+            call(context) { token ->
+                Request.Builder().url("$FILES_URL/$id").header("Authorization", "Bearer $token")
+                    .apply { etag?.let { header("If-Match", it) } }
+                    .delete().build()
+            }
         } catch (gone: NotFoundException) {
             // Deleted by the other device meanwhile.
         }
     }
 
-    /** Writes [text] to the file [id], or a new file when [id] is null. Returns the file's id. */
-    suspend fun write(context: Context, id: String?, text: String): String {
-        if (id != null) {
-            val updated = runCatching {
-                call(context) { token ->
-                    Request.Builder()
-                        .url("$UPLOAD_URL/$id?uploadType=media&fields=id")
-                        .header("Authorization", "Bearer $token")
-                        .patch(text.toRequestBody(JSON))
-                        .build()
-                }
+    /** Updates the read version when Drive supplies an ETag, or creates the first copy. */
+    suspend fun write(context: Context, document: DriveDocument?, text: String) {
+        if (document != null) {
+            call(context) { token ->
+                Request.Builder()
+                    .url("$UPLOAD_URL/${document.id}?uploadType=media&fields=id")
+                    .header("Authorization", "Bearer $token")
+                    .apply { document.etag?.let { header("If-Match", it) } }
+                    .patch(text.toRequestBody(JSON))
+                    .build()
             }
-            updated.exceptionOrNull()?.let { error -> if (error !is NotFoundException) throw error }
-            if (updated.isSuccess) return id
-            // The file was deleted meanwhile (the viewer cleared the app's Drive data): create it again.
+            return
         }
         val metadata = JSONObject().put("name", FILE_NAME).put("mimeType", "application/json").toString()
-        val created = call(context) { token ->
+        call(context) { token ->
             val body = MultipartBody.Builder()
                 .setType("multipart/related".toMediaType())
                 .addPart(metadata.toRequestBody(JSON))
@@ -91,7 +102,6 @@ internal object DriveAppFolder {
                 .post(body)
                 .build()
         }
-        return JSONObject(created).getString("id")
     }
 
     /** A Drive file Reshaped made (an imported playlist's copy): its id and when it last changed. */
@@ -182,6 +192,7 @@ internal object DriveAppFolder {
         isSuccessful -> body?.string().orEmpty()
         code == 401 -> null
         code == 404 -> throw NotFoundException()
+        code == 412 -> throw IOException("Drive sync file changed during sync")
         else -> {
             // Google's reason (Drive API not enabled, quota) so the settings can show it.
             val reason = runCatching { JSONObject(body?.string().orEmpty()).optJSONObject("error")?.optString("message") }.getOrNull()

@@ -4,6 +4,13 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class RankedRegexRulesTest {
+    @Test fun `best match preserves priorities and ties without accepting an incomplete pass`() {
+        val rules = RankedRegexRules.create(listOf("2160p", "1080p"))!!
+        val input = listOf("1080p first", "2160p first", "2160p second")
+        assertEquals(rules.rank(input) { it }?.firstOrNull(), rules.bestMatch(input) { it })
+        assertNull(rules.bestMatch(input + "x".repeat(32769)) { it })
+    }
+
     @Test fun `higher priority beats arrival order and multiple lower matches`() {
         val rules = RankedRegexRules.create(listOf("remux", "2160p", "web", "1080p"))!!
         assertEquals(

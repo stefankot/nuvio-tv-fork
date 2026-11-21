@@ -186,7 +186,7 @@ class PackProbe internal constructor(
             return response.request.url.resolve(location)?.let { Fetched.Redirect(it) } ?: Fetched.Failed
         }
         if (!response.isSuccessful) return Fetched.Failed
-        val source = response.body.source()
+        val source = response.body?.source() ?: return Fetched.Failed
         val buffer = Buffer()
         while (buffer.size < cap) {
             if (source.read(buffer, cap - buffer.size) == -1L) break

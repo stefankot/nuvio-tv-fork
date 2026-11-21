@@ -5,8 +5,6 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
 
@@ -24,12 +22,14 @@ internal typealias SyncSections = Map<String, Map<String, SyncEntry>>
  */
 internal object SyncDoc {
     const val VERSION = 1
+    private const val MAX_TIMESTAMP = Long.MAX_VALUE - 1
     /** Deletions older than this are forgotten; a device offline longer may bring the value back. */
     const val TOMBSTONE_MS = 60L * 24 * 60 * 60 * 1000
 
     private val json = Json { ignoreUnknownKeys = true }
 
     class NewerFormatException : Exception("Sync file was written by a newer app version")
+    class UnreadableFormatException : Exception("Sync file is incomplete or unreadable")
 
     fun encode(sections: SyncSections): String = buildJsonObject {
         put("v", VERSION)
@@ -48,19 +48,32 @@ internal object SyncDoc {
         })
     }.toString()
 
-    /** The sections in [text]; empty for a blank or unreadable file. Throws for a newer format. */
-    fun decode(text: String?): SyncSections {
-        if (text.isNullOrBlank()) return emptyMap()
-        val root = runCatching { json.parseToJsonElement(text).jsonObject }.getOrNull() ?: return emptyMap()
-        val version = (root["v"] as? JsonPrimitive)?.longOrNull ?: return emptyMap()
+    /** Recovers readable sections from the local snapshot. Throws for a newer format. */
+    fun decode(text: String?): SyncSections = decode(text, strict = false)
+
+    /** A partial remote document is unsafe to merge and write back. */
+    fun decodeRemote(text: String): SyncSections = decode(text, strict = true)
+
+    private fun decode(text: String?, strict: Boolean): SyncSections {
+        fun invalid(): Nothing? {
+            if (strict) throw UnreadableFormatException()
+            return null
+        }
+
+        if (text.isNullOrBlank()) return invalid() ?: emptyMap()
+        val root = runCatching { json.parseToJsonElement(text) as? JsonObject }.getOrNull()
+            ?: return invalid() ?: emptyMap()
+        val version = (root["v"] as? JsonPrimitive)?.longOrNull ?: return invalid() ?: emptyMap()
         if (version > VERSION) throw NewerFormatException()
-        val sections = root["s"] as? JsonObject ?: return emptyMap()
-        return sections.mapNotNull { (name, value) ->
-            val entries = (value as? JsonObject)?.mapNotNull { (key, raw) ->
-                val entry = raw as? JsonObject ?: return@mapNotNull null
-                val time = entry["t"]?.jsonPrimitive?.longOrNull ?: return@mapNotNull null
+        if (version != VERSION.toLong()) return invalid() ?: emptyMap()
+        val sections = root["s"] as? JsonObject ?: return invalid() ?: emptyMap()
+        return sections.mapNotNull section@{ (name, value) ->
+            val entries = (value as? JsonObject)?.mapNotNull entry@{ (key, raw) ->
+                val entry = raw as? JsonObject ?: return@entry invalid()
+                val time = (entry["t"] as? JsonPrimitive)?.longOrNull
+                    ?.takeIf { it in 0..MAX_TIMESTAMP } ?: return@entry invalid()
                 key to SyncEntry(entry["v"], time)
-            }?.toMap() ?: return@mapNotNull null
+            }?.toMap() ?: return@section invalid()
             name to entries
         }.toMap()
     }
@@ -135,6 +148,9 @@ internal object SyncDoc {
      * The time for this device's edits: its clock, but never before an edit it has already seen,
      * so a TV whose clock is behind still wins over what it saw earlier.
      */
-    fun stampTime(clock: Long, vararg seen: SyncSections): Long =
-        maxOf(clock, (seen.maxOfOrNull(::latestTime) ?: 0L) + 1)
+    fun stampTime(clock: Long, vararg seen: SyncSections): Long {
+        val latest = seen.maxOfOrNull(::latestTime) ?: 0L
+        val next = latest.coerceAtMost(MAX_TIMESTAMP - 1) + 1
+        return maxOf(clock, next).coerceAtMost(MAX_TIMESTAMP)
+    }
 }

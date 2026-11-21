@@ -9,11 +9,17 @@ object StreamRegexRanking {
 
     fun rank(
         streams: List<Stream>, patterns: List<String>, checkCancelled: () -> Unit = {}
-    ): List<Stream>? {
+    ): List<Stream>? = compile(patterns)?.rank(streams, checkCancelled = checkCancelled, text = ::searchableText)
+
+    fun bestMatch(
+        streams: List<Stream>, patterns: List<String>, checkCancelled: () -> Unit = {}
+    ): Stream? = compile(patterns)?.bestMatch(streams, checkCancelled = checkCancelled, text = ::searchableText)
+
+    private fun compile(patterns: List<String>): RankedRegexRules? {
         val compiled = cached?.takeIf { it.patterns == patterns } ?: Compiled(
             patterns.toList(), RankedRegexRules.create(patterns)
         ).also { cached = it }
-        return compiled.rules?.rank(streams, checkCancelled = checkCancelled, text = ::searchableText)
+        return compiled.rules
     }
 
     fun searchableText(stream: Stream): String = buildString {
