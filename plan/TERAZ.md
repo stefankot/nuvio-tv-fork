@@ -4,6 +4,10 @@ Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–1
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
 
+## Jakość po włączeniu lektora na JMGO (21.11)
+
+APK ARM32 z poprawką `ff8a3906a` przetestowany na projektorze. 4K pozostało po krótkich przerwach i przewinięciu. Długi zastój dał wznowienie w 1080p od 17,831 s. [Pomiary i opis](autoplay/AUTOJAKOSC_PO_LEKTORZE.md).
+
 ## Autoodtwarzanie na JMGO (21.11, po buildzie 162o)
 
 Na JMGO jest APK ARM32 z poprawką autoodtwarzania i napisów (`25b549162`, scalenie `2f6fab0a1`, MD5 `7e3a155cc2304eba31be558fe8ec9049`). Na fizycznym projektorze sprawdzono zmianę źródła przy braku obrazu, wznowienie po awarii HLS, wyczerpanie prób i użycie polskich napisów z innego wydania. [Opis zmian i pomiary](autoplay/AUTOODTWARZANIE_I_NAPISY.md). Kolejka paczki poniżej pozostaje w historii wątku.
