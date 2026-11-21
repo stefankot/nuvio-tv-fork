@@ -10,6 +10,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.nuvio.tv.R
+import com.nuvio.tv.fork.dublagem.PolishDubbing
 
 private fun LazyListScope.echoSwitch(key: String, title: String, subtitle: String) {
     item(key = "fork_echo_$key") {
@@ -40,6 +43,15 @@ private fun LazyListScope.echoCycle(key: String, title: String, subtitle: String
 
 /** Echo: jakość, przełączanie źródeł i menu języka audio. Wszystko domyślnie WYŁĄCZONE (nieprzetestowane). Działa od następnego odtwarzania. */
 internal fun LazyListScope.echoPlaybackSettingsItems() {
+    item(key = PolishDubbing.KEY) {
+        val context = LocalContext.current
+        var enabled by remember { mutableStateOf(PolishDubbing.enabled(context)) }
+        ToggleSettingsItem(
+            icon = Icons.Default.Tune, title = stringResource(R.string.dublagem_setting_title),
+            subtitle = stringResource(R.string.dublagem_setting_description), isChecked = enabled,
+            onCheckedChange = { enabled = it; ForkFeatures.set(context, PolishDubbing.KEY, it) },
+        )
+    }
     item(key = "fork_detail_preload") {
         val context = LocalContext.current
         var on by remember { mutableStateOf(ForkFeatures.enabled(context, "fork_detail_preload", default = true)) }

@@ -56,6 +56,7 @@ internal fun PlayerRuntimeController.releasePlayer(
     }
 
     isReleasingPlayer = true
+    com.nuvio.tv.fork.dublagem.PolishDubbing.release(this) // Fork hook: Dublagem zwolnienie drugiego źródła
     com.nuvio.tv.core.connection.PlaybackThroughput.finish()
     com.nuvio.tv.core.recommendations.TvRecommendationManager.isPlaybackActive.value = false
     if (flushPlaybackState) {

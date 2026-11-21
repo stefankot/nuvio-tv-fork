@@ -1621,6 +1621,7 @@ fun PlayerRuntimeController.onEvent(
             seekToChapter(chapter.startMs)
         }
         is PlayerEvent.OnSelectAudioTrack -> {
+            com.nuvio.tv.fork.dublagem.PolishDubbing.onManualSelection(this) // Fork hook: Dublagem ręczny wybór audio
             logSwitchTrace(
                 stage = "event-select-audio",
                 message = "index=${event.index}"
