@@ -5,6 +5,9 @@ Zadania, których nie dało się dokończyć. Przeglądaj na początku każdego 
 Format wpisu:
 
 ```
+## YouTube w „Oglądaj dalej” nie odtwarza (21.11, JMGO build157)
+OK na pozycji `youtube:<id>` w „Oglądaj dalej” → baza: „odtwarzanie niedostępne” (żaden dodatek nie obsługuje typu youtube); moduł YouTube nie ma odtwarzania po samym identyfikatorze (`YouTubeViewModel.activate` wymaga `YtItem` z obiektem silnika). Do zrobienia w module YouTube (np. `playById`), potem Niunia/Kicia mogą go wołać.
+
 ## Napisy YouTube podwójne (21.11, test JMGO build155)
 Tłumaczone napisy YouTube (Nuvio One + `YouTubeMpdServer`/`YouTubeCaptionTranslation`) pokazują każdą linię dwa razy (tekst wiersza „X\nX”). To moduł YouTube, nie skórka Niunia — zostawione dla wątku YouTube.
 

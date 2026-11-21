@@ -489,7 +489,16 @@ internal fun niuniaQualityGlyph(videoHeight: Int?, streamName: String?): String?
 internal fun NiuniaMorePanel(series: Boolean, speed: Float, close: () -> Unit, onEvent: (PlayerEvent) -> Unit, toast: (String) -> Unit) {
     val ctx = LocalContext.current
     val first = remember { FocusRequester() }
-    LaunchedEffect(Unit) { try { first.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus panelu: ${e.message}") } }
+    // Test JMGO build157: otwarty z panelu audio („Więcej opcji”) tracił fokus, gdy znikał panel audio (koniec animacji) —
+    // prośba o fokus od razu i ponownie po animacji, aż się uda.
+    LaunchedEffect(Unit) {
+        var ok = false
+        for (wait in longArrayOf(0, 120, 250, 400)) {
+            kotlinx.coroutines.delay(wait)
+            ok = try { first.requestFocus(); true } catch (e: IllegalStateException) { false }
+        }
+        Log.i(TAG, "odtwarzacz: panel Więcej, fokus startowy ${if (ok) "Źródła" else "brak"}")
+    }
     val shape = RoundedCornerShape(topStart = 28.dp, bottomStart = 28.dp)
     Column(
         Modifier
