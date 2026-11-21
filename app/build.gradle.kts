@@ -586,6 +586,7 @@ dependencies {
     add("fullImplementation", libs.crypto.js)
     // QR code + local server for addon management
     implementation(libs.nanohttpd)
+    implementation("edu.emory.mathcs:JTransforms:2.4") // Fork hook: Dublagem vendor FFT
     implementation(libs.zxing.core)
 
 
