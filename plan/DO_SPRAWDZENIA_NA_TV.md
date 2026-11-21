@@ -45,3 +45,16 @@ Lista dla właściciela. Wykonawca dopisuje tu wszystko, czego nie da się spraw
 - Nastroje: Ustawienia (Prosty) → „Na co masz ochotę?”: wymaga klucza TMDB w `local.properties`; bez niego komunikat „Brak klucza TMDB”.
 - „Sterowanie głosem: przykłady poleceń” — lista przykładów.
 - Ustawienia 3 tryby (19.11): Zaawansowany — szyna „Szukaj” + 7 kategorii, ▶ do podkategorii, OK otwiera; Wstecz z panelu/kategorii wraca do drzewa; fokus w panelu grup Reshaped (np. Odtwarzanie → Dźwięk i obraz). Prosty — wiersz „Szukaj” nad kategoriami otwiera wyszukiwarkę. NOOB — nowy wygląd, przełączniki z plakietką, wybór poziomu. Pełne ustawienia (wyłącznik `fork_settings_nav` off): ▲ z pierwszej kategorii → „Szukaj w ustawieniach”.
+
+## Paczka „oczywiste” (21.11, gałąź `claude/paczka-oczywiste`)
+- Pkt 1: archiwum IPTV — pasek pokazuje długość programu z EPG (nie 24 h); log `ForkNiunia: odtwarzacz: archiwum — długość z EPG`.
+- Pkt 2: w archiwum Wstecz wychodzi bez pytania (`ForkTv: archiwum: Wstecz → wyjście bez pytania`), ▲▼ zmienia kanał od razu; po powrocie fokus na kaflu/kanale (`live tv: fokus wraca na …`).
+- Pkt 3: kanał IPTV bez okna „Brak polskich napisów” (`okno napisów AI: pominięte (IPTV)`).
+- Pkt 4: film — ◀▶ na pasku pokazuje miniatury nad paskiem (wymaga wygenerowanych klatek; pierwszy seans może ich nie mieć).
+- Pkt 5: kanały bez logo pokazują nazwę (`logo kanału …: … → nazwa`).
+- Pkt 6: filtr kategorii w Live TV — np. „TVN”, „Polsat” w „Ogólne” (`ForkKiciaLivetv: kategoria kanału …`, poziom debug).
+- Pkt 7: „Beverly Hills Chihuahua” — na starcie polskie napisy (`ForkSubs: polskie napisy: …`), lektor czyta jedną polską ścieżkę (`ForkLektor: źródło: …`). Wymaga tego filmu i dodatku z włoskimi napisami.
+- Pkt 8: SŁUCHOWO (tylko właściciel): lektor 100% = dawne 30%; „bez ściszania” — film tak głośny jak bez lektora (`PCM (lektor wł.): normalizacja downmiksu=false`).
+- Pkt 9: typografia Satoshi na szczegółach programu archiwum i ekranach Nuvio (ocena wzrokowa).
+- Pkt 10–11: plakaty w „Więcej podobnych” pionowe, karty stosu przezroczyste (ocena wzrokowa).
+- Pkt 12: wyszukiwarka Niuni → „Powiedz” → „Słucham…”; log `ForkVoice: przycisk głosu (wyszukiwarka): systemowe=…`. Mowa do mikrofonu — tylko właściciel.

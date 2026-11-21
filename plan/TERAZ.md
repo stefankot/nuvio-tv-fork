@@ -3,6 +3,16 @@
 Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–13: `plan/archiwum/TERAZ-historia-watki-1-13.md` (tylko `grep`, nie czytaj całości).
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
+
+## NAJPIERW (paczka „oczywiste” 1–12, zapis 21.11 ~15:30) — po „kontynuuj” rób to, po kolei, bez pytań
+Gałąź `claude/paczka-oczywiste` (worktree `NuvioFork/.claude/worktrees/paczka-oczywiste`, od `claude/nuvio-tv-handoff-batch-1-4537d7` + scalone bea47e881). Opis zmian: `plan/DECYZJE.md` (21.11 Paczka „oczywiste”). check.sh OK (63).
+**build161o NA JMGO** (v7a, z worktree paczki, commit 82eeaa75d; BUILD SUCCESSFUL 16 min — pierwszy build w nowym katalogu, swap prawie pełny; md5 b12c8098159cb5ad2e962b98af8a2e48 zgodny po `adb pull`, `compile -m speed`). NIC jeszcze nie przetestowane na TV.
+KOLEJKA:
+1. Test każdego punktu na JMGO wg `plan/DO_SPRAWDZENIA_NA_TV.md` sekcja „Paczka »oczywiste«” (uiautomator, `source fork-tools/niunia/walk.sh`, fokus na celu; ostrożnie — ktoś może oglądać). Logi: `ForkNiunia`, `ForkTv`, `ForkSubs`, `ForkLektor`, `ForkVoice`, `ForkAiSubtitles`.
+2. Pkt 1 — przyczyna „24 h” ustalona z kodu (nakładka filmowa Niuni brała długość strumienia panelu; komentarz Kicii „24 h ahead live, the archive's whole recording”), NIE potwierdzona na TV. Jeśli 24 h nadal widać — sprawdzić, która nakładka je pokazuje (Kicia MiniGuide? baza?).
+3. Pkt 8 (słuchowo) i 12 (mowa) — tylko właściciel; pkt 7 wymaga filmu „Beverly Hills Chihuahua” z włoskimi napisami.
+4. Błędy → poprawki w paczce → jeden build; potem scalić gałąź z gałęzią aktywnego wątku (bez `main`).
+
 ## NIUNIA — DESIGN SYSTEM v2, PACZKA 1 (wątek 20.11 wieczór, HANDOFF `~/Desktop/nuvio-tv-interface/HANDOFF-niunia.md`)
 Gałąź robocza `claude/nuvio-tv-handoff-batch-1-4537d7` (worktree `.claude/worktrees/…`, od `skin-niunia` 3871a001b). Build z `NuvioFork-build` (odłączony HEAD na commicie paczki).
 Zrobione: generator tokenów `fork-tools/niunia/gen_tokens.py` → `skin/niunia/tokens/NiuniaDesignTokens.kt` + `NiuniaIconPaths.kt` (33 ikony z bundle) + kopia JSON do testów; komponenty `components/Niunia{Atoms,Buttons,Molecules,Organisms,Models}.kt` (NSurface/NText/NIcon/NMedia/NIndicator/NControl, NButton/NTag/NListRow/NMediaCard/NContentBlock, NCollection/NHero/NNavigation tab-pill+sidebar/NOverlay panel/NInput seek; OK/długie OK 520 ms/wciśnięcie 0,97 w `niuniaOk`); mapy fokusu `NiuniaScreens` (czysty Kotlin); ekrany: Główna (hero wg Main + wystający rząd, rzędy wg HomeRows), menu (Sidebar), strona serialu/filmu (hero wg Detail), odtwarzacz (Player + panel). Testy `NiuniaTokensTest`, `NiuniaDsTest`. Decyzje: `plan/DECYZJE.md` (20.11 design system v2).
