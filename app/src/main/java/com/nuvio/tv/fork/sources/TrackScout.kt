@@ -185,6 +185,10 @@ object TrackScout {
             for (i in 0 until ex.trackCount) {
                 val f = ex.getTrackFormat(i)
                 val mime = f.getString(MediaFormat.KEY_MIME).orEmpty()
+                if (f.containsKey(MediaFormat.KEY_DURATION)) {
+                    val trackDuration = f.getLong(MediaFormat.KEY_DURATION) / 1_000L
+                    if (trackDuration > 0) durationMs = maxOf(durationMs ?: 0L, trackDuration)
+                }
                 val lang = lang(f.getString(MediaFormat.KEY_LANGUAGE))
                 when {
                     mime.startsWith("audio/") -> audio += DubbingAudioTrack(
@@ -193,7 +197,6 @@ object TrackScout {
                         f.getString("title"),
                     )
                     mime.startsWith("video/") -> {
-                        if (f.containsKey(MediaFormat.KEY_DURATION)) durationMs = f.getLong(MediaFormat.KEY_DURATION) / 1_000L
                         frameRate = f.optionalFrameRate()
                     }
                     mime.startsWith("text/") || mime.startsWith("application/x-subrip") ||

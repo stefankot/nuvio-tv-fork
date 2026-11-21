@@ -310,6 +310,7 @@ internal fun PlayerRuntimeController.updateAvailableTracks(tracks: Tracks) {
     // Fork hook: sources. TrackScout and ranking prefer Polish in automatic sessions.
     // Once a source is playable, a missing preferred language does not make it fail.
     if (autoSourceRecovery == null && !com.nuvio.tv.fork.echo.isSourceSwitching(this) && !hasRenderedFirstFrame &&
+        !com.nuvio.tv.fork.dublagem.PolishDubbing.supportsCurrentSource(this) && // Fork hook: Dublagem audio po starcie
         com.nuvio.tv.fork.ForkHooks.wantsNextSourceForAudio(
             context, audioTracks.map { it.language }, sourceFallbackAttempts, streamAutoPlayFallbackMaxSources
         )

@@ -153,3 +153,4 @@ app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerLifecycl
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerPlaybackEvents.kt	// Fork hook: Dublagem ręczny wybór audio	is PlayerEvent.OnSelectAudioTrack -> {	dublagem	ręczny wybór audio
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerAutoSourceRecovery.kt	// Fork hook: Dublagem powrót po zatrzymaniu drugiego źródła	val stalled = bufferingSince?.let { now - it >= PLAYBACK_STALL_MS } == true	dublagem	powrót po zatrzymaniu drugiego źródła
 app/build.gradle.kts	// Fork hook: Dublagem vendor FFT	implementation(libs.nanohttpd)	dublagem	Biblioteka FFT z Dublagem
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerTracks.kt	// Fork hook: Dublagem audio po starcie	autoSourceRecovery == null	dublagem	Poczekaj na dobranie polskiej ścieżki

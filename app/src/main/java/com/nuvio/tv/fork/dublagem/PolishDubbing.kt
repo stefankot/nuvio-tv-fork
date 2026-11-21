@@ -29,6 +29,7 @@ import com.nuvio.app.features.player.DubbingSyncRequest
 import com.nuvio.app.features.player.DubbingSyncResult
 import com.nuvio.tv.R
 import com.nuvio.tv.core.network.NetworkResult
+import com.nuvio.tv.core.stream.ReleaseFactsParser
 import com.nuvio.tv.core.streams.smart.ReleaseParser
 import com.nuvio.tv.domain.model.Stream
 import com.nuvio.tv.fork.ForkLog
@@ -101,15 +102,21 @@ internal object PolishDubbing {
 
     fun enabled(context: Context): Boolean = ForkFeatures.enabled(context, KEY, default = true)
 
+    fun supportsCurrentSource(owner: PlayerRuntimeController): Boolean {
+        if (!enabled(owner.context) || owner.isUsingMpvEngine() || owner._uiState.value.isTorrentStream) return false
+        if (owner.contentType != "movie" && owner.contentType != "series") return false
+        val url = owner.currentStreamUrl
+        return isHttp(url) &&
+            Util.inferContentTypeForUriAndMimeType(Uri.parse(url), owner.currentStreamMimeType) == C.CONTENT_TYPE_OTHER
+    }
+
     fun onPlaying(owner: PlayerRuntimeController) {
-        if (!enabled(owner.context) || owner.isUsingMpvEngine()) return
+        if (!supportsCurrentSource(owner)) return
         val exo = owner._exoPlayer ?: return
-        if (!exo.isPlaying || !exo.isCurrentMediaItemSeekable || owner._uiState.value.isTorrentStream) return
+        if (!exo.isPlaying || !exo.isCurrentMediaItemSeekable) return
         val type = owner.contentType ?: return
-        if (type != "movie" && type != "series") return
         val videoId = owner.currentVideoId ?: owner.contentId ?: return
         val url = owner.currentStreamUrl
-        if (!isHttp(url) || Util.inferContentTypeForUriAndMimeType(Uri.parse(url), owner.currentStreamMimeType) != C.CONTENT_TYPE_OTHER) return
         if (sessions[owner]?.let { it.videoId == videoId && it.url == url && it.player.get() === exo } == true) return
         release(owner)
         val session = Session(type, videoId, url, WeakReference(exo))
@@ -172,6 +179,17 @@ internal object PolishDubbing {
         if (duration < 48_000L) return
         val candidates = findDonors(owner, session, edition, internal?.track)
         if (candidates.isEmpty() || !isCurrent(owner, session)) return
+        val canAnalyze = withTimeoutOrNull(7_000L) {
+            while (exo.totalBufferedDuration < 4_000L) {
+                if (!isCurrent(owner, session) || session.manualAudio) return@withTimeoutOrNull false
+                delay(250L)
+            }
+            true
+        } == true
+        if (!canAnalyze) {
+            Log.i(TAG, "kept current audio: not enough buffer for background analysis")
+            return
+        }
 
         val primary = PlayerMediaSourceFactory.normalizePlaybackRequest(session.url, owner.currentHeaders)
         val a = analysisSource(primary.url, primary.headers, reference.track, duration, "A")
@@ -241,7 +259,8 @@ internal object PolishDubbing {
                     (internal == null || DubbingAudioTrack.quality.compare(track, internal) > 0) &&
                     decoderSupport.getOrPut(track) { canPlay(owner.context, track) }
             }.map { Donor(stream, info, it) }
-        }.sortedWith(compareByDescending(DubbingAudioTrack.quality) { it.audio })
+        }.sortedWith(compareByDescending<Donor, DubbingAudioTrack>(DubbingAudioTrack.quality) { it.audio }
+            .thenBy { it.stream.behaviorHints?.videoSize ?: ReleaseFactsParser.factsFor(it.stream).size ?: Long.MAX_VALUE })
     }
 
     private fun canPlay(context: Context, track: DubbingAudioTrack): Boolean {
