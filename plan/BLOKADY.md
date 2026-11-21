@@ -8,6 +8,9 @@ Format wpisu:
 ## YouTube w „Oglądaj dalej” nie odtwarza (21.11, JMGO build157)
 OK na pozycji `youtube:<id>` w „Oglądaj dalej” → baza: „odtwarzanie niedostępne” (żaden dodatek nie obsługuje typu youtube); moduł YouTube nie ma odtwarzania po samym identyfikatorze (`YouTubeViewModel.activate` wymaga `YtItem` z obiektem silnika). Do zrobienia w module YouTube (np. `playById`), potem Niunia/Kicia mogą go wołać.
 
+## Angielska nakładka synchronizacji napisów (21.11, JMGO build159)
+W odtwarzaczu filmu duża nakładka „Syncing subtitles to audio… / Listened 39s ahead / Speech recognition: not used…” po angielsku na środku ekranu (Reshaped `ui/screens/player/audiosync/SubtitleSyncStatusOverlay.kt`, teksty `audio_sync_strings.xml`). Moduł Reshaped, nie skórka; tłumaczenia zakazane bez zgody (ZASADY §1) — do decyzji właściciela (ukryć poza trybem diagnostycznym?).
+
 ## Napisy YouTube podwójne (21.11, test JMGO build155)
 Tłumaczone napisy YouTube (Nuvio One + `YouTubeMpdServer`/`YouTubeCaptionTranslation`) pokazują każdą linię dwa razy (tekst wiersza „X\nX”). To moduł YouTube, nie skórka Niunia — zostawione dla wątku YouTube.
 
