@@ -1,0 +1,82 @@
+22:58:27.659 I/ForkEcho(13653): auto jakość: języki źródeł policzone w tle w 1 ms
+22:58:27.787 I/ForkPerf(13653): first_play start_to_play_ms=7508 key_to_play_ms=-1 host=torrentio.strem.fun
+22:58:42.807 I/ForkEcho(13653): auto jakość: filtr języka 987 źródeł na 4 rdzeniach w 9054 ms
+22:58:42.849 I/ForkEcho(13653): auto jakość: języki źródeł policzone w tle w 9096 ms
+22:59:01.696 I/ForkEcho(13653): auto jakość: języki źródeł policzone w tle w 296 ms
+22:59:01.990 I/EchoPreload(13653): start movie|tt3315342|null|null
+22:59:02.139 I/EchoPreload(13653): done movie|tt3315342|null|null in 148ms
+22:59:11.899 I/EchoPreload(13653): start movie|tt33071426|null|null
+22:59:13.335 I/EchoPreload(13653): done movie|tt33071426|null|null in 1436ms
+22:59:22.097 I/ForkSources(13653): wolny pośrednik 4K za bezpośrednim: przeniesione 86
+22:59:22.097 I/ForkRanking(13653): order: 702 źródeł, polski=pl_if_good napisyPL=true oszczędz=false preferowane=false
+22:59:22.102 I/ForkRanking(13653): #0 Torrentio TB | P2160 | sonda=- napisy=0 | gotowe=true obcyDub=false pl=0 pref=false | [TB+] Torrentio 4k DV | HDR The Drama (2026) [MULTi] [2160p] [UHD] [BluRay] [REMUX] [DV] [HDR] [HEVC] [TrueHD] [Atmos.7.1-R22] [Lektor i nap
+22:59:22.107 I/ForkRanking(13653): #1 Torrentio TB | P2160 | sonda=- napisy=0 | gotowe=true obcyDub=false pl=0 pref=false | [TB+] Torrentio 4k DV | HDR The Drama (2026) [MULTi] [2160p] [UHD] [BluRay] [REMUX] [DV] [HDR] [HEVC] [TrueHD] [Atmos.7.1-R22] [Lektor i nap
+22:59:22.111 I/ForkRanking(13653): #2 Torrentio TB | P1080 | sonda=- napisy=0 | gotowe=true obcyDub=false pl=0 pref=false | [TB+] Torrentio 1080p The Drama (2026) [MULTi] [1080p] [BluRay] [REMUX] [AVC] [TrueHD] [Atmos.7.1-R22] [Lektor i napisy PL] 👤 8 💾 28.61 GB
+22:59:23.546 I/ForkSources(13653): klip zastępczy (rozmiar 17 KB): <URL>
+22:59:23.546 I/AutoPlayRace(13653): lost ahead StremThru Torz: ⚡️ [TB] Torz 4k: only 17 KB in all (a placeholder clip, e.g. not cached yet)
+22:59:24.356 I/ForkSources(13653): klip zastępczy (rozmiar 17 KB): <URL>
+22:59:24.356 I/AutoPlayRace(13653): lost ahead StremThru Torz: ⚡️ [TB] Torz 4k: only 17 KB in all (a placeholder clip, e.g. not cached yet)
+22:59:24.633 I/ForkSources(13653): klip zastępczy (rozmiar 115 KB): <URL>
+22:59:24.633 I/AutoPlayRace(13653): lost ahead Torrentio TB: [TB+] Torrentio 4k DV | HDR: only 115 KB in all (a placeholder clip, e.g. not cached yet)
+22:59:24.660 I/AutoPlayRace(13653): delivered ahead StremThru Torz: ⚡️ [TB] Torz 4k in 2362ms
+22:59:25.290 I/AutoPlayRace(13653): delivered ahead StremThru Torz: ⚡️ [TB] Torz 4k in 2993ms
+22:59:25.354 I/AutoPlayRace(13653): delivered ahead Torrentio TB: [TB+] Torrentio 4k DV | HDR in 3057ms
+22:59:25.629 I/ForkSources(13653): klip zastępczy (rozmiar 115 KB): <URL>
+22:59:25.630 I/AutoPlayRace(13653): lost ahead Torrentio TB: [TB+] Torrentio 1080p: only 115 KB in all (a placeholder clip, e.g. not cached yet)
+22:59:25.752 I/AutoPlayRace(13653): delivered ahead StremThru Torz: ⚡️ [TB] Torz 4k in 3455ms
+22:59:30.375 I/ForkSources(13653): wolny pośrednik 4K za bezpośrednim: przeniesione 86
+22:59:30.381 I/ForkSources(13653): klipy zastępcze na koniec: 4 z 702
+22:59:30.381 I/ForkRanking(13653): order: 702 źródeł, polski=pl_if_good napisyPL=true oszczędz=false preferowane=false
+22:59:30.385 I/ForkRanking(13653): #0 Torrentio TB | P2160 | sonda=- napisy=0 | gotowe=true obcyDub=false pl=0 pref=false | [TB+] Torrentio 4k DV | HDR The Drama (2026) [MULTi] [2160p] [UHD] [BluRay] [REMUX] [DV] [HDR] [HEVC] [TrueHD] [Atmos.7.1-R22] [Lektor i nap
+22:59:30.388 I/ForkRanking(13653): #1 StremThru Torz | P2160 | sonda=- napisy=1 | gotowe=true obcyDub=false pl=2147483647 pref=false | ⚡️ [TB] Torz 4k
+22:59:30.392 I/ForkRanking(13653): #2 StremThru Torz | P2160 | sonda=- napisy=1 | gotowe=true obcyDub=false pl=2147483647 pref=false | ⚡️ [TB] Torz 4k
+22:59:31.234 I/ForkSources(13653): wolny pośrednik 4K za bezpośrednim: przeniesione 86
+22:59:31.235 I/ForkSources(13653): klipy zastępcze na koniec: 4 z 702
+22:59:38.224 I/ForkSources(13653): wolny pośrednik 4K za bezpośrednim: przeniesione 86
+22:59:38.225 I/ForkSources(13653): klipy zastępcze na koniec: 4 z 702
+22:59:38.225 I/ForkRanking(13653): order: 702 źródeł, polski=pl_if_good napisyPL=true oszczędz=false preferowane=false
+22:59:38.239 I/ForkRanking(13653): #0 Torrentio TB | P2160 | sonda=a[pl, en]/n[pl, en] napisy=0 | gotowe=true obcyDub=false pl=0 pref=false | [TB+] Torrentio 4k DV | HDR The Drama (2026) [MULTi] [2160p] [UHD] [BluRay] [REMUX] [DV] [HDR] [HEVC] [TrueHD] [Atmos.7.1-R22] [Lektor i nap
+22:59:38.242 I/ForkRanking(13653): #1 StremThru Torz | P2160 | sonda=a[pl, en]/n[pl, en] napisy=0 | gotowe=true obcyDub=false pl=0 pref=false | ⚡️ [TB] Torz 4k
+22:59:38.246 I/ForkRanking(13653): #2 StremThru Torz | P2160 | sonda=a[pl, en]/n[pl, en] napisy=0 | gotowe=true obcyDub=false pl=0 pref=false | ⚡️ [TB] Torz 4k
+22:59:38.281 I/AutoPlayRace(13653): AUTOPLAY_RACE: 8 raced (4 checked ahead), won #4 StremThru Torz: ⚡️ [TB] Torz 4k, already through in 2363ms after 1ms
+22:59:46.206 I/ForkSources(13653): wolny pośrednik 4K za bezpośrednim: przeniesione 86
+22:59:46.207 I/ForkSources(13653): klipy zastępcze na koniec: 4 z 702
+22:59:46.569 I/AutoPlayRace(13653): delivered ahead StremThru Torz: ⚡️ [TB] Torz 4k in 358ms
+22:59:46.608 I/AutoPlayRace(13653): delivered ahead StremThru Torz: ⚡️ [TB] Torz 4k in 398ms
+22:59:46.836 I/AutoPlayRace(13653): delivered ahead Torrentio TB: [TB+] Torrentio 4k DV | HDR in 626ms
+22:59:46.887 I/AutoPlayRace(13653): delivered ahead StremThru Torz: ⚡️ [TB] Torz 4k in 675ms
+22:59:46.894 I/AutoPlayRace(13653): delivered ahead StremThru Torz: ⚡️ [TB] Torz 4k in 684ms
+22:59:46.940 I/AutoPlayRace(13653): delivered ahead StremThru Torz: ⚡️ [TB] Torz 4k in 729ms
+22:59:48.065 I/AutoPlayRace(13653): delivered ahead StremThru Torz: ⚡️ [TB] Torz in 1853ms
+22:59:48.211 I/AutoPlayRace(13653): delivered ahead Torrentio TB: [TB+] Torrentio 4k DV | HDR in 1999ms
+22:59:54.318 I/ForkSources(13653): wolny pośrednik 4K za bezpośrednim: przeniesione 86
+22:59:54.319 I/ForkSources(13653): klipy zastępcze na koniec: 4 z 702
+22:59:55.085 I/ForkSources(13653): wolny pośrednik 4K za bezpośrednim: przeniesione 86
+22:59:55.086 I/ForkSources(13653): klipy zastępcze na koniec: 4 z 702
+23:00:01.966 I/ForkSources(13653): wolny pośrednik 4K za bezpośrednim: przeniesione 86
+23:00:01.967 I/ForkSources(13653): klipy zastępcze na koniec: 4 z 702
+23:00:01.980 I/AutoPlayRace(13653): AUTOPLAY_RACE: 8 raced (8 checked ahead), won #6 StremThru Torz: ⚡️ [TB] Torz 4k, already through in 359ms after 1ms
+23:00:02.013 I/PlayerViewModel(13653): AUTO_SOURCE_RECOVERY: startup_timeout
+23:00:11.419 I/ForkSources(13653): wolny pośrednik 4K za bezpośrednim: przeniesione 86
+23:00:11.420 I/ForkSources(13653): klipy zastępcze na koniec: 4 z 701
+23:00:11.420 I/ForkRanking(13653): order: 701 źródeł, polski=pl_if_good napisyPL=true oszczędz=false preferowane=false
+23:00:11.424 I/ForkRanking(13653): #0 Torrentio TB | P2160 | sonda=a[pl, en]/n[pl, en] napisy=0 | gotowe=true obcyDub=false pl=0 pref=false | [TB+] Torrentio 4k DV | HDR The Drama (2026) [MULTi] [2160p] [UHD] [BluRay] [REMUX] [DV] [HDR] [HEVC] [TrueHD] [Atmos.7.1-R22] [Lektor i nap
+23:00:11.427 I/ForkRanking(13653): #1 StremThru Torz | P2160 | sonda=a[pl, en]/n[pl, en] napisy=0 | gotowe=true obcyDub=false pl=0 pref=false | ⚡️ [TB] Torz 4k
+23:00:11.430 I/ForkRanking(13653): #2 StremThru Torz | P2160 | sonda=a[pl, en]/n[pl, en] napisy=0 | gotowe=true obcyDub=false pl=0 pref=false | ⚡️ [TB] Torz 4k
+23:00:11.439 I/PlayerViewModel(13653): AUTO_SOURCE_RECOVERY: trying next eligible source
+23:00:11.499 D/PlayerViewModel(13653): Resolved stream mimeType=video/x-matroska for url=<URL>
+23:00:16.103 I/PlayerViewModel(13653): VIDEO_TRACK: mime=video/hevc codecs=hvc1.2.4.H153.90 size=3840x2160 vc1=false selected=true support=YES vc1TrackBypassActive=false
+23:00:16.119 I/ForkDiag(13653): stream title=«Drama» name=«[TB+] Torrentio
+23:00:16.119 I/ForkDiag(13653): 4k DV | HDR» addon=Torrentio TB host=torrentio.strem.fun engine=EXOPLAYER
+23:00:16.119 I/ForkDiag(13653): video hdr=true quality=null desc=«null»
+23:00:16.119 I/ForkDiag(13653): audio offered=[0:pl/AC-3/6ch «Polski (AC-3 5.1)»; 1:en/TrueHD/8ch «Wielokanałowy 7.1 (TrueHD 7.1)»] selected=0:pl/AC-3/6ch «Polski (AC-3 5.1)»
+23:00:16.120 I/ForkDiag(13653): subs offered=[0:pl/? «pl»; 1:en/? «en»] addon=0(pl=0) selected=0:pl/? «pl»
+23:00:16.120 I/ForkDiag(13653): wish=pl_if_good mismatch=none
+23:00:16.140 I/PlayerViewModel(13653): VIDEO_DECODER: name=OMX.MS.HEVC.Decoder software=false initMs=78 host=torrentio.strem.fun
+23:00:17.028 I/PlayerViewModel(13653): AUTO_SOURCE_RECOVERY: startup_timeout
+23:00:26.376 I/ForkSources(13653): wolny pośrednik 4K za bezpośrednim: przeniesione 86
+23:00:26.377 I/ForkSources(13653): klipy zastępcze na koniec: 4 z 700
+23:00:26.378 I/ForkRanking(13653): order: 700 źródeł, polski=pl_if_good napisyPL=true oszczędz=false preferowane=false
+23:00:26.382 I/ForkRanking(13653): #0 StremThru Torz | P2160 | sonda=a[pl, en]/n[pl, en] napisy=0 | gotowe=true obcyDub=false pl=0 pref=false | ⚡️ [TB] Torz 4k
+23:00:26.385 I/ForkRanking(13653): #1 StremThru Torz | P2160 | sonda=a[pl, en]/n[pl, en] napisy=0 | gotowe=true obcyDub=false pl=0 pref=false | ⚡️ [TB] Torz 4k
+23:00:26.388 I/ForkRanking(13653): #2 StremThru Torz | P2160 | sonda=a[pl, en]/n[en, pl] napisy=0 | gotowe=true obcyDub=false pl=0 pref=false | ⚡️ [TB] Torz
