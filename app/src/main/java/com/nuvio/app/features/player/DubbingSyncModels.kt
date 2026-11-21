@@ -7,6 +7,7 @@ data class DubbingSyncRequest(
     val currentOffsetMs: Long = 0L,
     val windowDurationMs: Long = 30_000L,
     val mode: DubbingSyncMode = DubbingSyncMode.QUICK,
+    val searchRadiusMs: Long? = null,
 )
 
 data class DubbingSyncProgress(

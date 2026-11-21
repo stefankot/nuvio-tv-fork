@@ -6,6 +6,8 @@ import android.media.MediaFormat
 import android.util.Log
 import android.util.LruCache
 import com.nuvio.tv.domain.model.Stream
+import com.nuvio.tv.fork.dublagem.DubbingAudioTrack
+import com.nuvio.tv.fork.dublagem.PolishDubbing
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -28,7 +30,14 @@ import com.nuvio.tv.fork.logged
  * Tylko źródła gotowe (debrid w pamięci / bezpośrednie http), nigdy P2P.
  */
 object TrackScout {
-    data class Tracks(val audio: List<String>, val subs: List<String>) {
+    data class Tracks(
+        val audio: List<String>,
+        val subs: List<String>,
+        val audioDetails: List<DubbingAudioTrack> = emptyList(),
+        val durationMs: Long? = null,
+        val frameRate: Float? = null,
+        val byteRanges: Boolean = false,
+    ) {
         val hasPolishAudio get() = "pl" in audio
         val hasPolishSubs get() = "pl" in subs
     }
@@ -43,6 +52,9 @@ object TrackScout {
     private val gate = Semaphore(PARALLEL)
     private val cache = LruCache<String, Tracks>(128)
     private val inFlight = ConcurrentHashMap.newKeySet<String>()
+    private val sourcesByTitle = LruCache<String, List<Stream>>(16)
+    private val polishAudioHint = Regex("""(?i)\b(?:pl|pol|polish|polski|lektor|dubbing)\b""")
+    private val highQualityAudioHint = Regex("""(?i)true[ ._-]?hd|flac|dts[ ._-]?(?:hd|x)|7[ .]1|5[ .]1|eac3|ddp""")
     private val probedByTitle = LruCache<String, MutableSet<String>>(16)
     private val possiblePolish = Regex("""(?i)\b(?:pl|pol|polish|polski|lektor|napisy|multi)\b""")
     private val client by lazy {
@@ -55,10 +67,15 @@ object TrackScout {
     /** Wynik sondy dla źródła; null = jeszcze nie sprawdzone / nie dało się odczytać. */
     fun of(s: Stream): Tracks? = key(s)?.let { cache.get(it) }
 
+    internal fun candidates(type: String, videoId: String): List<Stream> =
+        sourcesByTitle.get("$type|$videoId").orEmpty()
+
+    internal fun probing(stream: Stream): Boolean = key(stream)?.let(inFlight::contains) == true
+
     /** The detail preload and the source picker share this bounded probe for the same title. */
     @Synchronized
     fun onSources(context: Context, type: String, videoId: String, streams: List<Stream>) {
-        if (streams.isEmpty() || !EmbeddedSourceSubtitles.enabled(context)) return
+        if (streams.isEmpty() || (!EmbeddedSourceSubtitles.enabled(context) && !PolishDubbing.enabled(context))) return
         val app = context.applicationContext
         pending?.cancel()
         pending = scope.launch { delay(250); pick(app, type, videoId, streams) }
@@ -76,16 +93,25 @@ object TrackScout {
         val languageCandidates = available.filter { (stream, _) ->
             possiblePolish.containsMatchIn(listOfNotNull(stream.name, stream.title, stream.description).joinToString(" "))
         }.groupBy { (stream, _) -> com.nuvio.tv.core.stream.ReleaseFactsParser.resolutionOf(stream) }
-        val picks = (languageCandidates.values.map { it.first() } + available).distinctBy { it.second }
+        val dubbing = PolishDubbing.enabled(context)
+        val audioCandidates = if (dubbing) available.mapNotNull { item ->
+            val s = item.first
+            val text = listOfNotNull(s.behaviorHints?.filename, s.name, s.title, s.description).joinToString(" ")
+            if (polishAudioHint.containsMatchIn(text)) item to highQualityAudioHint.containsMatchIn(text) else null
+        }.sortedByDescending { it.second }.map { it.first }.take(TOP) else emptyList()
+        val picks = (audioCandidates + languageCandidates.values.map { it.first() } + available).distinctBy { it.second }
         val titleKey = "$type|$videoId"
+        val probeLimit = if (dubbing) TOP * 3 else TOP * 2
+        val shortlist = picks.take(probeLimit)
+        if (dubbing) sourcesByTitle.put(titleKey, shortlist.map { it.first })
         fun offerTrack(stream: Stream, tracks: Tracks) {
             if (tracks.hasPolishSubs) EmbeddedSourceSubtitles.offer(context, type, videoId, stream)
         }
         fun allowProbe(url: String): Boolean = synchronized(probedByTitle) {
             val tried = probedByTitle.get(titleKey) ?: mutableSetOf<String>().also { probedByTitle.put(titleKey, it) }
-            tried.size < TOP * 2 && tried.add(url)
+            tried.size < probeLimit && tried.add(url)
         }
-        for ((s, k) in picks.take(TOP * 2)) {
+        for ((s, k) in shortlist) {
             val cached = cache.get(k)
             if (cached != null) {
                 offerTrack(s, cached)
@@ -114,14 +140,19 @@ object TrackScout {
     }
 
     private fun probe(url: String, headers: Map<String, String>): Tracks? {
-        val head = range(url, headers, 0, HEAD_BYTES) ?: return null
-        if (head.size >= 4 && head[0] == 0x1A.toByte() && head[1] == 0x45.toByte() && head[2] == 0xDF.toByte() && head[3] == 0xA3.toByte()) {
-            return Mkv.tracks(head) { pos, len -> range(url, headers, pos, len) }
+        val response = range(url, headers, 0, HEAD_BYTES) ?: return null
+        val head = response.bytes
+        val tracks = if (head.size >= 4 && head[0] == 0x1A.toByte() && head[1] == 0x45.toByte() && head[2] == 0xDF.toByte() && head[3] == 0xA3.toByte()) {
+            Mkv.tracks(head) { pos, len -> range(url, headers, pos, len)?.bytes }
+        } else {
+            extractor(url, headers)
         }
-        return extractor(url, headers)
+        return tracks?.copy(byteRanges = response.partial)
     }
 
-    private fun range(url: String, headers: Map<String, String>, from: Long, len: Int): ByteArray? = runCatching {
+    private data class RangeRead(val bytes: ByteArray, val partial: Boolean)
+
+    private fun range(url: String, headers: Map<String, String>, from: Long, len: Int): RangeRead? = runCatching {
         val request = com.nuvio.tv.ui.screens.player.PlayerMediaSourceFactory.normalizePlaybackRequest(
             url, com.nuvio.tv.ui.screens.player.PlayerMediaSourceFactory.sanitizeHeaders(headers)
         )
@@ -139,7 +170,7 @@ object TrackScout {
                 if (n <= 0) break
                 out.write(buf, 0, n)
             }
-            out.toByteArray()
+            RangeRead(out.toByteArray(), r.code == 206)
         }
     }.logged("ForkSources", "TrackScout.kt:95").getOrNull()
 
@@ -147,21 +178,47 @@ object TrackScout {
         val ex = MediaExtractor()
         return try {
             ex.setDataSource(url, headers)
-            val audio = ArrayList<String>(); val subs = ArrayList<String>()
+            val audio = ArrayList<DubbingAudioTrack>()
+            val subs = ArrayList<String>()
+            var durationMs: Long? = null
+            var frameRate: Float? = null
             for (i in 0 until ex.trackCount) {
                 val f = ex.getTrackFormat(i)
                 val mime = f.getString(MediaFormat.KEY_MIME).orEmpty()
                 val lang = lang(f.getString(MediaFormat.KEY_LANGUAGE))
-                if (mime.startsWith("audio/")) audio += lang
-                else if (mime.startsWith("text/") || mime.startsWith("application/x-subrip") || mime.contains("ttml") || mime.contains("vtt")) subs += lang
+                when {
+                    mime.startsWith("audio/") -> audio += DubbingAudioTrack(
+                        audio.size, lang, mime, f.optionalInt(MediaFormat.KEY_CHANNEL_COUNT),
+                        f.optionalInt(MediaFormat.KEY_BIT_RATE), f.optionalInt(MediaFormat.KEY_SAMPLE_RATE),
+                        f.getString("title"),
+                    )
+                    mime.startsWith("video/") -> {
+                        if (f.containsKey(MediaFormat.KEY_DURATION)) durationMs = f.getLong(MediaFormat.KEY_DURATION) / 1_000L
+                        frameRate = f.optionalFrameRate()
+                    }
+                    mime.startsWith("text/") || mime.startsWith("application/x-subrip") ||
+                        mime.contains("ttml") || mime.contains("vtt") -> subs += lang
+                }
             }
-            Tracks(audio.distinct(), subs.distinct()).takeIf { ex.trackCount > 0 }
+            Tracks(audio.map { it.language }.distinct(), subs.distinct(), audio, durationMs, frameRate).takeIf { ex.trackCount > 0 }
         } catch (e: Throwable) {
             android.util.Log.w("ForkSources", "TrackScout: ${e.javaClass.simpleName}: ${e.message?.take(200)}")
             null
         } finally {
             runCatching { ex.release() }.logged("ForkSources", "TrackScout.kt:129")
         }
+    }
+
+    private fun MediaFormat.optionalInt(key: String): Int = if (containsKey(key)) getInteger(key) else 0
+
+    private fun MediaFormat.optionalFrameRate(): Float? {
+        if (!containsKey(MediaFormat.KEY_FRAME_RATE)) return null
+        val value = try {
+            getFloat(MediaFormat.KEY_FRAME_RATE)
+        } catch (_: ClassCastException) {
+            getInteger(MediaFormat.KEY_FRAME_RATE).toFloat()
+        }
+        return value.takeIf { it.isFinite() && it > 0 }
     }
 
     private val ISO3 = mapOf(
@@ -188,10 +245,21 @@ object TrackScout {
         private const val SEEK_POS = 0x53ACL
         private const val TRACKS = 0x1654AE6BL
         private const val CLUSTER = 0x1F43B675L
+        private const val INFO = 0x1549A966L
+        private const val TIMESTAMP_SCALE = 0x2AD7B1L
+        private const val DURATION = 0x4489L
         private const val ENTRY = 0xAEL
         private const val TYPE = 0x83L
         private const val LANG = 0x22B59CL
         private const val IETF = 0x22B59DL
+        private const val CODEC = 0x86L
+        private const val NAME = 0x536EL
+        private const val DEFAULT_DURATION = 0x23E383L
+        private const val AUDIO = 0xE1L
+        private const val CHANNELS = 0x9FL
+        private const val SAMPLE_RATE = 0xB5L
+        private const val FLAG_VISUAL_IMPAIRED = 0x55ACL
+        private const val FLAG_COMMENTARY = 0x55AFL
 
         private class El(val id: Long, val dataStart: Int, val size: Long) { val end get() = dataStart + size }
 
@@ -223,22 +291,28 @@ object TrackScout {
             val segStart = seg.dataStart
             var p = segStart
             var tracksPos: Long? = null
+            var durationMs: Long? = null
+            var trackElement: El? = null
             while (p < head.size) {
                 val e = el(head, p) ?: break
-                when (e.id) {
-                    TRACKS -> return if (e.end <= head.size) parse(head, e) else fetch(p.toLong(), (e.end - p).toInt().coerceAtMost(4 * 1024 * 1024))?.let { b -> el(b, 0)?.let { parse(b, it) } }
-                    SEEK_HEAD -> if (e.end <= head.size) tracksPos = seekTracks(head, e)
-                    CLUSTER -> break
+                if (e.id == CLUSTER || e.size < 0) break
+                if (e.end > head.size) {
+                    if (e.id == TRACKS) tracksPos = (p - segStart).toLong()
+                    break
                 }
-                if (e.size < 0) break
+                when (e.id) {
+                    INFO -> durationMs = duration(head, e)
+                    TRACKS -> trackElement = e
+                    SEEK_HEAD -> tracksPos = seekTracks(head, e)
+                }
+                if (trackElement != null && durationMs != null) break
                 p = e.end.toInt()
             }
+            trackElement?.let { return parse(head, it, durationMs) }
             val pos = tracksPos ?: return null
-            val at = segStart + pos
-            val b = fetch(at, 512 * 1024) ?: return null
-            val t = el(b, 0)?.takeIf { it.id == TRACKS } ?: return null
-            if (t.end > b.size) return null
-            return parse(b, t)
+            val b = fetch(segStart + pos, 512 * 1024) ?: return null
+            val t = el(b, 0)?.takeIf { it.id == TRACKS && it.size >= 0 && it.end <= b.size } ?: return null
+            return parse(b, t, durationMs)
         }
 
         private fun seekTracks(b: ByteArray, sh: El): Long? {
@@ -259,24 +333,77 @@ object TrackScout {
             return null
         }
 
-        private fun parse(b: ByteArray, tracks: El): Tracks {
-            val audio = ArrayList<String>(); val subs = ArrayList<String>()
-            var p = tracks.dataStart
-            while (p < tracks.end && p < b.size) {
-                val e = el(b, p) ?: break
-                if (e.id == ENTRY && e.end <= b.size) {
-                    var q = e.dataStart; var type = 0L; var lang = "eng"; var ietf: String? = null // Matroska: brak Language = „eng”
-                    while (q < e.end) {
-                        val c = el(b, q) ?: break
-                        when (c.id) { TYPE -> type = uint(b, c); LANG -> lang = str(b, c); IETF -> ietf = str(b, c) }
-                        q = c.end.toInt()
-                    }
-                    val l = lang(ietf ?: lang)
-                    if (type == 2L) audio += l else if (type == 17L) subs += l
-                }
-                p = e.end.toInt()
+        private inline fun children(b: ByteArray, parent: El, read: (El) -> Unit) {
+            var position = parent.dataStart
+            while (position < parent.end) {
+                val child = el(b, position) ?: break
+                if (child.size < 0 || child.end > parent.end || child.end > b.size) break
+                read(child)
+                position = child.end.toInt()
             }
-            return Tracks(audio.distinct(), subs.distinct())
+        }
+
+        private fun decimal(b: ByteArray, e: El): Double? = when (e.size) {
+            4L -> Float.fromBits(uint(b, e).toInt()).toDouble()
+            8L -> Double.fromBits(uint(b, e))
+            else -> null
+        }?.takeIf { it.isFinite() && it > 0.0 }
+
+        private fun duration(b: ByteArray, info: El): Long? {
+            var scale = 1_000_000L
+            var ticks: Double? = null
+            children(b, info) { child ->
+                when (child.id) {
+                    TIMESTAMP_SCALE -> scale = uint(b, child)
+                    DURATION -> ticks = decimal(b, child)
+                }
+            }
+            return ticks?.let { (it * scale / 1_000_000.0).toLong() }?.takeIf { it > 0 }
+        }
+
+        private fun parse(b: ByteArray, tracks: El, durationMs: Long?): Tracks {
+            val audio = ArrayList<DubbingAudioTrack>()
+            val subs = ArrayList<String>()
+            var frameRate: Float? = null
+            children(b, tracks) { entry ->
+                if (entry.id != ENTRY) return@children
+                var type = 0L
+                var legacyLang = "eng" // Default for Language in Matroska.
+                var ietf: String? = null
+                var codec: String? = null
+                var label: String? = null
+                var sampleRate = 0
+                var channels = 1
+                var frameDuration = 0L
+                var auxiliary = false
+                children(b, entry) { field ->
+                    when (field.id) {
+                        TYPE -> type = uint(b, field)
+                        LANG -> legacyLang = str(b, field)
+                        IETF -> ietf = str(b, field)
+                        CODEC -> codec = str(b, field)
+                        NAME -> label = str(b, field)
+                        DEFAULT_DURATION -> frameDuration = uint(b, field)
+                        FLAG_VISUAL_IMPAIRED, FLAG_COMMENTARY -> auxiliary = auxiliary || uint(b, field) != 0L
+                        AUDIO -> children(b, field) { audioField ->
+                            when (audioField.id) {
+                                CHANNELS -> channels = uint(b, audioField).toInt()
+                                SAMPLE_RATE -> sampleRate = decimal(b, audioField)?.toInt() ?: 0
+                            }
+                        }
+                    }
+                }
+                val language = lang(ietf ?: legacyLang)
+                when (type) {
+                    1L -> if (frameDuration > 0 && frameRate == null) frameRate = 1_000_000_000f / frameDuration
+                    2L -> audio += DubbingAudioTrack(
+                        audio.size, language, DubbingAudioTrack.matroskaMime(codec), channels,
+                        sampleRate = sampleRate, label = label, auxiliary = auxiliary,
+                    )
+                    17L -> subs += language
+                }
+            }
+            return Tracks(audio.map { it.language }.distinct(), subs.distinct(), audio, durationMs, frameRate)
         }
     }
 }

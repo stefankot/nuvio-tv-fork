@@ -1,0 +1,58 @@
+diff --git a/app/src/main/java/com/nuvio/app/features/player/DubbingAudioSyncAnalyzer.android.kt b/app/src/main/java/com/nuvio/app/features/player/DubbingAudioSyncAnalyzer.android.kt
+index d02b27a89..c56fb92de 100644
+--- a/app/src/main/java/com/nuvio/app/features/player/DubbingAudioSyncAnalyzer.android.kt
++++ b/app/src/main/java/com/nuvio/app/features/player/DubbingAudioSyncAnalyzer.android.kt
+@@ -35,6 +35,7 @@ internal data class DubbingAnalysisSource(
+     val expectedDurationMs: Long? = null,
+     val dataSourceFactory: (() -> DataSource)? = null,
+     val dataSourceRequestHeaders: Map<String, String>? = null,
++    val allowSlowFallbacks: Boolean = true,
+ )
+ 
+ internal data class DubbingAudioTrackHint(
+@@ -107,6 +108,7 @@ private fun normalizeDubbingLanguage(value: String?): String? {
+         ?.takeIf { it.isNotBlank() } ?: return null
+     return when (language) {
+         "por" -> "pt"
++        "pol" -> "pl"
+         "eng" -> "en"
+         "spa" -> "es"
+         "fra", "fre" -> "fr"
+@@ -171,13 +173,10 @@ internal class DubbingAudioSyncAnalyzer(
+         val anchorMs = request.anchorPositionMs.coerceAtLeast(0L)
+         val windowMs = request.windowDurationMs.coerceIn(MIN_WINDOW_MS, MAX_WINDOW_MS)
+         val analysisStartedMs = SystemClock.elapsedRealtime()
+-        val maximumRadiusMs = if (request.mode == DubbingSyncMode.EXTENDED) {
+-            EXTENDED_RADIUS_MS
+-        } else {
+-            QUICK_RADIUS_MS
+-        }
++        val maximumRadiusMs = request.searchRadiusMs?.coerceIn(1_000L, EXTENDED_RADIUS_MS)
++            ?: if (request.mode == DubbingSyncMode.EXTENDED) EXTENDED_RADIUS_MS else QUICK_RADIUS_MS
+         var radiusMs = if (request.mode == DubbingSyncMode.QUICK) {
+-            QUICK_INITIAL_RADIUS_MS
++            minOf(QUICK_INITIAL_RADIUS_MS, maximumRadiusMs)
+         } else {
+             maximumRadiusMs
+         }
+@@ -473,7 +472,7 @@ internal class DubbingAudioSyncAnalyzer(
+             )
+         } catch (media3Error: Throwable) {
+             coroutineContext.ensureActive()
+-            if (media3Sink.outputCount > 0L) throw media3Error
++            if (media3Sink.outputCount > 0L || !source.allowSlowFallbacks) throw media3Error
+             if (media3Error is DubbingLinearScanRequiredException) {
+                 Log.i(TAG, "A fonte ${source.sourceLabel} não oferece seek Media3; tentando o seek nativo antes da varredura linear.")
+                 try {
+diff --git a/app/src/main/java/com/nuvio/app/features/player/DubbingSyncModels.kt b/app/src/main/java/com/nuvio/app/features/player/DubbingSyncModels.kt
+index 0e4ac601b..e8d3079fa 100644
+--- a/app/src/main/java/com/nuvio/app/features/player/DubbingSyncModels.kt
++++ b/app/src/main/java/com/nuvio/app/features/player/DubbingSyncModels.kt
+@@ -7,6 +7,7 @@ data class DubbingSyncRequest(
+     val currentOffsetMs: Long = 0L,
+     val windowDurationMs: Long = 30_000L,
+     val mode: DubbingSyncMode = DubbingSyncMode.QUICK,
++    val searchRadiusMs: Long? = null,
+ )
+ 
+ data class DubbingSyncProgress(

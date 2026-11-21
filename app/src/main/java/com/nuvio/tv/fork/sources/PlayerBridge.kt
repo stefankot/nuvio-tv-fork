@@ -44,6 +44,7 @@ object PlayerBridge {
         val s = state ?: return
         if (autoTried || s.audioTracks.isEmpty() || !s.isPlaying) return
         if (!com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(c, "lektor_auto", false)) return
+        if (com.nuvio.tv.fork.dublagem.PolishDubbing.awaitingAudio(s.currentStreamUrl)) return
         autoTried = true
         val hasPlAudio = AudioCheck.hasPolish(s.audioTracks.map { it.language })
         val hasPlSubs = s.addonSubtitles.any { it.lang.startsWith("pl", true) || it.lang.startsWith("pol", true) }

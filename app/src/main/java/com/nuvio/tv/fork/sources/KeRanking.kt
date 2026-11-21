@@ -193,7 +193,8 @@ object KeRanking {
             // Fork 19.11 (ANR na JMGO: 917 źródeł, regex w komparatorze liczony przy każdym porównaniu): klucze raz na źródło.
             // A subtitle donor can be a different release, so subtitle availability does not lower video quality.
             val supportedOrder = fitsOrdered + demoted
-            val ordered = if (polishRules == null) supportedOrder else supportedOrder
+            val separateAudio = appCtx?.let(com.nuvio.tv.fork.dublagem.PolishDubbing::enabled) == true
+            val ordered = if (polishRules == null || separateAudio) supportedOrder else supportedOrder
                 .map { it to polishTier(it) }.sortedBy { it.second }.map { it.first }
             // Kicia: źródła, które niedawno nie wystartowały albo nie przeszły kontroli pliku, na koniec (StartupChecks).
             val withBad = StartupChecks.demoteBad(ordered)
@@ -201,7 +202,7 @@ object KeRanking {
             // zapamiętany ręczny wybór (dodatek + rozdzielczość) nie może przebić języka ani gotowości pliku —
             // niegotowe (SourceReady) i obcy dubbing (ForeignDub) zawsze na koniec, kolejność w środku zostaje.
             val picked = preferred?.preferredFirst(withBad)?.first ?: withBad
-            picked.map { Triple(it, SourceReady.tier(it), ForeignDub.tier(it)) }.sortedWith(compareBy({ it.second }, { it.third })).map { it.first }.let { l -> runCatching { SlowProxy4k.demote(l) { s -> listOf(SourceReady.tier(s), ForeignDub.tier(s), polishTier(s)) } }.logged("ForkSources", "SlowProxy4k").getOrDefault(l) }.let { l -> Placeholders.demote(l) }.also { logTop(it) } // klucze raz na źródło
+            picked.map { Triple(it, SourceReady.tier(it), ForeignDub.tier(it)) }.sortedWith(compareBy({ it.second }, { it.third })).map { it.first }.let { l -> runCatching { SlowProxy4k.demote(l) { s -> listOf(SourceReady.tier(s), ForeignDub.tier(s), if (separateAudio) 0 else polishTier(s)) } }.logged("ForkSources", "SlowProxy4k").getOrDefault(l) }.let { l -> Placeholders.demote(l) }.also { logTop(it) } // klucze raz na źródło
         }.logged("ForkSources", "KeRanking.kt:173").getOrDefault(streams)
     }
 }

@@ -1,0 +1,5 @@
+<resources>
+    <string name="dublagem_setting_title">Polski dźwięk z innego wydania</string>
+    <string name="dublagem_setting_description">Dobiera najlepszy obraz i synchronizuje z nim pasującą polską ścieżkę.</string>
+    <string name="dublagem_audio_joined">Dołączono polski dźwięk z innego wydania</string>
+</resources>

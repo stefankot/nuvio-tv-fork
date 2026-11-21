@@ -140,6 +140,7 @@ internal class PlayerAutoSourceRecovery(
                 if (player.isPlaybackCurrentlyPlaying() && position != null) positionBeforeStall = position
                 samplePosition = position
                 val stalled = bufferingSince?.let { now - it >= PLAYBACK_STALL_MS } == true
+                if (stalled && com.nuvio.tv.fork.dublagem.PolishDubbing.recover(player, "buffer_stall")) { bufferingSince = null; continue } // Fork hook: Dublagem powrót po zatrzymaniu drugiego źródła
                 if (failure == null && state.error == null && !stalled) {
                     waitForSignal(1_000L)
                     continue
