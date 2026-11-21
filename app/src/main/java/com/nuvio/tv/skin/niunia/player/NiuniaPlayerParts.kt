@@ -123,7 +123,8 @@ internal fun NiuniaTrack(
 internal fun BoxScope.NiuniaTrackLabel(text: String, at: Float, trackWidth: Dp, color: Color, small: Boolean = false) {
     Text(
         text, style = NiuniaText.Caption.copy(fontSize = if (small) 10.sp else 12.sp, lineHeight = 16.sp, letterSpacing = 1.2.sp), color = color, maxLines = 1,
-        modifier = Modifier.align(Alignment.TopStart).offset(x = trackWidth * at.coerceIn(0f, 1f) - 18.dp, y = 22.dp).width(36.dp),
+        // Test JMGO build160: 36 dp ucinało „−0:08” do „−0:0” → 80 dp, wyśrodkowane na gałce.
+        modifier = Modifier.align(Alignment.TopStart).offset(x = trackWidth * at.coerceIn(0f, 1f) - 40.dp, y = 22.dp).width(80.dp),
         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
     )
 }
