@@ -121,6 +121,7 @@ class StreamScreenViewModel @Inject constructor(
 ) : ViewModel() {
     private var autoPlayHandledForSession = false
     private var autoRecoverySettings: PlayerSettings? = null
+    private var firstSourceOrder: List<Stream>? = null // Fork hook: shared first-source order
     private var directAutoPlayModeInitializedForSession = false
     private var directAutoPlayFlowEnabledForSession = false
 
@@ -427,6 +428,7 @@ class StreamScreenViewModel @Inject constructor(
             streamLoadCompleted = false
             val playerSettings = playerSettingsDataStore.playerSettings.first()
             autoRecoverySettings = playerSettings
+            firstSourceOrder = null // Fork hook: shared first-source order
             if (manualSelection) {
                 directAutoPlayModeInitializedForSession = true
                 directAutoPlayFlowEnabledForSession = false
@@ -669,8 +671,14 @@ class StreamScreenViewModel @Inject constructor(
                 // chance to return higher-quality streams before the selector
                 // picks from whatever is available.
                 if (!isAllLoaded && !autoPlayHandledForSession && !resolvedAutoPlayTarget) com.nuvio.tv.fork.echo.EchoRaceHook.offer(context, raceHeadStart, allStreams, playerSettings, installedAddonOrder.toSet()) // fork hook
-                com.nuvio.tv.fork.sources.TrackScout.onSources(allStreams) // Fork hook: sonda ścieżek (dźwięk/napisy wbudowane) w tle
+                com.nuvio.tv.fork.sources.TrackScout.onSources(context, contentType, videoId, allStreams) // Fork hook: sonda ścieżek (dźwięk/napisy wbudowane) w tle
                 val shouldAutoSelect = !autoPlayHandledForSession && !resolvedAutoPlayTarget && isAllLoaded
+                val ranked = if (shouldAutoSelect && playerSettings.streamAutoPlayMode == StreamAutoPlayMode.FIRST_STREAM) {
+                    StreamAutoPlaySelector.orderFirstPlayableStreams(
+                        allStreams, playerSettings.streamAutoPlaySource, autoPlayInstalledAddonNames,
+                        playerSettings.streamAutoPlaySelectedAddons, playerSettings.streamAutoPlaySelectedPlugins
+                    )
+                } else null // Fork hook: shared first-source order
                 var selectedAutoPlayStream = if (earlyBingeGroupMatch != null) {
                     earlyBingeGroupMatch
                 } else if (!shouldAutoSelect) {
@@ -686,17 +694,19 @@ class StreamScreenViewModel @Inject constructor(
                         selectedAddons = playerSettings.streamAutoPlaySelectedAddons,
                         selectedPlugins = playerSettings.streamAutoPlaySelectedPlugins,
                         preferredBingeGroup = persistedBingeGroup,
-                        preferBingeGroupInSelection = persistedBingeGroup != null
+                        preferBingeGroupInSelection = persistedBingeGroup != null,
+                        firstSourceOrder = ranked // Fork hook: shared first-source order
                     )
                 }
                 if (shouldAutoSelect && selectedAutoPlayStream == null && com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(context, "echo_source_fallback")) selectedAutoPlayStream = StreamAutoPlaySelector.fallbackWhenPreferredSourcesEmpty(allStreams, playerSettings.streamAutoPlayMode, playerSettings.streamAutoPlaySource, installedAddonOrder.toSet(), playerSettings.streamAutoPlaySelectedAddons, playerSettings.streamAutoPlaySelectedPlugins) // Fork hook: echo (fallback, gdy preferowane dodatki puste)
                 // A manual selection can complete while matching is on the worker.
                 if (autoPlayHandledForSession || resolvedAutoPlayTarget) selectedAutoPlayStream = null
                 if (selectedAutoPlayStream != null) {
+                    firstSourceOrder = ranked // Fork hook: shared first-source order
                     resolvedAutoPlayTarget = true
                 }
                 if (shouldAutoSelect) selectedAutoPlayStream = com.nuvio.tv.fork.echo.EchoRaceHook.preferred(context, selectedAutoPlayStream, allStreams, playerSettings, installedAddonOrder.toSet()) ?: selectedAutoPlayStream // fork hook
-                val raceField = com.nuvio.tv.fork.echo.EchoRaceHook.field(context, selectedAutoPlayStream, allStreams, playerSettings, installedAddonOrder.toSet(), persistedBingeGroup) // fork hook
+                val raceField = com.nuvio.tv.fork.echo.EchoRaceHook.field(context, selectedAutoPlayStream, allStreams, playerSettings, installedAddonOrder.toSet(), persistedBingeGroup, ranked) // fork hook
                 if (selectedAutoPlayStream != null && raceField != null) { // fork hook
                     com.nuvio.tv.fork.echo.EchoRaceHook.run(context, newScope, raceField, raceHeadStart, selectedAutoPlayStream, playerSettings.showPlayerLoadingStatus, { autoPlayHandledForSession }, { m -> updateUiStateIfChanged { it.copy(directAutoPlayMessage = m) } }, { w -> updateUiStateIfChanged { it.copy(autoPlayStream = w) } })
                 } else if (selectedAutoPlayStream != null) com.nuvio.tv.fork.echo.EchoRaceHook.stop(raceHeadStart) // fork hook
@@ -1410,7 +1420,7 @@ class StreamScreenViewModel @Inject constructor(
                 )
                 StreamSidecarSubtitles.set(result.url, stream.subtitles)
                 // Save resolved URL to cache for reuse last link
-                if (!result.url.isNullOrBlank()) {
+                if (saveLastLink && !result.url.isNullOrBlank()) {
                     pendingCacheSaveJob = viewModelScope.launch {
                         streamLinkCacheDataStore.save(
                             contentKey = streamCacheKey,
@@ -1771,7 +1781,8 @@ class StreamScreenViewModel @Inject constructor(
             settings = settings,
             installedAddonNames = addonRepository.getInstalledAddons().first().enabledAddons().map { it.displayName }.toSet(),
             preferredBingeGroup = preferred, initialSource = initialSource,
-            profileId = playbackProfileId, videoId = videoId
+            profileId = playbackProfileId, videoId = videoId,
+            firstSourceOrder = firstSourceOrder // Fork hook: shared first-source order
         )
     }
 
@@ -1779,7 +1790,7 @@ class StreamScreenViewModel @Inject constructor(
         if (autoRecoverySettings?.playerPreference == PlayerPreference.EXTERNAL) return resolveStreamForPlayback(stream)
         val plan = autoSourceRecoveryPlan(stream) ?: return resolveAutoPlayStreamForPlayback(stream)
         val prepared = prepareAutoSource(plan, android.os.SystemClock::elapsedRealtime) {
-            resolveStreamForPlayback(it, reportErrors = false)
+            resolveStreamForPlayback(it, saveLastLink = autoRecoverySettings?.playerPreference == PlayerPreference.ASK_EVERY_TIME, reportErrors = false)
         }
         if (prepared == null) {
             showDirectDebridPlaybackError(context.getString(R.string.player_auto_source_recovery_exhausted), refreshStreams = false)

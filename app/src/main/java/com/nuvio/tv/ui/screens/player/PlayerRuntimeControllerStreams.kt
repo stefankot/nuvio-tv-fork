@@ -911,7 +911,8 @@ private fun PlayerRuntimeController.openExternalStreamInBrowser(
 @androidx.annotation.OptIn(UnstableApi::class)
 internal fun PlayerRuntimeController.switchToSourceStream(
     stream: Stream,
-    resumeSavedProgress: Boolean = true
+    resumeSavedProgress: Boolean = true,
+    recoveryPositionMs: Long? = null // Fork hook: resume source recovery at the last good position
 ) {
     if (!resumeSavedProgress) {
         pendingResumeProgress = null
@@ -1017,7 +1018,7 @@ internal fun PlayerRuntimeController.switchToSourceStream(
     // A channel or catch-up selection starts a different timeline, unlike an alternate VOD source.
     val isLiveTvSwitch = LiveTvPlaybackRegistry.isLiveTv(currentStreamUrl) ||
         LiveTvPlaybackRegistry.isLiveTv(url)
-    val resumePositionMs = if (isLiveTvSwitch) 0L else currentPlaybackPositionMs()?.coerceAtLeast(0L) ?: 0L
+    val resumePositionMs = if (isLiveTvSwitch) 0L else recoveryPositionMs ?: currentPlaybackPositionMs()?.coerceAtLeast(0L) ?: 0L // Fork hook: resume source recovery
     flushPlaybackSnapshotForSwitchOrExit()
 
     val newHeaders = PlayerMediaSourceFactory.sanitizeHeaders(
@@ -1034,7 +1035,7 @@ internal fun PlayerRuntimeController.switchToSourceStream(
     )
     val playbackUrl = currentStreamUrl
     val playbackHeaders = currentHeaders
-    persistSelectedStreamForReuse(stream = stream, url = playbackUrl, headers = playbackHeaders)
+    if (autoSourceRecovery?.isTryingSources != true) persistSelectedStreamForReuse(stream = stream, url = playbackUrl, headers = playbackHeaders) // Fork hook: only cache proven autoplay sources
     persistStreamRouteState(stream, isTorrent = false)
 
     // Reset stream-state error flags for the new stream.
@@ -1080,7 +1081,7 @@ internal fun PlayerRuntimeController.switchToSourceStream(
     }
     clearChapterSkipState()
     recomputeMergedSkipIntervals()
-    if (!isSourceSwitching()) showStreamSourceIndicator(stream) // Fork hook: echo
+    if (!isSourceSwitching() && autoSourceRecovery?.isTryingSources != true) showStreamSourceIndicator(stream) // Fork hook: echo
     resetPostPlayOverlayState(clearEpisode = false)
 
     _exoPlayer?.let { player ->

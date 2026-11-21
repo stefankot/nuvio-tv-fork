@@ -1,5 +1,6 @@
 package com.nuvio.tv.fork.sources
 
+import android.content.Context
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.util.Log
@@ -42,6 +43,8 @@ object TrackScout {
     private val gate = Semaphore(PARALLEL)
     private val cache = LruCache<String, Tracks>(128)
     private val inFlight = ConcurrentHashMap.newKeySet<String>()
+    private val probedByTitle = LruCache<String, MutableSet<String>>(16)
+    private val possiblePolish = Regex("""(?i)\b(?:pl|pol|polish|polski|lektor|napisy|multi)\b""")
     private val client by lazy {
         OkHttpClient.Builder().connectTimeout(3, TimeUnit.SECONDS).readTimeout(4, TimeUnit.SECONDS)
             .callTimeout(TIMEOUT_MS, TimeUnit.MILLISECONDS).followRedirects(true).followSslRedirects(true).build()
@@ -52,29 +55,54 @@ object TrackScout {
     /** Wynik sondy dla źródła; null = jeszcze nie sprawdzone / nie dało się odczytać. */
     fun of(s: Stream): Tracks? = key(s)?.let { cache.get(it) }
 
-    /** Hook ekranu źródeł (każda partia odpowiedzi dodatków): sonda najlepszych jeszcze niesprawdzonych. */
-    fun onSources(streams: List<Stream>) {
-        if (streams.isEmpty()) return
-        // Fork 19.11 (ANR na JMGO przy 917 źródłach): wołane z wątku głównego przy każdej partii — ranking w tle, raz na 0,5 s.
+    /** The detail preload and the source picker share this bounded probe for the same title. */
+    @Synchronized
+    fun onSources(context: Context, type: String, videoId: String, streams: List<Stream>) {
+        if (streams.isEmpty() || !EmbeddedSourceSubtitles.enabled(context)) return
+        val app = context.applicationContext
         pending?.cancel()
-        pending = scope.launch { delay(500); pick(streams) }
+        pending = scope.launch { delay(250); pick(app, type, videoId, streams) }
     }
-    @Volatile private var pending: kotlinx.coroutines.Job? = null
 
-    private fun pick(streams: List<Stream>) {
-        val picks = runCatching { KeRanking.order(streams) }.logged("ForkSources", "TrackScout.kt:64").getOrDefault(streams).asSequence()
-            .filter { !it.isTorrent() && SourceReady.tier(it) == 0 }
-            .mapNotNull { s -> key(s)?.let { k -> s to k } }
-            .filter { (_, k) -> cache.get(k) == null && k !in inFlight }
-            .take(TOP).toList()
-        for ((s, k) in picks) {
+    private var pending: kotlinx.coroutines.Job? = null
+
+    private fun pick(context: Context, type: String, videoId: String, streams: List<Stream>) {
+        val available = streams.asSequence()
+            .filter { !it.isTorrent() && SourceReady.tier(it) == 0 && !Placeholders.isMarked(it.getStreamUrl()) }
+            .mapNotNull { stream -> key(stream)?.let { stream to it } }
+            .distinctBy { it.second }
+            .toList()
+        // Probe early results and a mix of resolutions likely to carry Polish tracks.
+        val languageCandidates = available.filter { (stream, _) ->
+            possiblePolish.containsMatchIn(listOfNotNull(stream.name, stream.title, stream.description).joinToString(" "))
+        }.groupBy { (stream, _) -> com.nuvio.tv.core.stream.ReleaseFactsParser.resolutionOf(stream) }
+        val picks = (languageCandidates.values.map { it.first() } + available).distinctBy { it.second }
+        val titleKey = "$type|$videoId"
+        fun offerTrack(stream: Stream, tracks: Tracks) {
+            if (tracks.hasPolishSubs) EmbeddedSourceSubtitles.offer(context, type, videoId, stream)
+        }
+        fun allowProbe(url: String): Boolean = synchronized(probedByTitle) {
+            val tried = probedByTitle.get(titleKey) ?: mutableSetOf<String>().also { probedByTitle.put(titleKey, it) }
+            tried.size < TOP * 2 && tried.add(url)
+        }
+        for ((s, k) in picks.take(TOP * 2)) {
+            val cached = cache.get(k)
+            if (cached != null) {
+                offerTrack(s, cached)
+                continue
+            }
             if (!inFlight.add(k)) continue
+            if (!allowProbe(k)) {
+                inFlight.remove(k)
+                continue
+            }
             scope.launch {
                 try {
                     gate.withPermit {
                         val t = withTimeoutOrNull(TIMEOUT_MS) { probe(k, s.behaviorHints?.proxyHeaders?.request.orEmpty()) }
                         if (t != null) {
                             cache.put(k, t)
+                            offerTrack(s, t)
                             Log.i(TAG, "${s.addonName} | audio=${t.audio} subs=${t.subs} | ${listOfNotNull(s.name, s.title).joinToString(" ").replace('\n', ' ').take(80)}")
                         }
                     }
@@ -94,8 +122,12 @@ object TrackScout {
     }
 
     private fun range(url: String, headers: Map<String, String>, from: Long, len: Int): ByteArray? = runCatching {
-        val rb = Request.Builder().url(url).header("Range", "bytes=$from-${from + len - 1}")
-        headers.forEach { (k, v) -> rb.header(k, v) }
+        val request = com.nuvio.tv.ui.screens.player.PlayerMediaSourceFactory.normalizePlaybackRequest(
+            url, com.nuvio.tv.ui.screens.player.PlayerMediaSourceFactory.sanitizeHeaders(headers)
+        )
+        val rb = Request.Builder().url(request.url)
+        request.headers.forEach { (k, v) -> if (!k.equals("Range", ignoreCase = true)) rb.header(k, v) }
+        rb.header("Range", "bytes=$from-${from + len - 1}")
         client.newCall(rb.build()).execute().use { r ->
             if (!r.isSuccessful) return@use null
             if (r.code == 200 && from > 0) return@use null // serwer bez Range: nie pobieramy całego pliku

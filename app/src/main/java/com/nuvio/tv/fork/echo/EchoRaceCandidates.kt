@@ -202,11 +202,12 @@ fun StreamAutoPlaySelector.raceCandidates(
     installedAddonNames: Set<String>,
     selectedAddons: Set<String>,
     selectedPlugins: Set<String>,
-    preferences: Set<String> = emptySet()
+    preferences: Set<String> = emptySet(),
+    rankFirstStream: Boolean = true
 ): List<Stream> {
     if (streams.isEmpty() || mode == StreamAutoPlayMode.MANUAL) return emptyList()
     val scoped = scopedCandidates(streams, source, installedAddonNames, selectedAddons, selectedPlugins)
-        .let { if (mode == StreamAutoPlayMode.FIRST_STREAM) com.nuvio.tv.fork.sources.KeRanking.order(it) else it } // hybryda: ranking KE przed wyścigiem
+        .let { if (rankFirstStream && mode == StreamAutoPlayMode.FIRST_STREAM) com.nuvio.tv.fork.sources.KeRanking.order(it) else it } // hybryda: ranking KE przed wyścigiem
     return modeMatches(scoped, mode, regexPattern, preferences)
 }
 

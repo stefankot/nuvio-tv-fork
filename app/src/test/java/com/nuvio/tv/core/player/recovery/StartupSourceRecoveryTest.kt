@@ -65,4 +65,12 @@ class StartupSourceRecoveryTest {
         val session = StartupSourceRecovery(1_000)
         assertEquals(15_000L, session.remainingMs(0))
     }
+
+    @Test fun `navigation time after resolution does not spend the playback attempt`() {
+        val state = StartupSourceRecovery.State(1_000L, 3_000L, 2, handedOffAtMs = 4_000L)
+        val resumed = StartupSourceRecovery(24_000L, state.whenPlayerStarts(24_000L))
+        assertEquals(2, resumed.snapshot().attempts)
+        assertEquals(15_000L, resumed.remainingMs(24_000L))
+    }
+
 }

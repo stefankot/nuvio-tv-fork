@@ -29,10 +29,10 @@ object Placeholders {
 
     fun mark(url: String?, why: String) {
         if (url == null || !on()) return
-        if (marked.add(url)) Log.i(TAG, "klip zastępczy ($why): ${url.take(80)}")
+        if (marked.add(url)) Log.i(TAG, "klip zastępczy ($why), link=" + url.hashCode().toUInt().toString(16))
     }
 
-    fun isMarked(url: String?): Boolean = url != null && url in marked
+    fun isMarked(url: String?): Boolean = url != null && url in marked && on()
 
     /** Wyścig bez zwycięzcy: pierwsze źródło, które nie jest znanym klipem (null = wszystkie są). */
     fun firstReal(candidates: List<Stream>): Stream? = if (!on()) null else candidates.firstOrNull { !isMarked(it.getStreamUrl()) }

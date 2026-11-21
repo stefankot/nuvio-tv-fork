@@ -28,8 +28,9 @@ internal object SlowProxy4k {
 
     fun demote(list: List<Stream>, rank: (Stream) -> List<Int>): List<Stream> {
         if (list.size < 2) return list
-        val is4k = list.map { ReleaseFactsParser.factsFor(it).resolution == ReleaseResolution.P2160 }
-        val slow = list.indices.filter { is4k[it] && isSlowProxy(list[it]) }
+        val is4k = list.map { ReleaseFactsParser.resolutionOf(it) == ReleaseResolution.P2160 }
+        val isProxy = list.map(::isSlowProxy)
+        val slow = list.indices.filter { is4k[it] && isProxy[it] }
         if (slow.isEmpty()) return list
         val keys = HashMap<Int, List<Int>>()
         fun key(i: Int) = keys.getOrPut(i) { rank(list[i]) }
@@ -38,7 +39,7 @@ internal object SlowProxy4k {
         // Od końca: przeniesienie późniejszych nie zmienia indeksów wcześniejszych.
         for (i in slow.asReversed()) {
             val target = (list.indices.last downTo i + 1).firstOrNull { j ->
-                is4k[j] && !isSlowProxy(list[j]) && notWorse(key(j), key(i))
+                is4k[j] && !isProxy[j] && notWorse(key(j), key(i))
             } ?: continue
             val s = list[i]
             out.remove(s)

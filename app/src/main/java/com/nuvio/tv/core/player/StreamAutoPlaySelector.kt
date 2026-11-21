@@ -9,6 +9,8 @@ import com.nuvio.tv.domain.model.Stream
 import com.nuvio.tv.domain.model.StreamDebridCacheState
 import com.nuvio.tv.domain.model.indexOfPluginBingeMatch
 import com.nuvio.tv.domain.model.scraperIdFromPluginBingeGroup
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 object StreamAutoPlaySelector {
     fun orderAddonStreams(
@@ -94,6 +96,48 @@ object StreamAutoPlaySelector {
         return selectBingeGroupMatch(visible, targetBingeGroup)
     }
 
+    private fun scopedCandidates(
+        streams: List<Stream>,
+        source: StreamAutoPlaySource,
+        installedAddonNames: Set<String>,
+        selectedAddons: Set<String>,
+        selectedPlugins: Set<String>
+    ): List<Stream> {
+        val effectiveSource = if (!AppFeaturePolicy.pluginsEnabled && source == StreamAutoPlaySource.ENABLED_PLUGINS_ONLY) {
+            StreamAutoPlaySource.INSTALLED_ADDONS_ONLY
+        } else {
+            source
+        }
+
+        val sourceScopedStreams = when (effectiveSource) {
+            StreamAutoPlaySource.ALL_SOURCES -> streams
+            StreamAutoPlaySource.INSTALLED_ADDONS_ONLY -> streams.filter { it.serverTarget != null || it.addonName in installedAddonNames }
+            StreamAutoPlaySource.ENABLED_PLUGINS_ONLY -> streams.filter { it.addonName !in installedAddonNames }
+        }
+        return sourceScopedStreams.filter { stream ->
+            val isAddonStream = stream.addonName in installedAddonNames
+            if (stream.serverTarget != null) {
+                true
+            } else if (isAddonStream) {
+                selectedAddons.isEmpty() || stream.addonName in selectedAddons
+            } else {
+                selectedPlugins.isEmpty() || stream.addonName in selectedPlugins
+            }
+        }
+    }
+
+    // Fork hook: shared first-source order for Echo and recovery.
+    internal suspend fun orderFirstPlayableStreams(
+        streams: List<Stream>,
+        source: StreamAutoPlaySource,
+        installedAddonNames: Set<String>,
+        selectedAddons: Set<String>,
+        selectedPlugins: Set<String>
+    ): List<Stream> = withContext(Dispatchers.Default) {
+        val scoped = scopedCandidates(streams, source, installedAddonNames, selectedAddons, selectedPlugins)
+        com.nuvio.tv.fork.sources.KeRanking.order(scoped.filter(::isPlayable))
+    }
+
     suspend fun selectAutoPlayStreamAsync(
         streams: List<Stream>,
         mode: StreamAutoPlayMode,
@@ -106,8 +150,12 @@ object StreamAutoPlaySelector {
         preferBingeGroupInSelection: Boolean = false,
         bingeGroupOnly: Boolean = false,
         rankedRegexPatterns: List<String> = emptyList(),
-        bingeKeepsFilters: Boolean = false // Nuvio RS: source recovery retries stay inside the user's filters
+        bingeKeepsFilters: Boolean = false, // Nuvio RS: source recovery retries stay inside the user's filters
+        firstSourceOrder: List<Stream>? = null // Fork hook: shared first-source order
     ): Stream? {
+        val order = firstSourceOrder ?: if (mode == StreamAutoPlayMode.FIRST_STREAM && !bingeGroupOnly) {
+            orderFirstPlayableStreams(streams, source, installedAddonNames, selectedAddons, selectedPlugins)
+        } else null
         return com.nuvio.tv.core.streams.ranking.RankedRegexWork.run(
             enabled = mode == StreamAutoPlayMode.REGEX_MATCH && rankedRegexPatterns.isNotEmpty() && !bingeGroupOnly
         ) { checkpoint ->
@@ -124,7 +172,8 @@ object StreamAutoPlaySelector {
                 bingeGroupOnly = bingeGroupOnly,
                 rankedRegexPatterns = rankedRegexPatterns,
                 rankedRegexCheckCancelled = checkpoint,
-                bingeKeepsFilters = bingeKeepsFilters
+                bingeKeepsFilters = bingeKeepsFilters,
+                firstSourceOrder = order
             )
         }
     }
@@ -142,31 +191,12 @@ object StreamAutoPlaySelector {
         bingeGroupOnly: Boolean = false,
         rankedRegexPatterns: List<String> = emptyList(),
         rankedRegexCheckCancelled: () -> Unit = {},
-        bingeKeepsFilters: Boolean = false // Nuvio RS: source recovery retries stay inside the user's filters
+        bingeKeepsFilters: Boolean = false, // Nuvio RS: source recovery retries stay inside the user's filters
+        firstSourceOrder: List<Stream>? = null // Fork hook: shared first-source order
     ): Stream? {
         if (streams.isEmpty()) return null
 
-        val effectiveSource = if (!AppFeaturePolicy.pluginsEnabled && source == StreamAutoPlaySource.ENABLED_PLUGINS_ONLY) {
-            StreamAutoPlaySource.INSTALLED_ADDONS_ONLY
-        } else {
-            source
-        }
-
-        val sourceScopedStreams = when (effectiveSource) {
-            StreamAutoPlaySource.ALL_SOURCES -> streams
-            StreamAutoPlaySource.INSTALLED_ADDONS_ONLY -> streams.filter { it.serverTarget != null || it.addonName in installedAddonNames }
-            StreamAutoPlaySource.ENABLED_PLUGINS_ONLY -> streams.filter { it.addonName !in installedAddonNames }
-        }
-        val candidateStreams = sourceScopedStreams.filter { stream ->
-            val isAddonStream = stream.addonName in installedAddonNames
-            if (stream.serverTarget != null) {
-                true
-            } else if (isAddonStream) {
-                selectedAddons.isEmpty() || stream.addonName in selectedAddons
-            } else {
-                selectedPlugins.isEmpty() || stream.addonName in selectedPlugins
-            }
-        }
+        val candidateStreams = scopedCandidates(streams, source, installedAddonNames, selectedAddons, selectedPlugins)
         // Binge group matching takes priority over mode and source filters — even in MANUAL mode,
         // a persisted binge group should auto-play without showing the picker.
         // Search ALL streams, not just candidateStreams, since binge group reuse should
@@ -190,7 +220,7 @@ object StreamAutoPlaySelector {
 
         return when (mode) {
             StreamAutoPlayMode.MANUAL -> null
-            StreamAutoPlayMode.FIRST_STREAM -> com.nuvio.tv.fork.sources.KeRanking.order(candidateStreams).firstOrNull { isPlayable(it) } // Fork hook: ke-rank
+            StreamAutoPlayMode.FIRST_STREAM -> (firstSourceOrder ?: com.nuvio.tv.fork.sources.KeRanking.order(candidateStreams)).firstOrNull { isPlayable(it) && !com.nuvio.tv.fork.sources.Placeholders.isMarked(it.getStreamUrl()) } // Fork hook: ke-rank
             StreamAutoPlayMode.REGEX_MATCH -> {
                 if (rankedRegexPatterns.isNotEmpty()) {
                     return StreamRegexRanking.bestMatch(

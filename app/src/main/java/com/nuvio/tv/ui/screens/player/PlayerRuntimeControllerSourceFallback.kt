@@ -23,6 +23,7 @@ private const val SOURCE_FALLBACK_POLL_INTERVAL_MS = 500L
  */
 internal fun PlayerRuntimeController.scheduleSourceStartupTimeout() {
     sourceStartupTimeoutJob?.cancel()
+    if (autoSourceRecovery != null) return // Fork hook: one automatic source recovery session
     val url = currentStreamUrl
     sourceStartupTimeoutJob = scope.launch {
         val timeoutSeconds = streamAutoPlayFallbackStartupTimeoutSeconds
@@ -83,6 +84,7 @@ internal fun PlayerRuntimeController.tryFallbackToNextSourceAfterError(
     onFallbackFailure: (() -> Unit)? = null
 ): Boolean {
     if (handleSourceSwitchFailure(errorMessage)) return true // Fork hook: echo
+    if (autoSourceRecovery?.failDefinitively(errorMessage) == true) return true // Fork hook: one automatic source recovery session
     if (currentStreamUrl == sourceFallbackExhaustedUrl) return false
     if (!streamAutoPlayFallbackActive || autoSwitchInternalPlayerOnErrorEnabled) return false
     if (hasRenderedFirstFrame) return false

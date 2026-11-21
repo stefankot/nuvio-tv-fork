@@ -32,3 +32,4 @@ app/src/test/java/com/nuvio/tv/core/debrid/DirectDebridStreamPreparerTest.kt
 app/src/test/java/com/nuvio/tv/core/player/StreamAutoPlaySelectorTest.kt
 gradle.properties
 app/src/main/java/com/nuvio/tv/core/player/AutoPlayRace.kt
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerSubtitleTiming.kt
