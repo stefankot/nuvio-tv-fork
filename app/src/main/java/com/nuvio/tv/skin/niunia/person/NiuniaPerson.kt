@@ -91,7 +91,7 @@ fun NiuniaPerson(
                 com.nuvio.tv.skin.niunia.components.NiuniaContentBlock(com.nuvio.tv.skin.niunia.components.NiuniaBlockKind.Wide) {
                     com.nuvio.tv.skin.niunia.components.NiuniaText(person.name, variant = com.nuvio.tv.skin.niunia.components.NiuniaTextVariant.TitleScreen, lines = 1)
                     val line = listOfNotNull(
-                        person.knownFor?.takeIf { it.isNotBlank() },
+                        person.knownFor?.takeIf { it.isNotBlank() }?.let { niuniaDepartment(it) }, // test JMGO build159: „Acting”
                         person.placeOfBirth?.takeIf { it.isNotBlank() }?.let { stringResource(R.string.niunia_person_born_in, it) },
                     ).joinToString(" · ")
                     if (line.isNotEmpty()) com.nuvio.tv.skin.niunia.components.NiuniaText(line, variant = com.nuvio.tv.skin.niunia.components.NiuniaTextVariant.BodySmall, tone = com.nuvio.tv.skin.niunia.components.NiuniaTone.Tertiary, lines = 1)
@@ -140,3 +140,13 @@ fun NiuniaPerson(
 private fun year(item: MetaPreview): Int = (item.releaseInfo ?: item.released)?.take(4)?.toIntOrNull() ?: 0
 
 private fun initials(name: String): String = name.split(' ').filter { it.isNotBlank() }.take(2).joinToString("") { it.first().uppercase() }
+
+/** Dział z TMDB („Acting”, „Directing”…) po polsku; nieznany zostaje. */
+@Composable
+private fun niuniaDepartment(raw: String): String = when (raw.trim().lowercase()) {
+    "acting" -> stringResource(com.nuvio.tv.R.string.niunia_dept_acting)
+    "directing" -> stringResource(com.nuvio.tv.R.string.niunia_role_director)
+    "writing" -> stringResource(com.nuvio.tv.R.string.niunia_role_writer)
+    "production" -> stringResource(com.nuvio.tv.R.string.niunia_role_producer)
+    else -> raw
+}

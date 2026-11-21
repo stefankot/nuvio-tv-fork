@@ -64,6 +64,9 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -171,6 +174,8 @@ fun NiuniaDetail(
                     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(top = 16.dp, bottom = 48.dp)) {
                         // Episodes: pigułki sezonów (wybrany 24%), potem rząd odcinków (EpisodeCard).
                         if (series && uiState.seasons.isNotEmpty()) {
+                            // Test JMGO build159: ▲ z odcinka trafiało w najbliższą pigułkę („Sezon 2”), nie w wybrany sezon.
+                            val selectedPill = FocusRequester()
                             item(key = "seasons") {
                                 com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
                                     LazyRow(contentPadding = PaddingValues(horizontal = NiuniaSpacing.Space40), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space4)) {
@@ -179,6 +184,7 @@ fun NiuniaDetail(
                                                 onClick = { Log.i(TAG, "szczegóły: sezon $sn"); viewModel.onEvent(MetaDetailsEvent.OnSeasonSelected(sn)) },
                                                 label = if (sn == 0) stringResource(R.string.niunia_detail_specials) else stringResource(R.string.niunia_detail_season, sn),
                                                 kind = NiuniaButtonKind.Chip, selected = sn == uiState.selectedSeason,
+                                                focusRequester = if (sn == uiState.selectedSeason) selectedPill else null,
                                                 onFocus = { if (it) focusedRow = 1 },
                                             )
                                         }
@@ -187,7 +193,10 @@ fun NiuniaDetail(
                             }
                             item(key = "episodes") {
                                 com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
-                                    LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space20)) {
+                                    LazyRow(Modifier.onPreviewKeyEvent { e ->
+                                        if (e.type != androidx.compose.ui.input.key.KeyEventType.KeyDown || e.key != androidx.compose.ui.input.key.Key.DirectionUp) return@onPreviewKeyEvent false
+                                        try { selectedPill.requestFocus(); true } catch (ex: IllegalStateException) { Log.w(TAG, "szczegóły: ▲ do sezonu: ${ex.message}"); false }
+                                    }, contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space20)) {
                                         itemsIndexed(uiState.episodesForSeason, key = { _, it -> it.id }) { idx, video ->
                                             val key = (video.season ?: 0) to (video.episode ?: 0)
                                             val wp = uiState.episodeProgressMap[key]
@@ -333,7 +342,7 @@ private fun AboutSection(meta: Meta, series: Boolean, uiState: MetaDetailsUiStat
             if (series) listOfNotNull(
                 uiState.seasons.count { it > 0 }.takeIf { it > 0 }?.let { n -> when { n == 1 -> ctx.getString(R.string.niunia_ds_seasons_one); n % 10 in 2..4 && n % 100 !in 12..14 -> ctx.getString(R.string.niunia_ds_seasons_few, n); else -> ctx.getString(R.string.niunia_ds_seasons_many, n) } },
                 episodes.takeIf { it > 0 }?.let { ctx.getString(R.string.niunia_ds_episodes_count, it) },
-            ).joinToString(" · ").ifBlank { null } else meta.runtime?.takeIf { it.isNotBlank() },
+            ).joinToString(" · ").ifBlank { null } else niuniaRuntimeLabel(ctx, meta.runtime), // test JMGO build159: było „137”
             (if (series) meta.writer.ifEmpty { meta.director } else meta.director).take(2).joinToString(", ").ifBlank { null }
                 ?.let { ctx.getString(if (series) R.string.niunia_ds_creators_line else R.string.niunia_ds_director_line, it) },
             (meta.networks + meta.productionCompanies).map { it.name }.distinct().take(2).joinToString(" · ").ifBlank { null },

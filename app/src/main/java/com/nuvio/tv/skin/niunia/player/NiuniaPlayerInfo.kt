@@ -164,7 +164,7 @@ internal fun NiuniaPlayerDetails(
         }
         if (!ok) try { fallback.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus zapasowy szczegółów: ${e.message}") }
         // Test JMGO build157: przewinięcie do rzędu odcinków ucinało w połowie linię „Serial · S9:O2…” — rząd mieści się bez przewijania.
-        if (ok && hasEpisodes) { kotlinx.coroutines.delay(250); pageScroll.animateScrollTo(0) }
+        if (ok) { kotlinx.coroutines.delay(250); pageScroll.animateScrollTo(0) } // także film (fokus na obsadzie, test build159)
     }
     Box(Modifier.fillMaxSize()) {
         NiuniaDeepBackground(ui.backdrop)
