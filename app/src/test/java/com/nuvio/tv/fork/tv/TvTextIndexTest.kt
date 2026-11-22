@@ -5,6 +5,7 @@ import com.nuvio.tv.reshaped.livetv.LiveTvChannel
 import com.nuvio.tv.reshaped.livetv.LiveTvProgramme
 import com.nuvio.tv.skin.kicia.livetv.forgeTvChannelHits
 import com.nuvio.tv.skin.kicia.livetv.forgeTvSearch
+import com.nuvio.tv.skin.kicia.livetv.forgeWordStarts
 import com.nuvio.tv.skin.kicia.livetv.ForgeEpgCategories
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -14,7 +15,7 @@ import org.junit.Test
 
 /** 22.11 (właściciel): indeks szukania TV w tle i przyrostowo; JMGO build171: „tvn” przy 252 827 kanałach ~110 s. */
 class TvTextIndexTest {
-    private fun ch(name: String, key: String = name) = LiveTvChannel(id = name, name = name, streamUrl = "http://x/$name", tvgId = key)
+    private fun ch(name: String, key: String = name) = LiveTvChannel(id = name, name = name, streamUrl = "http://x/$name", tvgId = key, guideKey = key)
     private fun p(title: String, start: Long, len: Long = 30 * 60_000L) = LiveTvProgramme(title, start, start + len)
 
     @Before fun clean() = TvTextIndex.clearForTests()
@@ -86,5 +87,19 @@ class TvTextIndexTest {
         val ms = (System.nanoTime() - t0) / 1_000_000
         assertTrue("trwało $ms ms", ms < 3_000)
         assertTrue(r.programmes.isNotEmpty())
+    }
+
+    @Test fun `poczatek slowa bez dzielenia tekstu - jak dawniej`() {
+        assertTrue(forgeWordStarts("dzien dobry tvn", "tvn"))
+        assertTrue(forgeWordStarts("tvn 24", "tvn"))
+        assertTrue(forgeWordStarts("pl:tvn", "tvn"))
+        assertTrue(forgeWordStarts("film „tvn", "tvn"))
+        assertFalse(forgeWordStarts("ctvn akd", "tvn"))
+        assertTrue(forgeWordStarts("cokolwiek", ""))
+    }
+
+    @Test fun `jedna litera - tylko poczatek nazwy albo slowa`() {
+        val list = listOf(ch("Kanał Sport"), ch("Teletoon"), ch("Ale Kino"))
+        assertEquals(listOf("Teletoon"), forgeTvChannelHits("t", list, emptyMap(), 30).map { it.channel.name })
     }
 }

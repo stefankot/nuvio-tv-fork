@@ -356,6 +356,8 @@ internal fun forgeTvChannelHits(q: String, channels: List<LiveTvChannel>, curren
             val n = index.nameOf(ch.name)
             if (!n.contains(q)) continue
             val k = index.keyOf(ch.name)
+            // JMGO build172: jedna litera („t”) pasowała do prawie każdej z 252 827 nazw (22 s) — wtedy tylko początek nazwy/słowa.
+            if (q.length < 2 && !k.startsWith(q) && !forgeWordStarts(n, q)) continue
             when {
                 k == q -> 1
                 k.startsWith(q) -> 2
@@ -390,8 +392,18 @@ internal fun forgeChannelsByKey(channels: List<LiveTvChannel>): Map<String, Live
 internal const val FORGE_TV_SEARCH_PROGRAMMES = 12
 
 /** Whether a word of [title] (both normalised) starts with [q]; an empty [q] counts. */
-internal fun forgeWordStarts(title: String, q: String): Boolean =
-    q.isEmpty() || title.startsWith(q) || title.split(' ', '-', ':', '.', ',', '(', '"', '„').any { it.startsWith(q) }
+internal fun forgeWordStarts(title: String, q: String): Boolean {
+    // 22.11: bez dzielenia na słowa (alokacje przy setkach tysięcy nazw) — ten sam wynik co split + startsWith.
+    if (q.isEmpty() || title.startsWith(q)) return true
+    var i = title.indexOf(q, 1)
+    while (i > 0) {
+        if (title[i - 1] in FORGE_WORD_SEPARATORS) return true
+        i = title.indexOf(q, i + 1)
+    }
+    return false
+}
+
+private const val FORGE_WORD_SEPARATORS = " -:.,(\"„"
 
 /** "dziś", "wczoraj", "jutro" or the weekday, as the mockup's DANE.nazwaDnia. */
 internal fun forgeTvSearchDay(ms: Long, now: Long, zone: java.util.TimeZone = java.util.TimeZone.getDefault()): String {
