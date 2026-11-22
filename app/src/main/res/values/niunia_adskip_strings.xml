@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Skórka Niunia: omijanie reklam w telewizji na żywo (ten sam program z archiwum, przeniesione z Kici). -->
+<resources>
+    <string name="niunia_adskip_title">Możesz ominąć reklamy</string>
+    <string name="niunia_adskip_sub">Ten program jest w archiwum · %1$s</string>
+    <string name="niunia_adskip_ok">OK</string>
+    <string name="niunia_adskip_done">Program leci teraz z archiwum. Reklamy możesz przewijać.</string>
+</resources>

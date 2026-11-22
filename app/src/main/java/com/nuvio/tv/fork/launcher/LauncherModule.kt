@@ -50,6 +50,9 @@ object LauncherModule : ForkModule {
     override fun settings() = listOf(
         ModuleSetting("launcher_autostart", SettingsLevel.SIMPLE, "Telewizja", "Uruchamiaj z telewizorem", "Nuvio startuje po włączeniu telewizora", defaultValue = false),
         ModuleSetting(K_LOCK, SettingsLevel.ESSENTIAL, "Telewizja", "Blokada wyjścia", "Pięć razy Wstecz w 3 sekundy otwiera „Wyjście i ustawienia”", defaultValue = false),
+        // 22.11: duże obrazki (tło, hero) w pełnej jakości — fork/images/ForkImageQuality.
+        ModuleSetting(com.nuvio.tv.fork.images.ForkImageQuality.KEY, SettingsLevel.ESSENTIAL, "Obrazki", "Tła i duże obrazki w pełnej jakości", "Ostrzejsze na telewizorach 4K, wczytują się trochę dłużej", defaultValue = true),
+        ModuleSetting(com.nuvio.tv.fork.images.NativeBlur.KEY, SettingsLevel.ADVANCED, "Obrazki", "Gotowe rozmycia teł", "Rozmycie liczone raz i zapamiętane — płynniejsze przewijanie, także na starszych telewizorach", defaultValue = true),
     )
 
     override fun actions() = listOf(

@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -122,7 +123,8 @@ internal fun NiuniaTrack(
 internal fun BoxScope.NiuniaTrackLabel(text: String, at: Float, trackWidth: Dp, color: Color, small: Boolean = false) {
     Text(
         text, style = NiuniaText.Caption.copy(fontSize = if (small) 10.sp else 12.sp, lineHeight = 16.sp, letterSpacing = 1.2.sp), color = color, maxLines = 1,
-        modifier = Modifier.align(Alignment.TopStart).offset(x = trackWidth * at.coerceIn(0f, 1f) - 18.dp, y = 22.dp).width(36.dp),
+        // Test JMGO build160: 36 dp ucinało „−0:08” do „−0:0” → 80 dp, wyśrodkowane na gałce.
+        modifier = Modifier.align(Alignment.TopStart).offset(x = trackWidth * at.coerceIn(0f, 1f) - 40.dp, y = 22.dp).width(80.dp),
         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
     )
 }
@@ -140,7 +142,9 @@ internal fun NiuniaIconCircle(icon: ImageVector, description: String, focused: B
         ) {
             Icon(icon, contentDescription = description, tint = if (focused) DsColor.OnFocus else DsColor.White, modifier = Modifier.size(DsSize.Icon20))
         }
-        if (label != null) Text(label, style = DsType.BodySmall, color = DsColor.Text, maxLines = 1, modifier = Modifier.padding(top = DsSpacing.Space8))
+        // Test JMGO build155: w kolumnie 64 dp „Od początku” zawijało się i zostawało „Od” → podpis bez zawijania, wystaje symetrycznie.
+        if (label != null) Text(label, style = DsType.BodySmall, color = DsColor.Text, maxLines = 1, softWrap = false,
+            modifier = Modifier.padding(top = DsSpacing.Space8).wrapContentWidth(unbounded = true))
     }
 }
 

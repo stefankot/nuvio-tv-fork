@@ -72,6 +72,7 @@ class GeminiLektor(context: Context) : Lektor, com.nuvio.tv.fork.lektor.SceneLek
         val current = sticky ?: options.model
         val id = NarratorText.fingerprint(current, options.voice, clean, style)
         cache.find(id, touch = true)?.readBytes()?.let { return it }
+        com.nuvio.tv.fork.lektor.LektorStore.find(app, id)?.let { return it } // Fork hook: lektor-store (Opus na TV, potem Dysk Google)
         var storeId = id
         val month = YearMonth.now()
         val usd = NarratorPrices.estimatedUsd(current, clean.length, seconds * 1.8, month.year, month.monthValue)
@@ -103,7 +104,7 @@ class GeminiLektor(context: Context) : Lektor, com.nuvio.tv.fork.lektor.SceneLek
                     throw Lektor.Unavailable(if (daily) "Dzienny limit głosu Gemini na tym kluczu wyczerpany (odnowienie ok. 9:00)" else "Serwer Gemini przeciążony lub limit na minutę (${e.message?.take(60)})")
                 }
             }
-        cache.store(storeId, bytes)
+        if (!com.nuvio.tv.fork.lektor.LektorStore.put(app, storeId, bytes)) cache.store(storeId, bytes) // Fork hook: lektor-store (Opus zamiast WAV)
         return bytes
     }
 

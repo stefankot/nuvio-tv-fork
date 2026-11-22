@@ -2,7 +2,7 @@
 """Generator tokenów skórki Niunia z design systemu Nuvio TV (tokens.json, v2).
 
 Użycie (z katalogu NuvioFork):
-    python3 fork-tools/niunia/gen_tokens.py [ścieżka/do/tokens.json]
+    python3 fork-tools/niunia/gen_tokens.py [ścieżka/do/tokens.json] [--icons]
 
 Domyślne źródło: ~/Desktop/nuvio-tv-interface/design-system/tokens.json.
 Wynik:
@@ -17,7 +17,10 @@ import shutil
 import sys
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.expanduser("~/Desktop/nuvio-tv-interface/design-system/tokens.json")
+# --icons: tylko NiuniaIconPaths.kt (bez tokenów, np. gdy nowsze tokeny DS nie są jeszcze wdrożone w skórce; Z-13).
+ICONS_ONLY = "--icons" in sys.argv
+ARGS = [a for a in sys.argv[1:] if a != "--icons"]
+SRC = ARGS[0] if ARGS else os.path.expanduser("~/Desktop/nuvio-tv-interface/design-system/tokens.json")
 OUT = os.path.join(ROOT, "app/src/main/java/com/nuvio/tv/skin/niunia/tokens/NiuniaDesignTokens.kt")
 TEST_COPY = os.path.join(ROOT, "app/src/test/resources/niunia/tokens.json")
 
@@ -299,7 +302,7 @@ def main():
     print("zapisano %s (%d linii) i %s" % (os.path.relpath(OUT, ROOT), len(L), os.path.relpath(TEST_COPY, ROOT)))
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" and not ICONS_ONLY:
     main()
 
 
@@ -329,7 +332,7 @@ def _svg_to_paths(svg):
             rx = float(a.get("rx", 0))
             d = (f"M{x + rx},{y}h{wd - 2 * rx}a{rx},{rx} 0 0 1 {rx},{rx}v{ht - 2 * rx}a{rx},{rx} 0 0 1 {-rx},{rx}"
                  f"h{-(wd - 2 * rx)}a{rx},{rx} 0 0 1 {-rx},{-rx}v{-(ht - 2 * rx)}a{rx},{rx} 0 0 1 {rx},{-rx}z")
-        out.append((d, fill))
+        out.append((d, fill, a.get("fill-rule") == "evenodd"))
     return out
 
 
@@ -344,11 +347,17 @@ def gen_icons():
          "package com.nuvio.tv.skin.niunia.tokens", "",
          "/** Ikona design systemu: ścieżki SVG w polu 24×24, kreska 2 dp; `true` = wypełniona. */",
          "object NiuniaIconPaths {", "    val all: Map<String, List<Pair<String, Boolean>>> = mapOf("]
+    even = []
     for q, b, svg in icons:
         name = q or b
-        paths = ", ".join('"%s" to %s' % (d, "true" if f else "false") for d, f in _svg_to_paths(svg))
+        parsed = _svg_to_paths(svg)
+        paths = ", ".join('"%s" to %s' % (d, "true" if f else "false") for d, f, _ in parsed)
         L.append('        "%s" to listOf(%s),' % (name, paths))
-    L += ["    )", "}", ""]
+        if any(e for _, _, e in parsed):
+            even.append(name)
+    L += ["    )", "",
+          "    /** Ikony z `fill-rule=\"evenodd\"` (otwory w wypełnieniu, np. maska BAFTA). */",
+          "    val evenOdd: Set<String> = setOf(%s)" % ", ".join('"%s"' % n for n in even), "}", ""]
     with open(ICONS_OUT, "w", encoding="utf-8") as f:
         f.write("\n".join(L))
     print("zapisano %s (%d ikon)" % (os.path.relpath(ICONS_OUT, ROOT), len(icons)))

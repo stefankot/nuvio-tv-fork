@@ -115,9 +115,19 @@ fun NiuniaCastCard(
         NiuniaAvatar(niuniaInitials(name), d, Modifier.niuniaFocusLook(NiuniaFocusStyle.Lift, focused, CircleShape), photo = photo)
         Column {
             Text(name, style = NiuniaType.LabelSmall, color = NiuniaColor.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            if (!role.isNullOrBlank()) Text(role, style = NiuniaType.CaptionRegular, color = NiuniaColor.Text50, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (!role.isNullOrBlank()) Text(niuniaRoleLabel(role), style = NiuniaType.CaptionRegular, color = NiuniaColor.Text50, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
+}
+
+/** Test JMGO build159: TMDB podaje funkcje twórców po angielsku („Director”) → po polsku; rola postaci zostaje bez zmian. */
+@androidx.compose.runtime.Composable
+internal fun niuniaRoleLabel(role: String): String = when (role.trim().lowercase()) {
+    "director" -> androidx.compose.ui.res.stringResource(com.nuvio.tv.R.string.niunia_role_director)
+    "creator" -> androidx.compose.ui.res.stringResource(com.nuvio.tv.R.string.niunia_role_creator)
+    "writer", "screenplay", "novel", "story" -> androidx.compose.ui.res.stringResource(com.nuvio.tv.R.string.niunia_role_writer)
+    "producer", "executive producer" -> androidx.compose.ui.res.stringResource(com.nuvio.tv.R.string.niunia_role_producer)
+    else -> role
 }
 
 /** Inicjały: pierwsze litery dwóch pierwszych słów („Morfydd Clark” → „MC”). */

@@ -89,6 +89,12 @@ internal fun NiuniaLiveTileCard(
                 NiuniaTileMark.SOON -> stringResource(R.string.niunia_tv_badge_soon)
                 else -> null
             }
+            val expires = tile.expiresHours?.takeIf { badge == null && tile.mark == NiuniaTileMark.ARCHIVE }
+            if (expires != null) com.nuvio.tv.skin.niunia.components.NiuniaTag(
+                // 22.11: żółta etykieta (jak „opóźnienie”) — program wkrótce zniknie z archiwum dostawcy.
+                androidx.compose.ui.platform.LocalContext.current.resources.getQuantityString(R.plurals.niunia_catchup_left_hours, expires.coerceAtLeast(1), expires.coerceAtLeast(1)),
+                com.nuvio.tv.skin.niunia.components.NiuniaTagKind.Delay,
+                Modifier.padding(start = if (dot != null) 26.dp else 8.dp, top = 8.dp))
             if (badge != null) {
                 val newOne = tile.mark == NiuniaTileMark.NEW && longBadge
                 com.nuvio.tv.skin.niunia.components.NiuniaTag(badge,

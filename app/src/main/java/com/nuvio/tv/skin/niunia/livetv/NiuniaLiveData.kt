@@ -39,6 +39,8 @@ internal data class NiuniaLiveTile(
     val extra: String? = null,
     /** Pokazać nazwę kanału w podpisie („program · kanał” — przewodnik; Odkrywaj = sam tytuł). */
     val withChannel: Boolean = true,
+    /** 22.11: ile godzin program jest jeszcze w archiwum, gdy mniej niż [EXPIRY_SHOW_H] (żółta etykieta). */
+    val expiresHours: Int? = null,
 ) {
     val key: String get() = channel.streamUrl + "|" + (programme?.startEpochMs ?: 0L)
 }
@@ -69,11 +71,16 @@ internal fun tileFor(ch: LiveTvChannel, p: LiveTvProgramme, now: Long, withChann
     isLive(p, now) -> NiuniaLiveTile(ch, p, NiuniaTileMark.LIVE, liveFraction(p, now), isSeries(p), withChannel = withChannel)
     p.stopEpochMs <= now -> {
         val resume = TvStore.resumeFor(ch.streamUrl, p.startEpochMs)?.takeIf { it.started }
-        NiuniaLiveTile(ch, p, if (LiveTvCatchupLinks.isPlayable(ch.catchup, p, now)) NiuniaTileMark.ARCHIVE else NiuniaTileMark.NONE,
-            resume?.fraction, isSeries(p), withChannel = withChannel)
+        val playable = LiveTvCatchupLinks.isPlayable(ch.catchup, p, now)
+        NiuniaLiveTile(ch, p, if (playable) NiuniaTileMark.ARCHIVE else NiuniaTileMark.NONE,
+            resume?.fraction, isSeries(p), withChannel = withChannel,
+            expiresHours = if (playable) com.nuvio.tv.fork.tv.CatchupDepth.hoursLeft(ch, p, now)?.takeIf { it < EXPIRY_SHOW_H } else null)
     }
     else -> NiuniaLiveTile(ch, p, if (soonMark) NiuniaTileMark.SOON else NiuniaTileMark.NONE, null, isSeries(p), extra = whenLabel(p.startEpochMs, now), withChannel = withChannel)
 }
+
+/** 22.11: żółta etykieta „Dostępny jeszcze …” dla programów, które znikną z archiwum w ciągu doby. */
+internal const val EXPIRY_SHOW_H = 25
 
 /** „Dziś 21:30”, „Jutro 20:15”, „Pt 20:15”. */
 internal fun whenLabel(ms: Long, now: Long): String {

@@ -2,6 +2,7 @@
 
 package com.nuvio.tv.skin.niunia.components
 
+import coil3.request.transformations
 import android.os.Build
 import android.util.Log
 import androidx.activity.compose.BackHandler
@@ -66,6 +67,13 @@ fun NiuniaHeroPage(
     val t by animateFloatAsState(if (down) 1f else 0f, tween(520, easing = FastOutSlowInEasing), label = "niuniaHeroPage")
     val blurOk = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val blurPx = with(LocalDensity.current) { 60.dp.toPx() }
+    // 22.11: gotowe rozmycie (liczone raz, w pamięci Coil) zamiast RenderEffect w każdej klatce animacji.
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val preblur = remember { com.nuvio.tv.fork.images.NativeBlur.enabled(ctx) }
+    val blurred = remember(background, preblur) {
+        if (preblur && background != null) coil3.request.ImageRequest.Builder(ctx).data(background)
+            .transformations(com.nuvio.tv.fork.images.NativeBlur(blurPx)).build() else null
+    }
     BackHandler(enabled = down) {
         Log.i(TAG, "$what: Wstecz → hero")
         try { heroFocus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "$what: fokus hero: ${e.javaClass.simpleName}: ${e.message}") }
@@ -75,11 +83,15 @@ fun NiuniaHeroPage(
         AsyncImage(
             model = background, contentDescription = null, contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize().graphicsLayer {
-                if (blurOk && t > 0.01f) renderEffect = BlurEffect(blurPx * t, blurPx * t, TileMode.Clamp)
+                if (blurOk && blurred == null && t > 0.01f) renderEffect = BlurEffect(blurPx * t, blurPx * t, TileMode.Clamp)
                 if (t > 0.01f) { scaleX = 1f + 0.08f * t; scaleY = 1f + 0.08f * t } // brzegi rozmycia poza ekranem
             },
         )
-        Box(Modifier.fillMaxSize().graphicsLayer { alpha = t }.background(if (blurOk) Color(0x8C000000) else Color(0xE62C2C2E)))
+        if (blurred != null) AsyncImage(
+            model = blurred, contentDescription = null, contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize().graphicsLayer { alpha = t; scaleX = 1f + 0.08f * t; scaleY = 1f + 0.08f * t },
+        )
+        Box(Modifier.fillMaxSize().graphicsLayer { alpha = t }.background(if (blurOk || blurred != null) Color(0x8C000000) else Color(0xE62C2C2E)))
         Box(
             Modifier.fillMaxSize()
                 .graphicsLayer { alpha = 1f - t; translationY = -h * t }
@@ -91,7 +103,7 @@ fun NiuniaHeroPage(
         Box(
             Modifier.fillMaxSize()
                 .graphicsLayer { translationY = h * (1f - t) }
-                .onFocusChanged { if (it.hasFocus && !down) { down = true; Log.i(TAG, "$what: ▼ → pod hero (rozmycie ${if (blurOk) "tak" else "przyciemnienie"})") } }
+                .onFocusChanged { if (it.hasFocus && !down) { down = true; Log.i(TAG, "$what: ▼ → pod hero (rozmycie ${if (blurred != null) "gotowe" else if (blurOk) "tak" else "przyciemnienie"})") } }
                 .focusRequester(belowFocus)
                 .focusProperties { exit = { dir -> if (dir == FocusDirection.Up) heroFocus else FocusRequester.Default } }
                 .focusGroup(),

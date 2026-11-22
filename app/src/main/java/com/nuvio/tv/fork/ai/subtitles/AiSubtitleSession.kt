@@ -85,7 +85,10 @@ object SourceGatherer {
         val excluded = setOf(sourceLang)
         fun eligible(o: SubtitleOption) = o.url != source.url && lang(o) != target && lang(o) != sourceLang && lang(o) != original
         val slavic = notTarget.filter { eligible(it) && lang(it) in slavicOrder }.sortedBy { slavicOrder.indexOf(lang(it)) }.take(PER_CATEGORY)
-        val western = notTarget.filter { eligible(it) && lang(it) in AuxiliaryLanguagePolicy.westernLanguages }.take(PER_CATEGORY)
+        // 22.11: film spoza Europy (oryginał np. ja/ko/hi) — angielskie pliki pierwsze w kolejce do sprawdzenia i preferowane.
+        val nonEuropean = original != null && !AuxiliaryLanguagePolicy.isEuropean(original)
+        val western = notTarget.filter { eligible(it) && lang(it) in AuxiliaryLanguagePolicy.westernLanguages }
+            .sortedBy { if (lang(it) == "en") 0 else 1 }.take(PER_CATEGORY)
         val loaded = HashMap<String, List<DocCue>>()
         val candidates = (slavic + western).map { o ->
             val c = runCatching { port.loadCues(o) }.logged("ForkAi", "AiSubtitleSession.kt:90").getOrDefault(emptyList()).take(MAX_CUES)
@@ -93,7 +96,8 @@ object SourceGatherer {
             val coverage = coverage(cues, c)
             AuxiliarySubtitleCandidate(o.id, o.language, acceptedAfterVerification = c.size >= cues.size / 2 && coverage >= 0.6, matchingScore = (coverage * 100).toInt())
         }
-        val pick = AuxiliaryLanguagePolicy.chooseForPolish(original ?: sourceLang, candidates, excluded)
+        val pick = AuxiliaryLanguagePolicy.chooseForPolish(original ?: sourceLang, candidates, excluded, preferredWestern = if (nonEuropean) "en" else null)
+        if (nonEuropean) reasons += "Film spoza Europy (oryginał $original): pomocnicze najlepiej rosyjski i angielski"
         val byId = (slavic + western).associateBy { it.id }
         val aux = listOfNotNull(pick.slavic?.let { "AUX_SLAVIC" to it }, pick.western?.let { "AUX_WESTERN" to it }).map { (cat, cand) ->
             val o = byId.getValue(cand.sourceId)

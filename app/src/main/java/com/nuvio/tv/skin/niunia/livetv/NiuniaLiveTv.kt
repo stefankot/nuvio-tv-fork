@@ -141,7 +141,10 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
     val allFocus = remember { FocusRequester() }
     com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(if (mode == LiveMode.GUIDE) allFocus else null)
 
-    val shown = state.shownChannels
+    // 22.11: prawdziwa długość archiwum źródeł (raz na dobę, w tle) — etykieta „Dostępny jeszcze …”.
+    LaunchedEffect(state.channels.size) { com.nuvio.tv.fork.tv.CatchupDepth.probeStale(context, state.channels) }
+    // 22.11: najpierw kanały polskojęzyczne, potem zagraniczne.
+    val shown = remember(state.shownChannels) { ForgeEpgCategories.polishFirst(state.shownChannels) }
     val categories = remember(shown, state.hiddenGroups) { NiuniaLiveFilters.categories(context, shown, state.hiddenGroups) }
     val filtered = remember(shown, filter, state.favoriteUrls, favShows, alerts) {
         when (val f = filter) {

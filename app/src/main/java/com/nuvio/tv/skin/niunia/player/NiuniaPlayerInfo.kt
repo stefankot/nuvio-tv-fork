@@ -155,6 +155,7 @@ internal fun NiuniaPlayerDetails(
     val first = remember { FocusRequester() }
     val fallback = remember { FocusRequester() }
     val hasEpisodes = series && episodes.isNotEmpty()
+    val pageScroll = rememberScrollState()
     LaunchedEffect(Unit) {
         Log.i(TAG, "odtwarzacz: szczegóły (serial=$series, odcinki=${episodes.size}, obsada=${cast.size}, podobne=${similar.size}, opis=${!ui.description.isNullOrBlank()})")
         kotlinx.coroutines.delay(60)
@@ -162,12 +163,14 @@ internal fun NiuniaPlayerDetails(
             Log.w(TAG, "odtwarzacz: fokus szczegółów: ${e.javaClass.simpleName}: ${e.message}"); false
         }
         if (!ok) try { fallback.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus zapasowy szczegółów: ${e.message}") }
+        // Test JMGO build157: przewinięcie do rzędu odcinków ucinało w połowie linię „Serial · S9:O2…” — rząd mieści się bez przewijania.
+        if (ok) { kotlinx.coroutines.delay(250); pageScroll.animateScrollTo(0) } // także film (fokus na obsadzie, test build159)
     }
     Box(Modifier.fillMaxSize()) {
         NiuniaDeepBackground(ui.backdrop)
         Column(
             Modifier.fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(pageScroll)
                 .padding(bottom = NiuniaSpace.AfterRow),
         ) {
             // 1. Logo na środku (jedyny wyjątek od „bez centrowania”); bez logo — tytuł tekstem od lewej.

@@ -25,6 +25,15 @@ object AuxiliaryLanguagePolicy {
     private val slavicLanguages = defaultSlavicPriority.toSet()
     val westernLanguages = setOf("en", "de", "fr", "es", "it", "nl", "pt")
 
+    /** Języki Europy (oryginał filmu); spoza tej listy = film spoza Europy (22.11: pomocnicze rosyjski i angielski). */
+    val europeanLanguages = defaultSlavicPriority.toSet() + westernLanguages + setOf(
+        "pl", "sv", "no", "nb", "nn", "da", "fi", "et", "lv", "lt", "hu", "ro", "el", "ga", "is", "mt", "sq", "ca", "eu", "gl", "cy", "lb",
+    )
+    fun isEuropean(tag: String): Boolean = primaryLanguage(tag) in europeanLanguages
+
+    /** O ile punktów dopasowania czasu preferowany zachodni język (angielski) może być gorszy od najlepszego. */
+    const val PREFERRED_WESTERN_MARGIN = 15
+
     /**
      * Subtitle add-ons deliver ISO 639-1 ("ru"), ISO 639-2/B or /T ("rus", "ger", "deu") or
      * English names ("Russian"); all of them must land in the same category, otherwise the
@@ -65,6 +74,7 @@ object AuxiliaryLanguagePolicy {
         excludedLanguages: Set<String> = emptySet(),
         slavicPriority: List<String> = defaultSlavicPriority,
         modelChosenWesternSourceId: String? = null,
+        preferredWestern: String? = null,
     ): AuxiliarySourceSelection {
         val ranks = slavicPriority.withIndex().associate { (index, language) -> language to index }
         require(slavicPriority.size == defaultSlavicPriority.size && ranks.keys == slavicLanguages) {
@@ -77,6 +87,8 @@ object AuxiliaryLanguagePolicy {
         var bestSlavicRank = Int.MAX_VALUE
         var western: AuxiliarySubtitleCandidate? = null
         var requestedWestern: AuxiliarySubtitleCandidate? = null
+        val preferred = preferredWestern?.let(::primaryLanguage)
+        var bestPreferred: AuxiliarySubtitleCandidate? = null
 
         // One pass, O(n), rather than creating eligible lists and sorting Slavic candidates.
         // Ties intentionally preserve the previous stable-sort and Western comparator behavior.
@@ -97,11 +109,15 @@ object AuxiliaryLanguagePolicy {
             }
             if (lang in westernLanguages) {
                 if (candidate.sourceId == modelChosenWesternSourceId) requestedWestern = candidate
+                if (lang == preferred && (bestPreferred == null || candidate.matchingScore > bestPreferred.matchingScore)) bestPreferred = candidate
                 if (western == null || candidate.matchingScore > western.matchingScore ||
                     (candidate.matchingScore == western.matchingScore && candidate.sourceId < western.sourceId)
                 ) western = candidate
             }
         }
+        // 22.11 (właściciel): film spoza Europy — najlepiej rosyjski i angielski; angielski wygrywa przy podobnym dopasowaniu.
+        val pref = bestPreferred
+        if (modelChosenWesternSourceId == null && pref != null && pref.matchingScore >= (western?.matchingScore ?: 0) - PREFERRED_WESTERN_MARGIN) western = pref
         if (modelChosenWesternSourceId != null) {
             western = requestedWestern ?: throw IllegalArgumentException(
                 "Model chose an unavailable or ineligible Western source"

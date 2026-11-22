@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
+
 package com.nuvio.tv.skin.niunia.player
 
 import com.nuvio.tv.skin.niunia.components.NiuniaButton
@@ -61,6 +63,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.CornerRadius
@@ -94,6 +97,7 @@ import com.nuvio.tv.skin.niunia.tokens.NiuniaSpace
 import com.nuvio.tv.ui.screens.player.PlayerEvent
 import com.nuvio.tv.ui.screens.player.PlayerUiState
 import com.nuvio.tv.ui.screens.player.PlayerViewModel
+import com.nuvio.tv.ui.screens.player.loadEpisodesIfNeeded
 
 private const val TAG = "ForkNiunia"
 
@@ -128,6 +132,8 @@ fun NiuniaPlayerChrome(
         if (panelOpen) { panelWasOpen = true; return@LaunchedEffect }
         if (!panelWasOpen) return@LaunchedEffect
         kotlinx.coroutines.delay(60)
+        // Test JMGO build155: „Więcej opcji” zamyka panel i otwiera „Więcej” — fokus zostaje w nowym panelu (był zabierany na „Napisy”).
+        if (moreOpen) { panelWasOpen = false; Log.i(TAG, "odtwarzacz: panel → Więcej, fokus w panelu Więcej"); return@LaunchedEffect }
         try { (if (panelTab == 2) firstButton else audioButton).requestFocus(); Log.i(TAG, "odtwarzacz: panel zamknięty, fokus → ${if (panelTab == 2) "Napisy" else "Dźwięk"}") } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus po panelu: ${e.javaClass.simpleName}: ${e.message}") }
     }
     var okDownAt by remember { mutableStateOf(0L) }
@@ -139,6 +145,15 @@ fun NiuniaPlayerChrome(
     // WPIECIE.md „Po wdrożeniu” pkt 4: ▼ z przycisków = rząd pod odtwarzaczem, kolejne ▼ = szczegóły; BACK cofa krok po kroku.
     var level by remember { mutableIntStateOf(0) }
     val episodes = niuniaSeasonEpisodes(uiState)
+    // Test JMGO build155 (PlayerSeries): baza wczytuje odcinki dopiero po otwarciu swojego panelu odcinków, więc rząd Niuni był pusty
+    // i ▼ skakało od razu do szczegółów — nakładka serialu prosi o odcinki sama (to samo wczytanie co panel bazy).
+    LaunchedEffect(viewModel.controller.contentId, series) {
+        if (series && uiState.episodesAll.isEmpty() && !uiState.isLoadingEpisodes) {
+            Log.i(TAG, "odtwarzacz: wczytuję odcinki serialu (S${uiState.currentSeason})")
+            viewModel.controller.loadEpisodesIfNeeded()
+        }
+    }
+    LaunchedEffect(uiState.episodesError) { uiState.episodesError?.let { Log.w(TAG, "odtwarzacz: odcinki: $it") } }
     // Pkt 3 (20.11): film — ▼ podnosi rząd „Podobne”, dane z TMDB (TVDB nie ma podobnych), biblioteka i zwiastun.
     val extras: NiuniaPlayerExtrasViewModel = androidx.hilt.navigation.compose.hiltViewModel()
     val extrasState by extras.state.collectAsState()
@@ -231,7 +246,9 @@ fun NiuniaPlayerChrome(
             Spacer(Modifier.height(NiuniaSpace.PlayerGap))
             val duration = scrub.state.durationMs.coerceAtLeast(1L)
             NiuniaSeekBar(
-                state = NiuniaSeekState.of(scrub.state.positionMs, duration),
+                // 22.11: granice rozdziałów na pasku (Exo: rozdziały MKV, mpv: lista), gdy ustawienie „Rozdziały” jest włączone.
+                state = NiuniaSeekState.of(scrub.state.positionMs, duration).copy(
+                    chapters = if (uiState.chaptersEnabled) uiState.chapters.map { it.startMs.toFloat() / duration } else emptyList()),
                 start = formatScrubTime(scrub.state.markerMs ?: scrub.state.positionMs),
                 end = "\u2212" + formatScrubTime((scrub.state.durationMs - scrub.state.positionMs).coerceAtLeast(0)),
                 focused = barFocused,
@@ -349,7 +366,9 @@ internal fun NiuniaAudioPanel(uiState: PlayerUiState, initialTab: Int = -1, clos
         try { first.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus panelu: ${e.javaClass.simpleName}: ${e.message}") }
     }
     NiuniaPanelOverlay(stringResource(R.string.niunia_ds_panel_title), Modifier.niuniaTrapArrows("odtwarzacz: panel", setOf(
-        androidx.compose.ui.focus.FocusDirection.Left, androidx.compose.ui.focus.FocusDirection.Right, androidx.compose.ui.focus.FocusDirection.Up, androidx.compose.ui.focus.FocusDirection.Down)).focusGroup()) {
+        androidx.compose.ui.focus.FocusDirection.Left, androidx.compose.ui.focus.FocusDirection.Right, androidx.compose.ui.focus.FocusDirection.Up, androidx.compose.ui.focus.FocusDirection.Down))
+        // Test JMGO build155: ▼ z ostatniego wiersza („Wybierz napisy”) przenosiło fokus na przycisk „Napisy” pod panelem.
+        .focusProperties { exit = { androidx.compose.ui.focus.FocusRequester.Cancel } }.focusGroup()) {
         NiuniaCollection(NiuniaCollectionKind.Chips, Modifier.padding(bottom = NiuniaSpacing.Space8)) {
             NiuniaButton(onClick = { tab = 0 }, label = stringResource(R.string.niunia_ds_tab_audio), kind = NiuniaButtonKind.Chip, selected = tab == 0)
             if (lektorOn) NiuniaButton(onClick = { tab = 1 }, label = stringResource(R.string.niunia_ds_tab_lektor), kind = NiuniaButtonKind.Chip, selected = tab == 1)
@@ -472,7 +491,16 @@ internal fun niuniaQualityGlyph(videoHeight: Int?, streamName: String?): String?
 internal fun NiuniaMorePanel(series: Boolean, speed: Float, close: () -> Unit, onEvent: (PlayerEvent) -> Unit, toast: (String) -> Unit) {
     val ctx = LocalContext.current
     val first = remember { FocusRequester() }
-    LaunchedEffect(Unit) { try { first.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus panelu: ${e.message}") } }
+    // Test JMGO build157: otwarty z panelu audio („Więcej opcji”) tracił fokus, gdy znikał panel audio (koniec animacji) —
+    // prośba o fokus od razu i ponownie po animacji, aż się uda.
+    LaunchedEffect(Unit) {
+        var ok = false
+        for (wait in longArrayOf(0, 120, 250, 400)) {
+            kotlinx.coroutines.delay(wait)
+            ok = try { first.requestFocus(); true } catch (e: IllegalStateException) { false }
+        }
+        Log.i(TAG, "odtwarzacz: panel Więcej, fokus startowy ${if (ok) "Źródła" else "brak"}")
+    }
     val shape = RoundedCornerShape(topStart = 28.dp, bottomStart = 28.dp)
     Column(
         Modifier
@@ -483,6 +511,7 @@ internal fun NiuniaMorePanel(series: Boolean, speed: Float, close: () -> Unit, o
             .border(1.dp, NiuniaColors.Line, shape)
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
+            .focusProperties { exit = { FocusRequester.Cancel } } // ▼▲ na krańcach nie wychodzą pod panel (test JMGO build155)
             .focusGroup(),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {

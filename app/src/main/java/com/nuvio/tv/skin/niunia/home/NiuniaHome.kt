@@ -166,6 +166,7 @@ fun NiuniaHome(
                                         // Plakaty z dodatków zwykle mają tytuł w grafice → wariant „baked” (decyzja: plan/DECYZJE.md, Niunia).
                                         baked = art != null,
                                         modifier = restoreModifier(k, restoreFocus),
+                                        award = com.nuvio.tv.skin.niunia.components.niuniaPosterAward(item.id), // Z-13
                                         onFocus = { if (it) { focusedRow = rowIndex; onItemFocus(item); rememberFocus(k, colIndex, i) } },
                                         onOk = { Log.i(TAG, "rzędy: OK → strona tytułu ${item.id}"); onNavigateToDetail(item.id, item.rawType, row.addonBaseUrl) },
                                     )

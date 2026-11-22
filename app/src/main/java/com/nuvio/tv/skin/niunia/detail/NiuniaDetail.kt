@@ -64,6 +64,9 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -137,6 +140,10 @@ fun NiuniaDetail(
     var episodeOpen by remember { mutableStateOf<Video?>(null) }
     var lastEpisodeId by remember { mutableStateOf<String?>(null) }
     var fullDescription by remember { mutableStateOf(false) }
+    // Z-13: nagrody tytułu (źródło: NiuniaAwardsRepo; bez źródła pusto — pasek się nie rysuje, lista pokazuje stan pusty).
+    val awards by androidx.compose.runtime.produceState(emptyList<com.nuvio.tv.skin.niunia.awards.NiuniaAward>(), meta.id) {
+        value = com.nuvio.tv.skin.niunia.awards.NiuniaAwardsRepo.load(meta.id, meta.rawType, meta.imdbId)
+    }
     val extras: com.nuvio.tv.skin.niunia.player.NiuniaPlayerExtrasViewModel = androidx.hilt.navigation.compose.hiltViewModel()
     val extrasState by extras.state.collectAsState()
     fun focusAbout(why: String) {
@@ -157,7 +164,7 @@ fun NiuniaDetail(
         heroFocus = playFocus,
         what = "szczegóły",
         hero = {
-            Hero(meta, uiState, series, heroVideo, playFocus, play,
+            Hero(meta, uiState, series, heroVideo, awards, playFocus, play,
                 onLibrary = { Log.i(TAG, "szczegóły: biblioteka (było ${uiState.isInLibrary})"); viewModel.onEvent(MetaDetailsEvent.OnToggleLibrary) },
                 onAbout = { focusAbout(if (series) "O serialu" else "O filmie") },
                 onFocus = { focusedRow = 0 })
@@ -171,6 +178,8 @@ fun NiuniaDetail(
                     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(top = 16.dp, bottom = 48.dp)) {
                         // Episodes: pigułki sezonów (wybrany 24%), potem rząd odcinków (EpisodeCard).
                         if (series && uiState.seasons.isNotEmpty()) {
+                            // Test JMGO build159: ▲ z odcinka trafiało w najbliższą pigułkę („Sezon 2”), nie w wybrany sezon.
+                            val selectedPill = FocusRequester()
                             item(key = "seasons") {
                                 com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
                                     LazyRow(contentPadding = PaddingValues(horizontal = NiuniaSpacing.Space40), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space4)) {
@@ -179,6 +188,7 @@ fun NiuniaDetail(
                                                 onClick = { Log.i(TAG, "szczegóły: sezon $sn"); viewModel.onEvent(MetaDetailsEvent.OnSeasonSelected(sn)) },
                                                 label = if (sn == 0) stringResource(R.string.niunia_detail_specials) else stringResource(R.string.niunia_detail_season, sn),
                                                 kind = NiuniaButtonKind.Chip, selected = sn == uiState.selectedSeason,
+                                                focusRequester = if (sn == uiState.selectedSeason) selectedPill else null,
                                                 onFocus = { if (it) focusedRow = 1 },
                                             )
                                         }
@@ -187,7 +197,10 @@ fun NiuniaDetail(
                             }
                             item(key = "episodes") {
                                 com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
-                                    LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space20)) {
+                                    LazyRow(Modifier.onPreviewKeyEvent { e ->
+                                        if (e.type != androidx.compose.ui.input.key.KeyEventType.KeyDown || e.key != androidx.compose.ui.input.key.Key.DirectionUp) return@onPreviewKeyEvent false
+                                        try { selectedPill.requestFocus(); true } catch (ex: IllegalStateException) { Log.w(TAG, "szczegóły: ▲ do sezonu: ${ex.message}"); false }
+                                    }, contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space20)) {
                                         itemsIndexed(uiState.episodesForSeason, key = { _, it -> it.id }) { idx, video ->
                                             val key = (video.season ?: 0) to (video.episode ?: 0)
                                             val wp = uiState.episodeProgressMap[key]
@@ -241,6 +254,7 @@ fun NiuniaDetail(
                                             NiuniaPoster(
                                                 art = art, fallback = fallback, title = item.name, logo = item.logo, meta = NiuniaLabels.meta(item),
                                                 label = NiuniaLabels.label(context, item, 0, rankingRow = false), baked = art != null,
+                                                award = com.nuvio.tv.skin.niunia.components.niuniaPosterAward(item.id),
                                                 onFocus = { if (it) focusedRow = 2 },
                                                 onOk = { Log.i(TAG, "szczegóły: podobne → ${item.id}"); onNavigateToDetail(item.id, item.rawType, null) },
                                             )
@@ -275,6 +289,12 @@ fun NiuniaDetail(
                         item(key = "about") {
                             AboutSection(meta, series, uiState, full = fullDescription, onMore = { fullDescription = !fullDescription; Log.i(TAG, "szczegóły: opis ${if (fullDescription) "cały" else "skrócony"}") },
                                 onFocus = { focusedRow = 5 }, active = focusedRow == 5)
+                        }
+                        // Z-13: „Nagrody i nominacje” na samym dole (wiersze z fokusem — pilot dochodzi do końca strony).
+                        item(key = "awards") {
+                            com.nuvio.tv.skin.niunia.components.NiuniaAwardsList(awards,
+                                Modifier.padding(start = NiuniaSpacing.Space40, end = NiuniaSpacing.Space40, top = NiuniaSpacing.Space12, bottom = NiuniaSpacing.Space40),
+                                onFocus = { if (it) focusedRow = 6 })
                         }
                     }
                 }
@@ -335,7 +355,7 @@ private fun AboutSection(meta: Meta, series: Boolean, uiState: MetaDetailsUiStat
             if (series) listOfNotNull(
                 uiState.seasons.count { it > 0 }.takeIf { it > 0 }?.let { n -> when { n == 1 -> ctx.getString(R.string.niunia_ds_seasons_one); n % 10 in 2..4 && n % 100 !in 12..14 -> ctx.getString(R.string.niunia_ds_seasons_few, n); else -> ctx.getString(R.string.niunia_ds_seasons_many, n) } },
                 episodes.takeIf { it > 0 }?.let { ctx.getString(R.string.niunia_ds_episodes_count, it) },
-            ).joinToString(" · ").ifBlank { null } else meta.runtime?.takeIf { it.isNotBlank() },
+            ).joinToString(" · ").ifBlank { null } else niuniaRuntimeLabel(ctx, meta.runtime), // test JMGO build159: było „137”
             (if (series) meta.writer.ifEmpty { meta.director } else meta.director).take(2).joinToString(", ").ifBlank { null }
                 ?.let { ctx.getString(if (series) R.string.niunia_ds_creators_line else R.string.niunia_ds_director_line, it) },
             (meta.networks + meta.productionCompanies).map { it.name }.distinct().take(2).joinToString(" · ").ifBlank { null },
@@ -418,6 +438,7 @@ private fun Hero(
     uiState: MetaDetailsUiState,
     series: Boolean,
     heroVideo: Video?,
+    awards: List<com.nuvio.tv.skin.niunia.awards.NiuniaAward>,
     playFocus: FocusRequester,
     onPlay: () -> Unit,
     onLibrary: () -> Unit,
@@ -476,7 +497,7 @@ private fun Hero(
                     NiuniaButton(onClick = onAbout, icon = "about",
                         description = stringResource(if (series) R.string.niunia_ds_about_series else R.string.niunia_ds_about_movie), onFocus = { if (it) onFocus() })
                 }
-                Credits(meta, series, Modifier)
+                Credits(meta, series, awards, Modifier)
             }
             if (stills.isNotEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space20)) {
                 stills.forEach { (img, t) -> NiuniaMediaCard(NiuniaCardPreset.StillCard, img, onClick = null, title = t, focusable = false) }
@@ -529,11 +550,13 @@ internal fun niuniaStars(meta: Meta, n: Int = 3): List<String> {
 
 /** NContentBlock `credits`: „Obsada **…**”, „Twórcy/Reżyseria **…**”, 14/20 w 50%, nazwiska pogrubione białe. */
 @Composable
-private fun Credits(meta: Meta, series: Boolean, modifier: Modifier) {
+private fun Credits(meta: Meta, series: Boolean, awards: List<com.nuvio.tv.skin.niunia.awards.NiuniaAward>, modifier: Modifier) {
     val makers = (if (series) meta.writer.ifEmpty { meta.director } else meta.director).take(2)
     val stars = niuniaStars(meta)
-    if (stars.isEmpty() && makers.isEmpty()) return
+    if (stars.isEmpty() && makers.isEmpty() && awards.isEmpty()) return
     NiuniaContentBlock(NiuniaBlockKind.Credits, modifier) {
+        // Z-13: pasek nagród na górze bloku obsady, 8 dp nad „Obsada / Twórcy” (blok ma odstęp 4).
+        com.nuvio.tv.skin.niunia.components.NiuniaAwardsStrip(awards, Modifier.padding(bottom = NiuniaSpacing.Space4))
         if (stars.isNotEmpty()) NText("${stringResource(R.string.niunia_ds_cast)} **${stars.joinToString(", ")}**", variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Tertiary, lines = 2)
         if (makers.isNotEmpty()) NText("${stringResource(if (series) R.string.niunia_detail_created_by else R.string.niunia_detail_directed_by)} **${makers.joinToString(", ")}**",
             variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Tertiary, lines = 2)

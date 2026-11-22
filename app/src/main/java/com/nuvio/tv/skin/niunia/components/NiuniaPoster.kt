@@ -1,5 +1,6 @@
 package com.nuvio.tv.skin.niunia.components
 
+import coil3.request.transformations
 import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -64,6 +65,7 @@ fun NiuniaPoster(
     onFocus: ((Boolean) -> Unit)? = null,
     fallback: String? = null,
     onLongOk: (() -> Unit)? = null,
+    award: com.nuvio.tv.skin.niunia.awards.NiuniaAwardBadge? = null,
 ) {
     val shape = RoundedCornerShape(com.nuvio.tv.skin.niunia.tokens.NiuniaRadius.Radius16) // DS v2: karty 16
     var focused by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
@@ -80,7 +82,9 @@ fun NiuniaPoster(
             .background(NiuniaColors.Surface)
     ) {
         AsyncImage(model = model, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
-        if (Build.VERSION.SDK_INT >= 31) {
+        // 22.11: na Androidzie 11 też, gdy rozmycie jest gotowe (liczone raz procesorem, pamięć Coil).
+        val preblur = androidx.compose.runtime.remember { com.nuvio.tv.fork.images.NativeBlur.enabled(context) }
+        if (Build.VERSION.SDK_INT >= 31 || preblur) {
             if (!baked) BlurLayer(model, 6f, .66f, .84f)
             BlurLayer(model, if (baked) 8f else 14f, if (baked) .82f else .78f, if (baked) .97f else .96f)
         }
@@ -98,6 +102,7 @@ fun NiuniaPoster(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(5.dp),
         ) {
+            if (award != null) NiuniaAwardTag(award) // Z-13: plakietka nagrody na górze stopki, nad logo
             val foot = niuniaPosterFoot(baked, logo)
             if (foot != NiuniaPosterFoot.None) {
                 if (foot == NiuniaPosterFoot.Logo) {
@@ -118,10 +123,17 @@ fun NiuniaPoster(
 /** Druga kopia grafiki rozmyta i widoczna tylko od [from] (przejście do [to]) wysokości. */
 @Composable
 private fun BoxScope.BlurLayer(art: Any?, radius: Float, from: Float, to: Float) {
+    // 22.11: gotowe rozmycie z pamięci Coil (liczone raz przy wczytaniu) zamiast RenderEffect w każdej klatce.
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val px = with(androidx.compose.ui.platform.LocalDensity.current) { radius.dp.toPx() }
+    val pre = androidx.compose.runtime.remember { com.nuvio.tv.fork.images.NativeBlur.enabled(ctx) }
+    val model = androidx.compose.runtime.remember(art, pre, px) {
+        if (pre && art is coil3.request.ImageRequest) art.newBuilder(ctx).transformations(com.nuvio.tv.fork.images.NativeBlur(px)).build() else art
+    }
     Box(
         Modifier.fillMaxSize()
             .graphicsLayer {
-                renderEffect = BlurEffect(radius.dp.toPx(), radius.dp.toPx(), TileMode.Clamp)
+                if (!pre) renderEffect = BlurEffect(radius.dp.toPx(), radius.dp.toPx(), TileMode.Clamp)
                 compositingStrategy = CompositingStrategy.Offscreen
             }
             .drawWithContent {
@@ -129,7 +141,7 @@ private fun BoxScope.BlurLayer(art: Any?, radius: Float, from: Float, to: Float)
                 drawRect(Brush.verticalGradient(0f to Color.Transparent, from to Color.Transparent, to to Color.Black, 1f to Color.Black), blendMode = BlendMode.DstIn)
             }
     ) {
-        AsyncImage(model = art, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+        AsyncImage(model = model, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
     }
 }
 

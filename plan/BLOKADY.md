@@ -5,6 +5,15 @@ Zadania, których nie dało się dokończyć. Przeglądaj na początku każdego 
 Format wpisu:
 
 ```
+## YouTube w „Oglądaj dalej” nie odtwarza (21.11, JMGO build157)
+OK na pozycji `youtube:<id>` w „Oglądaj dalej” → baza: „odtwarzanie niedostępne” (żaden dodatek nie obsługuje typu youtube); moduł YouTube nie ma odtwarzania po samym identyfikatorze (`YouTubeViewModel.activate` wymaga `YtItem` z obiektem silnika). Do zrobienia w module YouTube (np. `playById`), potem Niunia/Kicia mogą go wołać.
+
+## Angielska nakładka synchronizacji napisów (21.11, JMGO build159)
+W odtwarzaczu filmu duża nakładka „Syncing subtitles to audio… / Listened 39s ahead / Speech recognition: not used…” po angielsku na środku ekranu (Reshaped `ui/screens/player/audiosync/SubtitleSyncStatusOverlay.kt`, teksty `audio_sync_strings.xml`). Moduł Reshaped, nie skórka; tłumaczenia zakazane bez zgody (ZASADY §1) — do decyzji właściciela (ukryć poza trybem diagnostycznym?).
+
+## Napisy YouTube podwójne (21.11, test JMGO build155)
+Tłumaczone napisy YouTube (Nuvio One + `YouTubeMpdServer`/`YouTubeCaptionTranslation`) pokazują każdą linię dwa razy (tekst wiersza „X\nX”). To moduł YouTube, nie skórka Niunia — zostawione dla wątku YouTube.
+
 ## B03-4 (data)
 Co próbowałem: ...
 Czego brakuje: ...
@@ -50,3 +59,7 @@ Co może dostarczyć właściciel: IP JMGO (Ustawienia → Sieć) i włączenie 
 
 - 20.11 (Niunia, test JMGO build152): okno „Brak polskich napisów — Włączyć napisy AI?” (tłumaczenie Gemini, płatne) wyskakuje przy KAŻDYM kanale na żywo i archiwum IPTV, fokus domyślnie na „Napisy AI” (jedno OK = płatne tłumaczenie). To moduł AI napisów (inny wątek, `AiAuto.kt`), nie skórka — do decyzji: nie pytać na Live TV albo fokus domyślnie na „Nie”.
 - 20.11 (Niunia): Settings NOOB nie do sprawdzenia na JMGO bez zmiany poziomu ustawień w profilu właściciela → test na emulatorze.
+- 22.11 Z-13 „Nagrody i nominacje” (Niunia) — **źródło nagród do wyboru przez właściciela.** Aplikacja nie ma źródła z galą, kategorią, rokiem i wynikiem: TMDB nie podaje nagród, `Meta.awards` z dodatków (Cinemeta/OMDb) to jedno zdanie po angielsku („Won 1 Oscar. 12 wins & 45 nominations total”) — bez kategorii, więc listy z niego nie da się zrobić. Zrobione: model + interfejs `NiuniaAwardsSource` z pustą implementacją `NoAwardsSource` (`skin/niunia/awards/`): pasek w hero się nie rysuje, lista na dole strony pokazuje „Brak nagród i nominacji”, plakietek na plakatach brak. Możliwe źródła: Wikidata (P166 „otrzymane nagrody”, P1411 „nominacje”; darmowe, bez klucza, niepełne dla seriali), Wikipedia (strony „List of accolades…”, trudne do odczytu), zdanie OMDb tylko dla paska (Oscar + liczba reszty). Po wyborze: jedna klasa źródła + `NiuniaAwardsRepo.source = …`, przełącznik w ustawieniach forka.
+- 22.11 Lektor — pamięć na Dysku Google: działa tylko, gdy TV jest zalogowany w synchronizacji Google (Reshaped, zakres drive.file: aplikacja widzi tylko swoje pliki). Rodzina dzieli nagrania, jeśli jej TV są zalogowane na TO SAMO konto Google co właściciel; TV na innych kontach mają własny folder „Nuvio Lektor”. Wspólny folder dla różnych kont wymagałby udostępnienia folderu + klucza API albo przekazania dostępu przez synchronizację rodzinną — decyzja właściciela. Na JMGO nie sprawdzone, czy konto Google jest zalogowane.
+- 22.11 Catch-up dłuższy niż 7 dni (np. TV Team 14): sonda `fork/tv/CatchupDepth` sprawdza prawdziwą długość archiwum (raz na dobę na źródło, log `ForkCatchup`) i liczy z niej etykietę „Dostępny jeszcze …”. Ale przewodnik i archiwum programów Reshaped trzymają najwyżej 7 dni wstecz (`LiveTvArchive.MAX_DAYS = 7`, `LiveTvEpg catchupPastMs = 7 dni`), a „czy da się odtworzyć” liczy z deklarowanych dni (`LiveTvCatchupLinks.isPlayableFrom`) — programy starsze niż 7 dni w ogóle nie trafiają na listę. Pokazanie 14 dni = zmiana w bazie Reshaped (3 stałe/funkcje, wpięcia) + więcej miejsca na dane przewodnika — do decyzji właściciela.
+- 22.11 Obrazki: Fanart.tv jako zapas wymaga klucza API fanart.tv (aplikacja go nie ma; klucz tylko w local.properties) — dziś zapasem dużego obrazka jest jego pierwotny adres (TMDB/metahub w mniejszym rozmiarze). Po wpisaniu klucza: zapas w `fork/images/ForkImageQuality` (szukanie po id TMDB/IMDb).

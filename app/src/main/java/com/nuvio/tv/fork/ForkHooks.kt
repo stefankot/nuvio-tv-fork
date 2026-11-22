@@ -97,7 +97,11 @@ object ForkHooks {
     fun effectiveNight(mode: com.nuvio.tv.data.local.NightMode): com.nuvio.tv.data.local.NightMode {
         val eff = com.nuvio.tv.fork.night.NightModule.controller.effective(System.currentTimeMillis())
         val key = com.nuvio.tv.fork.night.NightEffects.effectiveAudio(mode.settingValue, eff, eff)
-        return com.nuvio.tv.data.local.NightMode.entries.firstOrNull { it.settingValue == key } ?: mode
+        val out = com.nuvio.tv.data.local.NightMode.entries.firstOrNull { it.settingValue == key } ?: mode
+        // 22.11: lektor musi wiedzieć, czy tryb nocny podbija dialogi przed jego mikserem (BandDuck).
+        com.nuvio.tv.fork.lektor.LektorEngine.nightKey = out.settingValue
+        android.util.Log.i("ForkNight", "dźwięk nocny: ustawienie=${mode.settingValue}, harmonogram=$eff → ${out.settingValue}")
+        return out
     }
 
     /** NuvioNavHost: na poziomie Prostym ekran Ustawień rysuje moduł. true = narysowany. */
@@ -160,6 +164,7 @@ object ForkHooks {
     fun moduleOverlays() {
         val c = LocalContext.current
         remember(c) { com.nuvio.tv.skin.api.SkinPreferences.ensureLoaded(c); com.nuvio.tv.fork.sources.KeRanking.warm(c) } // skórka przed pierwszym ekranem; ranking KE: dekodery i TV
+        androidx.compose.runtime.LaunchedEffect(Unit) { com.nuvio.tv.fork.sources.ChaptersDefault.ensure(c) } // 22.11: rozdziały domyślnie włączone (raz)
         // Rodzina: przy pokazaniu aplikacji właściciel wysyła zmiany / rodzina pobiera; przy schowaniu właściciel wysyła.
         val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
         androidx.compose.runtime.DisposableEffect(owner) {

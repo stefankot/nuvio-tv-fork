@@ -519,7 +519,8 @@ private fun LiveBar(p: LiveTvProgramme?, st: NiuniaPlayState, nowMs: Long, playh
                     val knob = scrubMs?.let { ((it - start) / span) } ?: played
                     NiuniaTrack(played, color, focused, buffer = liveFrac, edge = liveFrac, knob = knob, modifier = Modifier.fillMaxWidth())
                     NiuniaTrackLabel("−" + formatScrubTime(shiftMs), knob, w, color)
-                    NiuniaTrackLabel(stringResource(R.string.niunia_live_live), liveFrac, w, NiuniaStatus.Live, small = true)
+                    // Test JMGO build159: przy małym opóźnieniu („−0:08”) obie etykiety nakładały się („−0:0”) — „na żywo” tylko z odstępem.
+                    if (w * (liveFrac - knob) > 64.dp) NiuniaTrackLabel(stringResource(R.string.niunia_live_live), liveFrac, w, NiuniaStatus.Live, small = true)
                 }
                 NiuniaPlayState.ARCHIVE -> {
                     val played = ((playheadMs - start) / span).coerceIn(0f, 1f)

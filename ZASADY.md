@@ -21,6 +21,7 @@ Stare wersje: `plan/archiwum/zasady/` i historia gita.
 - Funkcja jest zrobiona dopiero, gdy da się jej użyć w aplikacji (wejście w UI, domyślnie włączona) — nie gdy przechodzą testy.
 - Nowe teksty: `res/values/<moduł>_strings.xml`, bez duplikatów ze `strings.xml`. Teksty dla użytkownika po polsku, proste, bez słów technicznych.
 - Efekty interfejsu (rozmycie itp.) tylko natywnie (RenderEffect API 31+, RuntimeShader API 33+); na starszych (JMGO, Android 11) zwykłe tło z tokenów skórki, bez symulacji.
+  - Wyjątek (22.11, właściciel: „Tak, włącz”): rozmycie OBRAZKÓW (tło hero, plakaty) liczone raz przy wczytaniu i trzymane w pamięci Coil (`fork/images/NativeBlur`) działa też na Androidzie 11 — procesorem, na obrazie pomniejszonym 4×. Rozmycie na żywo w każdej klatce na Androidzie 11 nadal zakazane.
 - Wygląd: istniejące komponenty; skórki przez `skin/` (właściciel zrobi własny projekt).
 - Zmiana formatu danych użytkownika: zawsze zachowaj stary plik obok.
 

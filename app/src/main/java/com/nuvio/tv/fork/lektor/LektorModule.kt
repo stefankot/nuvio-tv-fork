@@ -16,9 +16,12 @@ object LektorModule : ForkModule {
 
     override fun settings() = listOf(
         ModuleSetting("lektor_auto", SettingsLevel.ESSENTIAL, "Lektor", "Włączaj automatycznie, gdy brak polskiego dźwięku", "Przy polskich napisach i braku polskiej ścieżki", defaultValue = false),
+        ModuleSetting(LektorStore.KEY, SettingsLevel.ADVANCED, "Lektor", "Zapisuj nagrania lektora w małych plikach", "Kwestie raz wygenerowane zajmują ok. 24 razy mniej miejsca", defaultValue = true),
+        ModuleSetting(LektorStore.KEY_DRIVE, SettingsLevel.ESSENTIAL, "Lektor", "Nagrania lektora na Dysku Google", "Przed generowaniem sprawdza Dysk konta z synchronizacji; nowe kwestie trafiają na Dysk", defaultValue = true),
+        ModuleSetting(K_BAND, SettingsLevel.ESSENTIAL, "Lektor", "Pod lektorem ściszaj głównie aktorów", "Muzyka i efekty zostają głośniej, lektor jest wyraźniejszy", defaultValue = true),
     )
 
-    private const val K_VOL = "lektor_volume"; private const val K_DUCK = "lektor_duck"
+    private const val K_VOL = "lektor_volume"; private const val K_DUCK = "lektor_duck"; private const val K_BAND = "lektor_band_duck"
     // Fork 20.11 (właściciel: „Gemini brzmi świetnie, ale film za cicho w porównaniu do lektora”): domyślnie lektor 70%
     // i film ściszany tylko o 6 dB (było 100% i −10 dB). Pierwsza wartość listy = domyślna.
     // Fork 20.11 (JMGO build134, właściciel: „regulacja głośności lektora/tła nie działa”): przyciski przełączały wartość
@@ -38,7 +41,8 @@ object LektorModule : ForkModule {
         LektorEngine.voiceGain = (com.nuvio.tv.ui.screens.settings.ForkFeatures.str(c, K_VOL, volumes[0]).toIntOrNull() ?: 70) / 100f
         val duck = com.nuvio.tv.ui.screens.settings.ForkFeatures.str(c, K_DUCK, ducks[0]).toFloatOrNull() ?: -6f
         LektorEngine.setDuckDepth(duck)
-        android.util.Log.i("ForkLektor", "ustawienia: głos=${(LektorEngine.voiceGain * 100).toInt()}%, ściszanie filmu=$duck dB (lektor ${if (LektorEngine.enabled) "gra" else "wyłączony"})")
+        LektorEngine.bandDuck = com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(c, K_BAND, true)
+        android.util.Log.i("ForkLektor", "ustawienia: głos=${(LektorEngine.voiceGain * 100).toInt()}%, ściszanie filmu=$duck dB, pasmowe=${LektorEngine.bandDuck} (lektor ${if (LektorEngine.enabled) "gra" else "wyłączony"})")
         watch(c)
     }
 
@@ -47,7 +51,7 @@ object LektorModule : ForkModule {
     @Synchronized private fun watch(c: android.content.Context) {
         if (listener != null) return
         val app = c.applicationContext
-        val l = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key -> if (key == K_VOL || key == K_DUCK) applySettings(app) }
+        val l = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key -> if (key == K_VOL || key == K_DUCK || key == K_BAND) applySettings(app) }
         listener = l // silna referencja: SharedPreferences trzyma słuchaczy słabo
         app.getSharedPreferences("fork_features", android.content.Context.MODE_PRIVATE).registerOnSharedPreferenceChangeListener(l)
     }
@@ -65,6 +69,6 @@ object LektorModule : ForkModule {
     override fun actions() = listOf(
         ModuleAction("Lektor: głośność względem filmu (70% / 50% / 30% / 100% / 130%)", SettingsLevel.ESSENTIAL, "Kolejne naciśnięcia przełączają wartość; też w odtwarzaczu: Więcej") { c -> LektorController.say(c, cycleVolume(c)) },
         ModuleAction("Lektor: ściszanie filmu pod lektorem (−6 / −3 / bez / −10 / −14 dB)", SettingsLevel.ESSENTIAL, "Kolejne naciśnięcia przełączają wartość; też w odtwarzaczu: Więcej") { c -> LektorController.say(c, cycleDuck(c)) },
-        ModuleAction("Lektor: wyczyść pamięć podręczną", SettingsLevel.ADVANCED, "Usuwa zsyntezowane kwestie (limit 200 MB)") { c -> cache(c).clear(); com.nuvio.tv.ainarrator.GeminiLektor(c).clearCache(); com.nuvio.tv.ainarrator.VertexGeminiLektor(c).clearCache() },
+        ModuleAction("Lektor: wyczyść pamięć podręczną", SettingsLevel.ADVANCED, "Usuwa zsyntezowane kwestie (limit 200 MB)") { c -> cache(c).clear(); LektorStore.clear(c); com.nuvio.tv.ainarrator.GeminiLektor(c).clearCache(); com.nuvio.tv.ainarrator.VertexGeminiLektor(c).clearCache() },
     ) + com.nuvio.tv.ainarrator.LektorVoiceChoice.actions() // scalenie 19.11: głos Gemini
 }

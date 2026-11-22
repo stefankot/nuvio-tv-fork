@@ -5,4 +5,9 @@
     <string name="niunia_person_less">Mniej</string>
     <string name="niunia_person_series">Seriale</string>
     <string name="niunia_person_movies">Filmy</string>
+    <string name="niunia_role_director">Reżyseria</string>
+    <string name="niunia_role_creator">Twórca</string>
+    <string name="niunia_role_writer">Scenariusz</string>
+    <string name="niunia_role_producer">Produkcja</string>
+    <string name="niunia_dept_acting">Aktorstwo</string>
 </resources>
