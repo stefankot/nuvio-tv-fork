@@ -36,6 +36,8 @@ class NiuniaLogicTest {
         assertEquals("Dramat", NiuniaLabels.meta(item(rating = 0f)))
         assertEquals("★ 7.4", NiuniaLabels.meta(item(genres = emptyList())))
         assertNull(NiuniaLabels.meta(item(genres = emptyList(), rating = null)))
+        assertEquals("gatunek z TMDB/Cinemeta po polsku", "Akcja · ★ 7.4", NiuniaLabels.meta(item(genres = listOf("Action"))))
+        assertEquals("Kryminał", NiuniaLabels.meta(item(genres = listOf("Crime"), rating = null)))
     }
 
     @Test fun `plakat pionowy bez wzoru zostaje z zapasem`() {

@@ -32,7 +32,7 @@ object NiuniaLabels {
 
     /** „Gatunek · ★ 7.4” — ocena to średnia z dostępnych serwisów; w aplikacji jest dziś tylko IMDb. */
     fun meta(item: MetaPreview): String? {
-        val genre = item.genres.firstOrNull()
+        val genre = com.nuvio.tv.skin.niunia.components.NiuniaGenres.pl(item.genres.firstOrNull()) // 22.11 (obchód JMGO build169c): podpis plakatu po polsku, jak biblioteka i wyniki
         val rating = item.imdbRating?.takeIf { it > 0f }?.let { "★ %.1f".format(java.util.Locale.US, it) }
         return listOfNotNull(genre, rating).joinToString(" · ").ifBlank { null }
     }
