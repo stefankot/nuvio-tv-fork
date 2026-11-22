@@ -1,0 +1,64 @@
+{
+ "presets": [
+  {
+   "id": "pl_always",
+   "title": "Zawsze po polsku",
+   "rules": [
+    "(?s)^(?=(?:(?!https?://).)*?(?<!, )\\b(?:2160p|4k|uhd)\\b)(?=(?:(?:(?!https?://).)*?[\\x{1F50A}\\x{1F5E3}][^\\n\\x{1F1E6}-\\x{1F1FF}]*(?:[\\x{1F1E6}-\\x{1F1FF}]{2})*\\x{1F1F5}\\x{1F1F1}|(?!(?:(?!https?://).)*?[\\x{1F50A}\\x{1F5E3}][^\\n\\x{1F1E6}-\\x{1F1FF}]*[\\x{1F1E6}-\\x{1F1FF}])(?:(?:(?!https?://).)*?\\b(?:lektor|dubbing|dub[ ._-]?pl|pl[ ._-]?dub)\\b|(?!(?:(?!https?://).)*?(?:sub|napisy))(?:(?!https?://).)*?\\b(?:pl|pol|polish|polski)\\b(?!, ?\\d)(?!(?<=\\.pl)\\])|(?:(?!https?://).)*?\\bmulti\\b(?:(?!https?://).)*?\\bpl\\b(?![ ._-]?sub)(?!, ?\\d)(?!(?<=\\.pl)\\]))))(?!(?:(?!https?://).)*?\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)",
+    "(?s)^(?=(?:(?!https?://).)*?(?<!, )\\b(?:1080p|fhd)\\b)(?=(?:(?:(?!https?://).)*?[\\x{1F50A}\\x{1F5E3}][^\\n\\x{1F1E6}-\\x{1F1FF}]*(?:[\\x{1F1E6}-\\x{1F1FF}]{2})*\\x{1F1F5}\\x{1F1F1}|(?!(?:(?!https?://).)*?[\\x{1F50A}\\x{1F5E3}][^\\n\\x{1F1E6}-\\x{1F1FF}]*[\\x{1F1E6}-\\x{1F1FF}])(?:(?:(?!https?://).)*?\\b(?:lektor|dubbing|dub[ ._-]?pl|pl[ ._-]?dub)\\b|(?!(?:(?!https?://).)*?(?:sub|napisy))(?:(?!https?://).)*?\\b(?:pl|pol|polish|polski)\\b(?!, ?\\d)(?!(?<=\\.pl)\\])|(?:(?!https?://).)*?\\bmulti\\b(?:(?!https?://).)*?\\bpl\\b(?![ ._-]?sub)(?!, ?\\d)(?!(?<=\\.pl)\\]))))(?!(?:(?!https?://).)*?\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)",
+    "(?s)^(?=(?:(?!https?://).)*?(?<!, )\\b(?:720p|hd)\\b)(?=(?:(?:(?!https?://).)*?[\\x{1F50A}\\x{1F5E3}][^\\n\\x{1F1E6}-\\x{1F1FF}]*(?:[\\x{1F1E6}-\\x{1F1FF}]{2})*\\x{1F1F5}\\x{1F1F1}|(?!(?:(?!https?://).)*?[\\x{1F50A}\\x{1F5E3}][^\\n\\x{1F1E6}-\\x{1F1FF}]*[\\x{1F1E6}-\\x{1F1FF}])(?:(?:(?!https?://).)*?\\b(?:lektor|dubbing|dub[ ._-]?pl|pl[ ._-]?dub)\\b|(?!(?:(?!https?://).)*?(?:sub|napisy))(?:(?!https?://).)*?\\b(?:pl|pol|polish|polski)\\b(?!, ?\\d)(?!(?<=\\.pl)\\])|(?:(?!https?://).)*?\\bmulti\\b(?:(?!https?://).)*?\\bpl\\b(?![ ._-]?sub)(?!, ?\\d)(?!(?<=\\.pl)\\]))))(?!(?:(?!https?://).)*?\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)",
+    "(?s)^(?!(?:(?!https?://).)*?(?<!, )\\b(?:2160p|4k|uhd|1080p|fhd|720p|hd)\\b)(?=(?:(?:(?!https?://).)*?[\\x{1F50A}\\x{1F5E3}][^\\n\\x{1F1E6}-\\x{1F1FF}]*(?:[\\x{1F1E6}-\\x{1F1FF}]{2})*\\x{1F1F5}\\x{1F1F1}|(?!(?:(?!https?://).)*?[\\x{1F50A}\\x{1F5E3}][^\\n\\x{1F1E6}-\\x{1F1FF}]*[\\x{1F1E6}-\\x{1F1FF}])(?:(?:(?!https?://).)*?\\b(?:lektor|dubbing|dub[ ._-]?pl|pl[ ._-]?dub)\\b|(?!(?:(?!https?://).)*?(?:sub|napisy))(?:(?!https?://).)*?\\b(?:pl|pol|polish|polski)\\b(?!, ?\\d)(?!(?<=\\.pl)\\])|(?:(?!https?://).)*?\\bmulti\\b(?:(?!https?://).)*?\\bpl\\b(?![ ._-]?sub)(?!, ?\\d)(?!(?<=\\.pl)\\]))))(?!(?:(?!https?://).)*?\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)",
+    "(?s)^(?=(?:(?!https?://).)*?(?<!, )\\b(?:2160p|4k|uhd)\\b)(?!(?:(?!https?://).)*?\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)",
+    "(?s)^(?=(?:(?!https?://).)*?(?<!, )\\b(?:1080p|fhd)\\b)(?!(?:(?!https?://).)*?\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)",
+    "(?s)^(?=(?:(?!https?://).)*?(?<!, )\\b(?:720p|hd)\\b)(?!(?:(?!https?://).)*?\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)",
+    "(?s)^(?!(?:(?!https?://).)*?\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)"
+   ],
+   "audio": [
+    "pol",
+    "eng"
+   ],
+   "subs": [
+    "pol",
+    "eng"
+   ]
+  },
+  {
+   "id": "pl_if_good",
+   "title": "Po polsku przy dobrej jakości",
+   "rules": [
+    "(?s)^(?=(?:(?!https?://).)*?(?<!, )\\b(?:2160p|4k|uhd)\\b)(?=(?:(?:(?!https?://).)*?[\\x{1F50A}\\x{1F5E3}][^\\n\\x{1F1E6}-\\x{1F1FF}]*(?:[\\x{1F1E6}-\\x{1F1FF}]{2})*\\x{1F1F5}\\x{1F1F1}|(?!(?:(?!https?://).)*?[\\x{1F50A}\\x{1F5E3}][^\\n\\x{1F1E6}-\\x{1F1FF}]*[\\x{1F1E6}-\\x{1F1FF}])(?:(?:(?!https?://).)*?\\b(?:lektor|dubbing|dub[ ._-]?pl|pl[ ._-]?dub)\\b|(?!(?:(?!https?://).)*?(?:sub|napisy))(?:(?!https?://).)*?\\b(?:pl|pol|polish|polski)\\b(?!, ?\\d)(?!(?<=\\.pl)\\])|(?:(?!https?://).)*?\\bmulti\\b(?:(?!https?://).)*?\\bpl\\b(?![ ._-]?sub)(?!, ?\\d)(?!(?<=\\.pl)\\]))))(?!(?:(?!https?://).)*?\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)",
+    "(?s)^(?=(?:(?!https?://).)*?(?<!, )\\b(?:1080p|fhd)\\b)(?=(?:(?:(?!https?://).)*?[\\x{1F50A}\\x{1F5E3}][^\\n\\x{1F1E6}-\\x{1F1FF}]*(?:[\\x{1F1E6}-\\x{1F1FF}]{2})*\\x{1F1F5}\\x{1F1F1}|(?!(?:(?!https?://).)*?[\\x{1F50A}\\x{1F5E3}][^\\n\\x{1F1E6}-\\x{1F1FF}]*[\\x{1F1E6}-\\x{1F1FF}])(?:(?:(?!https?://).)*?\\b(?:lektor|dubbing|dub[ ._-]?pl|pl[ ._-]?dub)\\b|(?!(?:(?!https?://).)*?(?:sub|napisy))(?:(?!https?://).)*?\\b(?:pl|pol|polish|polski)\\b(?!, ?\\d)(?!(?<=\\.pl)\\])|(?:(?!https?://).)*?\\bmulti\\b(?:(?!https?://).)*?\\bpl\\b(?![ ._-]?sub)(?!, ?\\d)(?!(?<=\\.pl)\\]))))(?!(?:(?!https?://).)*?\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)",
+    "(?s)^(?=(?:(?!https?://).)*?(?<!, )\\b(?:2160p|4k|uhd)\\b)(?!(?:(?!https?://).)*?\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)",
+    "(?s)^(?=(?:(?!https?://).)*?(?<!, )\\b(?:1080p|fhd)\\b)(?!(?:(?!https?://).)*?\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)",
+    "(?s)^(?=(?:(?!https?://).)*?(?<!, )\\b(?:720p|hd)\\b)(?!(?:(?!https?://).)*?\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)",
+    "(?s)^(?!(?:(?!https?://).)*?\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)"
+   ],
+   "audio": [
+    "pol",
+    "eng"
+   ],
+   "subs": [
+    "pol",
+    "eng"
+   ]
+  },
+  {
+   "id": "original_subs",
+   "title": "Oryginał z napisami",
+   "rules": [
+    "(?s)^(?=(?:(?!https?://).)*?(?<!, )\\b(?:2160p|4k|uhd)\\b)(?!(?:(?!https?://).)*?\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)",
+    "(?s)^(?=(?:(?!https?://).)*?(?<!, )\\b(?:1080p|fhd)\\b)(?!(?:(?!https?://).)*?\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)",
+    "(?s)^(?=(?:(?!https?://).)*?(?<!, )\\b(?:720p|hd)\\b)(?!(?:(?!https?://).)*?\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)",
+    "(?s)^(?!(?:(?!https?://).)*?\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)"
+   ],
+   "audio": [
+    "eng",
+    "pol"
+   ],
+   "subs": [
+    "pol",
+    "eng"
+   ]
+  }
+ ]
+}
