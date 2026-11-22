@@ -1,0 +1,121 @@
+{
+ "trasa": "catalog_order",
+ "czas_ladowania_s": 4.5,
+ "kroki": 14,
+ "elementy": {
+  "[bez nazwy 120x96 @1704,189]": [
+   1704,
+   189,
+   1824,
+   285
+  ],
+  "Wyłącz": [
+   1532,
+   941,
+   1652,
+   1037
+  ],
+  "Przypięte": [
+   1668,
+   941,
+   1784,
+   1037
+  ],
+  "[bez nazwy 120x96 @1704,65]": [
+   1704,
+   65,
+   1824,
+   161
+  ]
+ },
+ "odwiedzone": [
+  "Przypięte",
+  "Wyłącz",
+  "[bez nazwy 120x96 @1704,189]"
+ ],
+ "utrata_fokusu": [],
+ "wyjscie_z_ekranu": [],
+ "pulapki": [],
+ "krawedzie": [
+  [
+   "[bez nazwy 120x96 @1704,189]",
+   "DOWN",
+   "Przypięte"
+  ],
+  [
+   "Przypięte",
+   "DOWN",
+   "Przypięte"
+  ],
+  [
+   "Przypięte",
+   "RIGHT",
+   "[bez nazwy 120x96 @1704,189]"
+  ],
+  [
+   "[bez nazwy 120x96 @1704,189]",
+   "RIGHT",
+   "[bez nazwy 120x96 @1704,189]"
+  ],
+  [
+   "[bez nazwy 120x96 @1704,189]",
+   "UP",
+   "[bez nazwy 120x96 @1704,189]"
+  ],
+  [
+   "[bez nazwy 120x96 @1704,189]",
+   "LEFT",
+   "Przypięte"
+  ],
+  [
+   "Przypięte",
+   "UP",
+   "[bez nazwy 120x96 @1704,189]"
+  ],
+  [
+   "Przypięte",
+   "LEFT",
+   "Wyłącz"
+  ],
+  [
+   "Wyłącz",
+   "DOWN",
+   "Wyłącz"
+  ],
+  [
+   "Wyłącz",
+   "RIGHT",
+   "Przypięte"
+  ],
+  [
+   "Wyłącz",
+   "UP",
+   "Wyłącz"
+  ],
+  [
+   "Wyłącz",
+   "LEFT",
+   "Wyłącz"
+  ]
+ ],
+ "teksty_startowe": [
+  "22 folders • Przypięte nad katalogami",
+  "7 folders • Przypięte nad katalogami",
+  "8 folders • Przypięte nad katalogami",
+  "80 folders • Przypięte nad katalogami",
+  "Discover - Collection",
+  "Katalogi ułożone według kolejności z manifestów dodatków. Kolekcje nadal można przesuwać między dodatkami.",
+  "Kontroluje kolejność wierszy katalogów na ekranie głównym.",
+  "Networks - Collection",
+  "Spotlight - Collection",
+  "Streaming Services - Collection",
+  "Zachowaj kolejność dodatków",
+  "Zmień kolejność katalogów",
+  "built-42m"
+ ],
+ "nieosiagalne": [
+  "[bez nazwy 120x96 @1704,65]"
+ ],
+ "logcat": [],
+ "czas_obchodu_s": 48
+}

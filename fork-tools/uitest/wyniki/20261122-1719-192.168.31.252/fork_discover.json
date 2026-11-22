@@ -1,0 +1,445 @@
+{
+ "trasa": "fork_discover",
+ "czas_ladowania_s": 5.0,
+ "kroki": 40,
+ "elementy": {
+  "Wznów | Capital Connection": [
+   96,
+   260,
+   496,
+   380
+  ],
+  "Wznów | CNBC Sports: Henley Royal Regatta": [
+   520,
+   260,
+   920,
+   420
+  ],
+  "Wznów | Bundesliga Weekly": [
+   944,
+   260,
+   1344,
+   380
+  ],
+  "Wznów | Najlepsi bramkarze Bundesligi lat 90": [
+   1368,
+   260,
+   1768,
+   420
+  ],
+  "Wznów | Narciarstwo alpejskie: Zawody Pucharu Świata w Levi ": [
+   1792,
+   260,
+   1888,
+   420
+  ],
+  "The Tonight Show Starring Jimmy Fallon": [
+   48,
+   496,
+   185,
+   624
+  ],
+  "5 minutes": [
+   209,
+   492,
+   609,
+   588
+  ],
+  "CNN Newsroom Sunday": [
+   48,
+   492,
+   183,
+   588
+  ],
+  "Moontalk": [
+   207,
+   492,
+   607,
+   588
+  ],
+  "Nowojorskie Zoo - Bronx": [
+   48,
+   492,
+   183,
+   588
+  ],
+  "Szukaj w telewizji": [
+   96,
+   92,
+   576,
+   188
+  ],
+  "[bez nazwy 136x96 @48,492]": [
+   48,
+   492,
+   184,
+   588
+  ],
+  "Zabójcza broń 2": [
+   207,
+   492,
+   607,
+   588
+  ],
+  "Skoki narciarskie kobiet: Zawody Pucharu Świata w Lillehamme": [
+   48,
+   496,
+   183,
+   624
+  ],
+  "[bez nazwy 135x96 @48,492]": [
+   48,
+   492,
+   183,
+   588
+  ],
+  "Sieroty ziemi": [
+   207,
+   492,
+   607,
+   588
+  ],
+  "Gry małżeńskie": [
+   207,
+   492,
+   607,
+   588
+  ],
+  "Cudzoziemiec": [
+   207,
+   492,
+   607,
+   588
+  ],
+  "Polsat News ujawnia": [
+   207,
+   492,
+   607,
+   588
+  ],
+  "Apel Jasnogórski": [
+   207,
+   492,
+   607,
+   588
+  ],
+  "News": [
+   207,
+   492,
+   607,
+   588
+  ],
+  "UFO: Sekrety amerykańskiej armii": [
+   48,
+   496,
+   183,
+   624
+  ],
+  "Szepty mroku 2": [
+   207,
+   492,
+   607,
+   588
+  ],
+  "Informacje dnia": [
+   207,
+   492,
+   607,
+   588
+  ],
+  "Akcja: Restauracja! Ostatnia szansa": [
+   48,
+   496,
+   183,
+   624
+  ],
+  "Retrospekcja": [
+   207,
+   492,
+   607,
+   588
+  ],
+  "Stan bezpieczeństwa państwa": [
+   207,
+   496,
+   607,
+   624
+  ],
+  "Wydarzenia wieczorne": [
+   631,
+   492,
+   1031,
+   588
+  ],
+  "Święty na każdy dzień": [
+   1055,
+   492,
+   1455,
+   588
+  ],
+  "Zabójstwo w Périgord Vert": [
+   1479,
+   492,
+   1824,
+   588
+  ]
+ },
+ "odwiedzone": [
+  "5 minutes",
+  "Akcja: Restauracja! Ostatnia szansa",
+  "Apel Jasnogórski",
+  "CNN Newsroom Sunday",
+  "Cudzoziemiec",
+  "Gry małżeńskie",
+  "Informacje dnia",
+  "Moontalk",
+  "News",
+  "Nowojorskie Zoo - Bronx",
+  "Polsat News ujawnia",
+  "Retrospekcja",
+  "Sieroty ziemi",
+  "Skoki narciarskie kobiet: Zawody Pucharu Świata w Lillehamme",
+  "Stan bezpieczeństwa państwa",
+  "Szepty mroku 2",
+  "Szukaj w telewizji",
+  "The Tonight Show Starring Jimmy Fallon",
+  "UFO: Sekrety amerykańskiej armii",
+  "Wydarzenia wieczorne",
+  "Wznów | Capital Connection",
+  "Zabójcza broń 2"
+ ],
+ "utrata_fokusu": [],
+ "wyjscie_z_ekranu": [],
+ "pulapki": [],
+ "krawedzie": [
+  [
+   "Szukaj w telewizji",
+   "DOWN",
+   "Wznów | Capital Connection"
+  ],
+  [
+   "Wznów | Capital Connection",
+   "DOWN",
+   "The Tonight Show Starring Jimmy Fallon"
+  ],
+  [
+   "The Tonight Show Starring Jimmy Fallon",
+   "DOWN",
+   "The Tonight Show Starring Jimmy Fallon"
+  ],
+  [
+   "The Tonight Show Starring Jimmy Fallon",
+   "RIGHT",
+   "5 minutes"
+  ],
+  [
+   "5 minutes",
+   "DOWN",
+   "5 minutes"
+  ],
+  [
+   "5 minutes",
+   "RIGHT",
+   "CNN Newsroom Sunday"
+  ],
+  [
+   "CNN Newsroom Sunday",
+   "DOWN",
+   "CNN Newsroom Sunday"
+  ],
+  [
+   "CNN Newsroom Sunday",
+   "RIGHT",
+   "Moontalk"
+  ],
+  [
+   "Moontalk",
+   "DOWN",
+   "Moontalk"
+  ],
+  [
+   "Moontalk",
+   "RIGHT",
+   "Nowojorskie Zoo - Bronx"
+  ],
+  [
+   "Nowojorskie Zoo - Bronx",
+   "DOWN",
+   "Nowojorskie Zoo - Bronx"
+  ],
+  [
+   "Nowojorskie Zoo - Bronx",
+   "RIGHT",
+   "Zabójcza broń 2"
+  ],
+  [
+   "Zabójcza broń 2",
+   "DOWN",
+   "Zabójcza broń 2"
+  ],
+  [
+   "Zabójcza broń 2",
+   "RIGHT",
+   "Skoki narciarskie kobiet: Zawody Pucharu Świata w Lillehamme"
+  ],
+  [
+   "Skoki narciarskie kobiet: Zawody Pucharu Świata w Lillehamme",
+   "DOWN",
+   "Skoki narciarskie kobiet: Zawody Pucharu Świata w Lillehamme"
+  ],
+  [
+   "Skoki narciarskie kobiet: Zawody Pucharu Świata w Lillehamme",
+   "RIGHT",
+   "Sieroty ziemi"
+  ],
+  [
+   "Sieroty ziemi",
+   "DOWN",
+   "Sieroty ziemi"
+  ],
+  [
+   "Sieroty ziemi",
+   "RIGHT",
+   "Gry małżeńskie"
+  ],
+  [
+   "Gry małżeńskie",
+   "DOWN",
+   "Gry małżeńskie"
+  ],
+  [
+   "Gry małżeńskie",
+   "RIGHT",
+   "Cudzoziemiec"
+  ],
+  [
+   "Cudzoziemiec",
+   "DOWN",
+   "Cudzoziemiec"
+  ],
+  [
+   "Cudzoziemiec",
+   "RIGHT",
+   "Polsat News ujawnia"
+  ],
+  [
+   "Polsat News ujawnia",
+   "DOWN",
+   "Polsat News ujawnia"
+  ],
+  [
+   "Polsat News ujawnia",
+   "RIGHT",
+   "Apel Jasnogórski"
+  ],
+  [
+   "Apel Jasnogórski",
+   "DOWN",
+   "Apel Jasnogórski"
+  ],
+  [
+   "Apel Jasnogórski",
+   "RIGHT",
+   "News"
+  ],
+  [
+   "News",
+   "DOWN",
+   "News"
+  ],
+  [
+   "News",
+   "RIGHT",
+   "UFO: Sekrety amerykańskiej armii"
+  ],
+  [
+   "UFO: Sekrety amerykańskiej armii",
+   "DOWN",
+   "UFO: Sekrety amerykańskiej armii"
+  ],
+  [
+   "UFO: Sekrety amerykańskiej armii",
+   "RIGHT",
+   "Szepty mroku 2"
+  ],
+  [
+   "Szepty mroku 2",
+   "DOWN",
+   "Szepty mroku 2"
+  ],
+  [
+   "Szepty mroku 2",
+   "RIGHT",
+   "Informacje dnia"
+  ],
+  [
+   "Informacje dnia",
+   "DOWN",
+   "Informacje dnia"
+  ],
+  [
+   "Informacje dnia",
+   "RIGHT",
+   "Akcja: Restauracja! Ostatnia szansa"
+  ],
+  [
+   "Akcja: Restauracja! Ostatnia szansa",
+   "DOWN",
+   "Akcja: Restauracja! Ostatnia szansa"
+  ],
+  [
+   "Akcja: Restauracja! Ostatnia szansa",
+   "RIGHT",
+   "Retrospekcja"
+  ],
+  [
+   "Retrospekcja",
+   "DOWN",
+   "Retrospekcja"
+  ],
+  [
+   "Retrospekcja",
+   "RIGHT",
+   "Stan bezpieczeństwa państwa"
+  ],
+  [
+   "Stan bezpieczeństwa państwa",
+   "DOWN",
+   "Stan bezpieczeństwa państwa"
+  ],
+  [
+   "Stan bezpieczeństwa państwa",
+   "RIGHT",
+   "Wydarzenia wieczorne"
+  ]
+ ],
+ "teksty_startowe": [
+  "5 minutes",
+  "Bundesliga Weekly",
+  "CNBC Sports: Henley Royal Regatta",
+  "CNN Newsroom Sunday",
+  "Capital Connection",
+  "Dziś wieczorem",
+  "Moontalk",
+  "Najlepsi bramkarze Bundesligi lat 90",
+  "Narciarstwo alpejskie: Zawody Pucharu Świata w Levi - 2. przejazd slalomu mężczy",
+  "Nowojorskie Zoo - Bronx",
+  "Oglądaj dalej",
+  "Szukaj w telewizji",
+  "The Tonight Show Starring Jimmy Fallon",
+  "Wznów",
+  "built-37m"
+ ],
+ "nieosiagalne": [
+  "Wznów | Bundesliga Weekly",
+  "Wznów | CNBC Sports: Henley Royal Regatta",
+  "Wznów | Najlepsi bramkarze Bundesligi lat 90",
+  "Wznów | Narciarstwo alpejskie: Zawody Pucharu Świata w Levi ",
+  "Zabójstwo w Périgord Vert",
+  "[bez nazwy 135x96 @48,492]",
+  "[bez nazwy 136x96 @48,492]",
+  "Święty na każdy dzień"
+ ],
+ "logcat": [],
+ "czas_obchodu_s": 126
+}

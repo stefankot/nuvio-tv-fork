@@ -1,0 +1,704 @@
+{
+ "trasa": "settings",
+ "czas_ladowania_s": 4.4,
+ "kroki": 40,
+ "elementy": {
+  "Szukaj": [
+   80,
+   168,
+   512,
+   240
+  ],
+  "Konto i profile": [
+   80,
+   272,
+   512,
+   344
+  ],
+  "Wygląd i ekran główny": [
+   80,
+   352,
+   512,
+   424
+  ],
+  "Odtwarzanie": [
+   80,
+   432,
+   512,
+   504
+  ],
+  "Napisy i lektor": [
+   80,
+   512,
+   512,
+   584
+  ],
+  "Telewizja": [
+   80,
+   592,
+   512,
+   664
+  ],
+  "Dodatki i usługi": [
+   80,
+   672,
+   512,
+   744
+  ],
+  "System": [
+   80,
+   752,
+   512,
+   824
+  ],
+  "Konto | Logowanie i konto Nuvio": [
+   592,
+   252,
+   1840,
+   380
+  ],
+  "Profile | Profile domowników, zdjęcia, blokada": [
+   592,
+   388,
+   1840,
+   516
+  ],
+  "Wspólne oglądanie | Oglądanie razem z innymi": [
+   592,
+   524,
+   1840,
+   652
+  ],
+  "Rodzina | Wspólne ustawienia całej rodziny": [
+   592,
+   660,
+   1840,
+   788
+  ],
+  "Synchronizacja | Kopia ustawień i przenoszenie na inny telew": [
+   592,
+   796,
+   1840,
+   924
+  ],
+  "Śledzenie obejrzanych | Trakt i Simkl": [
+   592,
+   932,
+   1840,
+   1060
+  ],
+  "Motyw i język | Kolory, tryb AMOLED, język aplikacji": [
+   592,
+   252,
+   1840,
+   380
+  ],
+  "Układ strony głównej | Rzędy, plakaty, kolejność": [
+   592,
+   388,
+   1840,
+   516
+  ],
+  "Skórka | Wygląd całej aplikacji": [
+   592,
+   524,
+   1840,
+   652
+  ],
+  "Menu i styl | Pasek menu i wygląd jak w Netflix": [
+   592,
+   660,
+   1840,
+   788
+  ],
+  "Tryb nocny | Godziny, ciepłe kolory, cichszy dźwięk": [
+   592,
+   796,
+   1840,
+   924
+  ],
+  "Odkrywaj telewizję | Rzędy z telewizji na ekranie głównym": [
+   592,
+   932,
+   1840,
+   1060
+  ],
+  "[bez nazwy 1248x12 @592,1068]": [
+   592,
+   1068,
+   1840,
+   1080
+  ],
+  "Odtwarzacz i źródła | Wybór źródła, języki, następny odcinek": [
+   592,
+   252,
+   1840,
+   380
+  ],
+  "Dźwięk i obraz | Dolby Vision, HDR10, formaty dźwięku": [
+   592,
+   388,
+   1840,
+   516
+  ],
+  "Jakość i odtwarzacz Echo | Automatyczna jakość obrazu": [
+   592,
+   524,
+   1840,
+   652
+  ],
+  "Dobór źródeł | Polski dźwięk, napisy i jakość przy wyborze": [
+   592,
+   660,
+   1840,
+   788
+  ],
+  "Gdy film się zatnie | Automatyczne przejście na inne źródło": [
+   592,
+   796,
+   1840,
+   924
+  ],
+  "Przewijanie | Podgląd klatek i przeskoki": [
+   592,
+   932,
+   1840,
+   1060
+  ],
+  "Dopasowanie napisów | Napisy równo z mową": [
+   592,
+   252,
+   1840,
+   380
+  ],
+  "Wygląd napisów | Czcionka i rozmiar": [
+   592,
+   388,
+   1840,
+   516
+  ],
+  "Napisy AI | Tłumaczenie napisów na polski": [
+   592,
+   524,
+   1840,
+   652
+  ],
+  "Lektor | Głos czytający napisy": [
+   592,
+   660,
+   1840,
+   788
+  ],
+  "Rozpoznawanie mowy | Model do napisów z dźwięku": [
+   592,
+   796,
+   1840,
+   924
+  ],
+  "Sterowanie głosem | Polecenia mówione do pilota": [
+   592,
+   932,
+   1840,
+   1060
+  ],
+  "Live TV | Kanały na żywo i przewodnik": [
+   592,
+   252,
+   1840,
+   380
+  ],
+  "Źródła, EPG i logotypy | Listy kanałów, program, logo, układ": [
+   592,
+   388,
+   1840,
+   516
+  ],
+  "Katalogi IPTV | Filmy i seriale z IPTV": [
+   592,
+   524,
+   1840,
+   652
+  ],
+  "Dodatki telewizji | Przewodnik w tle, logo, obejrzane": [
+   592,
+   660,
+   1840,
+   788
+  ],
+  "Seriale w IPTV | Opisy odcinków z TVDB": [
+   592,
+   796,
+   1840,
+   924
+  ],
+  "Szukaj w telewizji | Programy i kanały": [
+   592,
+   932,
+   1840,
+   1060
+  ],
+  "Dodatki | Instalowanie i kolejność dodatków": [
+   592,
+   252,
+   1840,
+   380
+  ],
+  "Katalogi i odkrywanie | Skąd biorą się filmy na ekranie głów": [
+   592,
+   388,
+   1840,
+   516
+  ],
+  "Serwery mediów i usługi | Plex, Jellyfin, połączone konta": [
+   592,
+   524,
+   1840,
+   652
+  ],
+  "YouTube | Konto, jakość, napisy, Shorts": [
+   592,
+   660,
+   1840,
+   788
+  ],
+  "Test łącza i sprzętu | Sprawdź internet i telewizor": [
+   592,
+   796,
+   1840,
+   924
+  ],
+  "Start z telewizorem | Uruchamianie, ekran główny, asystent": [
+   592,
+   252,
+   1840,
+   380
+  ],
+  "Ekran główny i wyjście | Nuvio jako ekran główny telewizora": [
+   592,
+   388,
+   1840,
+   516
+  ],
+  "Przełączniki | Kalendarz, wyszukiwarka ustawień, pilot": [
+   592,
+   524,
+   1840,
+   652
+  ],
+  "Wszystkie moduły | Każdy dodatek tej wersji w jednym miejscu": [
+   592,
+   660,
+   1840,
+   788
+  ],
+  "Zaawansowane | Pamięć, bufor, czyszczenie": [
+   592,
+   796,
+   1840,
+   924
+  ],
+  "Diagnostyka | Dla testów": [
+   592,
+   932,
+   1840,
+   1060
+  ],
+  "[bez nazwy 1248x14 @592,252]": [
+   592,
+   252,
+   1840,
+   266
+  ],
+  "O aplikacji | Wersja, aktualizacje, prywatność": [
+   592,
+   944,
+   1840,
+   1072
+  ],
+  "Poziom ustawień | NOOB, prosty albo zaawansowany": [
+   592,
+   952,
+   1840,
+   1080
+  ],
+  "[bez nazwy 1248x12 @592,252]": [
+   592,
+   252,
+   1840,
+   264
+  ],
+  "[bez nazwy 1248x4 @592,252]": [
+   592,
+   252,
+   1840,
+   256
+  ],
+  "[bez nazwy 432x72 @80,168]": [
+   80,
+   168,
+   512,
+   240
+  ],
+  "[bez nazwy 432x72 @80,272]": [
+   80,
+   272,
+   512,
+   344
+  ],
+  "[bez nazwy 432x72 @80,432]": [
+   80,
+   432,
+   512,
+   504
+  ],
+  "[bez nazwy 432x72 @80,512]": [
+   80,
+   512,
+   512,
+   584
+  ],
+  "[bez nazwy 432x72 @80,592]": [
+   80,
+   592,
+   512,
+   664
+  ],
+  "S | Stef+Patryk | Zmień profil": [
+   56,
+   64,
+   424,
+   176
+  ],
+  "Główna": [
+   56,
+   264,
+   424,
+   336
+  ],
+  "Live TV": [
+   56,
+   344,
+   424,
+   416
+  ],
+  "YouTube": [
+   56,
+   424,
+   424,
+   496
+  ],
+  "Biblioteka": [
+   56,
+   504,
+   424,
+   576
+  ],
+  "Ustawienia": [
+   56,
+   584,
+   424,
+   656
+  ]
+ },
+ "odwiedzone": [
+  "Diagnostyka | Dla testów",
+  "Dodatki i usługi",
+  "Dodatki | Instalowanie i kolejność dodatków",
+  "Ekran główny i wyjście | Nuvio jako ekran główny telewizora",
+  "Katalogi i odkrywanie | Skąd biorą się filmy na ekranie głów",
+  "Konto i profile",
+  "Napisy i lektor",
+  "O aplikacji | Wersja, aktualizacje, prywatność",
+  "Odtwarzanie",
+  "Poziom ustawień | NOOB, prosty albo zaawansowany",
+  "Przełączniki | Kalendarz, wyszukiwarka ustawień, pilot",
+  "Serwery mediów i usługi | Plex, Jellyfin, połączone konta",
+  "Start z telewizorem | Uruchamianie, ekran główny, asystent",
+  "System",
+  "Telewizja",
+  "Test łącza i sprzętu | Sprawdź internet i telewizor",
+  "Ustawienia",
+  "Wszystkie moduły | Każdy dodatek tej wersji w jednym miejscu",
+  "Wygląd i ekran główny",
+  "YouTube | Konto, jakość, napisy, Shorts",
+  "Zaawansowane | Pamięć, bufor, czyszczenie"
+ ],
+ "utrata_fokusu": [],
+ "wyjscie_z_ekranu": [],
+ "pulapki": [],
+ "krawedzie": [
+  [
+   "Konto i profile",
+   "DOWN",
+   "Wygląd i ekran główny"
+  ],
+  [
+   "Wygląd i ekran główny",
+   "DOWN",
+   "Odtwarzanie"
+  ],
+  [
+   "Odtwarzanie",
+   "DOWN",
+   "Napisy i lektor"
+  ],
+  [
+   "Napisy i lektor",
+   "DOWN",
+   "Telewizja"
+  ],
+  [
+   "Telewizja",
+   "DOWN",
+   "Dodatki i usługi"
+  ],
+  [
+   "Dodatki i usługi",
+   "DOWN",
+   "System"
+  ],
+  [
+   "System",
+   "DOWN",
+   "System"
+  ],
+  [
+   "System",
+   "RIGHT",
+   "Start z telewizorem | Uruchamianie, ekran główny, asystent"
+  ],
+  [
+   "Start z telewizorem | Uruchamianie, ekran główny, asystent",
+   "DOWN",
+   "Ekran główny i wyjście | Nuvio jako ekran główny telewizora"
+  ],
+  [
+   "Ekran główny i wyjście | Nuvio jako ekran główny telewizora",
+   "DOWN",
+   "Przełączniki | Kalendarz, wyszukiwarka ustawień, pilot"
+  ],
+  [
+   "Przełączniki | Kalendarz, wyszukiwarka ustawień, pilot",
+   "DOWN",
+   "Wszystkie moduły | Każdy dodatek tej wersji w jednym miejscu"
+  ],
+  [
+   "Wszystkie moduły | Każdy dodatek tej wersji w jednym miejscu",
+   "DOWN",
+   "Zaawansowane | Pamięć, bufor, czyszczenie"
+  ],
+  [
+   "Zaawansowane | Pamięć, bufor, czyszczenie",
+   "DOWN",
+   "Diagnostyka | Dla testów"
+  ],
+  [
+   "Diagnostyka | Dla testów",
+   "DOWN",
+   "O aplikacji | Wersja, aktualizacje, prywatność"
+  ],
+  [
+   "O aplikacji | Wersja, aktualizacje, prywatność",
+   "DOWN",
+   "Poziom ustawień | NOOB, prosty albo zaawansowany"
+  ],
+  [
+   "Poziom ustawień | NOOB, prosty albo zaawansowany",
+   "DOWN",
+   "Poziom ustawień | NOOB, prosty albo zaawansowany"
+  ],
+  [
+   "Poziom ustawień | NOOB, prosty albo zaawansowany",
+   "RIGHT",
+   "Poziom ustawień | NOOB, prosty albo zaawansowany"
+  ],
+  [
+   "Poziom ustawień | NOOB, prosty albo zaawansowany",
+   "UP",
+   "O aplikacji | Wersja, aktualizacje, prywatność"
+  ],
+  [
+   "O aplikacji | Wersja, aktualizacje, prywatność",
+   "RIGHT",
+   "O aplikacji | Wersja, aktualizacje, prywatność"
+  ],
+  [
+   "O aplikacji | Wersja, aktualizacje, prywatność",
+   "UP",
+   "Diagnostyka | Dla testów"
+  ],
+  [
+   "Diagnostyka | Dla testów",
+   "RIGHT",
+   "Diagnostyka | Dla testów"
+  ],
+  [
+   "Diagnostyka | Dla testów",
+   "UP",
+   "Zaawansowane | Pamięć, bufor, czyszczenie"
+  ],
+  [
+   "Zaawansowane | Pamięć, bufor, czyszczenie",
+   "RIGHT",
+   "Zaawansowane | Pamięć, bufor, czyszczenie"
+  ],
+  [
+   "Zaawansowane | Pamięć, bufor, czyszczenie",
+   "UP",
+   "Wszystkie moduły | Każdy dodatek tej wersji w jednym miejscu"
+  ],
+  [
+   "Wszystkie moduły | Każdy dodatek tej wersji w jednym miejscu",
+   "RIGHT",
+   "Wszystkie moduły | Każdy dodatek tej wersji w jednym miejscu"
+  ],
+  [
+   "Wszystkie moduły | Każdy dodatek tej wersji w jednym miejscu",
+   "UP",
+   "Przełączniki | Kalendarz, wyszukiwarka ustawień, pilot"
+  ],
+  [
+   "Przełączniki | Kalendarz, wyszukiwarka ustawień, pilot",
+   "RIGHT",
+   "Przełączniki | Kalendarz, wyszukiwarka ustawień, pilot"
+  ],
+  [
+   "Przełączniki | Kalendarz, wyszukiwarka ustawień, pilot",
+   "UP",
+   "Ekran główny i wyjście | Nuvio jako ekran główny telewizora"
+  ],
+  [
+   "Ekran główny i wyjście | Nuvio jako ekran główny telewizora",
+   "RIGHT",
+   "Ekran główny i wyjście | Nuvio jako ekran główny telewizora"
+  ],
+  [
+   "Ekran główny i wyjście | Nuvio jako ekran główny telewizora",
+   "UP",
+   "Start z telewizorem | Uruchamianie, ekran główny, asystent"
+  ],
+  [
+   "Start z telewizorem | Uruchamianie, ekran główny, asystent",
+   "RIGHT",
+   "Start z telewizorem | Uruchamianie, ekran główny, asystent"
+  ],
+  [
+   "Start z telewizorem | Uruchamianie, ekran główny, asystent",
+   "UP",
+   "Ustawienia"
+  ],
+  [
+   "Ustawienia",
+   "DOWN",
+   "Start z telewizorem | Uruchamianie, ekran główny, asystent"
+  ],
+  [
+   "Start z telewizorem | Uruchamianie, ekran główny, asystent",
+   "LEFT",
+   "System"
+  ],
+  [
+   "System",
+   "UP",
+   "Dodatki i usługi"
+  ],
+  [
+   "Dodatki i usługi",
+   "RIGHT",
+   "Dodatki | Instalowanie i kolejność dodatków"
+  ],
+  [
+   "Dodatki | Instalowanie i kolejność dodatków",
+   "DOWN",
+   "Katalogi i odkrywanie | Skąd biorą się filmy na ekranie głów"
+  ],
+  [
+   "Katalogi i odkrywanie | Skąd biorą się filmy na ekranie głów",
+   "DOWN",
+   "Serwery mediów i usługi | Plex, Jellyfin, połączone konta"
+  ],
+  [
+   "Serwery mediów i usługi | Plex, Jellyfin, połączone konta",
+   "DOWN",
+   "YouTube | Konto, jakość, napisy, Shorts"
+  ],
+  [
+   "YouTube | Konto, jakość, napisy, Shorts",
+   "DOWN",
+   "Test łącza i sprzętu | Sprawdź internet i telewizor"
+  ]
+ ],
+ "teksty_startowe": [
+  "Dodatki i usługi",
+  "Konto",
+  "Konto i profile",
+  "Kopia ustawień i przenoszenie na inny telewizor",
+  "Logowanie i konto Nuvio",
+  "Napisy i lektor",
+  "Odtwarzanie",
+  "Oglądanie razem z innymi",
+  "Profile",
+  "Profile domowników, zdjęcia, blokada",
+  "Rodzina",
+  "Synchronizacja",
+  "System",
+  "Szukaj",
+  "Telewizja",
+  "Trakt i Simkl",
+  "Ustawienia",
+  "Wspólne oglądanie",
+  "Wspólne ustawienia całej rodziny",
+  "Wygląd i ekran główny",
+  "built-25m",
+  "Śledzenie obejrzanych"
+ ],
+ "nieosiagalne": [
+  "Biblioteka",
+  "Dobór źródeł | Polski dźwięk, napisy i jakość przy wyborze",
+  "Dodatki telewizji | Przewodnik w tle, logo, obejrzane",
+  "Dopasowanie napisów | Napisy równo z mową",
+  "Dźwięk i obraz | Dolby Vision, HDR10, formaty dźwięku",
+  "Gdy film się zatnie | Automatyczne przejście na inne źródło",
+  "Główna",
+  "Jakość i odtwarzacz Echo | Automatyczna jakość obrazu",
+  "Katalogi IPTV | Filmy i seriale z IPTV",
+  "Konto | Logowanie i konto Nuvio",
+  "Lektor | Głos czytający napisy",
+  "Live TV",
+  "Live TV | Kanały na żywo i przewodnik",
+  "Menu i styl | Pasek menu i wygląd jak w Netflix",
+  "Motyw i język | Kolory, tryb AMOLED, język aplikacji",
+  "Napisy AI | Tłumaczenie napisów na polski",
+  "Odkrywaj telewizję | Rzędy z telewizji na ekranie głównym",
+  "Odtwarzacz i źródła | Wybór źródła, języki, następny odcinek",
+  "Profile | Profile domowników, zdjęcia, blokada",
+  "Przewijanie | Podgląd klatek i przeskoki",
+  "Rodzina | Wspólne ustawienia całej rodziny",
+  "Rozpoznawanie mowy | Model do napisów z dźwięku",
+  "S | Stef+Patryk | Zmień profil",
+  "Seriale w IPTV | Opisy odcinków z TVDB",
+  "Skórka | Wygląd całej aplikacji",
+  "Sterowanie głosem | Polecenia mówione do pilota",
+  "Synchronizacja | Kopia ustawień i przenoszenie na inny telew",
+  "Szukaj",
+  "Szukaj w telewizji | Programy i kanały",
+  "Tryb nocny | Godziny, ciepłe kolory, cichszy dźwięk",
+  "Układ strony głównej | Rzędy, plakaty, kolejność",
+  "Wspólne oglądanie | Oglądanie razem z innymi",
+  "Wygląd napisów | Czcionka i rozmiar",
+  "YouTube",
+  "[bez nazwy 1248x12 @592,1068]",
+  "[bez nazwy 1248x12 @592,252]",
+  "[bez nazwy 1248x14 @592,252]",
+  "[bez nazwy 1248x4 @592,252]",
+  "[bez nazwy 432x72 @80,168]",
+  "[bez nazwy 432x72 @80,272]",
+  "[bez nazwy 432x72 @80,432]",
+  "[bez nazwy 432x72 @80,512]",
+  "[bez nazwy 432x72 @80,592]",
+  "Śledzenie obejrzanych | Trakt i Simkl",
+  "Źródła, EPG i logotypy | Listy kanałów, program, logo, układ"
+ ],
+ "logcat": [],
+ "czas_obchodu_s": 129
+}

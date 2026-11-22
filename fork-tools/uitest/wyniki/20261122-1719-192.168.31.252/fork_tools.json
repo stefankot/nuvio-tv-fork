@@ -1,0 +1,330 @@
+{
+ "trasa": "fork_tools",
+ "czas_ladowania_s": null,
+ "kroki": 34,
+ "elementy": {
+  "Ulubione": [
+   285,
+   472,
+   465,
+   544
+  ],
+  "Oglądaj dalej": [
+   477,
+   472,
+   711,
+   544
+  ],
+  "Informacje": [
+   753,
+   472,
+   956,
+   544
+  ],
+  "Filmy i seriale": [
+   968,
+   472,
+   1210,
+   544
+  ],
+  "Sport": [
+   1222,
+   472,
+   1359,
+   544
+  ],
+  "Dokumentalne": [
+   1371,
+   472,
+   1625,
+   544
+  ],
+  "Muzyka": [
+   1637,
+   472,
+   1800,
+   544
+  ],
+  "Styl życia": [
+   1812,
+   472,
+   1920,
+   544
+  ],
+  "Wszystkie": [
+   80,
+   472,
+   273,
+   544
+  ],
+  "[bez nazwy 1920x96 @0,632]": [
+   0,
+   632,
+   1920,
+   728
+  ],
+  "[bez nazwy 1920x96 @0,728]": [
+   0,
+   728,
+   1920,
+   824
+  ],
+  "[bez nazwy 1920x96 @0,824]": [
+   0,
+   824,
+   1920,
+   920
+  ],
+  "PL: 13 Ulica": [
+   0,
+   920,
+   1920,
+   1016
+  ],
+  "5 | PL: Active Family | Brak programu": [
+   0,
+   1016,
+   1920,
+   1080
+  ],
+  "Szukaj": [
+   1187,
+   48,
+   1390,
+   96
+  ],
+  "Dziś": [
+   1406,
+   48,
+   1580,
+   96
+  ],
+  "Odkrywaj": [
+   1596,
+   48,
+   1840,
+   120
+  ],
+  "Szukaj w telewizji": [
+   96,
+   168,
+   377,
+   264
+  ],
+  "Na co masz ochotę?": [
+   96,
+   368,
+   418,
+   464
+  ],
+  "Sterowanie głosem: przykłady poleceń": [
+   96,
+   468,
+   645,
+   564
+  ],
+  "Aplikacje": [
+   96,
+   568,
+   274,
+   664
+  ],
+  "Moduły (wszystkie ustawienia)": [
+   96,
+   668,
+   537,
+   764
+  ],
+  "Odkrywaj telewizję (rzędy)": [
+   96,
+   268,
+   489,
+   364
+  ]
+ },
+ "odwiedzone": [
+  "Aplikacje",
+  "Moduły (wszystkie ustawienia)",
+  "Na co masz ochotę?",
+  "Odkrywaj telewizję (rzędy)",
+  "Sterowanie głosem: przykłady poleceń",
+  "Szukaj w telewizji",
+  "Wszystkie"
+ ],
+ "utrata_fokusu": [],
+ "wyjscie_z_ekranu": [],
+ "pulapki": [],
+ "krawedzie": [
+  [
+   "Wszystkie",
+   "DOWN",
+   "Odkrywaj telewizję (rzędy)"
+  ],
+  [
+   "Odkrywaj telewizję (rzędy)",
+   "DOWN",
+   "Na co masz ochotę?"
+  ],
+  [
+   "Na co masz ochotę?",
+   "DOWN",
+   "Sterowanie głosem: przykłady poleceń"
+  ],
+  [
+   "Sterowanie głosem: przykłady poleceń",
+   "DOWN",
+   "Aplikacje"
+  ],
+  [
+   "Aplikacje",
+   "DOWN",
+   "Moduły (wszystkie ustawienia)"
+  ],
+  [
+   "Moduły (wszystkie ustawienia)",
+   "DOWN",
+   "Moduły (wszystkie ustawienia)"
+  ],
+  [
+   "Moduły (wszystkie ustawienia)",
+   "RIGHT",
+   "Moduły (wszystkie ustawienia)"
+  ],
+  [
+   "Moduły (wszystkie ustawienia)",
+   "UP",
+   "Aplikacje"
+  ],
+  [
+   "Aplikacje",
+   "RIGHT",
+   "Aplikacje"
+  ],
+  [
+   "Aplikacje",
+   "UP",
+   "Sterowanie głosem: przykłady poleceń"
+  ],
+  [
+   "Sterowanie głosem: przykłady poleceń",
+   "RIGHT",
+   "Sterowanie głosem: przykłady poleceń"
+  ],
+  [
+   "Sterowanie głosem: przykłady poleceń",
+   "UP",
+   "Na co masz ochotę?"
+  ],
+  [
+   "Na co masz ochotę?",
+   "RIGHT",
+   "Na co masz ochotę?"
+  ],
+  [
+   "Na co masz ochotę?",
+   "UP",
+   "Odkrywaj telewizję (rzędy)"
+  ],
+  [
+   "Odkrywaj telewizję (rzędy)",
+   "RIGHT",
+   "Odkrywaj telewizję (rzędy)"
+  ],
+  [
+   "Odkrywaj telewizję (rzędy)",
+   "UP",
+   "Szukaj w telewizji"
+  ],
+  [
+   "Szukaj w telewizji",
+   "DOWN",
+   "Odkrywaj telewizję (rzędy)"
+  ],
+  [
+   "Odkrywaj telewizję (rzędy)",
+   "LEFT",
+   "Odkrywaj telewizję (rzędy)"
+  ],
+  [
+   "Na co masz ochotę?",
+   "LEFT",
+   "Na co masz ochotę?"
+  ],
+  [
+   "Sterowanie głosem: przykłady poleceń",
+   "LEFT",
+   "Sterowanie głosem: przykłady poleceń"
+  ],
+  [
+   "Aplikacje",
+   "LEFT",
+   "Aplikacje"
+  ],
+  [
+   "Moduły (wszystkie ustawienia)",
+   "LEFT",
+   "Moduły (wszystkie ustawienia)"
+  ],
+  [
+   "Szukaj w telewizji",
+   "RIGHT",
+   "Szukaj w telewizji"
+  ],
+  [
+   "Szukaj w telewizji",
+   "UP",
+   "Szukaj w telewizji"
+  ],
+  [
+   "Szukaj w telewizji",
+   "LEFT",
+   "Szukaj w telewizji"
+  ]
+ ],
+ "teksty_startowe": [
+  "00:30",
+  "01:00",
+  "01:30",
+  "02:00",
+  "5",
+  "Brak programu",
+  "Dokumentalne",
+  "Dziś",
+  "Filmy i seriale",
+  "Informacje",
+  "Muzyka",
+  "Nic tu jeszcze nie ma.",
+  "Odkrywaj",
+  "Oglądaj dalej",
+  "Sport",
+  "Styl życia",
+  "Szukaj",
+  "Ulubione",
+  "Wszystkie",
+  "built-33m"
+ ],
+ "nieosiagalne": [
+  "5 | PL: Active Family | Brak programu",
+  "Dokumentalne",
+  "Dziś",
+  "Filmy i seriale",
+  "Informacje",
+  "Muzyka",
+  "Odkrywaj",
+  "Oglądaj dalej",
+  "PL: 13 Ulica",
+  "Sport",
+  "Styl życia",
+  "Szukaj",
+  "Ulubione",
+  "[bez nazwy 1920x96 @0,632]",
+  "[bez nazwy 1920x96 @0,728]",
+  "[bez nazwy 1920x96 @0,824]"
+ ],
+ "logcat": [
+  "W/ForkNiunia( 6469): logo kanału RT HD: HttpException: HTTP 404 → następne",
+  "W/ForkNiunia( 6469): logo kanału CGTN HD: HttpException: HTTP 404 → następne",
+  "W/ForkNiunia( 6469): logo kanału Asharq News: HttpException: HTTP 404 → następne"
+ ],
+ "czas_obchodu_s": 125
+}

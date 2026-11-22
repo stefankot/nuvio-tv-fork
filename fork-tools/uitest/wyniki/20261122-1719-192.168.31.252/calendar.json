@@ -1,0 +1,438 @@
+{
+ "trasa": "calendar",
+ "czas_ladowania_s": 8.1,
+ "kroki": 40,
+ "elementy": {
+  "List": [
+   1523,
+   41,
+   1667,
+   137
+  ],
+  "Month": [
+   1675,
+   41,
+   1832,
+   137
+  ],
+  "WT. | 24 | Blade Runner 2099 | wt. 24 lis · S1 E1 · Prime Vi": [
+   880,
+   156,
+   1832,
+   308
+  ],
+  "ŚR. | 25 | Władca Pierścieni: Pierścienie Władzy | śr. 25 li": [
+   880,
+   157,
+   1832,
+   309
+  ],
+  "PT. | 27 | JoJo's Bizarre Adventure | pt. 27 lis · S6 E11 · ": [
+   880,
+   321,
+   1832,
+   473
+  ],
+  "PT. | 27 | Steel Ball Run: JoJo's Bizarre Adventure | pt. 27": [
+   880,
+   247,
+   1832,
+   399
+  ],
+  "CZW. | 8 | Silos | czw. 8 lip · S4 E1 · Apple TV | SEASON PR": [
+   880,
+   247,
+   1832,
+   399
+  ],
+  "– | Bestia we mnie | Last episode S1 E8 · 13 lis 2025 | No d": [
+   880,
+   155,
+   1832,
+   307
+  ],
+  "27 | pt. 27 lis · S6 E11 · Netflix | In 4 days": [
+   880,
+   118,
+   1832,
+   235
+  ],
+  "– | Carrie | Last episode S1 E8 · 7 paź 2026 | No date yet": [
+   880,
+   155,
+   1832,
+   307
+  ],
+  "[bez nazwy 952x29 @880,1051]": [
+   880,
+   1051,
+   1832,
+   1080
+  ],
+  "– | Ciało | Last episode S1 E8 · 11 lis 2026 | No date yet": [
+   880,
+   146,
+   1832,
+   298
+  ],
+  "– | Eternauta | Last episode S1 E6 · 30 kwi 2025 | No date y": [
+   880,
+   310,
+   1832,
+   462
+  ],
+  "8 | czw. 8 lip · S4 E1 · Apple TV | SEASON PREMIERE | In 7 m": [
+   880,
+   118,
+   1832,
+   235
+  ],
+  "– | Fundacja | Last episode S3 E10 · 11 wrz 2025 | No date y": [
+   880,
+   474,
+   1832,
+   626
+  ],
+  "– | Latarnie | Last episode S1 E8 · 4 paź 2026 | No date yet": [
+   880,
+   638,
+   1832,
+   790
+  ],
+  "– | Mroczna materia | Last episode S2 E10 · 29 paź 2026 | No": [
+   880,
+   802,
+   1832,
+   954
+  ],
+  "– | Obsesja | Last episode S1 E8 · 31 sie 2026 | No date yet": [
+   880,
+   966,
+   1832,
+   1080
+  ],
+  "– | Porządna amerykańska rodzina | Last episode S1 E8 · 30 k": [
+   880,
+   966,
+   1832,
+   1080
+  ],
+  "– | Rozdzielenie | Last episode S2 E10 · 20 mar 2025 | No da": [
+   880,
+   966,
+   1832,
+   1080
+  ],
+  "– | Strefa gangsterów | Last episode S2 E10 · 20 lis 2026 | ": [
+   880,
+   966,
+   1832,
+   1080
+  ],
+  "– | Ted Lasso | Last episode S4 E10 · 6 paź 2026 | No date y": [
+   880,
+   966,
+   1832,
+   1080
+  ],
+  "– | The Great Pottery Throw Down | Last episode S9 E10 · 8 m": [
+   880,
+   966,
+   1832,
+   1080
+  ],
+  "– | ドラえもん | Last episode S1 E943 · 21 lis 2026 | No date yet": [
+   880,
+   966,
+   1832,
+   1080
+  ],
+  "– | SG: HUB SPORTS 5 ᴿᴬᵂ | No date yet": [
+   880,
+   966,
+   1832,
+   1080
+  ],
+  "[bez nazwy 952x78 @880,118]": [
+   880,
+   118,
+   1832,
+   196
+  ]
+ },
+ "odwiedzone": [
+  "CZW. | 8 | Silos | czw. 8 lip · S4 E1 · Apple TV | SEASON PR",
+  "PT. | 27 | JoJo's Bizarre Adventure | pt. 27 lis · S6 E11 · ",
+  "PT. | 27 | Steel Ball Run: JoJo's Bizarre Adventure | pt. 27",
+  "WT. | 24 | Blade Runner 2099 | wt. 24 lis · S1 E1 · Prime Vi",
+  "ŚR. | 25 | Władca Pierścieni: Pierścienie Władzy | śr. 25 li",
+  "– | Bestia we mnie | Last episode S1 E8 · 13 lis 2025 | No d",
+  "– | Carrie | Last episode S1 E8 · 7 paź 2026 | No date yet",
+  "– | Ciało | Last episode S1 E8 · 11 lis 2026 | No date yet",
+  "– | Eternauta | Last episode S1 E6 · 30 kwi 2025 | No date y",
+  "– | Fundacja | Last episode S3 E10 · 11 wrz 2025 | No date y",
+  "– | Latarnie | Last episode S1 E8 · 4 paź 2026 | No date yet",
+  "– | Mroczna materia | Last episode S2 E10 · 29 paź 2026 | No",
+  "– | Obsesja | Last episode S1 E8 · 31 sie 2026 | No date yet",
+  "– | Porządna amerykańska rodzina | Last episode S1 E8 · 30 k",
+  "– | Rozdzielenie | Last episode S2 E10 · 20 mar 2025 | No da",
+  "– | SG: HUB SPORTS 5 ᴿᴬᵂ | No date yet",
+  "– | Strefa gangsterów | Last episode S2 E10 · 20 lis 2026 | ",
+  "– | Ted Lasso | Last episode S4 E10 · 6 paź 2026 | No date y",
+  "– | The Great Pottery Throw Down | Last episode S9 E10 · 8 m",
+  "– | ドラえもん | Last episode S1 E943 · 21 lis 2026 | No date yet"
+ ],
+ "utrata_fokusu": [],
+ "wyjscie_z_ekranu": [],
+ "pulapki": [],
+ "krawedzie": [
+  [
+   "WT. | 24 | Blade Runner 2099 | wt. 24 lis · S1 E1 · Prime Vi",
+   "DOWN",
+   "ŚR. | 25 | Władca Pierścieni: Pierścienie Władzy | śr. 25 li"
+  ],
+  [
+   "ŚR. | 25 | Władca Pierścieni: Pierścienie Władzy | śr. 25 li",
+   "DOWN",
+   "PT. | 27 | JoJo's Bizarre Adventure | pt. 27 lis · S6 E11 · "
+  ],
+  [
+   "PT. | 27 | JoJo's Bizarre Adventure | pt. 27 lis · S6 E11 · ",
+   "DOWN",
+   "PT. | 27 | Steel Ball Run: JoJo's Bizarre Adventure | pt. 27"
+  ],
+  [
+   "PT. | 27 | Steel Ball Run: JoJo's Bizarre Adventure | pt. 27",
+   "DOWN",
+   "CZW. | 8 | Silos | czw. 8 lip · S4 E1 · Apple TV | SEASON PR"
+  ],
+  [
+   "CZW. | 8 | Silos | czw. 8 lip · S4 E1 · Apple TV | SEASON PR",
+   "DOWN",
+   "– | Bestia we mnie | Last episode S1 E8 · 13 lis 2025 | No d"
+  ],
+  [
+   "– | Bestia we mnie | Last episode S1 E8 · 13 lis 2025 | No d",
+   "DOWN",
+   "– | Carrie | Last episode S1 E8 · 7 paź 2026 | No date yet"
+  ],
+  [
+   "– | Carrie | Last episode S1 E8 · 7 paź 2026 | No date yet",
+   "DOWN",
+   "– | Ciało | Last episode S1 E8 · 11 lis 2026 | No date yet"
+  ],
+  [
+   "– | Ciało | Last episode S1 E8 · 11 lis 2026 | No date yet",
+   "DOWN",
+   "– | Eternauta | Last episode S1 E6 · 30 kwi 2025 | No date y"
+  ],
+  [
+   "– | Eternauta | Last episode S1 E6 · 30 kwi 2025 | No date y",
+   "DOWN",
+   "– | Fundacja | Last episode S3 E10 · 11 wrz 2025 | No date y"
+  ],
+  [
+   "– | Fundacja | Last episode S3 E10 · 11 wrz 2025 | No date y",
+   "DOWN",
+   "– | Latarnie | Last episode S1 E8 · 4 paź 2026 | No date yet"
+  ],
+  [
+   "– | Latarnie | Last episode S1 E8 · 4 paź 2026 | No date yet",
+   "DOWN",
+   "– | Mroczna materia | Last episode S2 E10 · 29 paź 2026 | No"
+  ],
+  [
+   "– | Mroczna materia | Last episode S2 E10 · 29 paź 2026 | No",
+   "DOWN",
+   "– | Obsesja | Last episode S1 E8 · 31 sie 2026 | No date yet"
+  ],
+  [
+   "– | Obsesja | Last episode S1 E8 · 31 sie 2026 | No date yet",
+   "DOWN",
+   "– | Porządna amerykańska rodzina | Last episode S1 E8 · 30 k"
+  ],
+  [
+   "– | Porządna amerykańska rodzina | Last episode S1 E8 · 30 k",
+   "DOWN",
+   "– | Rozdzielenie | Last episode S2 E10 · 20 mar 2025 | No da"
+  ],
+  [
+   "– | Rozdzielenie | Last episode S2 E10 · 20 mar 2025 | No da",
+   "DOWN",
+   "– | Strefa gangsterów | Last episode S2 E10 · 20 lis 2026 | "
+  ],
+  [
+   "– | Strefa gangsterów | Last episode S2 E10 · 20 lis 2026 | ",
+   "DOWN",
+   "– | Ted Lasso | Last episode S4 E10 · 6 paź 2026 | No date y"
+  ],
+  [
+   "– | Ted Lasso | Last episode S4 E10 · 6 paź 2026 | No date y",
+   "DOWN",
+   "– | The Great Pottery Throw Down | Last episode S9 E10 · 8 m"
+  ],
+  [
+   "– | The Great Pottery Throw Down | Last episode S9 E10 · 8 m",
+   "DOWN",
+   "– | ドラえもん | Last episode S1 E943 · 21 lis 2026 | No date yet"
+  ],
+  [
+   "– | ドラえもん | Last episode S1 E943 · 21 lis 2026 | No date yet",
+   "DOWN",
+   "– | SG: HUB SPORTS 5 ᴿᴬᵂ | No date yet"
+  ],
+  [
+   "– | SG: HUB SPORTS 5 ᴿᴬᵂ | No date yet",
+   "DOWN",
+   "– | SG: HUB SPORTS 5 ᴿᴬᵂ | No date yet"
+  ],
+  [
+   "– | SG: HUB SPORTS 5 ᴿᴬᵂ | No date yet",
+   "RIGHT",
+   "– | SG: HUB SPORTS 5 ᴿᴬᵂ | No date yet"
+  ],
+  [
+   "– | SG: HUB SPORTS 5 ᴿᴬᵂ | No date yet",
+   "UP",
+   "– | ドラえもん | Last episode S1 E943 · 21 lis 2026 | No date yet"
+  ],
+  [
+   "– | ドラえもん | Last episode S1 E943 · 21 lis 2026 | No date yet",
+   "RIGHT",
+   "– | ドラえもん | Last episode S1 E943 · 21 lis 2026 | No date yet"
+  ],
+  [
+   "– | ドラえもん | Last episode S1 E943 · 21 lis 2026 | No date yet",
+   "UP",
+   "– | The Great Pottery Throw Down | Last episode S9 E10 · 8 m"
+  ],
+  [
+   "– | The Great Pottery Throw Down | Last episode S9 E10 · 8 m",
+   "RIGHT",
+   "– | The Great Pottery Throw Down | Last episode S9 E10 · 8 m"
+  ],
+  [
+   "– | The Great Pottery Throw Down | Last episode S9 E10 · 8 m",
+   "UP",
+   "– | Ted Lasso | Last episode S4 E10 · 6 paź 2026 | No date y"
+  ],
+  [
+   "– | Ted Lasso | Last episode S4 E10 · 6 paź 2026 | No date y",
+   "RIGHT",
+   "– | Ted Lasso | Last episode S4 E10 · 6 paź 2026 | No date y"
+  ],
+  [
+   "– | Ted Lasso | Last episode S4 E10 · 6 paź 2026 | No date y",
+   "UP",
+   "– | Strefa gangsterów | Last episode S2 E10 · 20 lis 2026 | "
+  ],
+  [
+   "– | Strefa gangsterów | Last episode S2 E10 · 20 lis 2026 | ",
+   "RIGHT",
+   "– | Strefa gangsterów | Last episode S2 E10 · 20 lis 2026 | "
+  ],
+  [
+   "– | Strefa gangsterów | Last episode S2 E10 · 20 lis 2026 | ",
+   "UP",
+   "– | Rozdzielenie | Last episode S2 E10 · 20 mar 2025 | No da"
+  ],
+  [
+   "– | Rozdzielenie | Last episode S2 E10 · 20 mar 2025 | No da",
+   "RIGHT",
+   "– | Rozdzielenie | Last episode S2 E10 · 20 mar 2025 | No da"
+  ],
+  [
+   "– | Rozdzielenie | Last episode S2 E10 · 20 mar 2025 | No da",
+   "UP",
+   "– | Porządna amerykańska rodzina | Last episode S1 E8 · 30 k"
+  ],
+  [
+   "– | Porządna amerykańska rodzina | Last episode S1 E8 · 30 k",
+   "RIGHT",
+   "– | Porządna amerykańska rodzina | Last episode S1 E8 · 30 k"
+  ],
+  [
+   "– | Porządna amerykańska rodzina | Last episode S1 E8 · 30 k",
+   "UP",
+   "– | Obsesja | Last episode S1 E8 · 31 sie 2026 | No date yet"
+  ],
+  [
+   "– | Obsesja | Last episode S1 E8 · 31 sie 2026 | No date yet",
+   "RIGHT",
+   "– | Obsesja | Last episode S1 E8 · 31 sie 2026 | No date yet"
+  ],
+  [
+   "– | Obsesja | Last episode S1 E8 · 31 sie 2026 | No date yet",
+   "UP",
+   "– | Mroczna materia | Last episode S2 E10 · 29 paź 2026 | No"
+  ],
+  [
+   "– | Mroczna materia | Last episode S2 E10 · 29 paź 2026 | No",
+   "RIGHT",
+   "– | Mroczna materia | Last episode S2 E10 · 29 paź 2026 | No"
+  ],
+  [
+   "– | Mroczna materia | Last episode S2 E10 · 29 paź 2026 | No",
+   "UP",
+   "– | Latarnie | Last episode S1 E8 · 4 paź 2026 | No date yet"
+  ],
+  [
+   "– | Latarnie | Last episode S1 E8 · 4 paź 2026 | No date yet",
+   "RIGHT",
+   "– | Latarnie | Last episode S1 E8 · 4 paź 2026 | No date yet"
+  ],
+  [
+   "– | Latarnie | Last episode S1 E8 · 4 paź 2026 | No date yet",
+   "UP",
+   "– | Fundacja | Last episode S3 E10 · 11 wrz 2025 | No date y"
+  ]
+ ],
+ "teksty_startowe": [
+  "1",
+  "24",
+  "25",
+  "27",
+  "4",
+  "5 with a date · 59 followed",
+  "8",
+  "Blade Runner 2099",
+  "CZW.",
+  "Calendar",
+  "In 2 days",
+  "In 4 days",
+  "In 7 months",
+  "JoJo's Bizarre Adventure",
+  "LATER",
+  "LIS",
+  "List",
+  "Month",
+  "PT.",
+  "Prime Video · 1 season",
+  "S1 E1  ·  Odcinek 1",
+  "SERIES PREMIERE",
+  "Silos",
+  "Steel Ball Run: JoJo's Bizarre Adventure",
+  "THIS WEEK",
+  "Tomorrow",
+  "WT.",
+  "WTOREK",
+  "Władca Pierścieni: Pierścienie Władzy",
+  "built-44m",
+  "czw. 8 lip · S4 E1 · Apple TV",
+  "pt. 27 lis · S1 E11",
+  "pt. 27 lis · S6 E11 · Netflix",
+  "wt. 24 lis · S1 E1 · Prime Video",
+  "ŚR.",
+  "śr. 25 lis · S3 E7 · Prime Video"
+ ],
+ "nieosiagalne": [
+  "27 | pt. 27 lis · S6 E11 · Netflix | In 4 days",
+  "8 | czw. 8 lip · S4 E1 · Apple TV | SEASON PREMIERE | In 7 m",
+  "List",
+  "Month",
+  "[bez nazwy 952x29 @880,1051]",
+  "[bez nazwy 952x78 @880,118]"
+ ],
+ "logcat": [],
+ "czas_obchodu_s": 132
+}

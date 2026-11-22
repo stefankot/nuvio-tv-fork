@@ -1,0 +1,142 @@
+{
+ "trasa": "collections",
+ "czas_ladowania_s": 4.6,
+ "kroki": 14,
+ "elementy": {
+  "Eksportuj plik": [
+   1144,
+   88,
+   1377,
+   184
+  ],
+  "Importuj": [
+   1393,
+   88,
+   1562,
+   184
+  ],
+  "Nowa kolekcja": [
+   1578,
+   88,
+   1824,
+   184
+  ],
+  "Zmień kolejność": [
+   1412,
+   988,
+   1528,
+   1080
+  ],
+  "Edytuj": [
+   1544,
+   988,
+   1660,
+   1080
+  ],
+  "Usuń": [
+   1676,
+   988,
+   1792,
+   1080
+  ]
+ },
+ "odwiedzone": [
+  "Edytuj",
+  "Nowa kolekcja",
+  "Usuń",
+  "Zmień kolejność"
+ ],
+ "utrata_fokusu": [],
+ "wyjscie_z_ekranu": [],
+ "pulapki": [],
+ "krawedzie": [
+  [
+   "Nowa kolekcja",
+   "DOWN",
+   "Edytuj"
+  ],
+  [
+   "Edytuj",
+   "DOWN",
+   "Edytuj"
+  ],
+  [
+   "Edytuj",
+   "RIGHT",
+   "Usuń"
+  ],
+  [
+   "Usuń",
+   "DOWN",
+   "Usuń"
+  ],
+  [
+   "Usuń",
+   "RIGHT",
+   "Usuń"
+  ],
+  [
+   "Usuń",
+   "UP",
+   "Usuń"
+  ],
+  [
+   "Usuń",
+   "LEFT",
+   "Edytuj"
+  ],
+  [
+   "Edytuj",
+   "UP",
+   "Edytuj"
+  ],
+  [
+   "Edytuj",
+   "LEFT",
+   "Zmień kolejność"
+  ],
+  [
+   "Zmień kolejność",
+   "DOWN",
+   "Zmień kolejność"
+  ],
+  [
+   "Zmień kolejność",
+   "RIGHT",
+   "Edytuj"
+  ],
+  [
+   "Zmień kolejność",
+   "UP",
+   "Zmień kolejność"
+  ],
+  [
+   "Zmień kolejność",
+   "LEFT",
+   "Zmień kolejność"
+  ]
+ ],
+ "teksty_startowe": [
+  "22 folderów · Przypięta",
+  "25 folderów · Przypięta",
+  "7 folderów · Przypięta",
+  "8 folderów · Przypięta",
+  "80 folderów · Przypięta",
+  "Discover",
+  "Eksportuj plik",
+  "Genres",
+  "Importuj",
+  "Kolekcje",
+  "Networks",
+  "Nowa kolekcja",
+  "Spotlight",
+  "Streaming Services",
+  "built-43m"
+ ],
+ "nieosiagalne": [
+  "Eksportuj plik",
+  "Importuj"
+ ],
+ "logcat": [],
+ "czas_obchodu_s": 51
+}

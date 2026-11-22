@@ -1,0 +1,328 @@
+{
+ "trasa": "layout_settings",
+ "czas_ladowania_s": 4.3,
+ "kroki": 40,
+ "elementy": {
+  "Układ strony głównej | Wybierz strukturę i źródło hero. | Za": [
+   104,
+   197,
+   1816,
+   321
+  ],
+  "Zawartość strony głównej | Kontroluj co pojawia się na stron": [
+   104,
+   198,
+   1816,
+   322
+  ],
+  "Pasek boczny i nawigacja | Styl paska bocznego i lokalizacja": [
+   104,
+   198,
+   1816,
+   322
+  ],
+  "Kontynuuj oglądanie | Ustawienia sekcji Kontynuuj oglądanie.": [
+   104,
+   198,
+   1816,
+   322
+  ],
+  "Zaznaczony plakat | Zaawansowane zachowanie zaznaczonych kar": [
+   104,
+   354,
+   1816,
+   478
+  ],
+  "[bez nazwy 1712x96 @104,977]": [
+   104,
+   977,
+   1816,
+   1073
+  ],
+  "Karta plakatu | Dostosuj szerokość karty i promień narożnika": [
+   104,
+   510,
+   1816,
+   634
+  ],
+  "[bez nazwy 1712x96 @104,978]": [
+   104,
+   978,
+   1816,
+   1074
+  ],
+  "Efekt głębi kart | Efekt krawędzi światła i połysku na karta": [
+   104,
+   666,
+   1816,
+   790
+  ],
+  "Niestandardowe źródło plakatów | Używaj grafik z zewnętrznej": [
+   104,
+   822,
+   1816,
+   946
+  ],
+  "Strona szczegółów | Ustawienia dla ekranów szczegółów i odci": [
+   104,
+   811,
+   1816,
+   935
+  ],
+  "Źródła | Ustawienia wyświetlania wyników źródeł i paneli odt": [
+   104,
+   836,
+   1816,
+   960
+  ],
+  "Źródła": [
+   104,
+   967,
+   1816,
+   1063
+  ],
+  "Strona szczegółów": [
+   104,
+   967,
+   1816,
+   1063
+  ],
+  "Niestandardowe źródło plakatów": [
+   104,
+   967,
+   1816,
+   1063
+  ],
+  "Efekt głębi kart": [
+   104,
+   967,
+   1816,
+   1063
+  ],
+  "Karta plakatu": [
+   104,
+   967,
+   1816,
+   1063
+  ]
+ },
+ "odwiedzone": [
+  "Efekt głębi kart | Efekt krawędzi światła i połysku na karta",
+  "Karta plakatu | Dostosuj szerokość karty i promień narożnika",
+  "Kontynuuj oglądanie | Ustawienia sekcji Kontynuuj oglądanie.",
+  "Niestandardowe źródło plakatów | Używaj grafik z zewnętrznej",
+  "Pasek boczny i nawigacja | Styl paska bocznego i lokalizacja",
+  "Strona szczegółów | Ustawienia dla ekranów szczegółów i odci",
+  "Układ strony głównej | Wybierz strukturę i źródło hero. | Za",
+  "Zawartość strony głównej | Kontroluj co pojawia się na stron",
+  "Zaznaczony plakat | Zaawansowane zachowanie zaznaczonych kar",
+  "Źródła | Ustawienia wyświetlania wyników źródeł i paneli odt"
+ ],
+ "utrata_fokusu": [],
+ "wyjscie_z_ekranu": [],
+ "pulapki": [],
+ "krawedzie": [
+  [
+   "Układ strony głównej | Wybierz strukturę i źródło hero. | Za",
+   "DOWN",
+   "Zawartość strony głównej | Kontroluj co pojawia się na stron"
+  ],
+  [
+   "Zawartość strony głównej | Kontroluj co pojawia się na stron",
+   "DOWN",
+   "Pasek boczny i nawigacja | Styl paska bocznego i lokalizacja"
+  ],
+  [
+   "Pasek boczny i nawigacja | Styl paska bocznego i lokalizacja",
+   "DOWN",
+   "Kontynuuj oglądanie | Ustawienia sekcji Kontynuuj oglądanie."
+  ],
+  [
+   "Kontynuuj oglądanie | Ustawienia sekcji Kontynuuj oglądanie.",
+   "DOWN",
+   "Zaznaczony plakat | Zaawansowane zachowanie zaznaczonych kar"
+  ],
+  [
+   "Zaznaczony plakat | Zaawansowane zachowanie zaznaczonych kar",
+   "DOWN",
+   "Karta plakatu | Dostosuj szerokość karty i promień narożnika"
+  ],
+  [
+   "Karta plakatu | Dostosuj szerokość karty i promień narożnika",
+   "DOWN",
+   "Efekt głębi kart | Efekt krawędzi światła i połysku na karta"
+  ],
+  [
+   "Efekt głębi kart | Efekt krawędzi światła i połysku na karta",
+   "DOWN",
+   "Niestandardowe źródło plakatów | Używaj grafik z zewnętrznej"
+  ],
+  [
+   "Niestandardowe źródło plakatów | Używaj grafik z zewnętrznej",
+   "DOWN",
+   "Strona szczegółów | Ustawienia dla ekranów szczegółów i odci"
+  ],
+  [
+   "Strona szczegółów | Ustawienia dla ekranów szczegółów i odci",
+   "DOWN",
+   "Źródła | Ustawienia wyświetlania wyników źródeł i paneli odt"
+  ],
+  [
+   "Źródła | Ustawienia wyświetlania wyników źródeł i paneli odt",
+   "DOWN",
+   "Źródła | Ustawienia wyświetlania wyników źródeł i paneli odt"
+  ],
+  [
+   "Źródła | Ustawienia wyświetlania wyników źródeł i paneli odt",
+   "RIGHT",
+   "Źródła | Ustawienia wyświetlania wyników źródeł i paneli odt"
+  ],
+  [
+   "Źródła | Ustawienia wyświetlania wyników źródeł i paneli odt",
+   "UP",
+   "Strona szczegółów | Ustawienia dla ekranów szczegółów i odci"
+  ],
+  [
+   "Strona szczegółów | Ustawienia dla ekranów szczegółów i odci",
+   "RIGHT",
+   "Strona szczegółów | Ustawienia dla ekranów szczegółów i odci"
+  ],
+  [
+   "Strona szczegółów | Ustawienia dla ekranów szczegółów i odci",
+   "UP",
+   "Niestandardowe źródło plakatów | Używaj grafik z zewnętrznej"
+  ],
+  [
+   "Niestandardowe źródło plakatów | Używaj grafik z zewnętrznej",
+   "RIGHT",
+   "Niestandardowe źródło plakatów | Używaj grafik z zewnętrznej"
+  ],
+  [
+   "Niestandardowe źródło plakatów | Używaj grafik z zewnętrznej",
+   "UP",
+   "Efekt głębi kart | Efekt krawędzi światła i połysku na karta"
+  ],
+  [
+   "Efekt głębi kart | Efekt krawędzi światła i połysku na karta",
+   "RIGHT",
+   "Efekt głębi kart | Efekt krawędzi światła i połysku na karta"
+  ],
+  [
+   "Efekt głębi kart | Efekt krawędzi światła i połysku na karta",
+   "UP",
+   "Karta plakatu | Dostosuj szerokość karty i promień narożnika"
+  ],
+  [
+   "Karta plakatu | Dostosuj szerokość karty i promień narożnika",
+   "RIGHT",
+   "Karta plakatu | Dostosuj szerokość karty i promień narożnika"
+  ],
+  [
+   "Karta plakatu | Dostosuj szerokość karty i promień narożnika",
+   "UP",
+   "Zaznaczony plakat | Zaawansowane zachowanie zaznaczonych kar"
+  ],
+  [
+   "Zaznaczony plakat | Zaawansowane zachowanie zaznaczonych kar",
+   "RIGHT",
+   "Zaznaczony plakat | Zaawansowane zachowanie zaznaczonych kar"
+  ],
+  [
+   "Zaznaczony plakat | Zaawansowane zachowanie zaznaczonych kar",
+   "UP",
+   "Kontynuuj oglądanie | Ustawienia sekcji Kontynuuj oglądanie."
+  ],
+  [
+   "Kontynuuj oglądanie | Ustawienia sekcji Kontynuuj oglądanie.",
+   "RIGHT",
+   "Kontynuuj oglądanie | Ustawienia sekcji Kontynuuj oglądanie."
+  ],
+  [
+   "Kontynuuj oglądanie | Ustawienia sekcji Kontynuuj oglądanie.",
+   "UP",
+   "Pasek boczny i nawigacja | Styl paska bocznego i lokalizacja"
+  ],
+  [
+   "Pasek boczny i nawigacja | Styl paska bocznego i lokalizacja",
+   "RIGHT",
+   "Pasek boczny i nawigacja | Styl paska bocznego i lokalizacja"
+  ],
+  [
+   "Pasek boczny i nawigacja | Styl paska bocznego i lokalizacja",
+   "UP",
+   "Zawartość strony głównej | Kontroluj co pojawia się na stron"
+  ],
+  [
+   "Zawartość strony głównej | Kontroluj co pojawia się na stron",
+   "RIGHT",
+   "Zawartość strony głównej | Kontroluj co pojawia się na stron"
+  ],
+  [
+   "Zawartość strony głównej | Kontroluj co pojawia się na stron",
+   "UP",
+   "Układ strony głównej | Wybierz strukturę i źródło hero. | Za"
+  ],
+  [
+   "Układ strony głównej | Wybierz strukturę i źródło hero. | Za",
+   "RIGHT",
+   "Układ strony głównej | Wybierz strukturę i źródło hero. | Za"
+  ],
+  [
+   "Układ strony głównej | Wybierz strukturę i źródło hero. | Za",
+   "UP",
+   "Układ strony głównej | Wybierz strukturę i źródło hero. | Za"
+  ],
+  [
+   "Układ strony głównej | Wybierz strukturę i źródło hero. | Za",
+   "LEFT",
+   "Układ strony głównej | Wybierz strukturę i źródło hero. | Za"
+  ],
+  [
+   "Zawartość strony głównej | Kontroluj co pojawia się na stron",
+   "LEFT",
+   "Zawartość strony głównej | Kontroluj co pojawia się na stron"
+  ],
+  [
+   "Pasek boczny i nawigacja | Styl paska bocznego i lokalizacja",
+   "LEFT",
+   "Pasek boczny i nawigacja | Styl paska bocznego i lokalizacja"
+  ],
+  [
+   "Kontynuuj oglądanie | Ustawienia sekcji Kontynuuj oglądanie.",
+   "LEFT",
+   "Kontynuuj oglądanie | Ustawienia sekcji Kontynuuj oglądanie."
+  ],
+  [
+   "Zaznaczony plakat | Zaawansowane zachowanie zaznaczonych kar",
+   "LEFT",
+   "Zaznaczony plakat | Zaawansowane zachowanie zaznaczonych kar"
+  ]
+ ],
+ "teksty_startowe": [
+  "Dostosuj układ strony głównej, widoczność treści i zachowanie kart",
+  "Kontroluj co pojawia się na stronie głównej i w wyszukiwarce.",
+  "Kontynuuj oglądanie",
+  "Pasek boczny i nawigacja",
+  "Styl paska bocznego i lokalizacja sekcji Odkrywaj.",
+  "Układ strony głównej",
+  "Ustawienia sekcji Kontynuuj oglądanie.",
+  "Ustawienia układu",
+  "Wybierz strukturę i źródło hero.",
+  "Zaawansowane zachowanie zaznaczonych kart plakatów.",
+  "Zamknięte",
+  "Zawartość strony głównej",
+  "Zaznaczony plakat",
+  "built-30m"
+ ],
+ "nieosiagalne": [
+  "Efekt głębi kart",
+  "Karta plakatu",
+  "Niestandardowe źródło plakatów",
+  "Strona szczegółów",
+  "[bez nazwy 1712x96 @104,977]",
+  "[bez nazwy 1712x96 @104,978]",
+  "Źródła"
+ ],
+ "logcat": [],
+ "czas_obchodu_s": 127
+}

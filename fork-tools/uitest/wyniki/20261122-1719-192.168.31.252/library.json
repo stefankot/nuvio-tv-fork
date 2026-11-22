@@ -1,0 +1,1031 @@
+{
+ "trasa": "library",
+ "czas_ladowania_s": 5.5,
+ "kroki": 40,
+ "elementy": {
+  "Animacja · ★ 7.7": [
+   80,
+   0,
+   340,
+   211
+  ],
+  "Animacja · ★ 7.2": [
+   380,
+   594,
+   640,
+   984
+  ],
+  "Komedia · ★ 6.8": [
+   1280,
+   0,
+   1540,
+   214
+  ],
+  "Sci-fi · ★ 7.0": [
+   1280,
+   0,
+   1540,
+   211
+  ],
+  "Komedia · ★ 5.1": [
+   1580,
+   0,
+   1840,
+   211
+  ],
+  "Dokumentalny · ★ 6.8": [
+   1580,
+   0,
+   1840,
+   214
+  ],
+  "Dramat · ★ 6.4": [
+   1580,
+   0,
+   1840,
+   214
+  ],
+  "Animacja · ★ 7.3": [
+   680,
+   0,
+   940,
+   214
+  ],
+  "Animacja · ★ 7.5": [
+   380,
+   0,
+   640,
+   211
+  ],
+  "Animacja · ★ 7.8": [
+   1580,
+   0,
+   1840,
+   211
+  ],
+  "[bez nazwy 260x20 @80,1060]": [
+   80,
+   1060,
+   340,
+   1080
+  ],
+  "[bez nazwy 260x20 @380,1060]": [
+   380,
+   1060,
+   640,
+   1080
+  ],
+  "[bez nazwy 260x20 @680,1060]": [
+   680,
+   1060,
+   940,
+   1080
+  ],
+  "[bez nazwy 260x20 @980,1060]": [
+   980,
+   1060,
+   1240,
+   1080
+  ],
+  "[bez nazwy 260x20 @1280,1060]": [
+   1280,
+   1060,
+   1540,
+   1080
+  ],
+  "[bez nazwy 260x20 @1580,1060]": [
+   1580,
+   1060,
+   1840,
+   1080
+  ],
+  "Tajemnica": [
+   80,
+   0,
+   340,
+   211
+  ],
+  "Animacja · ★ 7.6": [
+   1280,
+   0,
+   1540,
+   92
+  ],
+  "Dokumentalny · ★ 7.9": [
+   980,
+   0,
+   1240,
+   211
+  ],
+  "Animacja · ★ 4.1": [
+   1280,
+   0,
+   1540,
+   211
+  ],
+  "Komedia · ★ 8.0": [
+   1280,
+   0,
+   1540,
+   212
+  ],
+  "Animacja · ★ 5.5": [
+   380,
+   0,
+   640,
+   214
+  ],
+  "Dokumentalny · ★ 6.1": [
+   680,
+   0,
+   940,
+   214
+  ],
+  "Animacja · ★ 8.5": [
+   980,
+   0,
+   1240,
+   214
+  ],
+  "Animacja · ★ 7.0": [
+   1280,
+   0,
+   1540,
+   214
+  ],
+  "Muzyczny · ★ 7.6": [
+   1580,
+   0,
+   1840,
+   214
+  ],
+  "Animacja · ★ 8.1": [
+   80,
+   0,
+   340,
+   212
+  ],
+  "Dramat · ★ 7.5": [
+   680,
+   0,
+   940,
+   210
+  ],
+  "Dramat · ★ 8.2": [
+   680,
+   0,
+   940,
+   212
+  ],
+  "Sci-fi i fantasy · ★ 8.2": [
+   980,
+   0,
+   1240,
+   212
+  ],
+  "Dramat · ★ 7.7": [
+   380,
+   0,
+   640,
+   210
+  ],
+  "Romans · ★ 6.6": [
+   80,
+   0,
+   340,
+   212
+  ],
+  "Dramat · ★ 7.1": [
+   380,
+   0,
+   640,
+   212
+  ],
+  "Thriller · ★ 8.1": [
+   680,
+   0,
+   940,
+   212
+  ],
+  "Komedia · ★ 7.0": [
+   980,
+   0,
+   1240,
+   212
+  ],
+  "Dramat · ★ 7.4": [
+   80,
+   0,
+   340,
+   214
+  ],
+  "Komedia · ★ 6.5": [
+   80,
+   0,
+   340,
+   214
+  ],
+  "Dokumentalny · ★ 7.6": [
+   380,
+   0,
+   640,
+   214
+  ],
+  "Dramat · ★ 6.7": [
+   380,
+   0,
+   640,
+   214
+  ],
+  "Fantasy · ★ 5.7": [
+   980,
+   0,
+   1240,
+   214
+  ],
+  "Kryminał · ★ 7.0": [
+   1280,
+   0,
+   1540,
+   214
+  ],
+  "Thriller · ★ 7.1": [
+   80,
+   0,
+   340,
+   211
+  ],
+  "Horror · ★ 7.0": [
+   80,
+   0,
+   340,
+   208
+  ],
+  "Dramat · ★ 7.2": [
+   380,
+   0,
+   640,
+   208
+  ],
+  "Komedia · ★ 6.1": [
+   680,
+   0,
+   940,
+   208
+  ],
+  "Fantasy": [
+   980,
+   0,
+   1240,
+   208
+  ],
+  "Komedia · ★ 7.4": [
+   680,
+   0,
+   940,
+   212
+  ],
+  "Dramat · ★ 5.6": [
+   80,
+   0,
+   340,
+   214
+  ],
+  "Sci-fi i fantasy": [
+   380,
+   0,
+   640,
+   214
+  ],
+  "Dokumentalny · ★ 7.2": [
+   380,
+   0,
+   640,
+   214
+  ],
+  "Muzyczny · ★ 4.0": [
+   980,
+   0,
+   1240,
+   214
+  ],
+  "Dramat · ★ 6.9": [
+   80,
+   0,
+   340,
+   214
+  ],
+  "Sci-fi i fantasy · ★ 6.2": [
+   380,
+   0,
+   640,
+   214
+  ],
+  "[bez nazwy 260x370 @980,710]": [
+   980,
+   710,
+   1240,
+   1080
+  ],
+  "Komedia · ★ 6.3": [
+   1280,
+   0,
+   1540,
+   214
+  ],
+  "Komedia · ★ 7.9": [
+   80,
+   148,
+   340,
+   538
+  ],
+  "[bez nazwy 260x390 @980,270]": [
+   980,
+   270,
+   1240,
+   660
+  ],
+  "Kryminał · ★ 6.2": [
+   80,
+   0,
+   340,
+   210
+  ],
+  "Sci-fi i fantasy · ★ 7.9": [
+   380,
+   0,
+   640,
+   210
+  ],
+  "Dramat · ★ 8.3": [
+   980,
+   0,
+   1240,
+   212
+  ],
+  "Horror · ★ 6.4": [
+   1280,
+   0,
+   1540,
+   210
+  ],
+  "Tajemnica · ★ 6.7": [
+   1580,
+   0,
+   1840,
+   210
+  ],
+  "[bez nazwy 260x214 @980,0]": [
+   980,
+   0,
+   1240,
+   214
+  ],
+  "Horror · ★ 6.5": [
+   80,
+   0,
+   340,
+   214
+  ],
+  "Dramat · ★ 7.3": [
+   80,
+   0,
+   340,
+   214
+  ],
+  "Dramat · ★ 5.9": [
+   1280,
+   0,
+   1540,
+   214
+  ],
+  "Sci-fi i fantasy · ★ 7.5": [
+   1580,
+   0,
+   1840,
+   214
+  ],
+  "Komedia · ★ 7.2": [
+   80,
+   0,
+   340,
+   212
+  ],
+  "Dramat · ★ 7.8": [
+   380,
+   0,
+   640,
+   212
+  ],
+  "Sci-fi · ★ 6.5": [
+   1580,
+   0,
+   1840,
+   212
+  ],
+  "Dramat · ★ 6.8": [
+   380,
+   0,
+   640,
+   211
+  ],
+  "Akcja · ★ 8.0": [
+   380,
+   0,
+   640,
+   212
+  ],
+  "Tajemnica · ★ 7.6": [
+   680,
+   0,
+   940,
+   212
+  ],
+  "Dramat · ★ 7.0": [
+   1280,
+   0,
+   1540,
+   214
+  ],
+  "Horror · ★ 7.4": [
+   1280,
+   0,
+   1540,
+   212
+  ],
+  "Sci-fi · ★ 8.1": [
+   80,
+   0,
+   340,
+   214
+  ],
+  "Sci-fi · ★ 8.0": [
+   1280,
+   0,
+   1540,
+   214
+  ],
+  "Przygodowy · ★ 8.4": [
+   980,
+   0,
+   1240,
+   214
+  ],
+  "Komedia · ★ 4.0": [
+   1580,
+   0,
+   1840,
+   214
+  ],
+  "Komedia · ★ 5.8": [
+   80,
+   0,
+   340,
+   211
+  ],
+  "Komedia · ★ 7.3": [
+   380,
+   0,
+   640,
+   211
+  ],
+  "Komedia · ★ 7.6": [
+   680,
+   0,
+   940,
+   211
+  ],
+  "Komedia · ★ 8.2": [
+   980,
+   0,
+   1240,
+   211
+  ],
+  "Komedia · ★ 6.6": [
+   1580,
+   0,
+   1840,
+   214
+  ],
+  "Dramat · ★ 4.8": [
+   380,
+   0,
+   640,
+   214
+  ],
+  "Sci-fi · ★ 7.9": [
+   680,
+   0,
+   940,
+   214
+  ],
+  "Komedia · ★ 6.2": [
+   980,
+   0,
+   1240,
+   214
+  ],
+  "Dramat · ★ 8.0": [
+   1280,
+   0,
+   1540,
+   214
+  ],
+  "Dramat · ★ 8.1": [
+   1580,
+   0,
+   1840,
+   214
+  ],
+  "Dramat · ★ 5.7": [
+   680,
+   0,
+   940,
+   214
+  ],
+  "Dramat · ★ 6.2": [
+   80,
+   0,
+   340,
+   210
+  ],
+  "Komedia": [
+   1280,
+   0,
+   1540,
+   210
+  ],
+  "Komedia · ★ 5.7": [
+   1580,
+   0,
+   1840,
+   210
+  ],
+  "Dramat · ★ 8.6": [
+   80,
+   0,
+   340,
+   214
+  ],
+  "Sci-fi i fantasy · ★ 8.1": [
+   1580,
+   148,
+   1840,
+   538
+  ],
+  "Akcja · ★ 6.8": [
+   680,
+   0,
+   940,
+   214
+  ],
+  "Komedia · ★ 5.6": [
+   980,
+   0,
+   1240,
+   214
+  ],
+  "Komedia · ★ 7.1": [
+   680,
+   0,
+   940,
+   211
+  ],
+  "Fantasy · ★ 5.8": [
+   980,
+   0,
+   1240,
+   211
+  ],
+  "Akcja · ★ 7.3": [
+   1280,
+   0,
+   1540,
+   211
+  ],
+  "Dramat · ★ 6.3": [
+   1580,
+   0,
+   1840,
+   211
+  ],
+  "Thriller · ★ 6.4": [
+   80,
+   0,
+   340,
+   92
+  ],
+  "Dokumentalny": [
+   380,
+   0,
+   640,
+   92
+  ],
+  "Kryminał · ★ 7.4": [
+   680,
+   0,
+   940,
+   92
+  ],
+  "Komedia · ★ 6.7": [
+   980,
+   0,
+   1240,
+   92
+  ],
+  "Sci-fi · ★ 6.8": [
+   1580,
+   0,
+   1840,
+   92
+  ],
+  "Dramat": [
+   380,
+   148,
+   640,
+   538
+  ],
+  "Horror · ★ 5.7": [
+   680,
+   148,
+   940,
+   538
+  ],
+  "Dramat · ★ 7.9": [
+   980,
+   148,
+   1240,
+   538
+  ],
+  "Sci-fi i fantasy · ★ 8.7": [
+   1280,
+   148,
+   1540,
+   538
+  ],
+  "Akcja · ★ 6.4": [
+   80,
+   594,
+   340,
+   984
+  ],
+  "Dramat · ★ 8.7": [
+   680,
+   594,
+   940,
+   984
+  ],
+  "Komedia · ★ 8.6": [
+   980,
+   594,
+   1240,
+   984
+  ],
+  "Komedia · ★ 6.4": [
+   1280,
+   594,
+   1540,
+   984
+  ]
+ },
+ "odwiedzone": [
+  "Akcja · ★ 6.4",
+  "Animacja · ★ 7.2",
+  "Animacja · ★ 7.7",
+  "Animacja · ★ 8.1",
+  "Dokumentalny · ★ 6.8",
+  "Dramat · ★ 5.6",
+  "Dramat · ★ 6.2",
+  "Dramat · ★ 6.8",
+  "Dramat · ★ 6.9",
+  "Dramat · ★ 7.3",
+  "Dramat · ★ 7.4",
+  "Dramat · ★ 7.9",
+  "Dramat · ★ 8.6",
+  "Dramat · ★ 8.7",
+  "Horror · ★ 6.5",
+  "Horror · ★ 7.0",
+  "Komedia · ★ 5.8",
+  "Komedia · ★ 6.4",
+  "Komedia · ★ 6.5",
+  "Komedia · ★ 7.2",
+  "Komedia · ★ 7.9",
+  "Komedia · ★ 8.0",
+  "Komedia · ★ 8.6",
+  "Kryminał · ★ 6.2",
+  "Romans · ★ 6.6",
+  "Sci-fi i fantasy · ★ 8.1",
+  "Sci-fi i fantasy · ★ 8.7",
+  "Sci-fi · ★ 8.1",
+  "Tajemnica",
+  "Thriller · ★ 6.4",
+  "Thriller · ★ 7.1"
+ ],
+ "utrata_fokusu": [],
+ "wyjscie_z_ekranu": [],
+ "pulapki": [],
+ "krawedzie": [
+  [
+   "Tajemnica",
+   "DOWN",
+   "Dokumentalny · ★ 6.8"
+  ],
+  [
+   "Dokumentalny · ★ 6.8",
+   "DOWN",
+   "Animacja · ★ 7.7"
+  ],
+  [
+   "Animacja · ★ 7.7",
+   "DOWN",
+   "Komedia · ★ 8.0"
+  ],
+  [
+   "Komedia · ★ 8.0",
+   "DOWN",
+   "Animacja · ★ 8.1"
+  ],
+  [
+   "Animacja · ★ 8.1",
+   "DOWN",
+   "Romans · ★ 6.6"
+  ],
+  [
+   "Romans · ★ 6.6",
+   "DOWN",
+   "Komedia · ★ 6.5"
+  ],
+  [
+   "Komedia · ★ 6.5",
+   "DOWN",
+   "Horror · ★ 7.0"
+  ],
+  [
+   "Horror · ★ 7.0",
+   "DOWN",
+   "Dramat · ★ 5.6"
+  ],
+  [
+   "Dramat · ★ 5.6",
+   "DOWN",
+   "Dramat · ★ 6.9"
+  ],
+  [
+   "Dramat · ★ 6.9",
+   "DOWN",
+   "Kryminał · ★ 6.2"
+  ],
+  [
+   "Kryminał · ★ 6.2",
+   "DOWN",
+   "Horror · ★ 6.5"
+  ],
+  [
+   "Horror · ★ 6.5",
+   "DOWN",
+   "Komedia · ★ 7.2"
+  ],
+  [
+   "Komedia · ★ 7.2",
+   "DOWN",
+   "Dramat · ★ 6.8"
+  ],
+  [
+   "Dramat · ★ 6.8",
+   "DOWN",
+   "Sci-fi · ★ 8.1"
+  ],
+  [
+   "Sci-fi · ★ 8.1",
+   "DOWN",
+   "Komedia · ★ 5.8"
+  ],
+  [
+   "Komedia · ★ 5.8",
+   "DOWN",
+   "Dramat · ★ 7.4"
+  ],
+  [
+   "Dramat · ★ 7.4",
+   "DOWN",
+   "Dramat · ★ 7.3"
+  ],
+  [
+   "Dramat · ★ 7.3",
+   "DOWN",
+   "Dramat · ★ 6.2"
+  ],
+  [
+   "Dramat · ★ 6.2",
+   "DOWN",
+   "Dramat · ★ 8.6"
+  ],
+  [
+   "Dramat · ★ 8.6",
+   "DOWN",
+   "Thriller · ★ 7.1"
+  ],
+  [
+   "Thriller · ★ 7.1",
+   "DOWN",
+   "Thriller · ★ 6.4"
+  ],
+  [
+   "Thriller · ★ 6.4",
+   "DOWN",
+   "Komedia · ★ 7.9"
+  ],
+  [
+   "Komedia · ★ 7.9",
+   "DOWN",
+   "Akcja · ★ 6.4"
+  ],
+  [
+   "Akcja · ★ 6.4",
+   "DOWN",
+   "Akcja · ★ 6.4"
+  ],
+  [
+   "Akcja · ★ 6.4",
+   "RIGHT",
+   "Animacja · ★ 7.2"
+  ],
+  [
+   "Animacja · ★ 7.2",
+   "DOWN",
+   "Animacja · ★ 7.2"
+  ],
+  [
+   "Animacja · ★ 7.2",
+   "RIGHT",
+   "Dramat · ★ 8.7"
+  ],
+  [
+   "Dramat · ★ 8.7",
+   "DOWN",
+   "Dramat · ★ 8.7"
+  ],
+  [
+   "Dramat · ★ 8.7",
+   "RIGHT",
+   "Komedia · ★ 8.6"
+  ],
+  [
+   "Komedia · ★ 8.6",
+   "DOWN",
+   "Komedia · ★ 8.6"
+  ],
+  [
+   "Komedia · ★ 8.6",
+   "RIGHT",
+   "Komedia · ★ 6.4"
+  ],
+  [
+   "Komedia · ★ 6.4",
+   "DOWN",
+   "Komedia · ★ 6.4"
+  ],
+  [
+   "Komedia · ★ 6.4",
+   "RIGHT",
+   "Sci-fi i fantasy · ★ 8.1"
+  ],
+  [
+   "Sci-fi i fantasy · ★ 8.1",
+   "DOWN",
+   "Komedia · ★ 6.4"
+  ],
+  [
+   "Komedia · ★ 6.4",
+   "UP",
+   "Sci-fi i fantasy · ★ 8.7"
+  ],
+  [
+   "Sci-fi i fantasy · ★ 8.7",
+   "DOWN",
+   "Komedia · ★ 6.4"
+  ],
+  [
+   "Komedia · ★ 6.4",
+   "LEFT",
+   "Komedia · ★ 8.6"
+  ],
+  [
+   "Komedia · ★ 8.6",
+   "UP",
+   "Dramat · ★ 7.9"
+  ],
+  [
+   "Dramat · ★ 7.9",
+   "DOWN",
+   "Komedia · ★ 8.6"
+  ],
+  [
+   "Komedia · ★ 8.6",
+   "LEFT",
+   "Dramat · ★ 8.7"
+  ]
+ ],
+ "teksty_startowe": [
+  "Animacja · ★ 7.2",
+  "Animacja · ★ 7.3",
+  "Animacja · ★ 7.5",
+  "Animacja · ★ 7.7",
+  "Animacja · ★ 7.8",
+  "Biblioteka",
+  "Dokumentalny · ★ 6.8",
+  "Dramat · ★ 6.4",
+  "Komedia · ★ 5.1",
+  "Komedia · ★ 6.8",
+  "Sci-fi · ★ 7.0",
+  "Tajemnica",
+  "built-23m"
+ ],
+ "nieosiagalne": [
+  "Akcja · ★ 6.8",
+  "Akcja · ★ 7.3",
+  "Akcja · ★ 8.0",
+  "Animacja · ★ 4.1",
+  "Animacja · ★ 5.5",
+  "Animacja · ★ 7.0",
+  "Animacja · ★ 7.3",
+  "Animacja · ★ 7.5",
+  "Animacja · ★ 7.6",
+  "Animacja · ★ 7.8",
+  "Animacja · ★ 8.5",
+  "Dokumentalny",
+  "Dokumentalny · ★ 6.1",
+  "Dokumentalny · ★ 7.2",
+  "Dokumentalny · ★ 7.6",
+  "Dokumentalny · ★ 7.9",
+  "Dramat",
+  "Dramat · ★ 4.8",
+  "Dramat · ★ 5.7",
+  "Dramat · ★ 5.9",
+  "Dramat · ★ 6.3",
+  "Dramat · ★ 6.4",
+  "Dramat · ★ 6.7",
+  "Dramat · ★ 7.0",
+  "Dramat · ★ 7.1",
+  "Dramat · ★ 7.2",
+  "Dramat · ★ 7.5",
+  "Dramat · ★ 7.7",
+  "Dramat · ★ 7.8",
+  "Dramat · ★ 8.0",
+  "Dramat · ★ 8.1",
+  "Dramat · ★ 8.2",
+  "Dramat · ★ 8.3",
+  "Fantasy",
+  "Fantasy · ★ 5.7",
+  "Fantasy · ★ 5.8",
+  "Horror · ★ 5.7",
+  "Horror · ★ 6.4",
+  "Horror · ★ 7.4",
+  "Komedia",
+  "Komedia · ★ 4.0",
+  "Komedia · ★ 5.1",
+  "Komedia · ★ 5.6",
+  "Komedia · ★ 5.7",
+  "Komedia · ★ 6.1",
+  "Komedia · ★ 6.2",
+  "Komedia · ★ 6.3",
+  "Komedia · ★ 6.6",
+  "Komedia · ★ 6.7",
+  "Komedia · ★ 6.8",
+  "Komedia · ★ 7.0",
+  "Komedia · ★ 7.1",
+  "Komedia · ★ 7.3",
+  "Komedia · ★ 7.4",
+  "Komedia · ★ 7.6",
+  "Komedia · ★ 8.2",
+  "Kryminał · ★ 7.0",
+  "Kryminał · ★ 7.4",
+  "Muzyczny · ★ 4.0",
+  "Muzyczny · ★ 7.6",
+  "Przygodowy · ★ 8.4",
+  "Sci-fi i fantasy",
+  "Sci-fi i fantasy · ★ 6.2",
+  "Sci-fi i fantasy · ★ 7.5",
+  "Sci-fi i fantasy · ★ 7.9",
+  "Sci-fi i fantasy · ★ 8.2",
+  "Sci-fi · ★ 6.5",
+  "Sci-fi · ★ 6.8",
+  "Sci-fi · ★ 7.0",
+  "Sci-fi · ★ 7.9",
+  "Sci-fi · ★ 8.0",
+  "Tajemnica · ★ 6.7",
+  "Tajemnica · ★ 7.6",
+  "Thriller · ★ 8.1",
+  "[bez nazwy 260x20 @1280,1060]",
+  "[bez nazwy 260x20 @1580,1060]",
+  "[bez nazwy 260x20 @380,1060]",
+  "[bez nazwy 260x20 @680,1060]",
+  "[bez nazwy 260x20 @80,1060]",
+  "[bez nazwy 260x20 @980,1060]",
+  "[bez nazwy 260x214 @980,0]",
+  "[bez nazwy 260x370 @980,710]",
+  "[bez nazwy 260x390 @980,270]"
+ ],
+ "logcat": [],
+ "czas_obchodu_s": 134
+}

@@ -1,0 +1,328 @@
+{
+ "trasa": "playback_settings",
+ "czas_ladowania_s": 4.5,
+ "kroki": 40,
+ "elementy": {
+  "Odtwarzacz | Domyślny odtwarzacz, silnik wbudowany i awaryjn": [
+   104,
+   197,
+   1816,
+   321
+  ],
+  "Wybór strumienia | Sposób wyboru strumienia po naciśnięciu o": [
+   104,
+   198,
+   1816,
+   322
+  ],
+  "Następny | Auto-odtwarzanie następnego odcinka i sugestie po": [
+   104,
+   198,
+   1816,
+   322
+  ],
+  "Pomijanie segmentów | Pomijanie intro, podsumowań i napisów ": [
+   104,
+   198,
+   1816,
+   322
+  ],
+  "Interfejs odtwarzacza | Nakładki, zegar i szczegóły wyświetl": [
+   104,
+   354,
+   1816,
+   478
+  ],
+  "[bez nazwy 1712x96 @104,977]": [
+   104,
+   977,
+   1816,
+   1073
+  ],
+  "Audio | Języki, dekodowanie i wyjście audio. | Zamknięte": [
+   104,
+   510,
+   1816,
+   634
+  ],
+  "[bez nazwy 1712x96 @104,978]": [
+   104,
+   978,
+   1816,
+   1074
+  ],
+  "Napisy | Język, styl i tryb renderowania. | Zamknięte": [
+   104,
+   666,
+   1816,
+   790
+  ],
+  "Wideo | Dopasowanie częstotliwości klatek, Dolby Vision i HD": [
+   104,
+   822,
+   1816,
+   946
+  ],
+  "Bufor i sieć | Ile treści trzymać w pamięci i jak pobierać s": [
+   104,
+   811,
+   1816,
+   935
+  ],
+  "Streaming P2P | Zezwól na streamy peer-to-peer (torrent) | Z": [
+   104,
+   811,
+   1816,
+   935
+  ],
+  "Streaming P2P": [
+   104,
+   967,
+   1816,
+   1063
+  ],
+  "Bufor i sieć": [
+   104,
+   967,
+   1816,
+   1063
+  ],
+  "Wideo": [
+   104,
+   967,
+   1816,
+   1063
+  ],
+  "Napisy": [
+   104,
+   967,
+   1816,
+   1063
+  ],
+  "Audio": [
+   104,
+   967,
+   1816,
+   1063
+  ]
+ },
+ "odwiedzone": [
+  "Audio | Języki, dekodowanie i wyjście audio. | Zamknięte",
+  "Bufor i sieć | Ile treści trzymać w pamięci i jak pobierać s",
+  "Interfejs odtwarzacza | Nakładki, zegar i szczegóły wyświetl",
+  "Napisy | Język, styl i tryb renderowania. | Zamknięte",
+  "Następny | Auto-odtwarzanie następnego odcinka i sugestie po",
+  "Odtwarzacz | Domyślny odtwarzacz, silnik wbudowany i awaryjn",
+  "Pomijanie segmentów | Pomijanie intro, podsumowań i napisów ",
+  "Streaming P2P | Zezwól na streamy peer-to-peer (torrent) | Z",
+  "Wideo | Dopasowanie częstotliwości klatek, Dolby Vision i HD",
+  "Wybór strumienia | Sposób wyboru strumienia po naciśnięciu o"
+ ],
+ "utrata_fokusu": [],
+ "wyjscie_z_ekranu": [],
+ "pulapki": [],
+ "krawedzie": [
+  [
+   "Odtwarzacz | Domyślny odtwarzacz, silnik wbudowany i awaryjn",
+   "DOWN",
+   "Wybór strumienia | Sposób wyboru strumienia po naciśnięciu o"
+  ],
+  [
+   "Wybór strumienia | Sposób wyboru strumienia po naciśnięciu o",
+   "DOWN",
+   "Następny | Auto-odtwarzanie następnego odcinka i sugestie po"
+  ],
+  [
+   "Następny | Auto-odtwarzanie następnego odcinka i sugestie po",
+   "DOWN",
+   "Pomijanie segmentów | Pomijanie intro, podsumowań i napisów "
+  ],
+  [
+   "Pomijanie segmentów | Pomijanie intro, podsumowań i napisów ",
+   "DOWN",
+   "Interfejs odtwarzacza | Nakładki, zegar i szczegóły wyświetl"
+  ],
+  [
+   "Interfejs odtwarzacza | Nakładki, zegar i szczegóły wyświetl",
+   "DOWN",
+   "Audio | Języki, dekodowanie i wyjście audio. | Zamknięte"
+  ],
+  [
+   "Audio | Języki, dekodowanie i wyjście audio. | Zamknięte",
+   "DOWN",
+   "Napisy | Język, styl i tryb renderowania. | Zamknięte"
+  ],
+  [
+   "Napisy | Język, styl i tryb renderowania. | Zamknięte",
+   "DOWN",
+   "Wideo | Dopasowanie częstotliwości klatek, Dolby Vision i HD"
+  ],
+  [
+   "Wideo | Dopasowanie częstotliwości klatek, Dolby Vision i HD",
+   "DOWN",
+   "Bufor i sieć | Ile treści trzymać w pamięci i jak pobierać s"
+  ],
+  [
+   "Bufor i sieć | Ile treści trzymać w pamięci i jak pobierać s",
+   "DOWN",
+   "Streaming P2P | Zezwól na streamy peer-to-peer (torrent) | Z"
+  ],
+  [
+   "Streaming P2P | Zezwól na streamy peer-to-peer (torrent) | Z",
+   "DOWN",
+   "Streaming P2P | Zezwól na streamy peer-to-peer (torrent) | Z"
+  ],
+  [
+   "Streaming P2P | Zezwól na streamy peer-to-peer (torrent) | Z",
+   "RIGHT",
+   "Streaming P2P | Zezwól na streamy peer-to-peer (torrent) | Z"
+  ],
+  [
+   "Streaming P2P | Zezwól na streamy peer-to-peer (torrent) | Z",
+   "UP",
+   "Bufor i sieć | Ile treści trzymać w pamięci i jak pobierać s"
+  ],
+  [
+   "Bufor i sieć | Ile treści trzymać w pamięci i jak pobierać s",
+   "RIGHT",
+   "Bufor i sieć | Ile treści trzymać w pamięci i jak pobierać s"
+  ],
+  [
+   "Bufor i sieć | Ile treści trzymać w pamięci i jak pobierać s",
+   "UP",
+   "Wideo | Dopasowanie częstotliwości klatek, Dolby Vision i HD"
+  ],
+  [
+   "Wideo | Dopasowanie częstotliwości klatek, Dolby Vision i HD",
+   "RIGHT",
+   "Wideo | Dopasowanie częstotliwości klatek, Dolby Vision i HD"
+  ],
+  [
+   "Wideo | Dopasowanie częstotliwości klatek, Dolby Vision i HD",
+   "UP",
+   "Napisy | Język, styl i tryb renderowania. | Zamknięte"
+  ],
+  [
+   "Napisy | Język, styl i tryb renderowania. | Zamknięte",
+   "RIGHT",
+   "Napisy | Język, styl i tryb renderowania. | Zamknięte"
+  ],
+  [
+   "Napisy | Język, styl i tryb renderowania. | Zamknięte",
+   "UP",
+   "Audio | Języki, dekodowanie i wyjście audio. | Zamknięte"
+  ],
+  [
+   "Audio | Języki, dekodowanie i wyjście audio. | Zamknięte",
+   "RIGHT",
+   "Audio | Języki, dekodowanie i wyjście audio. | Zamknięte"
+  ],
+  [
+   "Audio | Języki, dekodowanie i wyjście audio. | Zamknięte",
+   "UP",
+   "Interfejs odtwarzacza | Nakładki, zegar i szczegóły wyświetl"
+  ],
+  [
+   "Interfejs odtwarzacza | Nakładki, zegar i szczegóły wyświetl",
+   "RIGHT",
+   "Interfejs odtwarzacza | Nakładki, zegar i szczegóły wyświetl"
+  ],
+  [
+   "Interfejs odtwarzacza | Nakładki, zegar i szczegóły wyświetl",
+   "UP",
+   "Pomijanie segmentów | Pomijanie intro, podsumowań i napisów "
+  ],
+  [
+   "Pomijanie segmentów | Pomijanie intro, podsumowań i napisów ",
+   "RIGHT",
+   "Pomijanie segmentów | Pomijanie intro, podsumowań i napisów "
+  ],
+  [
+   "Pomijanie segmentów | Pomijanie intro, podsumowań i napisów ",
+   "UP",
+   "Następny | Auto-odtwarzanie następnego odcinka i sugestie po"
+  ],
+  [
+   "Następny | Auto-odtwarzanie następnego odcinka i sugestie po",
+   "RIGHT",
+   "Następny | Auto-odtwarzanie następnego odcinka i sugestie po"
+  ],
+  [
+   "Następny | Auto-odtwarzanie następnego odcinka i sugestie po",
+   "UP",
+   "Wybór strumienia | Sposób wyboru strumienia po naciśnięciu o"
+  ],
+  [
+   "Wybór strumienia | Sposób wyboru strumienia po naciśnięciu o",
+   "RIGHT",
+   "Wybór strumienia | Sposób wyboru strumienia po naciśnięciu o"
+  ],
+  [
+   "Wybór strumienia | Sposób wyboru strumienia po naciśnięciu o",
+   "UP",
+   "Odtwarzacz | Domyślny odtwarzacz, silnik wbudowany i awaryjn"
+  ],
+  [
+   "Odtwarzacz | Domyślny odtwarzacz, silnik wbudowany i awaryjn",
+   "RIGHT",
+   "Odtwarzacz | Domyślny odtwarzacz, silnik wbudowany i awaryjn"
+  ],
+  [
+   "Odtwarzacz | Domyślny odtwarzacz, silnik wbudowany i awaryjn",
+   "UP",
+   "Odtwarzacz | Domyślny odtwarzacz, silnik wbudowany i awaryjn"
+  ],
+  [
+   "Odtwarzacz | Domyślny odtwarzacz, silnik wbudowany i awaryjn",
+   "LEFT",
+   "Odtwarzacz | Domyślny odtwarzacz, silnik wbudowany i awaryjn"
+  ],
+  [
+   "Wybór strumienia | Sposób wyboru strumienia po naciśnięciu o",
+   "LEFT",
+   "Wybór strumienia | Sposób wyboru strumienia po naciśnięciu o"
+  ],
+  [
+   "Następny | Auto-odtwarzanie następnego odcinka i sugestie po",
+   "LEFT",
+   "Następny | Auto-odtwarzanie następnego odcinka i sugestie po"
+  ],
+  [
+   "Pomijanie segmentów | Pomijanie intro, podsumowań i napisów ",
+   "LEFT",
+   "Pomijanie segmentów | Pomijanie intro, podsumowań i napisów "
+  ],
+  [
+   "Interfejs odtwarzacza | Nakładki, zegar i szczegóły wyświetl",
+   "LEFT",
+   "Interfejs odtwarzacza | Nakładki, zegar i szczegóły wyświetl"
+  ]
+ ],
+ "teksty_startowe": [
+  "Auto-odtwarzanie następnego odcinka i sugestie po zakończeniu.",
+  "Domyślny odtwarzacz, silnik wbudowany i awaryjne przełączanie.",
+  "Interfejs odtwarzacza",
+  "Konfiguruj odtwarzanie wideo i napisy",
+  "Nakładki, zegar i szczegóły wyświetlane podczas odtwarzania.",
+  "Następny",
+  "Odtwarzacz",
+  "Pomijanie intro, podsumowań i napisów końcowych.",
+  "Pomijanie segmentów",
+  "Sposób wyboru strumienia po naciśnięciu odtwarzania.",
+  "Ustawienia odtwarzania",
+  "Wybór strumienia",
+  "Zamknięte",
+  "built-28m"
+ ],
+ "nieosiagalne": [
+  "Audio",
+  "Bufor i sieć",
+  "Napisy",
+  "Streaming P2P",
+  "Wideo",
+  "[bez nazwy 1712x96 @104,977]",
+  "[bez nazwy 1712x96 @104,978]"
+ ],
+ "logcat": [],
+ "czas_obchodu_s": 128
+}

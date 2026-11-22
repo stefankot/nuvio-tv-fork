@@ -1,0 +1,1385 @@
+{
+ "trasa": "youtube",
+ "czas_ladowania_s": 8.0,
+ "kroki": 40,
+ "elementy": {
+  "Search": [
+   1356,
+   43,
+   1443,
+   130
+  ],
+  "OneTube settings": [
+   1461,
+   43,
+   1548,
+   130
+  ],
+  "Send debug report": [
+   1566,
+   43,
+   1653,
+   130
+  ],
+  "S | Stefan B": [
+   1673,
+   44,
+   1870,
+   130
+  ],
+  "Home": [
+   127,
+   148,
+   252,
+   234
+  ],
+  "Subscriptions": [
+   263,
+   148,
+   483,
+   234
+  ],
+  "History": [
+   494,
+   148,
+   632,
+   234
+  ],
+  "Playlists": [
+   643,
+   148,
+   797,
+   234
+  ],
+  "Live": [
+   808,
+   148,
+   909,
+   234
+  ],
+  "Music": [
+   920,
+   148,
+   1045,
+   234
+  ],
+  "Gaming": [
+   1056,
+   148,
+   1203,
+   234
+  ],
+  "News": [
+   1214,
+   148,
+   1334,
+   234
+  ],
+  "Sports": [
+   1345,
+   148,
+   1477,
+   234
+  ],
+  "Shorts": [
+   1488,
+   148,
+   1619,
+   234
+  ],
+  "Channels": [
+   1630,
+   148,
+   1794,
+   234
+  ],
+  "PLAYLIST | Jungle - Where Are You Now? (Official Video) | Ju": [
+   50,
+   315,
+   352,
+   647
+  ],
+  "37:25 | This algorithm changed how I think about compression": [
+   381,
+   307,
+   683,
+   634
+  ],
+  "2:59 | PRZEDWOJENNA WARSZAWA W KOLORZE | WARSAW 1939 | REMAS": [
+   50,
+   0,
+   352,
+   204
+  ],
+  "1:54 | 3 Body Problem: Season 2 | Official Teaser | Netflix ": [
+   712,
+   0,
+   1014,
+   204
+  ],
+  "1:23:08 | Metro: The Documentary on Microsoft's Boldest Desi": [
+   1374,
+   0,
+   1676,
+   203
+  ],
+  "5 Minutes of Interstellar in 4K | Hans Zimmer, Whitesand, Ma": [
+   381,
+   0,
+   683,
+   205
+  ],
+  "2:37 | Keep Me Satisfied | Jungle | 6.6M views  ·  1 year ag": [
+   381,
+   0,
+   683,
+   204
+  ],
+  "10:31 | 2025 8K AMAZING OLED SPACE VIDEO IN HDR | ULTRA HD 4": [
+   712,
+   0,
+   1014,
+   204
+  ],
+  "6:57 | David Lynch's most beautiful shots (4K) | Cinema Visu": [
+   1043,
+   0,
+   1345,
+   204
+  ],
+  "Resume | 1:45:00 | Hania Rani live at Invalides in Paris, Fr": [
+   1374,
+   307,
+   1676,
+   634
+  ],
+  "Jungle - Where Are You Now? (Official Video) | Jungle, RAYE,": [
+   50,
+   0,
+   352,
+   205
+  ],
+  "This algorithm changed how I think about compression | Infor": [
+   381,
+   0,
+   683,
+   190
+  ],
+  "PRZEDWOJENNA WARSZAWA W KOLORZE | WARSAW 1939 | REMASTERING ": [
+   712,
+   0,
+   1014,
+   190
+  ],
+  "3 Body Problem: Season 2 | Official Teaser | Netflix | Netfl": [
+   1705,
+   0,
+   1870,
+   202
+  ],
+  "Metro: The Documentary on Microsoft's Boldest Design | David": [
+   1374,
+   0,
+   1676,
+   190
+  ],
+  "Discovery One | 2001: A Space Odyssey Ambience 4K | The HAL ": [
+   1705,
+   0,
+   1870,
+   204
+  ],
+  "8:47 | What Actually IS the \"q-drive\" ? | Spacedock | 503K v": [
+   50,
+   0,
+   352,
+   203
+  ],
+  "15:55 | Xiaomi Unveils 18 Pro Series: Everything That Happen": [
+   381,
+   0,
+   683,
+   203
+  ],
+  "2:06 | Artificial - Official Trailer - In Select Theaters Ch": [
+   50,
+   0,
+   352,
+   202
+  ],
+  "25:02 | HIPOTEZA RIEMANNA ZOSTAŁA POTWIERDZONA | doktor z ti": [
+   12,
+   0,
+   314,
+   204
+  ],
+  "1:45:00 | Hania Rani live at Invalides in Paris, France for ": [
+   1374,
+   0,
+   1676,
+   204
+  ],
+  "A Big Problem Has Appeared in Physics | Sabine Hossenfelder ": [
+   1705,
+   0,
+   1870,
+   203
+  ],
+  "PLAYLIST | 5 Minutes of Interstellar in 4K | Hans Zimmer, Wh": [
+   381,
+   315,
+   683,
+   647
+  ],
+  "PLAYLIST | Mermaid Chunky - céilí (Official Video) | Mermaid": [
+   712,
+   315,
+   1014,
+   647
+  ],
+  "PLAYLIST | Michael Kiwanuka - Cold Little Heart (Official Vi": [
+   1043,
+   315,
+   1345,
+   647
+  ],
+  "PLAYLIST | Death In Vegas - Blood Yawning 2000 | Death In Ve": [
+   1374,
+   315,
+   1676,
+   647
+  ],
+  "Nick Drake - Pink Moon | Nick Drake and more": [
+   1705,
+   0,
+   1870,
+   205
+  ],
+  "4:46 | Come Back to Me | Jungle | 2.4M views  ·  2 months ag": [
+   50,
+   0,
+   352,
+   204
+  ],
+  "4:14 | Avril Lavigne - Complicated | Avril Lavigne | 943M vi": [
+   381,
+   0,
+   683,
+   204
+  ],
+  "3:25 | GENER8ION feat. Yung Lean Perform \"STORM\" | 2026 VMAs": [
+   712,
+   0,
+   1014,
+   204
+  ],
+  "3:52 | Fell Asleep in the Sun (Official Music Video) | After": [
+   1043,
+   0,
+   1345,
+   204
+  ],
+  "4:03 | All I Want for Christmas Is You (Make My Wish Come Tr": [
+   1374,
+   0,
+   1676,
+   204
+  ],
+  "Mermaid Chunky - céilí (Official Video) | Mermaid Chunky, Al": [
+   712,
+   0,
+   1014,
+   205
+  ],
+  "Michael Kiwanuka - Cold Little Heart (Official Video) | Mich": [
+   1043,
+   0,
+   1345,
+   205
+  ],
+  "Death In Vegas - Blood Yawning 2000 | Death In Vegas, Richar": [
+   1374,
+   0,
+   1676,
+   205
+  ],
+  "Crushing (Official Music Video) | Eartheater | 876K views  ·": [
+   1705,
+   0,
+   1870,
+   204
+  ],
+  "5:45 | What Alien Life Would Really Look Like (According to ": [
+   381,
+   0,
+   683,
+   202
+  ],
+  "13:12 | The OA Season 3 is Returning? Brit Marling's Instagr": [
+   712,
+   0,
+   1014,
+   202
+  ],
+  "39:04 | Astronaut Returns From Space Only to Discover She La": [
+   1043,
+   0,
+   1345,
+   202
+  ],
+  "59:35 | 60 Minutes Of Iconic Ron Swanson Moments | Parks and": [
+   1374,
+   0,
+   1676,
+   202
+  ],
+  "CHANNEL | Interior Motives | 167K subscribers": [
+   50,
+   314,
+   352,
+   645
+  ],
+  "CHANNEL | DUST | 3.53M subscribers": [
+   381,
+   314,
+   683,
+   645
+  ],
+  "CHANNEL | Fireship | 4.34M subscribers": [
+   712,
+   314,
+   1014,
+   645
+  ],
+  "CHANNEL | Omeleto | 4M subscribers": [
+   1043,
+   314,
+   1345,
+   645
+  ],
+  "CHANNEL | fern | 5.71M subscribers": [
+   1374,
+   314,
+   1676,
+   645
+  ],
+  "wizhunt | 98.1K subscribers": [
+   1705,
+   0,
+   1870,
+   203
+  ],
+  "6:42 | A Big Problem Has Appeared in Physics | Sabine Hossen": [
+   50,
+   0,
+   352,
+   204
+  ],
+  "6:22 | Why Microsoft couldn’t fix its own servers for 36 hou": [
+   381,
+   0,
+   683,
+   204
+  ],
+  "17:44 | Natural selection of wildlife species in the Chernob": [
+   712,
+   0,
+   1014,
+   204
+  ],
+  "8:35 | How OpenAI Lost the AI Race | TLDR Business | 301K vi": [
+   1043,
+   0,
+   1345,
+   204
+  ],
+  "24:12 | Scientists are Now Converging That AI is Conscious |": [
+   1043,
+   0,
+   1345,
+   204
+  ],
+  "Interior Motives | 167K subscribers": [
+   50,
+   0,
+   352,
+   203
+  ],
+  "DUST | 3.53M subscribers": [
+   381,
+   0,
+   683,
+   203
+  ],
+  "Fireship | 4.34M subscribers": [
+   712,
+   0,
+   1014,
+   203
+  ],
+  "Omeleto | 4M subscribers": [
+   1043,
+   0,
+   1345,
+   203
+  ],
+  "fern | 5.71M subscribers": [
+   1374,
+   0,
+   1676,
+   203
+  ],
+  "Why Did Poland Get Rich But Ukraine Never Did? | Mutnan Expl": [
+   1705,
+   0,
+   1870,
+   204
+  ],
+  "27:07 | Review of the Li Auto L8 livis and explaining its pr": [
+   50,
+   0,
+   352,
+   206
+  ],
+  "1:38 | MyWhoosh Sunday Race Club (SRC) cat.6 Cycling Race Li": [
+   381,
+   0,
+   683,
+   206
+  ],
+  "stare pomysły wreszcie zaczęły działać | Zachar OFF | 10K vi": [
+   712,
+   0,
+   1014,
+   206
+  ],
+  "38:07 | Tesla Self-Driving 15 First Ride with my Dad | Whole": [
+   1043,
+   0,
+   1345,
+   206
+  ],
+  "19:40 | Why Do I Not Want to Keep This Incredible Car? | Agi": [
+   1374,
+   0,
+   1676,
+   206
+  ],
+  "Steering wheels, AI agents go rogue, Anthropic IPO | The Fri": [
+   1705,
+   0,
+   1870,
+   206
+  ],
+  "19:15 | Co naprawdę znajduje się NAD i POD Układem Słoneczny": [
+   50,
+   0,
+   352,
+   204
+  ],
+  "8:41 | Co by było gdyby Polska nie była komunistyczna po 194": [
+   343,
+   0,
+   645,
+   204
+  ],
+  "4:26 | Google Antigravity, Redesigned | Google Antigravity |": [
+   1374,
+   0,
+   1676,
+   204
+  ],
+  "Artificial - Official Trailer (2027) Andrew Garfield, Monica": [
+   1705,
+   0,
+   1870,
+   204
+  ],
+  "Claude Discovers Two New Planets | Into AI by Dr. Ashish Bam": [
+   50,
+   0,
+   352,
+   195
+  ],
+  "This Is NOT a Facelift! Here's What I Actually Did!  #plasti": [
+   381,
+   0,
+   683,
+   195
+  ],
+  "GPT-6.2 Astra: 5% of Claude Fable's Cost, 2x the Hidden Bloc": [
+   712,
+   0,
+   1014,
+   195
+  ],
+  "This cat’s IQ is off‑the‑charts | True Story Unfiltered": [
+   1043,
+   0,
+   1345,
+   195
+  ],
+  "Why Glenn Close Gets Wheeled Into the Hunger Games | Lore Wa": [
+   1374,
+   0,
+   1676,
+   195
+  ],
+  "The Tholians #startrek #startrektheoriginalseries #startreke": [
+   1705,
+   0,
+   1870,
+   195
+  ],
+  "1:02:57 | Prawdziwa Twarz GrażynoWersum ~ Historia Asi z War": [
+   674,
+   0,
+   976,
+   204
+  ],
+  "31:12 | Pałac Saski - weszliśmy do Ruin Pałacu Brühla | Urbe": [
+   1005,
+   0,
+   1307,
+   204
+  ],
+  "42:46 | Budowlaniec alkoholik to przeszłość? Teraz na budowa": [
+   1336,
+   0,
+   1638,
+   204
+  ],
+  "1:08:20 | We Unlocked Two New Genders! |#85 w/ Eric Andre & ": [
+   50,
+   0,
+   352,
+   206
+  ],
+  "18:20 | I Had NO SYMPTOMS When My Brain Tumor Was Discovered": [
+   381,
+   0,
+   683,
+   206
+  ],
+  "24:21 | KATHY GRIFFIN IS AN ICONIC GUEST | ZIWE INTERVIEW | ": [
+   712,
+   0,
+   1014,
+   206
+  ],
+  "8:35 | Robert Pattinson really is just walking around undiag": [
+   1043,
+   0,
+   1345,
+   206
+  ],
+  "15:55 | mr beast on shark tank?? | 2 Danny 2 Furious | 844K ": [
+   1374,
+   0,
+   1676,
+   206
+  ],
+  "NASA prześwietli tajemniczy szyb na Księżycu | Astrofaza | 1": [
+   1667,
+   0,
+   1870,
+   204
+  ],
+  "Split the Inner Child | w/ Brace Belden & Liz Franczak of Tr": [
+   1705,
+   0,
+   1870,
+   206
+  ],
+  "34:07 | Twierdził, że UMIERA na TikToku. Dlaczego internauci": [
+   50,
+   0,
+   352,
+   204
+  ],
+  "1:11:13 | CZY KTOŚ CIE ZAST%# ~ Komentarz do Live Grażyny ze": [
+   381,
+   0,
+   683,
+   204
+  ],
+  "1:07:41 | KACZOROWSKA U ROZENEK UCISZA ROGACEWICZA, KTÓRY KŁ": [
+   712,
+   0,
+   1014,
+   204
+  ],
+  "36:03 | PANI MADZIA KAŻE GREKOWI JEŚĆ KEBABA XDDD*kuchenne r": [
+   1043,
+   0,
+   1345,
+   204
+  ],
+  "19:58 | 5 Straight vs 1 Gay | Odd One Out | Jubilee | 406K v": [
+   1374,
+   0,
+   1676,
+   204
+  ],
+  "Sleep Stream ASMR 잠방 22.11.2026 526 svi 1440p 2k | wizhunt |": [
+   1705,
+   0,
+   1870,
+   204
+  ],
+  "Why there are no 128 bit CPUs | Ryan Peterman": [
+   13,
+   0,
+   315,
+   204
+  ],
+  "Gemini 4 Krypton Leak: The Tester's Own Clip Disagrees | DIY": [
+   344,
+   0,
+   646,
+   204
+  ],
+  "Huawei’s First New Sub-Brand! OSTA O1 Pro Wide-Screen Phone ": [
+   675,
+   0,
+   977,
+   204
+  ],
+  "Fable 5.2 Autonomously Builds an Operating System | Into AI ": [
+   1006,
+   0,
+   1308,
+   204
+  ],
+  "4 ways to use the Prompt Key on Communicator | Clicks": [
+   1337,
+   0,
+   1639,
+   204
+  ],
+  "The FIRST Bond that LOOKS LIKE Bond | QOVES": [
+   1668,
+   0,
+   1870,
+   204
+  ],
+  "17:07 | Did Fable 5.2 Just Build Windows 95 for a Microcontr": [
+   50,
+   0,
+   352,
+   204
+  ],
+  "8:58 | Jak będzie działać pierwsza polska elektrownia atomow": [
+   381,
+   0,
+   683,
+   204
+  ],
+  "9:26 | 10 Bathroom Feature Mistakes That Will COST YOU Later": [
+   712,
+   0,
+   1014,
+   204
+  ],
+  "18:38 | Every Ways to Get 128GB VRAM for Local AI at Full Co": [
+   1043,
+   0,
+   1345,
+   204
+  ],
+  "25:03 | Warszawa 2026: Jak zmienia się Wola? Przejazd ulicam": [
+   1374,
+   0,
+   1676,
+   204
+  ],
+  "#403 Rozpoczęła się przebudowa Alei Centralnej i wylądował l": [
+   1705,
+   0,
+   1870,
+   204
+  ],
+  "6:03 | How a group of young architects fights to save a forg": [
+   50,
+   0,
+   352,
+   206
+  ],
+  "17:38 | Pharmacist Sends a Honey Pack to the Lab | Grant Har": [
+   381,
+   0,
+   683,
+   206
+  ],
+  "9:17 | A December Flip is Coming to Europe... | Mr. Weatherm": [
+   712,
+   0,
+   1014,
+   206
+  ],
+  "42:41 | Cops Find Horrific Crime Scene While Investigating A": [
+   1043,
+   0,
+   1345,
+   206
+  ],
+  "19:40 | When Europeans Destroy Clueless Americans... | JT Re": [
+   1374,
+   0,
+   1676,
+   206
+  ],
+  "The Theranos Story | ColdFusion | 12M views  ·  7 years ago": [
+   1705,
+   0,
+   1870,
+   206
+  ],
+  "2:45 | iPhone 18 Pro Cinematic 4K | Iceland in Apple Log 2 &": [
+   50,
+   0,
+   352,
+   204
+  ],
+  "16:02 | Britain’s Favourite Immigrants | Living Ironically i": [
+   381,
+   0,
+   683,
+   204
+  ],
+  "25:42 | #29 Getting the living room ready for Christmas? | T": [
+   712,
+   0,
+   1014,
+   204
+  ],
+  "57:32 | Wonders of Portugal | Where Europe Ends | Most Amazi": [
+   1043,
+   0,
+   1345,
+   204
+  ],
+  "16:25 | Exploring Poland's Mountain Culture with Eva zu Beck": [
+   1374,
+   0,
+   1676,
+   204
+  ],
+  "This Is Eastern Poland's Most Beautiful City 🇵🇱 | Lublin | R": [
+   1705,
+   0,
+   1870,
+   195
+  ],
+  "9:14 | We Took Apart Apple’s Homeview. It Got Ugly. | iFixit": [
+   50,
+   0,
+   352,
+   206
+  ],
+  "12:04 | Letting 13,274 strangers make a presentation | Bog |": [
+   381,
+   0,
+   683,
+   206
+  ],
+  "9:54 | Is Google FINALLY listening on Googlebook? | 9to5Goog": [
+   13,
+   307,
+   315,
+   634
+  ],
+  "9:22 | I Tried 100+ Claude Editing Tools - These Will 10x Yo": [
+   344,
+   307,
+   646,
+   634
+  ],
+  "15:58 | How CHINA'S $397 Graphics Card Took on NVIDIA After ": [
+   675,
+   307,
+   977,
+   634
+  ],
+  "Apple TV 4K 2026 Review - Why I Ditched Pay TV | Mark Ellis ": [
+   1705,
+   0,
+   1870,
+   195
+  ],
+  "3:19 | O'Neill Colonies - An Animated Tour | Mark A. Garlick": [
+   7,
+   746,
+   215,
+   1073
+  ],
+  "22:13 | INSIDE Kuwait Airways SURPRISING Business Class | No": [
+   244,
+   746,
+   546,
+   1073
+  ],
+  "9:03 | Te megaprojekty POWSTANĄ w Warszawie! | Polskie inwes": [
+   575,
+   746,
+   877,
+   1073
+  ],
+  "11:17:50 | Starship Flight 15: SpaceX Double Catch Attempt! ": [
+   906,
+   746,
+   1208,
+   1073
+  ],
+  "18:12 | ŁÓDŹ BUDUJE MEGA TUNEL (I NOWE CENTRUM MIASTA) | Sta": [
+   1237,
+   746,
+   1539,
+   1073
+  ],
+  "Wschodnia Obwodnica Wrocławia - Postępy - 21 Październik 202": [
+   1656,
+   307,
+   1870,
+   634
+  ],
+  "13:24 | Avengers: Doomsday All Post Credits | IN ORDER THEY ": [
+   50,
+   746,
+   352,
+   1073
+  ],
+  "8:01 | Meta VR Glasses: What Vision Pro 2 COULD Have Been! |": [
+   381,
+   746,
+   683,
+   1073
+  ],
+  "3:08 | Invincible Season 5 - Official Teaser | Prime Video |": [
+   712,
+   746,
+   1014,
+   1073
+  ],
+  "27:48 | Best Commander Deck of the Year 2026 (all 22 ranked)": [
+   1043,
+   746,
+   1345,
+   1073
+  ],
+  "11:37 | TORTURE BOX MAN Animatronic UNBOXING & SETUP | Hallo": [
+   1374,
+   746,
+   1676,
+   1073
+  ],
+  "We Took Apart Apple’s Homeview. It Got Ugly. | iFixit | 1M v": [
+   50,
+   0,
+   352,
+   195
+  ],
+  "Letting 13,274 strangers make a presentation | Bog | 68K vie": [
+   381,
+   0,
+   683,
+   195
+  ],
+  "Is Google FINALLY listening on Googlebook? | 9to5Google | 47": [
+   712,
+   0,
+   1014,
+   195
+  ],
+  "I Tried 100+ Claude Editing Tools - These Will 10x Your Vide": [
+   1043,
+   0,
+   1345,
+   195
+  ],
+  "How CHINA'S $397 Graphics Card Took on NVIDIA After Nearly D": [
+   1374,
+   0,
+   1676,
+   195
+  ],
+  "6:01 | Wschodnia Obwodnica Wrocławia - Postępy - 21 Paździer": [
+   1568,
+   746,
+   1870,
+   1073
+  ],
+  "iPhone 18 Pro Cinematic 4K | Iceland in Apple Log 2 & ProRes": [
+   50,
+   0,
+   352,
+   195
+  ],
+  "Britain’s Favourite Immigrants | Living Ironically in Europe": [
+   381,
+   0,
+   683,
+   195
+  ],
+  "#29 Getting the living room ready for Christmas? | The last ": [
+   712,
+   0,
+   1014,
+   195
+  ],
+  "Wonders of Portugal | Where Europe Ends | Most Amazing Place": [
+   1043,
+   0,
+   1345,
+   195
+  ],
+  "Exploring Poland's Mountain Culture with Eva zu Beck | DW Tr": [
+   1374,
+   0,
+   1676,
+   195
+  ],
+  "12:41 | Apple TV 4K 2026 Review - Why I Ditched Pay TV | Mar": [
+   1006,
+   307,
+   1308,
+   634
+  ],
+  "9:17 | Linux vs. Windows 11 Battery Test (Lab Tested) | Phon": [
+   1337,
+   307,
+   1639,
+   634
+  ],
+  "Apple is JUST Getting Started.. | Max Tech | 217K views  ·  ": [
+   1668,
+   307,
+   1870,
+   634
+  ]
+ },
+ "odwiedzone": [
+  "11:17:50 | Starship Flight 15: SpaceX Double Catch Attempt! ",
+  "11:37 | TORTURE BOX MAN Animatronic UNBOXING & SETUP | Hallo",
+  "15:55 | Xiaomi Unveils 18 Pro Series: Everything That Happen",
+  "15:58 | How CHINA'S $397 Graphics Card Took on NVIDIA After ",
+  "18:12 | ŁÓDŹ BUDUJE MEGA TUNEL (I NOWE CENTRUM MIASTA) | Sta",
+  "1:02:57 | Prawdziwa Twarz GrażynoWersum ~ Historia Asi z War",
+  "1:07:41 | KACZOROWSKA U ROZENEK UCISZA ROGACEWICZA, KTÓRY KŁ",
+  "1:38 | MyWhoosh Sunday Race Club (SRC) cat.6 Cycling Race Li",
+  "24:21 | KATHY GRIFFIN IS AN ICONIC GUEST | ZIWE INTERVIEW | ",
+  "25:42 | #29 Getting the living room ready for Christmas? | T",
+  "27:48 | Best Commander Deck of the Year 2026 (all 22 ranked)",
+  "2:37 | Keep Me Satisfied | Jungle | 6.6M views  ·  1 year ag",
+  "37:25 | This algorithm changed how I think about compression",
+  "3:08 | Invincible Season 5 - Official Teaser | Prime Video |",
+  "4:14 | Avril Lavigne - Complicated | Avril Lavigne | 943M vi",
+  "5:45 | What Alien Life Would Really Look Like (According to ",
+  "6:01 | Wschodnia Obwodnica Wrocławia - Postępy - 21 Paździer",
+  "6:22 | Why Microsoft couldn’t fix its own servers for 36 hou",
+  "8:41 | Co by było gdyby Polska nie była komunistyczna po 194",
+  "9:03 | Te megaprojekty POWSTANĄ w Warszawie! | Polskie inwes",
+  "9:17 | A December Flip is Coming to Europe... | Mr. Weatherm",
+  "9:26 | 10 Bathroom Feature Mistakes That Will COST YOU Later",
+  "9:54 | Is Google FINALLY listening on Googlebook? | 9to5Goog",
+  "CHANNEL | DUST | 3.53M subscribers",
+  "Huawei’s First New Sub-Brand! OSTA O1 Pro Wide-Screen Phone ",
+  "PLAYLIST | 5 Minutes of Interstellar in 4K | Hans Zimmer, Wh",
+  "This Is NOT a Facelift! Here's What I Actually Did!  #plasti"
+ ],
+ "utrata_fokusu": [],
+ "wyjscie_z_ekranu": [],
+ "pulapki": [],
+ "krawedzie": [
+  [
+   "37:25 | This algorithm changed how I think about compression",
+   "DOWN",
+   "2:37 | Keep Me Satisfied | Jungle | 6.6M views  ·  1 year ag"
+  ],
+  [
+   "2:37 | Keep Me Satisfied | Jungle | 6.6M views  ·  1 year ag",
+   "DOWN",
+   "15:55 | Xiaomi Unveils 18 Pro Series: Everything That Happen"
+  ],
+  [
+   "15:55 | Xiaomi Unveils 18 Pro Series: Everything That Happen",
+   "DOWN",
+   "PLAYLIST | 5 Minutes of Interstellar in 4K | Hans Zimmer, Wh"
+  ],
+  [
+   "PLAYLIST | 5 Minutes of Interstellar in 4K | Hans Zimmer, Wh",
+   "DOWN",
+   "4:14 | Avril Lavigne - Complicated | Avril Lavigne | 943M vi"
+  ],
+  [
+   "4:14 | Avril Lavigne - Complicated | Avril Lavigne | 943M vi",
+   "DOWN",
+   "5:45 | What Alien Life Would Really Look Like (According to "
+  ],
+  [
+   "5:45 | What Alien Life Would Really Look Like (According to ",
+   "DOWN",
+   "CHANNEL | DUST | 3.53M subscribers"
+  ],
+  [
+   "CHANNEL | DUST | 3.53M subscribers",
+   "DOWN",
+   "6:22 | Why Microsoft couldn’t fix its own servers for 36 hou"
+  ],
+  [
+   "6:22 | Why Microsoft couldn’t fix its own servers for 36 hou",
+   "DOWN",
+   "1:38 | MyWhoosh Sunday Race Club (SRC) cat.6 Cycling Race Li"
+  ],
+  [
+   "1:38 | MyWhoosh Sunday Race Club (SRC) cat.6 Cycling Race Li",
+   "DOWN",
+   "8:41 | Co by było gdyby Polska nie była komunistyczna po 194"
+  ],
+  [
+   "8:41 | Co by było gdyby Polska nie była komunistyczna po 194",
+   "DOWN",
+   "This Is NOT a Facelift! Here's What I Actually Did!  #plasti"
+  ],
+  [
+   "This Is NOT a Facelift! Here's What I Actually Did!  #plasti",
+   "DOWN",
+   "8:41 | Co by było gdyby Polska nie była komunistyczna po 194"
+  ],
+  [
+   "8:41 | Co by było gdyby Polska nie była komunistyczna po 194",
+   "RIGHT",
+   "1:02:57 | Prawdziwa Twarz GrażynoWersum ~ Historia Asi z War"
+  ],
+  [
+   "1:02:57 | Prawdziwa Twarz GrażynoWersum ~ Historia Asi z War",
+   "DOWN",
+   "24:21 | KATHY GRIFFIN IS AN ICONIC GUEST | ZIWE INTERVIEW | "
+  ],
+  [
+   "24:21 | KATHY GRIFFIN IS AN ICONIC GUEST | ZIWE INTERVIEW | ",
+   "DOWN",
+   "1:07:41 | KACZOROWSKA U ROZENEK UCISZA ROGACEWICZA, KTÓRY KŁ"
+  ],
+  [
+   "1:07:41 | KACZOROWSKA U ROZENEK UCISZA ROGACEWICZA, KTÓRY KŁ",
+   "DOWN",
+   "Huawei’s First New Sub-Brand! OSTA O1 Pro Wide-Screen Phone "
+  ],
+  [
+   "Huawei’s First New Sub-Brand! OSTA O1 Pro Wide-Screen Phone ",
+   "DOWN",
+   "9:26 | 10 Bathroom Feature Mistakes That Will COST YOU Later"
+  ],
+  [
+   "9:26 | 10 Bathroom Feature Mistakes That Will COST YOU Later",
+   "DOWN",
+   "9:17 | A December Flip is Coming to Europe... | Mr. Weatherm"
+  ],
+  [
+   "9:17 | A December Flip is Coming to Europe... | Mr. Weatherm",
+   "DOWN",
+   "25:42 | #29 Getting the living room ready for Christmas? | T"
+  ],
+  [
+   "25:42 | #29 Getting the living room ready for Christmas? | T",
+   "DOWN",
+   "9:54 | Is Google FINALLY listening on Googlebook? | 9to5Goog"
+  ],
+  [
+   "9:54 | Is Google FINALLY listening on Googlebook? | 9to5Goog",
+   "DOWN",
+   "9:03 | Te megaprojekty POWSTANĄ w Warszawie! | Polskie inwes"
+  ],
+  [
+   "9:03 | Te megaprojekty POWSTANĄ w Warszawie! | Polskie inwes",
+   "DOWN",
+   "3:08 | Invincible Season 5 - Official Teaser | Prime Video |"
+  ],
+  [
+   "3:08 | Invincible Season 5 - Official Teaser | Prime Video |",
+   "DOWN",
+   "3:08 | Invincible Season 5 - Official Teaser | Prime Video |"
+  ],
+  [
+   "3:08 | Invincible Season 5 - Official Teaser | Prime Video |",
+   "RIGHT",
+   "27:48 | Best Commander Deck of the Year 2026 (all 22 ranked)"
+  ],
+  [
+   "27:48 | Best Commander Deck of the Year 2026 (all 22 ranked)",
+   "DOWN",
+   "27:48 | Best Commander Deck of the Year 2026 (all 22 ranked)"
+  ],
+  [
+   "27:48 | Best Commander Deck of the Year 2026 (all 22 ranked)",
+   "RIGHT",
+   "11:37 | TORTURE BOX MAN Animatronic UNBOXING & SETUP | Hallo"
+  ],
+  [
+   "11:37 | TORTURE BOX MAN Animatronic UNBOXING & SETUP | Hallo",
+   "DOWN",
+   "11:37 | TORTURE BOX MAN Animatronic UNBOXING & SETUP | Hallo"
+  ],
+  [
+   "11:37 | TORTURE BOX MAN Animatronic UNBOXING & SETUP | Hallo",
+   "RIGHT",
+   "11:37 | TORTURE BOX MAN Animatronic UNBOXING & SETUP | Hallo"
+  ],
+  [
+   "11:37 | TORTURE BOX MAN Animatronic UNBOXING & SETUP | Hallo",
+   "UP",
+   "18:12 | ŁÓDŹ BUDUJE MEGA TUNEL (I NOWE CENTRUM MIASTA) | Sta"
+  ],
+  [
+   "18:12 | ŁÓDŹ BUDUJE MEGA TUNEL (I NOWE CENTRUM MIASTA) | Sta",
+   "DOWN",
+   "11:37 | TORTURE BOX MAN Animatronic UNBOXING & SETUP | Hallo"
+  ],
+  [
+   "11:37 | TORTURE BOX MAN Animatronic UNBOXING & SETUP | Hallo",
+   "LEFT",
+   "27:48 | Best Commander Deck of the Year 2026 (all 22 ranked)"
+  ],
+  [
+   "27:48 | Best Commander Deck of the Year 2026 (all 22 ranked)",
+   "UP",
+   "11:17:50 | Starship Flight 15: SpaceX Double Catch Attempt! "
+  ],
+  [
+   "11:17:50 | Starship Flight 15: SpaceX Double Catch Attempt! ",
+   "DOWN",
+   "27:48 | Best Commander Deck of the Year 2026 (all 22 ranked)"
+  ],
+  [
+   "27:48 | Best Commander Deck of the Year 2026 (all 22 ranked)",
+   "LEFT",
+   "3:08 | Invincible Season 5 - Official Teaser | Prime Video |"
+  ],
+  [
+   "3:08 | Invincible Season 5 - Official Teaser | Prime Video |",
+   "UP",
+   "9:03 | Te megaprojekty POWSTANĄ w Warszawie! | Polskie inwes"
+  ],
+  [
+   "9:03 | Te megaprojekty POWSTANĄ w Warszawie! | Polskie inwes",
+   "RIGHT",
+   "11:17:50 | Starship Flight 15: SpaceX Double Catch Attempt! "
+  ],
+  [
+   "11:17:50 | Starship Flight 15: SpaceX Double Catch Attempt! ",
+   "RIGHT",
+   "18:12 | ŁÓDŹ BUDUJE MEGA TUNEL (I NOWE CENTRUM MIASTA) | Sta"
+  ],
+  [
+   "18:12 | ŁÓDŹ BUDUJE MEGA TUNEL (I NOWE CENTRUM MIASTA) | Sta",
+   "RIGHT",
+   "6:01 | Wschodnia Obwodnica Wrocławia - Postępy - 21 Paździer"
+  ],
+  [
+   "6:01 | Wschodnia Obwodnica Wrocławia - Postępy - 21 Paździer",
+   "DOWN",
+   "11:37 | TORTURE BOX MAN Animatronic UNBOXING & SETUP | Hallo"
+  ],
+  [
+   "18:12 | ŁÓDŹ BUDUJE MEGA TUNEL (I NOWE CENTRUM MIASTA) | Sta",
+   "UP",
+   "15:58 | How CHINA'S $397 Graphics Card Took on NVIDIA After "
+  ]
+ ],
+ "teksty_startowe": [
+  "00:48",
+  "1 year ago",
+  "1.2M views  ·  5 days ago",
+  "10:31",
+  "10M views  ·  4 years ago",
+  "147K views  ·  1 year ago",
+  "1:23:08",
+  "1:45:00",
+  "1:54",
+  "2025 8K AMAZING OLED SPACE VIDEO IN HDR | ULTRA HD 4K-8K 60FPS",
+  "2:37",
+  "2:59",
+  "3 Body Problem: Season 2 | Official Teaser | Netflix",
+  "37:25",
+  "3Blue1Brown",
+  "41K views  ·  1 day ago",
+  "5 Minutes of Interstellar in 4K",
+  "6.6M views  ·  1 year ago",
+  "6:57",
+  "8K ProRes ULTRA HD  ·  2.4M views",
+  "951K views  ·  5 days ago",
+  "C O M -  R E M A S T E R I N G  ·  361K views  ·  7 days ago",
+  "Cercle",
+  "Channels",
+  "Cinema Visuals",
+  "David Lynch's most beautiful shots (4K)",
+  "David V. Kimball",
+  "Gaming",
+  "Hania Rani live at Invalides in Paris, France for Cercle",
+  "Hans Zimmer, Whitesand, Mathias Fritsche, and more",
+  "History",
+  "Home",
+  "Jungle",
+  "Jungle - Where Are You Now? (Official Video)",
+  "Jungle, RAYE, and more",
+  "Keep Me Satisfied",
+  "Live",
+  "Metro: The Documentary on Microsoft's Boldest Design",
+  "Music",
+  "Netflix Philippines",
+  "News",
+  "OneTube",
+  "PLAYLIST",
+  "PRZEDWOJENNA WARSZAWA W KOLORZE | WARSAW 1939 | REMASTERING CYFROWY (WERSJA 2026)",
+  "Playlists",
+  "Recommended",
+  "Recommended music videos",
+  "Resume",
+  "S",
+  "Shorts",
+  "Sports",
+  "Stefan B",
+  "Subscriptions",
+  "This algorithm changed how I think about compression | Information theory, part 3",
+  "YouTube",
+  "Z A J A C F O T O",
+  "built-46m"
+ ],
+ "nieosiagalne": [
+  "#29 Getting the living room ready for Christmas? | The last ",
+  "#403 Rozpoczęła się przebudowa Alei Centralnej i wylądował l",
+  "10:31 | 2025 8K AMAZING OLED SPACE VIDEO IN HDR | ULTRA HD 4",
+  "12:04 | Letting 13,274 strangers make a presentation | Bog |",
+  "12:41 | Apple TV 4K 2026 Review - Why I Ditched Pay TV | Mar",
+  "13:12 | The OA Season 3 is Returning? Brit Marling's Instagr",
+  "13:24 | Avengers: Doomsday All Post Credits | IN ORDER THEY ",
+  "15:55 | mr beast on shark tank?? | 2 Danny 2 Furious | 844K ",
+  "16:02 | Britain’s Favourite Immigrants | Living Ironically i",
+  "16:25 | Exploring Poland's Mountain Culture with Eva zu Beck",
+  "17:07 | Did Fable 5.2 Just Build Windows 95 for a Microcontr",
+  "17:38 | Pharmacist Sends a Honey Pack to the Lab | Grant Har",
+  "17:44 | Natural selection of wildlife species in the Chernob",
+  "18:20 | I Had NO SYMPTOMS When My Brain Tumor Was Discovered",
+  "18:38 | Every Ways to Get 128GB VRAM for Local AI at Full Co",
+  "19:15 | Co naprawdę znajduje się NAD i POD Układem Słoneczny",
+  "19:40 | When Europeans Destroy Clueless Americans... | JT Re",
+  "19:40 | Why Do I Not Want to Keep This Incredible Car? | Agi",
+  "19:58 | 5 Straight vs 1 Gay | Odd One Out | Jubilee | 406K v",
+  "1:08:20 | We Unlocked Two New Genders! |#85 w/ Eric Andre & ",
+  "1:11:13 | CZY KTOŚ CIE ZAST%# ~ Komentarz do Live Grażyny ze",
+  "1:23:08 | Metro: The Documentary on Microsoft's Boldest Desi",
+  "1:45:00 | Hania Rani live at Invalides in Paris, France for ",
+  "1:54 | 3 Body Problem: Season 2 | Official Teaser | Netflix ",
+  "22:13 | INSIDE Kuwait Airways SURPRISING Business Class | No",
+  "24:12 | Scientists are Now Converging That AI is Conscious |",
+  "25:02 | HIPOTEZA RIEMANNA ZOSTAŁA POTWIERDZONA | doktor z ti",
+  "25:03 | Warszawa 2026: Jak zmienia się Wola? Przejazd ulicam",
+  "27:07 | Review of the Li Auto L8 livis and explaining its pr",
+  "2:06 | Artificial - Official Trailer - In Select Theaters Ch",
+  "2:45 | iPhone 18 Pro Cinematic 4K | Iceland in Apple Log 2 &",
+  "2:59 | PRZEDWOJENNA WARSZAWA W KOLORZE | WARSAW 1939 | REMAS",
+  "3 Body Problem: Season 2 | Official Teaser | Netflix | Netfl",
+  "31:12 | Pałac Saski - weszliśmy do Ruin Pałacu Brühla | Urbe",
+  "34:07 | Twierdził, że UMIERA na TikToku. Dlaczego internauci",
+  "36:03 | PANI MADZIA KAŻE GREKOWI JEŚĆ KEBABA XDDD*kuchenne r",
+  "38:07 | Tesla Self-Driving 15 First Ride with my Dad | Whole",
+  "39:04 | Astronaut Returns From Space Only to Discover She La",
+  "3:19 | O'Neill Colonies - An Animated Tour | Mark A. Garlick",
+  "3:25 | GENER8ION feat. Yung Lean Perform \"STORM\" | 2026 VMAs",
+  "3:52 | Fell Asleep in the Sun (Official Music Video) | After",
+  "4 ways to use the Prompt Key on Communicator | Clicks",
+  "42:41 | Cops Find Horrific Crime Scene While Investigating A",
+  "42:46 | Budowlaniec alkoholik to przeszłość? Teraz na budowa",
+  "4:03 | All I Want for Christmas Is You (Make My Wish Come Tr",
+  "4:26 | Google Antigravity, Redesigned | Google Antigravity |",
+  "4:46 | Come Back to Me | Jungle | 2.4M views  ·  2 months ag",
+  "5 Minutes of Interstellar in 4K | Hans Zimmer, Whitesand, Ma",
+  "57:32 | Wonders of Portugal | Where Europe Ends | Most Amazi",
+  "59:35 | 60 Minutes Of Iconic Ron Swanson Moments | Parks and",
+  "6:03 | How a group of young architects fights to save a forg",
+  "6:42 | A Big Problem Has Appeared in Physics | Sabine Hossen",
+  "6:57 | David Lynch's most beautiful shots (4K) | Cinema Visu",
+  "8:01 | Meta VR Glasses: What Vision Pro 2 COULD Have Been! |",
+  "8:35 | How OpenAI Lost the AI Race | TLDR Business | 301K vi",
+  "8:35 | Robert Pattinson really is just walking around undiag",
+  "8:47 | What Actually IS the \"q-drive\" ? | Spacedock | 503K v",
+  "8:58 | Jak będzie działać pierwsza polska elektrownia atomow",
+  "9:14 | We Took Apart Apple’s Homeview. It Got Ugly. | iFixit",
+  "9:17 | Linux vs. Windows 11 Battery Test (Lab Tested) | Phon",
+  "9:22 | I Tried 100+ Claude Editing Tools - These Will 10x Yo",
+  "A Big Problem Has Appeared in Physics | Sabine Hossenfelder ",
+  "Apple TV 4K 2026 Review - Why I Ditched Pay TV | Mark Ellis ",
+  "Apple is JUST Getting Started.. | Max Tech | 217K views  ·  ",
+  "Artificial - Official Trailer (2027) Andrew Garfield, Monica",
+  "Britain’s Favourite Immigrants | Living Ironically in Europe",
+  "CHANNEL | Fireship | 4.34M subscribers",
+  "CHANNEL | Interior Motives | 167K subscribers",
+  "CHANNEL | Omeleto | 4M subscribers",
+  "CHANNEL | fern | 5.71M subscribers",
+  "Channels",
+  "Claude Discovers Two New Planets | Into AI by Dr. Ashish Bam",
+  "Crushing (Official Music Video) | Eartheater | 876K views  ·",
+  "DUST | 3.53M subscribers",
+  "Death In Vegas - Blood Yawning 2000 | Death In Vegas, Richar",
+  "Discovery One | 2001: A Space Odyssey Ambience 4K | The HAL ",
+  "Exploring Poland's Mountain Culture with Eva zu Beck | DW Tr",
+  "Fable 5.2 Autonomously Builds an Operating System | Into AI ",
+  "Fireship | 4.34M subscribers",
+  "GPT-6.2 Astra: 5% of Claude Fable's Cost, 2x the Hidden Bloc",
+  "Gaming",
+  "Gemini 4 Krypton Leak: The Tester's Own Clip Disagrees | DIY",
+  "History",
+  "Home",
+  "How CHINA'S $397 Graphics Card Took on NVIDIA After Nearly D",
+  "I Tried 100+ Claude Editing Tools - These Will 10x Your Vide",
+  "Interior Motives | 167K subscribers",
+  "Is Google FINALLY listening on Googlebook? | 9to5Google | 47",
+  "Jungle - Where Are You Now? (Official Video) | Jungle, RAYE,",
+  "Letting 13,274 strangers make a presentation | Bog | 68K vie",
+  "Live",
+  "Mermaid Chunky - céilí (Official Video) | Mermaid Chunky, Al",
+  "Metro: The Documentary on Microsoft's Boldest Design | David",
+  "Michael Kiwanuka - Cold Little Heart (Official Video) | Mich",
+  "Music",
+  "NASA prześwietli tajemniczy szyb na Księżycu | Astrofaza | 1",
+  "News",
+  "Nick Drake - Pink Moon | Nick Drake and more",
+  "Omeleto | 4M subscribers",
+  "OneTube settings",
+  "PLAYLIST | Death In Vegas - Blood Yawning 2000 | Death In Ve",
+  "PLAYLIST | Jungle - Where Are You Now? (Official Video) | Ju",
+  "PLAYLIST | Mermaid Chunky - céilí (Official Video) | Mermaid",
+  "PLAYLIST | Michael Kiwanuka - Cold Little Heart (Official Vi",
+  "PRZEDWOJENNA WARSZAWA W KOLORZE | WARSAW 1939 | REMASTERING ",
+  "Playlists",
+  "Resume | 1:45:00 | Hania Rani live at Invalides in Paris, Fr",
+  "S | Stefan B",
+  "Search",
+  "Send debug report",
+  "Shorts",
+  "Sleep Stream ASMR 잠방 22.11.2026 526 svi 1440p 2k | wizhunt |",
+  "Split the Inner Child | w/ Brace Belden & Liz Franczak of Tr",
+  "Sports",
+  "Steering wheels, AI agents go rogue, Anthropic IPO | The Fri",
+  "Subscriptions",
+  "The FIRST Bond that LOOKS LIKE Bond | QOVES",
+  "The Theranos Story | ColdFusion | 12M views  ·  7 years ago",
+  "The Tholians #startrek #startrektheoriginalseries #startreke",
+  "This Is Eastern Poland's Most Beautiful City 🇵🇱 | Lublin | R",
+  "This algorithm changed how I think about compression | Infor",
+  "This cat’s IQ is off‑the‑charts | True Story Unfiltered",
+  "We Took Apart Apple’s Homeview. It Got Ugly. | iFixit | 1M v",
+  "Why Did Poland Get Rich But Ukraine Never Did? | Mutnan Expl",
+  "Why Glenn Close Gets Wheeled Into the Hunger Games | Lore Wa",
+  "Why there are no 128 bit CPUs | Ryan Peterman",
+  "Wonders of Portugal | Where Europe Ends | Most Amazing Place",
+  "Wschodnia Obwodnica Wrocławia - Postępy - 21 Październik 202",
+  "fern | 5.71M subscribers",
+  "iPhone 18 Pro Cinematic 4K | Iceland in Apple Log 2 & ProRes",
+  "stare pomysły wreszcie zaczęły działać | Zachar OFF | 10K vi",
+  "wizhunt | 98.1K subscribers"
+ ],
+ "logcat": [],
+ "czas_obchodu_s": 181
+}

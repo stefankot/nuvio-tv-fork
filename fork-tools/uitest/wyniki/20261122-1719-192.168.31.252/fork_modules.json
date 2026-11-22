@@ -1,0 +1,553 @@
+{
+ "trasa": "fork_modules",
+ "czas_ladowania_s": 4.7,
+ "kroki": 40,
+ "elementy": {
+  "Zatrzymaj podgląd kanału po minucie: włączone": [
+   96,
+   48,
+   792,
+   144
+  ],
+  "Rząd „Dla Ciebie” nad przewodnikiem: włączone": [
+   96,
+   48,
+   796,
+   144
+  ],
+  "Archiwum bez pytania „czy na pewno”: włączone": [
+   96,
+   48,
+   802,
+   144
+  ],
+  "Przypomnienia o programach: włączone": [
+   96,
+   48,
+   691,
+   144
+  ],
+  "Automatyczne obserwowane programy: włączone": [
+   96,
+   48,
+   811,
+   144
+  ],
+  "Surowe liczenie obejrzanych: wyłączone": [
+   96,
+   48,
+   687,
+   144
+  ],
+  "Przewodnik uzupełniający dla kraju listy: włączone": [
+   96,
+   48,
+   816,
+   144
+  ],
+  "Wyczyść historię oglądania TV": [
+   96,
+   48,
+   569,
+   144
+  ],
+  "Telewizja: dodatki (przewodnik w tle, logo, obejrzane): włąc": [
+   96,
+   48,
+   963,
+   144
+  ],
+  "Źródła i napisy: automatyczny dobór: włączony": [
+   96,
+   48,
+   751,
+   144
+  ],
+  "Zawsze po polsku": [
+   96,
+   48,
+   410,
+   144
+  ],
+  "Po polsku przy dobrej jakości": [
+   96,
+   48,
+   552,
+   144
+  ],
+  "Oryginał z napisami": [
+   96,
+   48,
+   432,
+   144
+  ],
+  "Napisy: małe": [
+   96,
+   48,
+   347,
+   144
+  ],
+  "Napisy: średnie": [
+   96,
+   48,
+   378,
+   144
+  ],
+  "Napisy: duże": [
+   96,
+   48,
+   347,
+   144
+  ],
+  "Tryb nocny (godziny, ciepła nakładka): włączony": [
+   96,
+   48,
+   766,
+   144
+  ],
+  "Ciepła nakładka obrazu: włączone": [
+   96,
+   48,
+   615,
+   144
+  ],
+  "Przyciemnienie: wyłączone": [
+   96,
+   48,
+   521,
+   144
+  ],
+  "Nie stosuj przy HDR i Dolby Vision: włączone": [
+   96,
+   48,
+   749,
+   144
+  ],
+  "Tryb nocny: według godzin 22:00–07:00": [
+   96,
+   48,
+   720,
+   144
+  ],
+  "Tryb nocny: włączony": [
+   96,
+   48,
+   458,
+   144
+  ],
+  "Tryb nocny: wyłączony": [
+   96,
+   48,
+   472,
+   144
+  ],
+  "Tryb nocny: początek 21:00 / 22:00 / 23:00 (kolejno)": [
+   96,
+   48,
+   858,
+   144
+  ],
+  "Tryb nocny: koniec 06:00 / 07:00 / 08:00 (kolejno)": [
+   96,
+   48,
+   842,
+   144
+  ],
+  "Siła: lekka / średnia / mocna (kolejno)": [
+   96,
+   48,
+   654,
+   144
+  ],
+  "Ekran główny i blokada wyjścia: włączony": [
+   96,
+   48,
+   685,
+   144
+  ],
+  "Uruchamiaj z telewizorem: włączone": [
+   96,
+   48,
+   641,
+   144
+  ],
+  "Blokada wyjścia: wyłączone": [
+   96,
+   48,
+   533,
+   144
+  ],
+  "Tła i duże obrazki w pełnej jakości: włączone": [
+   96,
+   48,
+   744,
+   144
+  ],
+  "Gotowe rozmycia teł: włączone": [
+   96,
+   48,
+   574,
+   144
+  ],
+  "Po uruchomieniu pokaż: ekran główny": [
+   96,
+   48,
+   664,
+   144
+  ],
+  "Po uruchomieniu pokaż: telewizję": [
+   96,
+   48,
+   603,
+   144
+  ],
+  "Po uruchomieniu pokaż: ostatni kanał": [
+   96,
+   48,
+   654,
+   144
+  ],
+  "Nuvio jako ekran główny": [
+   96,
+   48,
+   493,
+   144
+  ],
+  "Sterowanie głosem: włączony": [
+   96,
+   48,
+   531,
+   144
+  ],
+  "Przycisk „Powiedz” w wyszukiwarce: włączone": [
+   96,
+   48,
+   771,
+   144
+  ],
+  "Rozpoznawanie mowy offline (Whisper): włączone": [
+   96,
+   144,
+   812,
+   240
+  ],
+  "Przycisk asystenta otwiera nasłuch: włączone": [
+   96,
+   240,
+   754,
+   336
+  ],
+  "Przycisk mikrofonu: włącz usługę Nuvio": [
+   96,
+   336,
+   681,
+   432
+  ],
+  "Przycisk mikrofonu: naucz przycisk": [
+   96,
+   432,
+   621,
+   528
+  ],
+  "Ustaw Nuvio jako asystenta": [
+   96,
+   528,
+   528,
+   624
+  ],
+  "Sterowanie głosem: przykłady poleceń": [
+   96,
+   624,
+   669,
+   720
+  ],
+  "Odkrywaj telewizję (rzędy na ekranie głównym): włączony": [
+   96,
+   720,
+   882,
+   816
+  ],
+  "Rząd: Oglądaj dalej: włączone": [
+   96,
+   816,
+   565,
+   912
+  ],
+  "Rząd: Obserwowane: włączone": [
+   96,
+   912,
+   579,
+   1008
+  ]
+ },
+ "odwiedzone": [
+  "Archiwum bez pytania „czy na pewno”: włączone",
+  "Automatyczne obserwowane programy: włączone",
+  "Blokada wyjścia: wyłączone",
+  "Ciepła nakładka obrazu: włączone",
+  "Ekran główny i blokada wyjścia: włączony",
+  "Gotowe rozmycia teł: włączone",
+  "Napisy: duże",
+  "Napisy: małe",
+  "Napisy: średnie",
+  "Nie stosuj przy HDR i Dolby Vision: włączone",
+  "Nuvio jako ekran główny",
+  "Oryginał z napisami",
+  "Po polsku przy dobrej jakości",
+  "Po uruchomieniu pokaż: ekran główny",
+  "Po uruchomieniu pokaż: ostatni kanał",
+  "Po uruchomieniu pokaż: telewizję",
+  "Przewodnik uzupełniający dla kraju listy: włączone",
+  "Przyciemnienie: wyłączone",
+  "Przycisk asystenta otwiera nasłuch: włączone",
+  "Przycisk mikrofonu: naucz przycisk",
+  "Przycisk mikrofonu: włącz usługę Nuvio",
+  "Przycisk „Powiedz” w wyszukiwarce: włączone",
+  "Przypomnienia o programach: włączone",
+  "Rozpoznawanie mowy offline (Whisper): włączone",
+  "Rząd „Dla Ciebie” nad przewodnikiem: włączone",
+  "Siła: lekka / średnia / mocna (kolejno)",
+  "Sterowanie głosem: włączony",
+  "Surowe liczenie obejrzanych: wyłączone",
+  "Telewizja: dodatki (przewodnik w tle, logo, obejrzane): włąc",
+  "Tryb nocny (godziny, ciepła nakładka): włączony",
+  "Tryb nocny: koniec 06:00 / 07:00 / 08:00 (kolejno)",
+  "Tryb nocny: początek 21:00 / 22:00 / 23:00 (kolejno)",
+  "Tryb nocny: według godzin 22:00–07:00",
+  "Tryb nocny: wyłączony",
+  "Tryb nocny: włączony",
+  "Tła i duże obrazki w pełnej jakości: włączone",
+  "Uruchamiaj z telewizorem: włączone",
+  "Wyczyść historię oglądania TV",
+  "Zatrzymaj podgląd kanału po minucie: włączone",
+  "Zawsze po polsku",
+  "Źródła i napisy: automatyczny dobór: włączony"
+ ],
+ "utrata_fokusu": [],
+ "wyjscie_z_ekranu": [],
+ "pulapki": [],
+ "krawedzie": [
+  [
+   "Telewizja: dodatki (przewodnik w tle, logo, obejrzane): włąc",
+   "DOWN",
+   "Zatrzymaj podgląd kanału po minucie: włączone"
+  ],
+  [
+   "Zatrzymaj podgląd kanału po minucie: włączone",
+   "DOWN",
+   "Rząd „Dla Ciebie” nad przewodnikiem: włączone"
+  ],
+  [
+   "Rząd „Dla Ciebie” nad przewodnikiem: włączone",
+   "DOWN",
+   "Archiwum bez pytania „czy na pewno”: włączone"
+  ],
+  [
+   "Archiwum bez pytania „czy na pewno”: włączone",
+   "DOWN",
+   "Przypomnienia o programach: włączone"
+  ],
+  [
+   "Przypomnienia o programach: włączone",
+   "DOWN",
+   "Automatyczne obserwowane programy: włączone"
+  ],
+  [
+   "Automatyczne obserwowane programy: włączone",
+   "DOWN",
+   "Surowe liczenie obejrzanych: wyłączone"
+  ],
+  [
+   "Surowe liczenie obejrzanych: wyłączone",
+   "DOWN",
+   "Przewodnik uzupełniający dla kraju listy: włączone"
+  ],
+  [
+   "Przewodnik uzupełniający dla kraju listy: włączone",
+   "DOWN",
+   "Wyczyść historię oglądania TV"
+  ],
+  [
+   "Wyczyść historię oglądania TV",
+   "DOWN",
+   "Źródła i napisy: automatyczny dobór: włączony"
+  ],
+  [
+   "Źródła i napisy: automatyczny dobór: włączony",
+   "DOWN",
+   "Zawsze po polsku"
+  ],
+  [
+   "Zawsze po polsku",
+   "DOWN",
+   "Po polsku przy dobrej jakości"
+  ],
+  [
+   "Po polsku przy dobrej jakości",
+   "DOWN",
+   "Oryginał z napisami"
+  ],
+  [
+   "Oryginał z napisami",
+   "DOWN",
+   "Napisy: małe"
+  ],
+  [
+   "Napisy: małe",
+   "DOWN",
+   "Napisy: średnie"
+  ],
+  [
+   "Napisy: średnie",
+   "DOWN",
+   "Napisy: duże"
+  ],
+  [
+   "Napisy: duże",
+   "DOWN",
+   "Tryb nocny (godziny, ciepła nakładka): włączony"
+  ],
+  [
+   "Tryb nocny (godziny, ciepła nakładka): włączony",
+   "DOWN",
+   "Ciepła nakładka obrazu: włączone"
+  ],
+  [
+   "Ciepła nakładka obrazu: włączone",
+   "DOWN",
+   "Przyciemnienie: wyłączone"
+  ],
+  [
+   "Przyciemnienie: wyłączone",
+   "DOWN",
+   "Nie stosuj przy HDR i Dolby Vision: włączone"
+  ],
+  [
+   "Nie stosuj przy HDR i Dolby Vision: włączone",
+   "DOWN",
+   "Tryb nocny: według godzin 22:00–07:00"
+  ],
+  [
+   "Tryb nocny: według godzin 22:00–07:00",
+   "DOWN",
+   "Tryb nocny: włączony"
+  ],
+  [
+   "Tryb nocny: włączony",
+   "DOWN",
+   "Tryb nocny: wyłączony"
+  ],
+  [
+   "Tryb nocny: wyłączony",
+   "DOWN",
+   "Tryb nocny: początek 21:00 / 22:00 / 23:00 (kolejno)"
+  ],
+  [
+   "Tryb nocny: początek 21:00 / 22:00 / 23:00 (kolejno)",
+   "DOWN",
+   "Tryb nocny: koniec 06:00 / 07:00 / 08:00 (kolejno)"
+  ],
+  [
+   "Tryb nocny: koniec 06:00 / 07:00 / 08:00 (kolejno)",
+   "DOWN",
+   "Siła: lekka / średnia / mocna (kolejno)"
+  ],
+  [
+   "Siła: lekka / średnia / mocna (kolejno)",
+   "DOWN",
+   "Ekran główny i blokada wyjścia: włączony"
+  ],
+  [
+   "Ekran główny i blokada wyjścia: włączony",
+   "DOWN",
+   "Uruchamiaj z telewizorem: włączone"
+  ],
+  [
+   "Uruchamiaj z telewizorem: włączone",
+   "DOWN",
+   "Blokada wyjścia: wyłączone"
+  ],
+  [
+   "Blokada wyjścia: wyłączone",
+   "DOWN",
+   "Tła i duże obrazki w pełnej jakości: włączone"
+  ],
+  [
+   "Tła i duże obrazki w pełnej jakości: włączone",
+   "DOWN",
+   "Gotowe rozmycia teł: włączone"
+  ],
+  [
+   "Gotowe rozmycia teł: włączone",
+   "DOWN",
+   "Po uruchomieniu pokaż: ekran główny"
+  ],
+  [
+   "Po uruchomieniu pokaż: ekran główny",
+   "DOWN",
+   "Po uruchomieniu pokaż: telewizję"
+  ],
+  [
+   "Po uruchomieniu pokaż: telewizję",
+   "DOWN",
+   "Po uruchomieniu pokaż: ostatni kanał"
+  ],
+  [
+   "Po uruchomieniu pokaż: ostatni kanał",
+   "DOWN",
+   "Nuvio jako ekran główny"
+  ],
+  [
+   "Nuvio jako ekran główny",
+   "DOWN",
+   "Sterowanie głosem: włączony"
+  ],
+  [
+   "Sterowanie głosem: włączony",
+   "DOWN",
+   "Przycisk „Powiedz” w wyszukiwarce: włączone"
+  ],
+  [
+   "Przycisk „Powiedz” w wyszukiwarce: włączone",
+   "DOWN",
+   "Rozpoznawanie mowy offline (Whisper): włączone"
+  ],
+  [
+   "Rozpoznawanie mowy offline (Whisper): włączone",
+   "DOWN",
+   "Przycisk asystenta otwiera nasłuch: włączone"
+  ],
+  [
+   "Przycisk asystenta otwiera nasłuch: włączone",
+   "DOWN",
+   "Przycisk mikrofonu: włącz usługę Nuvio"
+  ],
+  [
+   "Przycisk mikrofonu: włącz usługę Nuvio",
+   "DOWN",
+   "Przycisk mikrofonu: naucz przycisk"
+  ]
+ ],
+ "teksty_startowe": [
+  "   Archiwum bez pytania „czy na pewno”: włączone",
+  "   Automatyczne obserwowane programy: włączone",
+  "   Przewodnik uzupełniający dla kraju listy: włączone",
+  "   Przypomnienia o programach: włączone",
+  "   Rząd „Dla Ciebie” nad przewodnikiem: włączone",
+  "   Surowe liczenie obejrzanych: wyłączone",
+  "   Wyczyść historię oglądania TV",
+  "   Zatrzymaj podgląd kanału po minucie: włączone",
+  "Moduły",
+  "Telewizja: dodatki (przewodnik w tle, logo, obejrzane): włączony",
+  "built-34m"
+ ],
+ "nieosiagalne": [
+  "Odkrywaj telewizję (rzędy na ekranie głównym): włączony",
+  "Rząd: Obserwowane: włączone",
+  "Rząd: Oglądaj dalej: włączone",
+  "Sterowanie głosem: przykłady poleceń",
+  "Ustaw Nuvio jako asystenta"
+ ],
+ "logcat": [],
+ "czas_obchodu_s": 126
+}

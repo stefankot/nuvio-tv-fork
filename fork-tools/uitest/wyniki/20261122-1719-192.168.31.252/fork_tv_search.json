@@ -1,0 +1,48 @@
+{
+ "trasa": "fork_tv_search",
+ "czas_ladowania_s": 4.5,
+ "kroki": 4,
+ "elementy": {
+  "Szukaj kanału lub programu": [
+   64,
+   64,
+   624,
+   192
+  ]
+ },
+ "odwiedzone": [
+  "Szukaj kanału lub programu"
+ ],
+ "utrata_fokusu": [],
+ "wyjscie_z_ekranu": [],
+ "pulapki": [],
+ "krawedzie": [
+  [
+   "Szukaj kanału lub programu",
+   "DOWN",
+   "Szukaj kanału lub programu"
+  ],
+  [
+   "Szukaj kanału lub programu",
+   "RIGHT",
+   "Szukaj kanału lub programu"
+  ],
+  [
+   "Szukaj kanału lub programu",
+   "UP",
+   "Szukaj kanału lub programu"
+  ],
+  [
+   "Szukaj kanału lub programu",
+   "LEFT",
+   "Szukaj kanału lub programu"
+  ]
+ ],
+ "teksty_startowe": [
+  "Szukaj kanału lub programu",
+  "built-36m"
+ ],
+ "nieosiagalne": [],
+ "logcat": [],
+ "czas_obchodu_s": 16
+}

@@ -1,0 +1,161 @@
+{
+ "trasa": "fork_picks",
+ "czas_ladowania_s": 4.4,
+ "kroki": 20,
+ "elementy": {
+  "Lekkie na dziś": [
+   96,
+   176,
+   341,
+   248
+  ],
+  "Wymagające": [
+   365,
+   176,
+   598,
+   248
+  ],
+  "Nieodkryte perełki": [
+   622,
+   176,
+   928,
+   248
+  ],
+  "Trzyma w napięciu": [
+   952,
+   176,
+   1257,
+   248
+  ],
+  "Na 90 minut": [
+   1281,
+   176,
+   1508,
+   248
+  ]
+ },
+ "odwiedzone": [
+  "Lekkie na dziś",
+  "Na 90 minut",
+  "Nieodkryte perełki",
+  "Trzyma w napięciu",
+  "Wymagające"
+ ],
+ "utrata_fokusu": [],
+ "wyjscie_z_ekranu": [],
+ "pulapki": [],
+ "krawedzie": [
+  [
+   "Lekkie na dziś",
+   "DOWN",
+   "Lekkie na dziś"
+  ],
+  [
+   "Lekkie na dziś",
+   "RIGHT",
+   "Wymagające"
+  ],
+  [
+   "Wymagające",
+   "DOWN",
+   "Wymagające"
+  ],
+  [
+   "Wymagające",
+   "RIGHT",
+   "Nieodkryte perełki"
+  ],
+  [
+   "Nieodkryte perełki",
+   "DOWN",
+   "Nieodkryte perełki"
+  ],
+  [
+   "Nieodkryte perełki",
+   "RIGHT",
+   "Trzyma w napięciu"
+  ],
+  [
+   "Trzyma w napięciu",
+   "DOWN",
+   "Trzyma w napięciu"
+  ],
+  [
+   "Trzyma w napięciu",
+   "RIGHT",
+   "Na 90 minut"
+  ],
+  [
+   "Na 90 minut",
+   "DOWN",
+   "Na 90 minut"
+  ],
+  [
+   "Na 90 minut",
+   "RIGHT",
+   "Na 90 minut"
+  ],
+  [
+   "Na 90 minut",
+   "UP",
+   "Na 90 minut"
+  ],
+  [
+   "Na 90 minut",
+   "LEFT",
+   "Trzyma w napięciu"
+  ],
+  [
+   "Trzyma w napięciu",
+   "UP",
+   "Trzyma w napięciu"
+  ],
+  [
+   "Trzyma w napięciu",
+   "LEFT",
+   "Nieodkryte perełki"
+  ],
+  [
+   "Nieodkryte perełki",
+   "UP",
+   "Nieodkryte perełki"
+  ],
+  [
+   "Nieodkryte perełki",
+   "LEFT",
+   "Wymagające"
+  ],
+  [
+   "Wymagające",
+   "UP",
+   "Wymagające"
+  ],
+  [
+   "Wymagające",
+   "LEFT",
+   "Lekkie na dziś"
+  ],
+  [
+   "Lekkie na dziś",
+   "UP",
+   "Lekkie na dziś"
+  ],
+  [
+   "Lekkie na dziś",
+   "LEFT",
+   "Lekkie na dziś"
+  ]
+ ],
+ "teksty_startowe": [
+  "Lekkie na dziś",
+  "Na 90 minut",
+  "Na co masz ochotę?",
+  "Nieodkryte perełki",
+  "Trzyma w napięciu",
+  "Wymagające",
+  "built-39m"
+ ],
+ "nieosiagalne": [],
+ "logcat": [],
+ "czas_obchodu_s": 65
+}

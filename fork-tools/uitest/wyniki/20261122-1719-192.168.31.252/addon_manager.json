@@ -1,0 +1,485 @@
+{
+ "trasa": "addon_manager",
+ "czas_ladowania_s": 4.1,
+ "kroki": 40,
+ "elementy": {
+  "Zainstaluj": [
+   1626,
+   30,
+   1808,
+   126
+  ],
+  "https://example.com": [
+   136,
+   30,
+   1578,
+   126
+  ],
+  "Zarządzaj z telefonu | Zeskanuj kod QR, aby zarządzać dodatk": [
+   72,
+   9,
+   1848,
+   159
+  ],
+  "Zmień kolejność katalogów | Kontroluje kolejność wierszy kat": [
+   72,
+   7,
+   1848,
+   157
+  ],
+  "Kolekcje | Grupuj katalogi w folderach na ekranie głównym": [
+   72,
+   197,
+   1848,
+   347
+  ],
+  "Odśwież dodatki | Pobierz najnowsze zmiany dodatków dla bież": [
+   72,
+   59,
+   1848,
+   209
+  ],
+  "Włącz Watchly": [
+   1424,
+   119,
+   1544,
+   215
+  ],
+  "Zmień kolejność": [
+   1560,
+   1040,
+   1676,
+   1080
+  ],
+  "Usuń": [
+   1692,
+   1040,
+   1808,
+   1080
+  ],
+  "Włącz Torrentio TB": [
+   1424,
+   0,
+   1544,
+   16
+  ],
+  "[bez nazwy 1776x19 @72,0]": [
+   72,
+   0,
+   1848,
+   19
+  ],
+  "Włącz Auto Subtitle Translate by SonsuzAnime (DeepL)": [
+   1424,
+   78,
+   1544,
+   174
+  ],
+  "[bez nazwy 116x16 @1560,0]": [
+   1560,
+   0,
+   1676,
+   16
+  ],
+  "[bez nazwy 116x16 @1692,0]": [
+   1692,
+   0,
+   1808,
+   16
+  ],
+  "Włącz Comet | ElfHosted": [
+   1424,
+   119,
+   1544,
+   215
+  ],
+  "Włącz AIOStreams | ElfHosted": [
+   1424,
+   78,
+   1544,
+   174
+  ],
+  "Włącz opensubtitles PRO": [
+   1424,
+   119,
+   1544,
+   215
+  ],
+  "Włącz StremThru Torz": [
+   1424,
+   119,
+   1544,
+   215
+  ],
+  "Włącz ThePirateBay+": [
+   1424,
+   171,
+   1544,
+   267
+  ],
+  "Włącz stremio-addons.net": [
+   1424,
+   117,
+   1544,
+   213
+  ],
+  "Włącz TorrentsDB TB": [
+   1424,
+   0,
+   1544,
+   55
+  ],
+  "Włącz SubSense": [
+   1424,
+   117,
+   1544,
+   213
+  ],
+  "Włącz TOP Streaming 🇵🇱": [
+   1424,
+   171,
+   1544,
+   267
+  ],
+  "Włącz MDBList": [
+   1424,
+   117,
+   1544,
+   213
+  ],
+  "Włącz YouStream": [
+   1424,
+   78,
+   1544,
+   174
+  ],
+  "Włącz Torrentio": [
+   1424,
+   0,
+   1544,
+   55
+  ],
+  "Włącz Cinemeta": [
+   1424,
+   119,
+   1544,
+   215
+  ],
+  "Włącz TorrentClaw (PL, 720p)": [
+   1424,
+   0,
+   1544,
+   55
+  ],
+  "Włącz SELection": [
+   1424,
+   78,
+   1544,
+   174
+  ],
+  "Włącz Comet | ElfHosted | TB": [
+   1424,
+   119,
+   1544,
+   215
+  ],
+  "Włącz Stremio Community Subtitles": [
+   1424,
+   119,
+   1544,
+   215
+  ],
+  "Włącz SELection (PL)": [
+   1424,
+   78,
+   1544,
+   174
+  ],
+  "Włącz Torrentio TB (2)": [
+   1424,
+   0,
+   1544,
+   45
+  ],
+  "Włącz Flix-Streams": [
+   1424,
+   406,
+   1544,
+   502
+  ],
+  "Włącz NoTorrent": [
+   1424,
+   703,
+   1544,
+   799
+  ],
+  "Włącz NapiProjekt Addon": [
+   1424,
+   1040,
+   1544,
+   1080
+  ]
+ },
+ "odwiedzone": [
+  "Kolekcje | Grupuj katalogi w folderach na ekranie głównym",
+  "Odśwież dodatki | Pobierz najnowsze zmiany dodatków dla bież",
+  "Usuń",
+  "Włącz AIOStreams | ElfHosted",
+  "Włącz Auto Subtitle Translate by SonsuzAnime (DeepL)",
+  "Włącz Cinemeta",
+  "Włącz Comet | ElfHosted",
+  "Włącz Comet | ElfHosted | TB",
+  "Włącz Flix-Streams",
+  "Włącz MDBList",
+  "Włącz NapiProjekt Addon",
+  "Włącz NoTorrent",
+  "Włącz SELection",
+  "Włącz SELection (PL)",
+  "Włącz StremThru Torz",
+  "Włącz Stremio Community Subtitles",
+  "Włącz SubSense",
+  "Włącz TOP Streaming 🇵🇱",
+  "Włącz ThePirateBay+",
+  "Włącz TorrentClaw (PL, 720p)",
+  "Włącz Torrentio",
+  "Włącz Torrentio TB",
+  "Włącz Torrentio TB (2)",
+  "Włącz TorrentsDB TB",
+  "Włącz Watchly",
+  "Włącz YouStream",
+  "Włącz opensubtitles PRO",
+  "Włącz stremio-addons.net",
+  "Zarządzaj z telefonu | Zeskanuj kod QR, aby zarządzać dodatk",
+  "Zmień kolejność",
+  "Zmień kolejność katalogów | Kontroluje kolejność wierszy kat",
+  "https://example.com"
+ ],
+ "utrata_fokusu": [],
+ "wyjscie_z_ekranu": [],
+ "pulapki": [],
+ "krawedzie": [
+  [
+   "https://example.com",
+   "DOWN",
+   "Zarządzaj z telefonu | Zeskanuj kod QR, aby zarządzać dodatk"
+  ],
+  [
+   "Zarządzaj z telefonu | Zeskanuj kod QR, aby zarządzać dodatk",
+   "DOWN",
+   "Zmień kolejność katalogów | Kontroluje kolejność wierszy kat"
+  ],
+  [
+   "Zmień kolejność katalogów | Kontroluje kolejność wierszy kat",
+   "DOWN",
+   "Kolekcje | Grupuj katalogi w folderach na ekranie głównym"
+  ],
+  [
+   "Kolekcje | Grupuj katalogi w folderach na ekranie głównym",
+   "DOWN",
+   "Odśwież dodatki | Pobierz najnowsze zmiany dodatków dla bież"
+  ],
+  [
+   "Odśwież dodatki | Pobierz najnowsze zmiany dodatków dla bież",
+   "DOWN",
+   "Włącz Watchly"
+  ],
+  [
+   "Włącz Watchly",
+   "DOWN",
+   "Włącz Torrentio TB"
+  ],
+  [
+   "Włącz Torrentio TB",
+   "DOWN",
+   "Włącz Auto Subtitle Translate by SonsuzAnime (DeepL)"
+  ],
+  [
+   "Włącz Auto Subtitle Translate by SonsuzAnime (DeepL)",
+   "DOWN",
+   "Włącz Comet | ElfHosted"
+  ],
+  [
+   "Włącz Comet | ElfHosted",
+   "DOWN",
+   "Włącz AIOStreams | ElfHosted"
+  ],
+  [
+   "Włącz AIOStreams | ElfHosted",
+   "DOWN",
+   "Włącz opensubtitles PRO"
+  ],
+  [
+   "Włącz opensubtitles PRO",
+   "DOWN",
+   "Włącz StremThru Torz"
+  ],
+  [
+   "Włącz StremThru Torz",
+   "DOWN",
+   "Włącz ThePirateBay+"
+  ],
+  [
+   "Włącz ThePirateBay+",
+   "DOWN",
+   "Włącz stremio-addons.net"
+  ],
+  [
+   "Włącz stremio-addons.net",
+   "DOWN",
+   "Włącz TorrentsDB TB"
+  ],
+  [
+   "Włącz TorrentsDB TB",
+   "DOWN",
+   "Włącz SubSense"
+  ],
+  [
+   "Włącz SubSense",
+   "DOWN",
+   "Włącz TOP Streaming 🇵🇱"
+  ],
+  [
+   "Włącz TOP Streaming 🇵🇱",
+   "DOWN",
+   "Włącz MDBList"
+  ],
+  [
+   "Włącz MDBList",
+   "DOWN",
+   "Włącz YouStream"
+  ],
+  [
+   "Włącz YouStream",
+   "DOWN",
+   "Włącz Torrentio"
+  ],
+  [
+   "Włącz Torrentio",
+   "DOWN",
+   "Włącz Cinemeta"
+  ],
+  [
+   "Włącz Cinemeta",
+   "DOWN",
+   "Włącz TorrentClaw (PL, 720p)"
+  ],
+  [
+   "Włącz TorrentClaw (PL, 720p)",
+   "DOWN",
+   "Włącz SELection"
+  ],
+  [
+   "Włącz SELection",
+   "DOWN",
+   "Włącz Comet | ElfHosted | TB"
+  ],
+  [
+   "Włącz Comet | ElfHosted | TB",
+   "DOWN",
+   "Włącz Stremio Community Subtitles"
+  ],
+  [
+   "Włącz Stremio Community Subtitles",
+   "DOWN",
+   "Włącz SELection (PL)"
+  ],
+  [
+   "Włącz SELection (PL)",
+   "DOWN",
+   "Włącz Torrentio TB (2)"
+  ],
+  [
+   "Włącz Torrentio TB (2)",
+   "DOWN",
+   "Włącz Flix-Streams"
+  ],
+  [
+   "Włącz Flix-Streams",
+   "DOWN",
+   "Włącz NoTorrent"
+  ],
+  [
+   "Włącz NoTorrent",
+   "DOWN",
+   "Włącz NapiProjekt Addon"
+  ],
+  [
+   "Włącz NapiProjekt Addon",
+   "DOWN",
+   "Włącz NapiProjekt Addon"
+  ],
+  [
+   "Włącz NapiProjekt Addon",
+   "RIGHT",
+   "Zmień kolejność"
+  ],
+  [
+   "Zmień kolejność",
+   "DOWN",
+   "Zmień kolejność"
+  ],
+  [
+   "Zmień kolejność",
+   "RIGHT",
+   "Usuń"
+  ],
+  [
+   "Usuń",
+   "DOWN",
+   "Usuń"
+  ],
+  [
+   "Usuń",
+   "RIGHT",
+   "Usuń"
+  ],
+  [
+   "Usuń",
+   "UP",
+   "Usuń"
+  ],
+  [
+   "Usuń",
+   "LEFT",
+   "Zmień kolejność"
+  ],
+  [
+   "Zmień kolejność",
+   "UP",
+   "Zmień kolejność"
+  ],
+  [
+   "Zmień kolejność",
+   "LEFT",
+   "Włącz Flix-Streams"
+  ],
+  [
+   "Włącz Flix-Streams",
+   "RIGHT",
+   "Zmień kolejność"
+  ]
+ ],
+ "teksty_startowe": [
+  "Dodatki",
+  "Grupuj katalogi w folderach na ekranie głównym",
+  "Kolekcje",
+  "Kontroluje kolejność wierszy katalogów i kolekcji na ekranie głównym",
+  "Odśwież dodatki",
+  "Pobierz najnowsze zmiany dodatków dla bieżącego profilu",
+  "Zainstaluj",
+  "Zainstaluj dodatek",
+  "Zarządzaj z telefonu",
+  "Zeskanuj kod QR, aby zarządzać dodatkami, katalogami i kolekcjami z telefonu",
+  "Zmień kolejność katalogów",
+  "built-40m",
+  "https://example.com"
+ ],
+ "nieosiagalne": [
+  "Zainstaluj",
+  "[bez nazwy 116x16 @1560,0]",
+  "[bez nazwy 116x16 @1692,0]",
+  "[bez nazwy 1776x19 @72,0]"
+ ],
+ "logcat": [],
+ "czas_obchodu_s": 124
+}
