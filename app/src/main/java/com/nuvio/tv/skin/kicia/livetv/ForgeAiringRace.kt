@@ -125,7 +125,7 @@ internal object ForgeAiringRace {
     }
 
     /** Whether [playback]'s stream gives data: an HLS playlist down to its first segment, or the first bytes of a stream. */
-    private suspend fun answers(playback: LiveTvChannel): Boolean {
+    internal suspend fun answers(playback: LiveTvChannel): Boolean { // 22.11: też sonda długości archiwum (fork/tv/CatchupDepth)
         if (playback.stalkerCommand != null) return true // resolved by the player itself; cannot be checked here
         val req = PlayerMediaSourceFactory.normalizePlaybackRequest(playback.streamUrl, playback.headers)
         return withContext(Dispatchers.IO) { runCatching { probe(req.url, req.headers, 0) }.logged("ForkKiciaLivetv", "ForgeAiringRace.kt:130").getOrDefault(false) }

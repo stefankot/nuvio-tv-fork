@@ -66,6 +66,40 @@ object ForgeEpgCategories {
         return channelCache.getOrPut(name) { placeIn(ForgeCategoryRules.CHANNELS, name) }
     }
 
+    /**
+     * 22.11 (właściciel: „jeden kanał może być w kilku kategoriach, np. informacyjne i zagraniczne”): wszystkie gałęzie,
+     * których reguła pasuje do nazwy (nie tylko pierwsza); kanał z liścia zagranicznego (np. Informacje · Zagraniczne,
+     * Sport · Zagraniczne sportowe) trafia też do gałęzi „Zagraniczne”. „Inne” tylko, gdy nic innego nie pasuje.
+     */
+    fun channelPlaces(ch: LiveTvChannel): List<Place> {
+        val name = ch.tvgName?.takeIf { it.isNotBlank() } ?: ch.name
+        return channelPlacesCache.getOrPut(name) {
+            val tree = ForgeCategoryRules.CHANNELS
+            val t = norm(name)
+            val out = ArrayList<Place>(2)
+            for (id in tree.order) {
+                val b = tree.branches.firstOrNull { it.id == id } ?: continue
+                if (b.rx.containsMatchIn(t)) out += Place(b.id, b.leaves.firstOrNull { it.rx.containsMatchIn(t) }?.id)
+            }
+            if (out.any { it.leaf in FOREIGN_LEAVES } && out.none { it.branch == FOREIGN }) out += Place(FOREIGN, null)
+            val real = out.filter { it.branch != OTHER }
+            real.ifEmpty { listOf(out.firstOrNull() ?: Place(OTHER, null)) }
+        }
+    }
+    private val channelPlacesCache = ConcurrentHashMap<String, List<Place>>()
+    private const val FOREIGN = "zagraniczne"
+    private val FOREIGN_LEAVES = setOf("zagraniczne", "zagraniczna", "zachodnie", "ukrainskie", "czesko-slowackie")
+
+    /** Kanał zagraniczny (gałąź „Zagraniczne” albo liść zagraniczny). */
+    fun isForeign(ch: LiveTvChannel): Boolean = channelPlaces(ch).any { it.branch == FOREIGN }
+
+    /** 22.11 (właściciel): najpierw kanały polskojęzyczne, potem zagraniczne; w obu grupach kolejność listy bez zmian. */
+    fun polishFirst(channels: List<LiveTvChannel>): List<LiveTvChannel> {
+        val (foreign, polish) = channels.partition(::isForeign)
+        if (foreign.isNotEmpty() && polish.isNotEmpty()) android.util.Log.i("ForkKiciaLivetv", "kanały: ${polish.size} polskich przed ${foreign.size} zagranicznymi")
+        return polish + foreign
+    }
+
     fun isKey(key: String): Boolean = key.startsWith(PREFIX)
     fun isProgrammeKey(key: String): Boolean = key.startsWith(PROG_PREFIX)
     private fun keyMatches(p: Place, sel: String): Boolean =
@@ -87,7 +121,7 @@ object ForgeEpgCategories {
         val sel = key.removePrefix(PREFIX)
         val needle = query.trim()
         return channels.filter { ch ->
-            ch.hideKey !in hiddenChannels && keyMatches(channelPlace(ch), sel) &&
+            ch.hideKey !in hiddenChannels && channelPlaces(ch).any { keyMatches(it, sel) } &&
                 (needle.isEmpty() || ch.name.contains(needle, ignoreCase = true))
         }
     }
@@ -97,9 +131,10 @@ object ForgeEpgCategories {
         val counts = HashMap<String, Int>()
         channels.forEach { ch ->
             if (ch.group in hiddenGroups) return@forEach
-            val p = channelPlace(ch)
-            counts.merge(p.branch, 1, Int::plus)
-            counts.merge(p.branch + "/" + (p.leaf ?: ""), 1, Int::plus)
+            channelPlaces(ch).forEach { p ->
+                counts.merge(p.branch, 1, Int::plus)
+                counts.merge(p.branch + "/" + (p.leaf ?: ""), 1, Int::plus)
+            }
         }
         return buildTree(ForgeCategoryRules.CHANNELS, PREFIX, counts)
     }

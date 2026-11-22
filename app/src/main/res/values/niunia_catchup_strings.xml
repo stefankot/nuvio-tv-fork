@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Skórka Niunia: żółta etykieta programu, który wkrótce zniknie z archiwum (prawdziwa długość archiwum dostawcy). -->
+<resources>
+    <plurals name="niunia_catchup_left_hours">
+        <item quantity="one">Dostępny jeszcze %d godzinę</item>
+        <item quantity="few">Dostępny jeszcze %d godziny</item>
+        <item quantity="many">Dostępny jeszcze %d godzin</item>
+        <item quantity="other">Dostępny jeszcze %d godzin</item>
+    </plurals>
+</resources>
