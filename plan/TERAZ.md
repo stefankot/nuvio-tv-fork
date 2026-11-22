@@ -3,6 +3,27 @@
 Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–13: `plan/archiwum/TERAZ-historia-watki-1-13.md` (tylko `grep`, nie czytaj całości). Sekcje z 22.11 (build163–169c, scalenie, aktualizacja bazy): `plan/archiwum/TERAZ-historia-22.11.md`.
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
+## NAJPIERW (22.11 ~23:25 — wątek „UX/UI: 50 ścieżek, długie OK, emulator GTV”) — PROMPT HANDOFF (gdy skończą się tokeny)
+Prompt (wklej w nowym wątku albo napisz „kontynuuj”):
+> Kontynuuj wątek UX/UI forka Nuvio Android TV (`/Users/milajovovich/Desktop/nuvio 2/NuvioFork`, gałąź `skin-niunia`). Zasady: `ZASADY.md` (m.in. emulator GTV i Gradle NIGDY razem; build > 10 min — sprawdź, czy się kompiluje, > 20 min — przerwij; po każdej pętli zapisz stan w `plan/ux/`). Stan i raport: `plan/ux/STAN.md`, `plan/ux/RAPORT.md`. Zadanie właściciela: przejść całą aplikację (skórka Niunia), poprawiać błędy i nieoptymalne miejsca, szczególnie długie naciśnięcie OK; cykl: ≥ 10 min testów na emulatorze GTV → build → poprawki → ≥ 10 min testów; co najmniej połowa testów przez uiautomator (`fork-tools/uitest/sciezki.py`), reszta ręcznie; darmowe kanały IPTV gdy trzeba. Zacznij od „PĘTLA 3” niżej.
+
+STAN (22.11 23:25):
+- Commity `5ded5239f` (paczka UX: długie OK w Niuni, NiuniaOkGate + testy, źródła Live TV w Niuni, powrót fokusu w Szukaj, zwiastuny) i `0201d15e3` (podpowiedź EPG, ponowienie fokusu na kanale) — wypchnięte.
+- **APK ux3** (arm64, md5 `b9acf23396a4947d7b93094f157001e5`, kopia `.stage/apk/ux3-arm64.apk`) zainstalowany na emulatorze 23:25, md5 zgodny, `compile -m speed`. Testy JVM Niuni 82/82 (`NiuniaOkGateTest` 8/8). NIE ma go na JMGO (JMGO = build173 v7a z poprzedniego wątku).
+- Emulator `nuvio_tv` (Google TV API 34, tylko arm64 → build `-PforkAbi=arm64-v8a`, bez roota): skórka Niunia, bez konta, darmowa lista iptv-org PL (`https://iptv-org.github.io/iptv/countries/pl.m3u`, 188 kanałów, bez EPG), „Madden” w Bibliotece, „4 Fun Dance” w ulubionych. Brak dodatków ze źródłami filmów (Odtwórz → Toast „niedostępne”), brak „Oglądaj dalej”.
+- Wyniki: pętla 1 (APK b158) OK 18 / UWAGA 25 / BŁĄD 7; pętla 2 (ux2) OK 23 / UWAGA 25 / BŁĄD 2 + ręcznie potwierdzone menu „Akcje tytułu” (Główna, Biblioteka), ulubione kanałów, odtwarzanie Live TV (`plan/ux/cykl1/`, `cykl2/`).
+- Build: pełna kompilacja (po wyczyszczeniu katalogów) w dwóch krokach `compileFullDebugKotlin`, potem `assembleFullDebug`; przyrostowy assemble 7–9 min. `~/.gradle/gradle.properties` ma `-Xmx5g` (przy 8 GB RAM Gradle pracuje z dysku wymiany) — nie zmieniałem.
+- Długie OK na emulatorze: `adb shell input keyevent --longpress KEYCODE_DPAD_CENTER` (API 34 bez `--duration`, bez roota). Zawsze `ANDROID_SERIAL=emulator-5554` — `fork-tools/prefs.sh` bez niego łączy się z JMGO!
+
+PĘTLA 3 (ux3 już zainstalowany — rób po kolei):
+1. Ręcznie: Live TV → OK na kanale (wiersz 1 gra) → Wstecz → po 0,5 / 1 / 2 s fokus nadal na kanale (RAPORT pkt 24; log `live tv: fokus wraca na kanał`). Nad listą podpowiedź EPG (pkt 21).
+2. Ustawienia Niuni (poziom Prosty): „Telewizja → Źródła kanałów i EPG” otwiera okno źródeł; „Szukaj w telewizji” otwiera Szukaj Live TV Niuni.
+3. Strona tytułu: karta „Zwiastun N” → komunikat „Szukam zwiastuna…”, log `zwiastun znaleziony (wybrany)`; „Więcej” → „Mniej”; serial (np. Lupin z banera) → długie OK na „Sezon 1” → komunikat „oznaczony jako obejrzany”, drugie długie OK cofa.
+4. `DEV=emulator-5554 python3 -I fork-tools/uitest/sciezki.py --cykl 3 1 2 3 4 5 11 12 13 17 18 19 20 21 26 27 28 29 30` (ok. 15–20 min) → `plan/ux/cykl3/`.
+5. Zapis w `plan/ux/STAN.md` i `RAPORT.md` ([B] = potwierdzone), commit + push. Następna paczka poprawek → build → pętla 4.
+DALEJ (otwarte, RAPORT): profile Niuni bez długiego OK (pkt 6 — odłożone, wymaga wpięć); „Oglądaj dalej” niesprawdzone na emulatorze; ekrany bazy bez powrotu fokusu / bez widocznej reakcji (pkt 10, 25); YouTube OneTube (kod obcy, bez zmian). Na JMGO (tylko gdy nikt nie ogląda): build v7a z tej paczki i lista `plan/DO_SPRAWDZENIA_NA_TV.md` → „UX długie OK”.
+Kolejka JMGO/SQLite z poprzedniego wątku (sekcja niżej) — nadal aktualna, w tym wątku nieruszana.
+
 ## NAJPIERW (22.11 ~21:00, koniec dnia — handoff wątku „Live TV 252 tys. kanałów, szukanie, indeksy”) — PROMPT DLA NASTĘPNEGO WĄTKU
 Prompt (wklej w nowym wątku albo napisz „kontynuuj”):
 > Kontynuuj pracę nad forkiem Nuvio Android TV (`/Users/milajovovich/Desktop/nuvio 2/NuvioFork`, gałąź `skin-niunia`). Zasady: `ZASADY.md` (po polsku, autonomicznie, duże paczki, build tylko `bash fork-tools/build.sh …`, testy na JMGO tylko gdy nikt nie ogląda, każdą kompilację testować ≥ 10 min). Przeczytaj tę sekcję „NAJPIERW” i rób kolejkę po kolei. Najpierw sprawdź na JMGO build173 (punkt 1), potem zaimplementuj bazę SQLite indeksów TV (punkt 2 — właściciel się zgodził) i podłącz mechanizm duplikatów kanałów (punkt 3). Nie wpisuj nigdzie danych logowania dostawców IPTV (źródła dodaje właściciel przez QR).
@@ -47,18 +68,6 @@ KOLEJKA (po kolei):
 3c. **Baza danych TV (właściciel 22.11 pyta: „czy nie utworzyć zoptymalizowanej bazy?”) — rekomendacja: TAK, przed 5 dostawcami.** Dziś wszystko jest w pamięci (JMGO: ~1 GB PSS przy 252 tys. pozycji, sterta do 512 MB), a indeksy forka (teksty 20 s, kategorie do 143 s, kraj) liczą się od nowa po każdym starcie aplikacji. Plan: SQLite z Androida (bez nowej biblioteki; FTS4 — FTS5 niepewne na Androidzie 11) w `fork/tv/db/`: tabele kanałów (klucz grupy duplikatów, kraj, jakość, źródło, znormalizowana nazwa), tytułów programów (FTS4, prefiksy) i wyników kopii (DupeMemory, 4 h); zasilanie w tle i PRZYROSTOWO z TvBridge.onGuideRead i publikacji listy (tylko zmienione listy/przewodniki — porównanie skrótów list); szukanie i duplikaty czytają z bazy (zapytanie z indeksem: ms, bez trzymania wszystkiego w pamięci). Krok 2 (zmiana Reshaped, decyzja właściciela): przewodnik i lista nie w całości w pamięci, tylko okno widoczne + baza.
 4. Dalsze koszty dużej listy: trwała pamięć (na dysku) kategorii kanałów `ForgeEpgCategories.channelPlaces` i tekstów TvTextIndex — po restarcie liczyć tylko nowe nazwy (dziś 143 s w tle po każdym starcie); `programmeTree` w Niunia Szukaj przeliczane przy każdej zmianie `programmeVersion`; przeglądanie kategorii bez frazy (`forgeTvSearch` z pustym q) idzie jeszcze starą drogą; Reshaped `LiveTvGuideRequest.from` (Regex na nazwę) — tylko gdy pomiar pokaże problem.
 5. Wolne ekrany: porównać `crawl.txt` build172 z build169c (Kalendarz 8,1 / YouTube 8,0 s); jeśli nadal > 5 s bez oczywistej przyczyny → `plan/BLOKADY.md`.
-
-## Polski dźwięk z innego wydania na JMGO (21.11)
-
-APK ARM32 z `21087fcbc` jest na projektorze. Zawiera poprawkę Auto Quality i automatyczny dobór audio oparty na Dublagem. Próby ExoPlayer na JMGO potwierdziły 4K z polskim AC3 5.1, korektę +600 ms, przewijanie, odrzucenie złego dopasowania i powrót do oryginalnego audio po utracie pliku. [Opis zmian, testów i przypięcia upstreamu](autoplay/POLSKI_DZWIEK_DUBLAGEM.md).
-
-## Jakość po włączeniu lektora na JMGO (21.11)
-
-APK ARM32 z poprawką `ff8a3906a` przetestowany na projektorze. 4K pozostało po krótkich przerwach i przewinięciu. Długi zastój dał wznowienie w 1080p od 17,831 s. [Pomiary i opis](autoplay/AUTOJAKOSC_PO_LEKTORZE.md).
-
-## Autoodtwarzanie na JMGO (21.11, po buildzie 162o)
-
-Na JMGO jest APK ARM32 z poprawką autoodtwarzania i napisów (`25b549162`, scalenie `2f6fab0a1`, MD5 `7e3a155cc2304eba31be558fe8ec9049`). Na fizycznym projektorze sprawdzono zmianę źródła przy braku obrazu, wznowienie po awarii HLS, wyczerpanie prób i użycie polskich napisów z innego wydania. [Opis zmian i pomiary](autoplay/AUTOODTWARZANIE_I_NAPISY.md). Kolejka paczki poniżej pozostaje w historii wątku.
 
 ## OTWARTE Z WCZEŚNIEJSZYCH WĄTKÓW (zebrane 19.11 przy archiwizacji; przed robieniem sprawdź w kodzie lub logu, czy nadal aktualne)
 - Czeka na decyzję właściciela: emocje lektora (Gemini TTS Tier 2 — formularz niewysłany / ElevenLabs / zostaje Chirp); 4K na ekranie 1080p (`KeRanking.tvCap` celowo odsuwa 4K); ZONOS3 (lokalny głos, `ai-narrator/`, nieskompilowany); kod bazy: `CollectionsDataStore.parseCollections` (7% wątku głównego) i `UpdateBannerHost` (5%; aktualizator miał być usunięty); W1 (test/limit łącza KE) nierozpoczęty; przenoszenie czegokolwiek z innych forków tylko po potwierdzeniu.

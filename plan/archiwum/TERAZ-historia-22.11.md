@@ -54,3 +54,17 @@ Zrobione (szczegóły w commitach, DECYZJE.md, BLOKADY.md):
 Niesprawdzone na TV (DO_SPRAWDZENIA_NA_TV.md): lektor (ściszanie pasmowe, Opus, Dysk), napisy AI dla filmu spoza Europy, rozdziały w pliku MKV, karta omijania reklam, rozmycia (JMGO = Android 11, bez rozmycia z zasady), głos (pl + VAD).
 **22.11 po teście — właściciel: „Tak, włącz” rozmycie na Androidzie 11**: gotowe rozmycia hero i plakatów Niuni także na Androidzie 11 (procesorem, raz na obraz, pamięć Coil); ZASADY §2 z wyjątkiem. Commit BEZ BUILDA → paczka do następnego buildu: sonda archiwum (598c92946) + rozmycie na Androidzie 11 + Opus lektora 16 kb/s (właściciel 22.11). Sprawdzić na JMGO: log `ForkImages: rozmycie gotowe raz (procesor) … ms`, płynność przewijania rzędów plakatów i ▼ z hero (czy nie ma przycięć).
 **Następne kroki**: (1) przy następnej dużej paczce zbudować z 598c92946 i sprawdzić log `ForkCatchup` (TV Team: ile dni naprawdę); (2) decyzje właściciela w BLOKADY: źródło nagród Z-13, catch-up > 7 dni (baza Reshaped), klucz Fanart.tv, wspólny Dysk rodziny; (3) rozmycie na Androidzie 11 — decyzja zapadła (tak), kod gotowy, czeka na build.
+
+
+<!-- przeniesione z TERAZ.md 22.11 ~23:25 (wątek UX) -->
+## Polski dźwięk z innego wydania na JMGO (21.11)
+
+APK ARM32 z `21087fcbc` jest na projektorze. Zawiera poprawkę Auto Quality i automatyczny dobór audio oparty na Dublagem. Próby ExoPlayer na JMGO potwierdziły 4K z polskim AC3 5.1, korektę +600 ms, przewijanie, odrzucenie złego dopasowania i powrót do oryginalnego audio po utracie pliku. [Opis zmian, testów i przypięcia upstreamu](autoplay/POLSKI_DZWIEK_DUBLAGEM.md).
+
+## Jakość po włączeniu lektora na JMGO (21.11)
+
+APK ARM32 z poprawką `ff8a3906a` przetestowany na projektorze. 4K pozostało po krótkich przerwach i przewinięciu. Długi zastój dał wznowienie w 1080p od 17,831 s. [Pomiary i opis](autoplay/AUTOJAKOSC_PO_LEKTORZE.md).
+
+## Autoodtwarzanie na JMGO (21.11, po buildzie 162o)
+
+Na JMGO jest APK ARM32 z poprawką autoodtwarzania i napisów (`25b549162`, scalenie `2f6fab0a1`, MD5 `7e3a155cc2304eba31be558fe8ec9049`). Na fizycznym projektorze sprawdzono zmianę źródła przy braku obrazu, wznowienie po awarii HLS, wyczerpanie prób i użycie polskich napisów z innego wydania. [Opis zmian i pomiary](autoplay/AUTOODTWARZANIE_I_NAPISY.md). Kolejka paczki poniżej pozostaje w historii wątku.
