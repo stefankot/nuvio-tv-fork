@@ -649,6 +649,7 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     testImplementation("net.sf.kxml:kxml2:2.3.0")
     testImplementation(kotlin("test"))
+    testImplementation(kotlin("test-junit")) // Fork hook: testy (kotlin.test z Reshaped na JUnit 4)
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
     testImplementation("io.mockk:mockk:1.13.12")
     testImplementation("com.squareup.okhttp3:mockwebserver:5.3.2")

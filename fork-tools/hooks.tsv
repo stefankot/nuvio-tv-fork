@@ -134,3 +134,4 @@ app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerAutoQual
 app/src/main/java/com/nuvio/tv/core/player/AutoPlayRace.kt	Placeholders.tooSmall(	private suspend fun probe(	placeholders	klip not cached przegrywa wyścig	
 app/src/main/java/com/nuvio/tv/core/player/AutoPlayRace.kt	Placeholders.firstReal(	suspend fun pick(	placeholders	bez zwycięzcy: nie klip	
 app/src/main/java/com/nuvio/tv/core/player/AutoPlayRace.kt	internal suspend fun pickInRankOrder(	AutoPlayRace	echo	gotowość równolegle, wybór najwyższej gotowej pozycji
+app/build.gradle.kts	// Fork hook: testy (kotlin.test z Reshaped na JUnit 4)	testImplementation(kotlin("test"))	testy	adnotacje kotlin.test (testy Reshaped audiosync, SyncDoc) działają na JUnit 4	
