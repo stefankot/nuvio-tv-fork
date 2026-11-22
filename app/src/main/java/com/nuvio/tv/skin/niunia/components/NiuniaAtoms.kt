@@ -298,9 +298,11 @@ fun niuniaIconVector(name: String): ImageVector = iconCache.getOrPut(name) {
         NiuniaIconPaths.all.getValue("info")
     }
     val b = ImageVector.Builder(name = "niunia-$name", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 24f, viewportHeight = 24f)
+    val evenOdd = name in NiuniaIconPaths.evenOdd // Z-13: maska BAFTA ma otwory (oczy, usta)
     paths.forEach { (d, filled) ->
         b.addPath(
             pathData = addPathNodes(d),
+            pathFillType = if (evenOdd && filled) androidx.compose.ui.graphics.PathFillType.EvenOdd else androidx.compose.ui.graphics.PathFillType.NonZero,
             fill = if (filled) SolidColor(Color.White) else null,
             stroke = if (filled) null else SolidColor(Color.White),
             strokeLineWidth = if (filled) 0f else 2f,

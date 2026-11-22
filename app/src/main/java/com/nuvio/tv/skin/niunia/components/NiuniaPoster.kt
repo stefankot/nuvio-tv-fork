@@ -64,6 +64,7 @@ fun NiuniaPoster(
     onFocus: ((Boolean) -> Unit)? = null,
     fallback: String? = null,
     onLongOk: (() -> Unit)? = null,
+    award: com.nuvio.tv.skin.niunia.awards.NiuniaAwardBadge? = null,
 ) {
     val shape = RoundedCornerShape(com.nuvio.tv.skin.niunia.tokens.NiuniaRadius.Radius16) // DS v2: karty 16
     var focused by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
@@ -98,6 +99,7 @@ fun NiuniaPoster(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(5.dp),
         ) {
+            if (award != null) NiuniaAwardTag(award) // Z-13: plakietka nagrody na górze stopki, nad logo
             val foot = niuniaPosterFoot(baked, logo)
             if (foot != NiuniaPosterFoot.None) {
                 if (foot == NiuniaPosterFoot.Logo) {

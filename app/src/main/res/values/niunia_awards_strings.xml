@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Skórka Niunia, Z-13 „Nagrody i nominacje” (NAwards: pasek w hero, lista na dole strony, plakietka na plakacie). -->
+<resources>
+    <string name="niunia_awards_title">Nagrody i nominacje</string>
+    <string name="niunia_awards_empty">Brak nagród i nominacji</string>
+    <string name="niunia_awards_won">Wygrana</string>
+    <string name="niunia_awards_gala">Gala %1$s</string>
+    <string name="niunia_awards_festivals">Festiwale i inne gale</string>
+    <string name="niunia_awards_strip_descr">Nagrody: %1$s</string>
+    <string name="niunia_awards_row_won">%1$s: %2$s, %3$s, wygrana</string>
+    <string name="niunia_awards_row_nom">%1$s: %2$s, %3$s, nominacja</string>
+    <string name="niunia_awards_row_pending">%1$s: %2$s, %3$s, nominacja, rozdanie %4$s</string>
+    <!-- odmiana: 1 / 2–4 (bez 12–14) / reszta -->
+    <string name="niunia_awards_award_one">nagroda</string>
+    <string name="niunia_awards_award_few">nagrody</string>
+    <string name="niunia_awards_award_many">nagród</string>
+    <string name="niunia_awards_nom_one">nominacja</string>
+    <string name="niunia_awards_nom_few">nominacje</string>
+    <string name="niunia_awards_nom_many">nominacji</string>
+    <string name="niunia_awards_gala_one">gala</string>
+    <string name="niunia_awards_gala_few">gale</string>
+    <string name="niunia_awards_gala_many">gal</string>
+</resources>
