@@ -69,7 +69,6 @@ app/src/main/java/com/nuvio/tv/ui/screens/detail/MetaDetailsScreen.kt	Fork hook:
 app/src/main/java/com/nuvio/tv/ui/reshaped/pillnav/PillNavigationBar.kt	// Fork hook: skin (nawigacja Niunii)	niuniaNavActive	skin	skin: menu Niunii (pigułka + panel boczny) zamiast paska	
 app/src/main/java/com/nuvio/tv/ui/screens/cast/CastDetailScreen.kt	Fork hook: skin (strona osoby skórki)	CastDetailContent(	skin	skin: strona osoby (Niunia)	
 app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	Fork hook: skin (Live TV skórki)	LIVE_TV_ROUTE	skin	skin: Live TV (Niunia)	
-app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerAutoQuality.kt	Fork hook: echo (w dół tylko po zacięciu)	autoQualityPolicy.config =	echo	Auto jakość: bez wczesnego schodzenia w dół (EchoAutoQualityGuard)	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	// Fork hook: skin (Wstecz krok po kroku w nakładce skórki)	seekPreview.handleBack	skin	skin: Wstecz najpierw do nakładki skórki (panel, poziomy Niuni)	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	Fork hook: livetv (Wstecz w pytaniu archiwum	val exitPlayerFromError	livetv	Wstecz w pytaniu „Wrócić do transmisji na żywo?” wychodzi z odtwarzacza (exit było puste)	
 app/build.gradle.kts	// Fork hook: podpis debug	buildTypes	podpis	baza od d2eeb3d0e podpisuje debug kluczem release; fork zostaje przy debug (aktualizacja na TV bez odinstalowania)	signingConfig = signingConfigs.getByName("release")
@@ -131,3 +130,7 @@ app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerLifecycl
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerPlaybackEvents.kt	// Fork hook: Dublagem ręczny wybór audio	is PlayerEvent.OnSelectAudioTrack -> {	dublagem	ręczny wybór audio
 app/build.gradle.kts	// Fork hook: Dublagem vendor FFT	implementation(libs.nanohttpd)	dublagem	Biblioteka FFT z Dublagem
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerTracks.kt	// Fork hook: Dublagem audio po starcie	autoSourceRecovery == null	dublagem	Poczekaj na dobranie polskiej ścieżki
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerAutoQuality.kt	Fork hook: echo (w dół tylko po zacięciu)	autoQualityPolicy.config =	echo	Auto jakość: bez wczesnego schodzenia w dół (EchoAutoQualityGuard)	
+app/src/main/java/com/nuvio/tv/core/player/AutoPlayRace.kt	Placeholders.tooSmall(	private suspend fun probe(	placeholders	klip not cached przegrywa wyścig	
+app/src/main/java/com/nuvio/tv/core/player/AutoPlayRace.kt	Placeholders.firstReal(	suspend fun pick(	placeholders	bez zwycięzcy: nie klip	
+app/src/main/java/com/nuvio/tv/core/player/AutoPlayRace.kt	internal suspend fun pickInRankOrder(	AutoPlayRace	echo	gotowość równolegle, wybór najwyższej gotowej pozycji

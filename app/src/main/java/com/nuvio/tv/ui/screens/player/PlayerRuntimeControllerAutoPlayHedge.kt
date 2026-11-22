@@ -29,7 +29,7 @@ internal fun PlayerRuntimeController.armAutoPlayHedge(url: String) {
     autoPlayHedgeJob?.cancel()
     autoPlayHedgeJob = null
     autoPlayHedgeUrl = null
-    if (!AutoPlayRace.takeSlowStartWatch(url)) return
+    if (!AutoPlayRace.takeSlowStartWatch(url) || autoSourceRecovery != null) return
     autoPlayHedgeUrl = url
     val headers = currentHeaders
     val armedAt = SystemClock.elapsedRealtime()

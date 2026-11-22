@@ -115,11 +115,12 @@ object AutoPlayRace {
         installedAddonNames: Set<String>,
         selectedAddons: Set<String>,
         selectedPlugins: Set<String>,
-        bingeGroup: String?
+        bingeGroup: String?,
+        eligibleMatches: List<Stream>? = null // Fork hook: shared first-source order
     ): List<Stream>? {
         if (!canRace(pick)) return null
         if (bingeGroup != null && pick.behaviorHints?.bingeGroup == bingeGroup) return null
-        val matches = StreamAutoPlaySelector.raceCandidates(
+        val matches = eligibleMatches ?: StreamAutoPlaySelector.raceCandidates(
             streams = streams,
             mode = mode,
             regexPattern = regexPattern,
@@ -200,6 +201,8 @@ object AutoPlayRace {
     class HeadStart(private val scope: CoroutineScope) {
         private val checks = LinkedHashMap<String, Deferred<Long?>>()
 
+        val acceptsMore: Boolean get() = checks.size < AUTO_PLAY_RACE_SIZE // Fork hook: skip repeated autoplay ranking
+
         /** Starts checking those of [matches] (auto-play's matches so far) not checked yet, up to the cap. */
         fun offer(matches: List<Stream>) {
             for (stream in matches.raceable()) {
@@ -268,7 +271,28 @@ object AutoPlayRace {
                 (through?.let { (_, tookMs) -> ", already through in ${tookMs}ms" } ?: "") +
                 " after ${SystemClock.elapsedRealtime() - startedAt}ms"
         )
-        return winner?.let(candidates::get) ?: first
+        return winner?.let(candidates::get) ?: com.nuvio.tv.fork.sources.Placeholders.firstReal(candidates) ?: first // Fork hook: placeholders
+    }
+
+    /** Fork hook: quality autoplay waits briefly for the best candidate, even if a lower rank replied first. */
+    internal suspend fun pickInRankOrder(candidates: List<Stream>, headStart: HeadStart?): Stream = coroutineScope {
+        val ordered = candidates.take(4)
+        val checks = ordered.mapIndexed { index, stream ->
+            async(Dispatchers.IO) {
+                withTimeoutOrNull(4_000L) {
+                    val ahead = headStart?.checkOf(stream)?.takeUnless { it.isCancelled }
+                    if (ahead != null) awaitCheck(ahead) else timedCheck(stream, "rank#$index")
+                }
+            }
+        }
+        try {
+            val index = checks.indices.firstOrNull { checks[it].await() != null }
+            Log.i(TAG, "quality autoplay candidates=${ordered.size} readyRank=${index ?: -1}")
+            index?.let(ordered::get) ?: candidates.first()
+        } finally {
+            checks.forEach { it.cancel() }
+            headStart?.stop()
+        }
     }
 
     /** How long [stream]'s link took to deliver video, timed from now; null if it didn't within [RACE_TIMEOUT_MS]. */
@@ -349,6 +373,7 @@ object AutoPlayRace {
         ) {
             return "unrecognised data (${head.contentType ?: "no type"})"
         }
+        com.nuvio.tv.fork.sources.Placeholders.tooSmall(head.total, rawUrl)?.let { return it } // Fork hook: placeholders
         return if (bytes.size >= RACE_BYTES) null
         else if (head.complete) "ended after ${bytes.size} bytes (a placeholder clip)"
         else "only ${bytes.size} bytes"
