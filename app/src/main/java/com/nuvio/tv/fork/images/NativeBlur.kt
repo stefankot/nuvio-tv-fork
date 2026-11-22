@@ -22,17 +22,35 @@ import coil3.transform.Transformation
  * Transformacja Coil: obraz zmniejszony do [scale] i rozmyty natywnie (RenderEffect na RenderNode, rysowany przez
  * HardwareRenderer do ImageReader — GPU, Android 12+). Wynik (mała bitmapa) trafia do pamięci Coil pod kluczem z promieniem,
  * więc przy przewijaniu i powrotach nic nie jest liczone drugi raz — zamiast RenderEffect w każdej klatce.
- * Android 11 i starsze: nie używać (ZASADY: rozmycie tylko natywnie; tam zwykłe tło skórki) — [available] = false.
+ * Android 11 i starsze (22.11, właściciel: „Tak, włącz” — zmiana ZASADY §2): to samo rozmycie liczone raz procesorem
+ * (stack blur Nuvio, [com.nuvio.tv.ui.util.BlurTransformation]) na obrazie pomniejszonym do [scale] — kilka-kilkanaście ms
+ * na obraz, potem gotowa bitmapa z pamięci Coil; w klatkach animacji i przewijania nic nie jest liczone.
  */
 class NativeBlur(private val radiusPx: Float, private val scale: Float = 0.25f) : Transformation() {
     override val cacheKey: String = "fork_native_blur_${radiusPx.toInt()}_${(scale * 100).toInt()}"
 
     override suspend fun transform(input: Bitmap, size: Size): Bitmap {
-        if (Build.VERSION.SDK_INT < 31) return input
+        if (Build.VERSION.SDK_INT < 31) return cpu(input, size)
         return try { blur(input) } catch (e: Exception) {
-            Log.w(TAG, "rozmycie (${input.width}×${input.height}, r=$radiusPx): ${e.javaClass.simpleName}: ${e.message} — obraz bez rozmycia")
-            input
+            Log.w(TAG, "rozmycie GPU (${input.width}×${input.height}, r=$radiusPx): ${e.javaClass.simpleName}: ${e.message} — liczę procesorem")
+            cpu(input, size)
         }
+    }
+
+    /** Android 11 (i zapas): pomniejszenie + stack blur, raz na obraz. */
+    private suspend fun cpu(input: Bitmap, size: Size): Bitmap = try {
+        val w = (input.width * scale).toInt().coerceAtLeast(1)
+        val h = (input.height * scale).toInt().coerceAtLeast(1)
+        val small = Bitmap.createScaledBitmap(input, w, h, true)
+        val r = (radiusPx * scale).toInt().coerceIn(1, 60)
+        val t0 = android.os.SystemClock.uptimeMillis()
+        com.nuvio.tv.ui.util.BlurTransformation(r).transform(small, size).also {
+            if (small !== input && small !== it) small.recycle()
+            if (logged < 3) { logged++; Log.i(TAG, "rozmycie gotowe raz (procesor): ${input.width}×${input.height} → ${w}×${h}, r=$r px, ${android.os.SystemClock.uptimeMillis() - t0} ms (pamięć Coil)") }
+        }
+    } catch (e: Exception) {
+        Log.w(TAG, "rozmycie procesorem (${input.width}×${input.height}): ${e.javaClass.simpleName}: ${e.message} — obraz bez rozmycia")
+        input
     }
 
     @RequiresApi(31)
@@ -72,7 +90,8 @@ class NativeBlur(private val radiusPx: Float, private val scale: Float = 0.25f) 
         private const val TAG = "ForkImages"
         const val KEY = "images_preblur"
         @Volatile private var logged = 0
-        val available: Boolean get() = Build.VERSION.SDK_INT >= 31
+        /** 22.11: wszystkie wersje Androida (11 — procesorem, raz na obraz). */
+        val available: Boolean get() = true
         fun enabled(c: android.content.Context) = available && com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(c, KEY, true)
     }
 }

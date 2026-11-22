@@ -82,7 +82,9 @@ fun NiuniaPoster(
             .background(NiuniaColors.Surface)
     ) {
         AsyncImage(model = model, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
-        if (Build.VERSION.SDK_INT >= 31) {
+        // 22.11: na Androidzie 11 też, gdy rozmycie jest gotowe (liczone raz procesorem, pamięć Coil).
+        val preblur = androidx.compose.runtime.remember { com.nuvio.tv.fork.images.NativeBlur.enabled(context) }
+        if (Build.VERSION.SDK_INT >= 31 || preblur) {
             if (!baked) BlurLayer(model, 6f, .66f, .84f)
             BlurLayer(model, if (baked) 8f else 14f, if (baked) .82f else .78f, if (baked) .97f else .96f)
         }

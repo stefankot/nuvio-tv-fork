@@ -91,7 +91,7 @@ fun NiuniaHeroPage(
             model = blurred, contentDescription = null, contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize().graphicsLayer { alpha = t; scaleX = 1f + 0.08f * t; scaleY = 1f + 0.08f * t },
         )
-        Box(Modifier.fillMaxSize().graphicsLayer { alpha = t }.background(if (blurOk) Color(0x8C000000) else Color(0xE62C2C2E)))
+        Box(Modifier.fillMaxSize().graphicsLayer { alpha = t }.background(if (blurOk || blurred != null) Color(0x8C000000) else Color(0xE62C2C2E)))
         Box(
             Modifier.fillMaxSize()
                 .graphicsLayer { alpha = 1f - t; translationY = -h * t }
@@ -103,7 +103,7 @@ fun NiuniaHeroPage(
         Box(
             Modifier.fillMaxSize()
                 .graphicsLayer { translationY = h * (1f - t) }
-                .onFocusChanged { if (it.hasFocus && !down) { down = true; Log.i(TAG, "$what: ▼ → pod hero (rozmycie ${if (blurOk) "tak" else "przyciemnienie"})") } }
+                .onFocusChanged { if (it.hasFocus && !down) { down = true; Log.i(TAG, "$what: ▼ → pod hero (rozmycie ${if (blurred != null) "gotowe" else if (blurOk) "tak" else "przyciemnienie"})") } }
                 .focusRequester(belowFocus)
                 .focusProperties { exit = { dir -> if (dir == FocusDirection.Up) heroFocus else FocusRequester.Default } }
                 .focusGroup(),
