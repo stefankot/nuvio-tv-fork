@@ -54,3 +54,4 @@ Lista dla właściciela. Wykonawca dopisuje tu wszystko, czego nie da się spraw
 - Omijanie reklam: program na żywo, który leciał wcześniej (powtórka) → po ok. 15 s karta „Możesz ominąć reklamy”, OK → archiwum + komunikat.
 - Głos: komenda „następny odcinek” / „włącz Netflix”; cisza po naciśnięciu → log `bez mowy … Whisper pominięty` (bez zmyślonego tekstu).
 - Catch-up (po buildzie z 598c92946): log `ForkCatchup … naprawdę N dni` dla TV Team.
+- Polski dźwięk z TorrentClaw (22.11, `LangFlags`): film z polskim dubbingiem (np. „W głowie się nie mieści 2”) → w logu `ForkRanking` pierwsze źródło z `pl=0` i flagą 🇵🇱 w linii 🔊; źródło tylko z polskimi napisami (🇵🇱 wyłącznie w 💬) nie wyprzedza polskiego dźwięku. Opisy Torrentio w kilku liniach z „PL”/„Lektor” też mają `pl=` mniejsze niż reszta.
