@@ -164,6 +164,7 @@ object ForkHooks {
     fun moduleOverlays() {
         val c = LocalContext.current
         remember(c) { com.nuvio.tv.skin.api.SkinPreferences.ensureLoaded(c); com.nuvio.tv.fork.sources.KeRanking.warm(c) } // skórka przed pierwszym ekranem; ranking KE: dekodery i TV
+        androidx.compose.runtime.LaunchedEffect(Unit) { com.nuvio.tv.fork.sources.ChaptersDefault.ensure(c) } // 22.11: rozdziały domyślnie włączone (raz)
         // Rodzina: przy pokazaniu aplikacji właściciel wysyła zmiany / rodzina pobiera; przy schowaniu właściciel wysyła.
         val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
         androidx.compose.runtime.DisposableEffect(owner) {

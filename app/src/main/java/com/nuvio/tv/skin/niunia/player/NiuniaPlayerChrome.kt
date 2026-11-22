@@ -246,7 +246,9 @@ fun NiuniaPlayerChrome(
             Spacer(Modifier.height(NiuniaSpace.PlayerGap))
             val duration = scrub.state.durationMs.coerceAtLeast(1L)
             NiuniaSeekBar(
-                state = NiuniaSeekState.of(scrub.state.positionMs, duration),
+                // 22.11: granice rozdziałów na pasku (Exo: rozdziały MKV, mpv: lista), gdy ustawienie „Rozdziały” jest włączone.
+                state = NiuniaSeekState.of(scrub.state.positionMs, duration).copy(
+                    chapters = if (uiState.chaptersEnabled) uiState.chapters.map { it.startMs.toFloat() / duration } else emptyList()),
                 start = formatScrubTime(scrub.state.markerMs ?: scrub.state.positionMs),
                 end = "\u2212" + formatScrubTime((scrub.state.durationMs - scrub.state.positionMs).coerceAtLeast(0)),
                 focused = barFocused,
