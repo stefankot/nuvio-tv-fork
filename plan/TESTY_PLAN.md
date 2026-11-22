@@ -1,35 +1,51 @@
-# Plan testów (20.11.2026)
+# Plan testów (aktualny 22.11.2026; poprzednia wersja z 20.11 w historii gita)
 
-**URUCHAMIANIE: tylko gdy właściciel napisze „wykonaj testy”** (wtedy: build z `:app:testFullDebugUnitTest :app:assembleFullDebug -PforkAbi=arm64-v8a`, emulator, `bash fork-tools/test/smoke.sh`). Test dymny tylko w skórce Niunia.
+Właściciel 22.11: „zaprojektuj testy jednostkowe dla każdej funkcjonalności w moim Nuvio; iteracyjnie poprawiaj błędy dużymi
+paczkami; nie kompiluj paczki z pojedynczą zmianą; testuj co najmniej 10 minut jedną kompilację”.
 
-Cel: najmniej pracy, najwięcej wykrytych błędów. Dwa poziomy, oba uruchamiane w JEDNYM buildzie paczki:
+## Jak to działa (jedna paczka = jeden build)
+1. Wszystkie poprawki z kolejki → commit (bez buildu dla jednej poprawki).
+2. Jeden build: `bash fork-tools/build.sh <nazwa> :app:testFullDebugUnitTest :app:assembleFullDebug -PforkAbi=armeabi-v7a`
+   (testy JVM + APK na JMGO naraz). Wyniki testów: `app/build/test-results/testFullDebugUnitTest/*.xml`,
+   zbiorczo `python3 -I fork-tools/test/junit_wyniki.py` (lista nieudanych z pierwszą linią błędu).
+3. Instalacja na JMGO (md5 po `adb pull`, `compile -m speed`), potem co najmniej 10 minut testu na TV:
+   obchód pilotem `DEV=192.168.31.252:5555 python3 fork-tools/uitest/crawl.py` (trasy domyślne) + logi `Fork*` i bufor crash.
+4. Błędy z testów JVM i z TV → poprawki do następnej paczki (kolejka w `plan/TERAZ.md`).
 
-1. **Testy jednostkowe (JVM, `:app:testFullDebugUnitTest`)** — czysta logika każdego modułu; sekundy na test, bez urządzenia.
-2. **Test dymny na emulatorze (`fork-tools/test/smoke.sh`)** — apka startuje w każdej skórce, przejście pilotem po każdej zakładce menu,
-   wejście w pierwszą pozycję i Wstecz; wynik = brak crasha (bufor `crash`), fokus nie ginie, log `Fork*` bez wyjątków.
-   Emulator nigdy razem z Gradle (8 GB RAM). JMGO tylko do oglądania przez właściciela, nie do testów.
+Pokrycie: `python3 -I fork-tools/merge/coverage.py .` — pliki forka bez żadnego testu (22.11: 252 pliki, 102 z testem przed paczką testów).
 
-Kolejność w paczce: commit poprawek → `build.sh <nazwa> :app:testFullDebugUnitTest :app:assembleFullDebug -PforkAbi=arm64-v8a`
-→ emulator → `smoke.sh` → poprawki do następnej paczki.
+## Funkcje → testy jednostkowe (JVM)
+Testy sprawdzają czystą logikę (bez TV, bez sieci). Ekrany Compose i odtwarzanie — obchód pilotem na JMGO.
 
-## Pokrycie testami jednostkowymi (moduł → co sprawdzamy)
-| Moduł | Testy | Stan |
+| Funkcja | Co sprawdzamy | Plik testu |
 |---|---|---|
-| fork/tv (EPG, kanały, przewodnik, alerty, historia) | 22 pliki | było |
-| fork/sources (ranking źródeł, język, napisy, presety) | 5 | było |
-| fork/lektor (silnik, mikser, cięcie ciszy) | 3 | było |
-| fork/voice (polecenia głosowe, czas) | 2 | było |
-| fork/ai, discover, launcher, night, picks, registry, settings/nav | po 1–2 | było |
-| skin/api: SkinId z klucza | NiuniaLogicTest | NOWE 20.11 |
-| skin/niunia: etykiety rankingu, linia „gatunek · ocena”, plakat pionowy ze wzoru + zapas | NiuniaLogicTest | NOWE 20.11 |
-| fork/buildage: „built-1h” (minuty/godziny/dni) | BuildAgeTest | NOWE 20.11 |
-| fork/subs: MPL2 i MicroDVD → SRT (kursywa, nowa linia, brak końca, FPS) | TextSubtitleFormatsTest | NOWE 20.11 |
-| fork/yt: id filmu z lokalnego MPD | YouTubeTextSourceTest | NOWE 20.11 |
-| fork/echo, family, net, tvdb, skin/kicia (UI) | — | tylko test dymny (głównie Compose/sieć); dopisywać, gdy padnie błąd |
+| Live TV: archiwum IPTV | ile godzin program jest jeszcze w archiwum (deklarowane/sprawdzone dni), program trwający, przeterminowany, klucz źródła | `fork/tv/LiveTvLogicTest` (NOWE) |
+| Live TV: przypomnienia | zapis/odczyt bez utraty pól (tab, nowa linia), uszkodzone wiersze | `fork/tv/LiveTvLogicTest` (NOWE) |
+| Live TV: kolejność przewodników | epg.ovh przed tv.team, ranga dla repozytorium, obce hosty | `fork/tv/LiveTvLogicTest` (NOWE) |
+| Live TV: EPG, kanały, przewodnik, alerty, historia | 22 pliki | `fork/tv/*` (było) |
+| Live TV: logo kanałów | paczka zip, logo przy wyłączonym module | `fork/tv/LogoAndCondenseTest` (NOWE) + `fork/tv/logo/*` (było) |
+| Niunia: Live TV | powrót z odtwarzacza na kafel/komórkę (raz), stan „na żywo”, postęp, serial | `skin/niunia/NiuniaLiveAndPlayerTest` (NOWE) |
+| Niunia: odtwarzacz | Wstecz krok po kroku (nakładka decyduje, błąd nie wywraca) | `skin/niunia/NiuniaLiveAndPlayerTest` (NOWE) |
+| Niunia: plakaty | plakat pionowy ze wzoru, zapas (oryginał, Cinemeta po IMDb — 22.11) | `skin/niunia/NiuniaLogicTest` (poprawione 22.11) |
+| Niunia: tokeny, DS, etykiety, nagrody, YouTube | 55 testów | `skin/niunia/*` (było) |
+| Rodzina: szyfrowanie | SHA-256 wzorzec, kod parowania 6 cyfr, klucz z kodu, AES-GCM tam i z powrotem, zmieniony szyfrogram/zły klucz | `fork/family/FamilyCryptoTest` (NOWE) |
+| Źródła: obcy dubbing | Castellano/TRUEFRENCH na koniec, z angielskim/MULTI/PL zostaje, słowo z tytułu filmu | `fork/sources/SourceTiersTest` (NOWE) |
+| Źródła: gotowe przed niegotowymi | torrent bez debrid, NOT_CACHED, ⬇/⏳/[RD download] | `fork/sources/SourceTiersTest` (NOWE) |
+| Odtwarzacz: AVI/WMV w mpv | rozszerzenie w adresie/nazwie/typie, nie w zapytaniu, wyłącznik | `fork/sources/SourceTiersTest` (NOWE) |
+| Źródła: zestawy reguł, język, napisy | reguły Regex, kreator | `fork/sources/*` (było) |
+| Napisy: polskie najpierw | rozpoznanie polskiego kodu | `fork/subs/PolishFirstTest` (NOWE) |
+| Napisy: MPL2/MicroDVD | konwersja do SRT | `fork/subs/TextSubtitleFormatsTest` (było) |
+| Napisy AI: automat | brak polskich, polskie dobre, wybrany polski bez AutoSync, błąd obcego pliku | `fork/ai/subtitles/AiAutoTest` (NOWE) |
+| Napisy AI: MKV | EBML (id, rozmiar, nieznany rozmiar, liczby), tekst ASS/SRT bez stylów, kody języków | `fork/ai/subtitles/MkvSubtitleTextTest` (NOWE) |
+| Napisy AI: tłumaczenie, kontrakty, audyt | 5 plików | `fork/ai/*` (było) |
+| Lektor: głośność | 100% = dawne 30%, skala rosnąca 10–300, ×2 = +10 dB, miękki ogranicznik, opisy ustawień | `fork/lektor/LektorVolumeTest` (NOWE) |
+| Lektor: tempo mowy | uczy się tylko z sensownych nagrań | `fork/tv/LogoAndCondenseTest` (NOWE) |
+| Lektor: silnik, mikser, ściszanie pasmowe | 4 pliki | `fork/lektor/*` (było) |
+| Dublagem (polski dźwięk z innego wydania) | wybór ścieżki, czas | `fork/dublagem/DubbingSelectionTest`, `DubbingTimingTest`, `DubbingAudioSyncDspTest` (było) |
+| TVDB | sezon/odcinek z etykiety (SxxEyy, 1x02, E12, xmltv_ns, cyfry) | `fork/tvdb/TvdbLabelTest` (NOWE) |
+| YouTube: panel dźwięku | jeden zestaw na język (AAC przed Opus), najlepsza jakość, myślniki Unicode, zły manifest | `fork/yt/YouTubeAudioSlimTest` (NOWE) |
+| Głos, odkrywanie, launcher, noc, polecane, rejestr, ustawienia, built-1h, obrazki | po 1–5 plików | (było) |
 
-## Test dymny (emulator) — scenariusze
-Tylko skórka Niunia (`prefs.sh set sp:fork_skin skin niunia`; inne skórki tylko na wyraźne polecenie):
-1. Start (`am start`), 20 s → proces żyje, brak `FATAL` w buforze crash.
-2. Menu: każda zakładka po kolei (OK) → ekran się otwiera, proces żyje, fokus wraca do treści (▶ / ▼).
-3. W treści: OK na pierwszej pozycji → szczegóły → Wstecz.
-4. Zbiorczo: lista crashy + `W/E Fork*` z wyjątkami do `.stage/smoke/<data>.txt`.
+## Bez testów JVM (tylko obchód na TV)
+Ekrany Compose (Niunia, Kicia, ustawienia), rodzina (synchronizacja sieciowa), sieć KE, serwer ustawień, odłączony kod
+wyboru źródła (Echo, KE, Kicia — decyzja 22.11: autoplay jak w Reshaped, do usunięcia).
