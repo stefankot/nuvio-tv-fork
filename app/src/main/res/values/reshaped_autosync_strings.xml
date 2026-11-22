@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tekst używany przez AutoSync z Reshaped; baza NuvioTV d2eeb3d0e usunęła go ze strings.xml. -->
+<resources>
+    <string name="autosync_toast_no_fit">Sync failed: these subtitles don\'t match this version of the video.</string>
+</resources>
