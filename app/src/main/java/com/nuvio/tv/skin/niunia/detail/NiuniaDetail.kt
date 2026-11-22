@@ -236,9 +236,11 @@ fun NiuniaDetail(
                                 com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
                                     LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
                                         items(uiState.moreLikeThis, key = { "${it.rawType}_${it.id}" }) { item ->
+                                            // Właściciel 22.11: podobne z Trakt/Simkl/TMDB są poziome — plakat pionowy zamiast kadrowania do pionu.
+                                            val (art, fallback) = androidx.compose.runtime.remember(item) { com.nuvio.tv.skin.niunia.components.niuniaPortrait(item, "") }
                                             NiuniaPoster(
-                                                art = item.poster, fallback = item.rawPosterUrl, title = item.name, logo = item.logo, meta = NiuniaLabels.meta(item),
-                                                label = NiuniaLabels.label(context, item, 0, rankingRow = false), baked = item.poster != null,
+                                                art = art, fallback = fallback, title = item.name, logo = item.logo, meta = NiuniaLabels.meta(item),
+                                                label = NiuniaLabels.label(context, item, 0, rankingRow = false), baked = art != null,
                                                 onFocus = { if (it) focusedRow = 2 },
                                                 onOk = { Log.i(TAG, "szczegóły: podobne → ${item.id}"); onNavigateToDetail(item.id, item.rawType, null) },
                                             )
