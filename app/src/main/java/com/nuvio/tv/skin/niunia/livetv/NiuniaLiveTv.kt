@@ -148,28 +148,38 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
     // 22.11: najpierw kanały polskojęzyczne, potem zagraniczne. JMGO 22.11 (ANR przy 59 349 kanałach): duża lista w tle.
     val input = state.shownChannels
     val hiddenGroups = state.hiddenGroups
-    var prepared by remember {
-        mutableStateOf(NiuniaLiveOrder.cached(input, hiddenGroups) ?: if (input.size <= NiuniaLiveOrder.SYNC_LIMIT) {
-            NiuniaLiveOrder.prepare(input, hiddenGroups) { NiuniaLiveFilters.categories(context, it, hiddenGroups) }
-        } else NiuniaLiveOrder.unsorted(input, hiddenGroups))
+    // 22.11 (właściciel): „kraj IPTV” — najpierw kanały kraju (domyślnie Polska) albo tylko one; czytane przy wejściu.
+    val countryMode = remember { com.nuvio.tv.fork.tv.country.TvCountry.mode(context) }
+    fun compute(): NiuniaLiveOrder.Prepared {
+        val providers = state.sources.map { it.name }.filter { it.isNotBlank() }
+        val lists = com.nuvio.tv.fork.tv.guide.ExtraGuides.countryBySource
+        return NiuniaLiveOrder.prepare(input, hiddenGroups, countryMode, arrange = { list ->
+            com.nuvio.tv.fork.tv.country.TvCountry.arrange(list, countryMode, providers, { lists[it] }) {
+                Log.w(TAG, "live tv: żaden kanał nie jest z kraju ${com.nuvio.tv.fork.tv.country.TvCountry.nameOf(countryMode.country)} — pokazuję wszystkie")
+            }.also { Log.i(TAG, "live tv: kraj IPTV ${countryMode}: ${it.size} z ${list.size} kanałów") }
+        }) { NiuniaLiveFilters.categories(context, it, hiddenGroups) }
     }
-    LaunchedEffect(input, hiddenGroups) {
-        if (prepared.sorted && prepared.isFor(input, hiddenGroups)) return@LaunchedEffect
-        NiuniaLiveOrder.cached(input, hiddenGroups)?.let { prepared = it; return@LaunchedEffect }
+    var prepared by remember {
+        mutableStateOf(NiuniaLiveOrder.cached(input, hiddenGroups, countryMode) ?: if (input.size <= NiuniaLiveOrder.SYNC_LIMIT) compute()
+        else NiuniaLiveOrder.unsorted(input, hiddenGroups, countryMode))
+    }
+    LaunchedEffect(input, hiddenGroups, countryMode) {
+        if (prepared.sorted && prepared.isFor(input, hiddenGroups, countryMode)) return@LaunchedEffect
+        NiuniaLiveOrder.cached(input, hiddenGroups, countryMode)?.let { prepared = it; return@LaunchedEffect }
         if (input.size <= NiuniaLiveOrder.SYNC_LIMIT) {
-            prepared = NiuniaLiveOrder.prepare(input, hiddenGroups) { NiuniaLiveFilters.categories(context, it, hiddenGroups) }
+            prepared = compute()
             return@LaunchedEffect
         }
         // Do czasu wyniku zostaje poprzednia lista (np. 326 kanałów z zapisanej listy), a przy pierwszym wejściu — kolejność listy.
-        if (prepared.input.isEmpty()) prepared = NiuniaLiveOrder.unsorted(input, hiddenGroups)
+        if (prepared.input.isEmpty()) prepared = NiuniaLiveOrder.unsorted(input, hiddenGroups, countryMode)
         val t0 = android.os.SystemClock.elapsedRealtime()
         prepared = try {
-            withContext(Dispatchers.Default) { NiuniaLiveOrder.prepare(input, hiddenGroups) { NiuniaLiveFilters.categories(context, it, hiddenGroups) } }
+            withContext(Dispatchers.Default) { compute() }
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {
             Log.w(TAG, "live tv: kolejność kanałów: ${e.javaClass.simpleName}: ${e.message}")
-            NiuniaLiveOrder.unsorted(input, hiddenGroups)
+            NiuniaLiveOrder.unsorted(input, hiddenGroups, countryMode)
         }
         Log.i(TAG, "live tv: kolejność i kategorie ${input.size} kanałów w tle w ${android.os.SystemClock.elapsedRealtime() - t0} ms")
     }

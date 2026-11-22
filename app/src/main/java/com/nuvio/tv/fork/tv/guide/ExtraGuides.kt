@@ -20,6 +20,10 @@ object ExtraGuides {
 
     @Volatile private var lastLog: String? = null
 
+    /** Kraj rozpoznany dla każdej listy (sourceId → kod, np. „pl”); pusty, dopóki listy się nie wczytały. */
+    @Volatile var countryBySource: Map<String, String> = emptyMap()
+        private set
+
     fun urlsFor(c: Context, channels: List<LiveTvChannel>): List<String> {
         if (!ForkFeatures.enabled(c, KEY, true)) return emptyList()
         val t0 = android.os.SystemClock.elapsedRealtime()
@@ -27,7 +31,11 @@ object ExtraGuides {
             // Każda lista osobno (kraj listy), nie wszystkie razem — patrz EpgSources.detectPerList.
             val lists = LinkedHashMap<String, MutableList<Pair<String?, String>>>()
             channels.forEach { ch -> lists.getOrPut(ch.sourceId) { ArrayList() }.add(ch.tvgId to ch.group) }
-            val found = EpgSources.detectPerList(lists.values, sources(c))
+            val all = sources(c)
+            // Kraj każdej listy (np. hls.gd → pl) — też dla ustawienia „kraj IPTV” (fork/tv/country/TvCountry).
+            val perList = lists.mapNotNull { (src, list) -> EpgSources.detect(list, all)?.let { src to it } }
+            countryBySource = perList.associate { (src, s) -> src to s.country.lowercase() }
+            val found = perList.map { it.second }.distinct()
             // Jeden wpis na zmianę wyniku (repozytorium woła to po każdej wczytanej liście).
             val line = "przewodnik uzupełniający: ${found.joinToString { it.country }.ifEmpty { "brak" }} dla ${channels.size} kanałów z ${lists.size} list"
             if (line != lastLog) {

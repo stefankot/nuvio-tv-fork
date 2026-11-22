@@ -20,7 +20,7 @@ class NiuniaLiveOrderTest {
 
     @Test fun `polskie przed zagranicznymi i numery wg nowej kolejnosci`() {
         val list = listOf(ch("CNN International"), ch("TVP 1"), ch("Polsat"))
-        val p = NiuniaLiveOrder.prepare(list, emptySet(), cats)
+        val p = NiuniaLiveOrder.prepare(list, emptySet(), categories = cats)
         assertEquals(listOf("TVP 1", "Polsat", "CNN International"), p.shown.map { it.name })
         assertEquals(1, p.numbers["http://x/TVP 1"])
         assertEquals(3, p.numbers["http://x/CNN International"])
@@ -30,7 +30,7 @@ class NiuniaLiveOrderTest {
 
     @Test fun `zapamietany wynik tylko dla tej samej listy i tych samych ukrytych grup`() {
         val list = listOf(ch("TVP 1"), ch("TVN"))
-        val p = NiuniaLiveOrder.prepare(list, setOf("XXX"), cats)
+        val p = NiuniaLiveOrder.prepare(list, setOf("XXX"), categories = cats)
         assertSame(p, NiuniaLiveOrder.cached(list, setOf("XXX")))
         assertNull("inna ukryta grupa", NiuniaLiveOrder.cached(list, emptySet()))
         assertNull("nowy obiekt listy z repozytorium = przeliczenie", NiuniaLiveOrder.cached(ArrayList(list), setOf("XXX")))
@@ -49,7 +49,7 @@ class NiuniaLiveOrderTest {
 
     @Test fun `powtorzony adres dostaje pierwszy numer`() {
         val list = listOf(ch("TVP 1"), ch("TVP 1"), ch("Polsat"))
-        val p = NiuniaLiveOrder.prepare(list, emptySet(), cats)
+        val p = NiuniaLiveOrder.prepare(list, emptySet(), categories = cats)
         assertEquals(1, p.numbers["http://x/TVP 1"])
         assertNotNull(p.numbers["http://x/Polsat"])
     }

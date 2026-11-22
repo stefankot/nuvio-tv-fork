@@ -308,26 +308,36 @@ internal object NiuniaLiveOrder {
         val categories: List<NiuniaLiveFilter.Category>,
         val numbers: Map<String, Int>,
         val sorted: Boolean,
+        val mode: com.nuvio.tv.fork.tv.country.TvCountry.Mode? = null,
     ) {
-        fun isFor(list: List<LiveTvChannel>, hiddenGroups: Set<String>): Boolean = input === list && hidden == hiddenGroups
+        fun isFor(list: List<LiveTvChannel>, hiddenGroups: Set<String>, countryMode: com.nuvio.tv.fork.tv.country.TvCountry.Mode? = mode): Boolean =
+            input === list && hidden == hiddenGroups && mode == countryMode
     }
 
     @Volatile private var last: Prepared? = null
 
     /** Gotowy wynik dla dokładnie tej listy (ten sam obiekt z repozytorium) i tych ukrytych grup. */
-    fun cached(input: List<LiveTvChannel>, hidden: Set<String>): Prepared? = last?.takeIf { it.isFor(input, hidden) }
+    fun cached(input: List<LiveTvChannel>, hidden: Set<String>, mode: com.nuvio.tv.fork.tv.country.TvCountry.Mode? = null): Prepared? =
+        last?.takeIf { it.isFor(input, hidden, mode) }
 
     /** Pełne liczenie (w tle dla dużej listy); wynik zapamiętany. */
-    fun prepare(input: List<LiveTvChannel>, hidden: Set<String>, categories: (List<LiveTvChannel>) -> List<NiuniaLiveFilter.Category>): Prepared {
-        val shown = ForgeEpgCategories.polishFirst(input)
+    fun prepare(
+        input: List<LiveTvChannel>,
+        hidden: Set<String>,
+        mode: com.nuvio.tv.fork.tv.country.TvCountry.Mode? = null,
+        arrange: (List<LiveTvChannel>) -> List<LiveTvChannel> = ForgeEpgCategories::polishFirst,
+        categories: (List<LiveTvChannel>) -> List<NiuniaLiveFilter.Category>,
+    ): Prepared {
+        // 22.11: kolejność wg ustawienia „kraj IPTV” (TvCountry; domyślnie najpierw Polska) — dawniej zawsze polishFirst.
+        val shown = arrange(input)
         // Mapy kafelków z góry (w tle), żeby wątek UI ich nie liczył.
         NiuniaListMaps.byGuide(shown); NiuniaListMaps.byUrl(shown)
-        return Prepared(input, hidden, shown, categories(shown), numbersOf(shown), sorted = true).also { last = it }
+        return Prepared(input, hidden, shown, categories(shown), numbersOf(shown), sorted = true, mode = mode).also { last = it }
     }
 
     /** Zanim duża lista się policzy: kolejność listy, bez kategorii i — dla dużej listy — bez numerów (niezapamiętane). */
-    fun unsorted(input: List<LiveTvChannel>, hidden: Set<String>): Prepared =
-        Prepared(input, hidden, input, emptyList(), if (input.size <= SYNC_LIMIT) numbersOf(input) else emptyMap(), sorted = false)
+    fun unsorted(input: List<LiveTvChannel>, hidden: Set<String>, mode: com.nuvio.tv.fork.tv.country.TvCountry.Mode? = null): Prepared =
+        Prepared(input, hidden, input, emptyList(), if (input.size <= SYNC_LIMIT) numbersOf(input) else emptyMap(), sorted = false, mode = mode)
 
     private fun numbersOf(list: List<LiveTvChannel>): Map<String, Int> =
         HashMap<String, Int>(list.size * 2).also { m -> list.forEachIndexed { i, ch -> m.putIfAbsent(ch.streamUrl, i + 1) } }

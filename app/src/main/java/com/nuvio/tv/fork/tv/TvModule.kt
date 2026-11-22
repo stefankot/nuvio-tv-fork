@@ -20,6 +20,10 @@ object TvModule : ForkModule {
     override val defaultEnabled = true
 
     override fun actions() = listOf(
+        com.nuvio.tv.fork.registry.ModuleAction("Zmień kraj IPTV", com.nuvio.tv.fork.registry.SettingsLevel.ESSENTIAL, "Kraj kanałów dla „Najpierw / Tylko kanały z mojego kraju” (domyślnie Polska); każde naciśnięcie — następny kraj") { c ->
+            val name = com.nuvio.tv.fork.tv.country.TvCountry.nextCountry(c)
+            com.nuvio.tv.fork.ForkLog.say(c, "ForkTvCountry", "Kraj IPTV: $name")
+        },
         com.nuvio.tv.fork.registry.ModuleAction("Wyczyść historię oglądania TV", com.nuvio.tv.fork.registry.SettingsLevel.ADVANCED, "Kasuje stan obejrzanych odcinków, obserwowane i statystykę kanałów") {
             com.nuvio.tv.fork.tv.most.TvBridge.data?.clearHistory()
         },
@@ -32,6 +36,9 @@ object TvModule : ForkModule {
         com.nuvio.tv.fork.registry.ModuleSetting("tv_reminders", com.nuvio.tv.fork.registry.SettingsLevel.ESSENTIAL, "Telewizja", "Przypomnienia o programach", "Karta nad obrazem na chwilę przed startem", defaultValue = true),
         com.nuvio.tv.fork.registry.ModuleSetting("tv_auto_follow", com.nuvio.tv.fork.registry.SettingsLevel.ESSENTIAL, "Telewizja", "Automatyczne obserwowane programy", "Serial staje się obserwowany po 2 obejrzanych odcinkach (można cofnąć)", defaultValue = true),
         com.nuvio.tv.fork.registry.ModuleSetting("tv_watched_strict", com.nuvio.tv.fork.registry.SettingsLevel.ESSENTIAL, "Telewizja", "Surowe liczenie obejrzanych", "Odcinek jest obejrzany dopiero po 80% czasu (zamiast 50%)", defaultValue = false),
+        // 22.11 (właściciel): domyślnie najpierw Polska, bez wyłączności.
+        com.nuvio.tv.fork.registry.ModuleSetting(com.nuvio.tv.fork.tv.country.TvCountry.KEY_PREFER, com.nuvio.tv.fork.registry.SettingsLevel.ESSENTIAL, "Telewizja", "Najpierw kanały z mojego kraju", "Kanały z wybranego kraju (domyślnie Polska) na początku każdej listy; kraj zmienisz niżej", defaultValue = true),
+        com.nuvio.tv.fork.registry.ModuleSetting(com.nuvio.tv.fork.tv.country.TvCountry.KEY_ONLY, com.nuvio.tv.fork.registry.SettingsLevel.ESSENTIAL, "Telewizja", "Tylko kanały z mojego kraju", "Kanały z innych krajów w ogóle się nie pokazują", defaultValue = false),
         com.nuvio.tv.fork.registry.ModuleSetting(
             com.nuvio.tv.fork.tv.guide.ExtraGuides.KEY, com.nuvio.tv.fork.registry.SettingsLevel.ADVANCED, "Telewizja",
             "Przewodnik uzupełniający dla kraju listy", "Dodaje drugi przewodnik (obrazy, odcinki), gdy rozpozna kraj kanałów", defaultValue = true,
