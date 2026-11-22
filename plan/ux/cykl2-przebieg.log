@@ -1,0 +1,101 @@
+[22:18:37] ścieżka 1: Start aplikacji → ekran główny z fokusem
+   → OK (7 s) 
+[22:18:43] ścieżka 2: Główna: OK „Odtwórz” w banerze
+   → OK (17 s) 
+[22:19:00] ścieżka 3: Główna: długie OK w banerze → strona tytułu
+   → OK (17 s) 
+[22:19:17] ścieżka 4: Główna: ▼ rząd, ►×4, OK → tytuł, Wstecz → ten sam plakat
+   → OK (26 s) 
+[22:19:44] ścieżka 5: Główna: długie OK na plakacie → menu → „Do biblioteki”
+   → UWAGA (28 s) UWAGA: menu: drugi przycisk „[bez nazwy 784x96 @568,566]”
+[22:20:11] ścieżka 6: Główna: długie OK na „Oglądaj dalej”
+   → UWAGA (10 s) UWAGA: brak rzędu „Oglądaj dalej” — pominięte
+[22:20:21] ścieżka 7: Główna: szybkie przewijanie ▼×8 i ▲×8 — fokus nie ginie
+   → OK (18 s) 
+[22:20:38] ścieżka 8: Główna: ◄ do menu bocznego i z powrotem
+   → OK (17 s) 
+[22:20:55] ścieżka 9: Menu boczne: każda pozycja otwiera ekran
+   → OK (25 s) 
+[22:21:20] ścieżka 10: Główna: Wstecz z rzędu → baner/menu, drugi Wstecz → nie zamyka bez pytania
+   → OK (22 s) 
+[22:21:43] ścieżka 11: Szukaj: wpis „bat” klawiaturą ekranową → wyniki → OK → długie OK
+   → OK (59 s) 
+[22:22:41] ścieżka 12: Szukaj: polecane → OK → tytuł → Wstecz (fokus wraca na plakat)
+   → OK (36 s) 
+[22:23:18] ścieżka 13: Szukaj: długie OK na polecanym plakacie
+   → OK (24 s) 
+[22:23:42] ścieżka 14: Szukaj: kafelek „przeglądaj” → OK
+   → OK (22 s) 
+[22:24:03] ścieżka 15: Biblioteka: otwarcie, OK na pierwszej pozycji
+   → UWAGA (17 s) UWAGA: Wstecz: fokus „Główna” zamiast „Przeglądaj filmy i seriale”
+[22:24:20] ścieżka 16: Biblioteka: długie OK na pozycji
+   → UWAGA (22 s) UWAGA: Wstecz z menu: fokus „Główna” zamiast „Przeglądaj filmy i seriale”
+[22:24:42] ścieżka 17: Strona tytułu: przyciski ◄► i OK na każdym
+   → OK (27 s) 
+[22:25:08] ścieżka 18: Strona tytułu: długie OK na przycisku „Odtwórz”
+   → OK (27 s) 
+[22:25:35] ścieżka 19: Strona tytułu: ▼ do odcinków/podobnych, OK, Wstecz
+   → UWAGA (32 s) UWAGA: home: ładowanie 7.2 s; UWAGA: Wstecz: fokus „Odtwórz” zamiast „Genden Phuntsok | GP”
+[22:26:08] ścieżka 20: Strona tytułu: długie OK na „Podobne”
+   → UWAGA (31 s) UWAGA: nie znaleziono: plakat „Podobne” (DOWN×6)
+[22:26:39] ścieżka 21: Strona tytułu: obsada → osoba → plakat → Wstecz×2
+   → OK (47 s) 
+[22:27:26] ścieżka 22: Ustawienia: otwarcie i przejście ▼ po kategoriach
+   → OK (41 s) 
+[22:28:07] ścieżka 23: Ustawienia: ► do treści kategorii, OK, Wstecz
+   → OK (19 s) 
+[22:28:26] ścieżka 24: Ustawienia odtwarzania: przełącznik OK dwa razy (stan wraca)
+   → OK (22 s) 
+[22:28:48] ścieżka 25: Ustawienia: długie OK na pozycji (nie powinno nic psuć)
+   → UWAGA (19 s) UWAGA: długie OK na „Profile”: zachowało się jak zwykłe OK
+[22:29:08] ścieżka 26: Live TV: wejście (stan pusty albo przewodnik)
+   → OK (5 s) 
+[22:29:12] ścieżka 27: Live TV: OK na kanale → odtwarzanie → Wstecz
+   → OK (31 s) 
+[22:29:43] ścieżka 28: Live TV: długie OK na kanale
+   → OK (15 s) 
+[22:29:58] ścieżka 29: Live TV: przewijanie listy ▼×15 i ▲×15
+   → OK (19 s) 
+[22:30:17] ścieżka 30: Live TV: Szukaj kanału
+   → OK (14 s) 
+[22:30:31] ścieżka 31: YouTube (Live): OK na filmie → odtwarzacz → Wstecz
+   → UWAGA (168 s) UWAGA: youtube: ładowanie 11.6 s
+[22:33:19] ścieżka 32: YouTube (Live): długie OK na filmie
+   → UWAGA (360 s) UWAGA: youtube: ładowanie 39.4 s
+[22:39:19] ścieżka 33: Kalendarz: otwarcie, ►×3, OK, Wstecz
+   → UWAGA (70 s) UWAGA: calendar: ładowanie 8.2 s; UWAGA: Wstecz: fokus „LIVE | LA MANSIÓN VIP TEMPORADA 2 | DÍA 15 | HotSpanish Vlogs | 1.2M watching” zamiast „Month”
+[22:40:29] ścieżka 34: Dodatki: lista, OK na dodatku, Wstecz
+   → BŁĄD (74 s) UWAGA: addon_manager: ładowanie 10.2 s; BŁĄD: OK na „Odśwież dodatki | Pobierz najnowsze zmiany dodatków dla bieżącego profilu”: brak reakcji; UWAGA: Wstecz: fokus „LIVE | LA MANSIÓN VIP TEMPORADA 2 | DÍA 15 | HotSpanish Vlogs | 1.2M watching” zamiast „Odśwież dodatki | Pobierz najnowsze zmiany dodatków dla bieżącego profilu”
+[22:41:43] ścieżka 35: Dodatki: długie OK na dodatku
+   → UWAGA (33 s) UWAGA: addon_manager: ładowanie 9.5 s
+[22:42:16] ścieżka 36: Kolejność katalogów: otwarcie, ▼, OK
+   → BŁĄD (35 s) UWAGA: catalog_order: ładowanie 9.0 s; BŁĄD: OK na „Zmień kolejność”: brak reakcji
+[22:42:51] ścieżka 37: Kolekcje: otwarcie, OK, Wstecz
+   → UWAGA (36 s) UWAGA: collections: ładowanie 9.0 s
+[22:43:27] ścieżka 38: Odkrywaj forka: otwarcie, ▼►, OK, Wstecz
+   → UWAGA (47 s) UWAGA: fork_discover: ładowanie 9.9 s; UWAGA: Wstecz: fokus „Szukaj kanału lub programu” zamiast „Szukaj w telewizji”
+[22:44:13] ścieżka 39: Odkrywaj forka: długie OK na plakacie
+   → UWAGA (43 s) UWAGA: fork_discover: ładowanie 9.6 s; UWAGA: Wstecz z menu: fokus „Szukaj kanału lub programu” zamiast „Szukaj w telewizji”
+[22:44:57] ścieżka 40: Wybrane (fork_picks): otwarcie i OK
+   → UWAGA (41 s) UWAGA: fork_picks: ładowanie 9.1 s; UWAGA: Wstecz: fokus „Szukaj kanału lub programu” zamiast „Lekkie na dziś”
+[22:45:38] ścieżka 41: Moduły forka: przełącznik OK×2
+   → UWAGA (33 s) UWAGA: fork_modules: ładowanie 10.4 s
+[22:46:11] ścieżka 42: Narzędzia forka: otwarcie, ▼×3, OK, Wstecz
+   → UWAGA (41 s) UWAGA: fork_tools: ładowanie 9.4 s; UWAGA: Wstecz: fokus „None” zamiast „Sterowanie głosem: przykłady poleceń”
+[22:46:52] ścieżka 43: Wygląd (layout_settings): ▼×5 i OK
+   → UWAGA (40 s) UWAGA: layout_settings: ładowanie 8.6 s; UWAGA: layout_settings: brak fokusu po otwarciu
+[22:47:32] ścieżka 44: Profile: ekran wyboru, długie OK na profilu
+   → UWAGA (33 s) UWAGA: profiles: ładowanie 6.6 s; UWAGA: Wstecz z menu: fokus „Szukaj kanału lub programu” zamiast „Szukaj w telewizji”
+[22:48:05] ścieżka 45: Szczegóły → Odtwórz → wybór źródła → Wstecz
+   → UWAGA (79 s) UWAGA: home: ładowanie 18.4 s
+[22:49:24] ścieżka 46: Główna → Szukaj → Biblioteka → Główna (menu) — fokus wraca
+   → UWAGA (51 s) UWAGA: home: ładowanie 13.0 s; UWAGA: search: ładowanie 15.1 s; UWAGA: library: ładowanie 9.3 s; UWAGA: home: ładowanie 13.3 s
+[22:50:15] ścieżka 47: Główna: ►×12 w rzędzie (długi rząd), ◄×12
+   → UWAGA (78 s) UWAGA: home: ładowanie 15.1 s
+[22:51:33] ścieżka 48: Strona tytułu: Wstecz z głębi (▼×4) wraca na górę albo wychodzi
+   → UWAGA (58 s) UWAGA: home: ładowanie 17.3 s
+[22:52:31] ścieżka 49: Odtwarzacz YouTube: OK pauza, ◄► przewijanie, Wstecz
+   → UWAGA (579 s) UWAGA: youtube: ładowanie 45.8 s
+[23:02:10] ścieżka 50: Długie OK na menu bocznym (nie powinno psuć)
+   → UWAGA (48 s) UWAGA: home: ładowanie 17.8 s
+koniec: 44.3 min, {'OK': 23, 'UWAGA': 25, 'BŁĄD': 2}, raport /Users/milajovovich/Desktop/nuvio 2/NuvioFork/plan/ux/cykl2/sciezki.md

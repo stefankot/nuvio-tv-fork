@@ -31,3 +31,11 @@ Emulator GTV (`nuvio_tv`, Google TV API 34, arm64 → build `-PforkAbi=arm64-v8a
 - Następny krok (22:00): `adb emu kill`, build `ux2a` (`:app:compileFullDebugKotlin -PforkAbi=arm64-v8a`), potem `ux2b`
   (`:app:assembleFullDebug -PforkAbi=arm64-v8a`), instalacja na emulatorze, pętla 2: dodanie darmowej listy IPTV przez nowy
   przycisk w pustym Live TV, testy długiego OK (menu plakatów, „Oglądaj dalej”, kanały), powrót fokusu w Szukaj.
+
+## Pętla 2 (22:15–23:20) — APK ux2 (commit 5ded5239f), arm64
+- Build: krok A `compileFullDebugKotlin` + krok B `assembleFullDebug` (9 min 15 s) — oba < 20 min.
+- Darmowa lista IPTV dodana na emulatorze (iptv-org PL, 188 kanałów) przez nowy przycisk pustego Live TV.
+- Wynik: `plan/ux/cykl2/sciezki.md` (44,3 min; OK 23 / UWAGA 25 / BŁĄD 2) + ok. 15 min ręcznie (RAPORT „Pętla 2”).
+- Poprawki po pętli 2 (do builda ux3): podpowiedź EPG nad listą bez programu, ponowienie fokusu na kanale po powrocie z odtwarzacza.
+- Następny krok: `adb emu kill`, build `ux3` (`assembleFullDebug` arm64), potem testy JVM Niuni (`NiuniaOkGateTest` i reszta `*Niunia*`),
+  pętla 3 (≥ 10 min): Live TV powrót fokusu, podpowiedź EPG, „Szukaj w telewizji” z Ustawień Niuni, zwiastun, sezon.

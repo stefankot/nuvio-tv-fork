@@ -21,8 +21,8 @@ Stan pętli i kolejność prac: `plan/ux/STAN.md`.
 ### Fokus i nawigacja
 7. [P] Szukaj: po Wstecz ze strony tytułu fokus wracał na klawisz „a” zamiast na otwarty wynik/plakat
    (ścieżka 11) → pamięć ostatnio otwartej pozycji (`NiuniaSearchMemory`).
-8. [ ] Biblioteka pusta → „Przeglądaj filmy i seriale” → Wstecz wraca na Główną, nie do Biblioteki (zachowanie zakładek
-   menu bocznego; do oceny).
+8. [i] Biblioteka pusta → „Przeglądaj filmy i seriale” otwiera zakładkę Główna; Wstecz → menu (model zakładek menu
+   bocznego — zgodne z projektem, nie błąd).
 9. [ ] Szukaj Niuni: klawiatura ekranowa 6×N bez skrótu do wyników — z klawisza „a” do Polecanych trzeba wielu ►;
    do oceny w pętli 2.
 10. [ ] Kalendarz / Dodatki / Kolejność katalogów: Wstecz z pozycji wraca na „Home” zamiast na element, z którego weszło (ekrany bazy).
@@ -51,3 +51,22 @@ Stan pętli i kolejność prac: `plan/ux/STAN.md`.
 
 Pętla 1: 50 ścieżek, 20,9 min (+ ok. 6 min ręcznie): OK 18, UWAGA 25, BŁĄD 7 (`plan/ux/cykl1/sciezki.md`).
 Część BŁĘDÓW to ograniczenia skryptu (Toast niewidoczny dla uiautomatora, opis rozwijany bez zmiany tekstów) — poprawione w skrypcie.
+
+## Pętla 2 (22:15–, APK ux2 = commit 5ded5239f, arm64)
+- Ręcznie: pusty Live TV → „Dodaj listę kanałów” (fokus od razu na przycisku) → okno źródeł → M3U
+  `https://iptv-org.github.io/iptv/countries/pl.m3u` (darmowa lista iptv-org) → 188 kanałów; długie OK na wierszu kanału →
+  „ulubione dodane: 4 Fun Dance” + komunikat, puszczenie nie włącza kanału; filtr „Ulubione” pokazuje kanał; OK → odtwarzanie (PLAYING).
+- 21. [P] Lista bez przewodnika: nad kanałami „Nic tu jeszcze nie ma.” → podpowiedź, że kanały nie mają programu i gdzie dodać EPG.
+- 22. [i] Okno źródeł Live TV (Reshaped) po angielsku — kod obcy, bez tłumaczeń (ZASADY).
+- 23. [i] Mac przeciążony w czasie pętli 2 (średnie obciążenie 8–9, systemowy `suggestd` 93% CPU) — czasy wczytania YouTube
+  (11–39 s) i Kalendarza nie są miarodajne.
+- Automatycznie: 50 ścieżek, 44,3 min (Mac przeciążony — ścieżki YouTube po 3–10 min): OK 23, UWAGA 25, BŁĄD 2
+  (pętla 1: OK 18 / BŁĄD 7). Szukaj: powrót fokusu na wynik i długie OK — OK (ścieżki 11–13). Live TV: OK, długie OK, przewijanie — OK.
+- Ręcznie potwierdzone [B]: menu „Akcje tytułu” na plakacie Głównej i w Bibliotece (stan „Dodaj/Usuń z biblioteki” poprawny),
+  puszczenie OK po przytrzymaniu nie wybiera opcji, Wstecz z menu → fokus na tym samym plakacie, następne krótkie OK od razu działa;
+  dodanie do Biblioteki z menu; gatunki po polsku („Biograficzny”, „Dramat”); odtwarzacz Live TV zwalniany po Wstecz (ExoPlayer Init → Release).
+- 24. [P] Live TV: po Wstecz z kanału log „fokus wraca na kanał”, ale chwilę później fokus na „Szukaj” u góry → ponowienie
+  fokusu po 0,6 i 1,5 s, jeśli użytkownik nic nie nacisnął.
+- 25. [i] „Odśwież dodatki”, „Zmień kolejność” (ekrany bazy): brak widocznej zmiany po OK w odczycie uiautomatora — do sprawdzenia na TV.
+- 26. [i] Ekran błędu kanału („Kanał nie odpowiada”, „Spróbuj ponownie” / „Następny kanał”) — czytelny; Wstecz wychodzi
+  (przy przeciążeniu emulatora z opóźnieniem ~1 s, JankStats 1,2 s).

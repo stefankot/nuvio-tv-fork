@@ -13,6 +13,7 @@
     <string name="niunia_tv_not_yet">Ten program zacznie się: %1$s</string>
     <string name="niunia_tv_no_archive">Tego programu nie ma w archiwum kanału.</string>
     <string name="niunia_tv_rail_empty">Nic tu jeszcze nie ma.</string>
+    <string name="niunia_tv_rail_no_guide">Te kanały nie mają programu TV. Adres programu (EPG) dodasz w Ustawienia → Telewizja → Źródła kanałów i EPG.</string>
     <string name="niunia_tv_loading">Wczytuję programy…</string>
     <string name="niunia_tv_row_foryou">Dla ciebie</string>
     <string name="niunia_tv_row_live">Teraz na żywo</string>

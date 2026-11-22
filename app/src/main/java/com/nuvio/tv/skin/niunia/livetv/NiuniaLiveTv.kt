@@ -355,6 +355,7 @@ private fun Guide(
     val restoreChannel = backToGuide?.streamUrl?.takeIf { u -> channels.any { it.streamUrl == u } }
     var info by remember { mutableStateOf<Pair<LiveTvChannel, LiveTvProgramme?>?>(null) }
     val tilesFocus = remember { FocusRequester() }
+    var userKey by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         // Paczka „oczywiste” pkt 2: Wstecz z odtwarzacza → fokus na kafelku albo kanale, z którego program był włączony.
         if (restoreTileKey != null || restoreChannel != null) {
@@ -364,6 +365,13 @@ private fun Guide(
                 delay(80)
                 restoreFocus.requestFocus()
                 Log.i(TAG, "live tv: fokus wraca na " + (restoreTileKey?.let { "kafel $it" } ?: "kanał $restoreChannel"))
+                // UX 22.11 (test emulatora): po powrocie z kanału fokus po chwili lądował na „Szukaj” u góry (przebudowa ekranu
+                // po odtwarzaczu) — dopóki użytkownik nic nie naciśnie, ponów fokus na kanale/kafelku.
+                for (wait in longArrayOf(600, 900)) {
+                    delay(wait)
+                    if (userKey) break
+                    try { restoreFocus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "live tv: ponowny fokus: ${e.javaClass.simpleName}: ${e.message}"); break }
+                }
                 return@LaunchedEffect
             } catch (e: IllegalStateException) {
                 Log.w(TAG, "live tv: powrót fokusu: ${e.javaClass.simpleName}: ${e.message}")
@@ -373,10 +381,13 @@ private fun Guide(
         try { allFocus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "live tv: fokus „Wszystkie”: ${e.javaClass.simpleName}: ${e.message}") }
     }
     // Test JMGO build141: nagłówek przewijał się pod przyciski u góry — kafelki, filtry i podziałka stoją, przewijają się tylko kanały.
-    Column(Modifier.fillMaxSize()) {
+    Column(Modifier.fillMaxSize().onPreviewKeyEvent { e -> if (e.type == KeyEventType.KeyDown) userKey = true; false }) {
         Box(Modifier.fillMaxWidth().height(236.dp)) {
             if (tiles.isEmpty()) {
-                Text(stringResource(R.string.niunia_tv_rail_empty), style = NiuniaText.Body, color = NiuniaColors.Text50, modifier = Modifier.padding(start = NiuniaDims.Gutter, top = 128.dp))
+                // UX 22.11 (test emulatora, lista bez przewodnika): „Nic tu jeszcze nie ma.” nad pełną listą kanałów myliło —
+                // gdy żaden kanał nie ma programu, podpowiedź, skąd go wziąć.
+                val noGuide = remember(guideVersion, channels.size) { LiveTvRepository.uiState.value.currentProgrammes.isEmpty() && channels.isNotEmpty() }
+                Text(stringResource(if (noGuide) R.string.niunia_tv_rail_no_guide else R.string.niunia_tv_rail_empty), style = NiuniaText.Body, color = NiuniaColors.Text50, modifier = Modifier.padding(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 128.dp))
             } else com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
                 LazyRow(Modifier.padding(top = 74.dp).focusRequester(tilesFocus).focusRestorer(), state = tilesState, contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 6.dp, bottom = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
