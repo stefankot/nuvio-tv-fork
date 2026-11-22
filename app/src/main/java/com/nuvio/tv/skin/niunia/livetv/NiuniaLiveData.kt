@@ -271,3 +271,44 @@ internal fun discoverRows(channels: List<LiveTvChannel>, favUrls: Set<String>, c
     rows += NiuniaDiscoverRow(t("archive"), sorted(ForgeProgrammeSort.NEWEST).filter { it.mark == NiuniaTileMark.ARCHIVE })
     return rows.filter { it.tiles.isNotEmpty() }
 }
+
+/**
+ * Kolejność kanałów przewodnika (polskie przed zagranicznymi), kategorie z EPG i numery kanałów.
+ *
+ * JMGO 22.11 (ANR „Input dispatching timed out”): przy 59 349 widocznych kanałach (trzy listy, razem 252 827 pozycji)
+ * liczone na wątku UI trwały ponad 5 s — dla każdej nazwy kilkanaście wyrażeń regularnych. Teraz mała lista
+ * (do [SYNC_LIMIT] kanałów) liczy się od razu jak dawniej, duża w tle; do tego czasu przewodnik ma kolejność listy
+ * i nie ma kategorii. Ostatni wynik zostaje w pamięci: powrót z odtwarzacza (ta sama lista) nie czeka, więc fokus
+ * wraca na kanał jak dawniej.
+ */
+internal object NiuniaLiveOrder {
+    const val SYNC_LIMIT = 3_000
+
+    class Prepared(
+        val input: List<LiveTvChannel>,
+        val hidden: Set<String>,
+        val shown: List<LiveTvChannel>,
+        val categories: List<NiuniaLiveFilter.Category>,
+        val numbers: Map<String, Int>,
+        val sorted: Boolean,
+    ) {
+        fun isFor(list: List<LiveTvChannel>, hiddenGroups: Set<String>): Boolean = input === list && hidden == hiddenGroups
+    }
+
+    @Volatile private var last: Prepared? = null
+
+    /** Gotowy wynik dla dokładnie tej listy (ten sam obiekt z repozytorium) i tych ukrytych grup. */
+    fun cached(input: List<LiveTvChannel>, hidden: Set<String>): Prepared? = last?.takeIf { it.isFor(input, hidden) }
+
+    /** Pełne liczenie (w tle dla dużej listy); wynik zapamiętany. */
+    fun prepare(input: List<LiveTvChannel>, hidden: Set<String>, categories: (List<LiveTvChannel>) -> List<NiuniaLiveFilter.Category>): Prepared {
+        val shown = ForgeEpgCategories.polishFirst(input)
+        return Prepared(input, hidden, shown, categories(shown), numbersOf(shown), sorted = true).also { last = it }
+    }
+
+    /** Zanim duża lista się policzy: kolejność listy, bez kategorii (niezapamiętane). */
+    fun unsorted(input: List<LiveTvChannel>, hidden: Set<String>): Prepared = Prepared(input, hidden, input, emptyList(), numbersOf(input), sorted = false)
+
+    private fun numbersOf(list: List<LiveTvChannel>): Map<String, Int> =
+        HashMap<String, Int>(list.size * 2).also { m -> list.forEachIndexed { i, ch -> m.putIfAbsent(ch.streamUrl, i + 1) } }
+}

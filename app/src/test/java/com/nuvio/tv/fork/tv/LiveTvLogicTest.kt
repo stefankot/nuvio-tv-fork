@@ -76,4 +76,14 @@ class LiveTvLogicTest {
         // po identyfikatorze (bez dopasowania nazwy) zawsze przed dopasowaniem po nazwie z tego samego przewodnika
         assertTrue(GuidePriority.repoRank("https://epg.ovh/a", false, 0)!! < GuidePriority.repoRank("https://epg.ovh/a", true, 1)!!)
     }
+
+    @Test fun `archiwum - pierwszy kanał z archiwum każdego źródła, kolejność listy`() {
+        val list = listOf(
+            ch(null, "a", "http://a/1"), ch(7, "a", "http://a/2"), ch(3, "b", "http://b/1"), ch(14, "a", "http://a/3"), ch(null, "c", "http://c/1"),
+        )
+        val firsts = CatchupDepth.firstWithArchive(list)
+        assertEquals(listOf("a", "b"), firsts.keys.toList())
+        assertEquals("http://a/2", firsts.getValue("a").streamUrl)
+        assertEquals("http://b/1", firsts.getValue("b").streamUrl)
+    }
 }

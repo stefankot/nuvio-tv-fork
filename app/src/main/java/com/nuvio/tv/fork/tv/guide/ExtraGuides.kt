@@ -18,10 +18,20 @@ object ExtraGuides {
         EpgSources.parse(text).also { cached = it }
     }
 
+    @Volatile private var lastLog: String? = null
+
     fun urlsFor(c: Context, channels: List<LiveTvChannel>): List<String> {
         if (!ForkFeatures.enabled(c, KEY, true)) return emptyList()
+        val t0 = android.os.SystemClock.elapsedRealtime()
         return runCatching {
-            EpgSources.detect(channels.map { it.tvgId to it.group }, sources(c))?.epg?.let(::listOf).orEmpty()
+            val found = EpgSources.detect(channels.map { it.tvgId to it.group }, sources(c))
+            // Jeden wpis na zmianę wyniku (repozytorium woła to po każdej wczytanej liście).
+            val line = "przewodnik uzupełniający: ${found?.country ?: "brak"} dla ${channels.size} kanałów"
+            if (line != lastLog) {
+                lastLog = line
+                android.util.Log.i("ForkTv", "$line (${android.os.SystemClock.elapsedRealtime() - t0} ms)")
+            }
+            found?.epg?.let(::listOf).orEmpty()
         }.logged("ForkTv", "ExtraGuides.kt:22").getOrDefault(emptyList())
     }
 }

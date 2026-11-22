@@ -41,9 +41,22 @@ object ForgeEpgCategories {
 
     // ---- text and rules ----
 
-    private val marks = Regex("\\p{Mn}+")
-    /** As the mockup's norm(): lower case, ł → l, no diacritics. */
-    fun norm(s: String): String = Normalizer.normalize(s.lowercase().replace('ł', 'l'), Normalizer.Form.NFD).replace(marks, "")
+    /**
+     * As the mockup's norm(): lower case, ł → l, no diacritics.
+     * JMGO 22.11 (59 349 kanałów): bez wyrażenia regularnego — każde `replace(Regex)` tworzyło natywny Matcher ICU,
+     * co przy dziesiątkach tysięcy nazw wymuszało odśmiecanie pamięci. Usuwa te same znaki co `\p{Mn}`.
+     */
+    fun norm(s: String): String {
+        val d = Normalizer.normalize(s.lowercase().replace('ł', 'l'), Normalizer.Form.NFD)
+        val out = StringBuilder(d.length)
+        var i = 0
+        while (i < d.length) {
+            val cp = d.codePointAt(i)
+            if (Character.getType(cp) != Character.NON_SPACING_MARK.toInt()) out.appendCodePoint(cp)
+            i += Character.charCount(cp)
+        }
+        return out.toString()
+    }
 
     private fun placeIn(tree: ForgeCategoryRules.Tree, text: String): Place {
         val t = norm(text)
@@ -80,6 +93,7 @@ object ForgeEpgCategories {
     private val bracketed = Regex("\\s*[(\\[][^)\\]]*[)\\]]")
     private val qualityTail = Regex("\\s+(fhd|uhd|hd|sd|4k|8k|hevc|h\\.?26[45]|hdr|raw|backup|alt|vip|50 ?fps|\\+1|pl)$")
     private val domainTail = Regex("\\.(pl|tv|com|uk|de|cz|ua)$")
+    private val spaces = Regex("\\s+")
 
     /** Nazwa kanału do reguł: bez „PL:”, „(PL)”, „[FHD]”, „HD/4K…” na końcu i „.pl” z identyfikatora przewodnika. */
     internal fun cleanChannelName(raw: String): String {
@@ -87,7 +101,7 @@ object ForgeEpgCategories {
         t = countryTag.replace(t, "")
         t = bracketed.replace(t, " ")
         t = domainTail.replace(t, "")
-        t = t.replace(Regex("\\s+"), " ").trim()
+        t = t.replace(spaces, " ").trim()
         var prev: String
         do { prev = t; t = qualityTail.replace(t, "").trim() } while (t != prev && t.isNotEmpty())
         return t

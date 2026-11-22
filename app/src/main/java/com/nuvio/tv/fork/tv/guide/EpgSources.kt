@@ -22,18 +22,35 @@ object EpgSources {
 
     fun parse(text: String): List<EpgSource> = runCatching { json.decodeFromString<EpgSourceList>(text).sources }.logged("ForkTv", "EpgSources.kt:22").getOrDefault(emptyList())
 
-    /** Najlepsze źródło dla kanałów (tvg-id, grupa), gdy dopasowuje się co najmniej [minShare] z nich. */
-    fun detect(channels: List<Pair<String?, String>>, sources: List<EpgSource>, minShare: Double = 0.3): EpgSource? {
-        if (channels.isEmpty()) return null
-        return sources.map { s -> s to channels.count { (id, group) -> matches(s, id, group) } }
-            .filter { (_, n) -> n.toDouble() / channels.size >= minShare }
-            .maxByOrNull { it.second }?.first
-    }
+    private val NON_WORD = Regex("[^\\p{L}\\p{N}]+")
 
-    private fun matches(s: EpgSource, tvgId: String?, group: String): Boolean {
-        val id = tvgId?.trim()?.lowercase().orEmpty()
-        if (id.isNotEmpty() && s.idSuffixes.any { id.endsWith(it.lowercase()) }) return true
-        val g = group.lowercase()
-        return g.isNotEmpty() && s.groupHints.any { h -> g.split(Regex("[^\\p{L}\\p{N}]+")).any { it == h.lowercase() } }
+    /**
+     * Najlepsze źródło dla kanałów (tvg-id, grupa), gdy dopasowuje się co najmniej [minShare] z nich.
+     *
+     * JMGO 22.11 (252 827 kanałów z trzech list): wcześniej każde sprawdzenie grupy tworzyło od nowa wyrażenie
+     * z klasami Unicode (kanał × podpowiedź, ok. 1,3 mln kompilacji ICU na każde przeładowanie listy) — wątek w tle
+     * liczył po kilkanaście minut, a pamięć natywna wymuszała odśmiecanie co ~2,5 s. Teraz wyrażenie jest jedno,
+     * a słowa grupy liczone raz na grupę (grup jest kilkaset, kanałów setki tysięcy). Wynik bez zmian.
+     */
+    fun detect(channels: List<Pair<String?, String>>, sources: List<EpgSource>, minShare: Double = 0.3): EpgSource? {
+        if (channels.isEmpty() || sources.isEmpty()) return null
+        val suffixes = sources.map { s -> s.idSuffixes.map { it.lowercase() }.filter { it.isNotEmpty() } }
+        val hints = sources.map { s -> s.groupHints.mapTo(HashSet()) { it.lowercase() } }
+        val counts = IntArray(sources.size)
+        val words = HashMap<String, Set<String>>()
+        for ((tvgId, group) in channels) {
+            val id = tvgId?.trim()?.lowercase().orEmpty()
+            val groupWords = if (group.isEmpty()) emptySet() else words.getOrPut(group) { group.lowercase().split(NON_WORD).toHashSet() }
+            for (i in sources.indices) {
+                val byId = id.isNotEmpty() && suffixes[i].any { id.endsWith(it) }
+                if (byId || (groupWords.isNotEmpty() && hints[i].any { it in groupWords })) counts[i]++
+            }
+        }
+        var best = -1
+        for (i in sources.indices) {
+            if (counts[i].toDouble() / channels.size < minShare) continue
+            if (best < 0 || counts[i] > counts[best]) best = i
+        }
+        return if (best >= 0) sources[best] else null
     }
 }

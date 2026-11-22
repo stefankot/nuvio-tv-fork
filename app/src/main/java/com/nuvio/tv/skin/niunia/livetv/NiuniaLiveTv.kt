@@ -145,9 +145,36 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
 
     // 22.11: prawdziwa długość archiwum źródeł (raz na dobę, w tle) — etykieta „Dostępny jeszcze …”.
     LaunchedEffect(state.channels.size) { com.nuvio.tv.fork.tv.CatchupDepth.probeStale(context, state.channels) }
-    // 22.11: najpierw kanały polskojęzyczne, potem zagraniczne.
-    val shown = remember(state.shownChannels) { ForgeEpgCategories.polishFirst(state.shownChannels) }
-    val categories = remember(shown, state.hiddenGroups) { NiuniaLiveFilters.categories(context, shown, state.hiddenGroups) }
+    // 22.11: najpierw kanały polskojęzyczne, potem zagraniczne. JMGO 22.11 (ANR przy 59 349 kanałach): duża lista w tle.
+    val input = state.shownChannels
+    val hiddenGroups = state.hiddenGroups
+    var prepared by remember {
+        mutableStateOf(NiuniaLiveOrder.cached(input, hiddenGroups) ?: if (input.size <= NiuniaLiveOrder.SYNC_LIMIT) {
+            NiuniaLiveOrder.prepare(input, hiddenGroups) { NiuniaLiveFilters.categories(context, it, hiddenGroups) }
+        } else NiuniaLiveOrder.unsorted(input, hiddenGroups))
+    }
+    LaunchedEffect(input, hiddenGroups) {
+        if (prepared.sorted && prepared.isFor(input, hiddenGroups)) return@LaunchedEffect
+        NiuniaLiveOrder.cached(input, hiddenGroups)?.let { prepared = it; return@LaunchedEffect }
+        if (input.size <= NiuniaLiveOrder.SYNC_LIMIT) {
+            prepared = NiuniaLiveOrder.prepare(input, hiddenGroups) { NiuniaLiveFilters.categories(context, it, hiddenGroups) }
+            return@LaunchedEffect
+        }
+        // Do czasu wyniku zostaje poprzednia lista (np. 326 kanałów z zapisanej listy), a przy pierwszym wejściu — kolejność listy.
+        if (prepared.input.isEmpty()) prepared = NiuniaLiveOrder.unsorted(input, hiddenGroups)
+        val t0 = android.os.SystemClock.elapsedRealtime()
+        prepared = try {
+            withContext(Dispatchers.Default) { NiuniaLiveOrder.prepare(input, hiddenGroups) { NiuniaLiveFilters.categories(context, it, hiddenGroups) } }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.w(TAG, "live tv: kolejność kanałów: ${e.javaClass.simpleName}: ${e.message}")
+            NiuniaLiveOrder.unsorted(input, hiddenGroups)
+        }
+        Log.i(TAG, "live tv: kolejność i kategorie ${input.size} kanałów w tle w ${android.os.SystemClock.elapsedRealtime() - t0} ms")
+    }
+    val shown = prepared.shown
+    val categories = prepared.categories
     val filtered = remember(shown, filter, state.favoriteUrls, favShows, alerts) {
         when (val f = filter) {
             is NiuniaLiveFilter.Category -> ForgeEpgCategories.filter(shown, f.key, state.hiddenChannelKeys, "") ?: shown
@@ -169,7 +196,7 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
             else -> filtered
         }
     }
-    val numbers = remember(shown) { HashMap<String, Int>().also { m -> shown.forEachIndexed { i, ch -> m.putIfAbsent(ch.streamUrl, i + 1) } } }
+    val numbers = prepared.numbers
     val newKeys = remember(alerts) { alerts.filter { it.kind == AlertKind.NEW_EPISODE }.mapTo(HashSet()) { it.airing.guideKey + "|" + it.airing.startMs } }
     LaunchedEffect(filter.id, tiles.size, guideChannels.size) {
         Log.i(TAG, "live tv: filtr=${filterName(filter)}, kafelki=${tiles.size}, kanały=${guideChannels.size}")

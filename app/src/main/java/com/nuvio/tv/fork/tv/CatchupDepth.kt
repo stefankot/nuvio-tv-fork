@@ -57,9 +57,10 @@ object CatchupDepth {
         try {
             val prefs = c.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             val now = System.currentTimeMillis()
-            channels.filter { it.catchup != null }.groupBy(::sourceKey).forEach { (src, list) ->
+            // JMGO 22.11 (252 827 kanałów): wołane z ekranu Live TV — przegląd listy poza wątkiem UI.
+            val firsts = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { firstWithArchive(channels) }
+            firsts.forEach { (src, ch) ->
                 if (now - prefs.getLong("at2_$src", 0L) < EVERY_MS) return@forEach
-                val ch = list.first()
                 val declared = ch.catchup?.days ?: 0
                 val real = try { probe(ch, declared, now) } catch (e: CancellationException) { throw e } catch (e: Exception) {
                     Log.w(TAG, "archiwum: ${ch.name}: ${e.javaClass.simpleName}: ${e.message}"); null
@@ -73,6 +74,13 @@ object CatchupDepth {
         } finally {
             running.unlock()
         }
+    }
+
+    /** Pierwszy kanał z archiwum każdego źródła, w kolejności listy. */
+    internal fun firstWithArchive(channels: List<LiveTvChannel>): Map<String, LiveTvChannel> {
+        val out = LinkedHashMap<String, LiveTvChannel>()
+        for (ch in channels) if (ch.catchup != null) out.putIfAbsent(sourceKey(ch), ch)
+        return out
     }
 
     /** Najdłuższe D (dni), dla którego program sprzed D dni odpowiada; null = archiwum nie działa. */
