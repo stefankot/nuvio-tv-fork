@@ -35,8 +35,7 @@ internal fun LazyListScope.echoPlaybackSettingsItems() {
     }
     echoSwitch(com.nuvio.tv.fork.echo.FastStart.KEY, "Echo: szybszy start", "Odtwarzanie rusza po 1,5 s bufora zamiast 5 s (gdy bufor startowy nie był zmieniany ręcznie)")
     echoSwitch("echo_quality_menu", "Echo: przełączanie źródła w odtwarzaczu", "Menu jakości (przycisk pilota „Quality”) i zmiana źródła z zachowaniem pozycji")
-    echoSwitch("echo_auto_quality", "Echo: Auto Quality", "Sam dobiera jakość do łącza (potrzebuje przełączania źródła)")
-    echoSwitch("echo_hot_swap", "Echo: hot swap", "Zmiana jakości bez ekranu ładowania")
+    // Auto Quality i hot swap Echo odłączone (właściciel 22.11): automatyczna zmiana źródła tylko jak w Reshaped.
     echoSwitch(com.nuvio.tv.fork.sources.MpvContainers.KEY, "AVI/WMV w odtwarzaczu mpv", "Pliki, których wbudowany odtwarzacz nie czyta (AVI, WMV, ASF), same otwierają się w mpv")
     echoSwitch("echo_audio_menu", "Echo: menu języka audio", "Języki ze wszystkich źródeł")
     // intro Echo usunięte (właściciel 19.11)

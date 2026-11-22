@@ -31,7 +31,6 @@ app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerPlayback
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerPlaybackEvents.kt	if (_uiState.value.showQualityOverlay) dismissQualityOverlay() // Fork hook: echo	OnDismissTransientOverlay	echo	zamknij menu jakości	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerInitialization.kt	lastBandwidthEstimateBps = bitrateEstimate // Fork hook: echo	onBandwidthEstimate	echo	Auto Quality: estymata pasma	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerInitialization.kt	playerBandwidthMeter = bandwidthMeter // Fork hook: echo	SafeBandwidthMeter(rawBandwidthMeter	echo	Auto Quality: miernik pasma	
-app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerViewModel.kt	controller.startAutoQualityMonitor() // Fork hook: echo	controller.bindParty()	echo	Auto Quality: monitor	
 app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	// Fork hook: registry	composable(Screen	registry	trasy modułów	
 app/src/main/java/com/nuvio/tv/MainActivity.kt	// Fork hook: registry	val rootRoutes	registry	nakładki modułów	
 app/src/main/java/com/nuvio/tv/ui/screens/home/HomeScreen.kt	// Fork hook: registry	val uiState	registry	rzędy modułów	

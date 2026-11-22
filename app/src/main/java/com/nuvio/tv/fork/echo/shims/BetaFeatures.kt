@@ -11,8 +11,9 @@ object BetaFeatures {
         raceAutoPlaySources = false,
         sourceFallback = false,
         sourceSwitchTimeoutSeconds = 8,
-        autoQuality = ForkFeatures.enabled(context, "echo_auto_quality"),
-        autoQualityHotSwap = ForkFeatures.enabled(context, "echo_hot_swap"),
+        // Właściciel 22.11 (aktualizacja bazy): automatyczna zmiana źródła tylko jak w Reshaped — Auto jakość Echo odłączona (wpięcie w PlayerViewModel usunięte).
+        autoQuality = false,
+        autoQualityHotSwap = false,
         playbackIntro = false, // intro wyłączone na stałe (właściciel 19.11)
         audioLanguageMenu = ForkFeatures.enabled(context, "echo_audio_menu"),
     )
