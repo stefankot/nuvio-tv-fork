@@ -24,7 +24,7 @@ class ImageQualityTest {
     }
 
     @Test fun `dekodowanie do miejsca na ekranie z zapasem na fokus`() {
-        assertEquals(coil3.size.Size(299, 448), ForkImageQuality.decodeSize(coil3.size.Size(260, 390)))
+        assertEquals(coil3.size.Size(299, 449), ForkImageQuality.decodeSize(coil3.size.Size(260, 390))) // 390 × 1,15 = 448,5 → w górę
         assertEquals(coil3.size.Size.ORIGINAL, ForkImageQuality.decodeSize(coil3.size.Size.ORIGINAL))
     }
 }

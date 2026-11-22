@@ -1,0 +1,1992 @@
+{
+ "trasa": "discover",
+ "czas_ladowania_s": 4.8,
+ "kroki": 40,
+ "elementy": {
+  "Typ | Film | Rozwiń Typ": [
+   96,
+   116,
+   656,
+   225
+  ],
+  "Katalog | Popular | Rozwiń Katalog": [
+   680,
+   116,
+   1240,
+   225
+  ],
+  "Gatunek | Domyślny | Rozwiń Gatunek": [
+   1264,
+   116,
+   1824,
+   225
+  ],
+  "The Odyssey": [
+   96,
+   255,
+   348,
+   358
+  ],
+  "The End of Oak Street": [
+   388,
+   255,
+   640,
+   358
+  ],
+  "Heart of the Beast": [
+   680,
+   255,
+   932,
+   358
+  ],
+  "Resident Evil": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "Primetime": [
+   1262,
+   255,
+   1514,
+   358
+  ],
+  "Obsession | Obejrzane": [
+   1553,
+   309,
+   1805,
+   687
+  ],
+  "A Dog's Perfect Christmas": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "Sense and Sensibility": [
+   388,
+   255,
+   640,
+   354
+  ],
+  "The Invite": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "Spider-Man: Brand New Day": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "Never Surrender": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "Avengers: Endgame": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "Obsession": [
+   1553,
+   255,
+   1805,
+   358
+  ],
+  "Project Hail Mary | Obejrzane": [
+   96,
+   451,
+   348,
+   829
+  ],
+  "Verity": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "The Muppet Show": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "Backrooms | Obejrzane": [
+   971,
+   451,
+   1223,
+   829
+  ],
+  "Being Heumann": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "Godzilla Minus One": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "The Hunger Games": [
+   96,
+   255,
+   348,
+   356
+  ],
+  "L'Avocat": [
+   388,
+   255,
+   640,
+   356
+  ],
+  "Carolina Caroline": [
+   680,
+   255,
+   932,
+   356
+  ],
+  "Disclosure Day | Obejrzane": [
+   971,
+   451,
+   1223,
+   829
+  ],
+  "The Uprising": [
+   1262,
+   255,
+   1514,
+   356
+  ],
+  "Heist": [
+   1553,
+   255,
+   1805,
+   356
+  ],
+  "Project Hail Mary": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "Backrooms": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "The Dog Stars": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "The Hunger Games: The Ballad of Songbirds & Snakes": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "The Shawshank Redemption": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "Hope": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "Possible Love": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "Love of Your Life": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "Disclosure Day": [
+   971,
+   255,
+   1223,
+   356
+  ],
+  "The Housemaid": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "Your Mother Your Mother Your Mother": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "The Drama": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "Buddy": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "Interstellar": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "The Lord of the Rings: The Fellowship of the Ring": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "Tony": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "Reminders of Him": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "Dune": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "Runner": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "Leave the World Behind": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "Tenzing": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "Unabomber": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "Weapons": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "The Death of Robin Hood": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "Nuremberg": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "In the Grey": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "The Cycle": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "Sinners": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "Inception": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "The Gentlemen": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "Three Billboards Outside Ebbing, Missouri": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "National Lampoon's Christmas Vacation": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "I Swear": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "Whiplash": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "Practical Magic 2": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "Nativity!": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "Parasite": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "The Matrix": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "Evil Dead Burn": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "The Fantastic Four: First Steps": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "Send Help": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "Star Wars: The Mandalorian and Grogu": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "Love Actually": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "Frankenstein": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "Violent Night": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "12 Angry Men": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "The Silence of the Lambs": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "The Usual Suspects": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "Musk": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "The Batman": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "Minions & Monsters": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "Bad Apples": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "Crime 101": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "Nosferatu": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "The Lord of the Rings: The Return of the King": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "Eyes Wide Shut": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "Meet the Parents": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "The Nice Guys": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "One Night Only": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "Good Will Hunting": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "Thunderbolts*": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "Troy": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "The Sixth Sense": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "GoodFellas": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "Schindler's List": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "Kindergarten Cop": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "City of God": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "Avengers: Infinity War": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "How the Grinch Stole Christmas": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "Anora": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "Avatar Aang: The Last Airbender": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "The Town": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "28 Years Later: The Bone Temple": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "The Handmaiden": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "Insidious: Out of the Further": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "Wuthering Heights": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "The Hunger Games: Mockingjay - Part 2": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "Hereditary": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "Never After Dark": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "Titanic": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "Apocalypse Now": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "Top Gun: Maverick": [
+   96,
+   255,
+   348,
+   356
+  ],
+  "Snatch": [
+   388,
+   255,
+   640,
+   356
+  ],
+  "Cold Storage": [
+   680,
+   255,
+   932,
+   356
+  ],
+  "The Lord of the Rings: The Two Towers": [
+   971,
+   255,
+   1223,
+   356
+  ],
+  "The Grinch": [
+   1262,
+   255,
+   1514,
+   356
+  ],
+  "It": [
+   1553,
+   255,
+   1805,
+   356
+  ],
+  "One Flew Over the Cuckoo's Nest": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "Deadpool & Wolverine": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "Practical Magic": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "The Furious": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "The Hunt": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "Harry Potter and the Goblet of Fire": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "Black Bag": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "Planes, Trains & Automobiles": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "Eternal Sunshine of the Spotless Mind": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "It's a Wonderful Life": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "Guardians of the Galaxy": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "Companion": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "Zodiac": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "The Mummy": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "The Fifth Element": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "The Princess Bride": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "The Notebook": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "Kingdom of Heaven": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "Hacksaw Ridge": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "Terminator 2: Judgment Day": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "Star Wars: Episode IV - A New Hope": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "Requiem for a Dream": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "Spider-Man": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "Green Book": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "10 Things I Hate About You": [
+   96,
+   255,
+   348,
+   356
+  ],
+  "Barbarian": [
+   388,
+   255,
+   640,
+   356
+  ],
+  "Mortal Kombat II": [
+   680,
+   255,
+   932,
+   356
+  ],
+  "Léon: The Professional": [
+   971,
+   255,
+   1223,
+   356
+  ],
+  "GOAT": [
+   1262,
+   255,
+   1514,
+   356
+  ],
+  "Knives Out": [
+   1553,
+   255,
+   1805,
+   356
+  ],
+  "The Girl with the Dragon Tattoo": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "Sicario": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "Doctor Strange in the Multiverse of Madness": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "True Romance": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "A Talent for Murder": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "The Terminator": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "The Nightmare Before Christmas": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "No Time to Die": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "Train Dreams": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "Red Sparrow": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "Get Out": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "Normal": [
+   96,
+   255,
+   348,
+   356
+  ],
+  "American Pie": [
+   388,
+   255,
+   640,
+   356
+  ],
+  "Harry Potter and the Deathly Hallows: Part 2": [
+   680,
+   255,
+   932,
+   356
+  ],
+  "We're the Millers": [
+   971,
+   255,
+   1223,
+   356
+  ],
+  "Everything Everywhere All at Once": [
+   1262,
+   255,
+   1514,
+   356
+  ],
+  "Shelter": [
+   1553,
+   255,
+   1805,
+   356
+  ],
+  "They Will Kill You": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "No Other Choice": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "Braveheart": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "Mulholland Drive": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "Crazy, Stupid, Love.": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "Ocean's Eleven": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "Zootopia 2": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "Bullet Train": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "Mystic River": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "The Polar Express": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "Shang-Chi and the Legend of the Ten Rings": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "The Truman Show": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "La La Land": [
+   96,
+   255,
+   348,
+   356
+  ],
+  "Avedon": [
+   388,
+   255,
+   640,
+   356
+  ],
+  "Donnie Darko": [
+   680,
+   255,
+   932,
+   356
+  ],
+  "Funny Money: The Dane Cook Story": [
+   971,
+   255,
+   1223,
+   356
+  ],
+  "The Long Walk": [
+   1262,
+   255,
+   1514,
+   356
+  ],
+  "The Covenant": [
+   1553,
+   255,
+   1805,
+   356
+  ],
+  "A Clockwork Orange": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "Harry Potter and the Order of the Phoenix": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "Scream": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "The Goonies": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "The Voyeurs": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "American Beauty": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "Speak No Evil": [
+   96,
+   255,
+   348,
+   354
+  ],
+  "Skyfall": [
+   680,
+   255,
+   932,
+   354
+  ],
+  "Joker": [
+   971,
+   255,
+   1223,
+   354
+  ],
+  "Mad Max: Fury Road": [
+   1262,
+   255,
+   1514,
+   354
+  ],
+  "Memories of Murder": [
+   1553,
+   255,
+   1805,
+   354
+  ],
+  "Full Metal Jacket": [
+   96,
+   255,
+   348,
+   356
+  ],
+  "Heel": [
+   388,
+   255,
+   640,
+   356
+  ],
+  "The Grand Budapest Hotel": [
+   680,
+   255,
+   932,
+   356
+  ],
+  "Airplane!": [
+   971,
+   255,
+   1223,
+   356
+  ],
+  "Ready or Not 2: Here I Come": [
+   1262,
+   255,
+   1514,
+   356
+  ],
+  "No Hard Feelings": [
+   1553,
+   255,
+   1805,
+   356
+  ],
+  "Guardians of the Galaxy Vol. 3": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "Gladiator II": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "The Holdovers": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "Die My Love": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "Sentimental Value": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "Sing 2": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "Primal Fear": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "Once Upon a Time in America": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "Mission: Impossible - The Final Reckoning": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "The Man from Earth": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "John Wick: Chapter 4": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "Don't Worry Darling": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "The Night House": [
+   96,
+   255,
+   348,
+   356
+  ],
+  "Babylon": [
+   388,
+   255,
+   640,
+   356
+  ],
+  "The Deer Hunter": [
+   680,
+   255,
+   932,
+   356
+  ],
+  "Logan": [
+   971,
+   255,
+   1223,
+   356
+  ],
+  "Spider-Man: Far from Home": [
+   1262,
+   255,
+   1514,
+   356
+  ],
+  "A Beautiful Mind": [
+   1553,
+   255,
+   1805,
+   356
+  ],
+  "The Lion King": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "Forgetting Sarah Marshall": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "Killers of the Flower Moon": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "Aliens": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "Nightcrawler": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "Looper": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "Star Wars: Episode I - The Phantom Menace": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "Contact": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "Don't Look Up": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "Tinker Tailor Soldier Spy": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "My Cousin Vinny": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "Pan's Labyrinth": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "Terminator Salvation": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "Drive": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "Dead Man's Wire": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "Little Women": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "Ready or Not": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "Hot Fuzz": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "Wind River": [
+   96,
+   255,
+   348,
+   357
+  ],
+  "The Hateful Eight": [
+   388,
+   255,
+   640,
+   357
+  ],
+  "Ballerina": [
+   680,
+   255,
+   932,
+   357
+  ],
+  "Roofman": [
+   971,
+   255,
+   1223,
+   357
+  ],
+  "The Game": [
+   1262,
+   255,
+   1514,
+   357
+  ],
+  "Saltburn": [
+   1553,
+   255,
+   1805,
+   357
+  ],
+  "The Hobbit: The Desolation of Smaug": [
+   96,
+   451,
+   348,
+   829
+  ],
+  "Predestination": [
+   388,
+   451,
+   640,
+   829
+  ],
+  "Les Misérables": [
+   680,
+   451,
+   932,
+   829
+  ],
+  "Longlegs": [
+   971,
+   451,
+   1223,
+   829
+  ],
+  "The Exorcist": [
+   1262,
+   451,
+   1514,
+   829
+  ],
+  "Coherence": [
+   1553,
+   451,
+   1805,
+   829
+  ],
+  "Children of Men | Obejrzane": [
+   96,
+   923,
+   348,
+   1080
+  ],
+  "Toy Story": [
+   388,
+   923,
+   640,
+   1080
+  ],
+  "A Christmas Carol": [
+   680,
+   923,
+   932,
+   1080
+  ],
+  "A Quiet Place": [
+   971,
+   923,
+   1223,
+   1080
+  ],
+  "Star Wars: Episode V - The Empire Strikes Back": [
+   1262,
+   923,
+   1514,
+   1080
+  ],
+  "The Witch": [
+   1553,
+   923,
+   1805,
+   1080
+  ]
+ },
+ "odwiedzone": [
+  "10 Things I Hate About You",
+  "12 Angry Men",
+  "A Clockwork Orange",
+  "A Dog's Perfect Christmas",
+  "Anora",
+  "Bad Apples",
+  "Black Bag",
+  "Full Metal Jacket",
+  "GoodFellas",
+  "Guardians of the Galaxy Vol. 3",
+  "Hacksaw Ridge",
+  "La La Land",
+  "Normal",
+  "One Flew Over the Cuckoo's Nest",
+  "Primal Fear",
+  "Project Hail Mary | Obejrzane",
+  "Resident Evil",
+  "Sinners",
+  "Speak No Evil",
+  "Star Wars: Episode I - The Phantom Menace",
+  "Terminator Salvation",
+  "The Dog Stars",
+  "The Fantastic Four: First Steps",
+  "The Girl with the Dragon Tattoo",
+  "The Hobbit: The Desolation of Smaug",
+  "The Housemaid",
+  "The Hunger Games",
+  "The Lion King",
+  "The Nice Guys",
+  "The Night House",
+  "The Odyssey",
+  "They Will Kill You",
+  "Tony",
+  "Top Gun: Maverick",
+  "Typ | Film | Rozwiń Typ",
+  "Unabomber",
+  "Whiplash",
+  "Wind River",
+  "Wuthering Heights",
+  "Zodiac",
+  "Zootopia 2"
+ ],
+ "utrata_fokusu": [],
+ "wyjscie_z_ekranu": [],
+ "pulapki": [],
+ "krawedzie": [
+  [
+   "Typ | Film | Rozwiń Typ",
+   "DOWN",
+   "The Odyssey"
+  ],
+  [
+   "The Odyssey",
+   "DOWN",
+   "A Dog's Perfect Christmas"
+  ],
+  [
+   "A Dog's Perfect Christmas",
+   "DOWN",
+   "Project Hail Mary | Obejrzane"
+  ],
+  [
+   "Project Hail Mary | Obejrzane",
+   "DOWN",
+   "The Hunger Games"
+  ],
+  [
+   "The Hunger Games",
+   "DOWN",
+   "The Dog Stars"
+  ],
+  [
+   "The Dog Stars",
+   "DOWN",
+   "The Housemaid"
+  ],
+  [
+   "The Housemaid",
+   "DOWN",
+   "Tony"
+  ],
+  [
+   "Tony",
+   "DOWN",
+   "Unabomber"
+  ],
+  [
+   "Unabomber",
+   "DOWN",
+   "Sinners"
+  ],
+  [
+   "Sinners",
+   "DOWN",
+   "Whiplash"
+  ],
+  [
+   "Whiplash",
+   "DOWN",
+   "The Fantastic Four: First Steps"
+  ],
+  [
+   "The Fantastic Four: First Steps",
+   "DOWN",
+   "12 Angry Men"
+  ],
+  [
+   "12 Angry Men",
+   "DOWN",
+   "Bad Apples"
+  ],
+  [
+   "Bad Apples",
+   "DOWN",
+   "The Nice Guys"
+  ],
+  [
+   "The Nice Guys",
+   "DOWN",
+   "GoodFellas"
+  ],
+  [
+   "GoodFellas",
+   "DOWN",
+   "Anora"
+  ],
+  [
+   "Anora",
+   "DOWN",
+   "Wuthering Heights"
+  ],
+  [
+   "Wuthering Heights",
+   "DOWN",
+   "Top Gun: Maverick"
+  ],
+  [
+   "Top Gun: Maverick",
+   "DOWN",
+   "One Flew Over the Cuckoo's Nest"
+  ],
+  [
+   "One Flew Over the Cuckoo's Nest",
+   "DOWN",
+   "Black Bag"
+  ],
+  [
+   "Black Bag",
+   "DOWN",
+   "Zodiac"
+  ],
+  [
+   "Zodiac",
+   "DOWN",
+   "Hacksaw Ridge"
+  ],
+  [
+   "Hacksaw Ridge",
+   "DOWN",
+   "10 Things I Hate About You"
+  ],
+  [
+   "10 Things I Hate About You",
+   "DOWN",
+   "The Girl with the Dragon Tattoo"
+  ],
+  [
+   "The Girl with the Dragon Tattoo",
+   "DOWN",
+   "Resident Evil"
+  ],
+  [
+   "Resident Evil",
+   "DOWN",
+   "Normal"
+  ],
+  [
+   "Normal",
+   "DOWN",
+   "They Will Kill You"
+  ],
+  [
+   "They Will Kill You",
+   "DOWN",
+   "Zootopia 2"
+  ],
+  [
+   "Zootopia 2",
+   "DOWN",
+   "La La Land"
+  ],
+  [
+   "La La Land",
+   "DOWN",
+   "A Clockwork Orange"
+  ],
+  [
+   "A Clockwork Orange",
+   "DOWN",
+   "Speak No Evil"
+  ],
+  [
+   "Speak No Evil",
+   "DOWN",
+   "Full Metal Jacket"
+  ],
+  [
+   "Full Metal Jacket",
+   "DOWN",
+   "Guardians of the Galaxy Vol. 3"
+  ],
+  [
+   "Guardians of the Galaxy Vol. 3",
+   "DOWN",
+   "Primal Fear"
+  ],
+  [
+   "Primal Fear",
+   "DOWN",
+   "The Night House"
+  ],
+  [
+   "The Night House",
+   "DOWN",
+   "The Lion King"
+  ],
+  [
+   "The Lion King",
+   "DOWN",
+   "Star Wars: Episode I - The Phantom Menace"
+  ],
+  [
+   "Star Wars: Episode I - The Phantom Menace",
+   "DOWN",
+   "Terminator Salvation"
+  ],
+  [
+   "Terminator Salvation",
+   "DOWN",
+   "Wind River"
+  ],
+  [
+   "Wind River",
+   "DOWN",
+   "The Hobbit: The Desolation of Smaug"
+  ]
+ ],
+ "teksty_startowe": [
+  "Cinemeta • Film",
+  "Domyślny",
+  "Film",
+  "Gatunek",
+  "Heart of the Beast",
+  "Katalog",
+  "Obsession",
+  "Odkrywaj",
+  "Popular",
+  "Primetime",
+  "Resident Evil",
+  "The End of Oak Street",
+  "The Odyssey",
+  "Typ",
+  "built-21m"
+ ],
+ "nieosiagalne": [
+  "28 Years Later: The Bone Temple",
+  "A Beautiful Mind",
+  "A Christmas Carol",
+  "A Quiet Place",
+  "A Talent for Murder",
+  "Airplane!",
+  "Aliens",
+  "American Beauty",
+  "American Pie",
+  "Apocalypse Now",
+  "Avatar Aang: The Last Airbender",
+  "Avedon",
+  "Avengers: Endgame",
+  "Avengers: Infinity War",
+  "Babylon",
+  "Backrooms",
+  "Backrooms | Obejrzane",
+  "Ballerina",
+  "Barbarian",
+  "Being Heumann",
+  "Braveheart",
+  "Buddy",
+  "Bullet Train",
+  "Carolina Caroline",
+  "Children of Men | Obejrzane",
+  "City of God",
+  "Coherence",
+  "Cold Storage",
+  "Companion",
+  "Contact",
+  "Crazy, Stupid, Love.",
+  "Crime 101",
+  "Dead Man's Wire",
+  "Deadpool & Wolverine",
+  "Die My Love",
+  "Disclosure Day",
+  "Disclosure Day | Obejrzane",
+  "Doctor Strange in the Multiverse of Madness",
+  "Don't Look Up",
+  "Don't Worry Darling",
+  "Donnie Darko",
+  "Drive",
+  "Dune",
+  "Eternal Sunshine of the Spotless Mind",
+  "Everything Everywhere All at Once",
+  "Evil Dead Burn",
+  "Eyes Wide Shut",
+  "Forgetting Sarah Marshall",
+  "Frankenstein",
+  "Funny Money: The Dane Cook Story",
+  "GOAT",
+  "Gatunek | Domyślny | Rozwiń Gatunek",
+  "Get Out",
+  "Gladiator II",
+  "Godzilla Minus One",
+  "Good Will Hunting",
+  "Green Book",
+  "Guardians of the Galaxy",
+  "Harry Potter and the Deathly Hallows: Part 2",
+  "Harry Potter and the Goblet of Fire",
+  "Harry Potter and the Order of the Phoenix",
+  "Heart of the Beast",
+  "Heel",
+  "Heist",
+  "Hereditary",
+  "Hope",
+  "Hot Fuzz",
+  "How the Grinch Stole Christmas",
+  "I Swear",
+  "In the Grey",
+  "Inception",
+  "Insidious: Out of the Further",
+  "Interstellar",
+  "It",
+  "It's a Wonderful Life",
+  "John Wick: Chapter 4",
+  "Joker",
+  "Katalog | Popular | Rozwiń Katalog",
+  "Killers of the Flower Moon",
+  "Kindergarten Cop",
+  "Kingdom of Heaven",
+  "Knives Out",
+  "L'Avocat",
+  "Leave the World Behind",
+  "Les Misérables",
+  "Little Women",
+  "Logan",
+  "Longlegs",
+  "Looper",
+  "Love Actually",
+  "Love of Your Life",
+  "Léon: The Professional",
+  "Mad Max: Fury Road",
+  "Meet the Parents",
+  "Memories of Murder",
+  "Minions & Monsters",
+  "Mission: Impossible - The Final Reckoning",
+  "Mortal Kombat II",
+  "Mulholland Drive",
+  "Musk",
+  "My Cousin Vinny",
+  "Mystic River",
+  "National Lampoon's Christmas Vacation",
+  "Nativity!",
+  "Never After Dark",
+  "Never Surrender",
+  "Nightcrawler",
+  "No Hard Feelings",
+  "No Other Choice",
+  "No Time to Die",
+  "Nosferatu",
+  "Nuremberg",
+  "Obsession",
+  "Obsession | Obejrzane",
+  "Ocean's Eleven",
+  "Once Upon a Time in America",
+  "One Night Only",
+  "Pan's Labyrinth",
+  "Parasite",
+  "Planes, Trains & Automobiles",
+  "Possible Love",
+  "Practical Magic",
+  "Practical Magic 2",
+  "Predestination",
+  "Primetime",
+  "Project Hail Mary",
+  "Ready or Not",
+  "Ready or Not 2: Here I Come",
+  "Red Sparrow",
+  "Reminders of Him",
+  "Requiem for a Dream",
+  "Roofman",
+  "Runner",
+  "Saltburn",
+  "Schindler's List",
+  "Scream",
+  "Send Help",
+  "Sense and Sensibility",
+  "Sentimental Value",
+  "Shang-Chi and the Legend of the Ten Rings",
+  "Shelter",
+  "Sicario",
+  "Sing 2",
+  "Skyfall",
+  "Snatch",
+  "Spider-Man",
+  "Spider-Man: Brand New Day",
+  "Spider-Man: Far from Home",
+  "Star Wars: Episode IV - A New Hope",
+  "Star Wars: Episode V - The Empire Strikes Back",
+  "Star Wars: The Mandalorian and Grogu",
+  "Tenzing",
+  "Terminator 2: Judgment Day",
+  "The Batman",
+  "The Covenant",
+  "The Cycle",
+  "The Death of Robin Hood",
+  "The Deer Hunter",
+  "The Drama",
+  "The End of Oak Street",
+  "The Exorcist",
+  "The Fifth Element",
+  "The Furious",
+  "The Game",
+  "The Gentlemen",
+  "The Goonies",
+  "The Grand Budapest Hotel",
+  "The Grinch",
+  "The Handmaiden",
+  "The Hateful Eight",
+  "The Holdovers",
+  "The Hunger Games: Mockingjay - Part 2",
+  "The Hunger Games: The Ballad of Songbirds & Snakes",
+  "The Hunt",
+  "The Invite",
+  "The Long Walk",
+  "The Lord of the Rings: The Fellowship of the Ring",
+  "The Lord of the Rings: The Return of the King",
+  "The Lord of the Rings: The Two Towers",
+  "The Man from Earth",
+  "The Matrix",
+  "The Mummy",
+  "The Muppet Show",
+  "The Nightmare Before Christmas",
+  "The Notebook",
+  "The Polar Express",
+  "The Princess Bride",
+  "The Shawshank Redemption",
+  "The Silence of the Lambs",
+  "The Sixth Sense",
+  "The Terminator",
+  "The Town",
+  "The Truman Show",
+  "The Uprising",
+  "The Usual Suspects",
+  "The Voyeurs",
+  "The Witch",
+  "Three Billboards Outside Ebbing, Missouri",
+  "Thunderbolts*",
+  "Tinker Tailor Soldier Spy",
+  "Titanic",
+  "Toy Story",
+  "Train Dreams",
+  "Troy",
+  "True Romance",
+  "Verity",
+  "Violent Night",
+  "We're the Millers",
+  "Weapons",
+  "Your Mother Your Mother Your Mother"
+ ],
+ "logcat": [],
+ "czas_obchodu_s": 135
+}

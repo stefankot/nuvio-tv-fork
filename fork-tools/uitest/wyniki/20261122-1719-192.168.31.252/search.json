@@ -1,0 +1,642 @@
+{
+ "trasa": "search",
+ "czas_ladowania_s": 4.8,
+ "kroki": 40,
+ "elementy": {
+  "abc": [
+   88,
+   258,
+   226,
+   314
+  ],
+  "123": [
+   226,
+   258,
+   365,
+   314
+  ],
+  "Sterowanie głosem: powiedz, co włączyć": [
+   365,
+   258,
+   504,
+   314
+  ],
+  "b": [
+   152,
+   346,
+   224,
+   418
+  ],
+  "c": [
+   224,
+   346,
+   296,
+   418
+  ],
+  "d": [
+   296,
+   346,
+   368,
+   418
+  ],
+  "e": [
+   368,
+   346,
+   440,
+   418
+  ],
+  "f": [
+   440,
+   346,
+   512,
+   418
+  ],
+  "a": [
+   80,
+   346,
+   152,
+   418
+  ],
+  "g": [
+   80,
+   426,
+   152,
+   498
+  ],
+  "h": [
+   152,
+   426,
+   224,
+   498
+  ],
+  "i": [
+   224,
+   426,
+   296,
+   498
+  ],
+  "j": [
+   296,
+   426,
+   368,
+   498
+  ],
+  "k": [
+   368,
+   426,
+   440,
+   498
+  ],
+  "l": [
+   440,
+   426,
+   512,
+   498
+  ],
+  "m": [
+   80,
+   506,
+   152,
+   578
+  ],
+  "n": [
+   152,
+   506,
+   224,
+   578
+  ],
+  "o": [
+   224,
+   506,
+   296,
+   578
+  ],
+  "p": [
+   296,
+   506,
+   368,
+   578
+  ],
+  "q": [
+   368,
+   506,
+   440,
+   578
+  ],
+  "r": [
+   440,
+   506,
+   512,
+   578
+  ],
+  "s": [
+   80,
+   586,
+   152,
+   658
+  ],
+  "t": [
+   152,
+   586,
+   224,
+   658
+  ],
+  "u": [
+   224,
+   586,
+   296,
+   658
+  ],
+  "v": [
+   296,
+   586,
+   368,
+   658
+  ],
+  "w": [
+   368,
+   586,
+   440,
+   658
+  ],
+  "x": [
+   440,
+   586,
+   512,
+   658
+  ],
+  "y": [
+   80,
+   666,
+   152,
+   738
+  ],
+  "z": [
+   152,
+   666,
+   224,
+   738
+  ],
+  "SPACJA": [
+   80,
+   762,
+   202,
+   834
+  ],
+  "Usuń": [
+   246,
+   762,
+   318,
+   834
+  ],
+  "WYCZYŚĆ": [
+   362,
+   762,
+   512,
+   834
+  ],
+  "Filmy": [
+   592,
+   314,
+   655,
+   704
+  ],
+  "Seriale": [
+   592,
+   314,
+   657,
+   704
+  ],
+  "Live TV": [
+   592,
+   314,
+   657,
+   704
+  ],
+  "Akcja": [
+   697,
+   314,
+   957,
+   704
+  ],
+  "Przygodowy": [
+   997,
+   314,
+   1257,
+   704
+  ],
+  "Action · ★ 8.4": [
+   1586,
+   816,
+   1840,
+   1080
+  ],
+  "Action · ★ 6.5": [
+   697,
+   816,
+   957,
+   1080
+  ],
+  "Action · ★ 7.1": [
+   697,
+   816,
+   957,
+   1080
+  ],
+  "Action": [
+   1586,
+   816,
+   1840,
+   1080
+  ],
+  "[bez nazwy 48x264 @1792,816]": [
+   1792,
+   816,
+   1840,
+   1080
+  ],
+  "Biography · ★ 7.0": [
+   592,
+   816,
+   657,
+   1080
+  ],
+  "[bez nazwy 65x264 @592,816]": [
+   592,
+   816,
+   657,
+   1080
+  ],
+  "Horror · ★ 7.8": [
+   592,
+   816,
+   657,
+   1080
+  ],
+  "Drama": [
+   686,
+   816,
+   946,
+   1080
+  ],
+  "[bez nazwy 64x264 @592,816]": [
+   592,
+   816,
+   656,
+   1080
+  ],
+  "Drama · ★ 7.2": [
+   986,
+   816,
+   1246,
+   1080
+  ],
+  "Comedy · ★ 7.5": [
+   1286,
+   816,
+   1546,
+   1080
+  ],
+  "Action · ★ 8.0": [
+   1586,
+   816,
+   1840,
+   1080
+  ],
+  "Adventure · ★ 8.2": [
+   1597,
+   816,
+   1840,
+   1080
+  ],
+  "[bez nazwy 54x264 @592,816]": [
+   592,
+   816,
+   646,
+   1080
+  ],
+  "Animacja": [
+   1297,
+   314,
+   1557,
+   704
+  ],
+  "Biograficzny": [
+   1597,
+   314,
+   1840,
+   704
+  ]
+ },
+ "odwiedzone": [
+  "Action",
+  "Action · ★ 6.5",
+  "Action · ★ 7.1",
+  "Action · ★ 8.0",
+  "Action · ★ 8.4",
+  "Akcja",
+  "Biography · ★ 7.0",
+  "Comedy · ★ 7.5",
+  "Drama",
+  "Drama · ★ 7.2",
+  "Horror · ★ 7.8",
+  "Live TV",
+  "Przygodowy",
+  "SPACJA",
+  "Seriale",
+  "a",
+  "g",
+  "m",
+  "s",
+  "y"
+ ],
+ "utrata_fokusu": [],
+ "wyjscie_z_ekranu": [],
+ "pulapki": [],
+ "krawedzie": [
+  [
+   "a",
+   "DOWN",
+   "g"
+  ],
+  [
+   "g",
+   "DOWN",
+   "m"
+  ],
+  [
+   "m",
+   "DOWN",
+   "s"
+  ],
+  [
+   "s",
+   "DOWN",
+   "y"
+  ],
+  [
+   "y",
+   "DOWN",
+   "SPACJA"
+  ],
+  [
+   "SPACJA",
+   "DOWN",
+   "Action · ★ 8.4"
+  ],
+  [
+   "Action · ★ 8.4",
+   "DOWN",
+   "Action · ★ 8.4"
+  ],
+  [
+   "Action · ★ 8.4",
+   "RIGHT",
+   "Action · ★ 6.5"
+  ],
+  [
+   "Action · ★ 6.5",
+   "DOWN",
+   "Action · ★ 6.5"
+  ],
+  [
+   "Action · ★ 6.5",
+   "RIGHT",
+   "Action · ★ 7.1"
+  ],
+  [
+   "Action · ★ 7.1",
+   "DOWN",
+   "Action · ★ 7.1"
+  ],
+  [
+   "Action · ★ 7.1",
+   "RIGHT",
+   "Action"
+  ],
+  [
+   "Action",
+   "DOWN",
+   "Action"
+  ],
+  [
+   "Action",
+   "RIGHT",
+   "Biography · ★ 7.0"
+  ],
+  [
+   "Biography · ★ 7.0",
+   "DOWN",
+   "Biography · ★ 7.0"
+  ],
+  [
+   "Biography · ★ 7.0",
+   "RIGHT",
+   "Horror · ★ 7.8"
+  ],
+  [
+   "Horror · ★ 7.8",
+   "DOWN",
+   "Horror · ★ 7.8"
+  ],
+  [
+   "Horror · ★ 7.8",
+   "RIGHT",
+   "Drama"
+  ],
+  [
+   "Drama",
+   "DOWN",
+   "Drama"
+  ],
+  [
+   "Drama",
+   "RIGHT",
+   "Drama · ★ 7.2"
+  ],
+  [
+   "Drama · ★ 7.2",
+   "DOWN",
+   "Drama · ★ 7.2"
+  ],
+  [
+   "Drama · ★ 7.2",
+   "RIGHT",
+   "Comedy · ★ 7.5"
+  ],
+  [
+   "Comedy · ★ 7.5",
+   "DOWN",
+   "Comedy · ★ 7.5"
+  ],
+  [
+   "Comedy · ★ 7.5",
+   "RIGHT",
+   "Action · ★ 8.0"
+  ],
+  [
+   "Action · ★ 8.0",
+   "DOWN",
+   "Action · ★ 8.0"
+  ],
+  [
+   "Action · ★ 8.0",
+   "RIGHT",
+   "Action"
+  ],
+  [
+   "Action",
+   "UP",
+   "Seriale"
+  ],
+  [
+   "Seriale",
+   "DOWN",
+   "Action"
+  ],
+  [
+   "Action",
+   "LEFT",
+   "Action · ★ 8.0"
+  ],
+  [
+   "Action · ★ 8.0",
+   "UP",
+   "Seriale"
+  ],
+  [
+   "Seriale",
+   "RIGHT",
+   "Live TV"
+  ],
+  [
+   "Live TV",
+   "DOWN",
+   "Action · ★ 8.0"
+  ],
+  [
+   "Action · ★ 8.0",
+   "LEFT",
+   "Comedy · ★ 7.5"
+  ],
+  [
+   "Comedy · ★ 7.5",
+   "UP",
+   "Live TV"
+  ],
+  [
+   "Live TV",
+   "RIGHT",
+   "Akcja"
+  ],
+  [
+   "Akcja",
+   "DOWN",
+   "Comedy · ★ 7.5"
+  ],
+  [
+   "Comedy · ★ 7.5",
+   "LEFT",
+   "Drama · ★ 7.2"
+  ],
+  [
+   "Drama · ★ 7.2",
+   "UP",
+   "Akcja"
+  ],
+  [
+   "Akcja",
+   "RIGHT",
+   "Przygodowy"
+  ],
+  [
+   "Przygodowy",
+   "DOWN",
+   "Drama · ★ 7.2"
+  ]
+ ],
+ "teksty_startowe": [
+  "123",
+  "Action",
+  "Action · ★ 6.5",
+  "Action · ★ 7.1",
+  "Action · ★ 8.4",
+  "Akcja",
+  "Filmy",
+  "Filmy, seriale, TV, YouTube i osoby",
+  "Live TV",
+  "Polecane",
+  "Powiedz",
+  "Przeglądaj",
+  "Przygodowy",
+  "SPACJA",
+  "Seriale",
+  "WYCZYŚĆ",
+  "a",
+  "abc",
+  "b",
+  "built-19m",
+  "c",
+  "d",
+  "e",
+  "f",
+  "g",
+  "h",
+  "i",
+  "j",
+  "k",
+  "l",
+  "m",
+  "n",
+  "o",
+  "p",
+  "q",
+  "r",
+  "s",
+  "t",
+  "u",
+  "v",
+  "w",
+  "x",
+  "y",
+  "z"
+ ],
+ "nieosiagalne": [
+  "123",
+  "Adventure · ★ 8.2",
+  "Animacja",
+  "Biograficzny",
+  "Filmy",
+  "Sterowanie głosem: powiedz, co włączyć",
+  "Usuń",
+  "WYCZYŚĆ",
+  "[bez nazwy 48x264 @1792,816]",
+  "[bez nazwy 54x264 @592,816]",
+  "[bez nazwy 64x264 @592,816]",
+  "[bez nazwy 65x264 @592,816]",
+  "abc",
+  "b",
+  "c",
+  "d",
+  "e",
+  "f",
+  "h",
+  "i",
+  "j",
+  "k",
+  "l",
+  "n",
+  "o",
+  "p",
+  "q",
+  "r",
+  "t",
+  "u",
+  "v",
+  "w",
+  "x",
+  "z"
+ ],
+ "logcat": [],
+ "czas_obchodu_s": 133
+}

@@ -25,7 +25,8 @@ class NarratorCoreTest {
     }
 
     @Test fun styleIsRestrainedAndPricesRollOver() {
-        assertTrue(NarratorText.style("Naprawdę?", null).contains("pytająca"))
+        assertTrue(NarratorText.style("Naprawdę?", null).contains("Pytanie tylko minimalnie podnieś")) // styl 19.11: klasyczny lektor
+        assertFalse(NarratorText.style("Tak.", null).contains("Pytanie"))
         val old = NarratorPrices.rate(NarratorModel.FLASH_LITE, 2026, 12)
         val newRate = NarratorPrices.rate(NarratorModel.FLASH_LITE, 2027, 1)
         assertTrue(newRate.second > old.second)

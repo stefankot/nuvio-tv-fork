@@ -1,0 +1,593 @@
+{
+ "trasa": "home",
+ "czas_ladowania_s": 6.3,
+ "kroki": 40,
+ "elementy": {
+  "Dodaj do biblioteki": [
+   424,
+   724,
+   512,
+   812
+  ],
+  "Szczegóły": [
+   536,
+   724,
+   624,
+   812
+  ],
+  "Następny wyróżniony tytuł": [
+   648,
+   740,
+   704,
+   796
+  ],
+  "Odtwórz": [
+   80,
+   724,
+   400,
+   812
+  ],
+  "Odyseja, Odyseja · 101m": [
+   440,
+   0,
+   760,
+   8
+  ],
+  "Wojna między lądem a morzem, S1, E1 · 25m": [
+   800,
+   0,
+   1120,
+   8
+  ],
+  "SG: HUB SPORTS 5 ᴿᴬᵂ, SG: HUB SPORTS 5 ᴿᴬᵂ · 9m": [
+   1160,
+   0,
+   1480,
+   8
+  ],
+  "Casanova, S1, E1 · 176m": [
+   1520,
+   0,
+   1840,
+   8
+  ],
+  "Pantheon, S1, E1 · 40m": [
+   1880,
+   0,
+   1920,
+   8
+  ],
+  "Ciało, S1, E1 · 54m": [
+   80,
+   0,
+   400,
+   8
+  ],
+  "#1 Dziś | Action · ★ 8.4": [
+   80,
+   148,
+   340,
+   538
+  ],
+  "#2 Dziś | Action · ★ 6.5": [
+   380,
+   148,
+   640,
+   538
+  ],
+  "#3 Dziś | Action · ★ 7.1": [
+   680,
+   148,
+   940,
+   538
+  ],
+  "#4 Dziś | Action": [
+   980,
+   148,
+   1240,
+   538
+  ],
+  "#5 Dziś | Biography · ★ 7.0": [
+   1280,
+   148,
+   1540,
+   538
+  ],
+  "#6 Dziś | Horror · ★ 7.8": [
+   1580,
+   148,
+   1840,
+   538
+  ],
+  "[bez nazwy 40x390 @1880,516]": [
+   1880,
+   516,
+   1920,
+   906
+  ],
+  "#1 Dziś": [
+   80,
+   1046,
+   340,
+   1080
+  ],
+  "#2 Dziś": [
+   380,
+   1046,
+   640,
+   1080
+  ],
+  "#3 Dziś": [
+   680,
+   1046,
+   940,
+   1080
+  ],
+  "#4 Dziś": [
+   980,
+   1046,
+   1240,
+   1080
+  ],
+  "#5 Dziś": [
+   1280,
+   1046,
+   1540,
+   1080
+  ],
+  "#6 Dziś": [
+   1580,
+   1046,
+   1840,
+   1080
+  ],
+  "[bez nazwy 40x34 @1880,1046]": [
+   1880,
+   1046,
+   1920,
+   1080
+  ],
+  "[bez nazwy 40x390 @1880,148]": [
+   1880,
+   148,
+   1920,
+   538
+  ],
+  "#1 Dziś | Action · ★ 6.8": [
+   80,
+   148,
+   340,
+   538
+  ],
+  "#2 Dziś | Drama": [
+   80,
+   148,
+   340,
+   538
+  ],
+  "#3 Dziś | Crime · ★ 8.3": [
+   80,
+   148,
+   340,
+   538
+  ],
+  "#4 Dziś | Action · ★ 7.8": [
+   80,
+   148,
+   340,
+   538
+  ],
+  "#5 Dziś | Action · ★ 7.2": [
+   80,
+   148,
+   340,
+   538
+  ],
+  "#6 Dziś | Crime · ★ 9.0": [
+   80,
+   148,
+   340,
+   538
+  ],
+  "[bez nazwy 40x390 @1880,678]": [
+   1880,
+   678,
+   1920,
+   1068
+  ],
+  "[bez nazwy 260x8 @80,0]": [
+   80,
+   0,
+   340,
+   8
+  ],
+  "[bez nazwy 260x8 @380,0]": [
+   380,
+   0,
+   640,
+   8
+  ],
+  "[bez nazwy 260x8 @680,0]": [
+   680,
+   0,
+   940,
+   8
+  ],
+  "[bez nazwy 260x8 @980,0]": [
+   980,
+   0,
+   1240,
+   8
+  ],
+  "[bez nazwy 260x8 @1280,0]": [
+   1280,
+   0,
+   1540,
+   8
+  ],
+  "[bez nazwy 260x8 @1580,0]": [
+   1580,
+   0,
+   1840,
+   8
+  ],
+  "[bez nazwy 40x8 @1880,0]": [
+   1880,
+   0,
+   1920,
+   8
+  ],
+  "Biography": [
+   80,
+   678,
+   340,
+   1068
+  ],
+  "Nowość | Action": [
+   380,
+   678,
+   640,
+   1068
+  ],
+  "Comedy": [
+   680,
+   678,
+   940,
+   1068
+  ],
+  "Thriller": [
+   980,
+   678,
+   1240,
+   1068
+  ],
+  "Nowość | Mystery": [
+   1280,
+   678,
+   1540,
+   1068
+  ],
+  "Nowość | Fantasy": [
+   1580,
+   678,
+   1840,
+   1068
+  ],
+  "Nowość | Crime": [
+   80,
+   678,
+   340,
+   1068
+  ],
+  "Nowość | Drama": [
+   380,
+   678,
+   640,
+   1068
+  ],
+  "Drama": [
+   1580,
+   678,
+   1840,
+   1068
+  ],
+  "Nowość | Documentary": [
+   980,
+   678,
+   1240,
+   1068
+  ],
+  "[bez nazwy 40x382 @1880,0]": [
+   1880,
+   0,
+   1920,
+   382
+  ],
+  "[bez nazwy 40x390 @1880,522]": [
+   1880,
+   522,
+   1920,
+   912
+  ],
+  "[bez nazwy 40x390 @0,148]": [
+   0,
+   148,
+   40,
+   538
+  ],
+  "#7 Dziś | Crime": [
+   380,
+   148,
+   640,
+   538
+  ],
+  "[bez nazwy 40x8 @0,0]": [
+   0,
+   0,
+   40,
+   8
+  ],
+  "#8 Dziś | Crime": [
+   680,
+   148,
+   940,
+   538
+  ],
+  "#9 Dziś | Drama · ★ 7.7": [
+   980,
+   148,
+   1240,
+   538
+  ],
+  "#10 Dziś | Drama": [
+   1280,
+   148,
+   1540,
+   538
+  ],
+  "Animation · ★ 8.2": [
+   1580,
+   148,
+   1840,
+   538
+  ]
+ },
+ "odwiedzone": [
+  "#1 Dziś | Action · ★ 6.8",
+  "#1 Dziś | Action · ★ 8.4",
+  "#10 Dziś | Drama",
+  "#6 Dziś | Crime · ★ 9.0",
+  "#7 Dziś | Crime",
+  "#8 Dziś | Crime",
+  "#9 Dziś | Drama · ★ 7.7",
+  "Animation · ★ 8.2",
+  "Biography",
+  "Ciało, S1, E1 · 54m",
+  "Drama",
+  "Nowość | Crime",
+  "Nowość | Documentary",
+  "Nowość | Drama",
+  "Nowość | Fantasy",
+  "Nowość | Mystery",
+  "Odtwórz"
+ ],
+ "utrata_fokusu": [],
+ "wyjscie_z_ekranu": [],
+ "pulapki": [],
+ "krawedzie": [
+  [
+   "Odtwórz",
+   "DOWN",
+   "Ciało, S1, E1 · 54m"
+  ],
+  [
+   "Ciało, S1, E1 · 54m",
+   "DOWN",
+   "#1 Dziś | Action · ★ 8.4"
+  ],
+  [
+   "#1 Dziś | Action · ★ 8.4",
+   "DOWN",
+   "#1 Dziś | Action · ★ 6.8"
+  ],
+  [
+   "#1 Dziś | Action · ★ 6.8",
+   "DOWN",
+   "Biography"
+  ],
+  [
+   "Biography",
+   "DOWN",
+   "Nowość | Crime"
+  ],
+  [
+   "Nowość | Crime",
+   "DOWN",
+   "Nowość | Crime"
+  ],
+  [
+   "Nowość | Crime",
+   "RIGHT",
+   "Nowość | Drama"
+  ],
+  [
+   "Nowość | Drama",
+   "DOWN",
+   "Nowość | Drama"
+  ],
+  [
+   "Nowość | Drama",
+   "RIGHT",
+   "Drama"
+  ],
+  [
+   "Drama",
+   "DOWN",
+   "Drama"
+  ],
+  [
+   "Drama",
+   "RIGHT",
+   "Nowość | Documentary"
+  ],
+  [
+   "Nowość | Documentary",
+   "DOWN",
+   "Nowość | Documentary"
+  ],
+  [
+   "Nowość | Documentary",
+   "RIGHT",
+   "Nowość | Fantasy"
+  ],
+  [
+   "Nowość | Fantasy",
+   "DOWN",
+   "Nowość | Fantasy"
+  ],
+  [
+   "Nowość | Fantasy",
+   "RIGHT",
+   "Drama"
+  ],
+  [
+   "Drama",
+   "UP",
+   "Nowość | Fantasy"
+  ],
+  [
+   "Nowość | Fantasy",
+   "UP",
+   "#6 Dziś | Crime · ★ 9.0"
+  ],
+  [
+   "#6 Dziś | Crime · ★ 9.0",
+   "DOWN",
+   "Nowość | Fantasy"
+  ],
+  [
+   "Nowość | Fantasy",
+   "LEFT",
+   "Nowość | Mystery"
+  ],
+  [
+   "Nowość | Mystery",
+   "DOWN",
+   "Nowość | Fantasy"
+  ],
+  [
+   "Drama",
+   "LEFT",
+   "Nowość | Fantasy"
+  ],
+  [
+   "Nowość | Mystery",
+   "RIGHT",
+   "Nowość | Fantasy"
+  ],
+  [
+   "#6 Dziś | Crime · ★ 9.0",
+   "RIGHT",
+   "#7 Dziś | Crime"
+  ],
+  [
+   "#7 Dziś | Crime",
+   "DOWN",
+   "Nowość | Fantasy"
+  ],
+  [
+   "#7 Dziś | Crime",
+   "RIGHT",
+   "#8 Dziś | Crime"
+  ],
+  [
+   "#8 Dziś | Crime",
+   "DOWN",
+   "Nowość | Fantasy"
+  ],
+  [
+   "#8 Dziś | Crime",
+   "RIGHT",
+   "#9 Dziś | Drama · ★ 7.7"
+  ],
+  [
+   "#9 Dziś | Drama · ★ 7.7",
+   "DOWN",
+   "Nowość | Fantasy"
+  ],
+  [
+   "#9 Dziś | Drama · ★ 7.7",
+   "RIGHT",
+   "#10 Dziś | Drama"
+  ],
+  [
+   "#10 Dziś | Drama",
+   "DOWN",
+   "Nowość | Fantasy"
+  ],
+  [
+   "#10 Dziś | Drama",
+   "RIGHT",
+   "Animation · ★ 8.2"
+  ],
+  [
+   "Animation · ★ 8.2",
+   "DOWN",
+   "Nowość | Fantasy"
+  ]
+ ],
+ "teksty_startowe": [
+  "After the Trojan War, Odysseus faces a dangerous voyage back to Ithaca, meeting creatures like the Cyclops Polyphemus, Sirens, and Calypso along the way.",
+  "Film · Action · Adventure · 2026 · 2 godz. 53 min",
+  "Główna",
+  "IMDb 8.4",
+  "Odtwórz",
+  "Oglądaj dalej",
+  "built-17m"
+ ],
+ "nieosiagalne": [
+  "#1 Dziś",
+  "#2 Dziś",
+  "#2 Dziś | Action · ★ 6.5",
+  "#2 Dziś | Drama",
+  "#3 Dziś",
+  "#3 Dziś | Action · ★ 7.1",
+  "#3 Dziś | Crime · ★ 8.3",
+  "#4 Dziś",
+  "#4 Dziś | Action",
+  "#4 Dziś | Action · ★ 7.8",
+  "#5 Dziś",
+  "#5 Dziś | Action · ★ 7.2",
+  "#5 Dziś | Biography · ★ 7.0",
+  "#6 Dziś",
+  "#6 Dziś | Horror · ★ 7.8",
+  "Casanova, S1, E1 · 176m",
+  "Comedy",
+  "Dodaj do biblioteki",
+  "Następny wyróżniony tytuł",
+  "Nowość | Action",
+  "Odyseja, Odyseja · 101m",
+  "Pantheon, S1, E1 · 40m",
+  "SG: HUB SPORTS 5 ᴿᴬᵂ, SG: HUB SPORTS 5 ᴿᴬᵂ · 9m",
+  "Szczegóły",
+  "Thriller",
+  "Wojna między lądem a morzem, S1, E1 · 25m",
+  "[bez nazwy 260x8 @1280,0]",
+  "[bez nazwy 260x8 @1580,0]",
+  "[bez nazwy 260x8 @380,0]",
+  "[bez nazwy 260x8 @680,0]",
+  "[bez nazwy 260x8 @80,0]",
+  "[bez nazwy 260x8 @980,0]",
+  "[bez nazwy 40x34 @1880,1046]",
+  "[bez nazwy 40x382 @1880,0]",
+  "[bez nazwy 40x390 @0,148]",
+  "[bez nazwy 40x390 @1880,148]",
+  "[bez nazwy 40x390 @1880,516]",
+  "[bez nazwy 40x390 @1880,522]",
+  "[bez nazwy 40x390 @1880,678]",
+  "[bez nazwy 40x8 @0,0]",
+  "[bez nazwy 40x8 @1880,0]"
+ ],
+ "logcat": [],
+ "czas_obchodu_s": 132
+}

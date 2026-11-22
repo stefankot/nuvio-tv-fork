@@ -371,6 +371,7 @@ android {
 
     testOptions {
         unitTests.isReturnDefaultValues = true
+        unitTests.all { t -> rootProject.file("fork-tools/test/wykluczone-testy-bazy.txt").takeIf { it.isFile }?.readLines()?.map { it.substringBefore('\t').trim() }?.filter { it.isNotEmpty() && !it.startsWith("#") }?.forEach { t.filter.excludeTestsMatching(it) } } // Fork hook: testy (wykluczone testy bazy)
     }
 }
 

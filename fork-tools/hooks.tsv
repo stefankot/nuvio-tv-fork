@@ -135,3 +135,4 @@ app/src/main/java/com/nuvio/tv/core/player/AutoPlayRace.kt	Placeholders.tooSmall
 app/src/main/java/com/nuvio/tv/core/player/AutoPlayRace.kt	Placeholders.firstReal(	suspend fun pick(	placeholders	bez zwycięzcy: nie klip	
 app/src/main/java/com/nuvio/tv/core/player/AutoPlayRace.kt	internal suspend fun pickInRankOrder(	AutoPlayRace	echo	gotowość równolegle, wybór najwyższej gotowej pozycji
 app/build.gradle.kts	// Fork hook: testy (kotlin.test z Reshaped na JUnit 4)	testImplementation(kotlin("test"))	testy	adnotacje kotlin.test (testy Reshaped audiosync, SyncDoc) działają na JUnit 4	
+app/build.gradle.kts	// Fork hook: testy (wykluczone testy bazy)	unitTests.isReturnDefaultValues = true	testy	testy bazy sprzeczne z decyzjami forka pomijane wg fork-tools/test/wykluczone-testy-bazy.txt	

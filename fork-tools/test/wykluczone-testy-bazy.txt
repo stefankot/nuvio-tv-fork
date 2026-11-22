@@ -1,0 +1,6 @@
+# Testy bazy NuvioTV pomijane w forku (wpięcie „testy” w app/build.gradle.kts, 22.11). Jeden wzorzec Gradle na wiersz, po tabulatorze powód.
+# Tylko testy sprzeczne ze stałymi decyzjami forka (plik z Reshaped 1:1, kategorie forka) albo zależne od kluczy spoza gita.
+com.nuvio.tv.ui.screens.settings.SettingsCatalogTest.primary profile in advanced debug build sees every category in group order	fork ma własne kategorie (Tryb nocny, YouTube, Kicia/Forge); kolejność forka: fork/settings/ForkSettingsCatalogTest
+com.nuvio.tv.ui.screens.player.ProxyHeadersProtocolTest.clients with proxy headers stay on http 1_1 and add exactly one retry interceptor	PlayerPlaybackNetworking z Reshaped (overrides.txt) — bez ponowienia HTTP/2 z nowej bazy
+com.nuvio.tv.ui.screens.collection.CollectionEditorViewModelDirtyStateTest.collection editor route encodes special characters in collectionId	Screen.kt z Reshaped + wpięcia (hooked-overrides) — bez kodowania id kolekcji z nowej bazy (DECYZJE 22.11)
+com.nuvio.tv.data.repository.TraktAuthServiceTest	wymaga TRAKT_CLIENT_ID/SECRET w local.properties (bez kluczy logowanie Trakt jest wyłączone i odświeżanie tokenu się nie wywołuje)
