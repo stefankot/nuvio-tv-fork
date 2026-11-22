@@ -3,6 +3,12 @@
 Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–13: `plan/archiwum/TERAZ-historia-watki-1-13.md` (tylko `grep`, nie czytaj całości).
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
+## STAN 22.11 ~15:55 (wątek Z-13/paczka 22.11): build164 zbudowany, NIE instalowany — na JMGO jest nowszy build166
+- build164 (v7a, d14b50035 = moja paczka + wątek „Format zwracanej listy plików wideo”: 001163fb2 ranking flag TorrentClaw, d14b50035 autoplay tylko Regex): BUILD SUCCESSFUL, testy **323/323**, `check.sh` OK (60). APK md5 311ed1f7966026c6f9023d4b20b5313d.
+- Nie zainstalowany: w międzyczasie wątek obrazków zbudował na tej gałęzi **build166** (72d2ba445, zawiera wszystko z build164) i zainstalował go na JMGO (md5 na TV 5b1c9fed751a7d9e6ac561c1ae53d6c8, sprawdzone 22.11 ~15:50) — instalacja build164 cofnęłaby TV.
+- build167 i build168 (wątek obrazków, HEAD 025c4e099) NIEUDANE: 167 — błąd kompilacji (import `precision`, poprawiony w 025c4e099); 168 — `ImageQualityTest > dekodowanie do miejsca na ekranie z zapasem na fokus` (linia 27) + demon Gradle zabity przy zamknięciu aplikacji. Commity 305d46d6f i 025c4e099 nie są na TV — do dokończenia przez wątek obrazków.
+- Logi JMGO: dwa FATAL tylko w aplikacjach systemowych Google (gms.persistent, tvrecommendations: brak dostawcy gsf.gservices), nie w Nuvio.
+
 ## NAJPIERW (22.11 ~14:00) — obrazki „nadal słaba jakość” → build166 NA JMGO
 Przyczyny (sprawdzone): (1) Nuvio domyślnie dekoduje obrazki w 16-bitowym kolorze RGB565 (`image_performance/rgb565_enabled` = domyślnie tak) → paski na tłach; (2) poprzednia poprawka podnosiła tylko obrazki ≥ 900 px — plakaty w rzędach zostawały w metahub `poster/small` (300 px, ~27 KB); (3) metahub `background/large` = `medium` (1920 px) — „large” nic nie dawało; (4) wzór plakatów kaptain.stream zwracał 410 (każdy plakat najpierw błąd, potem zapas).
 Polecenie właściciela 22.11: „nie z kaptain.stream, tylko TMDB w pełnej, najwyższej rozdzielczości — plakaty, backdropy, wszystko”. Zrobione: na JMGO usunięty `layout_settings/custom_poster_url_pattern` (kopia ustawień `NuvioFork/.stage/prefs/przed-kaptain-22.11.json`); kod 72d2ba445: każdy adres TMDB → `original`, metahub plakat/tło → TMDB `original` po IMDb (`fork/images/TmdbArtLookup`, pamięć `sp:fork_tmdb_art`), zapas: największy metahub → pierwotny adres; wszystkie obrazki w pełnym kolorze.
