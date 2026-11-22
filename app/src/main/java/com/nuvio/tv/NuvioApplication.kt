@@ -196,7 +196,7 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
             .diskCache {
                 DiskCache.Builder()
                     .directory(cacheDir.resolve("image_cache").toOkioPath())
-                    .maxSizeBytes(200L * 1024 * 1024)
+                    .maxSizeBytes(com.nuvio.tv.fork.images.ForkImageQuality.diskCacheBytes(this, 200L * 1024 * 1024)) // Fork hook: images (disk)
                     .build()
             }
             .crossfade(false)

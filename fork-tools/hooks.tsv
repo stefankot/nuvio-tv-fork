@@ -74,3 +74,4 @@ app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerAutoQual
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	// Fork hook: skin (Wstecz krok po kroku w nakładce skórki)	seekPreview.handleBack	skin	skin: Wstecz najpierw do nakładki skórki (panel, poziomy Niuni)	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	Fork hook: livetv (Wstecz w pytaniu archiwum	val exitPlayerFromError	livetv	Wstecz w pytaniu „Wrócić do transmisji na żywo?” wychodzi z odtwarzacza (exit było puste)	
 app/src/main/java/com/nuvio/tv/NuvioApplication.kt	// Fork hook: images	add(CustomPosterFallbackInterceptor())	images	duże obrazki TMDB/metahub w pełnej jakości (ForkImageQuality)	
+app/src/main/java/com/nuvio/tv/NuvioApplication.kt	// Fork hook: images (disk)	.maxSizeBytes(	images	pamięć obrazków na dysku do 1,5 GB (pliki TMDB original)	.maxSizeBytes(200L * 1024 * 1024)

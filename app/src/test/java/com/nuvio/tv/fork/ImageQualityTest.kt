@@ -22,4 +22,9 @@ class ImageQualityTest {
         assertEquals(Triple("background", "tt1", null), ForkImageQuality.metahub("https://images.metahub.space/background/medium/tt1/img"))
         assertNull(ForkImageQuality.metahub("https://images.metahub.space/logo/medium/tt1/img"))
     }
+
+    @Test fun `dekodowanie do miejsca na ekranie z zapasem na fokus`() {
+        assertEquals(coil3.size.Size(299, 448), ForkImageQuality.decodeSize(coil3.size.Size(260, 390)))
+        assertEquals(coil3.size.Size.ORIGINAL, ForkImageQuality.decodeSize(coil3.size.Size.ORIGINAL))
+    }
 }

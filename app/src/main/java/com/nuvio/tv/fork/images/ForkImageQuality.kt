@@ -5,6 +5,10 @@ import coil3.intercept.Interceptor
 import coil3.request.ErrorResult
 import coil3.request.ImageResult
 import coil3.request.allowRgb565
+import coil3.request.precision
+import coil3.size.Dimension
+import coil3.size.Precision
+import coil3.size.Size
 import com.nuvio.tv.ui.screens.settings.ForkFeatures
 
 /**
@@ -16,7 +20,10 @@ import com.nuvio.tv.ui.screens.settings.ForkFeatures
  * 2. Każdy adres TMDB (`w342`, `w500`, `w1280`, `h632`…) → `original`.
  * 3. Plakat / tło z metahub (Cinemeta, najwyżej 780 px plakatu i 1920 px tła, mocno skompresowane) → TMDB `original`
  *    po IMDb id ([TmdbArtLookup]); gdy TMDB nie zna tytułu — największy wariant metahub.
- * Zapas: gdy wersja `original` się nie wczyta — pierwotny adres. Coil i tak zmniejsza obraz do miejsca na ekranie.
+ * 4. Pamięć (22.11, właściciel „zrób 1 i 2”): obrazek dekodowany dokładnie do miejsca na ekranie + [FOCUS_MARGIN] na
+ *    powiększenie przy fokusie ([Precision.EXACT]; wcześniej skokami co 2×: plakat 2000 px dla 260 px → 500×750, ok. 1,5 MB,
+ *    teraz ok. 300×450, ok. 0,5 MB). Pamięć podręczna na dysku większa ([diskCacheBytes]), bo pliki `original` są ~10× większe.
+ * Zapas: gdy wersja `original` się nie wczyta — pierwotny adres.
  * Kaptain.stream (wzór plakatów Nuvio) wyłączony w ustawieniach JMGO 22.11 (zwracał 410).
  */
 class ForkImageQuality(private val enabled: () -> Boolean) : Interceptor {
@@ -27,7 +34,28 @@ class ForkImageQuality(private val enabled: () -> Boolean) : Interceptor {
         private val METAHUB = Regex("""^https?://images\.metahub\.space/(background|poster)/(small|medium|large)/(tt\d+)(/.*)?$""")
         private val METAHUB_MAX = mapOf("poster" to "large", "background" to "medium") // background large = medium (1920)
         const val TMDB_ORIGINAL = "https://image.tmdb.org/t/p/original"
+        private const val FOCUS_MARGIN = 1.15f // plakat z fokusem i hero przy animacji są powiększane do ~1,1×
+        private const val DISK_MAX = 1536L * 1024 * 1024
         @Volatile private var logged = 0
+
+        /** Rozmiar do dekodowania: miejsce na ekranie × [FOCUS_MARGIN]; nieznany wymiar zostaje bez zmian. */
+        fun decodeSize(size: Size): Size {
+            val w = size.width; val h = size.height
+            if (w !is Dimension.Pixels || h !is Dimension.Pixels) return size
+            return Size(Math.round(w.px * FOCUS_MARGIN), Math.round(h.px * FOCUS_MARGIN))
+        }
+
+        /**
+         * Pamięć obrazków na dysku: przy włączonej funkcji do 1,5 GB, ale najwyżej 1/4 wolnego miejsca i nie mniej niż
+         * [default] (wyłączona = [default] Nuvio, 200 MB).
+         */
+        fun diskCacheBytes(c: android.content.Context, default: Long): Long {
+            if (!isEnabled(c)) return default
+            val free = try { c.cacheDir.usableSpace } catch (e: SecurityException) { Log.w(TAG, "wolne miejsce: ${e.javaClass.simpleName}: ${e.message}"); 0L }
+            val bytes = maxOf(default, minOf(DISK_MAX, free / 4))
+            Log.i(TAG, "pamięć obrazków na dysku: ${bytes / 1048576} MB (wolne ${free / 1048576} MB)")
+            return bytes
+        }
 
         /** TMDB w dowolnym rozmiarze → `original`; null, gdy to nie TMDB albo już `original`. */
         fun tmdbOriginal(url: String): String? = TMDB.find(url)?.let { m -> m.groupValues[1] + "original" + m.groupValues[3] }
@@ -44,8 +72,9 @@ class ForkImageQuality(private val enabled: () -> Boolean) : Interceptor {
 
     override suspend fun intercept(chain: Interceptor.Chain): ImageResult {
         if (!enabled()) return chain.proceed()
-        val full = chain.request.newBuilder().allowRgb565(false).build()
-        val url = full.data as? String ?: return chain.withRequest(full).proceed()
+        val full = chain.request.newBuilder().allowRgb565(false).precision(Precision.EXACT).build()
+        val sized = chain.withSize(decodeSize(chain.size))
+        val url = full.data as? String ?: return sized.withRequest(full).proceed()
         val candidates = buildList {
             tmdbOriginal(url)?.let(::add)
             metahub(url)?.let { (kind, imdb, biggest) ->
@@ -54,13 +83,13 @@ class ForkImageQuality(private val enabled: () -> Boolean) : Interceptor {
             }
         }
         for (big in candidates) {
-            val result = chain.withRequest(full.newBuilder().data(big).build()).proceed()
+            val result = sized.withRequest(full.newBuilder().data(big).build()).proceed()
             if (result !is ErrorResult) {
                 if (logged < 8) { logged++; Log.i(TAG, "obrazek w najwyższej jakości: ${url.substringAfter("://").take(60)} → ${big.substringAfter("://").take(60)}") }
                 return result
             }
             Log.w(TAG, "obrazek ${big.substringAfter("://").take(60)} nie wczytał się: ${result.throwable.javaClass.simpleName}: ${result.throwable.message} — następny zapas")
         }
-        return chain.withRequest(full).proceed()
+        return sized.withRequest(full).proceed()
     }
 }
