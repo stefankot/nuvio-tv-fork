@@ -153,17 +153,30 @@ fun niuniaImageRequest(context: android.content.Context, art: String?, fallback:
     }.build()
 
 /**
- * Plakat pionowy pozycji: (grafika, zapas). Pozycje poziome (posterShape ≠ POSTER) dostają pionowy plakat ze wzoru
- * z ustawień (bez tego poziomy obraz był przycinany do pionu); zapas = oryginalny plakat.
+ * Plakat pionowy pozycji: (grafika, zapas). Pozycje poziome (posterShape ≠ POSTER, np. „Więcej podobnych” z Trakt/Simkl/TMDB)
+ * dostają pionowy plakat: wzór z ustawień → oryginalny plakat pionowy (rawPosterUrl, gdy nie jest obrazem poziomym) →
+ * plakat Cinemeta (metahub) po IMDb. Bez tego poziomy obraz był przycinany do pionu. Brak plakatu (biblioteka Trakt/MDBList)
+ * → plakat Cinemeta po IMDb. Zapas = to, co zostaje, gdy wybrana grafika się nie wczyta.
  */
 fun niuniaPortrait(item: com.nuvio.tv.domain.model.MetaPreview, pattern: String): Pair<String?, String?> {
-    if (item.posterShape == com.nuvio.tv.domain.model.PosterShape.POSTER || pattern.isBlank()) return item.poster to item.rawPosterUrl
-    val url = try {
+    val imdb = (item.imdbId ?: item.id.takeIf { it.startsWith("tt") })?.substringBefore(':')?.takeIf { it.startsWith("tt") }
+    val metahub = imdb?.let { "https://images.metahub.space/poster/medium/$it/img" }
+    if (item.posterShape == com.nuvio.tv.domain.model.PosterShape.POSTER) {
+        val art = item.poster?.takeIf { it.isNotBlank() } ?: item.rawPosterUrl?.takeIf { it.isNotBlank() } ?: metahub
+        return art to ((item.rawPosterUrl?.takeIf { it.isNotBlank() && it != art }) ?: metahub?.takeIf { it != art })
+    }
+    val landscape = setOfNotNull(item.poster, item.landscapePoster, item.background)
+    val portrait = item.rawPosterUrl?.takeIf { it.isNotBlank() && it !in landscape } ?: metahub
+    val custom = if (pattern.isBlank()) null else try {
         com.nuvio.tv.core.poster.CustomPosterUrlResolver.resolve(
             pattern, com.nuvio.tv.core.poster.CustomPosterUrlResolver.extractIds(item.id, item.imdbId), item.type.toApiString(item.rawType), "poster",
         )
     } catch (e: Exception) {
         android.util.Log.w("ForkNiunia", "plakat pionowy ${item.id}: ${e.javaClass.simpleName}: ${e.message}"); null
     }
-    return (url ?: item.poster) to (item.rawPosterUrl ?: item.poster)
+    return when {
+        custom != null -> custom to (portrait ?: item.poster)
+        portrait != null -> portrait to (metahub?.takeIf { it != portrait } ?: item.poster)
+        else -> item.poster to item.rawPosterUrl
+    }
 }

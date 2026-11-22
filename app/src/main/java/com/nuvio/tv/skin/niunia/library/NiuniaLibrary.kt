@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.nuvio.tv.R
 import com.nuvio.tv.skin.niunia.components.NiuniaPoster
+import com.nuvio.tv.skin.niunia.components.niuniaPortrait
 import com.nuvio.tv.skin.niunia.tokens.NiuniaColors
 import com.nuvio.tv.skin.niunia.tokens.NiuniaDims
 import com.nuvio.tv.skin.niunia.tokens.NiuniaText
@@ -39,7 +41,12 @@ private const val TAG = "ForkNiunia"
 fun NiuniaLibrary(onNavigateToDetail: (String, String, String?) -> Unit, viewModel: LibraryViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsState()
     val items = state.visibleItems
-    LaunchedEffect(items.size) { Log.i(TAG, "biblioteka: ${items.size} pozycji") }
+    val posterPattern = remember(state.customPosterUrlPattern, state.customPosterEnabledScreens) {
+        com.nuvio.tv.core.poster.patternForScreen(state.customPosterUrlPattern, com.nuvio.tv.core.poster.CustomPosterScreen.LIBRARY, state.customPosterEnabledScreens)
+    }
+    LaunchedEffect(items.size) {
+        Log.i(TAG, "biblioteka: ${items.size} pozycji, bez plakatu=${items.count { it.poster.isNullOrBlank() }}, poziome=${items.count { it.posterShape != com.nuvio.tv.domain.model.PosterShape.POSTER }}")
+    }
     if (items.isEmpty()) {
         // Pkt 3 (canvas v86): bez centrowania w poziomie — komunikat od lewej (40 dp).
         Box(Modifier.fillMaxSize().background(NiuniaColors.Bg).padding(start = NiuniaDims.Gutter), contentAlignment = Alignment.CenterStart) {
@@ -59,10 +66,15 @@ fun NiuniaLibrary(onNavigateToDetail: (String, String, String?) -> Unit, viewMod
     ) {
         items(items, key = { "${it.type}_${it.id}" }) { entry ->
             val rating = entry.imdbRating?.takeIf { it > 0f }?.let { "★ %.1f".format(java.util.Locale.US, it) }
+            // Właściciel 22.11: brakowało plakatów — teraz z zapasem (oryginał, gdy wzór z ustawień nie da obrazu; Cinemeta po IMDb,
+            // gdy Trakt/MDBList nie podał plakatu) i pionowy plakat dla pozycji poziomych.
+            val (art, fallback) = remember(entry, posterPattern) {
+                niuniaPortrait(entry.toMetaPreview().copy(imdbId = entry.imdbId), posterPattern)
+            }
             NiuniaPoster(
-                art = entry.poster, title = entry.name, logo = entry.logo,
+                art = art, fallback = fallback, title = entry.name, logo = entry.logo,
                 meta = listOfNotNull(entry.genres.firstOrNull(), rating).joinToString(" · ").ifBlank { null },
-                label = null, baked = entry.poster != null,
+                label = null, baked = art != null,
                 onOk = { onNavigateToDetail(entry.id, entry.type, entry.addonBaseUrl) },
             )
         }
