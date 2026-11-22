@@ -20,7 +20,7 @@ class SourcePresetsTest {
         assertEquals(0, tier("pl_always", "Film.2023.2160p.UHD.DUBBING.PL"))
         assertEquals(2, tier("pl_always", "Film 720p BluRay Dubbing"))
         assertEquals(3, tier("pl_always", "Film 480p POLISH"))
-        assertEquals(5, tier("pl_always", "Film 1080p WEB-DL English"))
+        assertEquals(8, tier("pl_always", "Film 1080p WEB-DL English"))
         assertEquals(1, tier("pl_always", "Film 1080p MULTI PL"))
         assertEquals(1, tier("pl_always", "Film 1080p PL"))
     }
@@ -38,12 +38,13 @@ class SourcePresetsTest {
     }
 
     @Test fun `po polsku przy dobrej jakosci`() {
-        assertEquals(1, tier("pl_if_good", "Film 1080p WEB-DL Lektor PL"))
+        assertEquals(3, tier("pl_if_good", "Film 1080p WEB-DL Lektor PL"))
         assertEquals(0, tier("pl_if_good", "Film 4K HDR Dubbing PL"))
-        assertEquals(4, tier("pl_if_good", "Film 720p Lektor PL")) // 720p z lektorem nie jest „dobrą jakością”: trafia do zwykłego 720p
+        assertEquals(6, tier("pl_if_good", "Film 720p Lektor PL")) // 22.11 „Jakość obrazu ważniejsza”: najpierw rozdzielczość, w niej polski dźwięk
         assertEquals(2, tier("pl_if_good", "Film 2160p English"))
-        assertEquals(3, tier("pl_if_good", "Film 1080p English"))
-        assertEquals(4, tier("pl_if_good", "Film 720p English"))
+        assertEquals(5, tier("pl_if_good", "Film 1080p English"))
+        assertEquals(4, tier("pl_if_good", "Film 1080p PL subs"))
+        assertEquals(8, tier("pl_if_good", "Film 720p English"))
     }
 
     @Test fun `oryginal z napisami to sama jakosc`() {
@@ -66,8 +67,9 @@ class SourcePresetsTest {
     @Test fun `flagi dzwieku i napisow TorrentClaw`() {
         assertEquals(0, tier("pl_always", tcPl))
         assertEquals(4, tier("pl_always", tcSubsOnly))
-        assertEquals(2, tier("pl_if_good", tcSubsOnly))
-        assertEquals(5, tier("pl_always", "X 1080p\n🔊 aac · 2.0 · 🇯🇵🇱🇹\n💬 🇬🇧 https://x")) // Japonia + Litwa to nie 🇵🇱
+        assertEquals(1, tier("pl_if_good", tcSubsOnly))
+        assertEquals(0, tier("pl_if_good", tcPl))
+        assertEquals(8, tier("pl_always", "X 1080p\n🔊 aac · 2.0 · 🇯🇵🇱🇹\n💬 🇬🇧 https://x")) // Japonia + Litwa to nie 🇵🇱
         assertEquals(1, tier("pl_always", "X 1080p\n🗣️ 🇬🇧🇵🇱 https://x"))
         assertEquals(5, tier("pl_always", "X 1080p Film.2024.PL.1080p\n🔊 ac3 · 🇺🇸\n💬 🇵🇱 https://x")) // flagi dźwięku mają pierwszeństwo przed nazwą
     }
@@ -79,9 +81,20 @@ class SourcePresetsTest {
     }
 
     @Test fun `nazwa dodatku domena i adres nie udaja polskiego`() {
-        assertEquals(5, tier("pl_always", "TorrentClaw (PL, 720p) ⚡️ INSTANT 1080p · Web-dl\n🔊 eac3 · 5.1\n💾 3 GB Film.2024.1080p.WEB-DL.ENG https://torrentclaw.com/x"))
-        assertEquals(5, tier("pl_always", "Addon 1080p [DEVIL-TORRENTS.PL] Film.2024.ENG.1080p https://x"))
+        assertEquals(8, tier("pl_always", "TorrentClaw (PL, 720p) ⚡️ INSTANT 1080p · Web-dl\n🔊 eac3 · 5.1\n💾 3 GB Film.2024.1080p.WEB-DL.ENG https://torrentclaw.com/x"))
+        assertEquals(8, tier("pl_always", "Addon 1080p [DEVIL-TORRENTS.PL] Film.2024.ENG.1080p https://x"))
         assertEquals(1, tier("pl_always", "Addon Film [PL] 1080p https://x"))
-        assertEquals(5, tier("pl_always", "Addon Film.2024.1080p.ENG https://cdn/x/video.ts")) // „ts” w adresie to nie TELESYNC
+        assertEquals(8, tier("pl_always", "Addon Film.2024.1080p.ENG https://cdn/x/video.ts")) // „ts” w adresie to nie TELESYNC
+    }
+
+    // 22.11 (gałąź regex-presets-1122): „hd” nie łapie „DTS-HD”, źródła do ściągania (torrent bez debrid, ⬇️/⏳) za gotowymi.
+    private val hash = " 7714a4a5c3d2e1f0a9b8c7d6e5f4a3b2c1d0e9f8"
+    @Test fun `DTS-HD to nie 720p, do sciagania na koncu`() {
+        assertEquals(8, tier("pl_always", "X 1080p DTS-HD MA English"))
+        assertEquals(11, tier("pl_if_good", "X DTS-HD MA English"))
+        assertEquals(11, tier("pl_always", "TorrentClaw (PL, 720p) 🌐 4K · Bluray ⭐\n🔊 ac3 · 🇵🇱" + hash))
+        assertEquals(13, tier("pl_always", "TorrentClaw (PL, 720p) 🌐 4K · Bluray\n🔊 ac3 · 🇺🇸" + hash))
+        assertEquals(12, tier("pl_if_good", "TorrentClaw (PL, 720p) ⬇️ Download 4K · Bluray\n🔊 ac3 · 🇵🇱 https://x"))
+        assertEquals(4, tier("original_subs", "TorrentClaw 🌐 1080p" + hash))
     }
 }
