@@ -147,6 +147,7 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
         return ImageLoader.Builder(this)
             .components {
                 add(CustomPosterFallbackInterceptor())
+                add(com.nuvio.tv.fork.images.ForkImageQuality { com.nuvio.tv.fork.images.ForkImageQuality.isEnabled(this@NuvioApplication) }) // Fork hook: images
                 if (Build.VERSION.SDK_INT >= 28) {
                     add(AnimatedImageDecoder.Factory())
                 } else {
