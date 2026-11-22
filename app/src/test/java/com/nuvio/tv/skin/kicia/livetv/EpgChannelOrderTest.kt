@@ -30,4 +30,16 @@ class EpgChannelOrderTest {
         assertTrue(foreign.contains("CNN International"))
         assertTrue(news.contains("CNN International"))
     }
+
+    /** JMGO 22.11: reguły kategorii z jednym Matcherem na wątek — ten sam wynik w innym wątku i przy powtórzeniu. */
+    @Test fun `kategorie takie same w innym watku i przy powtorzeniu`() {
+        val names = listOf("CNN International", "TVP 1", "Polsat Sport", "Eleven Sports 3 HD", "Cartoon Network", "Discovery Channel", "BBC World News")
+        val here = names.map { ForgeEpgCategories.channelPlaces(ch(it)) }
+        var there: List<Any>? = null
+        // Wielkie litery: inny klucz pamięci (liczone od nowa, w nowym wątku), ta sama nazwa po norm().
+        val t = Thread { there = names.map { ForgeEpgCategories.channelPlaces(ch(it.uppercase())) } }
+        t.start(); t.join()
+        assertEquals(here, there)
+        assertEquals(here, names.map { ForgeEpgCategories.channelPlaces(ch(it)) })
+    }
 }

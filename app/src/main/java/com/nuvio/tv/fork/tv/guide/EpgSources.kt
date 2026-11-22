@@ -53,4 +53,12 @@ object EpgSources {
         }
         return if (best >= 0) sources[best] else null
     }
+
+    /**
+     * Przewodniki uzupełniające dla każdej listy osobno ([lists] = kanały jednej listy, w kolejności list), bez powtórzeń.
+     * JMGO 22.11: rozpoznawanie na wszystkich listach naraz gubiło przewodnik polskiej listy hls.gd (326 kanałów), gdy
+     * doszły listy FlixNest (252 tys. pozycji, głównie zagraniczne) — udział polskich spadał poniżej [minShare].
+     */
+    fun detectPerList(lists: Collection<List<Pair<String?, String>>>, sources: List<EpgSource>, minShare: Double = 0.3): List<EpgSource> =
+        lists.mapNotNull { detect(it, sources, minShare) }.distinct()
 }

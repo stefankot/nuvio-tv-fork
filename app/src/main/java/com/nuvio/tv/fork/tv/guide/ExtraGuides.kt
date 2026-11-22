@@ -24,14 +24,17 @@ object ExtraGuides {
         if (!ForkFeatures.enabled(c, KEY, true)) return emptyList()
         val t0 = android.os.SystemClock.elapsedRealtime()
         return runCatching {
-            val found = EpgSources.detect(channels.map { it.tvgId to it.group }, sources(c))
+            // Każda lista osobno (kraj listy), nie wszystkie razem — patrz EpgSources.detectPerList.
+            val lists = LinkedHashMap<String, MutableList<Pair<String?, String>>>()
+            channels.forEach { ch -> lists.getOrPut(ch.sourceId) { ArrayList() }.add(ch.tvgId to ch.group) }
+            val found = EpgSources.detectPerList(lists.values, sources(c))
             // Jeden wpis na zmianę wyniku (repozytorium woła to po każdej wczytanej liście).
-            val line = "przewodnik uzupełniający: ${found?.country ?: "brak"} dla ${channels.size} kanałów"
+            val line = "przewodnik uzupełniający: ${found.joinToString { it.country }.ifEmpty { "brak" }} dla ${channels.size} kanałów z ${lists.size} list"
             if (line != lastLog) {
                 lastLog = line
                 android.util.Log.i("ForkTv", "$line (${android.os.SystemClock.elapsedRealtime() - t0} ms)")
             }
-            found?.epg?.let(::listOf).orEmpty()
+            found.map { it.epg }
         }.logged("ForkTv", "ExtraGuides.kt:22").getOrDefault(emptyList())
     }
 }

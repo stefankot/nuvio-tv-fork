@@ -58,11 +58,21 @@ object ForgeEpgCategories {
         return out.toString()
     }
 
+    /**
+     * `containsMatchIn` bez nowego Matchera na każde wywołanie (JMGO 22.11: 252 827 nazw × kilkanaście reguł = miliony
+     * natywnych Matcherów ICU, kolejność kanałów liczyła się 143 s). Jeden Matcher na regułę i wątek, ten sam wynik.
+     */
+    private val matchers = ThreadLocal<HashMap<Regex, java.util.regex.Matcher>>()
+    private fun Regex.hit(text: String): Boolean {
+        val cache = matchers.get() ?: HashMap<Regex, java.util.regex.Matcher>().also(matchers::set)
+        return cache.getOrPut(this) { toPattern().matcher("") }.reset(text).find()
+    }
+
     private fun placeIn(tree: ForgeCategoryRules.Tree, text: String): Place {
         val t = norm(text)
         for (id in tree.order) {
             val b = tree.branches.firstOrNull { it.id == id } ?: continue
-            if (b.rx.containsMatchIn(t)) return Place(b.id, b.leaves.firstOrNull { it.rx.containsMatchIn(t) }?.id)
+            if (b.rx.hit(t)) return Place(b.id, b.leaves.firstOrNull { it.rx.hit(t) }?.id)
         }
         return Place(OTHER, null)
     }
@@ -120,7 +130,7 @@ object ForgeEpgCategories {
             val out = ArrayList<Place>(2)
             for (id in tree.order) {
                 val b = tree.branches.firstOrNull { it.id == id } ?: continue
-                if (b.rx.containsMatchIn(t)) out += Place(b.id, b.leaves.firstOrNull { it.rx.containsMatchIn(t) }?.id)
+                if (b.rx.hit(t)) out += Place(b.id, b.leaves.firstOrNull { it.rx.hit(t) }?.id)
             }
             if (out.any { it.leaf in FOREIGN_LEAVES } && out.none { it.branch == FOREIGN }) out += Place(FOREIGN, null)
             val real = out.filter { it.branch != OTHER }

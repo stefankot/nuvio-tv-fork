@@ -47,4 +47,19 @@ class EpgSourcesTest {
         val ms = (System.nanoTime() - t0) / 1_000_000
         assertTrue("trwało $ms ms", ms < 5_000)
     }
+
+    /** JMGO 22.11: polska lista hls.gd (326) obok list FlixNest (252 tys., głównie zagraniczne) — przewodnik dla polskiej. */
+    @Test fun `kazda lista osobno - mala polska obok duzej zagranicznej`() {
+        val polish = (1..326).map { "tvp$it.pl" to "Polska" }
+        val foreign = (1..50_000).map { "ch$it.us" to "USA | News" }
+        assertNull("razem — poniżej progu", EpgSources.detect(polish + foreign, sources))
+        assertEquals(listOf("PL"), EpgSources.detectPerList(listOf(polish, foreign), sources).map { it.country })
+    }
+    @Test fun `dwie polskie listy - jeden przewodnik, zadna - brak`() {
+        val a = (1..10).map { null to "PL | Sport" }
+        val b = (1..10).map { "x$it.pl" to "Info" }
+        assertEquals(1, EpgSources.detectPerList(listOf(a, b), sources).size)
+        assertTrue(EpgSources.detectPerList(listOf((1..10).map { null to "UK" }), sources).isEmpty())
+        assertTrue(EpgSources.detectPerList(emptyList(), sources).isEmpty())
+    }
 }
