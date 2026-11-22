@@ -3,6 +3,9 @@
 Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–13: `plan/archiwum/TERAZ-historia-watki-1-13.md` (tylko `grep`, nie czytaj całości).
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
+## AKTUALIZACJA BAZY NuvioTV (22.11) — gałąź `aktualizacja-1122`
+Nowa baza NuvioTV dev d2eeb3d0e (21.11, 290 commitów: m.in. zwiastuny w tle, własna synchronizacja napisów z dźwiękiem, listy MDBList, poprawki odcinków) scalona z origin/skin-niunia w katalogu `../wt-aktualizacja` (gałąź `aktualizacja-1122`). check.sh OK. Szczegóły i decyzje: `plan/DECYZJE.md` (22.11 Aktualizacja bazy). Wynik kompilacji: niżej. Po udanym buildzie i teście na JMGO: scalić `aktualizacja-1122` do `skin-niunia`.
+
 ## PACZKA DO NASTĘPNEGO BUILDA — plakaty Niuni (22.11, nieskompilowane)
 Biblioteka: plakat z zapasem (oryginał, gdy wzór z ustawień nie da obrazu; Cinemeta po IMDb, gdy Trakt/MDBList nie podał plakatu), pozycje poziome → plakat pionowy. Szczegóły, „Więcej podobnych” (Trakt/Simkl/TMDB dają obrazy poziome): plakat pionowy (oryginalny pionowy albo Cinemeta) zamiast kadrowania. Kod: `components/NiuniaPoster.kt` `niuniaPortrait` (też Główna), `library/NiuniaLibrary.kt`, `detail/NiuniaDetail.kt`. Test: Biblioteka (wszystkie plakaty widać; log `ForkNiunia` „biblioteka: plakaty — …”) i strona tytułu → rząd „Więcej podobnych” (plakaty pionowe, nie wycięte z poziomych).
 

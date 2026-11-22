@@ -28,3 +28,4 @@ app/src/main/AndroidManifest.xml
 app/src/main/res/xml/file_paths.xml
 app/src/main/java/com/nuvio/tv/ui/screens/cast/CastDetailScreen.kt
 gradle.properties
+app/src/main/java/com/nuvio/tv/ui/screens/player/audiosync/SharedReferenceCache.kt

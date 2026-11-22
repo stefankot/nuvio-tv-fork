@@ -1,0 +1,47 @@
+--- a
++++ b
+@@ -44,6 +44,7 @@
+ import com.nuvio.tv.R
+ import com.nuvio.tv.ui.reshaped.debuglog.DebugLogQrDialog
+ import com.nuvio.tv.ui.screens.player.audiosync.AudioSyncFallback
++import com.nuvio.tv.ui.screens.player.audiosync.AudioSamplingMode
+ import com.nuvio.tv.ui.screens.player.autosync.AutoSyncPreferences
+ import com.nuvio.tv.ui.screens.player.audiosync.AudioSyncSettings
+ import com.nuvio.tv.ui.screens.player.audiosync.SubtitleSyncStatus
+@@ -89,9 +90,27 @@
+         )
+     }
+ 
++    item(key = "audio_sync_sampling_mode") {
++        val rowsEnabled = rowsEnabled(enabled)
++        val fallbackEnabled by AudioSyncSettings.fallbackEnabled.collectAsStateWithLifecycle()
++        val mode by AudioSyncSettings.samplingMode.collectAsStateWithLifecycle()
++        SettingsActionRow(
++            title = stringResource(R.string.reshaped_audio_sampling_title),
++            subtitle = stringResource(R.string.reshaped_audio_sampling_description),
++            value = stringResource(when (mode) {
++                AudioSamplingMode.FULL -> R.string.reshaped_audio_sampling_full
++                AudioSamplingMode.LIMITED -> R.string.reshaped_audio_sampling_limited
++                AudioSamplingMode.OFF -> R.string.reshaped_audio_sampling_off
++            }),
++            enabled = rowsEnabled && fallbackEnabled,
++            onClick = { AudioSyncSettings.setSamplingMode(AudioSamplingMode.entries[(mode.ordinal + 1) % AudioSamplingMode.entries.size]) },
++        )
++    }
++
+     item(key = "audio_sync_mobile_data") {
+         val rowsEnabled = rowsEnabled(enabled)
+         val fallbackEnabled by AudioSyncSettings.fallbackEnabled.collectAsStateWithLifecycle()
++        val mode by AudioSyncSettings.samplingMode.collectAsStateWithLifecycle()
+         val checked by AudioSyncSettings.samplingOnMobileData.collectAsStateWithLifecycle()
+         ToggleSettingsItem(
+             icon = Icons.Default.NetworkCell,
+@@ -99,7 +118,7 @@
+             subtitle = "Syncs much faster by reading a few short parts of the film ahead of playback, also on metered connections. Uses up to 150 MB per film.",
+             isChecked = checked,
+             onCheckedChange = AudioSyncSettings::setSamplingOnMobileData,
+-            enabled = rowsEnabled && fallbackEnabled,
++            enabled = rowsEnabled && fallbackEnabled && mode != AudioSamplingMode.OFF,
+         )
+     }
+ 

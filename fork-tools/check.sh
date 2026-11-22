@@ -32,11 +32,17 @@ if [ -s "$PATCHED" ]; then
     rm -f "$tmp" "$tmp.2"
   done < "$PATCHED"
 fi
+# (d3) pliki modułu Reshaped zmienione przez fork (whisper, codex-sync): sprawdzane jak łatane, bez liczenia do limitu
+[ -s fork-tools/module-patched.txt ] && { while IFS=$'\t' read -r f series; do [ -n "$f" ] || continue
+    tmp=$(mktemp); cp "$f" "$tmp"
+    for pf in $(ls -r fork-tools/patches/$series/*.patch 2>/dev/null); do patch -R -s "$tmp" < "$pf" >/dev/null 2>&1 || { echo "BŁĄD: łatka nie cofa się: $pf"; fail=1; }; done
+    cmp -s "$tmp" "$UP/$f" || { echo "BŁĄD: plik modułu różni się od Reshaped poza łatkami: $f"; fail=1; }; rm -f "$tmp"
+  done < fork-tools/module-patched.txt; }
 # (d) limit plików utrzymywanych ręcznie
 n=$(cat fork-tools/hooked-overrides.txt fork-tools/base-hooks.txt; cut -f1 "$PATCHED" 2>/dev/null) ; n=$(echo "$n" | grep -c .); [ "$n" -le 65 ] || bad "za dużo plików z hookami: $n"
 # (e) zmodyfikowany plik bazy spoza list
 for f in $(git diff --diff-filter=M --name-only $BASE; git diff --name-only --diff-filter=M $BASE HEAD); do
-  grep -qxF "$f" fork-tools/overrides.txt fork-tools/hooked-overrides.txt fork-tools/base-hooks.txt || cut -f1 "$PATCHED" 2>/dev/null | grep -qxF "$f" || bad "zmodyfikowany plik poza listami: $f"; done
+  grep -qxF "$f" fork-tools/overrides.txt fork-tools/hooked-overrides.txt fork-tools/base-hooks.txt || cut -f1 fork-tools/module-patched.txt | grep -qxF "$f" || cut -f1 "$PATCHED" 2>/dev/null | grep -qxF "$f" || bad "zmodyfikowany plik poza listami: $f"; done
 # (f) izolacja skin/kit
 for d in app/src/main/java/com/nuvio/tv/skin/kit/tokens app/src/main/java/com/nuvio/tv/skin/kit/components; do
   [ -d "$d" ] && grep -rn "import com\.nuvio\.tv\." "$d" | grep -v "import com\.nuvio\.tv\.skin\." && bad "skin/kit importuje aplikację: $d"; done
