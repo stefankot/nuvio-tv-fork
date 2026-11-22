@@ -1,7 +1,6 @@
 app/libs/README.md
 app/libs/lib-decoder-ffmpeg-release.aar
 app/libs/lib-exoplayer-release.aar
-app/src/main/java/com/nuvio/tv/NuvioApplication.kt
 app/src/main/java/com/nuvio/tv/core/player/BitrateAwareLoadControl.kt
 app/src/main/java/com/nuvio/tv/core/player/DolbyVisionExtractorsFactory.kt
 app/src/main/java/com/nuvio/tv/core/player/DolbyVisionMatroskaTransformer.kt
