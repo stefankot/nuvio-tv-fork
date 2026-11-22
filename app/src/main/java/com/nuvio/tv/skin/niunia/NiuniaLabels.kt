@@ -30,6 +30,25 @@ object NiuniaLabels {
         return null
     }
 
+    /**
+     * Krótki gatunek (SKIN.md „Poster footer meta”, najwyżej ~10 znaków), po polsku przez tłumaczenia gatunków Nuvio:
+     * Science Fiction / Sci-Fi & Fantasy → Sci-Fi, Action & Adventure → Akcja, War & Politics → Wojenny, Documentary → Dokument,
+     * TV Movie → Film TV, w pozostałych część przed „ & ”.
+     */
+    fun shortGenre(context: Context, raw: String): String {
+        val key = raw.trim().lowercase().replace("-", " ")
+        return when {
+            key == "science fiction" || key.startsWith("sci fi") -> "Sci-Fi"
+            key == "documentary" -> context.getString(R.string.niunia_genre_docu)
+            key == "tv movie" -> context.getString(R.string.niunia_genre_tv_movie)
+            else -> {
+                val base = raw.substringBefore(" & ").trim()
+                val pl = com.nuvio.tv.ui.util.localizedGenreLabel(context, base)
+                if (pl.length <= 12) pl else pl.substringBefore(' ')
+            }
+        }
+    }
+
     /** „Gatunek · ★ 7.4” — ocena to średnia z dostępnych serwisów; w aplikacji jest dziś tylko IMDb. */
     fun meta(item: MetaPreview): String? {
         val genre = item.genres.firstOrNull()

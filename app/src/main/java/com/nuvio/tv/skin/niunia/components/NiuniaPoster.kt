@@ -102,7 +102,7 @@ fun NiuniaPoster(
                     Text(title.uppercase(), style = NiuniaText.PosterTitle, maxLines = 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
                 }
             }
-            if (!meta.isNullOrBlank()) Text(meta, style = NiuniaText.PosterMeta, maxLines = 1)
+            if (!meta.isNullOrBlank()) NiuniaMetaText(meta, style = if (large) NiuniaText.PosterMetaLarge else NiuniaText.PosterMeta, color = NiuniaText.PosterMeta.color) // SKIN.md 20.11: krótki gatunek, gwiazdka jako ikona
             if (large && !tagline.isNullOrBlank()) Text(tagline, style = NiuniaText.Body.copy(fontSize = NiuniaText.Caption.fontSize), maxLines = 1)
         }
     }

@@ -47,13 +47,16 @@ object NiuniaDims {
 }
 
 object NiuniaText {
-    val Logo = TextStyle(fontSize = 40.sp, lineHeight = 44.sp, fontWeight = FontWeight.Bold, color = NiuniaColors.Text)
-    val Row = TextStyle(fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold)
-    val Body = TextStyle(fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium, color = NiuniaColors.Text70)
-    val Meta = TextStyle(fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium, color = NiuniaColors.Text)
-    val Button = TextStyle(fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold)
-    val Tab = TextStyle(fontSize = 11.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold)
-    val PosterTitle = TextStyle(fontSize = 12.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold, color = NiuniaColors.Text, letterSpacing = 0.8.sp)
-    val PosterMeta = TextStyle(fontSize = 10.sp, lineHeight = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xCCFFFFFF))
-    val Caption = TextStyle(fontSize = 11.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold, color = NiuniaColors.Text70)
+    val Logo = TextStyle(fontFamily = com.nuvio.tv.skin.kicia.tokens.SatoshiFamily, fontSize = 40.sp, lineHeight = 44.sp, fontWeight = FontWeight.Bold, color = NiuniaColors.Text)
+    val Row = TextStyle(fontFamily = com.nuvio.tv.skin.kicia.tokens.SatoshiFamily, fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold)
+    val Body = TextStyle(fontFamily = com.nuvio.tv.skin.kicia.tokens.SatoshiFamily, fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium, color = NiuniaColors.Text70)
+    val Meta = TextStyle(fontFamily = com.nuvio.tv.skin.kicia.tokens.SatoshiFamily, fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium, color = NiuniaColors.Text)
+    val Button = TextStyle(fontFamily = com.nuvio.tv.skin.kicia.tokens.SatoshiFamily, fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold)
+    val Tab = TextStyle(fontFamily = com.nuvio.tv.skin.kicia.tokens.SatoshiFamily, fontSize = 11.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold)
+    val PosterTitle = TextStyle(fontFamily = com.nuvio.tv.skin.kicia.tokens.SatoshiFamily, fontSize = 12.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold, color = NiuniaColors.Text, letterSpacing = 0.8.sp)
+    // SKIN.md 20.11: stopka plakatu 12/16 bold, biel 90 % z miękkim cieniem; plakat „spotlight” 14/18.
+    val PosterMeta = TextStyle(fontFamily = com.nuvio.tv.skin.kicia.tokens.SatoshiFamily, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xE6FFFFFF),
+        shadow = androidx.compose.ui.graphics.Shadow(Color(0x80000000), androidx.compose.ui.geometry.Offset(0f, 1f), 4f))
+    val PosterMetaLarge = PosterMeta.copy(fontSize = 14.sp, lineHeight = 18.sp)
+    val Caption = TextStyle(fontFamily = com.nuvio.tv.skin.kicia.tokens.SatoshiFamily, fontSize = 11.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold, color = NiuniaColors.Text70)
 }

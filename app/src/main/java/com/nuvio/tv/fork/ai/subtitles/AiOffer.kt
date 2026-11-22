@@ -42,7 +42,7 @@ object AiOffer {
 fun AiOfferDialog() {
     val c = LocalContext.current
     val a by AiOffer.ask.collectAsState()
-    LaunchedEffect(Unit) { while (true) { delay(2_000); if (AiOffer.shouldAsk(c)) AiOffer.offer(false) } }
+    LaunchedEffect(Unit) { while (true) { delay(2_000); if (!AiAuto.tick(c) && AiOffer.shouldAsk(c)) AiOffer.offer(false) } } // fork 20.11: najpierw automat „Napisy AI, gdy brak dobrych polskich” (AiAuto)
     val cur = a
     com.nuvio.tv.skin.kicia.components.ForgeDialog(
         visible = cur != null,

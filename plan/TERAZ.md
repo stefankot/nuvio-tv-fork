@@ -3,6 +3,11 @@
 Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–13: `plan/archiwum/TERAZ-historia-watki-1-13.md` (tylko `grep`, nie czytaj całości).
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
+## NIUNIA — BRAKUJĄCE EKRANY (wątek Cowork 20.11 ~14:00) — WSTRZYMANE, W DRZEWIE ROBOCZYM, BEZ COMMITA, NIESKOMPILOWANE
+Mapa makieta → kod: brak `Episode`, `SearchResults` (zakładki, podpowiedzi), `Settings` (NOOB), `PlayerSubs` (panel Audio · Lektor · Napisy, Napisy AI); odtwarzacz Niuni nie zgadza się z `Player` (przyciski pod paskiem zamiast 3 okrągłych nad nim, brak panelu z zakładkami).
+Zrobione (nieskompilowane): `fork/ai/subtitles/AiAuto.kt` (NOWY: przełącznik „Napisy AI, gdy brak dobrych polskich”, klucz `ai_subs_auto_pl`, domyślnie WYŁ. — zgodnie z decyzją 19.11; dymek `AiAutoBubble`), 1 linia w `AiOffer.kt` (pętla najpierw `AiAuto.tick`), `AiSubtitlesModule.kt` (ustawienie + nakładka dymka). Panel odtwarzacza (`NiuniaPlayerPanel.kt`) przygotowany poza repo — NIE wgrany (brak tekstów w res).
+Wstrzymane na prośbę właściciela: najpierw sposób weryfikacji 1:1 z makietą (porównanie elementów/zrzutów), potem dalsze wdrażanie.
+
 ## NIUNIA — LIVE TV OD NOWA + HERO (wątek 20.11 ~14:00, gałąź skin-niunia) — build141 NA JMGO
 Opis: `.stage/niunia/WPIECIE.md` „Po wdrożeniu” pkt 13–15; `plan/DECYZJE.md` (20.11).
 Commity: 1a7bd268f (Live TV: przewodnik, filtry, Odkrywaj, Szukaj, stos serialu), 410af3b48 (hero poza listą, animacja ▼, rzędy bez skakania), potem poprawki po teście (pkt 15, NIESKOMPILOWANE).
