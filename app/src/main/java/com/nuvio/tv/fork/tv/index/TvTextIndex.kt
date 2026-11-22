@@ -41,9 +41,11 @@ object TvTextIndex {
         return out.toString()
     }
 
-    private val names = ConcurrentHashMap<String, String>()
-    private val keys = ConcurrentHashMap<String, String>()
-    private val titleNorm = ConcurrentHashMap<String, String>()
+    // 22.11 (właściciel: „liczyć tylko przy większej zmianie”): teksty w trwałej pamięci na dysku (TvIndexStore) —
+    // po restarcie aplikacji wczytywane, liczone tylko nowe nazwy i tytuły.
+    private val names get() = TvIndexStore.names
+    private val keys get() = TvIndexStore.keys
+    private val titleNorm get() = TvIndexStore.titles
 
     /** Znormalizowany tytuł → klucze przewodnika kanałów, które go nadają (zbiór niezmienny, podmieniany przy zmianie). */
     private val keysByTitle = ConcurrentHashMap<String, Set<String>>()
@@ -72,6 +74,8 @@ object TvTextIndex {
             while (true) {
                 val input = pending.getAndSet(null) ?: break
                 try {
+                    TvIndexStore.awaitLoaded()
+                    restoreTitles()
                     update(input.channels, input.schedule)
                 } catch (e: Exception) {
                     Log.w(TAG, "indeks: ${e.javaClass.simpleName}: ${e.message}")
@@ -88,37 +92,64 @@ object TvTextIndex {
     internal fun update(channels: List<LiveTvChannel>, schedule: Map<String, List<LiveTvProgramme>>) {
         val t0 = System.nanoTime()
         var newNames = 0
-        for (ch in channels) if (!names.containsKey(ch.name)) { val n = norm(ch.name); names[ch.name] = n; keys[ch.name] = channelKey(n); newNames++ }
+        for (ch in channels) if (names[ch.name] == null) { val n = norm(ch.name); names.put(ch.name, n); keys.put(ch.name, channelKey(n)); newNames++ }
         var changed = 0
         var newTitles = 0
-        fun titleOf(raw: String): String = titleNorm[raw] ?: norm(raw.trim()).also { titleNorm[raw] = it; newTitles++ }
+        fun titleOf(raw: String): String = titleNorm[raw] ?: norm(raw.trim()).also { titleNorm.put(raw, it); newTitles++ }
+        var sameAsSaved = 0
         val previous = lastSchedule
         // Kanały, które zniknęły z przewodnika.
-        for ((key, old) in previous) if (!schedule.containsKey(key)) { remove(key, old.mapTo(HashSet()) { titleOf(it.title) }); changed++ }
+        for ((key, old) in previous) if (!schedule.containsKey(key)) { remove(key, old.mapTo(HashSet()) { titleOf(it.title) }); TvIndexStore.fingerprints.remove(key); changed++ }
         for ((key, list) in schedule) {
             val old = previous[key]
             if (old === list) continue
+            // Po restarcie (brak poprzedniego odczytu w pamięci): lista taka sama jak przy ostatnim zapisie → nic do liczenia.
+            val fp = fingerprint(list)
+            if (old == null && TvIndexStore.fingerprints[key] == fp) { sameAsSaved++; continue }
+            TvIndexStore.fingerprints.put(key, fp)
             changed++
             val now = list.mapTo(HashSet()) { titleOf(it.title) }
             val before = old?.mapTo(HashSet()) { titleOf(it.title) }.orEmpty()
             remove(key, before - now)
-            for (t in now) if (t.isNotEmpty() && t !in before) keysByTitle.merge(t, setOf(key)) { a, b -> a + b }
+            for (t in now) if (t.isNotEmpty() && t !in before) keysByTitle.merge(t, setOf(key)) { a, b -> a + b }?.let { saveTitle(t, it) }
         }
         lastSchedule = schedule
         version++
-        Log.i(TAG, "indeks: ${channels.size} kanałów (+$newNames nazw), ${schedule.size} przewodników ($changed zmienionych, +$newTitles tytułów), " +
+        Log.i(TAG, "indeks: ${channels.size} kanałów (+$newNames nazw), ${schedule.size} przewodników ($changed zmienionych, $sameAsSaved jak w zapisie, +$newTitles tytułów), " +
             "tytułów ${keysByTitle.size}, ${(System.nanoTime() - t0) / 1_000_000} ms")
     }
 
     private fun remove(key: String, titles: Set<String>) {
-        for (t in titles) keysByTitle.computeIfPresent(t) { _, ks -> (ks - key).ifEmpty { null } }
+        for (t in titles) {
+            val left = keysByTitle.computeIfPresent(t) { _, ks -> (ks - key).ifEmpty { null } }
+            if (left == null) TvIndexStore.titleKeys.remove(t) else saveTitle(t, left)
+        }
+    }
+
+    private fun saveTitle(t: String, keys: Set<String>) = TvIndexStore.titleKeys.put(t, keys.joinToString("\u0001"))
+
+    /** Po restarcie: spis „tytuł → kanały” z dysku (raz, zanim przyjdzie pierwszy odczyt przewodnika). */
+    @Volatile private var restored = false
+    internal fun restoreTitles() {
+        if (restored) return
+        restored = true
+        if (keysByTitle.isNotEmpty()) return
+        for ((t, v) in TvIndexStore.titleKeys.map) keysByTitle[t] = v.split('\u0001').toHashSet()
+        if (keysByTitle.isNotEmpty()) { version++; Log.i(TAG, "indeks: spis ${keysByTitle.size} tytułów wczytany z dysku") }
+    }
+
+    /** Skrót listy programów kanału (liczba + tytuły + początki) — porównanie z zapisem po restarcie. */
+    internal fun fingerprint(list: List<LiveTvProgramme>): String {
+        var h = 1125899906842597L
+        for (p in list) { h = 31 * h + p.title.hashCode(); h = 31 * h + p.startEpochMs }
+        return list.size.toString(36) + ":" + java.lang.Long.toString(h, 36)
     }
 
     /** Tekst nazwy kanału do szukania (z indeksu; brakująca nazwa liczona i zapamiętana od razu). */
-    fun nameOf(name: String): String = names[name] ?: norm(name).also { names[name] = it }
+    fun nameOf(name: String): String = names[name] ?: norm(name).also { names.put(name, it) }
 
     /** Nazwa kanału bez kraju, nawiasów i jakości („PL: TVN HD”, „TVN (PL) FHD” → „tvn”): ocena i łączenie wyników. */
-    fun keyOf(name: String): String = keys[name] ?: channelKey(nameOf(name)).also { keys[name] = it }
+    fun keyOf(name: String): String = keys[name] ?: channelKey(nameOf(name)).also { keys.put(name, it) }
 
     private val QUALITY = setOf("fhd", "uhd", "hd", "sd", "4k", "8k", "hevc", "h264", "h265", "hdr", "raw", "backup", "alt", "vip", "50fps", "+1", "pl")
 
@@ -162,7 +193,7 @@ object TvTextIndex {
     fun sameChannelKey(name: String): String = channelKey(nameOf(name), keepBrackets = true)
 
     /** Tekst tytułu do szukania (z indeksu albo policzony i zapamiętany). */
-    fun titleOf(raw: String): String = titleNorm[raw] ?: norm(raw.trim()).also { titleNorm[raw] = it }
+    fun titleOf(raw: String): String = titleNorm[raw] ?: norm(raw.trim()).also { titleNorm.put(raw, it) }
 
     /** Znormalizowane tytuły zawierające [q] (bez normalizacji przy zapytaniu) z kluczami kanałów. */
     fun titles(q: String): List<Pair<String, Set<String>>> {
@@ -175,7 +206,13 @@ object TvTextIndex {
     /** Czy indeks programów ma już dane (przed pierwszym przebiegiem szukanie idzie starą drogą). */
     fun ready(): Boolean = version > 0 && keysByTitle.isNotEmpty()
 
+    /** Testy: „restart aplikacji” — pamięć w RAM znika, trwała pamięć (TvIndexStore) zostaje. */
+    internal fun forgetMemoryForTests() = synchronized(this) {
+        keysByTitle.clear(); lastSchedule = emptyMap(); version = 0; restored = false
+    }
+
     internal fun clearForTests() = synchronized(this) {
-        names.clear(); keys.clear(); titleNorm.clear(); keysByTitle.clear(); lastSchedule = emptyMap(); version = 0
+        names.map.clear(); keys.map.clear(); titleNorm.map.clear(); TvIndexStore.titleKeys.map.clear(); TvIndexStore.fingerprints.map.clear()
+        keysByTitle.clear(); lastSchedule = emptyMap(); version = 0; restored = false
     }
 }

@@ -174,7 +174,12 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
         if (prepared.input.isEmpty()) prepared = NiuniaLiveOrder.unsorted(input, hiddenGroups, countryMode)
         val t0 = android.os.SystemClock.elapsedRealtime()
         prepared = try {
-            withContext(Dispatchers.Default) { compute() }
+            withContext(Dispatchers.Default) {
+                // 22.11: najpierw zapisane indeksy z dysku (kategorie, kraj) — po restarcie bez liczenia od nowa.
+                com.nuvio.tv.fork.tv.index.TvIndexStore.awaitLoaded()
+                ForgeEpgCategories.awaitStored()
+                compute()
+            }
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {

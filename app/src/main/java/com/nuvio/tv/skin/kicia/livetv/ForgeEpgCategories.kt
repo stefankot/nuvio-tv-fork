@@ -112,9 +112,30 @@ object ForgeEpgCategories {
      * których reguła pasuje do nazwy (nie tylko pierwsza); kanał z liścia zagranicznego (np. Informacje · Zagraniczne,
      * Sport · Zagraniczne sportowe) trafia też do gałęzi „Zagraniczne”. „Inne” tylko, gdy nic innego nie pasuje.
      */
+    /**
+     * 22.11 (właściciel: „liczyć tylko przy większej zmianie”): kategorie kanałów w trwałej pamięci na dysku — po restarcie
+     * aplikacji tylko odczyt (JMGO build171: 252 827 nazw liczyło się 143 s po każdym starcie). Wersja pliku = skrót reguł:
+     * zmiana reguł kategorii = jedno przeliczenie. W pamięci tylko tekst (wspólne obiekty) + kilkaset rozkodowanych list.
+     */
+    private val placesMemo by lazy {
+        val rules = ForgeCategoryRules.CHANNELS.branches.joinToString("|") { b -> b.id + "=" + b.rx.pattern + ":" + b.leaves.joinToString(",") { it.id + "=" + it.rx.pattern } } +
+            ForgeCategoryRules.CHANNELS.order.joinToString(",") + FOREIGN_LEAVES.sorted().joinToString(",")
+        com.nuvio.tv.fork.tv.index.TvIndexStore.placesMemo(Integer.toHexString(rules.hashCode()))
+    }
+    private val decodedPlaces = ConcurrentHashMap<String, List<Place>>()
+    private fun encodePlaces(l: List<Place>) = l.joinToString(";") { it.branch + "/" + (it.leaf ?: "") }
+    private fun decodePlaces(s: String): List<Place> = decodedPlaces.getOrPut(s) {
+        s.split(';').filter { it.isNotEmpty() }.map { p -> Place(p.substringBefore('/'), p.substringAfter('/', "").ifEmpty { null }) }
+    }
+
     fun channelPlaces(ch: LiveTvChannel): List<Place> {
         val name = ch.tvgName?.takeIf { it.isNotBlank() } ?: ch.name
-        return channelPlacesCache.getOrPut(name) {
+        placesMemo[name]?.let { return decodePlaces(it) }
+        return computePlaces(name).also { placesMemo.put(name, encodePlaces(it)) }
+    }
+
+    private fun computePlaces(name: String): List<Place> {
+        return run {
             val tree = ForgeCategoryRules.CHANNELS
             val t = norm(name)
             val out = ArrayList<Place>(2)
@@ -127,7 +148,8 @@ object ForgeEpgCategories {
             real.ifEmpty { listOf(out.firstOrNull() ?: Place(OTHER, null)) }
         }
     }
-    private val channelPlacesCache = ConcurrentHashMap<String, List<Place>>()
+    /** Czeka (z wątku tła) na wczytanie zapisanych kategorii — żeby nie liczyć od nowa tego, co jest na dysku. */
+    fun awaitStored(timeoutMs: Long = 15_000): Boolean = placesMemo.awaitLoaded(timeoutMs)
     private const val FOREIGN = "zagraniczne"
     private val FOREIGN_LEAVES = setOf("zagraniczne", "zagraniczna", "zachodnie", "ukrainskie", "czesko-slowackie")
 
@@ -207,6 +229,9 @@ object ForgeEpgCategories {
 
     /** Called once at start (ForgePrefs.ensure): reads the categories kept from the last guide read. */
     fun ensure(context: Context) {
+        // 22.11: zapisane kategorie kanałów zaczynają się wczytywać od razu (trwała pamięć, TvIndexStore).
+        com.nuvio.tv.fork.tv.index.TvIndexStore.attach(context)
+        placesMemo.version
         if (file != null) return
         val f = File(context.applicationContext.filesDir, "forge_epg_categories.tsv")
         file = f

@@ -3,7 +3,6 @@ package com.nuvio.tv.fork.tv.country
 import android.content.Context
 import com.nuvio.tv.fork.tv.dupes.ChannelDupes
 import com.nuvio.tv.reshaped.livetv.LiveTvChannel
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Kraj IPTV (właściciel 22.11): „preferowany kraj — wszystko z tego kraju (dla mnie polskie) na początek każdej listy;
@@ -48,11 +47,11 @@ object TvCountry {
 
     fun nameOf(code: String): String = CHOICES.firstOrNull { it.first == code }?.second ?: code.uppercase()
 
-    /** Kraj z nazwy kanału ("" = brak w nazwie), raz na nazwę. */
-    private val fromName = ConcurrentHashMap<String, String>()
+    /** Kraj z nazwy kanału ("" = brak w nazwie), raz na nazwę — trwała pamięć na dysku (po restarcie tylko odczyt). */
+    private val fromName get() = com.nuvio.tv.fork.tv.index.TvIndexStore.country
 
     fun countryInName(name: String, providers: Collection<String>): String = fromName[name]
-        ?: (ChannelDupes.country(ChannelDupes.plain(ChannelDupes.withoutProvider(name, providers))) ?: "").also { fromName[name] = it }
+        ?: (ChannelDupes.country(ChannelDupes.plain(ChannelDupes.withoutProvider(name, providers))) ?: "").also { fromName.put(name, it) }
 
     /** Kraj kanału: z nazwy, inaczej kraj jego listy ([listCountry] po sourceId); null = nieznany. */
     fun countryOf(ch: LiveTvChannel, providers: Collection<String>, listCountry: (String) -> String?): String? =

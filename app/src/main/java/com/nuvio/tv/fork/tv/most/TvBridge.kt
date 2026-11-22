@@ -26,6 +26,8 @@ object TvBridge {
     private fun LiveTvProgramme.toGuide() = GuideProgramme(title, startEpochMs, stopEpochMs, description, episode, image)
 
     fun attach(context: Context, profileId: Int) {
+        // 22.11: trwałe indeksy TV (teksty, kategorie, kraj) — wczytanie z dysku w tle, bez liczenia od nowa po starcie.
+        com.nuvio.tv.fork.tv.index.TvIndexStore.attach(context)
         enabled = ForkFeatures.enabled(context, "module_tv", true)
         if (!enabled) { data = null; return }
         ForkTvHooks.sink = { title, start, extra -> EpgExtras.put(title, start, extra) }
