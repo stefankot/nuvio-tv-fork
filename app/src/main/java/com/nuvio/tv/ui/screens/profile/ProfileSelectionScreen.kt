@@ -1596,7 +1596,7 @@ internal fun CreateProfileOverlay(
                             .fillMaxWidth()
                             .focusRequester(settingsFocusRequester)
                             .focusProperties {
-                                if (avatarCatalog.isNotEmpty()) right = avatarFocusRequester
+                                if (avatarCatalog.isNotEmpty()) end = avatarFocusRequester
                             }
                             .onFocusChanged {
                                 if (it.isFocused) leftPanelFocusRequester = settingsFocusRequester
@@ -1949,7 +1949,7 @@ internal fun EditProfileOverlay(
                             .focusRequester(cancelFocusRequester)
                             .focusProperties {
                                 if (selectedEditorTab == ProfileEditorTab.Avatar && avatarCatalog.isNotEmpty()) {
-                                    right = avatarFocusRequester
+                                    end = avatarFocusRequester
                                 }
                             }
                             .onFocusChanged {
@@ -2561,6 +2561,8 @@ private fun ProfileNameField(
 ) {
     var isFocused by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
+    val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    val moveToAvatarsKey = if (isRtl) AndroidKeyEvent.KEYCODE_DPAD_LEFT else AndroidKeyEvent.KEYCODE_DPAD_RIGHT
     val backgroundColor by animateColorAsState(
         targetValue = if (isFocused) NuvioTheme.colors.FocusBackground else Color.White.copy(alpha = 0.05f),
         animationSpec = tween(120),
@@ -2603,7 +2605,7 @@ private fun ProfileNameField(
                     val native = event.nativeKeyEvent
                     if (rightFocusRequester != null &&
                         native.action == AndroidKeyEvent.ACTION_DOWN &&
-                        native.keyCode == AndroidKeyEvent.KEYCODE_DPAD_RIGHT
+                        native.keyCode == moveToAvatarsKey
                     ) {
                         rightFocusRequester.requestFocus()
                     } else {
@@ -2612,7 +2614,7 @@ private fun ProfileNameField(
                 }
                 .focusRequester(focusRequester)
                 .focusProperties {
-                    if (rightFocusRequester != null) right = rightFocusRequester
+                    if (rightFocusRequester != null) end = rightFocusRequester
                 }
                 .onFocusChanged {
                     isFocused = it.isFocused

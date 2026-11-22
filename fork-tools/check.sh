@@ -2,7 +2,7 @@
 # Test spójności forka. Uruchom z katalogu NuvioFork: bash fork-tools/check.sh
 cd "$(dirname "$0")/.." || exit 2
 . fork-tools/pins.env
-UP=../upstream/reshaped; BASE=9174319d2; fail=0
+UP=../upstream/reshaped; BASE=df23746dc; fail=0
 bad(){ echo "BŁĄD: $*"; fail=1; }
 # Seria "kicia" (skórka Kicia): jedna łatka na plik, fork-tools/patches/kicia/<ścieżka z _>.patch, nakładana jako ostatnia.
 # unkicia <plik> -> ścieżka do kopii z cofniętą łatką Kicii (albo sam plik, gdy łatki nie ma).
