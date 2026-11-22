@@ -67,3 +67,9 @@ Lista dla właściciela. Wykonawca dopisuje tu wszystko, czego nie da się spraw
 - Pkt 9: typografia Satoshi na szczegółach programu archiwum i ekranach Nuvio (ocena wzrokowa).
 - Pkt 10–11: plakaty w „Więcej podobnych” pionowe, karty stosu przezroczyste (ocena wzrokowa).
 - Pkt 12: wyszukiwarka Niuni → „Powiedz” → „Słucham…”; log `ForkVoice: przycisk głosu (wyszukiwarka): systemowe=…`. Mowa do mikrofonu — tylko właściciel.
+
+## build171 (22.11, Live TV z listami FlixNest — razem ok. 253 tys. pozycji)
+- [ ] Wejście do Live TV: ekran nie zawiesza się (wcześniej komunikat „aplikacja nie odpowiada”); po kilku–kilkunastu sekundach kanały polskie są na górze, pojawiają się kategorie.
+- [ ] Przewodnik: przy polskich kanałach z hls.gd widać programy (nie „Brak programu”); rząd kafelków u góry nie jest pusty.
+- [ ] Po wyjściu z kanału (Wstecz) fokus wraca na ten sam kanał od razu.
+- [ ] Reszta aplikacji (Główna, Kalendarz, YouTube) ładuje się szybciej niż w build169c (6–8 s).

@@ -13,6 +13,8 @@ log "na wierzchu: $top"
 if echo "$top" | grep -qiE "player|video|netflix|youtube|tvplayer|launcher.*Player" && ! echo "$top" | grep -q "$PKG"; then
   log "STOP: ktoś coś ogląda — test odłożony"; exit 3
 fi
+# 22.11: logcat się przewija (build169c: raport „ANR: 0”, a system zapisał ANR) — liczymy też wpisy ANR w dropboxie.
+anr0=$(adb shell dumpsys dropbox 2>/dev/null | grep -c "data_app_anr")
 adb logcat -c; adb logcat -b crash -c
 adb shell am force-stop $PKG; adb shell am start -n $ACT >/dev/null; sleep 20
 start=$(date +%s); round=0
@@ -24,7 +26,8 @@ done
 log "czas testu: $(( ($(date +%s) - start) / 60 )) min"
 adb logcat -b crash -d > "$OUT/crash.txt"; adb logcat -d > "$OUT/logcat.txt"
 log "awarie (FATAL): $(grep -c 'FATAL EXCEPTION' "$OUT/crash.txt")"
-log "ANR: $(grep -c 'ANR in' "$OUT/logcat.txt")"
+log "ANR: $(grep -c 'ANR in' "$OUT/logcat.txt") w logcat, $(( $(adb shell dumpsys dropbox 2>/dev/null | grep -c "data_app_anr") - anr0 )) nowych w dropboxie (wszystkie aplikacje)"
+adb shell dumpsys activity exit-info $PKG 2>/dev/null | grep -E "timestamp|reason=" | paste - - | head -5 > "$OUT/exit-info.txt"
 grep -aE " [WE] Fork[A-Za-z]*" "$OUT/logcat.txt" | sed -E 's/^.{19}//' | sort | uniq -c | sort -rn | head -60 > "$OUT/fork_we.txt"
 log "ostrzeżenia/błędy Fork* (unikalne): $(wc -l < "$OUT/fork_we.txt")"
 grep -aE "FATAL|Caused by|AndroidRuntime" "$OUT/crash.txt" | head -20 >> "$R"

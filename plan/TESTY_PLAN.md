@@ -22,6 +22,7 @@ Testy sprawdzają czystą logikę (bez TV, bez sieci). Ekrany Compose i odtwarza
 | Live TV: archiwum IPTV | ile godzin program jest jeszcze w archiwum (deklarowane/sprawdzone dni), program trwający, przeterminowany, klucz źródła | `fork/tv/LiveTvLogicTest` (NOWE) |
 | Live TV: przypomnienia | zapis/odczyt bez utraty pól (tab, nowa linia), uszkodzone wiersze | `fork/tv/LiveTvLogicTest` (NOWE) |
 | Live TV: kolejność przewodników | epg.ovh przed tv.team, ranga dla repozytorium, obce hosty | `fork/tv/LiveTvLogicTest` (NOWE) |
+| Live TV: duże listy (252 tys. kanałów, JMGO 22.11) | przewodnik uzupełniający po słowach grupy (separatory, wielkość liter, całe słowa, remis, 250 tys. kanałów < 5 s); pierwszy kanał z archiwum każdego źródła; Niunia: kolejność polskie→zagraniczne, numery, pamięć wyniku tylko dla tej samej listy, norm() bez Regex | `fork/tv/EpgSourcesTest` (+5), `fork/tv/LiveTvLogicTest` (+1), `skin/niunia/NiuniaLiveOrderTest` (NOWE, 5) |
 | Live TV: EPG, kanały, przewodnik, alerty, historia | 22 pliki | `fork/tv/*` (było) |
 | Live TV: logo kanałów | paczka zip, logo przy wyłączonym module | `fork/tv/LogoAndCondenseTest` (NOWE) + `fork/tv/logo/*` (było) |
 | Niunia: Live TV | powrót z odtwarzacza na kafel/komórkę (raz), stan „na żywo”, postęp, serial | `skin/niunia/NiuniaLiveAndPlayerTest` (NOWE) |
