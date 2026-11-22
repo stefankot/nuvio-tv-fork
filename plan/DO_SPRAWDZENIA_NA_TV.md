@@ -45,3 +45,12 @@ Lista dla właściciela. Wykonawca dopisuje tu wszystko, czego nie da się spraw
 - Nastroje: Ustawienia (Prosty) → „Na co masz ochotę?”: wymaga klucza TMDB w `local.properties`; bez niego komunikat „Brak klucza TMDB”.
 - „Sterowanie głosem: przykłady poleceń” — lista przykładów.
 - Ustawienia 3 tryby (19.11): Zaawansowany — szyna „Szukaj” + 7 kategorii, ▶ do podkategorii, OK otwiera; Wstecz z panelu/kategorii wraca do drzewa; fokus w panelu grup Reshaped (np. Odtwarzanie → Dźwięk i obraz). Prosty — wiersz „Szukaj” nad kategoriami otwiera wyszukiwarkę. NOOB — nowy wygląd, przełączniki z plakietką, wybór poziomu. Pełne ustawienia (wyłącznik `fork_settings_nav` off): ▲ z pierwszej kategorii → „Szukaj w ustawieniach”.
+
+## 22.11 (build163, gałąź claude/nuvio-tv-handoff-batch-1-4537d7)
+- Lektor: film z polskimi napisami bez polskiego dźwięku, lektor Gemini — tło (muzyka, efekty) słychać lepiej niż aktorów, lektor wyraźny; log `mikser: ściszanie pasmowe`. Z włączonym trybem nocnym: log z „tryb nocny: medium — podbija dialogi”.
+- Lektor: drugi seans tego samego filmu → log `pamięć: … z Dysku` / brak nowych zapytań Gemini; folder „Nuvio Lektor” na Dysku (tylko gdy TV zalogowany w synchronizacji Google).
+- Napisy AI: film japoński/koreański → w powodach „Film spoza Europy … rosyjski i angielski”, AUX_WESTERN = en.
+- Rozdziały: plik MKV z rozdziałami → kreski na pasku Niuni i panel rozdziałów.
+- Omijanie reklam: program na żywo, który leciał wcześniej (powtórka) → po ok. 15 s karta „Możesz ominąć reklamy”, OK → archiwum + komunikat.
+- Głos: komenda „następny odcinek” / „włącz Netflix”; cisza po naciśnięciu → log `bez mowy … Whisper pominięty` (bez zmyślonego tekstu).
+- Catch-up (po buildzie z 598c92946): log `ForkCatchup … naprawdę N dni` dla TV Team.
