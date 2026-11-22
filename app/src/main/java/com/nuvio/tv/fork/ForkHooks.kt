@@ -97,7 +97,11 @@ object ForkHooks {
     fun effectiveNight(mode: com.nuvio.tv.data.local.NightMode): com.nuvio.tv.data.local.NightMode {
         val eff = com.nuvio.tv.fork.night.NightModule.controller.effective(System.currentTimeMillis())
         val key = com.nuvio.tv.fork.night.NightEffects.effectiveAudio(mode.settingValue, eff, eff)
-        return com.nuvio.tv.data.local.NightMode.entries.firstOrNull { it.settingValue == key } ?: mode
+        val out = com.nuvio.tv.data.local.NightMode.entries.firstOrNull { it.settingValue == key } ?: mode
+        // 22.11: lektor musi wiedzieć, czy tryb nocny podbija dialogi przed jego mikserem (BandDuck).
+        com.nuvio.tv.fork.lektor.LektorEngine.nightKey = out.settingValue
+        android.util.Log.i("ForkNight", "dźwięk nocny: ustawienie=${mode.settingValue}, harmonogram=$eff → ${out.settingValue}")
+        return out
     }
 
     /** NuvioNavHost: na poziomie Prostym ekran Ustawień rysuje moduł. true = narysowany. */

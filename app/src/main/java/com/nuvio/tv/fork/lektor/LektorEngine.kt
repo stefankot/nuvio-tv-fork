@@ -17,7 +17,13 @@ object LektorEngine {
     val voice = ConcurrentHashMap<Long, Pcm>()
     @Volatile var voiceGain = 1f
     @Volatile private var envelope = DuckEnvelope()
-    fun setDuckDepth(db: Float) { envelope = DuckEnvelope(depthDb = db) }
+    /** Ściszanie filmu z ustawień (dB, ≤ 0). */
+    @Volatile var duckDb = -10f; private set
+    fun setDuckDepth(db: Float) { envelope = DuckEnvelope(depthDb = db); duckDb = db }
+    /** 22.11: ściszanie pasmowe ([BandDuck]) — mowa mocniej, muzyka i efekty słabiej. */
+    @Volatile var bandDuck = true
+    /** Obowiązujący tryb nocny odtwarzacza (`NightMode.settingValue`, ustawia ForkHooks.effectiveNight). */
+    @Volatile var nightKey = "off"
 
     @Volatile private var anchorPosMs = 0L
     @Volatile private var anchorNanos = 0L
@@ -84,6 +90,8 @@ class LektorAudioProcessor : BaseAudioProcessor() {
     private var fadePcm: Pcm? = null; private var fadePos = 0.0; private var fadeLeft = 0; private var fadeTotal = 1
     private var lastMissing = -1L
     private var waits = 0; private var cuts = 0; private var skipped = 0; private var waitKey = -1L; private var statsLogged = 0
+    private val band = BandDuck()
+    private var bandLogged = ""
 
     override fun isActive(): Boolean = super.isActive() && LektorEngine.enabled
 
@@ -91,12 +99,14 @@ class LektorAudioProcessor : BaseAudioProcessor() {
     override fun onConfigure(inputAudioFormat: AudioProcessor.AudioFormat): AudioProcessor.AudioFormat {
         val ok = inputAudioFormat.encoding == C.ENCODING_PCM_16BIT || inputAudioFormat.encoding == C.ENCODING_PCM_FLOAT
         android.util.Log.i(TAG, "mikser: format=${inputAudioFormat.encoding} kanały=${inputAudioFormat.channelCount} ${inputAudioFormat.sampleRate} Hz → ${if (ok) "aktywny" else "pominięty"}")
+        if (ok) band.configure(inputAudioFormat.sampleRate, inputAudioFormat.channelCount.coerceAtLeast(1))
         return if (ok) inputAudioFormat else AudioProcessor.AudioFormat.NOT_SET
     }
 
     override fun onFlush() {
         frames = 0; baseMs = LektorEngine.positionMs()
         played.clear(); curPcm = null; curKey = -1; fadePcm = null; fadeLeft = 0
+        band.reset()
     }
 
     private fun stopCurrent(fade: Boolean) {
@@ -128,6 +138,18 @@ class LektorAudioProcessor : BaseAudioProcessor() {
         val near = LektorEngine.near(startMs - MAX_LATE_MS, startMs + durMs + 1_000)
         val g0 = LektorEngine.gainAt(startMs, near); val g1 = LektorEngine.gainAt(startMs + durMs, near)
         val vGain = LektorEngine.voiceGain
+        // 22.11: ściszanie pasmowe — frac 0..1 = głębokość ściszenia w danej chwili (z obwiedni g).
+        val depth = LektorEngine.duckDb
+        val useBand = LektorEngine.bandDuck && depth < -0.01f
+        val duckLow = BandDuck.dbToLinear(depth)
+        val night = LektorEngine.nightKey
+        if (useBand) band.setDepth(depth, BandDuck.nightExtraDb(night))
+        val bandState = "$useBand/$depth/$night"
+        if (bandState != bandLogged) {
+            bandLogged = bandState
+            android.util.Log.i(TAG, if (useBand) "mikser: ściszanie pasmowe: mowa ${"%.1f".format(depth * BandDuck.MID_SHARE - BandDuck.nightExtraDb(night))} dB, muzyka i efekty ${"%.1f".format(depth * BandDuck.SIDE_SHARE)} dB (tryb nocny: $night${if (night != "off") " — podbija dialogi, mowa ściszona dodatkowo" else ""})"
+                else "mikser: ściszanie całego filmu $depth dB (pasmowe ${if (LektorEngine.bandDuck) "bez ściszania" else "wyłączone"}, tryb nocny: $night)")
+        }
         val nearPcm = arrayOfNulls<Pcm>(near.size).also { a -> near.forEachIndexed { k, l -> a[k] = LektorEngine.voice[l.startMs] } } // raz na bufor
         if (played.size > 2_000) played.retainAll { it >= startMs - 60_000 }
         var i = 0
@@ -174,9 +196,12 @@ class LektorAudioProcessor : BaseAudioProcessor() {
             }
             v *= vGain
             i++
+            val frac = if (useBand) ((1f - g) / (1f - duckLow)).coerceIn(0f, 1f) else 0f
             for (c in 0 until ch) {
-                if (float) out.putFloat((inp.float * g + v).coerceIn(-1f, 1f))
-                else out.putShort(((inp.short / 32768f * g + v).coerceIn(-1f, 1f) * 32767f).toInt().toShort())
+                val x = if (float) inp.float else inp.short / 32768f
+                val y = if (useBand) band.process(x, c, frac) else x * g
+                if (float) out.putFloat((y + v).coerceIn(-1f, 1f))
+                else out.putShort(((y + v).coerceIn(-1f, 1f) * 32767f).toInt().toShort())
             }
             frames++
         }
