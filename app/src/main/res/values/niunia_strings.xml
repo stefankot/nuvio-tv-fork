@@ -43,6 +43,8 @@
     <string name="niunia_detail_resume">Wznów</string>
     <string name="niunia_detail_play_episode">Odtwórz S%1$d, O%2$d</string>
     <string name="niunia_detail_season">Sezon %1$d</string>
+    <string name="niunia_detail_season_watched">Sezon %1$d: oznaczony jako obejrzany</string>
+    <string name="niunia_detail_season_unwatched">Sezon %1$d: oznaczony jako nieobejrzany</string>
     <string name="niunia_detail_specials">Dodatki</string>
     <string name="niunia_detail_episode">Odcinek %1$d</string>
     <string name="niunia_detail_more_like">Więcej podobnych</string>

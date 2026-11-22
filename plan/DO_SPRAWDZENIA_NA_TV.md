@@ -73,3 +73,10 @@ Lista dla właściciela. Wykonawca dopisuje tu wszystko, czego nie da się spraw
 - [ ] Przewodnik: przy polskich kanałach z hls.gd widać programy (nie „Brak programu”); rząd kafelków u góry nie jest pusty.
 - [ ] Po wyjściu z kanału (Wstecz) fokus wraca na ten sam kanał od razu.
 - [ ] Reszta aplikacji (Główna, Kalendarz, YouTube) ładuje się szybciej niż w build169c (6–8 s).
+
+## UX długie OK (22.11, build z paczki UX — po instalacji na JMGO)
+- Pilot: przytrzymanie OK ~0,6 s na plakacie Głównej / Biblioteki / Szukaj / „Podobne” → okno „Akcje tytułu”; puszczenie OK NIE wybiera od razu „Szczegóły”.
+- „Oglądaj dalej”: przytrzymanie → menu (Przejdź do szczegółów, Od początku, Odtwórz ręcznie, Obejrzane, Usuń); „Usuń” — fokus zostaje w rzędzie.
+- Live TV: przytrzymanie na kanale w przewodniku i na kafelku → „Dodano do ulubionych: …”, drugi raz „Usunięto…”; filtr „Ulubione” pokazuje kanał.
+- Strona serialu: przytrzymanie na „Sezon N” → „Sezon N: oznaczony jako obejrzany”, znaczniki odcinków.
+- Po przytrzymaniu, które otworzyło okno, i zamknięciu go Wstecz: krótkie OK na tym samym plakacie działa od razu (wcześniej ginęło).

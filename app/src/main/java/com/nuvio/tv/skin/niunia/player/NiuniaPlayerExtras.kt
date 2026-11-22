@@ -120,18 +120,25 @@ class NiuniaPlayerExtrasViewModel @Inject constructor(
         }
     }
 
-    fun playTrailer(title: String, year: String?, type: String?) {
-        if (_state.value.trailerLoading) return
+    /** [ytId] = wybrany zwiastun (karta „Zwiastun N” na stronie tytułu); bez niego — pierwszy z TMDB. */
+    fun playTrailer(title: String, year: String?, type: String?, ytId: String? = null) {
+        if (_state.value.trailerLoading) { Log.i(TAG, "odtwarzacz: zwiastun już się wczytuje — pominięte"); return }
         _state.update { it.copy(trailerLoading = true) }
         viewModelScope.launch {
+            // UX 22.11 (test emulatora): każda karta „Zwiastun N” odtwarzała ten sam zwiastun z TMDB — teraz wybrany film.
+            var how = "TMDB"
             val src = try {
-                val tid = tmdbId ?: key?.substringAfter(':')?.let { tmdbService.ensureTmdbId(it, apiType(type)) }.also { tmdbId = it }
-                trailerService.getTrailerPlaybackSourceFromTmdbId(tid, apiType(type), title, year?.take(4))
-                    ?: trailerService.getTrailerPlaybackSource(title, year?.take(4), tid, apiType(type))
+                ytId?.takeIf { it.isNotBlank() }?.let { id ->
+                    trailerService.getTrailerPlaybackSourceFromYouTubeUrl("https://www.youtube.com/watch?v=$id", title, year?.take(4))?.also { how = "wybrany" }
+                } ?: run {
+                    val tid = tmdbId ?: key?.substringAfter(':')?.let { tmdbService.ensureTmdbId(it, apiType(type)) }.also { tmdbId = it }
+                    trailerService.getTrailerPlaybackSourceFromTmdbId(tid, apiType(type), title, year?.take(4))
+                        ?: trailerService.getTrailerPlaybackSource(title, year?.take(4), tid, apiType(type))
+                }
             } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: Exception) {
                 Log.w(TAG, "odtwarzacz: zwiastun: ${e.javaClass.simpleName}: ${e.message}"); null
             }
-            Log.i(TAG, "odtwarzacz: zwiastun ${if (src != null) "znaleziony (TMDB)" else "brak"}")
+            Log.i(TAG, "odtwarzacz: zwiastun ${if (src != null) "znaleziony ($how)" else "brak"}")
             _state.update {
                 it.copy(trailerLoading = false, trailer = src,
                     message = if (src == null) context.getString(com.nuvio.tv.R.string.niunia_pinfo_no_trailer) else null)

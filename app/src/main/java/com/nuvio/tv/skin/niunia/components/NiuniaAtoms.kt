@@ -105,39 +105,50 @@ fun Modifier.niuniaOk(
     onLongClick: (() -> Unit)? = null,
     onClick: (() -> Unit)?,
 ): Modifier {
-    var downAt by remember { mutableLongStateOf(0L) }
-    var longFired by remember { mutableStateOf(false) }
+    val gate = remember { NiuniaOkGate() }
     var pressed by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val press by animateFloatAsState(if (pressed) NiuniaScale.ScalePress else 1f, tween(NiuniaMotion.DurPress.toInt()), label = "niuniaPress")
+    fun fireLong(why: String) {
+        pressed = false
+        Log.i(DS_TAG, "długie OK → $name ($why)")
+        onLongClick?.invoke()
+    }
     return this
         .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
         .focusProperties { canFocus = enabled }
-        .onFocusChanged { onFocus(it.isFocused) }
+        .onFocusChanged {
+            // UX 22.11: długie OK, które przeniosło fokus (okno, inny ekran), zostawiało element „wciśnięty” — następne OK ginęło.
+            if (!it.isFocused && gate.downAt != 0L) { gate.reset(); pressed = false }
+            onFocus(it.isFocused)
+        }
         .onPreviewKeyEvent { e ->
             val ok = e.key == Key.DirectionCenter || e.key == Key.Enter || e.key == Key.NumPadEnter
             if (!ok || !enabled) return@onPreviewKeyEvent false
+            val native = e.nativeKeyEvent
             when (e.type) {
                 KeyEventType.KeyDown -> {
-                    if (downAt == 0L) {
-                        downAt = System.currentTimeMillis(); longFired = false; pressed = true
-                        if (onLongClick != null) scope.launch {
-                            val mark = downAt
-                            delay(NiuniaMotion.LongPress.toLong())
-                            if (downAt == mark && !longFired) {
-                                longFired = true; pressed = false
-                                Log.i(DS_TAG, "długie OK → $name")
-                                onLongClick()
+                    // Zegar 520 ms albo systemowa flaga długiego naciśnięcia (pilot po ~0,5 s; adb --longpress) — NiuniaOkGate.
+                    when (gate.down(System.currentTimeMillis(), native.repeatCount, native.isLongPress, onLongClick != null)) {
+                        NiuniaOkGate.Down.PRESS -> {
+                            pressed = true
+                            if (onLongClick != null) {
+                                val mark = gate.downAt
+                                scope.launch { delay(NiuniaMotion.LongPress.toLong()); if (gate.timer(mark)) fireLong("${NiuniaMotion.LongPress} ms") }
                             }
                         }
+                        NiuniaOkGate.Down.LONG -> fireLong("flaga systemu")
+                        NiuniaOkGate.Down.IGNORE, NiuniaOkGate.Down.HELD -> Unit
                     }
                     true
                 }
                 KeyEventType.KeyUp -> {
-                    val wasLong = longFired
-                    downAt = 0L; pressed = false
-                    if (!wasLong) {
-                        if (onClick != null) { Log.i(DS_TAG, "OK → $name"); onClick() } else Log.i(DS_TAG, "OK → $name: brak akcji")
+                    pressed = false
+                    when (gate.up()) {
+                        NiuniaOkGate.Up.CLICK -> if (onClick != null) { Log.i(DS_TAG, "OK → $name"); onClick() } else Log.i(DS_TAG, "OK → $name: brak akcji")
+                        // Puszczenie bez wciśnięcia na tym elemencie (np. po długim OK, które otworzyło okno) nie jest kliknięciem.
+                        NiuniaOkGate.Up.IGNORE -> Log.i(DS_TAG, "OK → $name: puszczenie bez wciśnięcia — pominięte")
+                        NiuniaOkGate.Up.AFTER_LONG -> Unit
                     }
                     true
                 }

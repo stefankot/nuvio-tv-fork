@@ -29,7 +29,14 @@ object ForkFeatures {
     /** Tylko debug: otwórz [route] teraz (jeśli jest nawigator) i jeszcze raz w nowym nawigatorze, gdy powstanie w ciągu 2 min. */
     fun openDebug(route: String) {
         pendingRoute = route; pendingNav = nav; pendingUntilMs = android.os.SystemClock.uptimeMillis() + 120_000L
-        nav?.let { n -> runCatching { n.navigate(route) } }
+        // UX 22.11 (testy ścieżek): każda trasa dokładała ekran na stos — po kilkudziesięciu ścieżkach stos był długi
+        // (wolniejsze ekrany, Wstecz trafiało w poprzedni test). Ta sama trasa zastępuje swoją poprzednią kopię.
+        nav?.let { n ->
+            runCatching { n.navigate(route) { launchSingleTop = true; popUpTo(route) { inclusive = true } } }.onFailure {
+                android.util.Log.w("ForkDebug", "trasa $route bez zdjęcia ze stosu: ${it.javaClass.simpleName}: ${it.message}")
+                runCatching { n.navigate(route) }.onFailure { e -> android.util.Log.w("ForkDebug", "trasa $route: ${e.javaClass.simpleName}: ${e.message}") }
+            }
+        }
     }
     private fun prefs(c: Context) = c.getSharedPreferences("fork_features", Context.MODE_PRIVATE)
     /**

@@ -27,6 +27,8 @@
     <string name="niunia_ds_trailer_n">Zwiastun %1$d</string>
     <string name="niunia_ds_description">Opis</string>
     <string name="niunia_ds_show_full">Pokaż cały opis</string>
+    <string name="niunia_ds_show_less">Zwiń opis</string>
+    <string name="niunia_ds_less">Mniej</string>
     <string name="niunia_ds_languages">Języki</string>
     <string name="niunia_ds_original">Oryginał: %1$s</string>
     <string name="niunia_ds_premiere">Premiera %1$s</string>

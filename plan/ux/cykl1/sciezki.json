@@ -1,0 +1,739 @@
+[
+ {
+  "nr": 1,
+  "nazwa": "Start aplikacji → ekran główny z fokusem",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "start (6.1 s) → fokus: Odtwórz ⟨Unabomber / Film · Biography · Crime · 202 / IMDb 6.2⟩"
+  ],
+  "s": 6
+ },
+ {
+  "nr": 2,
+  "nazwa": "Główna: OK „Odtwórz” w banerze",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa home (4.8 s) → fokus: Odtwórz ⟨Unabomber / Film · Biography · Crime · 202 / IMDb 6.2⟩",
+   "OK na banerze na „Odtwórz” (4.5 s) → fokus: Odtwórz ⟨Obejrzyj z lektorem / Unabomber / Film · Biography · Crime · 202⟩",
+   "Wstecz (4.6 s) → fokus: Odtwórz ⟨Unabomber / Film · Biography · Crime · 202 / IMDb 6.2⟩"
+  ],
+  "s": 17
+ },
+ {
+  "nr": 3,
+  "nazwa": "Główna: długie OK w banerze → strona tytułu",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa home (4.8 s) → fokus: Odtwórz ⟨Unabomber / Film · Biography · Crime · 202 / IMDb 6.2⟩",
+   "długie OK na „Odtwórz” (brak zdarzenia) → fokus: Odtwórz ⟨Obejrzyj z lektorem / Unabomber / Film · Biography · Crime · 202⟩",
+   "Wstecz (4.6 s) → fokus: Odtwórz ⟨Unabomber / Film · Biography · Crime · 202 / IMDb 6.2⟩"
+  ],
+  "s": 17
+ },
+ {
+  "nr": 4,
+  "nazwa": "Główna: ▼ rząd, ►×4, OK → tytuł, Wstecz → ten sam plakat",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa home (4.8 s) → fokus: Odtwórz ⟨Unabomber / Film · Biography · Crime · 202 / IMDb 6.2⟩",
+   "DOWN×1 → fokus: Action · ★ 8.4 ⟨Popular / #2 Dziś / Action · ★ 6.5⟩",
+   "RIGHT×4 → fokus: Biography · ★ 7.0 ⟨Popular / #1 Dziś / Action · ★ 8.4⟩",
+   "OK na „Biography · ★ 7.0” (4.5 s) → fokus: Odtwórz ⟨Obejrzyj z lektorem / Primetime / Film · Biography · Crime · 202⟩",
+   "Wstecz (4.8 s) → fokus: Biography · ★ 7.0 ⟨Popular / #1 Dziś / Action · ★ 8.4⟩"
+  ],
+  "s": 24
+ },
+ {
+  "nr": 5,
+  "nazwa": "Główna: długie OK na plakacie w rzędzie",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa home (4.8 s) → fokus: Biography · ★ 7.0 ⟨Popular / #6 Dziś / Horror · ★ 7.8⟩",
+   "DOWN×2 → fokus: Biography ⟨New / Nowość / Action⟩",
+   "RIGHT×2 → fokus: Comedy ⟨New / Biography / Nowość⟩",
+   "długie OK na „Comedy” (brak zdarzenia) → fokus: Odtwórz ⟨Obejrzyj z lektorem / The Bodyguard / Film · Comedy · Drama · 2026 ·⟩",
+   "Wstecz z menu (4.8 s) → fokus: Comedy ⟨New / Biography / Nowość⟩"
+  ],
+  "s": 24
+ },
+ {
+  "nr": 6,
+  "nazwa": "Główna: długie OK na „Oglądaj dalej”",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: brak rzędu „Oglądaj dalej” — pominięte"
+  ],
+  "kroki": [
+   "trasa home (4.8 s) → fokus: Comedy ⟨New / Thriller / Nowość⟩",
+   "DOWN×1 → fokus: Crime ⟨Comedy / Thriller / Nowość⟩"
+  ],
+  "s": 9
+ },
+ {
+  "nr": 7,
+  "nazwa": "Główna: szybkie przewijanie ▼×8 i ▲×8 — fokus nie ginie",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa home (4.8 s) → fokus: Crime ⟨Biography / Nowość / Action⟩",
+   "DOWN×8 szybko → fokus: Crime ⟨Biography / Nowość / Action⟩",
+   "UP×8 szybko → fokus: Szukaj ⟨Unabomber / Film · Biography · Crime · 202 / IMDb 6.2⟩"
+  ],
+  "s": 18
+ },
+ {
+  "nr": 8,
+  "nazwa": "Główna: ◄ do menu bocznego i z powrotem",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa home (4.6 s) → fokus: Odtwórz ⟨Unabomber / Film · Biography · Crime · 202 / IMDb 6.2⟩",
+   "DOWN×1 → fokus: Action · ★ 8.4 ⟨Popular / #2 Dziś / Action · ★ 6.5⟩",
+   "LEFT×6 → fokus: Action · ★ 8.4 ⟨Popular / #2 Dziś / Action · ★ 6.5⟩",
+   "RIGHT×1 → fokus: Action · ★ 6.5 ⟨Popular / #1 Dziś / Action · ★ 8.4⟩"
+  ],
+  "s": 17
+ },
+ {
+  "nr": 9,
+  "nazwa": "Menu boczne: każda pozycja otwiera ekran",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa home (4.8 s) → fokus: Action · ★ 6.5 ⟨Popular / #3 Dziś / Action · ★ 7.1⟩",
+   "Wstecz → menu → fokus: Odtwórz ⟨Unabomber / Film · Biography · Crime · 202 / IMDb 6.2⟩",
+   "pozycje menu: Odtwórz / Action · ★ 6.5 / Action · ★ 6.8 / Biography / Crime → fokus: Crime ⟨Biography / Nowość / Action⟩"
+  ],
+  "s": 25
+ },
+ {
+  "nr": 10,
+  "nazwa": "Główna: Wstecz z rzędu → baner/menu, drugi Wstecz → nie zamyka bez pytania",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa home (4.8 s) → fokus: Crime ⟨Biography / Nowość / Action⟩",
+   "DOWN×2 → fokus: Crime ⟨Biography / Nowość / Action⟩",
+   "Wstecz (4.9 s) → fokus: Odtwórz ⟨Unabomber / Film · Biography · Crime · 202 / IMDb 6.2⟩",
+   "Wstecz (4.6 s) → fokus: Odtwórz ⟨Unabomber / Film · Biography · Crime · 202 / IMDb 6.2⟩",
+   "Wstecz (4.6 s) → fokus: Odtwórz ⟨Unabomber / Film · Biography · Crime · 202 / IMDb 6.2⟩"
+  ],
+  "s": 23
+ },
+ {
+  "nr": 11,
+  "nazwa": "Szukaj: wpis „bat” klawiaturą ekranową → wyniki → OK → długie OK",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: Wstecz: fokus „a” zamiast „The Batman | Film · 2022”",
+   "UWAGA: Wstecz z menu: fokus „Odtwórz” zamiast „a”"
+  ],
+  "kroki": [
+   "trasa search (4.7 s) → fokus: a ⟨Filmy, seriale, TV, YouTube i  / abc / abc⟩",
+   "klawiatura „bat”: wpisane: bat → fokus: t ⟨bat / abc / abc⟩",
+   "RIGHT×7 → fokus: The Batman | Film · 2022 ⟨bat / abc / abc⟩",
+   "OK na wyniku na „The Batman | Film · 2022” (4.5 s) → fokus: Odtwórz ⟨Obejrzyj z lektorem / The Batman / Film · Action · Crime · 2022 ·⟩",
+   "Wstecz (4.7 s) → fokus: a ⟨bat / abc / abc⟩",
+   "długie OK na wyniku na „a” (brak zdarzenia) → fokus: a ⟨bata / abc / abc⟩",
+   "Wstecz z menu (4.6 s) → fokus: Odtwórz ⟨Unabomber / Film · Biography · Crime · 202 / IMDb 6.2⟩"
+  ],
+  "s": 58
+ },
+ {
+  "nr": 12,
+  "nazwa": "Szukaj: polecane → OK → tytuł → Wstecz",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: Wstecz: fokus „Odtwórz” zamiast „s”"
+  ],
+  "kroki": [
+   "trasa search (4.8 s) → fokus: a ⟨Filmy, seriale, TV, YouTube i  / abc / abc⟩",
+   "DOWN×3 → fokus: s ⟨Filmy, seriale, TV, YouTube i  / abc / abc⟩",
+   "OK na „s” (4.6 s) → fokus: s ⟨s / abc / abc⟩",
+   "Wstecz (4.6 s) → fokus: Odtwórz ⟨Unabomber / Film · Biography · Crime · 202 / IMDb 6.2⟩"
+  ],
+  "s": 20
+ },
+ {
+  "nr": 13,
+  "nazwa": "Szukaj: długie OK na polecanym plakacie",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: Wstecz z menu: fokus „Odtwórz” zamiast „s”"
+  ],
+  "kroki": [
+   "trasa search (4.7 s) → fokus: a ⟨Filmy, seriale, TV, YouTube i  / abc / abc⟩",
+   "DOWN×3 → fokus: s ⟨Filmy, seriale, TV, YouTube i  / abc / abc⟩",
+   "długie OK na „s” (brak zdarzenia) → fokus: s ⟨s / abc / abc⟩",
+   "Wstecz z menu (4.6 s) → fokus: Odtwórz ⟨Unabomber / Film · Biography · Crime · 202 / IMDb 6.2⟩"
+  ],
+  "s": 20
+ },
+ {
+  "nr": 14,
+  "nazwa": "Szukaj: kafelek „przeglądaj” → OK",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: Wstecz: fokus „Odtwórz” zamiast „m”"
+  ],
+  "kroki": [
+   "trasa search (4.8 s) → fokus: a ⟨Filmy, seriale, TV, YouTube i  / abc / abc⟩",
+   "DOWN×2 → fokus: m ⟨Filmy, seriale, TV, YouTube i  / abc / abc⟩",
+   "OK na „m” (4.5 s) → fokus: m ⟨m / abc / abc⟩",
+   "Wstecz (4.6 s) → fokus: Odtwórz ⟨Unabomber / Film · Biography · Crime · 202 / IMDb 6.2⟩"
+  ],
+  "s": 20
+ },
+ {
+  "nr": 15,
+  "nazwa": "Biblioteka: otwarcie, OK na pierwszej pozycji",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: Wstecz: fokus „Odtwórz” zamiast „Przeglądaj filmy i seriale”"
+  ],
+  "kroki": [
+   "trasa library (4.8 s) → fokus: Przeglądaj filmy i seriale ⟨Twoja biblioteka jest pusta / Naciśnij + przy filmie lub ser / Przeglądaj filmy i seriale⟩",
+   "OK na „Przeglądaj filmy i seriale” (4.5 s) → fokus: Odtwórz ⟨Unabomber / Film · Biography · Crime · 202 / IMDb 6.2⟩",
+   "Wstecz (4.6 s) → fokus: Odtwórz ⟨Unabomber / Film · Biography · Crime · 202 / IMDb 6.2⟩"
+  ],
+  "s": 17
+ },
+ {
+  "nr": 16,
+  "nazwa": "Biblioteka: długie OK na pozycji",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: Wstecz z menu: fokus „Odtwórz” zamiast „Przeglądaj filmy i seriale”"
+  ],
+  "kroki": [
+   "trasa library (4.7 s) → fokus: Przeglądaj filmy i seriale ⟨Twoja biblioteka jest pusta / Naciśnij + przy filmie lub ser / Przeglądaj filmy i seriale⟩",
+   "DOWN×1 → fokus: Przeglądaj filmy i seriale ⟨Twoja biblioteka jest pusta / Naciśnij + przy filmie lub ser / Przeglądaj filmy i seriale⟩",
+   "długie OK na „Przeglądaj filmy i seriale” (brak zdarzenia) → fokus: Odtwórz ⟨Unabomber / Film · Biography · Crime · 202 / IMDb 6.2⟩",
+   "Wstecz z menu (4.6 s) → fokus: Odtwórz ⟨Unabomber / Film · Biography · Crime · 202 / IMDb 6.2⟩"
+  ],
+  "s": 19
+ },
+ {
+  "nr": 17,
+  "nazwa": "Strona tytułu: przyciski ◄► i OK na każdym",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa home (4.7 s) → fokus: Odtwórz ⟨Unabomber / Film · Biography · Crime · 202 / IMDb 6.2⟩",
+   "DOWN×2 → fokus: Action · ★ 6.8 ⟨Popular / #2 Dziś / Drama⟩",
+   "OK → strona tytułu na „Action · ★ 6.8” (4.6 s) → fokus: Odtwórz S1, O1 ⟨Obejrzyj z lektorem / The Lord of the Rings: The Rin / Serial · Action · Adventure · ⟩",
+   "przyciski: Odtwórz S1, O1 / Dodaj do biblioteki / O serialu → fokus: O serialu ⟨Obejrzyj z lektorem / The Lord of the Rings: The Rin / Serial · Action · Adventure · ⟩"
+  ],
+  "s": 27
+ },
+ {
+  "nr": 18,
+  "nazwa": "Strona tytułu: długie OK na przycisku „Odtwórz”",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa home (4.8 s) → fokus: Action · ★ 6.8 ⟨Popular / #2 Dziś / Drama⟩",
+   "DOWN×2 → fokus: Crime ⟨Biography / Nowość / Action⟩",
+   "OK → strona tytułu na „Crime” (4.5 s) → fokus: Odtwórz S1, O1 ⟨Obejrzyj z lektorem / The Good Daughter / Serial · Crime · Drama · 1 sez⟩",
+   "długie OK na „Odtwórz S1, O1” (brak zdarzenia) → fokus: Odtwórz S1, O1 ⟨Obejrzyj z lektorem / The Good Daughter / Serial · Crime · Drama · 1 sez⟩",
+   "Wstecz (4.8 s) → fokus: Crime ⟨Biography / Nowość / Action⟩"
+  ],
+  "s": 27
+ },
+ {
+  "nr": 19,
+  "nazwa": "Strona tytułu: ▼ do odcinków/podobnych, OK, Wstecz",
+  "wynik": "BŁĄD",
+  "uwagi": [
+   "BŁĄD: OK na „Zwiastun 1”: brak reakcji",
+   "UWAGA: Wstecz: fokus „Odtwórz S1, O1” zamiast „Zwiastun 1”"
+  ],
+  "kroki": [
+   "trasa home (4.8 s) → fokus: Crime ⟨Biography / Nowość / Action⟩",
+   "DOWN×2 → fokus: Crime ⟨Biography / Nowość / Action⟩",
+   "OK → strona tytułu na „Crime” (4.5 s) → fokus: Odtwórz S1, O1 ⟨Obejrzyj z lektorem / The Good Daughter / Serial · Crime · Drama · 1 sez⟩",
+   "DOWN×2 → fokus: Zwiastun 1 ⟨The Good Daughter / Zwiastuny / Zwiastun 1⟩",
+   "OK na „Zwiastun 1” (4.4 s) → fokus: Zwiastun 1 ⟨The Good Daughter / Zwiastuny / Zwiastun 1⟩",
+   "Wstecz (4.7 s) → fokus: Odtwórz S1, O1 ⟨Obejrzyj z lektorem / The Good Daughter / Serial · Crime · Drama · 1 sez⟩"
+  ],
+  "s": 30
+ },
+ {
+  "nr": 20,
+  "nazwa": "Strona tytułu: długie OK na „Podobne”",
+  "wynik": "BŁĄD",
+  "uwagi": [
+   "BŁĄD: długie OK na „Pokaż cały opis | Więcej”: brak akcji"
+  ],
+  "kroki": [
+   "trasa home (4.8 s) → fokus: Crime ⟨Biography / Nowość / Action⟩",
+   "DOWN×2 → fokus: Crime ⟨Biography / Nowość / Action⟩",
+   "OK → strona tytułu na „Crime” (4.5 s) → fokus: Odtwórz S1, O1 ⟨Obejrzyj z lektorem / The Good Daughter / Serial · Crime · Drama · 1 sez⟩",
+   "DOWN×1 → fokus: Odcinek 1, What Happened to Charlie | ODCINEK 1 | What Happened to Charlie | Lawyer Charli ⟨The Good Daughter / Sezon 1 / Sezon 1⟩",
+   "DOWN×1 → fokus: Zwiastun 1 ⟨The Good Daughter / Zwiastuny / Zwiastun 1⟩",
+   "DOWN×1 → fokus: Meghann Fahy | MF ⟨The Good Daughter / Obsada i twórcy / Meghann Fahy⟩",
+   "DOWN×1 → fokus: Pokaż cały opis | Więcej ⟨The Good Daughter / MF / Meghann Fahy⟩",
+   "długie OK na „Pokaż cały opis | Więcej” (brak zdarzenia) → fokus: Pokaż cały opis | Więcej ⟨The Good Daughter / MF / Meghann Fahy⟩"
+  ],
+  "s": 32
+ },
+ {
+  "nr": 21,
+  "nazwa": "Strona tytułu: obsada → osoba → plakat → Wstecz×2",
+  "wynik": "BŁĄD",
+  "uwagi": [
+   "BŁĄD: OK na osobie na „Pokaż cały opis | Więcej”: brak reakcji"
+  ],
+  "kroki": [
+   "trasa home (4.7 s) → fokus: Crime ⟨Biography / Nowość / Action⟩",
+   "DOWN×2 → fokus: Crime ⟨Biography / Nowość / Action⟩",
+   "OK → strona tytułu na „Crime” (4.5 s) → fokus: Odtwórz S1, O1 ⟨Obejrzyj z lektorem / The Good Daughter / Serial · Crime · Drama · 1 sez⟩",
+   "DOWN×1 → fokus: Odcinek 1, What Happened to Charlie | ODCINEK 1 | What Happened to Charlie | Lawyer Charli ⟨The Good Daughter / Sezon 1 / Sezon 1⟩",
+   "DOWN×1 → fokus: Zwiastun 1 ⟨The Good Daughter / Zwiastuny / Zwiastun 1⟩",
+   "DOWN×1 → fokus: Meghann Fahy | MF ⟨The Good Daughter / Obsada i twórcy / Meghann Fahy⟩",
+   "DOWN×1 → fokus: Pokaż cały opis | Więcej ⟨The Good Daughter / MF / Meghann Fahy⟩",
+   "DOWN×1 → fokus: Pokaż cały opis | Więcej ⟨The Good Daughter / MF / Meghann Fahy⟩",
+   "DOWN×1 → fokus: Pokaż cały opis | Więcej ⟨The Good Daughter / MF / Meghann Fahy⟩",
+   "OK na osobie na „Pokaż cały opis | Więcej” (4.5 s) → fokus: Pokaż cały opis | Więcej ⟨The Good Daughter / MF / Meghann Fahy⟩",
+   "Wstecz (4.7 s) → fokus: Odtwórz S1, O1 ⟨Obejrzyj z lektorem / The Good Daughter / Serial · Crime · Drama · 1 sez⟩",
+   "Wstecz (4.7 s) → fokus: Crime ⟨Biography / Nowość / Action⟩"
+  ],
+  "s": 47
+ },
+ {
+  "nr": 22,
+  "nazwa": "Ustawienia: otwarcie i przejście ▼ po kategoriach",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa settings (4.7 s) → fokus: Profile ⟨Profile / Konto / Logowanie⟩",
+   "kategorie: Profile / Konto | Logowanie / Skórka | Niunia / Lektor | Włączony / Napisy i AutoSync / Dodatki / Szukaj w telewizji / Wszystkie moduły / Pomoc i dziennik błędów / Zawsze po polsku / Po polsku przy dobrej jakości / Oryginał z napisami / Napisy: małe / Napisy: średnie → fokus: Napisy: duże ⟨Pomoc i dziennik błędów / Zawsze po polsku / Po polsku przy dobrej jakości⟩"
+  ],
+  "s": 41
+ },
+ {
+  "nr": 23,
+  "nazwa": "Ustawienia: ► do treści kategorii, OK, Wstecz",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa settings (4.6 s) → fokus: Profile ⟨Profile / Konto / Logowanie⟩",
+   "RIGHT×1 → fokus: Profile ⟨Profile / Konto / Logowanie⟩",
+   "OK na „Profile” (4.5 s) → fokus: P | ★ | Profile 1 | GŁÓWNY ⟨NuvioTV / Zarządzaj profilami / Wybierz profil do edycji, prze⟩",
+   "Wstecz (4.5 s) → fokus: Profile ⟨Profile / Konto / Logowanie⟩"
+  ],
+  "s": 19
+ },
+ {
+  "nr": 24,
+  "nazwa": "Ustawienia odtwarzania: przełącznik OK dwa razy (stan wraca)",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa playback_settings (4.8 s) → fokus: Odtwarzacz | Domyślny odtwarzacz, silnik wbudowany i awaryjne przełączanie. | Zamknięte ⟨Ustawienia odtwarzania / Konfiguruj odtwarzanie wideo i / Odtwarzacz⟩",
+   "DOWN×1 → fokus: Wybór strumienia | Sposób wyboru strumienia po naciśnięciu odtwarzania. | Zamknięte ⟨Ustawienia odtwarzania / Konfiguruj odtwarzanie wideo i / Odtwarzacz⟩",
+   "OK×2 → fokus: Wybór strumienia | Sposób wyboru strumienia po naciśnięciu odtwarzania. | Zamknięte ⟨Ustawienia odtwarzania / Konfiguruj odtwarzanie wideo i / Odtwarzacz⟩"
+  ],
+  "s": 19
+ },
+ {
+  "nr": 25,
+  "nazwa": "Ustawienia: długie OK na pozycji (nie powinno nic psuć)",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: długie OK na „Profile”: zachowało się jak zwykłe OK"
+  ],
+  "kroki": [
+   "trasa settings (4.7 s) → fokus: Profile ⟨Profile / Konto / Logowanie⟩",
+   "RIGHT×1 → fokus: Profile ⟨Profile / Konto / Logowanie⟩",
+   "długie OK na „Profile” (brak zdarzenia) → fokus: P | ★ | Profile 1 | GŁÓWNY ⟨NuvioTV / Zarządzaj profilami / Wybierz profil do edycji, prze⟩",
+   "Wstecz (4.6 s) → fokus: Profile ⟨Profile / Konto / Logowanie⟩"
+  ],
+  "s": 19
+ },
+ {
+  "nr": 26,
+  "nazwa": "Live TV: wejście (stan pusty albo przewodnik)",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa reshaped_live_tv (4.8 s) → fokus: Live TV ⟨Dodaj listę kanałów w Ustawien / Szukaj / Główna⟩",
+   "Live TV → fokus: Live TV ⟨Dodaj listę kanałów w Ustawien / Szukaj / Główna⟩"
+  ],
+  "s": 5
+ },
+ {
+  "nr": 27,
+  "nazwa": "Live TV: OK na kanale → odtwarzanie → Wstecz",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: Wstecz z odtwarzacza: fokus „Crime” zamiast „Biblioteka”"
+  ],
+  "kroki": [
+   "trasa reshaped_live_tv (4.7 s) → fokus: Live TV ⟨Dodaj listę kanałów w Ustawien / Szukaj / Główna⟩",
+   "DOWN×2 → fokus: Biblioteka ⟨Dodaj listę kanałów w Ustawien / Szukaj / Główna⟩",
+   "OK na kanale na „Biblioteka” (4.4 s) → fokus: Przeglądaj filmy i seriale ⟨Twoja biblioteka jest pusta / Naciśnij + przy filmie lub ser / Przeglądaj filmy i seriale⟩",
+   "Wstecz z odtwarzacza (4.7 s) → fokus: Crime ⟨Biography / Nowość / Action⟩"
+  ],
+  "s": 24
+ },
+ {
+  "nr": 28,
+  "nazwa": "Live TV: długie OK na kanale",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: Wstecz z menu: fokus „Crime” zamiast „Biblioteka”"
+  ],
+  "kroki": [
+   "trasa reshaped_live_tv (4.7 s) → fokus: Live TV ⟨Dodaj listę kanałów w Ustawien / Szukaj / Główna⟩",
+   "DOWN×2 → fokus: Biblioteka ⟨Dodaj listę kanałów w Ustawien / Szukaj / Główna⟩",
+   "długie OK na „Biblioteka” (brak zdarzenia) → fokus: Przeglądaj filmy i seriale ⟨Twoja biblioteka jest pusta / Naciśnij + przy filmie lub ser / Przeglądaj filmy i seriale⟩",
+   "Wstecz z menu (4.7 s) → fokus: Crime ⟨Biography / Nowość / Action⟩"
+  ],
+  "s": 20
+ },
+ {
+  "nr": 29,
+  "nazwa": "Live TV: przewijanie listy ▼×15 i ▲×15",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa reshaped_live_tv (4.7 s) → fokus: Live TV ⟨Dodaj listę kanałów w Ustawien / Szukaj / Główna⟩",
+   "DOWN×15 (7.0 s) → fokus: Calendar ⟨Dodaj listę kanałów w Ustawien / Szukaj / Główna⟩",
+   "UP×15 (7.1 s) → fokus: Szukaj ⟨Dodaj listę kanałów w Ustawien / Szukaj / Główna⟩"
+  ],
+  "s": 19
+ },
+ {
+  "nr": 30,
+  "nazwa": "Live TV: Szukaj kanału",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: fork_tv_search: brak fokusu po otwarciu",
+   "UWAGA: szukanie „tvp”: brak wyników TVP"
+  ],
+  "kroki": [
+   "trasa fork_tv_search (4.6 s) → fokus: None ⟨Szukaj kanału lub programu / built-32h⟩",
+   "wpis „tvp” → fokus: None ⟨Szukaj kanału lub programu / built-32h⟩"
+  ],
+  "s": 14
+ },
+ {
+  "nr": 31,
+  "nazwa": "YouTube: otwarcie, OK na filmie, Wstecz",
+  "wynik": "BŁĄD",
+  "uwagi": [
+   "UWAGA: youtube: ładowanie 7.1 s",
+   "UWAGA: youtube: brak fokusu po otwarciu",
+   "BŁĄD: OK na „Home”: brak reakcji"
+  ],
+  "kroki": [
+   "trasa youtube (7.1 s) → fokus: None ⟨21:45 / OneTube / Search⟩",
+   "DOWN×1 → fokus: Home ⟨21:45 / OneTube / Search⟩",
+   "OK na „Home” (4.5 s) → fokus: Home ⟨21:45 / OneTube / Search⟩",
+   "Wstecz (4.5 s) → fokus: Home ⟨21:45 / OneTube / Search⟩"
+  ],
+  "s": 24
+ },
+ {
+  "nr": 32,
+  "nazwa": "YouTube: długie OK na filmie",
+  "wynik": "BŁĄD",
+  "uwagi": [
+   "UWAGA: youtube: ładowanie 7.2 s",
+   "BŁĄD: długie OK na „Home”: brak akcji"
+  ],
+  "kroki": [
+   "trasa youtube (7.2 s) → fokus: Home ⟨21:45 / OneTube / Search⟩",
+   "DOWN×1 → fokus: Home ⟨21:45 / OneTube / Search⟩",
+   "długie OK na „Home” (brak zdarzenia) → fokus: Home ⟨21:45 / OneTube / Search⟩"
+  ],
+  "s": 17
+ },
+ {
+  "nr": 33,
+  "nazwa": "Kalendarz: otwarcie, ►×3, OK, Wstecz",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: Wstecz: fokus „Home” zamiast „Month”"
+  ],
+  "kroki": [
+   "trasa calendar (4.7 s) → fokus: List ⟨Calendar / 0 with a date · 0 followed / Month⟩",
+   "RIGHT×3 → fokus: Month ⟨Calendar / 0 with a date · 0 followed / List⟩",
+   "OK na „Month” (4.6 s) → fokus: 22 ⟨22 / LIS / NIEDZIELA · TODAY⟩",
+   "Wstecz (4.5 s) → fokus: Home ⟨21:46 / OneTube / Search⟩"
+  ],
+  "s": 20
+ },
+ {
+  "nr": 34,
+  "nazwa": "Dodatki: lista, OK na dodatku, Wstecz",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: Wstecz: fokus „Home” zamiast „Odśwież dodatki | Pobierz najnowsze zmiany dodatków dla bieżącego profilu”"
+  ],
+  "kroki": [
+   "trasa addon_manager (4.7 s) → fokus: https://example.com ⟨Dodatki / Zainstaluj dodatek / Zainstaluj⟩",
+   "DOWN×2 → fokus: Odśwież dodatki | Pobierz najnowsze zmiany dodatków dla bieżącego profilu ⟨Zainstaluj dodatek / https://example.com / Zainstaluj⟩",
+   "OK na „Odśwież dodatki | Pobierz najnowsze zmiany dodatków dla bieżącego profilu” (4.5 s) → fokus: Odśwież dodatki | Dodatki odświeżone przed chwilą ⟨Zainstaluj dodatek / https://example.com / Zainstaluj⟩",
+   "Wstecz (4.5 s) → fokus: Home ⟨21:46 / OneTube / Search⟩"
+  ],
+  "s": 20
+ },
+ {
+  "nr": 35,
+  "nazwa": "Dodatki: długie OK na dodatku",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: długie OK na „Odśwież dodatki | Pobierz najnowsze zmiany dodatków dla bieżącego profilu”: zachowało się jak zwykłe OK",
+   "UWAGA: Wstecz: fokus „Home” zamiast „Odśwież dodatki | Pobierz najnowsze zmiany dodatków dla bieżącego profilu”"
+  ],
+  "kroki": [
+   "trasa addon_manager (4.7 s) → fokus: https://example.com ⟨Dodatki / Zainstaluj dodatek / Zainstaluj⟩",
+   "DOWN×2 → fokus: Odśwież dodatki | Pobierz najnowsze zmiany dodatków dla bieżącego profilu ⟨Zainstaluj dodatek / https://example.com / Zainstaluj⟩",
+   "długie OK na „Odśwież dodatki | Pobierz najnowsze zmiany dodatków dla bieżącego profilu” (brak zdarzenia) → fokus: Odśwież dodatki | Dodatki odświeżone przed chwilą ⟨Zainstaluj dodatek / https://example.com / Zainstaluj⟩",
+   "Wstecz (4.5 s) → fokus: Home ⟨21:46 / OneTube / Search⟩"
+  ],
+  "s": 20
+ },
+ {
+  "nr": 36,
+  "nazwa": "Kolejność katalogów: otwarcie, ▼, OK",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: Wstecz: fokus „Home” zamiast „Wyłącz”"
+  ],
+  "kroki": [
+   "trasa catalog_order (4.7 s) → fokus: Zachowaj kolejność dodatków ⟨Zmień kolejność katalogów / Kontroluje kolejność wierszy k / Zachowaj kolejność dodatków⟩",
+   "DOWN×1 → fokus: Wyłącz ⟨Zmień kolejność katalogów / Kontroluje kolejność wierszy k / Zachowaj kolejność dodatków⟩",
+   "OK na „Wyłącz” (4.5 s) → fokus: Włącz ⟨Zmień kolejność katalogów / Kontroluje kolejność wierszy k / Zachowaj kolejność dodatków⟩",
+   "Wstecz (4.5 s) → fokus: Home ⟨21:47 / OneTube / Search⟩"
+  ],
+  "s": 19
+ },
+ {
+  "nr": 37,
+  "nazwa": "Kolekcje: otwarcie, OK, Wstecz",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa collections (4.7 s) → fokus: Nowa kolekcja ⟨Kolekcje / Importuj / Nowa kolekcja⟩",
+   "DOWN×1 → fokus: Nowa kolekcja ⟨Kolekcje / Importuj / Nowa kolekcja⟩",
+   "OK na „Nowa kolekcja” (4.5 s) → fokus: Nazwa kolekcji ⟨Nowa kolekcja / Tytuł wiersza / Zapisz⟩",
+   "Wstecz (4.5 s) → fokus: Nowa kolekcja ⟨Kolekcje / Importuj / Nowa kolekcja⟩"
+  ],
+  "s": 19
+ },
+ {
+  "nr": 38,
+  "nazwa": "Odkrywaj forka: otwarcie, ▼►, OK, Wstecz",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: Wstecz: fokus „Szukaj kanału lub programu” zamiast „Szukaj w telewizji”"
+  ],
+  "kroki": [
+   "trasa fork_discover (4.7 s) → fokus: Szukaj w telewizji ⟨Szukaj w telewizji / built-32h⟩",
+   "DOWN×1 → fokus: Szukaj w telewizji ⟨Szukaj w telewizji / built-32h⟩",
+   "RIGHT×1 → fokus: Szukaj w telewizji ⟨Szukaj w telewizji / built-32h⟩",
+   "OK na „Szukaj w telewizji” (4.6 s) → fokus: Szukaj kanału lub programu ⟨Szukaj kanału lub programu / built-32h⟩",
+   "Wstecz (4.5 s) → fokus: Szukaj kanału lub programu ⟨Szukaj kanału lub programu / built-32h⟩"
+  ],
+  "s": 22
+ },
+ {
+  "nr": 39,
+  "nazwa": "Odkrywaj forka: długie OK na plakacie",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: Wstecz z menu: fokus „Szukaj kanału lub programu” zamiast „Szukaj w telewizji”"
+  ],
+  "kroki": [
+   "trasa fork_discover (4.7 s) → fokus: Szukaj w telewizji ⟨Szukaj w telewizji / built-32h⟩",
+   "DOWN×1 → fokus: Szukaj w telewizji ⟨Szukaj w telewizji / built-32h⟩",
+   "długie OK na „Szukaj w telewizji” (brak zdarzenia) → fokus: Szukaj kanału lub programu ⟨Szukaj kanału lub programu / built-32h⟩",
+   "Wstecz z menu (4.5 s) → fokus: Szukaj kanału lub programu ⟨Szukaj kanału lub programu / built-32h⟩"
+  ],
+  "s": 19
+ },
+ {
+  "nr": 40,
+  "nazwa": "Wybrane (fork_picks): otwarcie i OK",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: Wstecz: fokus „Szukaj kanału lub programu” zamiast „Lekkie na dziś”"
+  ],
+  "kroki": [
+   "trasa fork_picks (4.8 s) → fokus: Lekkie na dziś ⟨Na co masz ochotę? / Lekkie na dziś / Wymagające⟩",
+   "DOWN×1 → fokus: Lekkie na dziś ⟨Na co masz ochotę? / Lekkie na dziś / Wymagające⟩",
+   "OK na „Lekkie na dziś” (4.5 s) → fokus: Lekkie na dziś ⟨Lekkie na dziś / Lekkie na dziś / Wymagające⟩",
+   "Wstecz (4.6 s) → fokus: Szukaj kanału lub programu ⟨Szukaj kanału lub programu / built-32h⟩"
+  ],
+  "s": 19
+ },
+ {
+  "nr": 41,
+  "nazwa": "Moduły forka: przełącznik OK×2",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa fork_modules (4.7 s) → fokus: [bez nazwy 931x96 @96,162] ⟨Moduły / Zatrzymaj podgląd kanału po mi / Rząd „Dla Ciebie” nad przewodn⟩",
+   "DOWN×1 → fokus: [bez nazwy 741x96 @96,258] ⟨Moduły / Telewizja: dodatki (przewodnik / Rząd „Dla Ciebie” nad przewodn⟩",
+   "OK×2 → fokus: [bez nazwy 741x96 @96,258] ⟨Moduły / Telewizja: dodatki (przewodnik / Rząd „Dla Ciebie” nad przewodn⟩"
+  ],
+  "s": 19
+ },
+ {
+  "nr": 42,
+  "nazwa": "Narzędzia forka: otwarcie, ▼×3, OK, Wstecz",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: Wstecz: fokus „None” zamiast „Sterowanie głosem: przykłady poleceń”"
+  ],
+  "kroki": [
+   "trasa fork_tools (4.7 s) → fokus: Szukaj w telewizji ⟨Narzędzia / Odkrywaj telewizję (rzędy) / Na co masz ochotę?⟩",
+   "DOWN×3 → fokus: Sterowanie głosem: przykłady poleceń ⟨Narzędzia / Szukaj w telewizji / Odkrywaj telewizję (rzędy)⟩",
+   "OK na „Sterowanie głosem: przykłady poleceń” (4.4 s) → fokus: None ⟨Co mogę powiedzieć / „następny kanał” / „poprzedni kanał”⟩",
+   "Wstecz (5.3 s) → fokus: None ⟨Narzędzia / Szukaj w telewizji / Odkrywaj telewizję (rzędy)⟩"
+  ],
+  "s": 21
+ },
+ {
+  "nr": 43,
+  "nazwa": "Wygląd (layout_settings): ▼×5 i OK",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: layout_settings: ładowanie 7.3 s",
+   "UWAGA: layout_settings: brak fokusu po otwarciu"
+  ],
+  "kroki": [
+   "trasa layout_settings (7.3 s) → fokus: None ⟨Ustawienia układu / Dostosuj układ strony głównej, / Układ strony głównej⟩",
+   "DOWN×5 → fokus: Zaznaczony plakat | Zaawansowane zachowanie zaznaczonych kart plakatów. | Zamknięte ⟨Ustawienia układu / Dostosuj układ strony głównej, / Styl paska bocznego i lokaliza⟩",
+   "OK na „Zaznaczony plakat | Zaawansowane zachowanie zaznaczonych kart plakatów. | Zamknięte” (6.2 s) → fokus: Zaznaczony plakat | Zaawansowane zachowanie zaznaczonych kart plakatów. | Otwarte ⟨Ustawienia układu / Dostosuj układ strony głównej, / Styl paska bocznego i lokaliza⟩",
+   "Wstecz (7.0 s) → fokus: Szukaj w telewizji ⟨Narzędzia / Odkrywaj telewizję (rzędy) / Na co masz ochotę?⟩"
+  ],
+  "s": 31
+ },
+ {
+  "nr": 44,
+  "nazwa": "Profile: ekran wyboru, długie OK na profilu",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: profiles: ładowanie 6.1 s",
+   "UWAGA: Wstecz z menu: fokus „Szukaj kanału lub programu” zamiast „Szukaj w telewizji”"
+  ],
+  "kroki": [
+   "trasa profiles (6.1 s) → fokus: Szukaj w telewizji ⟨Narzędzia / Odkrywaj telewizję (rzędy) / Na co masz ochotę?⟩",
+   "długie OK na „Szukaj w telewizji” (brak zdarzenia) → fokus: Szukaj kanału lub programu ⟨Szukaj kanału lub programu / built-32h⟩",
+   "Wstecz z menu (6.5 s) → fokus: Szukaj kanału lub programu ⟨Szukaj kanału lub programu / built-32h⟩"
+  ],
+  "s": 25
+ },
+ {
+  "nr": 45,
+  "nazwa": "Szczegóły → Odtwórz → wybór źródła → Wstecz",
+  "wynik": "BŁĄD",
+  "uwagi": [
+   "UWAGA: home: ładowanie 11.1 s",
+   "BŁĄD: OK Odtwórz na „Odtwórz”: brak reakcji"
+  ],
+  "kroki": [
+   "trasa home (11.1 s) → fokus: Crime ⟨New / Nowość / Drama⟩",
+   "DOWN×2 → fokus: Adventure · ★ 7.7 ⟨Nowość / Crime / Nowość⟩",
+   "OK → strona tytułu na „Adventure · ★ 7.7” (8.2 s) → fokus: Odtwórz ⟨Obejrzyj z lektorem / Tenzing / Film · Adventure · Biography ·⟩",
+   "OK Odtwórz na „Odtwórz” (6.4 s) → fokus: Odtwórz ⟨Obejrzyj z lektorem / Tenzing / Film · Adventure · Biography ·⟩",
+   "po 4 s → fokus: Odtwórz ⟨Obejrzyj z lektorem / Tenzing / Film · Adventure · Biography ·⟩",
+   "Wstecz (8.1 s) → fokus: Adventure · ★ 7.7 ⟨Nowość / Crime / Nowość⟩",
+   "Wstecz (7.3 s) → fokus: Odtwórz ⟨Lupin / Serial · Crime · Drama · 2021– / IMDb 7.5⟩"
+  ],
+  "s": 61
+ },
+ {
+  "nr": 46,
+  "nazwa": "Główna → Szukaj → Biblioteka → Główna (menu) — fokus wraca",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: home: ładowanie 10.7 s",
+   "UWAGA: search: ładowanie 7.7 s",
+   "UWAGA: library: ładowanie 7.1 s",
+   "UWAGA: home: ładowanie 9.7 s"
+  ],
+  "kroki": [
+   "trasa home (10.7 s) → fokus: Odtwórz ⟨Lupin / Serial · Crime · Drama · 2021– / IMDb 7.5⟩",
+   "trasa search (7.7 s) → fokus: a ⟨Filmy, seriale, TV, YouTube i  / abc / abc⟩",
+   "trasa library (7.1 s) → fokus: Przeglądaj filmy i seriale ⟨Twoja biblioteka jest pusta / Naciśnij + przy filmie lub ser / Przeglądaj filmy i seriale⟩",
+   "trasa home (9.7 s) → fokus: Odtwórz ⟨Lupin / Serial · Crime · Drama · 2021– / IMDb 7.5⟩"
+  ],
+  "s": 36
+ },
+ {
+  "nr": 47,
+  "nazwa": "Główna: ►×12 w rzędzie (długi rząd), ◄×12",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: home: ładowanie 10.1 s"
+  ],
+  "kroki": [
+   "trasa home (10.1 s) → fokus: Odtwórz ⟨Lupin / Serial · Crime · Drama · 2021– / IMDb 7.5⟩",
+   "DOWN×2 → fokus: Biography ⟨New / Nowość / Action⟩",
+   "►×12 (17.4 s) → fokus: Comedy · ★ 8.2 ⟨New / Action / Nowość⟩",
+   "◄×12 → fokus: Biography ⟨New / Nowość / Action⟩"
+  ],
+  "s": 52
+ },
+ {
+  "nr": 48,
+  "nazwa": "Strona tytułu: Wstecz z głębi (▼×4) wraca na górę albo wychodzi",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: home: ładowanie 11.1 s"
+  ],
+  "kroki": [
+   "trasa home (11.1 s) → fokus: Biography ⟨New / Nowość / Action⟩",
+   "DOWN×2 → fokus: Adventure · ★ 7.7 ⟨Nowość / Crime / Nowość⟩",
+   "OK → strona tytułu na „Adventure · ★ 7.7” (6.9 s) → fokus: Odtwórz ⟨Obejrzyj z lektorem / Tenzing / Film · Adventure · Biography ·⟩",
+   "DOWN×4 → fokus: Pokaż cały opis | Więcej ⟨Tenzing / GP / Genden Phuntsok⟩",
+   "Wstecz (7.7 s) → fokus: Odtwórz ⟨Obejrzyj z lektorem / Tenzing / Film · Adventure · Biography ·⟩",
+   "po Wstecz → fokus: Odtwórz ⟨Obejrzyj z lektorem / Tenzing / Film · Adventure · Biography ·⟩"
+  ],
+  "s": 42
+ },
+ {
+  "nr": 49,
+  "nazwa": "Odtwarzacz YouTube: OK pauza, ◄► przewijanie, Wstecz",
+  "wynik": "BŁĄD",
+  "uwagi": [
+   "UWAGA: youtube: ładowanie 8.2 s",
+   "BŁĄD: OK film na „Home”: brak reakcji"
+  ],
+  "kroki": [
+   "trasa youtube (8.2 s) → fokus: Home ⟨21:53 / OneTube / Search⟩",
+   "DOWN×1 → fokus: Home ⟨21:53 / OneTube / Search⟩",
+   "OK film na „Home” (6.3 s) → fokus: Home ⟨21:53 / OneTube / Search⟩",
+   "OK (nakładka/pauza) → fokus: Home ⟨21:53 / OneTube / Search⟩",
+   "►×2 → fokus: History ⟨21:53 / OneTube / Search⟩",
+   "Wstecz (6.1 s) → fokus: History ⟨21:53 / OneTube / Search⟩",
+   "Wstecz (9.7 s) → fokus: History ⟨21:54 / OneTube / Search⟩"
+  ],
+  "s": 55
+ },
+ {
+  "nr": 50,
+  "nazwa": "Długie OK na menu bocznym (nie powinno psuć)",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: home: ładowanie 12.1 s",
+   "UWAGA: długie OK na „Odtwórz”: zachowało się jak zwykłe OK"
+  ],
+  "kroki": [
+   "trasa home (12.1 s) → fokus: Adventure · ★ 7.7 ⟨Nowość / Crime / Nowość⟩",
+   "długie OK na „Odtwórz” (brak zdarzenia) → fokus: Odtwórz S1, O1 ⟨Obejrzyj z lektorem / Lupin / Serial · Crime · Drama · 4 sez⟩",
+   "Wstecz (8.1 s) → fokus: Odtwórz ⟨Lupin / Serial · Crime · Drama · 2021– / IMDb 7.5⟩"
+  ],
+  "s": 34
+ }
+]

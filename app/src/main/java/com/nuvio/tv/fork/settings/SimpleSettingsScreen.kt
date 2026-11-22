@@ -88,6 +88,9 @@ private fun SimpleSettingsScreen(navigate: (String) -> Unit, onLevelChanged: () 
     // 20.11: skórka Niunia — układ z makiety Settings (sylwetka + jedna lista), te same pozycje i przełączniki.
     if (com.nuvio.tv.skin.niunia.nav.niuniaNavActive()) {
         val lektor = ForkFeatures.enabled(c, "module_lektor")
+        // UX 22.11: w Niuni nie było wejścia do źródeł Live TV (pusty Live TV odsyłał do nieistniejącej „Telewizji”).
+        var tvSources by remember { mutableStateOf(false) }
+        if (tvSources) com.nuvio.tv.ui.reshaped.livetv.LiveTvSourceDialog(onDismiss = { tvSources = false })
         com.nuvio.tv.skin.niunia.settings.NiuniaSettingsNoob(
             items = listOf(
                 com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Row("profile", "Profile") { navigate(Screen.ManageProfiles.route) },
@@ -99,7 +102,13 @@ private fun SimpleSettingsScreen(navigate: (String) -> Unit, onLevelChanged: () 
                 com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Row("subs", "Napisy i AutoSync") { navigate(Screen.PlaybackSettings.route) },
                 com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Header("Źródła"),
                 com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Row("sources", "Dodatki") { navigate(Screen.AddonManager.route) },
-                com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Row("tv_search", "Szukaj w telewizji") { navigate("fork_tv_search") },
+                com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Header(androidx.compose.ui.res.stringResource(com.nuvio.tv.R.string.niunia_settings_tv)),
+                com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Row("tv_sources", androidx.compose.ui.res.stringResource(com.nuvio.tv.R.string.niunia_settings_tv_sources),
+                    androidx.compose.ui.res.stringResource(com.nuvio.tv.R.string.niunia_settings_tv_sources_sub)) { android.util.Log.i("ForkSettingsNav", "Niunia: źródła TV"); tvSources = true },
+                // UX 22.11: w Niuni — Szukaj Live TV Niuni (ten sam wygląd i klawiatura), nie osobny ekran w stylu Nuvio.
+                com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Row("tv_search", "Szukaj w telewizji") {
+                    com.nuvio.tv.skin.niunia.livetv.NiuniaLiveStart.openSearch = true; navigate(com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE)
+                },
                 com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Header("Ogólne"),
                 com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Row("modules", "Wszystkie moduły") { navigate(MODULES_ROUTE) },
                 com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Row("help", "Pomoc i dziennik błędów") { navigate(TOOLS_ROUTE) },

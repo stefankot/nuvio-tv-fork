@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalContext
@@ -103,12 +104,24 @@ fun NiuniaSearch(viewModel: SearchViewModel, onNavigateToDetail: (String, String
     var tab by remember { mutableStateOf(NiuniaSearchTab.All) }
     val firstKey = remember { FocusRequester() }
     fun type(q: String) { viewModel.onEvent(SearchEvent.QueryChanged(q)) }
-    com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(firstKey)
+    // UX 22.11: długie OK na plakacie/wyniku = menu opcji (szczegóły, biblioteka, obejrzane).
+    val posterOptions = com.nuvio.tv.skin.niunia.components.rememberNiuniaPosterOptions(onNavigateToDetail)
+    // UX 22.11 (test emulatora): po Wstecz ze strony tytułu fokus wracał na klawisz „a” — teraz na otwarty wynik/plakat.
+    val restore = remember { FocusRequester() }
+    val restoreId = remember { NiuniaSearchMemory.lastId?.takeIf { NiuniaSearchMemory.query == viewModel.uiState.value.query } }
+    com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(if (restoreId != null) restore else firstKey)
     LaunchedEffect(Unit) {
         viewModel.ensureDiscoverLoaded() // „Przeglądaj” (gatunki) i „Polecane” — jak ekran odkrywania Nuvio (test JMGO build147: puste)
+        if (restoreId != null) {
+            kotlinx.coroutines.delay(120)
+            try { restore.requestFocus(); Log.i(TAG, "wyszukiwarka: powrót — fokus na $restoreId"); return@LaunchedEffect }
+            catch (e: IllegalStateException) { Log.w(TAG, "wyszukiwarka: powrót na $restoreId: ${e.javaClass.simpleName}: ${e.message}") }
+        }
         Log.i(TAG, "wyszukiwarka: fokus startowy → klawisz a")
         try { firstKey.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "wyszukiwarka: fokus klawiatury: ${e.javaClass.simpleName}: ${e.message}") }
     }
+    val open: (String, String, String) -> Unit = { id, type, addon -> NiuniaSearchMemory.lastId = id; NiuniaSearchMemory.query = state.query; onNavigateToDetail(id, type, addon) }
+    val focusFor: (String) -> Modifier = { id -> if (id == restoreId) Modifier.focusRequester(restore) else Modifier }
     val results: List<Pair<MetaPreview, String>> = remember(state.catalogRows) {
         state.catalogRows.flatMap { row -> row.items.map { it to row.addonBaseUrl } }.distinctBy { it.first.id }
     }
@@ -143,12 +156,18 @@ fun NiuniaSearch(viewModel: SearchViewModel, onNavigateToDetail: (String, String
                 }
                 // Prawa kolumna.
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space24)) {
-                    if (!searching) Browse(state, ctx, viewModel, onNavigateToDetail)
-                    else Results(state.isSearching, state.submittedQuery, results, tab, onTab = { tab = it; Log.i(TAG, "wyszukiwarka: zakładka $it") }, onNavigateToDetail)
+                    if (!searching) Browse(state, ctx, viewModel, open, posterOptions, focusFor)
+                    else Results(state.isSearching, state.submittedQuery, results, tab, onTab = { tab = it; Log.i(TAG, "wyszukiwarka: zakładka $it") }, open, posterOptions, focusFor)
                 }
             }
         }
     }
+}
+
+/** Ostatnio otwarty wynik/plakat wyszukiwarki (powrót fokusu po Wstecz; tylko w pamięci procesu). */
+internal object NiuniaSearchMemory {
+    var lastId: String? = null
+    var query: String = ""
 }
 
 /** NInput search: lupa 28, tekst 32/38 (podpowiedź w 50%), kursor 2 dp, linia 1 dp u dołu. */
@@ -201,7 +220,7 @@ private fun Keyboard(digits: Boolean, firstKey: FocusRequester, onMode: (Boolean
 
 /** Bez frazy: „Przeglądaj” (karty-etykiety: Filmy, Seriale, Live TV, gatunki odkrywania) i „Polecane” (plakaty z odkrywania). */
 @Composable
-private fun Browse(state: com.nuvio.tv.ui.screens.search.SearchUiState, ctx: android.content.Context, viewModel: SearchViewModel, onNavigateToDetail: (String, String, String) -> Unit) {
+private fun Browse(state: com.nuvio.tv.ui.screens.search.SearchUiState, ctx: android.content.Context, viewModel: SearchViewModel, onNavigateToDetail: (String, String, String) -> Unit, niuniaSearchPosterOptions: (MetaPreview, String?) -> Unit, focusFor: (String) -> Modifier) {
     var active by remember { mutableIntStateOf(-1) }
     data class Tile(val label: String, val action: () -> Unit)
     // Test JMGO build151: wybrany katalog bywa bez gatunków → gatunki z pierwszego katalogu tego typu (lub dowolnego), który je ma.
@@ -233,8 +252,10 @@ private fun Browse(state: com.nuvio.tv.ui.screens.search.SearchUiState, ctx: and
         LazyRow(Modifier.niuniaTrapArrows("polecane"), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space20), contentPadding = PaddingValues(end = NiuniaSpacing.Space40)) {
             items(state.discoverResults.take(24), key = { it.id }) { item ->
                 NiuniaPoster(art = com.nuvio.tv.skin.niunia.components.niuniaRealPoster(item).first, fallback = com.nuvio.tv.skin.niunia.components.niuniaRealPoster(item).second, title = item.name, logo = item.logo, meta = NiuniaLabels.meta(item), label = null, baked = item.poster != null,
+                    modifier = focusFor(item.id),
                     onFocus = { if (it) active = 1 },
-                    onOk = { Log.i(TAG, "wyszukiwarka: polecane → ${item.id}"); onNavigateToDetail(item.id, item.rawType, "") })
+                    onOk = { Log.i(TAG, "wyszukiwarka: polecane → ${item.id}"); onNavigateToDetail(item.id, item.rawType, "") },
+                    onLongOk = { niuniaSearchPosterOptions(item, "") })
             }
         }
     }
@@ -245,6 +266,8 @@ private fun Browse(state: com.nuvio.tv.ui.screens.search.SearchUiState, ctx: and
 private fun Results(
     searchingNow: Boolean, submitted: String, results: List<Pair<MetaPreview, String>>,
     tab: NiuniaSearchTab, onTab: (NiuniaSearchTab) -> Unit, onNavigateToDetail: (String, String, String) -> Unit,
+    niuniaSearchPosterOptions: (MetaPreview, String?) -> Unit,
+    focusFor: (String) -> Modifier,
 ) {
     val labels = listOf(
         NiuniaSearchTab.All to R.string.niunia_ds_search_tab_all, NiuniaSearchTab.Movies to R.string.niunia_ds_search_tab_movies,
@@ -280,11 +303,13 @@ private fun Results(
     ) {
         items(shown, key = { it.first.id }) { (item, addon) ->
             NiuniaResultCard(
+                modifier = focusFor(item.id),
                 title = item.name,
                 subtitle = niuniaResultSubtitle(item),
                 image = item.poster,
                 thumb = if (item.rawType == "tv" || item.rawType == "channel" || item.rawType.startsWith("youtube")) NiuniaResultThumb.Wide else NiuniaResultThumb.Poster,
                 onClick = { Log.i(TAG, "wyszukiwarka: wynik → ${item.rawType} ${item.id}"); onNavigateToDetail(item.id, item.rawType, addon) },
+                onLongClick = if (item.rawType == "movie" || item.rawType == "series") ({ niuniaSearchPosterOptions(item, addon) }) else null,
             )
         }
     }

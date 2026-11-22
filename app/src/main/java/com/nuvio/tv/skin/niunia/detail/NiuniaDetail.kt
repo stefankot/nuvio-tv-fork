@@ -115,6 +115,10 @@ fun NiuniaDetail(
     onNavigateToCastDetail: (Int, String, Boolean) -> Unit,
 ) {
     val context = LocalContext.current
+    // UX 22.11: długie OK na „Podobne” = menu opcji bazy (okno rysuje MetaDetailsScreen dla viewModel.posterOptions).
+    val posterOptions: (com.nuvio.tv.domain.model.MetaPreview, String?) -> Unit = remember(viewModel) {
+        { item, addon -> Log.i(TAG, "szczegóły: długie OK → opcje ${item.id}"); viewModel.posterOptions.show(item, addon) }
+    }
     val series = meta.type == ContentType.SERIES || meta.videos.isNotEmpty()
     val playFocus = remember { FocusRequester() }
     val belowFocus = remember { FocusRequester() }
@@ -167,7 +171,9 @@ fun NiuniaDetail(
             Hero(meta, uiState, series, heroVideo, awards, playFocus, play,
                 onLibrary = { Log.i(TAG, "szczegóły: biblioteka (było ${uiState.isInLibrary})"); viewModel.onEvent(MetaDetailsEvent.OnToggleLibrary) },
                 onAbout = { focusAbout(if (series) "O serialu" else "O filmie") },
-                onFocus = { focusedRow = 0 })
+                onFocus = { focusedRow = 0 },
+                // UX 22.11: długie OK na „Do biblioteki” = wybór list (Trakt/MDBList), jak w Nuvio.
+                onLibraryLong = { Log.i(TAG, "szczegóły: długie OK → listy biblioteki"); viewModel.onEvent(MetaDetailsEvent.OnLibraryLongPress) })
         },
         belowFocusRequester = belowFocus,
         belowEnter = if (series && uiState.episodesForSeason.isNotEmpty()) firstEpisode else null,
@@ -190,6 +196,14 @@ fun NiuniaDetail(
                                                 kind = NiuniaButtonKind.Chip, selected = sn == uiState.selectedSeason,
                                                 focusRequester = if (sn == uiState.selectedSeason) selectedPill else null,
                                                 onFocus = { if (it) focusedRow = 1 },
+                                                // UX 22.11: długie OK na sezonie = cały sezon obejrzany / nieobejrzany (jak w Nuvio).
+                                                onLongClick = {
+                                                    val eps = meta.videos.filter { (it.season ?: 0) == sn && it.episode != null }
+                                                    val all = eps.isNotEmpty() && eps.all { (sn to (it.episode ?: 0)) in uiState.watchedEpisodes }
+                                                    Log.i(TAG, "szczegóły: długie OK → sezon $sn ${if (all) "nieobejrzany" else "obejrzany"} (${eps.size} odc.)")
+                                                    viewModel.onEvent(if (all) MetaDetailsEvent.OnMarkSeasonUnwatched(sn) else MetaDetailsEvent.OnMarkSeasonWatched(sn))
+                                                    android.widget.Toast.makeText(context, context.getString(if (all) R.string.niunia_detail_season_unwatched else R.string.niunia_detail_season_watched, sn), android.widget.Toast.LENGTH_SHORT).show()
+                                                },
                                             )
                                         }
                                     }
@@ -235,7 +249,9 @@ fun NiuniaDetail(
                                                 onFocus = { if (it) focusedRow = 4 },
                                                 onClick = {
                                                     Log.i(TAG, "szczegóły: zwiastun ${i + 1}/${trailers.size}")
-                                                    extras.playTrailer(meta.name, meta.releaseInfo, meta.apiType)
+                                                    // UX 22.11: wczytanie trwa kilka sekund — od razu znak, że coś się dzieje.
+                                                    if (!extrasState.trailerLoading) android.widget.Toast.makeText(context, R.string.niunia_pinfo_trailer_loading, android.widget.Toast.LENGTH_SHORT).show()
+                                                    extras.playTrailer(meta.name, meta.releaseInfo, meta.apiType, t.ytId)
                                                 },
                                             )
                                         }
@@ -257,6 +273,7 @@ fun NiuniaDetail(
                                                 award = com.nuvio.tv.skin.niunia.components.niuniaPosterAward(item.id),
                                                 onFocus = { if (it) focusedRow = 2 },
                                                 onOk = { Log.i(TAG, "szczegóły: podobne → ${item.id}"); onNavigateToDetail(item.id, item.rawType, null) },
+                                                onLongOk = { posterOptions(item, null) },
                                             )
                                         }
                                     }
@@ -346,8 +363,9 @@ private fun AboutSection(meta: Meta, series: Boolean, uiState: MetaDetailsUiStat
         horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space40), verticalAlignment = Alignment.Top) {
         NiuniaContentBlock(NiuniaBlockKind.Panel) {
             NText(meta.description?.takeIf { it.isNotBlank() } ?: meta.name, variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = if (full) Int.MAX_VALUE else 3)
-            NiuniaButton(onClick = onMore, label = stringResource(R.string.niunia_player_more), kind = NiuniaButtonKind.Chip, selected = full,
-                description = stringResource(R.string.niunia_ds_show_full), onFocus = { if (it) onFocus() })
+            // UX 22.11: po rozwinięciu napis „Mniej” (było stale „Więcej” — nie było wiadomo, że OK zwija).
+            NiuniaButton(onClick = onMore, label = stringResource(if (full) R.string.niunia_ds_less else R.string.niunia_player_more), kind = NiuniaButtonKind.Chip, selected = full,
+                description = stringResource(if (full) R.string.niunia_ds_show_less else R.string.niunia_ds_show_full), onFocus = { if (it) onFocus() })
         }
         val episodes = meta.videos.count { (it.season ?: 0) > 0 }
         val info = listOfNotNull(
@@ -444,6 +462,7 @@ private fun Hero(
     onLibrary: () -> Unit,
     onAbout: () -> Unit,
     onFocus: () -> Unit,
+    onLibraryLong: (() -> Unit)? = null,
 ) {
     val ctx = LocalContext.current
     val next = uiState.nextToWatch
@@ -492,7 +511,7 @@ private fun Hero(
                         description = if (resumeOn) stringResource(R.string.niunia_ds_resume_left, listOfNotNull(epLabel, "$left min").joinToString(", ")) else label,
                         focusRequester = playFocus, onFocus = { if (it) onFocus() },
                     )
-                    NiuniaButton(onClick = onLibrary, icon = if (uiState.isInLibrary) "check" else "plus",
+                    NiuniaButton(onClick = onLibrary, icon = if (uiState.isInLibrary) "check" else "plus", onLongClick = onLibraryLong,
                         description = stringResource(if (uiState.isInLibrary) R.string.niunia_pinfo_in_library else R.string.niunia_ds_add_library), onFocus = { if (it) onFocus() })
                     NiuniaButton(onClick = onAbout, icon = "about",
                         description = stringResource(if (series) R.string.niunia_ds_about_series else R.string.niunia_ds_about_movie), onFocus = { if (it) onFocus() })

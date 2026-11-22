@@ -49,14 +49,32 @@ import com.nuvio.tv.skin.niunia.tokens.NiuniaText
  * zielona = w archiwum), znacznik jednym słowem (Nowy odcinek / Nowy / Wznów / Wkrótce), podpis z ▶ i paskiem postępu.
  * Serial = stos pod kafelkiem ([NiuniaSeriesStack]). Kafelek kanału ([NiuniaLiveTile.programme] = null): logo + nazwa.
  */
+/**
+ * UX 22.11 (właściciel: „w większości elementów nie działa długie naciśnięcie”): długie OK na kanale (kafelek, wiersz
+ * przewodnika) = ulubione tak/nie, z krótkim potwierdzeniem na ekranie.
+ */
+internal fun niuniaToggleFavourite(context: android.content.Context, ch: com.nuvio.tv.reshaped.livetv.LiveTvChannel) {
+    val before = ch.streamUrl in LiveTvRepository.uiState.value.favoriteUrls
+    LiveTvRepository.toggleFavorite(ch)
+    val after = ch.streamUrl in LiveTvRepository.uiState.value.favoriteUrls
+    if (before == after) {
+        com.nuvio.tv.fork.ForkLog.say(context, "ForkNiunia", context.getString(R.string.niunia_live_fav_failed, ch.name))
+        return
+    }
+    android.util.Log.i("ForkNiunia", "live tv: długie OK → ulubione ${if (after) "dodane" else "usunięte"}: ${ch.name}")
+    android.widget.Toast.makeText(context, context.getString(if (after) R.string.niunia_live_fav_added else R.string.niunia_live_fav_removed, ch.name), android.widget.Toast.LENGTH_SHORT).show()
+}
+
 @Composable
 internal fun NiuniaLiveTileCard(
     tile: NiuniaLiveTile,
     longBadge: Boolean,
     focusRequester: FocusRequester? = null,
     onFocus: (Boolean) -> Unit = {},
+    onLongOk: (() -> Unit)? = null,
     onOk: () -> Unit,
 ) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     val p = tile.programme
     val logo = forgeChannelLogo(tile.channel) ?: LiveTvRepository.uiState.value.logoFor(tile.channel)
     val image = p?.image?.takeIf { it.isNotBlank() }
@@ -66,7 +84,8 @@ internal fun NiuniaLiveTileCard(
         Box(
             Modifier.size(NiuniaDims.WideW, NiuniaDims.WideH)
                 // DS v2 (NowCard / ChannelCard): uniesienie, ×1,1, cień i obwódka 3 dp.
-                .niuniaOk(caption(tile), focusRequester, onFocus = { focused = it; onFocus(it) }, onClick = onOk)
+                .niuniaOk(caption(tile), focusRequester, onFocus = { focused = it; onFocus(it) },
+                    onLongClick = onLongOk ?: { niuniaToggleFavourite(ctx, tile.channel) }, onClick = onOk)
                 .niuniaFocusLook(com.nuvio.tv.skin.niunia.components.NiuniaFocusStyle.Lift, focused, shape)
                 .clip(shape).background(NiuniaColors.Surface),
         ) {

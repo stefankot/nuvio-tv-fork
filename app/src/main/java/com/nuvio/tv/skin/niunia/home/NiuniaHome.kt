@@ -92,8 +92,12 @@ fun NiuniaHome(
     onContinueWatchingClick: (ContinueWatchingItem) -> Unit,
     onItemFocus: (MetaPreview) -> Unit,
     onToggleLibrary: (MetaPreview, String) -> Unit = { _, _ -> },
+    onItemLongPress: (MetaPreview, String) -> Unit = { _, _ -> },
+    cwActions: NiuniaCwActions? = null,
 ) {
     val context = LocalContext.current
+    // UX 22.11: długie OK na „Oglądaj dalej” = menu bazy (szczegóły, od początku, wybierz źródło, obejrzane, usuń).
+    var cwMenu by remember { mutableStateOf<ContinueWatchingItem?>(null) }
     // Baner: tylko filmy i seriale z dużym obrazem tła (bez pozycji „narzędziowych” dodatków, np. „Delete all files”).
     // Najpierw źródła wybrane w ustawieniach (heroItems), potem wszystkie rzędy ekranu głównego.
     val heroes = remember(uiState.heroItems, uiState.catalogRows) {
@@ -136,6 +140,7 @@ fun NiuniaHome(
                                 itemsIndexed(uiState.continueWatchingItems, key = { _, it -> cwKey(it) }) { i, cw ->
                                     val k = "cw:" + cwKey(cw)
                                     ContinueCard(cw, modifier = restoreModifier(k, restoreFocus), onFocus = { if (it) { focusedRow = -2; rememberFocus(k, 0, i) } },
+                                        onLongOk = if (cwActions != null) ({ Log.i(TAG, "rzędy: długie OK → opcje „Oglądaj dalej” ${niuniaCwContentId(cw)}"); cwMenu = cw }) else null,
                                         onOk = { Log.i(TAG, "rzędy: Oglądaj dalej → ${niuniaCwContentId(cw)}"); onContinueWatchingClick(cw) })
                                 }
                             }
@@ -169,6 +174,7 @@ fun NiuniaHome(
                                         award = com.nuvio.tv.skin.niunia.components.niuniaPosterAward(item.id), // Z-13
                                         onFocus = { if (it) { focusedRow = rowIndex; onItemFocus(item); rememberFocus(k, colIndex, i) } },
                                         onOk = { Log.i(TAG, "rzędy: OK → strona tytułu ${item.id}"); onNavigateToDetail(item.id, item.rawType, row.addonBaseUrl) },
+                                        onLongOk = { Log.i(TAG, "rzędy: długie OK → opcje ${item.id}"); onItemLongPress(item, row.addonBaseUrl) },
                                     )
                                 }
                             }
@@ -177,6 +183,20 @@ fun NiuniaHome(
                 }
             }
         }
+    }
+    val menuItem = cwMenu
+    if (menuItem != null && cwActions != null) {
+        fun close(what: String, action: (ContinueWatchingItem) -> Unit) { Log.i(TAG, "„Oglądaj dalej”: $what ${niuniaCwContentId(menuItem)}"); cwMenu = null; action(menuItem) }
+        com.nuvio.tv.ui.components.ContinueWatchingOptionsDialog(
+            item = menuItem,
+            onDismiss = { cwMenu = null },
+            onRemove = { close("usuń", cwActions.remove) },
+            onDetails = { close("szczegóły") { cw -> onNavigateToDetail(niuniaCwContentId(cw), niuniaCwContentType(cw), "") } },
+            onStartFromBeginning = { close("od początku", cwActions.fromStart) },
+            showPlayManually = cwActions.showManual,
+            onPlayManually = { close("wybierz źródło", cwActions.playManually) },
+            onMarkWatched = { close("obejrzane", cwActions.markWatched) },
+        )
     }
     if (hero == null) {
         Box(Modifier.fillMaxSize().background(NiuniaColors.Bg)) { rows() }
@@ -223,6 +243,11 @@ private fun RowTitle(text: String, on: Boolean, first: Boolean = false) {
 private fun niuniaCwContentId(cw: ContinueWatchingItem): String = when (cw) {
     is ContinueWatchingItem.InProgress -> cw.progress.contentId
     is ContinueWatchingItem.NextUp -> cw.info.contentId
+}
+
+private fun niuniaCwContentType(cw: ContinueWatchingItem): String = when (cw) {
+    is ContinueWatchingItem.InProgress -> cw.progress.contentType
+    is ContinueWatchingItem.NextUp -> cw.info.contentType
 }
 
 private fun rowPadding() = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = NiuniaSpace.TitleToRow - 22.dp, bottom = NiuniaSpace.AfterRow)
@@ -294,7 +319,7 @@ private fun Hero(
 
 /** Karta „Oglądaj dalej” = NMediaCard ContinueWatchingCard: ▶, postęp, „S1, E1 · 39m” (zostało). */
 @Composable
-private fun ContinueCard(cw: ContinueWatchingItem, modifier: Modifier = Modifier, focusable: Boolean = true, onFocus: (Boolean) -> Unit, onOk: () -> Unit) {
+private fun ContinueCard(cw: ContinueWatchingItem, modifier: Modifier = Modifier, focusable: Boolean = true, onFocus: (Boolean) -> Unit, onLongOk: (() -> Unit)? = null, onOk: () -> Unit) {
     val ctx = LocalContext.current
     val m = remember(cw) { niuniaContinueModel(cw) }
     NiuniaMediaCard(
@@ -310,8 +335,18 @@ private fun ContinueCard(cw: ContinueWatchingItem, modifier: Modifier = Modifier
         description = listOfNotNull(m.title, m.caption).joinToString(", "),
         focusable = focusable,
         onFocus = onFocus,
+        onLongClick = onLongOk,
     )
 }
+
+/** Czynności menu „Oglądaj dalej” (długie OK) — podaje adapter skórki z ekranu głównego bazy. */
+class NiuniaCwActions(
+    val remove: (ContinueWatchingItem) -> Unit,
+    val markWatched: (ContinueWatchingItem) -> Unit,
+    val fromStart: (ContinueWatchingItem) -> Unit,
+    val playManually: (ContinueWatchingItem) -> Unit,
+    val showManual: Boolean,
+)
 
 /** Dane karty „Oglądaj dalej” (czysta funkcja, test w NiuniaDsTest). */
 internal data class NiuniaContinueModel(val title: String, val caption: String?, val image: String?, val progress: Int?, val nextUp: Boolean, val newSeason: Boolean)

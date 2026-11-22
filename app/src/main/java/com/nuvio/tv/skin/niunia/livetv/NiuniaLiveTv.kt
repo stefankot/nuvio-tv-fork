@@ -7,7 +7,7 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import com.nuvio.tv.skin.niunia.components.niuniaOk
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -258,9 +258,21 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
     }
 
     if (!state.hasSource || (state.isLoaded && shown.isEmpty())) {
+        // UX 22.11 (test emulatora): napis odsyłał do „Ustawienia → Telewizja”, a w Niuni takiej pozycji nie było —
+        // teraz przycisk od razu otwiera okno źródeł Nuvio (M3U / Xtream / Stalker, adres EPG, telefon przez QR).
+        var sources by remember { mutableStateOf(false) }
+        val addFocus = remember { FocusRequester() }
+        com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(if (!state.hasSource) addFocus else null)
         Box(Modifier.fillMaxSize().background(NiuniaColors.Bg).padding(start = NiuniaDims.Gutter), contentAlignment = Alignment.CenterStart) {
-            Text(stringResource(if (!state.hasSource) R.string.niunia_live_no_source else R.string.niunia_live_empty), style = NiuniaText.Meta, color = NiuniaColors.Text70)
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text(stringResource(if (!state.hasSource) R.string.niunia_live_no_source else R.string.niunia_live_empty), style = NiuniaText.Meta, color = NiuniaColors.Text70)
+                if (!state.hasSource) com.nuvio.tv.skin.niunia.components.NiuniaButton(
+                    onClick = { Log.i(TAG, "live tv: pusto → okno źródeł"); sources = true },
+                    label = stringResource(R.string.niunia_live_add_source), icon = "plus", focusRequester = addFocus,
+                )
+            }
         }
+        if (sources) com.nuvio.tv.ui.reshaped.livetv.LiveTvSourceDialog(onDismiss = { sources = false })
         return
     }
 
@@ -476,6 +488,7 @@ private fun GuideRow(
     var focused by remember { mutableStateOf(false) }
     var sel by remember { mutableIntStateOf(-1) }
     val logo = forgeChannelLogo(ch)
+    val ctx = LocalContext.current
 
     fun pick(t: Long): Int = schedule.indexOfFirst { t >= it.startEpochMs && t < it.stopEpochMs }.takeIf { it >= 0 }
         ?: schedule.indexOfFirst { it.startEpochMs >= t }.takeIf { it >= 0 } ?: (schedule.size - 1)
@@ -515,7 +528,9 @@ private fun GuideRow(
                     else -> false
                 }
             }
-            .clickable(interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }, indication = null) { onOk(schedule.getOrNull(sel)) },
+            // UX 22.11: długie OK na wierszu kanału = ulubione tak/nie; OK/długie OK jak w całej Niuni (niuniaOk: zegar 520 ms
+            // albo flaga systemu, puszczenie po długim OK nie klika).
+            .niuniaOk(ch.name, onLongClick = { niuniaToggleFavourite(ctx, ch) }, onClick = { onOk(schedule.getOrNull(sel)) }),
     ) {
         // Kanał: numer + logo (epg.ovh), bez logo — nazwa pogrubiona.
         Row(

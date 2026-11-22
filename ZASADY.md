@@ -39,6 +39,8 @@ Stare wersje: `plan/archiwum/zasady/` i historia gita.
 - Jedna architektura: JMGO/Xiaomi `-PforkAbi=armeabi-v7a`, emulator `-PforkAbi=arm64-v8a`.
 - Buildy wykonywane przez Codexa zawsze dają jeden APK ARM32 z `-PforkAbi=armeabi-v7a` (21.11.2026).
 - Przed buildem: `df -h ~` (ok. 15 GB wolne), zamknij zbędne procesy (emulator). Pilnuj CPU.
+- Emulator (GTV) i kompilator NIGDY razem. Build > 10 min → sprawdź, czy naprawdę się kompiluje (postęp w logu, CPU); > 20 min → przerwij własny build (22.11, właściciel).
+- Testy w pętlach (testy ≥ 10 min → build → poprawki → testy): po KAŻDEJ pętli zapisz stan w katalogu raportu (`plan/ux/`) (22.11, właściciel).
 - W czasie builda nie czekaj bezczynnie: pisz dalej w `.stage/` (nie ruszaj plików, które Gradle czyta).
 
 ## 5. Testy na urządzeniu

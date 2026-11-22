@@ -48,6 +48,8 @@ private const val TAG = "ForkNiunia"
 fun NiuniaLibrary(onNavigateToDetail: (String, String, String?) -> Unit, viewModel: LibraryViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsState()
     val items = state.visibleItems
+    // UX 22.11: długie OK na pozycji = menu opcji (szczegóły, biblioteka, obejrzane).
+    val posterOptions = com.nuvio.tv.skin.niunia.components.rememberNiuniaPosterOptions { id, type, url -> onNavigateToDetail(id, type, url) }
     LaunchedEffect(items.size) { Log.i(TAG, "biblioteka: ${items.size} pozycji") }
     if (items.isEmpty()) {
         // Makieta Library (NContentBlock empty): tytuł 20/26, podpowiedź 14/20 w 70%, przycisk „Przeglądaj filmy i seriale” z fokusem.
@@ -111,6 +113,7 @@ fun NiuniaLibrary(onNavigateToDetail: (String, String, String?) -> Unit, viewMod
                 meta = listOfNotNull(com.nuvio.tv.skin.niunia.components.NiuniaGenres.pl(entry.genres.firstOrNull()), rating).joinToString(" · ").ifBlank { null },
                 label = null, baked = art != null,
                 onOk = { onNavigateToDetail(entry.id, entry.type, entry.addonBaseUrl) },
+                onLongOk = { posterOptions(entry.toMetaPreview().copy(imdbId = entry.imdbId), entry.addonBaseUrl) },
                 modifier = if (index == 0) Modifier.focusRequester(first) else Modifier,
                 onFocus = { if (it) focusedIndex = index },
             )

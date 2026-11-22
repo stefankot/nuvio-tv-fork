@@ -197,12 +197,13 @@ fun NiuniaResultCard(
     status: NiuniaCardStatus? = null,
     focusRequester: FocusRequester? = null,
     onFocus: (Boolean) -> Unit = {},
+    onLongClick: (() -> Unit)? = null,
 ) {
     var focused by remember { mutableStateOf(false) }
     val shape = RoundedCornerShape(NiuniaRadius.Radius16)
     Row(
         modifier.size(NiuniaSize.ResultW, NiuniaSize.ResultH)
-            .niuniaOk(title, focusRequester, onFocus = { focused = it; onFocus(it) }, onClick = onClick)
+            .niuniaOk(title, focusRequester, onFocus = { focused = it; onFocus(it) }, onLongClick = onLongClick, onClick = onClick)
             .niuniaFocusLook(NiuniaFocusStyle.Button, focused, shape)
             .clip(shape).background(if (focused) NiuniaColor.Focus else NiuniaColor.Fill12)
             .padding(horizontal = NiuniaSpacing.Space12),

@@ -67,6 +67,8 @@ fun NiuniaPerson(
     onNavigateToDetail: (String, String, String?) -> Unit,
 ) {
     val context = LocalContext.current
+    // UX 22.11: długie OK na plakacie = menu opcji (szczegóły, biblioteka, obejrzane).
+    val posterOptions = com.nuvio.tv.skin.niunia.components.rememberNiuniaPosterOptions { id, type, url -> onNavigateToDetail(id, type, url) }
     val series = remember(person.tvCredits) { person.tvCredits.distinctBy { it.id }.sortedByDescending { year(it) } }
     val movies = remember(person.movieCredits) { person.movieCredits.distinctBy { it.id }.sortedByDescending { year(it) } }
     var focusedRow by remember { mutableIntStateOf(-1) }
@@ -128,6 +130,7 @@ fun NiuniaPerson(
                             label = NiuniaLabels.label(context, item, 0, rankingRow = false), baked = item.poster != null,
                             onFocus = { if (it) focusedRow = rowIndex },
                             onOk = { Log.i(TAG, "osoba: otwieram ${item.rawType} ${item.id}"); onNavigateToDetail(item.id, item.rawType, null) },
+                            onLongOk = { posterOptions(item, null) },
                         )
                     }
                 }

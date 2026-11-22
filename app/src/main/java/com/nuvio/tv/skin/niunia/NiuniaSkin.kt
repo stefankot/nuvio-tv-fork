@@ -26,6 +26,9 @@ object NiuniaSkin : Skin {
                 onContinueWatchingClick = a["onContinueWatchingClick"] as (ContinueWatchingItem) -> Unit,
                 onItemFocus = { vm.onItemFocus(it) },
                 onToggleLibrary = { item, addon -> vm.togglePosterLibrary(item, addon) },
+                // UX 22.11: długie OK — menu plakatu bazy (HomeScreen rysuje okno) i menu „Oglądaj dalej”.
+                onItemLongPress = (a["onCatalogItemLongPress"] as? (com.nuvio.tv.domain.model.MetaPreview, String) -> Unit) ?: { _, _ -> },
+                cwActions = androidx.compose.runtime.remember(vm, a["showContinueWatchingManualPlay"]) { niuniaCwActions(vm, a) },
             ); true
         }
         "search" -> SkinScreen { a ->
@@ -71,6 +74,24 @@ object NiuniaSkin : Skin {
             com.nuvio.tv.skin.niunia.livetv.NiuniaLiveTv(onPlay = a["onPlay"] as (String) -> Unit); true
         }
         else -> null
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun niuniaCwActions(vm: HomeViewModel, a: Map<String, Any?>): com.nuvio.tv.skin.niunia.home.NiuniaCwActions {
+        val click = a["onContinueWatchingClick"] as (ContinueWatchingItem) -> Unit
+        return com.nuvio.tv.skin.niunia.home.NiuniaCwActions(
+            remove = { cw ->
+                val (id, s, e) = when (cw) {
+                    is ContinueWatchingItem.InProgress -> Triple(cw.progress.contentId, cw.progress.season, cw.progress.episode)
+                    is ContinueWatchingItem.NextUp -> Triple(cw.info.contentId, cw.info.seedSeason, cw.info.seedEpisode)
+                }
+                vm.onEvent(com.nuvio.tv.ui.screens.home.HomeEvent.OnRemoveContinueWatching(id, s, e, cw is ContinueWatchingItem.NextUp))
+            },
+            markWatched = { cw -> vm.onEvent(com.nuvio.tv.ui.screens.home.HomeEvent.OnMarkContinueWatchingWatched(cw)) },
+            fromStart = (a["onContinueWatchingStartFromBeginning"] as? (ContinueWatchingItem) -> Unit) ?: click,
+            playManually = (a["onContinueWatchingPlayManually"] as? (ContinueWatchingItem) -> Unit) ?: click,
+            showManual = a["showContinueWatchingManualPlay"] as? Boolean ?: false,
+        )
     }
 
     /** Nakładka odtwarzacza Niunii: filmy, seriale i YouTube. Live TV: wygląd Niuni rysuje MiniGuide (skin/niunia/live). */
