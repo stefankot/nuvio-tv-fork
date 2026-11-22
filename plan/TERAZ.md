@@ -3,6 +3,13 @@
 Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–13: `plan/archiwum/TERAZ-historia-watki-1-13.md` (tylko `grep`, nie czytaj całości).
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
+## NAJPIERW (22.11 ~14:00) — obrazki „nadal słaba jakość” → build166 NA JMGO
+Przyczyny (sprawdzone): (1) Nuvio domyślnie dekoduje obrazki w 16-bitowym kolorze RGB565 (`image_performance/rgb565_enabled` = domyślnie tak) → paski na tłach; (2) poprzednia poprawka podnosiła tylko obrazki ≥ 900 px — plakaty w rzędach zostawały w metahub `poster/small` (300 px, ~27 KB); (3) metahub `background/large` = `medium` (1920 px) — „large” nic nie dawało; (4) wzór plakatów kaptain.stream zwracał 410 (każdy plakat najpierw błąd, potem zapas).
+Polecenie właściciela 22.11: „nie z kaptain.stream, tylko TMDB w pełnej, najwyższej rozdzielczości — plakaty, backdropy, wszystko”. Zrobione: na JMGO usunięty `layout_settings/custom_poster_url_pattern` (kopia ustawień `NuvioFork/.stage/prefs/przed-kaptain-22.11.json`); kod 72d2ba445: każdy adres TMDB → `original`, metahub plakat/tło → TMDB `original` po IMDb (`fork/images/TmdbArtLookup`, pamięć `sp:fork_tmdb_art`), zapas: największy metahub → pierwotny adres; wszystkie obrazki w pełnym kolorze.
+**build166** (v7a, HEAD 72d2ba445, zawiera też paczkę: sonda archiwum 598c92946, rozmycie Android 11, Opus 16 kb/s, autoplay/ranking innych wątków): BUILD SUCCESSFUL, `ImageQualityTest` OK; JMGO md5 5b1c9fed751a7d9e6ac561c1ae53d6c8 zgodny, `compile -m speed`. Sprawdzone: Główna ładuje się, `fork_tmdb_art` ma 25 tytułów (plakat + tło z TMDB), kaptain wyłączony. Uwaga: wpisy `ForkImages` nie pojawiają się w logcat JMGO (inne `Fork*` tak) — do zbadania przy następnym wątku.
+Zostaje z kaptain: okładki folderów „Kolekcje” (`collections_json`, art.kaptain.stream, działają, 200) — to grafiki folderów, nie plakaty tytułów; nie ruszane.
+Do sprawdzenia przez właściciela: ostrość plakatów w rzędach i tła hero; płynność przewijania (większe pliki, pełny kolor = 2× pamięci na obrazek).
+
 ## NAJPIERW (wątek 22.11: Z-13 nagrody + paczka „Lektor / Napisy / Odtwarzacze / EPG / Obrazki / Głos”) — build163
 Gałąź `claude/nuvio-tv-handoff-batch-1-4537d7`, commity 985bd246c…(ostatni). Build tylko jeden: **build163** (v7a) — wynik niżej.
 Zrobione (szczegóły w commitach, DECYZJE.md, BLOKADY.md):
