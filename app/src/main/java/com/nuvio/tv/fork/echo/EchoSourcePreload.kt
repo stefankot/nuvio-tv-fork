@@ -7,6 +7,10 @@ import androidx.compose.ui.platform.LocalContext
 import com.nuvio.tv.domain.model.Meta
 import com.nuvio.tv.domain.model.NextToWatch
 import com.nuvio.tv.domain.repository.StreamRepository
+import com.nuvio.tv.domain.model.Stream
+import com.nuvio.tv.core.stream.ContentIdentity
+import com.nuvio.tv.fork.sources.KeRanking
+import com.nuvio.tv.fork.sources.TrackScout
 import com.nuvio.tv.ui.screens.settings.ForkFeatures
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -17,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.nuvio.tv.fork.logged
 
 @EntryPoint
@@ -61,15 +66,20 @@ object EchoSourcePreload {
             android.util.Log.i("EchoPreload", "start $key")
             val t0 = System.currentTimeMillis()
             runCatching {
+                var latest = emptyList<Stream>()
                 repo.getStreamsFromAllAddons(
                     type = type, videoId = videoId,
                     season = season.takeIf { isSeries }, episode = episode.takeIf { isSeries }
                 ).collect { result ->
                     if (result is com.nuvio.tv.core.network.NetworkResult.Success) {
                         com.nuvio.tv.fork.sources.ReadyState.update(result.data)
-                        com.nuvio.tv.fork.sources.TrackScout.onSources(c, type, videoId, result.data.flatMap { it.streams })
+                        latest = result.data.flatMap { it.streams }
+                        TrackScout.onSources(c, type, videoId, latest)
                     }
                 }
+                val identity = ContentIdentity.of(type, meta.name, meta.releaseInfo, season, episode, videoId)
+                val ranked = withContext(Dispatchers.Default) { KeRanking.orderForDetails(latest, identity) }
+                TrackScout.preparePlayback(c.applicationContext, type, videoId, ranked)
             }.logged("ForkEcho", "EchoSourcePreload.kt:61")
             android.util.Log.i("EchoPreload", "done $key in ${System.currentTimeMillis() - t0}ms")
         }

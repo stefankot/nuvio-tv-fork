@@ -185,7 +185,7 @@ internal class PlayerAutoSourceRecovery(
                 }
                 StartupSourceRecovery.Decision.NextSource -> {
                     val reason = failure ?: if (state.error == null) "startup_timeout" else "playback_error"
-                    if (reason in setOf("startup_timeout", "buffer_stall", "no_video_track")) preferLighterSources()
+                    if (reason == "buffer_stall" || (reason == "startup_timeout" && policy.snapshot().attempts > 1)) preferLighterSources() // Fork hook: a broken first link does not lower the target resolution
                     Log.i(TAG, "changing source reason=$reason attempt=${policy.snapshot().attempts} resumeMs=$resumeAtMs")
                     rememberCurrentUrl()
                     forkChecks.onLeaving(player) // Fork hook: kicia-checks (pamięć złych źródeł)

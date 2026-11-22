@@ -61,9 +61,10 @@ import java.util.concurrent.TimeUnit
 internal object PolishDubbing {
     const val KEY = "fork_polish_dubbing"
     private const val TAG = "ForkDublagem"
-    private const val WINDOW_MS = 15_000L
-    private const val SESSION_BUDGET_MS = 48_000L
-    private const val MATCH_BUDGET_MS = 26_000L
+    private const val WINDOW_MS = 8_000L
+    private const val SESSION_BUDGET_MS = 115_000L
+    private const val MATCH_BUDGET_MS = 68_000L
+    private const val MIN_BUFFER_MS = 4_000L
     private const val DONOR_PROBE_BUDGET_MS = 8_000L
     private const val RADIUS_MS = 3_000L
     private const val MAX_DONORS = 3
@@ -72,7 +73,7 @@ internal object PolishDubbing {
     private val sessions = WeakHashMap<PlayerRuntimeController, Session>()
     private val httpClient = OkHttpClient.Builder()
         .connectTimeout(4, TimeUnit.SECONDS).readTimeout(5, TimeUnit.SECONDS)
-        .callTimeout(10, TimeUnit.SECONDS).build()
+        .build()
 
     private class Session(
         val type: String,
@@ -179,24 +180,26 @@ internal object PolishDubbing {
         if (duration < 48_000L) return
         val candidates = findDonors(owner, session, edition, internal?.track)
         if (candidates.isEmpty() || !isCurrent(owner, session)) return
-        val canAnalyze = withTimeoutOrNull(7_000L) {
-            while (exo.totalBufferedDuration < 4_000L) {
-                if (!isCurrent(owner, session) || session.manualAudio) return@withTimeoutOrNull false
-                delay(250L)
-            }
-            true
-        } == true
-        if (!canAnalyze) {
-            Log.i(TAG, "kept current audio: not enough buffer for background analysis")
-            return
-        }
-
         val primary = PlayerMediaSourceFactory.normalizePlaybackRequest(session.url, owner.currentHeaders)
-        val a = analysisSource(primary.url, primary.headers, reference.track, duration, "A")
-        val analyzer = DubbingAudioSyncAnalyzer()
+        val analyzer = DubbingAudioSyncAnalyzer(minimumWindowMs = WINDOW_MS)
         session.analyzer = analyzer
+        var waitedForBuffer = false
         for (donor in candidates.take(MAX_DONORS)) {
+            // Heavy remote files often build a useful buffer just after the first few seconds.
+            if (!exo.isPlaying || exo.totalBufferedDuration < MIN_BUFFER_MS) {
+                if (!waitedForBuffer) Log.i(TAG, "waiting for playback buffer before comparing audio")
+                waitedForBuffer = true
+                while (isCurrent(owner, session) && !session.manualAudio &&
+                    (!exo.isPlaying || exo.totalBufferedDuration < MIN_BUFFER_MS)
+                ) delay(400L)
+            }
             if (!isCurrent(owner, session) || session.manualAudio) return
+            // Shared original narration/music is a better reference than comparing
+            // two dubs. The donor still plays the independently ranked Polish track.
+            val comparison = sharedComparisonTracks(tracks.map { it.track }, donor.info.audioDetails)
+            val aTrack = comparison?.first ?: reference.track
+            val bTrack = comparison?.second ?: donor.audio
+            val a = analysisSource(primary.url, primary.headers, aTrack, duration, "A")
             val url = donor.stream.getStreamUrl() ?: continue
             val proxyHeaders = donor.stream.behaviorHints?.proxyHeaders
             val request = PlayerMediaSourceFactory.normalizePlaybackRequest(url, proxyHeaders?.request)
@@ -204,8 +207,9 @@ internal object PolishDubbing {
             var attached = false
             try {
                 val endpoints = withContext(Dispatchers.IO) { relay.startRelay() }
-                val b = analysisSource(endpoints.analysisUrl, emptyMap(), donor.audio, donor.info.durationMs, "B")
+                val b = analysisSource(endpoints.analysisUrl, emptyMap(), bTrack, donor.info.durationMs, "B")
                 val start = exo.currentPosition.coerceIn(3_000L, duration / 3)
+                Log.i(TAG, "checking donor after bufferMs=${exo.totalBufferedDuration} sharedLanguage=${comparison != null}")
                 val offset = withTimeoutOrNull(MATCH_BUDGET_MS) { matchOffset(analyzer, a, b, start, duration) }
                 if (offset == null) {
                     Log.i(TAG, "donor rejected: synchronization could not be confirmed")
@@ -262,6 +266,28 @@ internal object PolishDubbing {
         }.sortedWith(compareByDescending<Donor, DubbingAudioTrack>(DubbingAudioTrack.quality) { it.audio }
             .thenBy { it.stream.behaviorHints?.videoSize ?: ReleaseFactsParser.factsFor(it.stream).size ?: Long.MAX_VALUE })
     }
+
+    private fun sharedComparisonTracks(
+        primary: List<DubbingAudioTrack>,
+        secondary: List<DubbingAudioTrack>,
+    ): Pair<DubbingAudioTrack, DubbingAudioTrack>? {
+        val secondaryByLanguage = secondary.filter { it.isMainProgram && it.mime != null }
+            .groupBy { TrackScout.lang(it.language) }
+        return primary.asSequence().filter { it.isMainProgram && it.mime != null }
+            .flatMap { a ->
+                val language = TrackScout.lang(a.language)
+                if (language == "und") emptySequence()
+                else secondaryByLanguage[language].orEmpty().asSequence().map { b -> a to b }
+            }
+            .maxWithOrNull(compareBy<Pair<DubbingAudioTrack, DubbingAudioTrack>>(
+                { TrackScout.lang(it.first.language) == "en" },
+                { it.first.mime == it.second.mime },
+                { it.first.channels == it.second.channels },
+                { it.first.mime in comparisonCodecs && it.second.mime in comparisonCodecs },
+            ))
+    }
+
+    private val comparisonCodecs = setOf("audio/ac3", "audio/eac3", "audio/mp4a-latm")
 
     private fun canPlay(context: Context, track: DubbingAudioTrack): Boolean {
         val mime = track.mime ?: return false

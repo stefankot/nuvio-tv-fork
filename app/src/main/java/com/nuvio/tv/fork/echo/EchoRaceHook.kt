@@ -8,6 +8,7 @@ import com.nuvio.tv.core.player.StreamAutoPlaySelector
 import com.nuvio.tv.core.player.raceCandidates
 import com.nuvio.tv.data.local.PlayerSettings
 import com.nuvio.tv.domain.model.Stream
+import com.nuvio.tv.fork.sources.TrackScout
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -20,6 +21,19 @@ object EchoRaceHook {
         com.nuvio.tv.ui.screens.settings.ForkFeatures.str(c, "echo_ap_quality").ifBlank { null },
         com.nuvio.tv.ui.screens.settings.ForkFeatures.str(c, "echo_ap_codec").ifBlank { null },
     )
+
+    internal fun useQualityOrder(c: Context, settings: PlayerSettings): Boolean =
+        settings.streamAutoPlayMode == com.nuvio.tv.data.local.StreamAutoPlayMode.FIRST_STREAM &&
+            !com.nuvio.tv.core.player.AutoPlayPreferences.isConfigured(prefs(c))
+
+    internal suspend fun pickQuality(pick: Stream, field: List<Stream>?, head: AutoPlayRace.HeadStart?): Stream {
+        if (TrackScout.isVerifiedPlayback(pick) || field == null) {
+            stop(head)
+            android.util.Log.i("ForkEcho", "quality autoplay verifiedFile=${TrackScout.isVerifiedPlayback(pick)}")
+            return pick
+        }
+        return AutoPlayRace.pickInRankOrder(field, head)
+    }
 
     /** Echo stosuje preferencje tylko w trybie regex; tu działają też przy „pierwszym źródle”. */
     private fun modeFor(c: Context, mode: com.nuvio.tv.data.local.StreamAutoPlayMode) =

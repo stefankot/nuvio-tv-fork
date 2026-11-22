@@ -172,10 +172,14 @@ object KeRanking {
         }
     }
 
-    fun order(streams: List<Stream>): List<Stream> {
+    fun order(streams: List<Stream>): List<Stream> = order(streams, identity, preferred, log = true)
+
+    internal fun orderForDetails(streams: List<Stream>, identity: ContentIdentity): List<Stream> =
+        order(streams, identity, null, log = false)
+
+    private fun order(streams: List<Stream>, id: ContentIdentity?, preferred: PreferredSource?, log: Boolean): List<Stream> {
         if (!enabled || streams.size < 2) return streams
         return runCatching {
-            val id = identity
             val rejected = id?.let { ContentIdentityGuard.rejections(streams, it).keys }.orEmpty()
             val pool = streams.filterNot { it in rejected }.ifEmpty { streams }
             val ranked = StreamQualityRank.rank(pool, filmSizeFloors = id?.film == true)
@@ -202,7 +206,7 @@ object KeRanking {
             // zapamiętany ręczny wybór (dodatek + rozdzielczość) nie może przebić języka ani gotowości pliku —
             // niegotowe (SourceReady) i obcy dubbing (ForeignDub) zawsze na koniec, kolejność w środku zostaje.
             val picked = preferred?.preferredFirst(withBad)?.first ?: withBad
-            picked.map { Triple(it, SourceReady.tier(it), ForeignDub.tier(it)) }.sortedWith(compareBy({ it.second }, { it.third })).map { it.first }.let { l -> runCatching { SlowProxy4k.demote(l) { s -> listOf(SourceReady.tier(s), ForeignDub.tier(s), if (separateAudio) 0 else polishTier(s)) } }.logged("ForkSources", "SlowProxy4k").getOrDefault(l) }.let { l -> Placeholders.demote(l) }.also { logTop(it) } // klucze raz na źródło
+            picked.map { Triple(it, SourceReady.tier(it), ForeignDub.tier(it)) }.sortedWith(compareBy({ it.second }, { it.third })).map { it.first }.let { l -> runCatching { SlowProxy4k.demote(l) { s -> listOf(SourceReady.tier(s), ForeignDub.tier(s), if (separateAudio) 0 else polishTier(s)) } }.logged("ForkSources", "SlowProxy4k").getOrDefault(l) }.let { l -> Placeholders.demote(l) }.also { if (log) logTop(it) } // klucze raz na źródło
         }.logged("ForkSources", "KeRanking.kt:173").getOrDefault(streams)
     }
 }
