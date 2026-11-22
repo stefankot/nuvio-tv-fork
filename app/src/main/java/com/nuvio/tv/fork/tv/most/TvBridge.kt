@@ -40,6 +40,8 @@ object TvBridge {
     }
 
     fun onGuideRead(channels: List<LiveTvChannel>, kept: Map<String, List<LiveTvProgramme>>, nowMs: Long) {
+        // 22.11: indeks szukania TV (w tle, przyrostowo) — także przy wyłączonym module TV, bo służy szukaniu w Live TV.
+        com.nuvio.tv.fork.tv.index.TvTextIndex.submit(channels, kept)
         if (!enabled) return
         TvStore.updateSchedule(channels, kept, nowMs)
         lastKept = kept
@@ -54,9 +56,22 @@ object TvBridge {
      */
     fun guideAirings(): List<com.nuvio.tv.fork.tv.LogEntry> = lastKept.flatMap { (guideKey, list) ->
         list.mapNotNull { p ->
-            val key = com.nuvio.tv.fork.tv.ShowIdentity.normalizeTitle(p.title).takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+            val key = programKey(p.title).takeIf { it.isNotEmpty() } ?: return@mapNotNull null
             com.nuvio.tv.fork.tv.LogEntry(key, guideKey, p.startEpochMs, p.stopEpochMs - p.startEpochMs, p.episode.orEmpty(), p.title.take(80))
         }
+    }
+
+    /**
+     * Klucz programu raz na tytuł (JMGO build171: indeks Odkrywaj/Szukaj liczył `normalizeTitle` — kilka wyrażeń
+     * regularnych — dla każdej z ~1 mln emisji przy każdej przebudowie; 62% CPU w czasie szukania). Pamięć tytułów
+     * przeżywa przebudowy (liczone są tylko nowe tytuły); czyszczona powyżej [TITLE_MEMO_MAX] wpisów.
+     */
+    private val titleMemo = java.util.concurrent.ConcurrentHashMap<String, String>()
+    private const val TITLE_MEMO_MAX = 400_000
+
+    internal fun programKey(title: String): String = titleMemo[title] ?: com.nuvio.tv.fork.tv.ShowIdentity.normalizeTitle(title).also {
+        if (titleMemo.size > TITLE_MEMO_MAX) titleMemo.clear()
+        titleMemo[title] = it
     }
 
     /** Kiedy ostatnio włączono kanał IPTV (uptime); intro Echo pomija start kanału (właściciel 19.11). */

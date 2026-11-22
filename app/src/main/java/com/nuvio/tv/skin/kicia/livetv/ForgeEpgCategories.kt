@@ -46,17 +46,7 @@ object ForgeEpgCategories {
      * JMGO 22.11 (59 349 kanałów): bez wyrażenia regularnego — każde `replace(Regex)` tworzyło natywny Matcher ICU,
      * co przy dziesiątkach tysięcy nazw wymuszało odśmiecanie pamięci. Usuwa te same znaki co `\p{Mn}`.
      */
-    fun norm(s: String): String {
-        val d = Normalizer.normalize(s.lowercase().replace('ł', 'l'), Normalizer.Form.NFD)
-        val out = StringBuilder(d.length)
-        var i = 0
-        while (i < d.length) {
-            val cp = d.codePointAt(i)
-            if (Character.getType(cp) != Character.NON_SPACING_MARK.toInt()) out.appendCodePoint(cp)
-            i += Character.charCount(cp)
-        }
-        return out.toString()
-    }
+    fun norm(s: String): String = com.nuvio.tv.fork.tv.index.TvTextIndex.norm(s)
 
     /**
      * `containsMatchIn` bez nowego Matchera na każde wywołanie (JMGO 22.11: 252 827 nazw × kilkanaście reguł = miliony

@@ -277,38 +277,56 @@ internal fun forgeTvSearch(
     schedule: (String) -> List<LiveTvProgramme> = LiveTvRepository::schedule,
     inCategory: (LiveTvChannel, LiveTvProgramme) -> Boolean = { ch, p -> ForgeEpgCategories.programmeMatches(ch.guideKey, p, category) },
     categoryName: (LiveTvChannel, LiveTvProgramme) -> String? = { ch, p -> ForgeEpgCategories.programmeBranchName(ch.guideKey, p) },
+    /** 22.11 (właściciel): limity nie są celowe — Niunia pokazuje 30 kanałów i 50 tytułów; ekran Kici zostaje przy 4/12. */
+    maxChannels: Int = 4,
+    maxProgrammes: Int = FORGE_TV_SEARCH_PROGRAMMES,
+    /** Kanał po kluczu przewodnika dla [channels] (Niunia ma go z góry); null = policzony tu (zapamiętany dla tej listy). */
+    byKey: Map<String, LiveTvChannel>? = null,
 ): ForgeTvSearchResults {
+    val index = com.nuvio.tv.fork.tv.index.TvTextIndex
     val q = ForgeEpgCategories.norm(query.trim())
     val anyCategory = category == ForgeEpgCategories.PROG_ALL
     if (q.isEmpty() && anyCategory) return ForgeTvSearchResults(emptyList(), emptyList())
-    val chHits = ArrayList<ForgeTvChannelHit>()
-    if (q.isNotEmpty()) channels.forEachIndexed { i, ch ->
-        val number = i + 1
-        if (chHits.size < 4 && (number.toString() == q || ForgeEpgCategories.norm(ch.name).contains(q))) chHits += ForgeTvChannelHit(ch, number, current[ch.guideKey])
-    }
-    val found = ArrayList<Pair<LiveTvChannel, LiveTvProgramme>>()
-    val seen = HashSet<String>()
-    channels.forEach { ch ->
-        if (!seen.add(ch.guideKey)) return@forEach
-        schedule(ch.guideKey).forEach { p ->
-            if (p.stopEpochMs <= now && !LiveTvCatchupLinks.isPlayable(ch.catchup, p, now)) return@forEach
-            if (q.isNotEmpty() && !ForgeEpgCategories.norm(p.title).contains(q)) return@forEach
-            if (!anyCategory && !inCategory(ch, p)) return@forEach
-            found += ch to p
-        }
-    }
-    // forge fix 14.11 (JMGO C2): one row per programme (all its airings and episodes, as in the programme view); a title
-    // whose word starts with the text first, then: on now, the newest that can be replayed, the soonest to come.
-    // Before, every airing was a row and 8 of them were shown: one series filled the list and other titles fell out.
+    val chHits = if (q.isEmpty()) emptyList() else forgeTvChannelHits(q, channels, current, maxChannels)
     fun rank(p: LiveTvProgramme): Long = when {
         p.startEpochMs <= now && p.stopEpochMs > now -> 0L
         p.stopEpochMs <= now -> 1L + (now - p.startEpochMs).coerceAtMost(Long.MAX_VALUE / 4)
         else -> Long.MAX_VALUE / 2 + (p.startEpochMs - now)
     }
-    val groups = found.groupBy { it.second.title.trim().lowercase() }
-    val prHits = groups.values.map { airings -> airings.minBy { rank(it.second) } to airings.size }
-        .sortedWith(compareBy({ (best, _) -> if (forgeWordStarts(ForgeEpgCategories.norm(best.second.title), q)) 0 else 1 }, { (best, _) -> rank(best.second) }))
-        .take(FORGE_TV_SEARCH_PROGRAMMES)
+    // forge fix 14.11 (JMGO C2): one row per programme (all its airings and episodes, as in the programme view); a title
+    // whose word starts with the text first, then: on now, the newest that can be replayed, the soonest to come.
+    // 22.11: per tytuł tylko najlepsza emisja i licznik (bez listy wszystkich emisji w pamięci).
+    class Group(var best: Pair<LiveTvChannel, LiveTvProgramme>, var count: Int, val wordStart: Boolean)
+    val groups = HashMap<String, Group>()
+    fun add(title: String, ch: LiveTvChannel, p: LiveTvProgramme) {
+        if (p.stopEpochMs <= now && !LiveTvCatchupLinks.isPlayable(ch.catchup, p, now)) return
+        if (!anyCategory && !inCategory(ch, p)) return
+        val g = groups[title]
+        if (g == null) groups[title] = Group(ch to p, 1, forgeWordStarts(title, q))
+        else { g.count++; if (rank(p) < rank(g.best.second)) g.best = ch to p }
+    }
+    if (q.isNotEmpty() && index.ready()) {
+        // 22.11: spis tytułów liczony w tle (TvTextIndex) — przy zapytaniu bez normalizacji całego przewodnika.
+        val keyMap = byKey ?: forgeChannelsByKey(channels)
+        val matched = index.titles(q).let { all -> if (q.length < 2) all.filter { forgeWordStarts(it.first, q) } else all }
+        for ((title, keys) in matched) for (key in keys) {
+            val ch = keyMap[key] ?: continue
+            for (p in schedule(key)) if (index.titleOf(p.title) == title) add(title, ch, p)
+        }
+    } else {
+        val seen = HashSet<String>()
+        channels.forEach { ch ->
+            if (!seen.add(ch.guideKey)) return@forEach
+            schedule(ch.guideKey).forEach { p ->
+                val title = index.titleOf(p.title)
+                if (q.isNotEmpty() && !title.contains(q)) return@forEach
+                add(title, ch, p)
+            }
+        }
+    }
+    val prHits = groups.values.sortedWith(compareBy<Group>({ if (it.wordStart) 0 else 1 }, { rank(it.best.second) }))
+        .take(maxProgrammes)
+        .map { it.best to it.count }
         .map { (best, count) ->
             val (ch, p) = best
             val badge = when {
@@ -322,6 +340,51 @@ internal fun forgeTvSearch(
         }
     return ForgeTvSearchResults(chHits, prHits)
 }
+
+/**
+ * Kanały do frazy [q] (już po norm): numer, potem nazwa bez kraju/jakości równa frazie, zaczynająca się od niej, słowo od niej,
+ * na końcu zawierająca; przy równej ocenie kolejność listy (polskie pierwsze). Ten sam kanał w kilku jakościach/źródłach raz.
+ * Teksty z TvTextIndex (liczone raz na nazwę, w tle).
+ */
+internal fun forgeTvChannelHits(q: String, channels: List<LiveTvChannel>, current: Map<String, LiveTvProgramme>, max: Int): List<ForgeTvChannelHit> {
+    val index = com.nuvio.tv.fork.tv.index.TvTextIndex
+    val number = q.toIntOrNull()
+    val scored = ArrayList<Pair<Int, Int>>() // ocena, pozycja
+    for (i in channels.indices) {
+        val ch = channels[i]
+        val score = if (number != null && number == i + 1) 0 else {
+            val n = index.nameOf(ch.name)
+            if (!n.contains(q)) continue
+            val k = index.keyOf(ch.name)
+            when {
+                k == q -> 1
+                k.startsWith(q) -> 2
+                forgeWordStarts(n, q) -> 3
+                else -> 4
+            }
+        }
+        scored += score to i
+    }
+    scored.sortWith(compareBy({ it.first }, { it.second }))
+    val seen = HashSet<String>()
+    val out = ArrayList<ForgeTvChannelHit>()
+    for ((_, i) in scored) {
+        if (out.size >= max) break
+        val ch = channels[i]
+        if (!seen.add(index.sameChannelKey(ch.name))) continue
+        out += ForgeTvChannelHit(ch, i + 1, current[ch.guideKey])
+    }
+    return out
+}
+
+private class ForgeKeyMemo(val list: List<LiveTvChannel>, val map: Map<String, LiveTvChannel>)
+@Volatile private var forgeKeyMemo: ForgeKeyMemo? = null
+
+/** Pierwszy kanał listy po kluczu przewodnika, zapamiętany dla ostatniej listy (ten sam obiekt). */
+internal fun forgeChannelsByKey(channels: List<LiveTvChannel>): Map<String, LiveTvChannel> =
+    forgeKeyMemo?.takeIf { it.list === channels }?.map
+        ?: HashMap<String, LiveTvChannel>(channels.size * 2).also { m -> channels.forEach { m.putIfAbsent(it.guideKey, it) } }
+            .also { forgeKeyMemo = ForgeKeyMemo(channels, it) }
 
 /** forge fix 14.11 (JMGO C2): programmes (titles) shown by the search. */
 internal const val FORGE_TV_SEARCH_PROGRAMMES = 12

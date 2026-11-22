@@ -117,9 +117,14 @@ internal fun NiuniaLiveSearch(
 
     val results = rememberComputed(query, category, channels, favShows, empty = null as com.nuvio.tv.skin.kicia.livetv.ForgeTvSearchResults?, what = "szukaj") {
         delay(250) // pisanie
-        if (category == FAV_KEY) forgeTvSearch(query, "\u0000prog:ulubione", channels, current, now,
-            inCategory = { _, p -> ShowIdentity.normalizeTitle(p.title) in favShows })
-        else forgeTvSearch(query, category, channels, current, now)
+        // 22.11 (właściciel): więcej wyników (30 kanałów, 50 tytułów); teksty z indeksu liczonego w tle (TvTextIndex).
+        val byKey = NiuniaListMaps.byGuide(channels)
+        val t0 = android.os.SystemClock.elapsedRealtime()
+        val ready = com.nuvio.tv.fork.tv.index.TvTextIndex.ready()
+        (if (category == FAV_KEY) forgeTvSearch(query, "\u0000prog:ulubione", channels, current, now,
+            inCategory = { _, p -> ShowIdentity.normalizeTitle(p.title) in favShows }, maxChannels = 30, maxProgrammes = 50, byKey = byKey)
+        else forgeTvSearch(query, category, channels, current, now, maxChannels = 30, maxProgrammes = 50, byKey = byKey))
+            .also { Log.i(TAG, "szukaj tv: „$query” policzone w ${android.os.SystemClock.elapsedRealtime() - t0} ms (indeks ${if (ready) "gotowy" else "jeszcze się liczy"})") }
     }
     val programmeTiles = remember(results) { results?.programmes?.map { tileFor(it.channel, it.programme, now) }.orEmpty() }
     val channelTiles = remember(results) { results?.channels?.map { h -> h.now?.let { tileFor(h.channel, it, now) } ?: NiuniaLiveTile(h.channel, null, NiuniaTileMark.LIVE) }.orEmpty() }
