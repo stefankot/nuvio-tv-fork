@@ -411,6 +411,7 @@ internal class LiveTvPlayerState(
                     if (uiState.showPauseOverlay && !down) controller._uiState.update { it.copy(showPauseOverlay = false) }
                     // A channel gone since (removed, or its source edited) leaves Back to the player.
                     val channel = currentChannel() ?: return false
+                    if (!down && com.nuvio.tv.fork.tv.LiveNoAsk.back(controller.context, ::hideInfo, exit)) return true // Fork hook: live-no-ask
                     if (!down) { if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_MINIGUIDE) { if (zapConfirm == null) { hideInfo(); zapConfirm = 0 } } else switchTo(channel) } // forge hook (owner 13.11): Back from the archive asks first, like ▲▼ (step 0 = this channel live)
                     true
                 }
@@ -551,6 +552,7 @@ internal class LiveTvPlayerState(
     internal var zapConfirm by mutableStateOf<Int?>(null)
 
     internal fun zap(step: Int) { // forge: internal (MiniGuide ▲▼)
+        if (isCatchup() && com.nuvio.tv.fork.tv.LiveNoAsk.zapNow(controller.context, step)) return zapNow(step) // Fork hook: live-no-ask
         if (isCatchup()) {
             if (zapConfirm == null) { hideInfo(); zapConfirm = step }
             return

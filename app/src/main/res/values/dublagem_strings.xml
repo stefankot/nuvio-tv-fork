@@ -1,0 +1,5 @@
+<resources>
+    <string name="dublagem_setting_title">Polish audio from another release</string>
+    <string name="dublagem_setting_description">Choose the best picture and synchronize a compatible Polish audio track during playback.</string>
+    <string name="dublagem_audio_joined">Polish audio from another release</string>
+</resources>

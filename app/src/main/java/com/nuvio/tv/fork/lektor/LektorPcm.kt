@@ -3,7 +3,7 @@ package com.nuvio.tv.fork.lektor
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import com.nuvio.tv.ui.screens.player.cancelAutoQualityChange
+import com.nuvio.tv.ui.screens.player.ignoreLocalBuffering
 
 /**
  * Fork 19.11 (build116, „Strefa gangsterów”, E-AC-3 5.1): przy przekazywaniu Dolby (passthrough) Android omija procesory
@@ -19,16 +19,19 @@ object LektorPcm {
             runCatching {
                 val c = com.nuvio.tv.fork.ai.subtitles.AiSubtitles.controller()
                 if (c == null) { Log.w(TAG, "PCM ($reason): brak odtwarzacza Exo"); return@runCatching }
+                // Paczka „oczywiste” pkt 8 (21.11, „przy wyłączonym ściszaniu film nie może być ściszony”): lektor zamienia Dolby
+                // na PCM, a przy zamianie 5.1 → stereo normalizacja downmiksu ściszała CAŁY film. Gdy lektor gra — bez normalizacji
+                // (poziom filmu jak bez lektora; miks ma miękki ogranicznik); po wyłączeniu — wartość z ustawień odtwarzacza.
+                val st = c.currentPlayerSettingsForReport
+                if (st.effectiveDownmixEnabled) {
+                    val normalize = !LektorEngine.enabled && !st.maintainOriginalAudioOnDownmix
+                    c.ffmpegAudioRenderer?.setDownmixNormalizationEnabled(normalize)
+                    Log.i(TAG, "PCM ($reason): normalizacja downmiksu=${normalize}")
+                }
+                c.ignoreLocalBuffering("lektor_pcm", graceMs = 12_000L)
                 c.playbackSpeedAwareAudioSink?.notifyAudioProcessingRequirementChanged()
                 c._exoPlayer?.let { p -> p.trackSelectionParameters = p.trackSelectionParameters.buildUpon().build() }
                 Log.i(TAG, "PCM ($reason): lektor=${LektorEngine.enabled}, ścieżka dźwięku wybrana ponownie")
-                // Fork 19.11 (build118 „stream się wyłączył”): chwilowo pusty bufor po zmianie dekodowania auto jakość brała
-                // za słabe łącze (1080p → 720p, potem źródła bez polskiego dźwięku do wyczerpania). Odwołanie jej decyzji
-                // z tych kilku sekund (zmiana zapowiadana 5 s przed wykonaniem).
-                val main = Handler(Looper.getMainLooper())
-                for (delayMs in longArrayOf(3_000, 6_000, 9_000)) main.postDelayed({
-                    runCatching { c.cancelAutoQualityChange(byViewer = false) }.onFailure { e -> Log.w(TAG, "PCM: auto jakość: ${e.javaClass.simpleName}: ${e.message}") }
-                }, delayMs)
             }.onFailure { Log.w(TAG, "PCM ($reason): ${it.javaClass.simpleName}: ${it.message?.take(200)}") }
         }
     }

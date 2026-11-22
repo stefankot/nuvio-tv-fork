@@ -1,0 +1,31 @@
+diff --git a/app/src/main/java/com/nuvio/tv/core/player/AutoPlayRace.kt b/app/src/main/java/com/nuvio/tv/core/player/AutoPlayRace.kt
+--- a/app/src/main/java/com/nuvio/tv/core/player/AutoPlayRace.kt
++++ b/app/src/main/java/com/nuvio/tv/core/player/AutoPlayRace.kt
+@@ -274,6 +274,27 @@
+         return winner?.let(candidates::get) ?: com.nuvio.tv.fork.sources.Placeholders.firstReal(candidates) ?: first // Fork hook: placeholders
+     }
+ 
++    /** Fork hook: quality autoplay waits briefly for the best candidate, even if a lower rank replied first. */
++    internal suspend fun pickInRankOrder(candidates: List<Stream>, headStart: HeadStart?): Stream = coroutineScope {
++        val ordered = candidates.take(4)
++        val checks = ordered.mapIndexed { index, stream ->
++            async(Dispatchers.IO) {
++                withTimeoutOrNull(4_000L) {
++                    val ahead = headStart?.checkOf(stream)?.takeUnless { it.isCancelled }
++                    if (ahead != null) awaitCheck(ahead) else timedCheck(stream, "rank#$index")
++                }
++            }
++        }
++        try {
++            val index = checks.indices.firstOrNull { checks[it].await() != null }
++            Log.i(TAG, "quality autoplay candidates=${ordered.size} readyRank=${index ?: -1}")
++            index?.let(ordered::get) ?: candidates.first()
++        } finally {
++            checks.forEach { it.cancel() }
++            headStart?.stop()
++        }
++    }
++
+     /** How long [stream]'s link took to deliver video, timed from now; null if it didn't within [RACE_TIMEOUT_MS]. */
+     private suspend fun timedCheck(stream: Stream, label: String): Long? {
+         val startedAt = SystemClock.elapsedRealtime()

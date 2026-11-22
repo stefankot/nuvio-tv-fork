@@ -7,6 +7,10 @@ import androidx.compose.ui.platform.LocalContext
 import com.nuvio.tv.domain.model.Meta
 import com.nuvio.tv.domain.model.NextToWatch
 import com.nuvio.tv.domain.repository.StreamRepository
+import com.nuvio.tv.domain.model.Stream
+import com.nuvio.tv.core.stream.ContentIdentity
+import com.nuvio.tv.fork.sources.KeRanking
+import com.nuvio.tv.fork.sources.TrackScout
 import com.nuvio.tv.ui.screens.settings.ForkFeatures
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -17,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.nuvio.tv.fork.logged
 
 @EntryPoint
@@ -38,9 +43,10 @@ object EchoSourcePreload {
     @Composable
     fun Run(meta: Meta?, next: NextToWatch?) {
         val c = LocalContext.current
-        val season = next?.nextSeason
-        val episode = next?.nextEpisode
-        val videoId = next?.nextVideoId
+        val firstEpisode = meta?.videos?.firstOrNull { (it.season ?: 0) > 0 && it.episode != null }
+        val season = next?.nextSeason ?: firstEpisode?.season
+        val episode = next?.nextEpisode ?: firstEpisode?.episode
+        val videoId = next?.nextVideoId ?: firstEpisode?.id
         LaunchedEffect(meta?.id, videoId) { start(c, meta, videoId, season, episode) }
         androidx.compose.runtime.DisposableEffect(Unit) { onDispose { com.nuvio.tv.fork.sources.ReadyState.clear(); lastKey = null } }
     }
@@ -60,7 +66,20 @@ object EchoSourcePreload {
             android.util.Log.i("EchoPreload", "start $key")
             val t0 = System.currentTimeMillis()
             runCatching {
-                repo.getStreamsFromAllAddons(type = type, videoId = videoId, season = if (isSeries) season else null, episode = if (isSeries) episode else null).collect { r -> if (r is com.nuvio.tv.core.network.NetworkResult.Success) com.nuvio.tv.fork.sources.ReadyState.update(r.data) }
+                var latest = emptyList<Stream>()
+                repo.getStreamsFromAllAddons(
+                    type = type, videoId = videoId,
+                    season = season.takeIf { isSeries }, episode = episode.takeIf { isSeries }
+                ).collect { result ->
+                    if (result is com.nuvio.tv.core.network.NetworkResult.Success) {
+                        com.nuvio.tv.fork.sources.ReadyState.update(result.data)
+                        latest = result.data.flatMap { it.streams }
+                        TrackScout.onSources(c, type, videoId, latest)
+                    }
+                }
+                val identity = ContentIdentity.of(type, meta.name, meta.releaseInfo, season, episode, videoId)
+                val ranked = withContext(Dispatchers.Default) { KeRanking.orderForDetails(latest, identity) }
+                TrackScout.preparePlayback(c.applicationContext, type, videoId, ranked)
             }.logged("ForkEcho", "EchoSourcePreload.kt:61")
             android.util.Log.i("EchoPreload", "done $key in ${System.currentTimeMillis() - t0}ms")
         }

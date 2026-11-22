@@ -199,3 +199,17 @@ fun niuniaPortrait(item: com.nuvio.tv.domain.model.MetaPreview, pattern: String)
         else -> item.poster to item.rawPosterUrl
     }
 }
+
+
+/**
+ * Paczka „oczywiste” pkt 10 (21.11): pozycja z poziomą grafiką (posterShape ≠ POSTER) bez wzoru plakatów — prawdziwy pionowy
+ * plakat (Cinemeta/metahub po IMDb), zapas = oryginał; bez IMDb — oryginał (przycięty jak dawniej, z logiem).
+ */
+fun niuniaRealPoster(item: com.nuvio.tv.domain.model.MetaPreview): Pair<String?, String?> {
+    if (item.posterShape == com.nuvio.tv.domain.model.PosterShape.POSTER) return item.poster to item.rawPosterUrl
+    val imdb = (item.imdbId ?: item.id).takeIf { it.startsWith("tt") }?.substringBefore(':')
+    if (imdb == null) { if (posterLogged.add(item.id)) android.util.Log.i("ForkNiunia", "plakat pionowy ${item.id}: brak IMDb — grafika pozioma przycięta"); return item.poster to item.rawPosterUrl }
+    return "https://images.metahub.space/poster/medium/$imdb/img" to (item.rawPosterUrl ?: item.poster)
+}
+
+private val posterLogged = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()

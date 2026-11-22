@@ -1,10 +1,16 @@
 package com.nuvio.tv.fork.sources
 
+import android.content.Context
 import android.media.MediaExtractor
+import android.media.MediaCodecList
 import android.media.MediaFormat
 import android.util.Log
 import android.util.LruCache
 import com.nuvio.tv.domain.model.Stream
+import com.nuvio.tv.domain.model.ReleaseResolution
+import com.nuvio.tv.core.stream.ReleaseFactsParser
+import com.nuvio.tv.fork.dublagem.DubbingAudioTrack
+import com.nuvio.tv.fork.dublagem.PolishDubbing
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -27,7 +33,20 @@ import com.nuvio.tv.fork.logged
  * Tylko źródła gotowe (debrid w pamięci / bezpośrednie http), nigdy P2P.
  */
 object TrackScout {
-    data class Tracks(val audio: List<String>, val subs: List<String>) {
+    data class Video(val width: Int, val height: Int, val mime: String?, val hdr: Boolean?) {
+        val resolution: ReleaseResolution get() = verifiedVideoResolution(width, height)
+    }
+
+    data class Tracks(
+        val audio: List<String>,
+        val subs: List<String>,
+        val audioDetails: List<DubbingAudioTrack> = emptyList(),
+        val durationMs: Long? = null,
+        val frameRate: Float? = null,
+        val byteRanges: Boolean = false,
+        val video: Video? = null,
+        val hasVideoTrack: Boolean? = null,
+    ) {
         val hasPolishAudio get() = "pl" in audio
         val hasPolishSubs get() = "pl" in subs
     }
@@ -37,65 +56,205 @@ object TrackScout {
     private const val PARALLEL = 3
     private const val TIMEOUT_MS = 5_000L
     private const val HEAD_BYTES = 1024 * 1024
+    private const val PLAYBACK_PROBES = 8
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val gate = Semaphore(PARALLEL)
+    private val videoGate = Semaphore(2)
     private val cache = LruCache<String, Tracks>(128)
     private val inFlight = ConcurrentHashMap.newKeySet<String>()
+    private val completedVideoProbes = LruCache<String, Boolean>(128)
+    private val videoSupport = LruCache<Video, Boolean>(64)
+    private val decoders by lazy {
+        MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos.filterNot { it.isEncoder }
+    }
+    private val sourcesByTitle = LruCache<String, List<Stream>>(16)
+    private val polishAudioHint = Regex("""(?i)\b(?:pl|pol|polish|polski|lektor|dubbing)\b""")
+    private val highQualityAudioHint = Regex("""(?i)true[ ._-]?hd|flac|dts[ ._-]?(?:hd|x)|7[ .]1|5[ .]1|eac3|ddp""")
+    private val probedByTitle = LruCache<String, MutableSet<String>>(16)
+    private val possiblePolish = Regex("""(?i)\b(?:pl|pol|polish|polski|lektor|napisy|multi)\b""")
     private val client by lazy {
         OkHttpClient.Builder().connectTimeout(3, TimeUnit.SECONDS).readTimeout(4, TimeUnit.SECONDS)
             .callTimeout(TIMEOUT_MS, TimeUnit.MILLISECONDS).followRedirects(true).followSslRedirects(true).build()
     }
 
-    private fun key(s: Stream): String? = s.url?.takeIf { it.startsWith("http://", true) || it.startsWith("https://", true) }
+    private fun key(s: Stream): String? = s.getStreamUrl()?.takeIf {
+        !s.isTorrent() && (it.startsWith("http://", true) || it.startsWith("https://", true))
+    }
 
     /** Wynik sondy dla źródła; null = jeszcze nie sprawdzone / nie dało się odczytać. */
     fun of(s: Stream): Tracks? = key(s)?.let { cache.get(it) }
 
-    /** Hook ekranu źródeł (każda partia odpowiedzi dodatków): sonda najlepszych jeszcze niesprawdzonych. */
-    fun onSources(streams: List<Stream>) {
-        if (streams.isEmpty()) return
-        // Fork 19.11 (ANR na JMGO przy 917 źródłach): wołane z wątku głównego przy każdej partii — ranking w tle, raz na 0,5 s.
-        pending?.cancel()
-        pending = scope.launch { delay(500); pick(streams) }
-    }
-    @Volatile private var pending: kotlinx.coroutines.Job? = null
+    internal fun candidates(type: String, videoId: String): List<Stream> =
+        sourcesByTitle.get("$type|$videoId").orEmpty()
 
-    private fun pick(streams: List<Stream>) {
-        val picks = runCatching { KeRanking.order(streams) }.logged("ForkSources", "TrackScout.kt:64").getOrDefault(streams).asSequence()
-            .filter { !it.isTorrent() && SourceReady.tier(it) == 0 }
-            .mapNotNull { s -> key(s)?.let { k -> s to k } }
-            .filter { (_, k) -> cache.get(k) == null && k !in inFlight }
-            .take(TOP).toList()
-        for ((s, k) in picks) {
-            if (!inFlight.add(k)) continue
-            scope.launch {
-                try {
-                    gate.withPermit {
-                        val t = withTimeoutOrNull(TIMEOUT_MS) { probe(k, s.behaviorHints?.proxyHeaders?.request.orEmpty()) }
-                        if (t != null) {
-                            cache.put(k, t)
-                            Log.i(TAG, "${s.addonName} | audio=${t.audio} subs=${t.subs} | ${listOfNotNull(s.name, s.title).joinToString(" ").replace('\n', ' ').take(80)}")
-                        }
+    internal fun probing(stream: Stream): Boolean = key(stream)?.let(inFlight::contains) == true
+
+    /**
+     * The details screen starts these reads. Autoplay and recovery consume their
+     * results for the same URLs and can fill gaps when the viewer clicks early.
+     */
+    internal suspend fun preparePlayback(
+        context: Context,
+        type: String,
+        videoId: String,
+        ranked: List<Stream>,
+        waitMs: Long = 0L,
+    ): List<Stream> {
+        val candidates = ranked.asSequence().filter { SourceReady.tier(it) == 0 && ForeignDub.tier(it) == 0 }
+            .mapNotNull { stream -> key(stream)?.let { stream to it } }.distinctBy { it.second }.take(PLAYBACK_PROBES).toList()
+        for ((stream, url) in candidates) {
+            if (cache.get(url) == null && completedVideoProbes.get(url) == null) {
+                enqueue(context, type, videoId, stream, url, videoGate)
+            }
+        }
+        if (waitMs == 0L) return ranked
+        if (candidates.isNotEmpty() && !isVerifiedPlayback(ranked.firstOrNull())) {
+            withTimeoutOrNull(waitMs) {
+                while (candidates.none { isVerifiedPlayback(it.first) } && candidates.any { probing(it.first) }) delay(100L)
+            }
+        }
+        return verifiedPlaybackOrder(ranked)
+    }
+
+    internal fun isVerifiedPlayback(stream: Stream?): Boolean {
+        val info = stream?.let(::of) ?: return false
+        return info.video?.resolution?.let { it != ReleaseResolution.UNKNOWN } == true && info.durationMs != null
+    }
+
+    internal fun verifiedPlaybackOrder(ranked: List<Stream>): List<Stream> {
+        val eligible = ranked.filter { s ->
+            val info = of(s)
+            info?.hasVideoTrack != false && info?.video?.let(::supportsVideo) != false
+        }
+        val first = eligible.firstOrNull() ?: return emptyList()
+        val bucket = SourceReady.tier(first) to ForeignDub.tier(first)
+        val expected = videoResolution(first)
+        val top = eligible.asSequence()
+            .take(24)
+            .filter { (SourceReady.tier(it) to ForeignDub.tier(it)) == bucket &&
+                isVerifiedPlayback(it) && videoResolution(it).ordinal <= expected.ordinal }
+            .map { it to ReleaseFactsParser.factsFor(it) }
+            .minWithOrNull(compareBy<Pair<Stream, com.nuvio.tv.core.stream.ReleaseFacts>>(
+                { videoResolution(it.first).ordinal }, { it.second.qualityRank },
+                { if (of(it.first)?.video?.hdr == false) Int.MAX_VALUE else it.second.visualRank },
+                { of(it.first)?.hasPolishAudio != true },
+            ))?.first
+        if (top == null || top == first) return eligible
+        return listOf(top) + eligible.filterNot { it == top }
+    }
+
+    internal fun videoResolution(stream: Stream): ReleaseResolution =
+        of(stream)?.video?.resolution?.takeUnless { it == ReleaseResolution.UNKNOWN }
+            ?: ReleaseFactsParser.resolutionOf(stream)
+
+    private fun supportsVideo(video: Video): Boolean {
+        val mime = video.mime ?: return true // A container-only check can provide unknown codec.
+        videoSupport.get(video)?.let { return it }
+        val supported = runCatching {
+            decoders.any { decoder ->
+                decoder.supportedTypes.any { it.equals(mime, true) } &&
+                    decoder.getCapabilitiesForType(mime).videoCapabilities.isSizeSupported(video.width, video.height)
+            }
+        }.logged(TAG, "checking video decoder").getOrDefault(true)
+        videoSupport.put(video, supported)
+        return supported
+    }
+
+    /** The detail preload and the source picker share this bounded probe for the same title. */
+    @Synchronized
+    fun onSources(context: Context, type: String, videoId: String, streams: List<Stream>) {
+        if (streams.isEmpty() || (!EmbeddedSourceSubtitles.enabled(context) && !PolishDubbing.enabled(context))) return
+        val app = context.applicationContext
+        pending?.cancel()
+        pending = scope.launch { delay(250); pick(app, type, videoId, streams) }
+    }
+
+    private var pending: kotlinx.coroutines.Job? = null
+
+    private fun pick(context: Context, type: String, videoId: String, streams: List<Stream>) {
+        val available = streams.asSequence()
+            .filter { !it.isTorrent() && SourceReady.tier(it) == 0 && !Placeholders.isMarked(it.getStreamUrl()) }
+            .mapNotNull { stream -> key(stream)?.let { stream to it } }
+            .distinctBy { it.second }
+            .toList()
+        // Probe early results and a mix of resolutions likely to carry Polish tracks.
+        val languageCandidates = available.filter { (stream, _) ->
+            possiblePolish.containsMatchIn(listOfNotNull(stream.name, stream.title, stream.description).joinToString(" "))
+        }.groupBy { (stream, _) -> com.nuvio.tv.core.stream.ReleaseFactsParser.resolutionOf(stream) }
+        val dubbing = PolishDubbing.enabled(context)
+        val audioCandidates = if (dubbing) available.mapNotNull { item ->
+            val s = item.first
+            val text = listOfNotNull(s.behaviorHints?.filename, s.name, s.title, s.description).joinToString(" ")
+            if (polishAudioHint.containsMatchIn(text)) item to highQualityAudioHint.containsMatchIn(text) else null
+        }.sortedByDescending { it.second }.map { it.first }.take(TOP) else emptyList()
+        val picks = (audioCandidates + languageCandidates.values.map { it.first() } + available).distinctBy { it.second }
+        val titleKey = "$type|$videoId"
+        val probeLimit = if (dubbing) TOP * 3 else TOP * 2
+        val shortlist = picks.take(probeLimit)
+        if (dubbing) sourcesByTitle.put(titleKey, shortlist.map { it.first })
+        fun offerTrack(stream: Stream, tracks: Tracks) {
+            if (tracks.hasPolishSubs) EmbeddedSourceSubtitles.offer(context, type, videoId, stream)
+        }
+        fun allowProbe(url: String): Boolean = synchronized(probedByTitle) {
+            val tried = probedByTitle.get(titleKey) ?: mutableSetOf<String>().also { probedByTitle.put(titleKey, it) }
+            tried.size < probeLimit && tried.add(url)
+        }
+        for ((s, k) in shortlist) {
+            val cached = cache.get(k)
+            if (cached != null) {
+                offerTrack(s, cached)
+                continue
+            }
+            if (!probing(s) && allowProbe(k)) enqueue(context, type, videoId, s, k, gate)
+        }
+    }
+
+    private fun enqueue(context: Context, type: String, videoId: String, stream: Stream, url: String, permits: Semaphore) {
+        if (!inFlight.add(url)) return
+        scope.launch {
+            try {
+                permits.withPermit {
+                    if (cache.get(url) != null) return@withPermit
+                    val tracks = withTimeoutOrNull(TIMEOUT_MS) {
+                        probe(url, stream.behaviorHints?.proxyHeaders?.request.orEmpty())
                     }
-                } finally {
-                    inFlight.remove(k)
+                    if (permits === videoGate) completedVideoProbes.put(url, true)
+                    if (tracks != null) {
+                        cache.put(url, tracks)
+                        if (tracks.hasPolishSubs) EmbeddedSourceSubtitles.offer(context, type, videoId, stream)
+                        val v = tracks.video
+                        Log.i(TAG, "${stream.addonName} | audio=${tracks.audio} subs=${tracks.subs} " +
+                            "video=${v?.width}x${v?.height} codec=${v?.mime} hdr=${v?.hdr} | " +
+                            listOfNotNull(stream.name, stream.title).joinToString(" ").replace('\n', ' ').take(80))
+                    }
                 }
+            } finally {
+                inFlight.remove(url)
             }
         }
     }
 
     private fun probe(url: String, headers: Map<String, String>): Tracks? {
-        val head = range(url, headers, 0, HEAD_BYTES) ?: return null
-        if (head.size >= 4 && head[0] == 0x1A.toByte() && head[1] == 0x45.toByte() && head[2] == 0xDF.toByte() && head[3] == 0xA3.toByte()) {
-            return Mkv.tracks(head) { pos, len -> range(url, headers, pos, len) }
+        val response = range(url, headers, 0, HEAD_BYTES) ?: return null
+        val head = response.bytes
+        val tracks = if (head.size >= 4 && head[0] == 0x1A.toByte() && head[1] == 0x45.toByte() && head[2] == 0xDF.toByte() && head[3] == 0xA3.toByte()) {
+            Mkv.tracks(head) { pos, len -> range(url, headers, pos, len)?.bytes }
+        } else {
+            extractor(url, headers)
         }
-        return extractor(url, headers)
+        return tracks?.copy(byteRanges = response.partial)
     }
 
-    private fun range(url: String, headers: Map<String, String>, from: Long, len: Int): ByteArray? = runCatching {
-        val rb = Request.Builder().url(url).header("Range", "bytes=$from-${from + len - 1}")
-        headers.forEach { (k, v) -> rb.header(k, v) }
+    private data class RangeRead(val bytes: ByteArray, val partial: Boolean)
+
+    private fun range(url: String, headers: Map<String, String>, from: Long, len: Int): RangeRead? = runCatching {
+        val request = com.nuvio.tv.ui.screens.player.PlayerMediaSourceFactory.normalizePlaybackRequest(
+            url, com.nuvio.tv.ui.screens.player.PlayerMediaSourceFactory.sanitizeHeaders(headers)
+        )
+        val rb = Request.Builder().url(request.url)
+        request.headers.forEach { (k, v) -> if (!k.equals("Range", ignoreCase = true)) rb.header(k, v) }
+        rb.header("Range", "bytes=$from-${from + len - 1}")
         client.newCall(rb.build()).execute().use { r ->
             if (!r.isSuccessful) return@use null
             if (r.code == 200 && from > 0) return@use null // serwer bez Range: nie pobieramy całego pliku
@@ -107,7 +266,7 @@ object TrackScout {
                 if (n <= 0) break
                 out.write(buf, 0, n)
             }
-            out.toByteArray()
+            RangeRead(out.toByteArray(), r.code == 206)
         }
     }.logged("ForkSources", "TrackScout.kt:95").getOrNull()
 
@@ -115,21 +274,63 @@ object TrackScout {
         val ex = MediaExtractor()
         return try {
             ex.setDataSource(url, headers)
-            val audio = ArrayList<String>(); val subs = ArrayList<String>()
+            val audio = ArrayList<DubbingAudioTrack>()
+            val subs = ArrayList<String>()
+            var durationMs: Long? = null
+            var frameRate: Float? = null
+            var video: Video? = null
+            var hasVideo = false
             for (i in 0 until ex.trackCount) {
                 val f = ex.getTrackFormat(i)
                 val mime = f.getString(MediaFormat.KEY_MIME).orEmpty()
+                if (f.containsKey(MediaFormat.KEY_DURATION)) {
+                    val trackDuration = f.getLong(MediaFormat.KEY_DURATION) / 1_000L
+                    if (trackDuration > 0) durationMs = maxOf(durationMs ?: 0L, trackDuration)
+                }
                 val lang = lang(f.getString(MediaFormat.KEY_LANGUAGE))
-                if (mime.startsWith("audio/")) audio += lang
-                else if (mime.startsWith("text/") || mime.startsWith("application/x-subrip") || mime.contains("ttml") || mime.contains("vtt")) subs += lang
+                when {
+                    mime.startsWith("audio/") -> audio += DubbingAudioTrack(
+                        audio.size, lang, mime, f.optionalInt(MediaFormat.KEY_CHANNEL_COUNT),
+                        f.optionalInt(MediaFormat.KEY_BIT_RATE), f.optionalInt(MediaFormat.KEY_SAMPLE_RATE),
+                        f.getString("title"),
+                    )
+                    mime.startsWith("video/") -> {
+                        hasVideo = true
+                        frameRate = f.optionalFrameRate()
+                        val height = f.optionalInt(MediaFormat.KEY_HEIGHT)
+                        val width = f.optionalInt(MediaFormat.KEY_WIDTH)
+                        val transfer = f.optionalInt(MediaFormat.KEY_COLOR_TRANSFER)
+                        val hdr = when (transfer) {
+                            MediaFormat.COLOR_TRANSFER_ST2084, MediaFormat.COLOR_TRANSFER_HLG -> true
+                            MediaFormat.COLOR_TRANSFER_SDR_VIDEO -> false
+                            else -> null
+                        }
+                        if (video == null && width > 0 && height > 0) video = Video(width, height, mime, hdr)
+                    }
+                    mime.startsWith("text/") || mime.startsWith("application/x-subrip") ||
+                        mime.contains("ttml") || mime.contains("vtt") -> subs += lang
+                }
             }
-            Tracks(audio.distinct(), subs.distinct()).takeIf { ex.trackCount > 0 }
+            Tracks(audio.map { it.language }.distinct(), subs.distinct(), audio, durationMs, frameRate,
+                video = video, hasVideoTrack = hasVideo).takeIf { ex.trackCount > 0 }
         } catch (e: Throwable) {
             android.util.Log.w("ForkSources", "TrackScout: ${e.javaClass.simpleName}: ${e.message?.take(200)}")
             null
         } finally {
             runCatching { ex.release() }.logged("ForkSources", "TrackScout.kt:129")
         }
+    }
+
+    private fun MediaFormat.optionalInt(key: String): Int = if (containsKey(key)) getInteger(key) else 0
+
+    private fun MediaFormat.optionalFrameRate(): Float? {
+        if (!containsKey(MediaFormat.KEY_FRAME_RATE)) return null
+        val value = try {
+            getFloat(MediaFormat.KEY_FRAME_RATE)
+        } catch (_: ClassCastException) {
+            getInteger(MediaFormat.KEY_FRAME_RATE).toFloat()
+        }
+        return value.takeIf { it.isFinite() && it > 0 }
     }
 
     private val ISO3 = mapOf(
@@ -156,10 +357,26 @@ object TrackScout {
         private const val SEEK_POS = 0x53ACL
         private const val TRACKS = 0x1654AE6BL
         private const val CLUSTER = 0x1F43B675L
+        private const val INFO = 0x1549A966L
+        private const val TIMESTAMP_SCALE = 0x2AD7B1L
+        private const val DURATION = 0x4489L
         private const val ENTRY = 0xAEL
         private const val TYPE = 0x83L
         private const val LANG = 0x22B59CL
         private const val IETF = 0x22B59DL
+        private const val CODEC = 0x86L
+        private const val NAME = 0x536EL
+        private const val DEFAULT_DURATION = 0x23E383L
+        private const val AUDIO = 0xE1L
+        private const val VIDEO = 0xE0L
+        private const val PIXEL_WIDTH = 0xB0L
+        private const val PIXEL_HEIGHT = 0xBAL
+        private const val COLOUR = 0x55B0L
+        private const val TRANSFER = 0x55BAL
+        private const val CHANNELS = 0x9FL
+        private const val SAMPLE_RATE = 0xB5L
+        private const val FLAG_VISUAL_IMPAIRED = 0x55ACL
+        private const val FLAG_COMMENTARY = 0x55AFL
 
         private class El(val id: Long, val dataStart: Int, val size: Long) { val end get() = dataStart + size }
 
@@ -191,22 +408,28 @@ object TrackScout {
             val segStart = seg.dataStart
             var p = segStart
             var tracksPos: Long? = null
+            var durationMs: Long? = null
+            var trackElement: El? = null
             while (p < head.size) {
                 val e = el(head, p) ?: break
-                when (e.id) {
-                    TRACKS -> return if (e.end <= head.size) parse(head, e) else fetch(p.toLong(), (e.end - p).toInt().coerceAtMost(4 * 1024 * 1024))?.let { b -> el(b, 0)?.let { parse(b, it) } }
-                    SEEK_HEAD -> if (e.end <= head.size) tracksPos = seekTracks(head, e)
-                    CLUSTER -> break
+                if (e.id == CLUSTER || e.size < 0) break
+                if (e.end > head.size) {
+                    if (e.id == TRACKS) tracksPos = (p - segStart).toLong()
+                    break
                 }
-                if (e.size < 0) break
+                when (e.id) {
+                    INFO -> durationMs = duration(head, e)
+                    TRACKS -> trackElement = e
+                    SEEK_HEAD -> tracksPos = seekTracks(head, e)
+                }
+                if (trackElement != null && durationMs != null) break
                 p = e.end.toInt()
             }
+            trackElement?.let { return parse(head, it, durationMs) }
             val pos = tracksPos ?: return null
-            val at = segStart + pos
-            val b = fetch(at, 512 * 1024) ?: return null
-            val t = el(b, 0)?.takeIf { it.id == TRACKS } ?: return null
-            if (t.end > b.size) return null
-            return parse(b, t)
+            val b = fetch(segStart + pos, 512 * 1024) ?: return null
+            val t = el(b, 0)?.takeIf { it.id == TRACKS && it.size >= 0 && it.end <= b.size } ?: return null
+            return parse(b, t, durationMs)
         }
 
         private fun seekTracks(b: ByteArray, sh: El): Long? {
@@ -227,24 +450,122 @@ object TrackScout {
             return null
         }
 
-        private fun parse(b: ByteArray, tracks: El): Tracks {
-            val audio = ArrayList<String>(); val subs = ArrayList<String>()
-            var p = tracks.dataStart
-            while (p < tracks.end && p < b.size) {
-                val e = el(b, p) ?: break
-                if (e.id == ENTRY && e.end <= b.size) {
-                    var q = e.dataStart; var type = 0L; var lang = "eng"; var ietf: String? = null // Matroska: brak Language = „eng”
-                    while (q < e.end) {
-                        val c = el(b, q) ?: break
-                        when (c.id) { TYPE -> type = uint(b, c); LANG -> lang = str(b, c); IETF -> ietf = str(b, c) }
-                        q = c.end.toInt()
-                    }
-                    val l = lang(ietf ?: lang)
-                    if (type == 2L) audio += l else if (type == 17L) subs += l
-                }
-                p = e.end.toInt()
+        private inline fun children(b: ByteArray, parent: El, read: (El) -> Unit) {
+            var position = parent.dataStart
+            while (position < parent.end) {
+                val child = el(b, position) ?: break
+                if (child.size < 0 || child.end > parent.end || child.end > b.size) break
+                read(child)
+                position = child.end.toInt()
             }
-            return Tracks(audio.distinct(), subs.distinct())
+        }
+
+        private fun decimal(b: ByteArray, e: El): Double? = when (e.size) {
+            4L -> Float.fromBits(uint(b, e).toInt()).toDouble()
+            8L -> Double.fromBits(uint(b, e))
+            else -> null
+        }?.takeIf { it.isFinite() && it > 0.0 }
+
+        private fun duration(b: ByteArray, info: El): Long? {
+            var scale = 1_000_000L
+            var ticks: Double? = null
+            children(b, info) { child ->
+                when (child.id) {
+                    TIMESTAMP_SCALE -> scale = uint(b, child)
+                    DURATION -> ticks = decimal(b, child)
+                }
+            }
+            return ticks?.let { (it * scale / 1_000_000.0).toLong() }?.takeIf { it > 0 }
+        }
+
+        private fun parse(b: ByteArray, tracks: El, durationMs: Long?): Tracks {
+            val audio = ArrayList<DubbingAudioTrack>()
+            val subs = ArrayList<String>()
+            var frameRate: Float? = null
+            var video: Video? = null
+            var hasVideo = false
+            children(b, tracks) { entry ->
+                if (entry.id != ENTRY) return@children
+                var type = 0L
+                var legacyLang = "eng" // Default for Language in Matroska.
+                var ietf: String? = null
+                var codec: String? = null
+                var label: String? = null
+                var sampleRate = 0
+                var channels = 1
+                var frameDuration = 0L
+                var auxiliary = false
+                var width = 0
+                var height = 0
+                var hdr: Boolean? = null
+                children(b, entry) { field ->
+                    when (field.id) {
+                        TYPE -> type = uint(b, field)
+                        LANG -> legacyLang = str(b, field)
+                        IETF -> ietf = str(b, field)
+                        CODEC -> codec = str(b, field)
+                        NAME -> label = str(b, field)
+                        DEFAULT_DURATION -> frameDuration = uint(b, field)
+                        FLAG_VISUAL_IMPAIRED, FLAG_COMMENTARY -> auxiliary = auxiliary || uint(b, field) != 0L
+                        VIDEO -> children(b, field) { videoField ->
+                            when (videoField.id) {
+                                PIXEL_WIDTH -> width = uint(b, videoField).toInt()
+                                PIXEL_HEIGHT -> height = uint(b, videoField).toInt()
+                                COLOUR -> children(b, videoField) { colour ->
+                                    if (colour.id == TRANSFER) hdr = when (uint(b, colour)) {
+                                        16L, 18L -> true
+                                        1L, 6L, 13L -> false
+                                        else -> null
+                                    }
+                                }
+                            }
+                        }
+                        AUDIO -> children(b, field) { audioField ->
+                            when (audioField.id) {
+                                CHANNELS -> channels = uint(b, audioField).toInt()
+                                SAMPLE_RATE -> sampleRate = decimal(b, audioField)?.toInt() ?: 0
+                            }
+                        }
+                    }
+                }
+                val language = lang(ietf ?: legacyLang)
+                when (type) {
+                    1L -> {
+                        hasVideo = true
+                        if (frameDuration > 0 && frameRate == null) frameRate = 1_000_000_000f / frameDuration
+                        if (video == null && width > 0 && height > 0) video = Video(width, height, videoMime(codec), hdr)
+                    }
+                    2L -> audio += DubbingAudioTrack(
+                        audio.size, language, DubbingAudioTrack.matroskaMime(codec), channels,
+                        sampleRate = sampleRate, label = label, auxiliary = auxiliary,
+                    )
+                    17L -> subs += language
+                }
+            }
+            return Tracks(audio.map { it.language }.distinct(), subs.distinct(), audio, durationMs, frameRate,
+                video = video, hasVideoTrack = hasVideo)
+        }
+
+        private fun videoMime(codec: String?): String? = when (codec) {
+            "V_MPEGH/ISO/HEVC" -> "video/hevc"
+            "V_MPEG4/ISO/AVC" -> "video/avc"
+            "V_AV1" -> "video/av01"
+            "V_VP9" -> "video/x-vnd.on2.vp9"
+            "V_VP8" -> "video/x-vnd.on2.vp8"
+            "V_MPEG2" -> "video/mpeg2"
+            else -> null
         }
     }
+}
+
+/** Letterboxed releases commonly keep the full width and crop vertical bars. */
+internal fun verifiedVideoResolution(width: Int, height: Int): ReleaseResolution = when {
+    width >= 3520 || height >= 2000 -> ReleaseResolution.P2160
+    width >= 2400 || height >= 1320 -> ReleaseResolution.P1440
+    width >= 1824 || height >= 1000 -> ReleaseResolution.P1080
+    width >= 1200 || height >= 700 -> ReleaseResolution.P720
+    height >= 550 -> ReleaseResolution.P576
+    height >= 440 -> ReleaseResolution.P480
+    height >= 320 -> ReleaseResolution.P360
+    else -> ReleaseResolution.UNKNOWN
 }

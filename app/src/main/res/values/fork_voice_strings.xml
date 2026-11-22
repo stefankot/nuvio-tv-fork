@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="fork_key_service_description">Pozwala przyciskowi głosowemu na pilocie uruchomić sterowanie głosem w Nuvio. Usługa nie czyta niczego z ekranu.</string>
+    <!-- Paczka „oczywiste” pkt 12: wejście do sterowania głosem w wyszukiwarce Niuni -->
+    <string name="voice_button">Powiedz</string>
+    <string name="voice_button_description">Sterowanie głosem: powiedz, co włączyć</string>
 </resources>

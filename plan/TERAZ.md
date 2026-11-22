@@ -40,6 +40,28 @@ Niesprawdzone na TV (DO_SPRAWDZENIA_NA_TV.md): lektor (ściszanie pasmowe, Opus,
 **22.11 po teście — właściciel: „Tak, włącz” rozmycie na Androidzie 11**: gotowe rozmycia hero i plakatów Niuni także na Androidzie 11 (procesorem, raz na obraz, pamięć Coil); ZASADY §2 z wyjątkiem. Commit BEZ BUILDA → paczka do następnego buildu: sonda archiwum (598c92946) + rozmycie na Androidzie 11 + Opus lektora 16 kb/s (właściciel 22.11). Sprawdzić na JMGO: log `ForkImages: rozmycie gotowe raz (procesor) … ms`, płynność przewijania rzędów plakatów i ▼ z hero (czy nie ma przycięć).
 **Następne kroki**: (1) przy następnej dużej paczce zbudować z 598c92946 i sprawdzić log `ForkCatchup` (TV Team: ile dni naprawdę); (2) decyzje właściciela w BLOKADY: źródło nagród Z-13, catch-up > 7 dni (baza Reshaped), klucz Fanart.tv, wspólny Dysk rodziny; (3) rozmycie na Androidzie 11 — decyzja zapadła (tak), kod gotowy, czeka na build.
 
+## Polski dźwięk z innego wydania na JMGO (21.11)
+
+APK ARM32 z `21087fcbc` jest na projektorze. Zawiera poprawkę Auto Quality i automatyczny dobór audio oparty na Dublagem. Próby ExoPlayer na JMGO potwierdziły 4K z polskim AC3 5.1, korektę +600 ms, przewijanie, odrzucenie złego dopasowania i powrót do oryginalnego audio po utracie pliku. [Opis zmian, testów i przypięcia upstreamu](autoplay/POLSKI_DZWIEK_DUBLAGEM.md).
+
+## Jakość po włączeniu lektora na JMGO (21.11)
+
+APK ARM32 z poprawką `ff8a3906a` przetestowany na projektorze. 4K pozostało po krótkich przerwach i przewinięciu. Długi zastój dał wznowienie w 1080p od 17,831 s. [Pomiary i opis](autoplay/AUTOJAKOSC_PO_LEKTORZE.md).
+
+## Autoodtwarzanie na JMGO (21.11, po buildzie 162o)
+
+Na JMGO jest APK ARM32 z poprawką autoodtwarzania i napisów (`25b549162`, scalenie `2f6fab0a1`, MD5 `7e3a155cc2304eba31be558fe8ec9049`). Na fizycznym projektorze sprawdzono zmianę źródła przy braku obrazu, wznowienie po awarii HLS, wyczerpanie prób i użycie polskich napisów z innego wydania. [Opis zmian i pomiary](autoplay/AUTOODTWARZANIE_I_NAPISY.md). Kolejka paczki poniżej pozostaje w historii wątku.
+
+## NAJPIERW (paczka „oczywiste” 1–12, zapis 21.11 ~15:30) — po „kontynuuj” rób to, po kolei, bez pytań
+Gałąź `claude/paczka-oczywiste` (worktree `NuvioFork/.claude/worktrees/paczka-oczywiste`, od `claude/nuvio-tv-handoff-batch-1-4537d7` + scalone bea47e881). Opis zmian: `plan/DECYZJE.md` (21.11 Paczka „oczywiste”). check.sh OK (63).
+**build162o NA JMGO** (21.11 ~15:45; = 161o + `fork/sources/Placeholders`: klip „not cached yet” < 80 MB / < 3 min przegrywa wyścig i spada na koniec kolejności; zgłoszenie Godzilla Minus Zero / Godzilla II; md5 d631729857fd543193a031ce657af073 zgodny, `compile -m speed`). TEST: Godzilla II i Minus Zero — log `ForkSources: klip zastępczy …`, `klipy zastępcze na koniec`, `AutoPlayRace: lost … placeholder`. Uwaga: 4K REMUX 57 GB przy 7,7 MB/s nie nadąża (osobna sprawa).
+Wcześniej: build161o (v7a, z worktree paczki, commit 82eeaa75d; BUILD SUCCESSFUL 16 min — pierwszy build w nowym katalogu, swap prawie pełny; md5 b12c8098159cb5ad2e962b98af8a2e48 zgodny po `adb pull`, `compile -m speed`). NIC jeszcze nie przetestowane na TV.
+KOLEJKA:
+1. Test każdego punktu na JMGO wg `plan/DO_SPRAWDZENIA_NA_TV.md` sekcja „Paczka »oczywiste«” (uiautomator, `source fork-tools/niunia/walk.sh`, fokus na celu; ostrożnie — ktoś może oglądać). Logi: `ForkNiunia`, `ForkTv`, `ForkSubs`, `ForkLektor`, `ForkVoice`, `ForkAiSubtitles`.
+2. Pkt 1 — przyczyna „24 h” ustalona z kodu (nakładka filmowa Niuni brała długość strumienia panelu; komentarz Kicii „24 h ahead live, the archive's whole recording”), NIE potwierdzona na TV. Jeśli 24 h nadal widać — sprawdzić, która nakładka je pokazuje (Kicia MiniGuide? baza?).
+3. Pkt 8 (słuchowo) i 12 (mowa) — tylko właściciel; pkt 7 wymaga filmu „Beverly Hills Chihuahua” z włoskimi napisami.
+4. Błędy → poprawki w paczce → jeden build; potem scalić gałąź z gałęzią aktywnego wątku (bez `main`).
+
 ## NIUNIA — DESIGN SYSTEM v2, PACZKA 1 (wątek 20.11 wieczór, HANDOFF `~/Desktop/nuvio-tv-interface/HANDOFF-niunia.md`)
 Gałąź robocza `claude/nuvio-tv-handoff-batch-1-4537d7` (worktree `.claude/worktrees/…`, od `skin-niunia` 3871a001b). Build z `NuvioFork-build` (odłączony HEAD na commicie paczki).
 Zrobione: generator tokenów `fork-tools/niunia/gen_tokens.py` → `skin/niunia/tokens/NiuniaDesignTokens.kt` + `NiuniaIconPaths.kt` (33 ikony z bundle) + kopia JSON do testów; komponenty `components/Niunia{Atoms,Buttons,Molecules,Organisms,Models}.kt` (NSurface/NText/NIcon/NMedia/NIndicator/NControl, NButton/NTag/NListRow/NMediaCard/NContentBlock, NCollection/NHero/NNavigation tab-pill+sidebar/NOverlay panel/NInput seek; OK/długie OK 520 ms/wciśnięcie 0,97 w `niuniaOk`); mapy fokusu `NiuniaScreens` (czysty Kotlin); ekrany: Główna (hero wg Main + wystający rząd, rzędy wg HomeRows), menu (Sidebar), strona serialu/filmu (hero wg Detail), odtwarzacz (Player + panel). Testy `NiuniaTokensTest`, `NiuniaDsTest`. Decyzje: `plan/DECYZJE.md` (20.11 design system v2).

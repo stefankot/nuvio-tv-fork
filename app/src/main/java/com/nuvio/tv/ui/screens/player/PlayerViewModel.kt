@@ -162,6 +162,7 @@ class PlayerViewModel @Inject constructor(
 
     init {
         controller.bindParty()
+        com.nuvio.tv.fork.sources.EmbeddedSourceSubtitles.observe(controller) // Fork hook: cached embedded subtitles
     }
 
     val party: com.nuvio.tv.core.party.PartyRepository

@@ -72,15 +72,19 @@ internal fun NiuniaLiveTileCard(
         ) {
             if (p == null) {
                 Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                    if (logo != null) AsyncImage(model = logo, contentDescription = null, contentScale = ContentScale.Fit, modifier = Modifier.size(64.dp, 44.dp))
+                    if (logo != null) NiuniaChannelLogo(tile.channel, Modifier.size(64.dp, 44.dp))
                     Text(tile.channel.name, style = NiuniaText.Meta.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold), color = NiuniaColors.Text,
                         maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp))
                 }
                 NiuniaStatusDot(live = true)
                 return@Box
             }
-            if (image != null) AsyncImage(model = image, contentDescription = p.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
-            else if (logo != null) AsyncImage(model = logo, contentDescription = tile.channel.name, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize().padding(start = 36.dp, end = 36.dp, top = 18.dp, bottom = 40.dp))
+            // Paczka „oczywiste” pkt 5: obraz programu, a gdy go nie ma albo się nie wczyta — logo kanału, a na końcu jego nazwa.
+            var imageFailed by remember(image) { mutableStateOf(false) }
+            if (image != null && !imageFailed) AsyncImage(model = image, contentDescription = p.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize(),
+                onError = { st -> imageFailed = true; android.util.Log.w("ForkNiunia", "obraz programu „${p.title}”: ${st.result.throwable.javaClass.simpleName}: ${st.result.throwable.message}") })
+            else NiuniaChannelLogo(tile.channel, Modifier.fillMaxSize().padding(start = 36.dp, end = 36.dp, top = 18.dp, bottom = 40.dp),
+                nameStyle = NiuniaText.Logo.copy(fontSize = 22.sp, lineHeight = 26.sp))
             val dot = when (tile.mark) { NiuniaTileMark.LIVE -> true; NiuniaTileMark.ARCHIVE, NiuniaTileMark.RESUME -> false; else -> null }
             if (dot != null) NiuniaStatusDot(live = dot)
             val badge = when (tile.mark) {

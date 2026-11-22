@@ -20,7 +20,11 @@ object AiOffer {
     val ask = MutableStateFlow<Ask?>(null)
     private var askedFor: String? = null
 
-    fun offer(forLektor: Boolean) { ask.value = Ask(forLektor) }
+    fun offer(forLektor: Boolean) {
+        // Paczka „oczywiste” pkt 3: nigdy dla IPTV (także prośba lektora).
+        if (com.nuvio.tv.reshaped.livetv.LiveTvPlaybackRegistry.isLiveTv(PlayerBridge.current()?.currentStreamUrl)) { android.util.Log.i("ForkAiSubtitles", "okno napisów AI: pominięte (IPTV, lektor=$forLektor)"); return }
+        ask.value = Ask(forLektor)
+    }
 
     private fun isPl(lang: String?) = lang?.let { AuxiliaryLanguagePolicy.primaryLanguage(it) == "pl" } == true
 
@@ -29,6 +33,8 @@ object AiOffer {
         val s = PlayerBridge.current() ?: return false
         val key = s.currentVideoId ?: s.currentStreamUrl ?: return false
         if (askedFor == key || ask.value != null || AiSubtitles.running) return false
+        // Paczka „oczywiste” pkt 3: kanały IPTV (na żywo i archiwum) bez okna napisów.
+        if (com.nuvio.tv.reshaped.livetv.LiveTvPlaybackRegistry.isLiveTv(s.currentStreamUrl)) { askedFor = key; android.util.Log.i("ForkAiSubtitles", "okno napisów AI: pominięte (IPTV)"); return false }
         if (!s.isPlaying || s.isLoadingAddonSubtitles) return false
         if (s.addonSubtitles.any { isPl(it.lang) } || s.subtitleTracks.any { isPl(it.language) }) { askedFor = key; return false }
         if (s.addonSubtitles.isEmpty() && s.subtitleTracks.isEmpty()) return false // jeszcze nic nie wiadomo (albo film bez żadnych napisów: AI i tak nie ma źródła)

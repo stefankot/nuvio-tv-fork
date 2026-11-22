@@ -19,21 +19,27 @@ object LektorSources {
             val yt = com.nuvio.tv.fork.yt.YouTubeTextSource.polishCues(url).map { SubtitleCue(it.startTimeMs, it.endTimeMs, it.text) }
             return Source("napisy YouTube (PL)", false) { yt }
         }
+        // Pkt 7 (21.11): wbudowane polskie przed dodatkami (ZASADY §7) i lektor czyta TYLKO jedną, wybraną polską ścieżkę.
+        val controller = AiSubtitles.controller()
+        if (controller != null) {
+            val pl = LiveEmbeddedTranslation.polishEmbedded(controller)
+            if (pl.size >= 3) {
+                android.util.Log.i("ForkLektor", "źródło: polskie napisy wbudowane (${pl.size} kwestii)")
+                return Source("polskie napisy wbudowane", true) { LiveEmbeddedTranslation.polishEmbedded(controller).map { SubtitleCue(it.startMs, it.endMs, it.text) } }
+            }
+        }
         if (PlayerBridge.hasPolishAddonSubtitle()) {
             var tries = 0
             while (PlayerBridge.cues().isEmpty() && tries++ < 20) delay(500)
             // Fork 19.11 (build118: „lektor mówi kwestie za wcześnie o minutę”): kwestie brane raz przy starcie, bez późniejszego
             // przesunięcia AutoSync. Teraz te same, które są na ekranie (sidecar, po AutoSync), czytane na bieżąco (growing).
             if (PlayerBridge.cues().isNotEmpty()) return Source("napisy PL z dodatku", true) {
-                val shown = AiSubtitles.controller()?.sidecarTimedCues?.takeIf { it.isNotEmpty() }
+                // Pkt 7: kwestie z ekranu tylko, gdy na ekranie są polskie napisy — przy włoskich lektor czytał na zmianę PL/IT.
+                val plShown = com.nuvio.tv.fork.subs.PolishFirst.isPl(PlayerBridge.current()?.selectedAddonSubtitle?.lang)
+                val shown = AiSubtitles.controller()?.sidecarTimedCues?.takeIf { plShown && it.isNotEmpty() }
                 shown?.let { com.nuvio.tv.fork.ai.subtitles.ExoPlayerPort.toDocCues(it).map { c -> SubtitleCue(c.startMs, c.endMs, c.text) } }
                     ?: PlayerBridge.cues().map { SubtitleCue(it.startTimeMs, it.endTimeMs, it.text) }
             }
-        }
-        val controller = AiSubtitles.controller()
-        if (controller != null) {
-            val pl = LiveEmbeddedTranslation.polishEmbedded(controller)
-            if (pl.size >= 3) return Source("polskie napisy wbudowane", true) { LiveEmbeddedTranslation.polishEmbedded(controller).map { SubtitleCue(it.startMs, it.endMs, it.text) } }
         }
         if (AiSubtitles.polishCues().isEmpty() && !AiSubtitles.running) {
             // Właściciel 19.11: AI tylko na prośbę — okno „napisy AI?”; po „Tak” lektor rusza ponownie.

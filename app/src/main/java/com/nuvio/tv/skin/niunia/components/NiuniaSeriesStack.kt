@@ -31,17 +31,18 @@ import com.nuvio.tv.skin.niunia.tokens.NiuniaDims
 fun NiuniaSeriesStack(series: Boolean, image: String?, w: Dp, h: Dp, content: @Composable () -> Unit) {
     if (!series) { content(); return }
     Box(Modifier.size(w, h)) {
-        Layer(image, w, w - 32.dp, h, y = 10.dp, dim = 0.38f, rotate = true)
-        Layer(image, w, w - 16.dp, h, y = 5.dp, dim = 0.55f, rotate = false)
+        // Paczka „oczywiste” pkt 11 (21.11): karty pod spodem coraz bardziej przezroczyste (bliższa 60 %, dalsza 30 %).
+        Layer(image, w, w - 32.dp, h, y = 10.dp, dim = 0.38f, rotate = true, alpha = 0.30f)
+        Layer(image, w, w - 16.dp, h, y = 5.dp, dim = 0.55f, rotate = false, alpha = 0.60f)
         content()
     }
 }
 
 @Composable
-private fun Layer(image: String?, outer: Dp, w: Dp, h: Dp, y: Dp, dim: Float, rotate: Boolean) {
+private fun Layer(image: String?, outer: Dp, w: Dp, h: Dp, y: Dp, dim: Float, rotate: Boolean, alpha: Float = 1f) {
     val shape = RoundedCornerShape(NiuniaDims.RadiusCard)
     BoxWithConstraints(
-        Modifier.padding(start = (outer - w) / 2).offset(y = y).size(w, h).clip(shape).background(NiuniaColors.Surface),
+        Modifier.padding(start = (outer - w) / 2).offset(y = y).size(w, h).graphicsLayer { this.alpha = alpha }.clip(shape).background(NiuniaColors.Surface),
         contentAlignment = Alignment.Center,
     ) {
         if (image != null) {

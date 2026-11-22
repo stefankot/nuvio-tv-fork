@@ -96,6 +96,7 @@ object StartupChecks {
                 if (judgeDuration(timeline.duration.takeIf { seekable }, expectedSec, episode, edition) == DurationVerdict.WRONG) {
                     if (!sanity.onWrong(com.nuvio.tv.fork.sources.kicia.badSourceKey(source), timeline.duration)) {
                         wrongDuration += source
+                        if (timeline.duration < 180_000L) Placeholders.mark(source.getStreamUrl(), "długość ${timeline.duration / 1000} s") // klip „not cached yet”
                         return bad(BadReason.WRONG_DURATION, "duration file=${timeline.duration} expected_s=$expectedSec")
                     }
                     // Dwa zgodne pliki: to opis tytułu jest zły, nie pliki.

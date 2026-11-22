@@ -21,6 +21,7 @@ internal class MkvSubtitleText private constructor(
     private val segmentStart: Long,
     private val scaleNs: Long,
     val tracks: List<Track>,
+    val durationMs: Long?,
 ) {
     data class Track(
         val number: Int, val codec: String, val language: String?, val name: String?, val forced: Boolean,
@@ -161,7 +162,21 @@ internal class MkvSubtitleText private constructor(
             }
             val info = element(0x1549A966L, 1 shl 20)
             var scale = 1_000_000L
-            info?.let { forEachChild(it, 0, it.size) { id, s, e -> if (id == 0x2AD7B1L) scale = readUInt(it, s, e - s) ?: scale } }
+            var durationTicks: Double? = null
+            info?.let {
+                forEachChild(it, 0, it.size) { id, start, end ->
+                    when (id) {
+                        0x2AD7B1L -> scale = readUInt(it, start, end - start) ?: scale
+                        0x4489L -> durationTicks = when (end - start) {
+                            4 -> readUInt(it, start, 4)?.toInt()?.let { bits -> Float.fromBits(bits).toDouble() }
+                            8 -> readUInt(it, start, 8)?.let { bits -> Double.fromBits(bits) }
+                            else -> null
+                        }
+                    }
+                }
+            }
+            val durationMs = durationTicks?.let { it * scale / 1_000_000.0 }
+                ?.takeIf { it.isFinite() && it > 0.0 }?.toLong()
             val tracksEl = element(0x1654AE6BL, 4 shl 20) ?: run { Log.i(TAG, "brak Tracks"); return null }
             val subs = parseTracks(tracksEl)
             if (subs.isEmpty()) { Log.i(TAG, "brak ścieżek napisów tekstowych w MKV"); return null }
@@ -172,7 +187,7 @@ internal class MkvSubtitleText private constructor(
             Log.i(TAG, "indeks MKV w ${System.currentTimeMillis() - t0} ms: " +
                 tracks.joinToString { "#${it.number} ${it.lang2 ?: "?"} ${it.codec} ${it.cues.size} kwestii${if (it.forced) " wymuszone" else ""}" }.ifEmpty { "brak pozycji bloków napisów (CueRelativePosition)" })
             if (tracks.isEmpty()) return null
-            return MkvSubtitleText(url, headers, segStart, scale, tracks)
+            return MkvSubtitleText(url, headers, segStart, scale, tracks, durationMs)
         }
 
         private fun parseSeekHead(b: ByteArray, out: MutableMap<Long, Long>) = forEachChild(b, 0, b.size) { id, s, e ->

@@ -1207,6 +1207,7 @@ internal fun PlayerRuntimeController.initializePlayer(
                         reason: Int
                     ) {
                         if (isReleasingPlayer || reason != Player.DISCONTINUITY_REASON_SEEK) return
+                        ignoreLocalBuffering("seek", graceMs = 4_000L) // Fork hook: seek is not a network stall
                         // Holding the seek button emits a discontinuity per step, and reading the
                         // span set on each one is real work on a cache holding thousands of spans.
                         val seekedToMs = newPosition.positionMs
@@ -1235,6 +1236,7 @@ internal fun PlayerRuntimeController.initializePlayer(
                         )
                         if (playbackState == Player.STATE_READY) {
                             mediaSourceFactory.unlockStartupPrefetch()
+                            com.nuvio.tv.fork.dublagem.PolishDubbing.onReady(this@initializePlayer) // Fork hook: Dublagem ochrona przy braku ścieżki
                         }
                         val playerDuration = duration
                         if (playerDuration > lastKnownDuration) { lastKnownDuration = playerDuration }
@@ -1457,6 +1459,7 @@ internal fun PlayerRuntimeController.initializePlayer(
                     }
 
                     override fun onIsPlayingChanged(isPlaying: Boolean) {
+                        if (isPlaying) com.nuvio.tv.fork.dublagem.PolishDubbing.onPlaying(this@initializePlayer) // Fork hook: Dublagem dobór audio po starcie
                         playbackSpeedAwareAudioSink?.setPlaybackActive(isPlaying) // Nuvio RS hook: Arc formats
                         logScrobbleDiagnostic(
                             "exo_is_playing_changed",
@@ -1494,6 +1497,7 @@ internal fun PlayerRuntimeController.initializePlayer(
 
                     override fun onTracksChanged(tracks: Tracks) {
                         updateAvailableTracks(tracks)
+                        com.nuvio.tv.fork.dublagem.PolishDubbing.onTracks(this@initializePlayer, tracks) // Fork hook: Dublagem wybór konkretnej ścieżki
                     }
 
                     override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
@@ -1540,6 +1544,7 @@ internal fun PlayerRuntimeController.initializePlayer(
 
                     override fun onPlayerError(error: PlaybackException) {
                         if (isReleasingPlayer && error.errorCode == PlaybackException.ERROR_CODE_TIMEOUT) return
+                        if (!isReleasingPlayer && com.nuvio.tv.fork.dublagem.PolishDubbing.recover(this@initializePlayer, "player_error")) return // Fork hook: Dublagem powrót po błędzie audio
                         if (!isInBackground && com.nuvio.tv.reshaped.livetv.LiveEdgeRecovery.tryRejoin(error, _exoPlayer)) return // Nuvio RS hook: rejoin the live edge
                         cancelFirstFrameWatchdog()
                         cancelTunnelAvSyncWatchdog() // Nuvio RS hook: Arc formats

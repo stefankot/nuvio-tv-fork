@@ -3,6 +3,7 @@ package com.nuvio.tv.fork.echo
 import android.content.Context
 import android.util.Log
 import com.nuvio.tv.core.streams.AutoQualityPolicy
+import java.util.WeakHashMap
 
 /**
  * Właściciel 20.11: „źródło przełącza się na gorsze, bez napisów, mimo że wszystko było w porządku”.
@@ -15,8 +16,17 @@ object EchoAutoQualityGuard {
     private const val TAG = "ForkEcho"
     @Volatile private var lastLogged: String? = null
 
+    // The policy belongs to one player. This table is only used on the player's main thread.
+    private val byPolicy = WeakHashMap<AutoQualityPolicy, PlaybackStarvation>()
+
+    internal fun evidence(policy: AutoQualityPolicy): PlaybackStarvation =
+        byPolicy.getOrPut(policy) { PlaybackStarvation() }
+
+    internal fun requiresStarvation(context: Context): Boolean =
+        com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(context, "fork_aq_only_on_stall", default = true)
+
     fun config(context: Context, hotSwap: Boolean): AutoQualityPolicy.Config {
-        val guard = com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(context, "fork_aq_only_on_stall", default = true)
+        val guard = requiresStarvation(context)
         val cfg = when {
             !hotSwap -> AutoQualityPolicy.DEFAULT
             guard -> AutoQualityPolicy.SENSITIVE.copy(earlyDowngrade = false)

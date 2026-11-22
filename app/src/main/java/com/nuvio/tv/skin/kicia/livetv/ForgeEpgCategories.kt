@@ -63,7 +63,34 @@ object ForgeEpgCategories {
     private val channelCache = ConcurrentHashMap<String, Place>()
     fun channelPlace(ch: LiveTvChannel): Place {
         val name = ch.tvgName?.takeIf { it.isNotBlank() } ?: ch.name
-        return channelCache.getOrPut(name) { placeIn(ForgeCategoryRules.CHANNELS, name) }
+        return channelCache.getOrPut(name + "\u0000" + ch.name) {
+            // Paczka „oczywiste” pkt 6 (21.11): reguły makiety są pisane dla czystych nazw („tvn$”, „^tvp ?1”), a playlisty dają
+            // „PL: TVN HD”, „TVN.pl”, „Polsat (PL) FHD” — kanały trafiały do złej gałęzi albo do „Inne”. Najpierw oczyszczona
+            // nazwa z przewodnika, potem z playlisty; pierwsza, która pasuje do gałęzi innej niż „Inne”, wygrywa.
+            val tries = listOf(name, ch.name).map(::cleanChannelName).filter { it.isNotEmpty() }.distinct()
+            val place = tries.asSequence().map { placeIn(ForgeCategoryRules.CHANNELS, it) }.firstOrNull { it.branch != OTHER }
+                ?: Place(OTHER, null)
+            val raw = placeIn(ForgeCategoryRules.CHANNELS, name)
+            if (raw != place) android.util.Log.d("ForkKiciaLivetv", "kategoria kanału „${ch.name}”: ${raw.branch}/${raw.leaf} → ${place.branch}/${place.leaf} (nazwa „${tries.firstOrNull()}”)")
+            place
+        }
+    }
+
+    private val countryTag = Regex("^\\[?[a-z]{2,3}\\]?\\s*[:|]\\s*")
+    private val bracketed = Regex("\\s*[(\\[][^)\\]]*[)\\]]")
+    private val qualityTail = Regex("\\s+(fhd|uhd|hd|sd|4k|8k|hevc|h\\.?26[45]|hdr|raw|backup|alt|vip|50 ?fps|\\+1|pl)$")
+    private val domainTail = Regex("\\.(pl|tv|com|uk|de|cz|ua)$")
+
+    /** Nazwa kanału do reguł: bez „PL:”, „(PL)”, „[FHD]”, „HD/4K…” na końcu i „.pl” z identyfikatora przewodnika. */
+    internal fun cleanChannelName(raw: String): String {
+        var t = norm(raw).replace('_', ' ').trim()
+        t = countryTag.replace(t, "")
+        t = bracketed.replace(t, " ")
+        t = domainTail.replace(t, "")
+        t = t.replace(Regex("\\s+"), " ").trim()
+        var prev: String
+        do { prev = t; t = qualityTail.replace(t, "").trim() } while (t != prev && t.isNotEmpty())
+        return t
     }
 
     /**

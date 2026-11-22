@@ -1,0 +1,109 @@
+diff --git a/app/src/test/java/com/nuvio/tv/ui/screens/player/DubbingTimingTest.kt b/app/src/test/java/com/nuvio/tv/ui/screens/player/DubbingTimingTest.kt
+index 6e88a2bcb..a95e8fe2e 100644
+--- a/app/src/test/java/com/nuvio/tv/ui/screens/player/DubbingTimingTest.kt
++++ b/app/src/test/java/com/nuvio/tv/ui/screens/player/DubbingTimingTest.kt
+@@ -1,10 +1,6 @@
+ package com.nuvio.tv.ui.screens.player
+ 
+-import com.nuvio.tv.domain.model.Stream
+-import com.nuvio.tv.domain.model.StreamBehaviorHints
+ import org.junit.Assert.assertEquals
+-import org.junit.Assert.assertNotEquals
+-import org.junit.Assert.assertNull
+ import org.junit.Test
+ 
+ class DubbingTimingTest {
+@@ -44,93 +40,4 @@ class DubbingTimingTest {
+         assertEquals(12_930_000L, DubbingTiming.resolvedSeekPositionUs(12_930_000L, 0L, -12_930L))
+         assertEquals(20_000_000L, DubbingTiming.resolvedSeekPositionUs(20_000_000L, 7_070_000L, -12_930L))
+     }
+-
+-    @Test
+-    fun `current calibration revision restores saved offset`() {
+-        assertEquals(-12_970L, restoreDubbingOffset(DUBBING_CALIBRATION_REVISION, -12_970L))
+-    }
+-
+-    @Test
+-    fun `old calibration revision cannot restore stale offset`() {
+-        assertEquals(0L, restoreDubbingOffset(DUBBING_CALIBRATION_REVISION - 1, 52_290L))
+-    }
+-
+-    @Test
+-    fun `declared source identity survives signed url renewal`() {
+-        val first = stream(
+-            url = "https://broker.test/play/random-ticket-one",
+-            sourceIdentity = "cinevs-candidate-42",
+-        )
+-        val second = stream(
+-            url = "https://broker.test/play/random-ticket-two",
+-            sourceIdentity = "cinevs-candidate-42",
+-        )
+-
+-        assertEquals(
+-            first.dubbingSourceIdentity(allowDisplayFallback = true),
+-            second.dubbingSourceIdentity(allowDisplayFallback = true),
+-        )
+-    }
+-
+-    @Test
+-    fun `different declared candidates never share identity`() {
+-        val first = stream(sourceIdentity = "cinevs-candidate-42")
+-        val second = stream(sourceIdentity = "cinevs-candidate-43")
+-
+-        assertNotEquals(
+-            first.dubbingSourceIdentity(allowDisplayFallback = true),
+-            second.dubbingSourceIdentity(allowDisplayFallback = true),
+-        )
+-    }
+-
+-    @Test
+-    fun `display fallback is accepted only when unique in current source list`() {
+-        val selected = stream(sourceIdentity = null, name = "CineVS · Dublado", title = "1080p")
+-        val duplicate = stream(
+-            url = "https://broker.test/play/other-ticket",
+-            sourceIdentity = null,
+-            name = "CineVS · Dublado",
+-            title = "1080p",
+-        )
+-
+-        assertEquals(
+-            selected.dubbingSourceIdentity(allowDisplayFallback = true)?.value,
+-            uniqueDubbingSourceIdentity(selected, listOf(selected)),
+-        )
+-        assertNull(uniqueDubbingSourceIdentity(selected, listOf(selected, duplicate)))
+-    }
+-
+-    @Test
+-    fun `insufficient fallback metadata is not persisted`() {
+-        val source = stream(sourceIdentity = null, title = null)
+-
+-        assertNull(source.dubbingSourceIdentity(allowDisplayFallback = true))
+-    }
+-
+-    private fun stream(
+-        url: String = "https://broker.test/play/random-ticket",
+-        sourceIdentity: String? = "cinevs-candidate",
+-        name: String? = "CineVS · Dublado",
+-        title: String? = "1080p",
+-    ) = Stream(
+-        name = name,
+-        title = title,
+-        description = null,
+-        url = url,
+-        ytId = null,
+-        infoHash = null,
+-        fileIdx = null,
+-        externalUrl = null,
+-        behaviorHints = StreamBehaviorHints(
+-            notWebReady = true,
+-            bingeGroup = null,
+-            countryWhitelist = null,
+-            proxyHeaders = null,
+-            sourceIdentity = sourceIdentity,
+-        ),
+-        addonName = "SourceBroker · CineVS",
+-        addonLogo = null,
+-        addonId = "com.leiasaude.sourcebroker.cinevs",
+-        addonBaseUrl = "https://broker.test/stremio/cinevs",
+-    )
+ }

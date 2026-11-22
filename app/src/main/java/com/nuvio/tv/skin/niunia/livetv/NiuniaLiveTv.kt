@@ -134,8 +134,10 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) { while (true) { delay(30_000); now = System.currentTimeMillis() } }
     var mode by remember { mutableStateOf(if (NiuniaLiveStart.consumeSearch()) LiveMode.SEARCH.also { Log.i(TAG, "live tv: start w trybie Szukaj") } else LiveMode.GUIDE) }
-    var filter by remember { mutableStateOf<NiuniaLiveFilter>(NiuniaLiveFilter.All) }
-    var dayOffset by remember { mutableIntStateOf(0) }
+    // Paczka „oczywiste” pkt 2: po powrocie z odtwarzacza ten sam filtr i dzień (lista kanałów jak przed wyjściem).
+    var filter by remember { mutableStateOf<NiuniaLiveFilter>(NiuniaLiveReturn.restoredFilter() ?: NiuniaLiveFilter.All) }
+    var dayOffset by remember { mutableIntStateOf(NiuniaLiveReturn.restoredDay()) }
+    val returnTo = remember { NiuniaLiveReturn.consume() }
     var dayPicker by remember { mutableStateOf(false) }
     var launching by remember { mutableStateOf(false) }
     val allFocus = remember { FocusRequester() }
@@ -200,6 +202,7 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
                 }
                 Log.i(TAG, "live tv: odtwarzam ${channel.name}" + (if (past) " archiwum „${programme?.title}”" else " na żywo"))
                 viewModel.launchedUrl = channel.streamUrl
+                NiuniaLiveReturn.commit(filter, dayOffset)
                 onPlay(route)
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
@@ -228,15 +231,15 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
         when (mode) {
             LiveMode.GUIDE -> Guide(
                 tiles = tiles, filter = filter, categories = categories, channels = guideChannels, numbers = numbers,
-                now = now, dayOffset = dayOffset, guideVersion = state.guideVersion, newKeys = newKeys, allFocus = allFocus,
+                now = now, dayOffset = dayOffset, guideVersion = state.guideVersion, newKeys = newKeys, allFocus = allFocus, returnTo = returnTo,
                 onFilter = { f ->
                     if (f is NiuniaLiveFilter.Category) NiuniaLiveFilters.used(context, f.key)
                     filter = f
                 },
                 onPlay = { ch, p -> play(ch, p, guideChannels) },
             )
-            LiveMode.DISCOVER -> NiuniaLiveDiscover(shown, state.favoriteUrls, state.currentProgrammes, now) { ch, p -> play(ch, p, shown) }
-            LiveMode.SEARCH -> NiuniaLiveSearch(shown, state.currentProgrammes, now) { ch, p -> play(ch, p, shown) }
+            LiveMode.DISCOVER -> NiuniaLiveDiscover(shown, state.favoriteUrls, state.currentProgrammes, now) { ch, p -> NiuniaLiveReturn.fromOther(); play(ch, p, shown) }
+            LiveMode.SEARCH -> NiuniaLiveSearch(shown, state.currentProgrammes, now) { ch, p -> NiuniaLiveReturn.fromOther(); play(ch, p, shown) }
         }
         TopBar(
             mode = mode, dayLabel = dayLabel(dayOffset, now),
@@ -283,15 +286,35 @@ private fun Guide(
     guideVersion: Int,
     newKeys: Set<String>,
     allFocus: FocusRequester,
+    returnTo: NiuniaLiveReturn.Entry? = null,
     onFilter: (NiuniaLiveFilter) -> Unit,
     onPlay: (LiveTvChannel, LiveTvProgramme?) -> Unit,
 ) {
-    var winStart by remember(dayOffset) { mutableLongStateOf(windowStartFor(now + dayOffset * DAY_MS)) }
-    val focusTime = remember(dayOffset) { mutableLongStateOf(maxOf(now + dayOffset * DAY_MS, 0L)) }
-    var info by remember { mutableStateOf<Pair<LiveTvChannel, LiveTvProgramme?>?>(null) }
     val minStart = remember(now) { windowStartFor(now) - PAST_DAYS * DAY_MS }
+    val backToGuide = returnTo as? NiuniaLiveReturn.Entry.Guide
+    var winStart by remember(dayOffset) { mutableLongStateOf(backToGuide?.startMs?.let { maxOf(minStart, windowStartFor(it)) } ?: windowStartFor(now + dayOffset * DAY_MS)) }
+    val focusTime = remember(dayOffset) { mutableLongStateOf(backToGuide?.startMs ?: maxOf(now + dayOffset * DAY_MS, 0L)) }
+    val tilesState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val channelsState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val restoreFocus = remember { FocusRequester() }
+    val restoreTileKey = (returnTo as? NiuniaLiveReturn.Entry.Tile)?.key?.takeIf { k -> tiles.any { it.key == k } }
+    val restoreChannel = backToGuide?.streamUrl?.takeIf { u -> channels.any { it.streamUrl == u } }
+    var info by remember { mutableStateOf<Pair<LiveTvChannel, LiveTvProgramme?>?>(null) }
     val tilesFocus = remember { FocusRequester() }
     LaunchedEffect(Unit) {
+        // Paczka „oczywiste” pkt 2: Wstecz z odtwarzacza → fokus na kafelku albo kanale, z którego program był włączony.
+        if (restoreTileKey != null || restoreChannel != null) {
+            try {
+                if (restoreTileKey != null) tilesState.scrollToItem(tiles.indexOfFirst { it.key == restoreTileKey }.coerceAtLeast(0))
+                else channelsState.scrollToItem(channels.indexOfFirst { it.streamUrl == restoreChannel }.coerceAtLeast(0))
+                delay(80)
+                restoreFocus.requestFocus()
+                Log.i(TAG, "live tv: fokus wraca na " + (restoreTileKey?.let { "kafel $it" } ?: "kanał $restoreChannel"))
+                return@LaunchedEffect
+            } catch (e: IllegalStateException) {
+                Log.w(TAG, "live tv: powrót fokusu: ${e.javaClass.simpleName}: ${e.message}")
+            }
+        } else if (returnTo != null) Log.i(TAG, "live tv: miejsca powrotu już nie ma na liście ($returnTo)")
         delay(80)
         try { allFocus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "live tv: fokus „Wszystkie”: ${e.javaClass.simpleName}: ${e.message}") }
     }
@@ -301,10 +324,10 @@ private fun Guide(
             if (tiles.isEmpty()) {
                 Text(stringResource(R.string.niunia_tv_rail_empty), style = NiuniaText.Body, color = NiuniaColors.Text50, modifier = Modifier.padding(start = NiuniaDims.Gutter, top = 128.dp))
             } else com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
-                LazyRow(Modifier.padding(top = 74.dp).focusRequester(tilesFocus).focusRestorer(), contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 6.dp, bottom = 16.dp),
+                LazyRow(Modifier.padding(top = 74.dp).focusRequester(tilesFocus).focusRestorer(), state = tilesState, contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 6.dp, bottom = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
                     items(tiles, key = { it.key }) { t ->
-                        NiuniaLiveTileCard(t, longBadge = true, onFocus = { if (it) info = t.channel to t.programme }, onOk = { onPlay(t.channel, t.programme) })
+                        NiuniaLiveTileCard(t, longBadge = true, focusRequester = if (t.key == restoreTileKey) restoreFocus else null, onFocus = { if (it) info = t.channel to t.programme }, onOk = { NiuniaLiveReturn.fromTile(t.key); onPlay(t.channel, t.programme) })
                     }
                 }
             }
@@ -328,13 +351,14 @@ private fun Guide(
             Text(stringResource(R.string.niunia_live_empty), style = NiuniaText.Body, color = NiuniaColors.Text50, modifier = Modifier.padding(start = NiuniaDims.Gutter, top = 12.dp))
         }
         Box(Modifier.fillMaxWidth().weight(1f)) { com.nuvio.tv.skin.niunia.components.NiuniaVerticalScroll(pivot = ROW_H) {
-            LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 56.dp)) {
+            LazyColumn(Modifier.fillMaxSize(), state = channelsState, contentPadding = PaddingValues(bottom = 56.dp)) {
                 items(channels, key = { "${it.sourceId}_${it.id}" }) { ch ->
                     GuideRow(
                         ch, numbers[ch.streamUrl] ?: 0, winStart, minStart, now, guideVersion, focusTime, newKeys,
                         onWindow = { winStart = it },
                         onFocus = { p -> info = ch to p },
-                        onOk = { p -> onPlay(ch, p) },
+                        onOk = { p -> NiuniaLiveReturn.fromGuide(ch.streamUrl, p?.startEpochMs); onPlay(ch, p) },
+                        requester = if (ch.streamUrl == restoreChannel) restoreFocus else null,
                     )
                 }
             }
@@ -402,6 +426,7 @@ private fun GuideRow(
     onWindow: (Long) -> Unit,
     onFocus: (LiveTvProgramme?) -> Unit,
     onOk: (LiveTvProgramme?) -> Unit,
+    requester: FocusRequester? = null,
 ) {
     val winEnd = winStart + WINDOW_MS
     val schedule = remember(ch.guideKey, guideVersion) { LiveTvRepository.schedule(ch.guideKey) }
@@ -427,6 +452,7 @@ private fun GuideRow(
 
     Box(
         Modifier.fillMaxWidth().height(ROW_H)
+            .then(if (requester != null) Modifier.focusRequester(requester) else Modifier)
             .onFocusChanged { st ->
                 if (st.isFocused != focused) {
                     focused = st.isFocused
@@ -456,8 +482,8 @@ private fun GuideRow(
         ) {
             Text(if (number > 0) number.toString() else "", style = NiuniaText.Meta.copy(fontSize = 15.sp), color = NiuniaColors.Text70, modifier = Modifier.width(24.dp), maxLines = 1)
             Box(Modifier.weight(1f).height(30.dp), contentAlignment = Alignment.Center) {
-                if (logo != null) AsyncImage(model = logo, contentDescription = ch.name, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize())
-                else Text(ch.name, style = NiuniaText.Button, color = NiuniaColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                NiuniaChannelLogo(ch) // Paczka „oczywiste” pkt 5: logo z zapasem, na końcu nazwa
+
             }
         }
         Box(Modifier.padding(start = GRID_X).fillMaxSize().clipToBounds()) {

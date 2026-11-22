@@ -119,7 +119,9 @@ fun NiuniaPlayerChrome(
     val context = LocalContext.current
     val timeline by viewModel.playbackTimeline.collectAsState()
     val resetHide = { viewModel.scheduleHideControls(); viewModel.onUserInteraction() }
-    val scrub = rememberForgeScrub(positionMs = timeline.currentPosition, durationMs = timeline.duration, onSeek = { onEvent(PlayerEvent.OnSeekTo(it)); resetHide() })
+    // Paczka „oczywiste” pkt 1: archiwum IPTV — panel podaje całe nagranie (24 h), długość = program z EPG (okno odtwarzania start–koniec).
+    val archiveLength = niuniaArchiveLengthMs(viewModel.controller.currentStreamUrl, timeline.duration)
+    val scrub = rememberForgeScrub(positionMs = timeline.currentPosition, durationMs = archiveLength ?: timeline.duration, onSeek = { onEvent(PlayerEvent.OnSeekTo(it)); resetHide() })
     var barFocused by remember { mutableStateOf(false) }
     val firstButton = remember { FocusRequester() }
     var moreOpen by remember { mutableStateOf(false) }
@@ -245,6 +247,13 @@ fun NiuniaPlayerChrome(
             }
             Spacer(Modifier.height(NiuniaSpace.PlayerGap))
             val duration = scrub.state.durationMs.coerceAtLeast(1L)
+            // Paczka „oczywiste” pkt 4: miniatury przy przewijaniu (moduł Reshaped seekpreview) — pozycja znacznika jak w pasku bazy.
+            val marker = scrub.state.markerMs
+            LaunchedEffect(marker) {
+                if (archiveLength == null) viewModel.controller.pendingPreviewSeekPosition = marker
+                if (marker != null) Log.d(TAG, "odtwarzacz: miniatura przy ${marker / 1000} s")
+            }
+            if (marker != null && archiveLength == null) com.nuvio.tv.ui.screens.player.seekpreview.SeekPreviewAboveProgressBar(viewModel)
             NiuniaSeekBar(
                 // 22.11: granice rozdziałów na pasku (Exo: rozdziały MKV, mpv: lista), gdy ustawienie „Rozdziały” jest włączone.
                 state = NiuniaSeekState.of(scrub.state.positionMs, duration).copy(
@@ -593,3 +602,14 @@ internal fun niuniaLangName(code: String): String {
     val name = java.util.Locale(two).getDisplayLanguage(java.util.Locale("pl"))
     return if (name.isBlank() || name.equals(two, ignoreCase = true)) code else name
 }
+
+
+/** Długość programu z EPG dla archiwum IPTV, gdy strumień panelu jest dłuższy (np. 24 h); null = zwykły film. */
+internal fun niuniaArchiveLengthMs(url: String?, streamMs: Long): Long? {
+    val w = com.nuvio.tv.reshaped.livetv.LiveTvPlaybackRegistry.replayWindow(url) ?: return null
+    val epg = (w.endMs - w.startMs).takeIf { it > 0L } ?: return null
+    if (streamMs in 1..(epg + 60_000L)) return null
+    if (archiveLogged != url) { archiveLogged = url; android.util.Log.i(TAG, "odtwarzacz: archiwum — długość z EPG ${epg / 60_000} min zamiast strumienia ${streamMs / 60_000} min") }
+    return epg
+}
+private var archiveLogged: String? = null

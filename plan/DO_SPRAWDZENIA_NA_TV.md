@@ -55,3 +55,15 @@ Lista dla właściciela. Wykonawca dopisuje tu wszystko, czego nie da się spraw
 - Głos: komenda „następny odcinek” / „włącz Netflix”; cisza po naciśnięciu → log `bez mowy … Whisper pominięty` (bez zmyślonego tekstu).
 - Catch-up (po buildzie z 598c92946): log `ForkCatchup … naprawdę N dni` dla TV Team.
 - Autoplay tylko natywny (22.11): po pierwszym starcie Ustawienia → Odtwarzanie → Auto-play: tryb „Regex”, lista priorytetów = reguły odpowiedzi z kreatora (6 albo 8 pozycji, zaczynają się od `(?s)^`). Film z polskim dubbingiem (np. „W głowie się nie mieści 2”, TorrentClaw) → sam startuje plik z 🇵🇱 przy 🔊, nie ten z 🇵🇱 tylko przy 💬; w logu `ForkSettings` „autoplay Regex: profil … → <zestaw>”. Duża lista źródeł (kilkaset) na JMGO: autoplay ma ruszyć, a nie pokazać listę do wyboru (Nuvio daje regułom łącznie 2 s; na Macu 900 źródeł = 0,11 s). W ustawieniach Echo nie ma już: wyścigu źródeł, kontroli otwartego pliku, oszczędzania łącza, limitu łącza KE, Auto-play: rozdzielczość/kodek.
+## Paczka „oczywiste” (21.11, gałąź `claude/paczka-oczywiste`)
+- Pkt 1: archiwum IPTV — pasek pokazuje długość programu z EPG (nie 24 h); log `ForkNiunia: odtwarzacz: archiwum — długość z EPG`.
+- Pkt 2: w archiwum Wstecz wychodzi bez pytania (`ForkTv: archiwum: Wstecz → wyjście bez pytania`), ▲▼ zmienia kanał od razu; po powrocie fokus na kaflu/kanale (`live tv: fokus wraca na …`).
+- Pkt 3: kanał IPTV bez okna „Brak polskich napisów” (`okno napisów AI: pominięte (IPTV)`).
+- Pkt 4: film — ◀▶ na pasku pokazuje miniatury nad paskiem (wymaga wygenerowanych klatek; pierwszy seans może ich nie mieć).
+- Pkt 5: kanały bez logo pokazują nazwę (`logo kanału …: … → nazwa`).
+- Pkt 6: filtr kategorii w Live TV — np. „TVN”, „Polsat” w „Ogólne” (`ForkKiciaLivetv: kategoria kanału …`, poziom debug).
+- Pkt 7: „Beverly Hills Chihuahua” — na starcie polskie napisy (`ForkSubs: polskie napisy: …`), lektor czyta jedną polską ścieżkę (`ForkLektor: źródło: …`). Wymaga tego filmu i dodatku z włoskimi napisami.
+- Pkt 8: SŁUCHOWO (tylko właściciel): lektor 100% = dawne 30%; „bez ściszania” — film tak głośny jak bez lektora (`PCM (lektor wł.): normalizacja downmiksu=false`).
+- Pkt 9: typografia Satoshi na szczegółach programu archiwum i ekranach Nuvio (ocena wzrokowa).
+- Pkt 10–11: plakaty w „Więcej podobnych” pionowe, karty stosu przezroczyste (ocena wzrokowa).
+- Pkt 12: wyszukiwarka Niuni → „Powiedz” → „Słucham…”; log `ForkVoice: przycisk głosu (wyszukiwarka): systemowe=…`. Mowa do mikrofonu — tylko właściciel.

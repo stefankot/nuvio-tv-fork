@@ -36,6 +36,7 @@ object VoiceModule : ForkModule {
     override val defaultEnabled = true
 
     override fun settings() = listOf(
+        ModuleSetting(VoiceEntry.KEY, SettingsLevel.ESSENTIAL, "Sterowanie głosem", "Przycisk „Powiedz” w wyszukiwarce", "Włącza nasłuch poleceń bez przycisku na pilocie", defaultValue = true),
         ModuleSetting("voice_whisper", SettingsLevel.ESSENTIAL, "Sterowanie głosem", "Rozpoznawanie mowy offline (Whisper)", "Wymaga pobranego modelu mowy (ustawienia napisów: model mowy); działa bez internetu", defaultValue = false),
         ModuleSetting("voice_key_service", SettingsLevel.ESSENTIAL, "Sterowanie głosem", "Przycisk asystenta otwiera nasłuch", "Wymaga włączenia usługi ułatwień dostępu Nuvio w systemie", defaultValue = false),
     )
@@ -80,8 +81,25 @@ object VoiceModule : ForkModule {
     )
 
     /** Jedno nasłuchiwanie systemowym rozpoznawaniem mowy (pl-PL); null = błąd/brak mowy. Musi być wołane z wątku głównego. */
-    private suspend fun listen(c: android.content.Context, onError: (Int) -> Unit): String? =
-        if (com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(c, "voice_whisper", false) && WhisperListen.available(c)) WhisperListen.listen(c) else systemListen(c, onError)
+    private suspend fun listen(c: android.content.Context, onError: (Int) -> Unit): String? {
+        if (com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(c, "voice_whisper", false) && WhisperListen.available(c)) { Log.i("ForkVoice", "nasłuch: Whisper (wybrany)"); return WhisperListen.listen(c) }
+        // Paczka „oczywiste” pkt 12: systemowe rozpoznawanie (Xiaomi/JMGO), Whisper jako zapas — brak usługi albo jej błąd.
+        if (!SpeechRecognizer.isRecognitionAvailable(c)) {
+            if (WhisperListen.available(c)) { Log.i("ForkVoice", "nasłuch: brak systemowego → Whisper"); return WhisperListen.listen(c) }
+            Log.w("ForkVoice", "nasłuch: brak systemowego i brak modelu Whisper"); onError(SpeechRecognizer.ERROR_CLIENT); return null
+        }
+        var err: Int? = null
+        Log.i("ForkVoice", "nasłuch: systemowy")
+        val t = systemListen(c) { err = it }
+        val e = err
+        if (t == null && e != null) {
+            val noSpeech = e == SpeechRecognizer.ERROR_NO_MATCH || e == SpeechRecognizer.ERROR_SPEECH_TIMEOUT
+            if (!noSpeech && WhisperListen.available(c)) { Log.i("ForkVoice", "nasłuch: systemowy błąd $e → Whisper"); return WhisperListen.listen(c) }
+            Log.w("ForkVoice", "nasłuch: systemowy błąd $e (Whisper ${if (WhisperListen.available(c)) "niepotrzebny" else "niepobrany"})")
+            onError(e)
+        }
+        return t
+    }
 
     private suspend fun systemListen(c: android.content.Context, onError: (Int) -> Unit): String? = kotlinx.coroutines.suspendCancellableCoroutine { cont ->
         val rec = SpeechRecognizer.createSpeechRecognizer(c)
@@ -113,7 +131,7 @@ object VoiceModule : ForkModule {
             if (count <= VoiceTrigger.handled) return@LaunchedEffect
             VoiceTrigger.handled = count
             if (androidx.core.content.ContextCompat.checkSelfPermission(c, android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED) { shown = "Zezwól na mikrofon i powtórz polecenie"; permission.launch(android.Manifest.permission.RECORD_AUDIO); return@LaunchedEffect }
-            if (!(com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(c, "voice_whisper", false) && WhisperListen.available(c)) && !SpeechRecognizer.isRecognitionAvailable(c)) { shown = "Brak rozpoznawania mowy w systemie"; return@LaunchedEffect }
+            if (!WhisperListen.available(c) && !SpeechRecognizer.isRecognitionAvailable(c)) { Log.w("ForkVoice", "brak rozpoznawania mowy: ${VoiceEntry.describe(c)}"); shown = "Brak rozpoznawania mowy w systemie"; return@LaunchedEffect }
             shown = "Słucham…"
             val ctx = VoiceContext(channels = channelIndex())
             val t = listen(c) { shown = "Błąd nasłuchu ($it)" }

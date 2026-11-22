@@ -95,8 +95,6 @@ object KeRanking {
 
     /** Język napisów = polski (ustawienia odtwarzacza): źródła z polskimi napisami w nazwie wyżej, po polskim dźwięku (W4). */
     @Volatile private var polishSubs = false
-    /** Fork 19.11 (ANR JMGO 18:23): czy lektor ma głos — liczone raz na sortowanie (klucz Gemini odszyfrowywany z Keystore). */
-    @Volatile private var lektorVoiceNow = false
     private val PL_SUBS = Regex("""(?i)\b(?:pl[ ._-]?subs?|subs?[ ._-]?pl|napisy(?:[ ._-]?pl)?|plsub)\b""")
     /** Fork 19.11 (zgłoszenie 9b, decyzja 10): oznaczenia wielu napisów wbudowanych w nazwie (źródło dla AI napisów). */
     private val MULTI_SUBS = Regex("""(?i)\b(?:multi[ ._-]?subs?|m[ ._-]?subs?|multisub|subs?[ ._-]?multi|multi)\b""")
@@ -119,9 +117,6 @@ object KeRanking {
         val text = listOfNotNull(s.name, s.title, s.description).joinToString(" ")
         // Sonda ścieżek (TrackScout): polski dźwięk w pliku = najlepszy szczebel, także bez oznaczenia w nazwie.
         val audio = (if (TrackScout.of(s)?.hasPolishAudio == true) 0 else null) ?: SourcePresets.tierOf(p, text) ?: Int.MAX_VALUE
-        // P3 (18.11): działa polski głos lektora i napisy mają być po polsku → źródło z polskimi napisami równie dobre
-        // jak polski dźwięk (lektor przeczyta). Brak głosu (JMGO) → zostaje sam polski dźwięk.
-        if (polishSubs && lektorVoiceNow && PL_SUBS.containsMatchIn(text)) return 0 // scalenie 19.11: głos Gemini też
         return audio
     }
 
@@ -175,11 +170,14 @@ object KeRanking {
         }
     }
 
-    fun order(streams: List<Stream>): List<Stream> {
+    fun order(streams: List<Stream>): List<Stream> = order(streams, identity, preferred, log = true)
+
+    internal fun orderForDetails(streams: List<Stream>, identity: ContentIdentity): List<Stream> =
+        order(streams, identity, null, log = false)
+
+    private fun order(streams: List<Stream>, id: ContentIdentity?, preferred: PreferredSource?, log: Boolean): List<Stream> {
         if (!enabled || streams.size < 2) return streams
-        lektorVoiceNow = polishSubs && (com.nuvio.tv.fork.lektor.LektorVoice.ready == true || appCtx?.let { a -> runCatching { com.nuvio.tv.ainarrator.LektorVoiceChoice.cloudVoicePresent(a) }.logged("ForkSources", "KeRanking: klucz Gemini").getOrDefault(false) } == true)
         return runCatching {
-            val id = identity
             val rejected = id?.let { ContentIdentityGuard.rejections(streams, it).keys }.orEmpty()
             val pool = streams.filterNot { it in rejected }.ifEmpty { streams }
             val ranked = StreamQualityRank.rank(pool, filmSizeFloors = id?.film == true)
@@ -195,14 +193,18 @@ object KeRanking {
             // Oszczędzanie łącza: w obrębie dekodowanych sprzętowo najpierw najlepszy kodek (AV1 > HEVC > AVC), potem najmniejszy plik.
             val fitsOrdered = if (!saver) fits else fits.map { it to ReleaseFactsParser.factsFor(it) }.sortedWith(compareBy({ it.second.encode.ordinal }, { it.second.size ?: Long.MAX_VALUE })).map { it.first }
             // Fork 19.11 (ANR na JMGO: 917 źródeł, regex w komparatorze liczony przy każdym porównaniu): klucze raz na źródło.
-            val ordered = (fitsOrdered + demoted).let { list -> if (polishRules == null && !polishSubs) list else list.map { Triple(it, polishTier(it), subsTier(it)) }.sortedWith(compareBy({ it.second }, { it.third })).map { it.first } }
+            // A subtitle donor can be a different release, so subtitle availability does not lower video quality.
+            val supportedOrder = fitsOrdered + demoted
+            val separateAudio = appCtx?.let(com.nuvio.tv.fork.dublagem.PolishDubbing::enabled) == true
+            val ordered = if (polishRules == null || separateAudio) supportedOrder else supportedOrder
+                .map { it to polishTier(it) }.sortedBy { it.second }.map { it.first }
             // Kicia: źródła, które niedawno nie wystartowały albo nie przeszły kontroli pliku, na koniec (StartupChecks).
             val withBad = StartupChecks.demoteBad(ordered)
             // Fork 19.11 (JMGO: hiszpańskie „Castellano” 720p wygrało z angielskim 1080p, potem niegotowy plik TB⬇️):
             // zapamiętany ręczny wybór (dodatek + rozdzielczość) nie może przebić języka ani gotowości pliku —
             // niegotowe (SourceReady) i obcy dubbing (ForeignDub) zawsze na koniec, kolejność w środku zostaje.
             val picked = preferred?.preferredFirst(withBad)?.first ?: withBad
-            picked.map { Triple(it, SourceReady.tier(it), ForeignDub.tier(it)) }.sortedWith(compareBy({ it.second }, { it.third })).map { it.first }.let { l -> runCatching { SlowProxy4k.demote(l) { s -> listOf(SourceReady.tier(s), ForeignDub.tier(s), polishTier(s), subsTier(s)) } }.logged("ForkSources", "SlowProxy4k").getOrDefault(l) }.also { logTop(it) } // klucze raz na źródło
+            picked.map { Triple(it, SourceReady.tier(it), ForeignDub.tier(it)) }.sortedWith(compareBy({ it.second }, { it.third })).map { it.first }.let { l -> runCatching { SlowProxy4k.demote(l) { s -> listOf(SourceReady.tier(s), ForeignDub.tier(s), if (separateAudio) 0 else polishTier(s)) } }.logged("ForkSources", "SlowProxy4k").getOrDefault(l) }.let { l -> Placeholders.demote(l) }.also { if (log) logTop(it) } // klucze raz na źródło
         }.logged("ForkSources", "KeRanking.kt:173").getOrDefault(streams)
     }
 }
