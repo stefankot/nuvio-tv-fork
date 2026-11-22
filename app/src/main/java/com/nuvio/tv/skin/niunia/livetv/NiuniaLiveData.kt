@@ -98,8 +98,25 @@ internal fun whenLabel(ms: Long, now: Long): String {
 internal fun hhmm(ms: Long): String = java.util.Calendar.getInstance().run { timeInMillis = ms; "%02d:%02d".format(get(java.util.Calendar.HOUR_OF_DAY), get(java.util.Calendar.MINUTE)) }
 
 /** Kanały po kluczu przewodnika (pierwszy kanał danego przewodnika). */
-internal fun byGuide(channels: List<LiveTvChannel>): Map<String, LiveTvChannel> =
-    HashMap<String, LiveTvChannel>().also { m -> channels.forEach { m.putIfAbsent(it.guideKey, it) } }
+internal fun byGuide(channels: List<LiveTvChannel>): Map<String, LiveTvChannel> = NiuniaListMaps.byGuide(channels)
+
+
+/**
+ * Mapy kanałów dla ostatniej listy (ten sam obiekt). Build171 na JMGO (252 827 kanałów): kafelki liczyły obie mapy od nowa
+ * na wątku UI przy każdym odświeżeniu przewodnika (przycięcia ~1,4 s). [NiuniaLiveOrder.prepare] liczy je z góry w tle.
+ */
+internal object NiuniaListMaps {
+    private class Memo(val list: List<LiveTvChannel>, val map: Map<String, LiveTvChannel>)
+    @Volatile private var guide: Memo? = null
+    @Volatile private var url: Memo? = null
+
+    fun byGuide(list: List<LiveTvChannel>): Map<String, LiveTvChannel> = guide?.takeIf { it.list === list }?.map
+        ?: HashMap<String, LiveTvChannel>(list.size * 2).also { m -> list.forEach { m.putIfAbsent(it.guideKey, it) } }.also { guide = Memo(list, it) }
+
+    /** Kanał po adresie (jak `associateBy { streamUrl }`: przy powtórce wygrywa ostatni). */
+    fun byUrl(list: List<LiveTvChannel>): Map<String, LiveTvChannel> = url?.takeIf { it.list === list }?.map
+        ?: list.associateBy { it.streamUrl }.also { url = Memo(list, it) }
+}
 
 /** Najlepsza emisja tytułu na kanale: trwająca, potem ostatnia z archiwum, potem najbliższa. */
 internal fun bestAiring(ch: LiveTvChannel, titleKey: String, now: Long): LiveTvProgramme? {
@@ -111,7 +128,7 @@ internal fun bestAiring(ch: LiveTvChannel, titleKey: String, now: Long): LiveTvP
 
 /** „Wszystkie”: ostatnio oglądane z postępem (kropka czerwona, gdy dalej leci; zielona, gdy już w archiwum). */
 internal fun recentTiles(channels: List<LiveTvChannel>, current: Map<String, LiveTvProgramme>, now: Long): List<NiuniaLiveTile> {
-    val byUrl = channels.associateBy { it.streamUrl }
+    val byUrl = NiuniaListMaps.byUrl(channels)
     val guides = byGuide(channels)
     val out = ArrayList<NiuniaLiveTile>()
     TvStore.recent.value.sortedByDescending { it.lastViewedMs }.forEach { s ->
@@ -158,7 +175,7 @@ internal fun favouriteChannels(channels: List<LiveTvChannel>, favUrls: Set<Strin
 
 /** „Oglądaj dalej”: niedokończone programy z archiwum. */
 internal fun continueTiles(channels: List<LiveTvChannel>, now: Long): List<NiuniaLiveTile> {
-    val byUrl = channels.associateBy { it.streamUrl }
+    val byUrl = NiuniaListMaps.byUrl(channels)
     return TvStore.resume.value.filter { it.started }.sortedByDescending { it.updatedMs }.mapNotNull { r ->
         val ch = byUrl[r.channelUrl] ?: return@mapNotNull null
         val p = LiveTvRepository.schedule(ch.guideKey).firstOrNull { it.startEpochMs == r.startMs }
@@ -213,7 +230,7 @@ internal class NiuniaDiscoverRow(val title: String, val tiles: List<NiuniaLiveTi
  */
 internal fun discoverRows(channels: List<LiveTvChannel>, favUrls: Set<String>, current: Map<String, LiveTvProgramme>, now: Long, titles: Map<String, String>): List<NiuniaDiscoverRow> {
     val guides = byGuide(channels)
-    val byUrl = channels.associateBy { it.streamUrl }
+    val byUrl = NiuniaListMaps.byUrl(channels)
     fun t(id: String) = titles[id] ?: id
     fun plain(list: List<NiuniaLiveTile>) = list.map { it.copy(withChannel = false) }
     val rows = ArrayList<NiuniaDiscoverRow>()
@@ -303,11 +320,14 @@ internal object NiuniaLiveOrder {
     /** Pełne liczenie (w tle dla dużej listy); wynik zapamiętany. */
     fun prepare(input: List<LiveTvChannel>, hidden: Set<String>, categories: (List<LiveTvChannel>) -> List<NiuniaLiveFilter.Category>): Prepared {
         val shown = ForgeEpgCategories.polishFirst(input)
+        // Mapy kafelków z góry (w tle), żeby wątek UI ich nie liczył.
+        NiuniaListMaps.byGuide(shown); NiuniaListMaps.byUrl(shown)
         return Prepared(input, hidden, shown, categories(shown), numbersOf(shown), sorted = true).also { last = it }
     }
 
-    /** Zanim duża lista się policzy: kolejność listy, bez kategorii (niezapamiętane). */
-    fun unsorted(input: List<LiveTvChannel>, hidden: Set<String>): Prepared = Prepared(input, hidden, input, emptyList(), numbersOf(input), sorted = false)
+    /** Zanim duża lista się policzy: kolejność listy, bez kategorii i — dla dużej listy — bez numerów (niezapamiętane). */
+    fun unsorted(input: List<LiveTvChannel>, hidden: Set<String>): Prepared =
+        Prepared(input, hidden, input, emptyList(), if (input.size <= SYNC_LIMIT) numbersOf(input) else emptyMap(), sorted = false)
 
     private fun numbersOf(list: List<LiveTvChannel>): Map<String, Int> =
         HashMap<String, Int>(list.size * 2).also { m -> list.forEachIndexed { i, ch -> m.putIfAbsent(ch.streamUrl, i + 1) } }

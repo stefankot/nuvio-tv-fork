@@ -3,6 +3,7 @@ package com.nuvio.tv.skin.niunia
 import com.nuvio.tv.reshaped.livetv.LiveTvChannel
 import com.nuvio.tv.skin.kicia.livetv.ForgeEpgCategories
 import com.nuvio.tv.skin.niunia.livetv.NiuniaLiveFilter
+import com.nuvio.tv.skin.niunia.livetv.NiuniaListMaps
 import com.nuvio.tv.skin.niunia.livetv.NiuniaLiveOrder
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -58,5 +59,22 @@ class NiuniaLiveOrderTest {
         assertEquals("zazolc gesla jazn", ForgeEpgCategories.norm("Zażółć gęślą jaźń"))
         assertEquals("cesky rozhlas", ForgeEpgCategories.norm("Český rozhlas"))
         assertEquals("tvp 1 hd", ForgeEpgCategories.norm("TVP 1 HD"))
+    }
+
+    @Test fun `duza lista przed policzeniem - bez numerow (0 = puste pole)`() {
+        val big = (0..NiuniaLiveOrder.SYNC_LIMIT).map { ch("K$it") }
+        assertTrue(NiuniaLiveOrder.unsorted(big, emptySet()).numbers.isEmpty())
+    }
+
+    /** Build171: mapy kafelków liczone raz na listę (ten sam obiekt), nie przy każdym odświeżeniu przewodnika. */
+    @Test fun `mapy kanalow raz na liste - pierwszy po przewodniku, ostatni po adresie`() {
+        val a = LiveTvChannel(id = "a", name = "A", streamUrl = "http://x/1", tvgId = "g")
+        val b = LiveTvChannel(id = "b", name = "A", streamUrl = "http://x/1", tvgId = "g")
+        val list = listOf(a, b)
+        val g = NiuniaListMaps.byGuide(list)
+        assertSame(g, NiuniaListMaps.byGuide(list))
+        assertEquals(1, g.size); assertEquals("a", g.values.first().id)
+        assertEquals("b", NiuniaListMaps.byUrl(list)["http://x/1"]?.id)
+        assertFalse("nowa lista = nowa mapa", g === NiuniaListMaps.byGuide(ArrayList(list)))
     }
 }
