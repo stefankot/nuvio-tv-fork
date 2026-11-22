@@ -58,13 +58,13 @@ object CatchupDepth {
             val prefs = c.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             val now = System.currentTimeMillis()
             channels.filter { it.catchup != null }.groupBy(::sourceKey).forEach { (src, list) ->
-                if (now - prefs.getLong("at_$src", 0L) < EVERY_MS) return@forEach
+                if (now - prefs.getLong("at2_$src", 0L) < EVERY_MS) return@forEach
                 val ch = list.first()
                 val declared = ch.catchup?.days ?: 0
                 val real = try { probe(ch, declared, now) } catch (e: CancellationException) { throw e } catch (e: Exception) {
                     Log.w(TAG, "archiwum: ${ch.name}: ${e.javaClass.simpleName}: ${e.message}"); null
                 }
-                prefs.edit().putLong("at_$src", now).apply()
+                prefs.edit().putLong("at2_$src", now).apply()
                 if (real == null) { Log.i(TAG, "archiwum: ${ch.name} (${src.take(24)}): nie odpowiada nawet dzień wstecz — zostaje deklarowane $declared dni"); return@forEach }
                 days[src] = real
                 prefs.edit().putInt("days_$src", real).apply()
@@ -77,10 +77,13 @@ object CatchupDepth {
 
     /** Najdłuższe D (dni), dla którego program sprzed D dni odpowiada; null = archiwum nie działa. */
     private suspend fun probe(ch: LiveTvChannel, declared: Int, now: Long): Int? {
+        // Test JMGO build163: Reshaped nie buduje linku archiwum dla programu starszego niż deklarowane dni (null bez
+        // zapytania) — sonda nigdy nie wychodziła poza deklarację. Na czas sondy kopia kanału z limitem [MAX_DAYS].
+        val probeCh = ch.copy(catchup = ch.catchup?.copy(days = MAX_DAYS))
         suspend fun ok(d: Int): Boolean {
             val start = now - d * DAY_MS + HOUR_MS
             val p = LiveTvProgramme("sonda archiwum", start, start + 30 * 60_000L)
-            val replay = LiveTvRepository.catchupChannel(ch, p) ?: return false
+            val replay = LiveTvRepository.catchupChannel(probeCh, p) ?: run { Log.i(TAG, "archiwum: ${ch.name} sprzed $d dni → brak linku"); return false }
             val r = com.nuvio.tv.skin.kicia.livetv.ForgeAiringRace.answers(replay.playback)
             Log.i(TAG, "archiwum: ${ch.name} sprzed $d dni → ${if (r) "jest" else "brak"}")
             return r
