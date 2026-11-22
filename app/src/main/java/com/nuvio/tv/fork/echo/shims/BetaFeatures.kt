@@ -7,11 +7,11 @@ import com.nuvio.tv.ui.screens.settings.ForkFeatures
 /** Echo shim: Echo reads these from a DataStore; the fork reads its own ForkFeatures switches (default off). */
 object BetaFeatures {
     fun settings(context: Context): BetaPerformanceSettings = BetaPerformanceSettings(
-        raceAutoPlaySources = ForkFeatures.enabled(context, "echo_race"),
-        sourceFallback = ForkFeatures.enabled(context, "echo_source_fallback"),
+        // Właściciel 22.11: automatyczny wybór źródła tylko natywny (Regex Nuvio) — wyścig i zapasowe źródło Echo wyłączone na stałe.
+        raceAutoPlaySources = false,
+        sourceFallback = false,
         sourceSwitchTimeoutSeconds = 8,
-        // Oszczędzanie łącza (właściciel 18.11): bez automatycznego podnoszenia jakości w trakcie filmu.
-        autoQuality = ForkFeatures.enabled(context, "echo_auto_quality") && !ForkFeatures.enabled(context, com.nuvio.tv.fork.sources.KeRanking.SAVER_KEY),
+        autoQuality = ForkFeatures.enabled(context, "echo_auto_quality"),
         autoQualityHotSwap = ForkFeatures.enabled(context, "echo_hot_swap"),
         playbackIntro = false, // intro wyłączone na stałe (właściciel 19.11)
         audioLanguageMenu = ForkFeatures.enabled(context, "echo_audio_menu"),

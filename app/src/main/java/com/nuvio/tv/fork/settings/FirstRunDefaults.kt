@@ -67,15 +67,24 @@ object FirstRunDefaults {
     }
 
     /**
-     * Raz na profil (także istniejący, właściciel 18.11 P2): automatyczny wybór źródła = tryb „pierwsze źródło”
-     * z rankingiem KE (KeRanking) zamiast ręcznej listy. Zmienia tylko tryb MANUAL; Regex i inne zostają.
+     * Właściciel 22.11: automatyczny wybór źródła tylko natywny (Regex Nuvio), bez rankingu forka. Raz na profil: reguły
+     * odpowiedzi z pytania o polski dźwięk (bez odpowiedzi: „po polsku przy dobrej jakości”) do pola „Regex” i tryb Regex.
+     * Poprzedni tryb i reguły zostają w kopii `fork_autoplay_backup_<profil>`.
      */
-    private suspend fun autoSource(app: Context, pid: Int) {
-        val flag = "fork_defaults_v3_done_$pid"
+    private suspend fun regexAutoplay(app: Context, pid: Int) {
+        val flag = "fork_regex_autoplay_v1_$pid"
         if (ForkFeatures.enabled(app, flag)) return
         val store = EntryPointAccessors.fromApplication(app, com.nuvio.tv.fork.sources.SourceChoice.Deps::class.java).player()
-        if (store.playerSettings.first().streamAutoPlayMode == com.nuvio.tv.data.local.StreamAutoPlayMode.MANUAL)
-            store.setStreamAutoPlayMode(com.nuvio.tv.data.local.StreamAutoPlayMode.FIRST_STREAM)
+        val s = store.playerSettings.first()
+        val backup = org.json.JSONObject().put("mode", s.streamAutoPlayMode.name)
+            .put("rankedRegex", org.json.JSONArray(s.streamAutoPlayRankedRegex)).put("regex", s.streamAutoPlayRegex)
+        ForkFeatures.setStr(app, "fork_autoplay_backup_$pid", backup.toString())
+        val presets = com.nuvio.tv.fork.sources.SourceChoice.presets(app)
+        val answer = com.nuvio.tv.fork.sources.SourceChoice.answer(app)
+        val preset = presets.firstOrNull { it.id == answer } ?: presets.firstOrNull { it.id == com.nuvio.tv.fork.sources.SourcePresets.PL_IF_GOOD }
+        if (preset == null) { android.util.Log.w("ForkSettings", "autoplay Regex: brak zestawów reguł"); return }
+        android.util.Log.i("ForkSettings", "autoplay Regex: profil $pid, odpowiedź '${answer.ifEmpty { "-" }}' → ${preset.id}, poprzednio ${s.streamAutoPlayMode}")
+        com.nuvio.tv.fork.sources.SourceChoice.useRules(app, preset)
         ForkFeatures.set(app, flag, true)
     }
 
@@ -87,7 +96,7 @@ object FirstRunDefaults {
         runCatching { preloadNext(app) }.logged("ForkSettings", "FirstRunDefaults.kt:86")
         val d = EntryPointAccessors.fromApplication(app, Deps::class.java)
         val pid = d.profiles().activeProfileId.value
-        runCatching { autoSource(app, pid) }.logged("ForkSettings", "FirstRunDefaults.kt:89")
+        runCatching { regexAutoplay(app, pid) }.logged("ForkSettings", "FirstRunDefaults: autoplay Regex")
         val flag = "first_run_done_$pid"
         if (ForkFeatures.enabled(app, flag)) return
         val en = booleanPreferencesKey("tmdb_enabled"); val lang = stringPreferencesKey("tmdb_language")

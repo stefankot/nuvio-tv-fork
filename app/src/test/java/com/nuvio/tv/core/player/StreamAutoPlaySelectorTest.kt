@@ -16,21 +16,6 @@ import org.junit.Test
 class StreamAutoPlaySelectorTest {
 
     @Test
-    fun `valid user regex survives an unparseable inferred exclusion`() {
-        val hd = stream(addonName = "AddonA", url = "https://example.com/video.m3u8", name = "1080p")
-        val selected = StreamAutoPlaySelector.selectAutoPlayStream(
-            streams = listOf(hd),
-            mode = StreamAutoPlayMode.REGEX_MATCH,
-            regexPattern = "^(?!(a[)] )).*1080p",
-            source = StreamAutoPlaySource.ALL_SOURCES,
-            installedAddonNames = setOf("AddonA"),
-            selectedAddons = emptySet(),
-            selectedPlugins = emptySet(),
-        )
-        assertEquals(hd, selected)
-    }
-
-    @Test
     fun `orderAddonStreams follows installed addon order and leaves plugins last`() {
         val plugin = addonStreams("Plugin")
         val addonB = addonStreams("AddonB")

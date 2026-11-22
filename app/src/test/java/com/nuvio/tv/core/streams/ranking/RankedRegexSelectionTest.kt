@@ -88,11 +88,11 @@ class RankedRegexSelectionTest {
         assertEquals(nextEpisode, select(listOf(stream("2160p REMUX", "AddonB"), nextEpisode), binge = true))
     }
 
-    @Test fun `manual disables autoplay and first-stream follows KE ranking`() {
+    @Test fun `manual and first-stream modes retain their behavior`() {
         val a = stream("1080p", "AddonA")
         val b = stream("2160p REMUX", "AddonB")
         assertNull(select(listOf(a, b), mode = StreamAutoPlayMode.MANUAL))
-        assertEquals(b, select(listOf(a, b), mode = StreamAutoPlayMode.FIRST_STREAM))
+        assertEquals(a, select(listOf(a, b), mode = StreamAutoPlayMode.FIRST_STREAM))
     }
 
     @Test fun `configuration gate accepts new rules without legacy regex`() {

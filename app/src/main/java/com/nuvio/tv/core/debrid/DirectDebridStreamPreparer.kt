@@ -1,6 +1,6 @@
 package com.nuvio.tv.core.debrid
 
-import android.os.SystemClock
+import com.nuvio.tv.core.streams.ranking.StreamRegexRanking
 import android.util.Log
 import com.nuvio.tv.core.player.StreamAutoPlaySelector
 import com.nuvio.tv.data.local.DebridSettingsDataStore
@@ -39,12 +39,18 @@ class DirectDebridStreamPreparer @Inject constructor(
         val limit = settings.instantPlaybackPreparationLimit
         if (!settings.canResolvePlayableLinks || limit <= 0) return
 
-        val candidates = prioritizeCandidates(
-            streams = streams,
-            limit = limit,
-            playerSettings = playerSettings,
-            installedAddonNames = installedAddonNames
-        )
+        val candidates = com.nuvio.tv.core.streams.ranking.RankedRegexWork.run(
+            enabled = playerSettings.streamAutoPlayMode == StreamAutoPlayMode.REGEX_MATCH &&
+                playerSettings.streamAutoPlayRankedRegex.isNotEmpty()
+        ) { checkpoint ->
+            prioritizeCandidates(
+                streams = streams,
+                limit = limit,
+                playerSettings = playerSettings,
+                installedAddonNames = installedAddonNames,
+                checkCancelled = checkpoint
+            )
+        }
         for (stream in candidates) {
             if (!resolver.shouldResolveToPlayableStream(stream)) continue
             resolver.cachedPlayableStream(stream, season, episode)?.let { cached ->
@@ -78,7 +84,8 @@ class DirectDebridStreamPreparer @Inject constructor(
         streams: List<Stream>,
         limit: Int,
         playerSettings: PlayerSettings,
-        installedAddonNames: Set<String>
+        installedAddonNames: Set<String>,
+        checkCancelled: () -> Unit = {}
     ): List<Stream> {
         if (limit <= 0) return emptyList()
         val candidates = streams
@@ -86,36 +93,49 @@ class DirectDebridStreamPreparer @Inject constructor(
             .distinctBy { it.preparationKey() }
         if (candidates.isEmpty()) return emptyList()
 
-        val prioritized = linkedSetOf<Stream>() // Fork hook: debrid-preparation
+        val prioritized = mutableListOf<Stream>()
         val autoPlaySelection = StreamAutoPlaySelector.selectAutoPlayStream(
             streams = streams,
             mode = playerSettings.streamAutoPlayMode,
             regexPattern = playerSettings.streamAutoPlayRegex,
+            rankedRegexPatterns = playerSettings.streamAutoPlayRankedRegex,
+            rankedRegexCheckCancelled = checkCancelled,
             source = playerSettings.streamAutoPlaySource,
             installedAddonNames = installedAddonNames,
             selectedAddons = playerSettings.streamAutoPlaySelectedAddons,
             selectedPlugins = playerSettings.streamAutoPlaySelectedPlugins
         )
         if (autoPlaySelection?.let { it.isDirectDebrid() || it.isCachedLocalDebridTorrent() } == true) {
-            val selectedKey = autoPlaySelection.preparationKey()
-            candidates.firstOrNull { it.preparationKey() == selectedKey }
+            candidates.firstOrNull { it.preparationKey() == autoPlaySelection.preparationKey() }
                 ?.let(prioritized::add)
         }
 
-        if (playerSettings.streamAutoPlayMode == StreamAutoPlayMode.REGEX_MATCH) {
+        if (playerSettings.streamAutoPlayMode == StreamAutoPlayMode.REGEX_MATCH &&
+            playerSettings.streamAutoPlayRankedRegex.isNotEmpty()
+        ) {
+            StreamRegexRanking.rank(
+                candidates, playerSettings.streamAutoPlayRankedRegex, checkCancelled
+            ).orEmpty().filter { candidate ->
+                prioritized.none { it.preparationKey() == candidate.preparationKey() }
+            }.forEach(prioritized::add)
+        } else if (playerSettings.streamAutoPlayMode == StreamAutoPlayMode.REGEX_MATCH) {
             val regex = runCatching {
                 Regex(playerSettings.streamAutoPlayRegex.trim(), RegexOption.IGNORE_CASE)
             }.getOrNull()
             if (regex != null) {
                 candidates
                     .filter { candidate ->
-                        candidate !in prioritized && regex.containsMatchIn(candidate.searchableText())
+                        prioritized.none { it.preparationKey() == candidate.preparationKey() } &&
+                            regex.containsMatchIn(candidate.searchableText())
                     }
                     .forEach(prioritized::add)
             }
         }
 
-        if (prioritized.size < limit) prioritized.addAll(candidates)
+        candidates
+            .filter { candidate -> prioritized.none { it.preparationKey() == candidate.preparationKey() } }
+            .forEach(prioritized::add)
+
         return prioritized.take(limit)
     }
 
@@ -143,9 +163,9 @@ class DirectDebridStreamPreparer @Inject constructor(
         }
     }
 
-    private suspend fun consumeBackgroundBudget(): Boolean =
-        budgetMutex.withLock {
-            val now = SystemClock.elapsedRealtime()
+    private suspend fun consumeBackgroundBudget(): Boolean {
+        val now = System.currentTimeMillis()
+        return budgetMutex.withLock {
             minuteStarts.removeOlderThan(now - BACKGROUND_PREPARES_PER_MINUTE_WINDOW_MS)
             hourStarts.removeOlderThan(now - BACKGROUND_PREPARES_PER_HOUR_WINDOW_MS)
             if (
@@ -159,6 +179,7 @@ class DirectDebridStreamPreparer @Inject constructor(
                 true
             }
         }
+    }
 }
 
 private const val MAX_BACKGROUND_PREPARES_PER_MINUTE = 6

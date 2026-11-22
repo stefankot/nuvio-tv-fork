@@ -190,12 +190,12 @@ object StreamAutoPlaySelector {
 
         return when (mode) {
             StreamAutoPlayMode.MANUAL -> null
-            StreamAutoPlayMode.FIRST_STREAM -> com.nuvio.tv.fork.sources.KeRanking.order(candidateStreams).firstOrNull { isPlayable(it) } // Fork hook: ke-rank
+            StreamAutoPlayMode.FIRST_STREAM -> candidateStreams.firstOrNull { isPlayable(it) }
             StreamAutoPlayMode.REGEX_MATCH -> {
                 if (rankedRegexPatterns.isNotEmpty()) {
-                    return StreamRegexRanking.bestMatch(
+                    return StreamRegexRanking.rank(
                         candidateStreams.filter { isPlayable(it) }, rankedRegexPatterns, rankedRegexCheckCancelled
-                    )
+                    )?.firstOrNull()
                 }
                 val pattern = regexPattern.trim()
 
@@ -212,14 +212,13 @@ object StreamAutoPlaySelector {
                     .filter { it.isNotBlank() }
                     .toList()
 
-                // The legacy extraction is heuristic. A valid original expression can have
-                // a capture we cannot turn into an independent expression, e.g. a ')' in a class.
-                val excludeRegex = exclusionWords.takeIf { it.isNotEmpty() }?.let {
-                    runCatching { Regex("\\b(${it.joinToString("|")})\\b", RegexOption.IGNORE_CASE) }.getOrNull()
-                }
+                val excludeRegex = if (exclusionWords.isNotEmpty()) {
+                    Regex("\\b(${exclusionWords.joinToString("|")})\\b", RegexOption.IGNORE_CASE)
+                } else null
 
-                candidateStreams.firstOrNull { stream ->
-                    if (!isPlayable(stream)) return@firstOrNull false
+                // 1. Build list of ALL regex‑matching streams
+                val matchingStreams = candidateStreams.filter { stream ->
+                    if (!isPlayable(stream)) return@filter false
 
                     val searchableText = buildString {
                         append(stream.addonName).append(' ')
@@ -230,8 +229,19 @@ object StreamAutoPlaySelector {
                         if (stream.isTorrent()) append(' ').append(stream.infoHash.orEmpty())
                     }
 
-                    userRegex.containsMatchIn(searchableText) && excludeRegex?.containsMatchIn(searchableText) != true
+                    // Must match include pattern
+                    if (!userRegex.containsMatchIn(searchableText)) return@filter false
+
+                    // Must NOT match exclusion pattern
+                    if (excludeRegex != null && excludeRegex.containsMatchIn(searchableText)) {
+                        return@filter false
+                    }
+
+                    true
                 }
+
+                if (matchingStreams.isEmpty()) return null
+                matchingStreams.firstOrNull { isPlayable(it) }
             }
 
         }

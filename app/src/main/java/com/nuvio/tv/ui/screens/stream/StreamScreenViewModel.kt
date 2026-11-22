@@ -1,6 +1,5 @@
 package com.nuvio.tv.ui.screens.stream
 
-import com.nuvio.tv.core.player.fallbackWhenPreferredSourcesEmpty
 import com.nuvio.tv.core.player.recovery.AutoSourceRecoveryPlan
 import com.nuvio.tv.core.player.recovery.AutoSourceRecoverySettings
 import com.nuvio.tv.core.player.recovery.AutoSourceRecoveryHandoff
@@ -410,7 +409,6 @@ class StreamScreenViewModel @Inject constructor(
     }
 
     private fun loadStreams(forceRefresh: Boolean = false) {
-        com.nuvio.tv.fork.sources.KeRanking.begin(context, contentType, contentName ?: title, year, season, episode, videoId, contentId ?: videoId.substringBefore(":")) // Fork hook: ke-rank
         streamRepository.setLocalPluginSearchPaused(false)
         streamLoadScope?.cancel()
         streamLoadScope = null
@@ -569,7 +567,6 @@ class StreamScreenViewModel @Inject constructor(
             var connectionFit: StreamConnectionFit? = null
             var connectionFitCaptured = false
 
-            val raceHeadStart = com.nuvio.tv.fork.echo.EchoRaceHook.headStart(context, newScope, persistedBingeGroup != null || autoPlayHandledForSession) // fork hook
             val successMutex = kotlinx.coroutines.sync.Mutex()
             suspend fun applySuccess(addonStreamGroups: List<AddonStreams>, isAllLoaded: Boolean) = successMutex.withLock {
                 if (!connectionFitCaptured) {
@@ -668,8 +665,6 @@ class StreamScreenViewModel @Inject constructor(
                 // configured timeout has elapsed. This gives slower addons a
                 // chance to return higher-quality streams before the selector
                 // picks from whatever is available.
-                if (!isAllLoaded && !autoPlayHandledForSession && !resolvedAutoPlayTarget) com.nuvio.tv.fork.echo.EchoRaceHook.offer(context, raceHeadStart, allStreams, playerSettings, installedAddonOrder.toSet()) // fork hook
-                com.nuvio.tv.fork.sources.TrackScout.onSources(allStreams) // Fork hook: sonda ścieżek (dźwięk/napisy wbudowane) w tle
                 val shouldAutoSelect = !autoPlayHandledForSession && !resolvedAutoPlayTarget && isAllLoaded
                 var selectedAutoPlayStream = if (earlyBingeGroupMatch != null) {
                     earlyBingeGroupMatch
@@ -689,19 +684,12 @@ class StreamScreenViewModel @Inject constructor(
                         preferBingeGroupInSelection = persistedBingeGroup != null
                     )
                 }
-                if (shouldAutoSelect && selectedAutoPlayStream == null && com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(context, "echo_source_fallback")) selectedAutoPlayStream = StreamAutoPlaySelector.fallbackWhenPreferredSourcesEmpty(allStreams, playerSettings.streamAutoPlayMode, playerSettings.streamAutoPlaySource, installedAddonOrder.toSet(), playerSettings.streamAutoPlaySelectedAddons, playerSettings.streamAutoPlaySelectedPlugins) // Fork hook: echo (fallback, gdy preferowane dodatki puste)
                 // A manual selection can complete while matching is on the worker.
                 if (autoPlayHandledForSession || resolvedAutoPlayTarget) selectedAutoPlayStream = null
                 if (selectedAutoPlayStream != null) {
                     resolvedAutoPlayTarget = true
                 }
-                if (shouldAutoSelect) selectedAutoPlayStream = com.nuvio.tv.fork.echo.EchoRaceHook.preferred(context, selectedAutoPlayStream, allStreams, playerSettings, installedAddonOrder.toSet()) ?: selectedAutoPlayStream // fork hook
-                val raceField = com.nuvio.tv.fork.echo.EchoRaceHook.field(context, selectedAutoPlayStream, allStreams, playerSettings, installedAddonOrder.toSet(), persistedBingeGroup) // fork hook
-                if (selectedAutoPlayStream != null && raceField != null) { // fork hook
-                    com.nuvio.tv.fork.echo.EchoRaceHook.run(context, newScope, raceField, raceHeadStart, selectedAutoPlayStream, playerSettings.showPlayerLoadingStatus, { autoPlayHandledForSession }, { m -> updateUiStateIfChanged { it.copy(directAutoPlayMessage = m) } }, { w -> updateUiStateIfChanged { it.copy(autoPlayStream = w) } })
-                } else if (selectedAutoPlayStream != null) com.nuvio.tv.fork.echo.EchoRaceHook.stop(raceHeadStart) // fork hook
-                if (raceField != null) selectedAutoPlayStream = null // fork hook: wygrany z wyścigu ustawia EchoRaceHook
-                com.nuvio.tv.fork.net.KeAutoTest.onSources(context, allStreams, ready = isAllLoaded, autoPlay = resolvedAutoPlayTarget || autoPlayHandledForSession || raceField != null) // Fork hook: test łącza w tle (ekran źródeł)
+                com.nuvio.tv.fork.net.KeAutoTest.onSources(context, allStreams, ready = isAllLoaded, autoPlay = resolvedAutoPlayTarget || autoPlayHandledForSession) // Fork hook: test łącza w tle (ekran źródeł)
 
                 val currentFilter = _uiState.value.selectedAddonFilter
                 val fullFiltered = groupStreamsByProvider(if (currentFilter == null) {
@@ -1810,7 +1798,6 @@ class StreamScreenViewModel @Inject constructor(
     }
 
     fun persistBingeGroupForStream(stream: Stream) {
-        com.nuvio.tv.fork.sources.KeRanking.onManualPick(context, if (season != null) contentId ?: videoId.substringBefore(":") else null, stream) // Fork hook: ke-rank (ręczny wybór: preferowane źródło serialu, zdjęcie blokady złego źródła)
         val cid = contentId?.takeIf { it.isNotBlank() } ?: return
         val bg = stream.behaviorHints?.bingeGroup
         val fn = stream.behaviorHints?.filename
