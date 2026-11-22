@@ -22,6 +22,7 @@ Stare wersje: `plan/archiwum/zasady/` i historia gita.
 - Nowe teksty: `res/values/<moduł>_strings.xml`, bez duplikatów ze `strings.xml`. Teksty dla użytkownika po polsku, proste, bez słów technicznych.
 - Efekty interfejsu (rozmycie itp.) tylko natywnie (RenderEffect API 31+, RuntimeShader API 33+); na starszych (JMGO, Android 11) zwykłe tło z tokenów skórki, bez symulacji.
   - Wyjątek (22.11, właściciel: „Tak, włącz”): rozmycie OBRAZKÓW (tło hero, plakaty) liczone raz przy wczytaniu i trzymane w pamięci Coil (`fork/images/NativeBlur`) działa też na Androidzie 11 — procesorem, na obrazie pomniejszonym 4×. Rozmycie na żywo w każdej klatce na Androidzie 11 nadal zakazane.
+- Ciężkie obliczenia (indeksy, kategorie, kolejności list, szukanie) — nigdy przy każdym zapytaniu ani na wątku UI: liczone w tle, przyrostowo (tylko nowe/zmienione dane) i zapisane na dysku; po restarcie aplikacji tylko odczyt, pełne przeliczenie tylko przy większej zmianie (22.11, właściciel). Docelowo SQLite (zgoda właściciela 22.11).
 - Wygląd: istniejące komponenty; skórki przez `skin/` (właściciel zrobi własny projekt).
 - Zmiana formatu danych użytkownika: zawsze zachowaj stary plik obok.
 
