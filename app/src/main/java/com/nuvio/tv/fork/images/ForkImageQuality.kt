@@ -5,7 +5,6 @@ import coil3.intercept.Interceptor
 import coil3.request.ErrorResult
 import coil3.request.ImageResult
 import coil3.request.allowRgb565
-import coil3.request.precision
 import coil3.size.Dimension
 import coil3.size.Precision
 import coil3.size.Size
