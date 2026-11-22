@@ -31,9 +31,7 @@ object SourceChoice {
     suspend fun apply(c: Context, presetId: String) {
         val preset = presets(c).firstOrNull { it.id == presetId } ?: return
         val store = EntryPointAccessors.fromApplication(c.applicationContext, Deps::class.java).player()
-        store.setStreamAutoPlayRankedRegex(preset.rules)
-        // Hybryda 18.11: tryb „pierwsze źródło” = ranking KE + polski dźwięk z tych reguł (KeRanking); Regex omijałby ranking.
-        store.setStreamAutoPlayMode(StreamAutoPlayMode.FIRST_STREAM)
+        useRules(c, preset)
         preset.audio.getOrNull(0)?.let { store.setPreferredAudioLanguage(langCode(it)) }
         store.setSecondaryPreferredAudioLanguage(preset.audio.getOrNull(1)?.let(::langCode))
         preset.subs.getOrNull(0)?.let { store.setSubtitlePreferredLanguage(langCode(it)) }
@@ -45,12 +43,16 @@ object SourceChoice {
         KeRanking.warm(c)
     }
 
-    /** Tryb Regex zapisany przez starą wersję odpowiedzi: przestaw na „pierwsze źródło”, gdy reguły to wciąż zestaw odpowiedzi. */
-    suspend fun useRanking(c: Context) {
+    /**
+     * Właściciel 22.11: automatyczny wybór źródła tylko natywny. Reguły zestawu trafiają do pola „Regex” Nuvio (lista
+     * priorytetów) i włączają tryb Regex; ranking forka (KeRanking) nie bierze udziału w wyborze.
+     */
+    suspend fun useRules(c: Context, preset: SourcePreset) {
         val store = EntryPointAccessors.fromApplication(c.applicationContext, Deps::class.java).player()
-        val s = store.playerSettings.first()
-        if (s.streamAutoPlayMode == StreamAutoPlayMode.REGEX_MATCH && SourcePresets.matching(s.streamAutoPlayRankedRegex, presets(c)) != SourcePresets.CUSTOM)
-            store.setStreamAutoPlayMode(StreamAutoPlayMode.FIRST_STREAM)
+        store.setStreamAutoPlayRankedRegex(preset.rules)
+        store.setStreamAutoPlayMode(StreamAutoPlayMode.REGEX_MATCH)
+        ForkFeatures.setStr(c, stateKey(), preset.id)
+        android.util.Log.i("ForkSources", "autoplay: natywny Regex, zestaw ${preset.id} (${preset.rules.size} reguł)")
     }
 
     /** B04-9: napisy dla seniorów: rozmiar, półprzezroczyste tło, obrys. */

@@ -1,0 +1,64 @@
+{
+ "presets": [
+  {
+   "id": "pl_always",
+   "title": "Zawsze po polsku",
+   "rules": [
+    "^(?!.*\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)(?=(?:.*\\b(?:lektor|dubbing|dub[ ._-]?pl|pl[ ._-]?dub)\\b|(?!.*(?:sub|napisy)).*\\b(?:pl|pol|polish|polski)\\b|.*\\bmulti\\b.*\\bpl\\b(?![ ._-]?sub)))(?=.*\\b(?:2160p|4k|uhd)\\b).*$",
+    "^(?!.*\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)(?=(?:.*\\b(?:lektor|dubbing|dub[ ._-]?pl|pl[ ._-]?dub)\\b|(?!.*(?:sub|napisy)).*\\b(?:pl|pol|polish|polski)\\b|.*\\bmulti\\b.*\\bpl\\b(?![ ._-]?sub)))(?=.*\\b(?:1080p|fhd)\\b).*$",
+    "^(?!.*\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)(?=(?:.*\\b(?:lektor|dubbing|dub[ ._-]?pl|pl[ ._-]?dub)\\b|(?!.*(?:sub|napisy)).*\\b(?:pl|pol|polish|polski)\\b|.*\\bmulti\\b.*\\bpl\\b(?![ ._-]?sub)))(?=.*\\b(?:720p|hd)\\b).*$",
+    "^(?!.*\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)(?=(?:.*\\b(?:lektor|dubbing|dub[ ._-]?pl|pl[ ._-]?dub)\\b|(?!.*(?:sub|napisy)).*\\b(?:pl|pol|polish|polski)\\b|.*\\bmulti\\b.*\\bpl\\b(?![ ._-]?sub))).*$",
+    "^(?!.*\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)(?=.*\\b(?:2160p|4k|uhd)\\b).*$",
+    "^(?!.*\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)(?=.*\\b(?:1080p|fhd)\\b).*$",
+    "^(?!.*\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)(?=.*\\b(?:720p|hd)\\b).*$",
+    "^(?!.*\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b).*$"
+   ],
+   "audio": [
+    "pol",
+    "eng"
+   ],
+   "subs": [
+    "pol",
+    "eng"
+   ]
+  },
+  {
+   "id": "pl_if_good",
+   "title": "Po polsku przy dobrej jakości",
+   "rules": [
+    "^(?!.*\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)(?=(?:.*\\b(?:lektor|dubbing|dub[ ._-]?pl|pl[ ._-]?dub)\\b|(?!.*(?:sub|napisy)).*\\b(?:pl|pol|polish|polski)\\b|.*\\bmulti\\b.*\\bpl\\b(?![ ._-]?sub)))(?=.*\\b(?:2160p|4k|uhd)\\b).*$",
+    "^(?!.*\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)(?=(?:.*\\b(?:lektor|dubbing|dub[ ._-]?pl|pl[ ._-]?dub)\\b|(?!.*(?:sub|napisy)).*\\b(?:pl|pol|polish|polski)\\b|.*\\bmulti\\b.*\\bpl\\b(?![ ._-]?sub)))(?=.*\\b(?:1080p|fhd)\\b).*$",
+    "^(?!.*\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)(?=.*\\b(?:2160p|4k|uhd)\\b).*$",
+    "^(?!.*\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)(?=.*\\b(?:1080p|fhd)\\b).*$",
+    "^(?!.*\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)(?=.*\\b(?:720p|hd)\\b).*$",
+    "^(?!.*\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b).*$"
+   ],
+   "audio": [
+    "pol",
+    "eng"
+   ],
+   "subs": [
+    "pol",
+    "eng"
+   ]
+  },
+  {
+   "id": "original_subs",
+   "title": "Oryginał z napisami",
+   "rules": [
+    "^(?!.*\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)(?=.*\\b(?:2160p|4k|uhd)\\b).*$",
+    "^(?!.*\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)(?=.*\\b(?:1080p|fhd)\\b).*$",
+    "^(?!.*\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b)(?=.*\\b(?:720p|hd)\\b).*$",
+    "^(?!.*\\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\\b).*$"
+   ],
+   "audio": [
+    "eng",
+    "pol"
+   ],
+   "subs": [
+    "pol",
+    "eng"
+   ]
+  }
+ ]
+}

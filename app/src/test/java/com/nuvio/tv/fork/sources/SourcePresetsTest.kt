@@ -58,4 +58,30 @@ class SourcePresetsTest {
         assertNull(SourcePresets.matching(emptyList(), list))
         assertNotNull(presets["original_subs"])
     }
+
+    // Właściciel 22.11: reguły dla natywnego Regex Nuvio — tekst źródła to nazwa dodatku, nazwa, opis w kilku liniach, plik i adres.
+    private val tcPl = "TorrentClaw (PL, 720p) ⚡️ INSTANT 4K · Web-dl ⭐ 🔵 75/100 · TB\n✅ TrueSpec Verified\n🎞️ hevc · DV+HDR10 · 10-bit\n🔊 ac3 · 5.1 · 🇵🇱🇺🇸\n💬 🇵🇱🇺🇸\n💾 17.1 GB\n🏷️ K83   [DEVIL-TORRENTS.PL] Inside.Out.2.2024.MULTi.2160p.WEB-DL   https://torrentclaw.com/x/ts/sub"
+    private val tcSubsOnly = "TorrentClaw (PL, 720p) ⚡️ INSTANT 4K · Bluray 🟢 94/100 · TB\n✅ TrueSpec Verified\n🔊 truehd · 7.1 · 🇺🇸🇪🇸🇫🇷\n💬 🇵🇱🇸🇦🇧🇬🇨🇿 +24\n💾 13.2 GB   Inside Out 2 (2024) (2160p BluRay) [QxR]   https://torrentclaw.com/x"
+
+    @Test fun `flagi dzwieku i napisow TorrentClaw`() {
+        assertEquals(0, tier("pl_always", tcPl))
+        assertEquals(4, tier("pl_always", tcSubsOnly))
+        assertEquals(2, tier("pl_if_good", tcSubsOnly))
+        assertEquals(5, tier("pl_always", "X 1080p\n🔊 aac · 2.0 · 🇯🇵🇱🇹\n💬 🇬🇧 https://x")) // Japonia + Litwa to nie 🇵🇱
+        assertEquals(1, tier("pl_always", "X 1080p\n🗣️ 🇬🇧🇵🇱 https://x"))
+        assertEquals(5, tier("pl_always", "X 1080p Film.2024.PL.1080p\n🔊 ac3 · 🇺🇸\n💬 🇵🇱 https://x")) // flagi dźwięku mają pierwszeństwo przed nazwą
+    }
+
+    @Test fun `opis w kilku liniach`() {
+        assertEquals(0, tier("pl_always", "Torrentio 4k DV Film.2024.PL.2160p.WEB-DL\n👤 12 💾 20 GB ⚙️ X https://x"))
+        assertEquals(1, tier("pl_always", "Torrentio 1080p Film.2024.1080p.Lektor.PL\n👤 3 https://x"))
+        assertEquals(5, tier("pl_always", "Torrentio 1080p Film.2024.1080p.PLSUB\n👤 3 https://x"))
+    }
+
+    @Test fun `nazwa dodatku domena i adres nie udaja polskiego`() {
+        assertEquals(5, tier("pl_always", "TorrentClaw (PL, 720p) ⚡️ INSTANT 1080p · Web-dl\n🔊 eac3 · 5.1\n💾 3 GB Film.2024.1080p.WEB-DL.ENG https://torrentclaw.com/x"))
+        assertEquals(5, tier("pl_always", "Addon 1080p [DEVIL-TORRENTS.PL] Film.2024.ENG.1080p https://x"))
+        assertEquals(1, tier("pl_always", "Addon Film [PL] 1080p https://x"))
+        assertEquals(5, tier("pl_always", "Addon Film.2024.1080p.ENG https://cdn/x/video.ts")) // „ts” w adresie to nie TELESYNC
+    }
 }

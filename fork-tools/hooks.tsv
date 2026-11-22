@@ -46,15 +46,6 @@ app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	"search", mapOf(	Se
 app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	"library", mapOf(	LibraryScreen(	skin	skin: Biblioteka	
 app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	"youtube", mapOf(	YouTubeScreen(	skin	skin: YouTube	
 app/src/main/java/com/nuvio/tv/ui/screens/LayoutSelectionScreen.kt	// Fork hook: skin	continueFocusRequester.requestFocus	skin	skin: kreator krok 2	
-app/src/main/java/com/nuvio/tv/core/player/StreamAutoPlaySelector.kt	// Fork hook: ke-rank	StreamAutoPlayMode.FIRST_STREAM	sources	hybryda: ranking KE	StreamAutoPlayMode.FIRST_STREAM -> candidateStreams.firstOrNull { isPlayable(it) }
-app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt	KeRanking.begin(	private fun loadStreams	sources	hybryda: tytuł i preferowane źródło dla rankingu KE	
-app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt	KeRanking.onManualPick(	fun persistBingeGroupForStream	sources	hybryda: ręczny wybór (preferowane źródło serialu KE, zdjęcie blokady złego źródła Kicii)	
-app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt	fallbackWhenPreferredSourcesEmpty(	A manual selection can complete	echo	Echo: fallback, gdy preferowane dodatki puste	
-app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt	import com.nuvio.tv.core.player.fallbackWhenPreferredSourcesEmpty	import	echo	import fallbacku Echo	
-app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerAutoSourceRecovery.kt	StartupChecks.Session()	private enum class NextResult	sources	Kicia: kontrole otwartego pliku (sesja)	
-app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerAutoSourceRecovery.kt	forkChecks.verdict(player)	val progressing	sources	Kicia: zły czas trwania / brak dźwięku	
-app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerAutoSourceRecovery.kt	forkChecks.onLeaving(	showSwitchNotice(noticeReason)	sources	Kicia: pamięć złych źródeł	
-app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerAutoSourceRecovery.kt	forkChecks.attempt(next)	attempted += recoverySourceKey(next)	sources	Kicia: nowa próba	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerInitialization.kt	MpvContainers.needsMpv(	currentInternalPlayerEngine = effectiveInternalPlayerEngine	sources	Kicia: AVI/WMV/ASF w mpv	
 app/src/main/java/com/nuvio/tv/MainActivity.kt	ForkHooks.youTubeInMenu(	add(Screen.Discover.route)	menu	YouTube w menu (trasa główna)	
 app/src/main/java/com/nuvio/tv/MainActivity.kt	ForkHooks.drawerOrder(	sidebar_settings	menu	YouTube w menu, kolejność zakładek Kicii	
@@ -69,8 +60,7 @@ app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerSidecarSubtitles.kt	// fo
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerViewModel.kt	AiSubtitles.bind(controller) // Fork hook: ai-subtitles	controller.bindExoSubtitleView(subtitleView)	ai-subtitles	AI napisy: bieżący odtwarzacz Exo	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerViewModel.kt	AiSubtitles.unbind(controller) // Fork hook: ai-subtitles	controller.onCleared()	ai-subtitles	AI napisy: koniec sesji	
 app/build.gradle.kts	// Fork hook: ai-subtitles klucz	TVDB_API_KEY	ai-subtitles	klucz Gemini do BuildConfig (local.properties)
-app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt	// Fork hook: test łącza w tle	if (raceField != null) selectedAutoPlayStream = null	ke-network	test łącza w tle na ekranie źródeł (KeAutoTest)
-app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt	TrackScout.onSources(	val shouldAutoSelect	sources	sonda ścieżek (dźwięk/napisy wbudowane) przed wyborem źródła
+app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt	// Fork hook: test łącza w tle	val shouldAutoSelect	ke-network	test łącza w tle na ekranie źródeł (KeAutoTest)
 app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvGuide.kt	ForgeGuideDetail.open(picked, it); return true } // Fork hook	A programme that has ended plays again	tv	OK na programie w przyszłości otwiera stronę programu
 app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	composable("forge_history")	composable(Screen.ExperienceModeSelection.route)	kicia	trasa Historia (menu awatara)
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerInitialization.kt	// Fork hook: lektor (ścieżka Arc też)	.setAudioProcessors	lektor	procesor lektora w ścieżce dźwięku Arc (formatsPlan)	.setAudioProcessors(arrayOf(gainAudioProcessor))
@@ -83,4 +73,3 @@ app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	Fork hook: skin (Li
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerAutoQuality.kt	Fork hook: echo (w dół tylko po zacięciu)	autoQualityPolicy.config =	echo	Auto jakość: bez wczesnego schodzenia w dół (EchoAutoQualityGuard)	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	// Fork hook: skin (Wstecz krok po kroku w nakładce skórki)	seekPreview.handleBack	skin	skin: Wstecz najpierw do nakładki skórki (panel, poziomy Niuni)	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	Fork hook: livetv (Wstecz w pytaniu archiwum	val exitPlayerFromError	livetv	Wstecz w pytaniu „Wrócić do transmisji na żywo?” wychodzi z odtwarzacza (exit było puste)	
-app/src/main/java/com/nuvio/tv/core/debrid/DirectDebridStreamPreparer.kt	// Fork hook: debrid-preparation	prioritized	debrid	kolejność i budżet przygotowania źródeł	val prioritized = mutableListOf<Stream>()

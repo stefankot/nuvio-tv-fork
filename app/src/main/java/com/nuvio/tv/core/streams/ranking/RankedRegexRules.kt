@@ -16,44 +16,12 @@ class RankedRegexRules private constructor(private val rules: List<Pattern>) {
         nanoTime: () -> Long = System::nanoTime,
         text: (T) -> String
     ): List<T>? {
-        val tiers = List(rules.size) { ArrayList<T>() }
-        val completed = matchTiers(items, checkCancelled, nanoTime, text) { item, tier ->
-            tiers[tier].add(item)
-        }
-        return if (completed) tiers.flatten() else null
-    }
-
-    /** Select the first item in the best tier without allocating a ranked list. */
-    fun <T> bestMatch(
-        items: List<T>,
-        checkCancelled: () -> Unit = {},
-        nanoTime: () -> Long = System::nanoTime,
-        text: (T) -> String
-    ): T? {
-        var bestTier = rules.size
-        var best: T? = null
-        // Keep the same deadline and failure behavior as rank(), even after a tier-one match.
-        val completed = matchTiers(items, checkCancelled, nanoTime, text) { item, tier ->
-            if (tier < bestTier) {
-                bestTier = tier
-                best = item
-            }
-        }
-        return if (completed) best else null
-    }
-
-    private inline fun <T> matchTiers(
-        items: List<T>,
-        crossinline checkCancelled: () -> Unit,
-        crossinline nanoTime: () -> Long,
-        text: (T) -> String,
-        matched: (T, Int) -> Unit
-    ): Boolean {
         val started = nanoTime()
         val checkpoint = {
             checkCancelled()
             if (nanoTime() - started >= MAX_DURATION_NANOS) throw EvaluationLimit()
         }
+        val tiers = List(rules.size) { ArrayList<T>() }
         return try {
             for (item in items) {
                 checkpoint()
@@ -63,14 +31,14 @@ class RankedRegexRules private constructor(private val rules: List<Pattern>) {
                 // gets the same protection, while the deadline bounds the complete pass.
                 val bounded = BoundedText(value, 0, value.length, ReadBudget(checkpoint))
                 val tier = rules.indexOfFirst { it.matcher(bounded).find() }
-                if (tier >= 0) matched(item, tier)
+                if (tier >= 0) tiers[tier].add(item)
             }
             checkpoint()
-            true
+            tiers.flatten()
         } catch (_: EvaluationLimit) {
-            false
+            null
         } catch (_: StackOverflowError) {
-            false
+            null
         }
     }
 

@@ -107,7 +107,7 @@ object KeRanking {
         val text = listOfNotNull(s.name, s.title, s.description).joinToString(" ")
         val scout = TrackScout.of(s)
         return when {
-            PL_SUBS.containsMatchIn(text) || LangFlags.polishSubs(text) || scout?.hasPolishSubs == true -> 0
+            PL_SUBS.containsMatchIn(text) || scout?.hasPolishSubs == true -> 0
             MULTI_SUBS.containsMatchIn(text) || (scout?.subs?.count { it != "und" } ?: 0) >= 3 -> 1
             scout?.subs?.isNotEmpty() == true -> 2
             else -> 3
@@ -118,8 +118,7 @@ object KeRanking {
         val p = polishRules ?: return 0
         val text = listOfNotNull(s.name, s.title, s.description).joinToString(" ")
         // Sonda ścieżek (TrackScout): polski dźwięk w pliku = najlepszy szczebel, także bez oznaczenia w nazwie.
-        // Fork 22.11: opis w kilku liniach i flagi 🔊 🇵🇱 (TorrentClaw) — LangFlags.presetText.
-        val audio = (if (TrackScout.of(s)?.hasPolishAudio == true) 0 else null) ?: SourcePresets.tierOf(p, LangFlags.presetText(text)) ?: Int.MAX_VALUE
+        val audio = (if (TrackScout.of(s)?.hasPolishAudio == true) 0 else null) ?: SourcePresets.tierOf(p, text) ?: Int.MAX_VALUE
         // P3 (18.11): działa polski głos lektora i napisy mają być po polsku → źródło z polskimi napisami równie dobre
         // jak polski dźwięk (lektor przeczyta). Brak głosu (JMGO) → zostaje sam polski dźwięk.
         if (polishSubs && lektorVoiceNow && PL_SUBS.containsMatchIn(text)) return 0 // scalenie 19.11: głos Gemini też
@@ -143,8 +142,6 @@ object KeRanking {
                 dagger.hilt.android.EntryPointAccessors.fromApplication(app, SourceChoice.Deps::class.java).player().playerSettings.first().subtitleStyle.preferredLanguage == "pl"
             }.logged("ForkSources", "KeRanking.kt:138").getOrDefault(false)
         }
-        // Dawniej odpowiedź włączała tryb Regex, który omija ranking KE: jednorazowo przestaw na „pierwsze źródło”.
-        if (answer.isNotEmpty() && answer != SourcePresets.CUSTOM) scope.launch { runCatching { SourceChoice.useRanking(app) }.logged("ForkSources", "KeRanking.kt:143") }
         // Właściciel 19.11: „JMGO jest 4K!” — projektor zgłasza tylko tryby 1920×1080 (interfejs), a wideo wyświetla w 4K.
         // Limit rozdzielczości ekranu tylko, gdy urządzenie NIE ma sprzętowego dekodera 3840×2160.
         tvCap = tvMaxResolution(app)?.takeUnless { hardware4kDecoder() }

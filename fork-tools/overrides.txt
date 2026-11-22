@@ -55,3 +55,7 @@ app/src/test/java/com/nuvio/tv/ui/screens/player/Http1OnlyTest.kt
 app/src/test/java/com/nuvio/tv/ui/screens/settings/SettingsCatalogTest.kt
 app/src/test/java/com/nuvio/tv/ui/screens/search/SearchViewModelSuggestionsTest.kt
 app/src/main/java/com/nuvio/tv/ui/screens/search/SearchViewModel.kt
+app/src/main/java/com/nuvio/tv/core/player/StreamAutoPlaySelector.kt
+app/src/main/java/com/nuvio/tv/core/debrid/DirectDebridStreamPreparer.kt
+app/src/test/java/com/nuvio/tv/core/debrid/DirectDebridStreamPreparerTest.kt
+app/src/test/java/com/nuvio/tv/core/player/StreamAutoPlaySelectorTest.kt

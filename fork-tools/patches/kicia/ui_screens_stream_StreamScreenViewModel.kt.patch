@@ -1,15 +1,7 @@
 diff --git a/app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt b/app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt
-index b16729e7c..0a6897acf 100644
 --- a/app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt
 +++ b/app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt
-@@ -1,5 +1,6 @@
- package com.nuvio.tv.ui.screens.stream
- 
-+import com.nuvio.tv.core.player.fallbackWhenPreferredSourcesEmpty
- import com.nuvio.tv.core.player.recovery.AutoSourceRecoveryPlan
- import com.nuvio.tv.core.player.recovery.AutoSourceRecoverySettings
- import com.nuvio.tv.core.player.recovery.AutoSourceRecoveryHandoff
-@@ -158,6 +159,7 @@ class StreamScreenViewModel @Inject constructor(
+@@ -158,6 +158,7 @@
      private val genres: String? = savedStateHandle.getOptionalString("genres")
      private val year: String? = savedStateHandle.getOptionalString("year")
      private val contentId: String? = savedStateHandle.getOptionalString("contentId")
@@ -17,7 +9,7 @@ index b16729e7c..0a6897acf 100644
      private val contentName: String? = savedStateHandle.getOptionalString("contentName")
      private val contentLanguage: String? = savedStateHandle.getOptionalString("contentLanguage")
      private val playbackProfileId: Int = savedStateHandle.get<String>("profileId")?.toIntOrNull()
-@@ -403,10 +406,12 @@ class StreamScreenViewModel @Inject constructor(
+@@ -403,6 +404,7 @@
          playerPreference: PlayerPreference,
          streamAutoPlayMode: StreamAutoPlayMode
      ): Boolean {
@@ -25,16 +17,3 @@ index b16729e7c..0a6897acf 100644
          return streamAutoPlayMode != StreamAutoPlayMode.MANUAL
      }
  
-     private fun loadStreams(forceRefresh: Boolean = false) {
-+        com.nuvio.tv.fork.sources.KeRanking.begin(context, contentType, contentName ?: title, year, season, episode, videoId, contentId ?: videoId.substringBefore(":")) // Fork hook: ke-rank
-         streamRepository.setLocalPluginSearchPaused(false)
-         streamLoadScope?.cancel()
-         streamLoadScope = null
-@@ -684,6 +689,7 @@ class StreamScreenViewModel @Inject constructor(
-                         preferBingeGroupInSelection = persistedBingeGroup != null
-                     )
-                 }
-+                if (shouldAutoSelect && selectedAutoPlayStream == null && com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(context, "echo_source_fallback")) selectedAutoPlayStream = StreamAutoPlaySelector.fallbackWhenPreferredSourcesEmpty(allStreams, playerSettings.streamAutoPlayMode, playerSettings.streamAutoPlaySource, installedAddonOrder.toSet(), playerSettings.streamAutoPlaySelectedAddons, playerSettings.streamAutoPlaySelectedPlugins) // Fork hook: echo (fallback, gdy preferowane dodatki puste)
-                 // A manual selection can complete while matching is on the worker.
-                 if (autoPlayHandledForSession || resolvedAutoPlayTarget) selectedAutoPlayStream = null
-                 if (selectedAutoPlayStream != null) {
