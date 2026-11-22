@@ -52,7 +52,11 @@ internal object ForgeArchiveOffer {
                 if (event.action == KeyEvent.ACTION_UP) {
                     offer = null; state.playCatchup(o.win.channel, o.win.programme)
                     // v7.6 (owner 13.11): the card says only "Pomijaj reklamy"; the explanation comes once the archive plays
-                    com.nuvio.tv.skin.kicia.components.ForgeToast.show("Program leci teraz z archiwum", top = true, note = "Reklamy możesz dowolnie przewijać.")
+                    android.util.Log.i("ForkAdSkip", "omijanie reklam: OK → archiwum „${o.win.programme.title}” z ${o.win.channel.name}")
+                    val niunia = com.nuvio.tv.skin.niunia.live.NiuniaLive.active()
+                    val ctx = com.nuvio.tv.skin.niunia.live.NiuniaLiveNav.appContext
+                    if (niunia && ctx != null) com.nuvio.tv.fork.ForkLog.say(ctx, "ForkAdSkip", ctx.getString(com.nuvio.tv.R.string.niunia_adskip_done))
+                    else com.nuvio.tv.skin.kicia.components.ForgeToast.show("Program leci teraz z archiwum", top = true, note = "Reklamy możesz dowolnie przewijać.")
                 }
                 true
             }
@@ -78,6 +82,7 @@ internal object ForgeArchiveOffer {
             val win = runCatching { ForgeAiringRace.findEarlier(channel, programme) }.logged("ForkKiciaLivetv", "ForgeArchiveOffer.kt:77").getOrNull() ?: continue
             if (state.currentListUrl != url || state.isCatchup()) continue
             offer = Offer(url, win)
+            android.util.Log.i("ForkAdSkip", "omijanie reklam: „${programme.title}” jest w archiwum (${win.channel.name}) — karta na ${SHOW_MS / 1000} s")
             delay(SHOW_MS)
             if (offer?.win === win) offer = null
         }
@@ -90,6 +95,8 @@ internal fun ForgeArchiveOfferCard(state: LiveTvPlayerState) {
     LaunchedEffect(state) { ForgeArchiveOffer.watch(state) }
     val o = ForgeArchiveOffer.offer ?: return
     if (state.currentListUrl != o.listUrl || state.infoOpen) return
+    // 22.11: skórka Niunia — ta sama oferta, karta w stylu Niuni.
+    if (com.nuvio.tv.skin.niunia.live.NiuniaLive.active()) { com.nuvio.tv.skin.niunia.live.NiuniaArchiveOfferCard(o.win.channel.name); return }
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopEnd) {
         // v7.6 (owner 13.11): a short card: icon, "Pomijaj reklamy", OK (the rest is said after the archive starts)
         androidx.compose.foundation.layout.Row(
