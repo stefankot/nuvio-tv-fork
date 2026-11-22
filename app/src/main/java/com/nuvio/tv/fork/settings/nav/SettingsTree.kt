@@ -58,7 +58,7 @@ object SettingsTree {
         NavSection("odtwarzanie", "Odtwarzanie", listOf(
             cat("ogolne", "Odtwarzacz i źródła", "Wybór źródła, języki, następny odcinek", "PLAYBACK"),
             items("obraz", "Dźwięk i obraz", "Dolby Vision, HDR10, formaty dźwięku", ItemsGroup.FORMATS),
-            items("echo", "Jakość i odtwarzacz Echo", "Automatyczna jakość obrazu", ItemsGroup.ECHO),
+            items("echo", "Jakość i odtwarzacz Echo", "Szybszy start, menu jakości i języka, polski dźwięk", ItemsGroup.ECHO), // 22.11: Auto jakość wyłączona (DECYZJE)
             module("dobor", "Dobór źródeł", "Polski dźwięk, napisy i jakość przy wyborze", "sources"),
             items("naprawa", "Gdy film się zatnie", "Automatyczne przejście na inne źródło", ItemsGroup.SOURCE_RECOVERY),
             items("przewijanie", "Przewijanie", "Podgląd klatek i przeskoki", ItemsGroup.SEEK_PREVIEW, ItemsGroup.SEEKR),
