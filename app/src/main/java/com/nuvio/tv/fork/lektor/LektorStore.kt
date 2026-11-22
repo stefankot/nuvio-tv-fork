@@ -35,7 +35,7 @@ import java.util.Collections
  * Pamięć nagrań lektora (22.11, właściciel: „duży cache z Dyskiem Google, przed generowaniem sprawdzaj Dysk, WAV → Opus”).
  *
  * Było: każda kwestia Gemini jako WAV 16-bit mono 24 kHz (ok. 48 KB/s) w `cacheDir/ai-narrator`, limit 96 MB.
- * Jest: Ogg Opus mono 24 kb/s (ok. 3 KB/s, ~16× mniej) w `filesDir/fork_lektor_opus`, limit 500 MB, oraz kopia
+ * Jest: Ogg Opus mono 16 kb/s (ok. 2 KB/s, ~24× mniej) w `filesDir/fork_lektor_opus`, limit 500 MB, oraz kopia
  * w folderze „Nuvio Lektor” na Dysku Google konta zalogowanego w synchronizacji (Ustawienia → Synchronizacja Google).
  * Kolejność przed generowaniem: stary WAV (zostaje, czytany jak dotąd) → Opus na TV → Dysk → dopiero Gemini.
  * Nazwa pliku = odcisk kwestii (model + głos + tekst + styl), więc ta sama kwestia z innego TV tego samego konta Google
@@ -47,7 +47,8 @@ object LektorStore {
     const val KEY = "lektor_store_opus"
     const val KEY_DRIVE = "lektor_drive"
     private const val LIMIT_BYTES = 500L * 1024 * 1024
-    private const val BITRATE = 24_000
+    // 22.11 (właściciel: „Tak, 16 kb/s”): sama mowa lektora pod dźwiękiem filmu — 16 kb/s pełny głos, ~1/3 mniej niż 24 kb/s.
+    private const val BITRATE = 16_000
     private val idRegex = Regex("[a-f0-9]{64}")
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val misses = Collections.synchronizedSet(HashSet<String>())

@@ -16,7 +16,7 @@ object LektorModule : ForkModule {
 
     override fun settings() = listOf(
         ModuleSetting("lektor_auto", SettingsLevel.ESSENTIAL, "Lektor", "Włączaj automatycznie, gdy brak polskiego dźwięku", "Przy polskich napisach i braku polskiej ścieżki", defaultValue = false),
-        ModuleSetting(LektorStore.KEY, SettingsLevel.ADVANCED, "Lektor", "Zapisuj nagrania lektora w małych plikach", "Kwestie raz wygenerowane zajmują ok. 16 razy mniej miejsca", defaultValue = true),
+        ModuleSetting(LektorStore.KEY, SettingsLevel.ADVANCED, "Lektor", "Zapisuj nagrania lektora w małych plikach", "Kwestie raz wygenerowane zajmują ok. 24 razy mniej miejsca", defaultValue = true),
         ModuleSetting(LektorStore.KEY_DRIVE, SettingsLevel.ESSENTIAL, "Lektor", "Nagrania lektora na Dysku Google", "Przed generowaniem sprawdza Dysk konta z synchronizacji; nowe kwestie trafiają na Dysk", defaultValue = true),
         ModuleSetting(K_BAND, SettingsLevel.ESSENTIAL, "Lektor", "Pod lektorem ściszaj głównie aktorów", "Muzyka i efekty zostają głośniej, lektor jest wyraźniejszy", defaultValue = true),
     )
