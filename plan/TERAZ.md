@@ -15,6 +15,7 @@ STAN (22.11 23:25):
 - Build: pełna kompilacja (po wyczyszczeniu katalogów) w dwóch krokach `compileFullDebugKotlin`, potem `assembleFullDebug`; przyrostowy assemble 7–9 min. `~/.gradle/gradle.properties` ma `-Xmx5g` (przy 8 GB RAM Gradle pracuje z dysku wymiany) — nie zmieniałem.
 - Długie OK na emulatorze: `adb shell input keyevent --longpress KEYCODE_DPAD_CENTER` (API 34 bez `--duration`, bez roota). Zawsze `ANDROID_SERIAL=emulator-5554` — `fork-tools/prefs.sh` bez niego łączy się z JMGO!
 
+PĘTLA 3 — częściowo zrobione 23:30–23:40 (ux3): [B] podpowiedź EPG nad listą bez programu; [B] po Wstecz z kanału fokus zostaje na kanale (2 s); [B] Ustawienia Niuni → „Źródła kanałów i EPG” otwiera okno źródeł (Wstecz → fokus na pozycji), „Szukaj w telewizji” otwiera Szukaj Live TV Niuni. NOWY BŁĄD (do poprawy): okno „Kanał nie odpowiada” (`skin/kicia/livetv/ForgeChannelFailed.kt`, `ForgeDialog` z `BackHandler`) — pierwszy Wstecz nic nie robi (klawisz zjada nakładka odtwarzacza `LiveTvPlayerOverlay`, obsługa klawiszy ok. linii 229/442/508), dopiero drugi wychodzi. Niesprawdzone: punkt 3 niżej (sezon/zwiastun/„Mniej”) i punkt 4.
 PĘTLA 3 (ux3 już zainstalowany — rób po kolei):
 1. Ręcznie: Live TV → OK na kanale (wiersz 1 gra) → Wstecz → po 0,5 / 1 / 2 s fokus nadal na kanale (RAPORT pkt 24; log `live tv: fokus wraca na kanał`). Nad listą podpowiedź EPG (pkt 21).
 2. Ustawienia Niuni (poziom Prosty): „Telewizja → Źródła kanałów i EPG” otwiera okno źródeł; „Szukaj w telewizji” otwiera Szukaj Live TV Niuni.
