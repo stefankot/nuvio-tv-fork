@@ -5,9 +5,9 @@ Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcj
 
 ## NAJPIERW (23.11 ~18:10 — wątek IPTV: nowy silnik przewodnika z NuvioPlusIPTV) — PROMPT HANDOFF
 Prompt (wklej w nowym wątku albo napisz „kontynuuj”):
-> Kontynuuj wątek IPTV forka Nuvio Android TV (`/Users/milajovovich/Desktop/nuvio 2/NuvioFork`, gałąź `skin-niunia`). Zasady: `ZASADY.md`. Stan: `plan/iptv/STAN.md` (sekcja „Etap 1 nowego silnika”), projekt: `plan/iptv/ARCHITEKTURA.md`, porównanie forków: `plan/iptv/FORKI.md`. Najpierw wynik buildu `iptvdb1` (`/tmp/iptvdb1.log`; błędy kompilacji w `fork/tv/plus/*` popraw), instalacja na JMGO (`fork-tools/test/jmgo_instaluj.sh`, tylko gdy nikt nie ogląda), 2× `fork-tools/test/jmgo_pamiec.sh 240 reshaped_live_tv` (cel: program „teraz” < 1 s przy 2. wejściu, sterta ≪ 300 MB), logi `ForkTvPlus`, potem etap 2.
+> Kontynuuj wątek IPTV forka Nuvio Android TV (`/Users/milajovovich/Desktop/nuvio 2/NuvioFork`, gałąź `skin-niunia`). Zasady: `ZASADY.md`. Stan: `plan/iptv/STAN.md` (sekcja „Etap 1 nowego silnika”), projekt: `plan/iptv/ARCHITEKTURA.md`, porównanie forków: `plan/iptv/FORKI.md`. iptvdb1 jest na JMGO (ulubione z bazy w 237 ms, sterta 260–290 MB). Najpierw build `iptvdb2` (`/tmp/iptvdb2.log`, poprawki 62685f992), instalacja (`fork-tools/test/jmgo_instaluj.sh .stage/apk/iptvdb2-v7a.apk`, tylko gdy nikt nie ogląda), 2× `bash .stage/jmgo/pomiar_tv.sh dbN 200` (w logu `ForkTvPlus`: „bez zmian (… kanałów w bazie)” dla wszystkich plików, „ten sam przewodnik co …”, „okno „teraz” dla N kanałów z bazy po X ms”), potem kanał w trakcie wczytywania (0 ANR), catch-up w Niuni (cofnięcie wiersza > 12 h, archiwum w odtwarzaczu), etap 2.
 
-Stan: właściciel 23.11 wieczorem: „Skopiuj zatem optymalizacje, ale nie usuń funkcji związanych z catch-up”. Pomiary starego silnika (program po ~65 s, ~3 min, 470 MB) i etap 1 — `plan/iptv/STAN.md`. Build `iptvdb1` uruchomiony 23.11 18:11.
+Stan: właściciel 23.11 wieczorem: „Skopiuj zatem optymalizacje, ale nie usuń funkcji związanych z catch-up”. Pomiary starego silnika (program po ~65 s, ~3 min, 470 MB) i etap 1 — `plan/iptv/STAN.md`. iptvdb1 na JMGO 18:26; build `iptvdb2` uruchomiony ~18:55.
 
 ## NAJPIERW (23.11 ~16:40 — wątek „Napisy AI: tłumaczenie nie pokazuje się”) — ZROBIONE (limity podniesione)
 Prompt (wklej w nowym wątku albo napisz „kontynuuj”):
