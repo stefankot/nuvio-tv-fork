@@ -319,6 +319,9 @@ internal object NiuniaLiveOrder {
 
     @Volatile private var last: Prepared? = null
 
+    /** 23.11 (TvRam): po wyjściu z telewizji (trzymała całą listę i jej kolejność). */
+    fun clear() { last = null }
+
     /** Gotowy wynik dla dokładnie tej listy (ten sam obiekt z repozytorium) i tych ukrytych grup. */
     fun cached(input: List<LiveTvChannel>, hidden: Set<String>, mode: com.nuvio.tv.fork.tv.country.TvCountry.Mode? = null): Prepared? =
         last?.takeIf { it.isFor(input, hidden, mode) }

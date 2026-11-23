@@ -61,9 +61,11 @@ object TvRam {
         step("indeks szukania") { com.nuvio.tv.fork.tv.index.TvTextIndex.releaseMemory() }
         step("pamięci indeksów") { com.nuvio.tv.fork.tv.index.TvIndexStore.unload() }
         step("kategorie") { com.nuvio.tv.skin.kicia.livetv.ForgeEpgCategories.releaseMemory() }
-        step("listy Niuni") { com.nuvio.tv.skin.niunia.livetv.NiuniaListMaps.clear() }
+        step("listy Niuni") { com.nuvio.tv.skin.niunia.livetv.NiuniaListMaps.clear(); com.nuvio.tv.skin.niunia.livetv.NiuniaLiveOrder.clear() }
         step("szukanie TV") { com.nuvio.tv.fork.discover.TvSearchIndexCache.clear() }
         System.gc()
+        // JMGO ram1: pomiar od razu po System.gc() pokazywał stan sprzed sprzątania (GC działa współbieżnie) — po 5 s.
+        Thread.sleep(5_000)
         val after = (rt.totalMemory() - rt.freeMemory()) / 1_048_576
         Log.i(TAG, "telewizja zwolniona z pamięci (#$n): sterta $before → $after MB")
     }
