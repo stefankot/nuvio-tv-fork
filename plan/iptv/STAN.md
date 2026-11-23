@@ -55,7 +55,18 @@ Decyzja właściciela (23.11, ten wątek): „zajmij się wszystkimi poważnymi 
   210 ms, „teraz” 28 823 kanałów 8,2 s, wszystkie pliki „bez zmian”. Zdublowany przewodnik nadal nierozpoznany (porównanie z
   pierwszym plikiem o podobnym rozmiarze, innym) — poprawka 80dbdbdc2, NIESKOMPILOWANA (następny build).
 
+- **iptvdb4 NA JMGO — etap 1b** (23.11 ~19:55 Mac; BUILD SUCCESSFUL 9 min 51 s; md5 `c911c127f7aa1ddf398815b00949bc29` zgodny;
+  `.stage/apk/iptvdb4-v7a.apk`; commity 92282fbac + e4099f85c-część próbki): w pamięci tylko bieżący i następny program, pełny
+  program tylko dla widocznych wierszy (`GuideDbBridge.want/rowFor`, łatka `dostawca/LiveTvRepository/16-baza-wiersze` w `schedule()`),
+  indeks szukania/odcinki/kategorie w tle 60 s po wejściu (`fullPass`, raz na zmianę bazy). Pomiar (`iptv-pomiar-db5`):
+  ekran z próbką 0,1 s, **pełny program widocznych wierszy z bazy 0,7 s po wejściu** (zapytanie 107 ms; 149 kanałów 283 ms),
+  ulubione 3,6 s, „teraz i następny” 28 459 kanałów 7,6 s (zapytanie 4,2 s; czeka na listę kanałów Reshaped 3,6 s), pliki bez
+  zmian; sterta 205 MB po wejściu (było 280), przegląd w tle chwilowo 384–399 MB, potem 285 MB (`TvBridge.lastKept` trzyma pełną
+  mapę dla Szukaj — do zastąpienia zapytaniem do bazy); 0 ANR. Zdublowany przewodnik nadal nierozpoznany (jeden plik spakowany,
+  drugi nie — rozmiar nie pasował) → poprawka e4099f85c (lista kanałów z początku pliku, wynik pamiętany), NIESKOMPILOWANA.
+
 ### WYMAGANIE WŁAŚCICIELA (23.11 ~19:30, po iptvdb2) — następny krok
+(ZROBIONE w iptvdb4: pkt 2–4 i próbka kategorii z pkt 1; zostało: lista kanałów bez czekania — etap 1c w `ARCHITEKTURA.md`)
 „Te czasy nie są dobre. To musi działać szybciej. Nie da się używać cache w każdym miejscu? Czy ekran główny IPTV nie może czytać
 najpierw jakiejś małej części żeby tylko narysować ekran, a potem dociągać resztę? Przewodnik — 72 s to bardzo długo na rysowanie
 jednego ekranu. „Teraz” — 11 s też bardzo długo. Nie można użyć cache jakiejś minimalnej próbki?”

@@ -45,3 +45,29 @@ catch-up i archiwum działają jak dziś.
 3. Kanał kanoniczny (`ChannelDupes`) na wspólnym `gid` — jeden wiersz na kanał, start najlepszej kopii, zapasowa przy błędzie.
 4. VOD dostawcy: `OnDemandDatabase` (kopia) jako katalog/źródło — tylko na polecenie właściciela.
 Później do rozważenia (nowe funkcje z `FORKI.md`): pauza/cofanie bez catch-up (`LiveTvTimeshift`), nagrywanie.
+
+## Etap 1c — pozostałe optymalizacje NuvioPlusIPTV (właściciel 23.11 ~20:00: „Masz skopiować wszystkie”)
+Przegląd `.stage/forki/NuvioPlusIPTV/src/app/src/main/java/com/nuvio/tv/livetv/` (e5643387). Zrobione: baza przewodnika,
+strumieniowy XMLTV, import tylko zmienionych plików, priorytet (ulubione + ekran), okno przy wejściu, wiersze na żądanie,
+kategorie w tle, próg pamięci (częściowo: brak), duplikaty jednym `gid`. DO ZROBIENIA (kolejność wg zysku):
+1. **Zapisana lista kanałów** (`data/LiveTvRepository.kt` 810–1055: `channels_cache3.bin`, `loadSavedChannels`, zapis binarny,
+   „Live TV appears straight away instead of re-reading every playlist file”): u nas Reshaped czyta 59 tys. kanałów 3,6–8,4 s
+   przed startem przewodnika. Kopia formatu + adapter `LiveTvChannel` (łatka w miejscu odczytu listy Reshaped `LiveTvListCache`).
+2. **Praca w tle o niskim priorytecie, wstrzymywana przy oglądaniu** (`data/BackgroundWork.kt`, 72/152: wątki z priorytetem 9,
+   `browsingRead` z punktami kontrolnymi — odczyt z bazy oddaje kursor, gdy rusza film). U nas: `fullPass`, import, kategorie.
+3. **Próg pamięci** (`LiveTvRepository.kt` ~2500: >85 % sterty → GC, nadal >85 % → przewodnik na później) — w `GuideDbBridge.importFile`.
+4. **Zapas godzin przy dociąganiu** (`LiveTvRepository.kt` 1392–1400: okno +kilka h, żeby przewijanie nie pytało co 30 s).
+5. Przebudowa listy wyświetlanej raz dla całej aplikacji (`LiveTvChannelStore.kt`: pamięć nazw po edycji, „rename took 20–30 s”).
+6. Szukaj programów z bazy (`EpgDatabase.findByWords`) zamiast `TvBridge.lastKept` (pełna mapa w RAM, ~80 MB).
+
+## Etap 3 — VOD (właściciel 23.11 ~20:00: „mechanizm który obsługuje VOD, bo mam 160k materiałów wideo”)
+NuvioPlusIPTV `livetv/ondemand/` (~7 tys. linii): `OnDemandDatabase` (SQLite `livetv_on_demand.db`, tabela `items`
+(pl, kind, id, name, norm, icon, cat, ext, tmdb, year, rating, added, genre…), indeksy po kategorii/nazwie/tmdb/dacie,
+`m3u_episodes`, `matches`, `posters`; strony zapytaniami), `OnDemandRepository` (import przyrostowy — tylko zmienione kategorie,
+po kategorii gdy panel ucina listę, niski priorytet w tle, wynik „aside at once”), `OnDemandSearch`, `OnDemandStreams`,
+`VodPictures` (plakaty), `VodLanguageTags`, `OnDemandAdultGuard`; UI `OnDemandScreen/HomeScreen/SeeAll/ViewModel`.
+Plan: kopia 1:1 warstwy danych do `fork/tv/plus/ondemand/` (pakiet, zależności → adaptery: playlisty z `LiveTvRepository` źródeł,
+HTTP z `LiveTvHttp`), UI w Niuni (kategorie, strony, szukanie, plakaty TMDB), odtwarzanie przez odtwarzacz Nuvio; filmy i odcinki
+także jako źródła przy tytułach (jak dawniej „obok Torbox”). Lista M3U VOD: właściciel dodaje ją sam w aplikacji (QR / telefon,
+„Źródła i EPG”) — wykonawca NIE wpisuje adresów z tokenem konta (zasady bezpieczeństwa, jak hasła dostawców); `LiveVod` trzyma
+je poza Live TV, On Demand importuje do bazy.
