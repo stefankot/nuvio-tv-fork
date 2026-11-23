@@ -3,6 +3,12 @@
 Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–13: `plan/archiwum/TERAZ-historia-watki-1-13.md` (tylko `grep`, nie czytaj całości). Sekcje z 22.11 (build163–169c, scalenie, aktualizacja bazy): `plan/archiwum/TERAZ-historia-22.11.md`.
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
+## NAJPIERW (23.11 ~18:10 — wątek IPTV: nowy silnik przewodnika z NuvioPlusIPTV) — PROMPT HANDOFF
+Prompt (wklej w nowym wątku albo napisz „kontynuuj”):
+> Kontynuuj wątek IPTV forka Nuvio Android TV (`/Users/milajovovich/Desktop/nuvio 2/NuvioFork`, gałąź `skin-niunia`). Zasady: `ZASADY.md`. Stan: `plan/iptv/STAN.md` (sekcja „Etap 1 nowego silnika”), projekt: `plan/iptv/ARCHITEKTURA.md`, porównanie forków: `plan/iptv/FORKI.md`. Najpierw wynik buildu `iptvdb1` (`/tmp/iptvdb1.log`; błędy kompilacji w `fork/tv/plus/*` popraw), instalacja na JMGO (`fork-tools/test/jmgo_instaluj.sh`, tylko gdy nikt nie ogląda), 2× `fork-tools/test/jmgo_pamiec.sh 240 reshaped_live_tv` (cel: program „teraz” < 1 s przy 2. wejściu, sterta ≪ 300 MB), logi `ForkTvPlus`, potem etap 2.
+
+Stan: właściciel 23.11 wieczorem: „Skopiuj zatem optymalizacje, ale nie usuń funkcji związanych z catch-up”. Pomiary starego silnika (program po ~65 s, ~3 min, 470 MB) i etap 1 — `plan/iptv/STAN.md`. Build `iptvdb1` uruchomiony 23.11 18:11.
+
 ## NAJPIERW (23.11 ~16:40 — wątek „Napisy AI: tłumaczenie nie pokazuje się”) — ZROBIONE (limity podniesione)
 Prompt (wklej w nowym wątku albo napisz „kontynuuj”):
 > Kontynuuj wątek napisów AI forka Nuvio Android TV (`/Users/milajovovich/Desktop/nuvio 2/NuvioFork`, gałąź `skin-niunia`). Zasady: `ZASADY.md`. Stan w tej sekcji. Wątek zamknięty; następny krok: kolejka 0 (przebudowa ustawień).

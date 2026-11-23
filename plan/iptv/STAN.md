@@ -21,6 +21,22 @@ Decyzja właściciela (23.11, ten wątek): „zajmij się wszystkimi poważnymi 
   nie zejdzie do < 1 s → baza przewodnika (`ARCHITEKTURA.md`).
 - Niesprawdzone jeszcze: włączenie kanału w trakcie wczytywania (ANR), okno „Kanał nie odpowiada”, nazwy, ulubione.
 
+## Etap 1 nowego silnika (23.11 ~18:10, commity c7b1874a9 kopia 1:1, 806d78413 wpięcie) — build `iptvdb1` v7a
+- Kopie 1:1 NuvioPlusIPTV `e5643387` w `fork/tv/plus/` (EpgDatabase, XmltvParser, ProgrammeIdentityPool, SqliteCompact, PlusModels, PlusShims).
+- `fork/tv/plus/GuideDbBridge` + łatka `dostawca/LiveTvRepository/15-baza-przewodnika` (2 linie: `startEpg` w `whileSeen`, `loadHistory`):
+  start = ulubione + kanały próbki z bazy (−1 h…+6 h, z opisami) → pobranie starych plików jak Reshaped → do bazy tylko pliki
+  zmienione (rozmiar+czas) albo z nowymi kanałami listy → linki kanałów regułami Reshaped (id > nazwa > nazwa z krajem; ranking
+  GuidePriority/dodany przewodnik/kolejność źródła) → okno −3 h…+6 h, potem −12 h…+36 h („light”) → kategorie Kici z bazy.
+  Catch-up: `loadHistory` czyta minione dni z bazy (7 dni w bazie), Xtream `pastProgrammes` bez zmian; Niunia woła
+  `GuideDbBridge.need` (wiersz przewodnika cofnięty > 11 h, odtwarzacz) → `requestHistory`. Logi `ForkTvPlus`.
+- Przełącznik „Przewodnik w bazie (szybki start)” (Telewizja, Zaawansowane, domyślnie tak); wyłączony = stary silnik.
+- Ryzyka do sprawdzenia na JMGO: czas pierwszego importu 5 plików do bazy (strumieniowo, ale 600 tys.+ wierszy na słabym CPU),
+  liczba kanałów z programem po linkach vs. dotychczasowe ~29 tys. (`ForkTvPlus: linki: N z M`), opis programu w Niuni dla
+  kanałów spoza priorytetu (okno „light” bez opisów), dni w przyszłości > +36 h w wyborze dnia (tylko dla kanałów, które je mają).
+- Do zrobienia potem: wzbogacanie z drugiego przewodnika (łatka dostawca #4 — dziś tylko w starym silniku), opis na żądanie
+  (`EpgDatabase.program`), `TvTextIndex`/szukanie z bazy (`findByWords`), kanał kanoniczny (`ChannelDupes` na wspólnym gid),
+  VOD (`OnDemandDatabase`) — `ARCHITEKTURA.md`.
+
 ## Przyczyny (zbadane z logów JMGO, bez nowego pomiaru — urządzenie było zajęte)
 - **100 s**: każdy pomiar 23.11 (`.stage/jmgo/pamiec-20261123-1013`, `-1056`, `anr-20261123`) ma `saved programmes: miss (no file)`.
   Klucz zapisu przewodnika (`LiveTvGuideCache.key` × `liveTvGuideMatchingKey`) zawiera WSZYSTKIE kanały (klucze przewodnika,
