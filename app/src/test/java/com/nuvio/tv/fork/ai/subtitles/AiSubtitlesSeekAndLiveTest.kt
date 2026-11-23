@@ -114,7 +114,7 @@ class AiSubtitlesSeekAndLiveTest {
     }
 
     @Test
-    fun `polski plik, którego AutoSync nie dopasował, to powód do AI; dopasowany nie`() {
+    fun `polski plik, którego AutoSync nie dopasował, to powód do AI, a dopasowany nie`() {
         val pl = Subtitle(id = "pl1", url = "https://s/pl.srt", lang = "pol", addonName = "OpenSubtitles", addonLogo = null)
         val s = PlayerUiState(addonSubtitles = listOf(pl), selectedAddonSubtitle = pl, subtitleTracks = listOf(TrackInfo(0, "English", "en")))
         assertEquals("AutoSync nie dopasował polskiego pliku", AiAuto.polishProblem(s, autoSyncNoFit = true))
