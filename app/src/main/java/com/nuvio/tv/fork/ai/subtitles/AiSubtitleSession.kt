@@ -30,6 +30,8 @@ interface PlayerPort {
     /** Atomically shows [cues] (immutable full set). The first call takes over the subtitle slot. */
     suspend fun publish(cues: List<DocCue>, label: String): PublishResult
     suspend fun restore(option: SubtitleOption)
+    /** 23.11: opublikowane napisy naprawdę są w odtwarzaczu (komunikat „gotowe” tylko wtedy). */
+    suspend fun showing(): Boolean = true
 }
 
 enum class AiMode { WATCH, PREPARE_ALL }
@@ -169,7 +171,7 @@ class AiSubtitleSession(
             }
             if (stopReason != null) return finish(AiStage.STOPPED, stopReason!!)
             if (mode == AiMode.PREPARE_ALL && doc.complete || mode == AiMode.WATCH) publish()
-            if (doc.complete) finish(AiStage.DONE, if (_state.value.published) "Napisy gotowe" else "Napisy gotowe (zapisane)")
+            if (doc.complete) finish(AiStage.DONE, if (_state.value.published) "Napisy gotowe" else "Napisy przetłumaczone i zapisane, ale nie są na ekranie — wybierz Napisy AI jeszcze raz")
             else finish(AiStage.FAILED, "Część bloków nie powiodła się: pokazany oryginał w tych miejscach")
         } catch (e: CancellationException) {
             _state.update { it.copy(stage = AiStage.STOPPED, message = "Anulowano", notice = "") }
@@ -250,7 +252,12 @@ class AiSubtitleSession(
             if (result == PublishResult.RETRY_LATER) delay(300)
         } while (result == PublishResult.RETRY_LATER && ++tries < 40)
         when (result) {
-            PublishResult.OK -> { lastPublished = next; _state.update { it.copy(published = true) } }
+            PublishResult.OK -> {
+                lastPublished = next
+                val shown = port.showing()
+                if (!shown) android.util.Log.w("ForkAi", "AiSubtitleSession: publikacja OK, ale napisów AI nie ma na ekranie")
+                _state.update { it.copy(published = shown) }
+            }
             PublishResult.USER_SWITCHED -> stopReason = "Wybrano inne napisy: tłumaczenie zatrzymane (postęp zapisany)"
             PublishResult.PLAYER_GONE -> stopReason = "Odtwarzanie zakończone (postęp zapisany)"
             PublishResult.RETRY_LATER -> Unit

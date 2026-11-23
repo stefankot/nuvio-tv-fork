@@ -73,17 +73,45 @@ class ExoPlayerPort(private val controller: PlayerRuntimeController, private val
         if (gen == null) {
             // First publication: same steps as the base add-on selection, with the text supplied in memory.
             val synthetic = Subtitle(id = "ai_pl_${docKeyProvider()}", url = key, lang = "pl", addonName = label, addonLogo = null)
+            claimSubtitleSlot(controller)
             controller.disableSubtitles()
             controller._uiState.update { it.copy(selectedAddonSubtitle = synthetic, selectedSubtitleTrackIndex = -1) }
             val srt = toSrt(cues)
-            if (!controller.startSidecarAddonSubtitle(synthetic) { srt }) return@main PublishResult.USER_SWITCHED
+            if (!controller.startSidecarAddonSubtitle(synthetic) { srt }) {
+                android.util.Log.w(TAG, "publikacja: odtwarzacz nie przyjął napisów AI (format)")
+                return@main PublishResult.USER_SWITCHED
+            }
             generation = controller.currentSidecarGenerationFor(key)
+            android.util.Log.i(TAG, "publikacja: napisy AI wybrane (${cues.size} kwestii, plik ${key.substringAfterLast('/')}, gen=$generation)")
             return@main if (generation == null) PublishResult.USER_SWITCHED else PublishResult.OK
         }
-        if (controller.currentSidecarGenerationFor(key) != gen) return@main PublishResult.USER_SWITCHED
+        if (controller.currentSidecarGenerationFor(key) != gen) {
+            android.util.Log.w(TAG, "publikacja: napisy AI zastąpione innymi (wybrane: ${controller._uiState.value.selectedAddonSubtitle?.lang ?: "wbudowane #" + controller._uiState.value.selectedSubtitleTrackIndex})")
+            return@main PublishResult.USER_SWITCHED
+        }
         // Until the first parse finished, that job would overwrite our cues: wait for it.
         if (controller.sidecarTimedCues.isEmpty()) return@main PublishResult.RETRY_LATER
         if (controller.commitPreparedSidecarSubtitle(key, key, toTimed(cues), gen)) PublishResult.OK else PublishResult.USER_SWITCHED
+    }
+
+    /**
+     * 23.11: napisy AI naprawdę są w odtwarzaczu — nasza ścieżka jest aktywna i ma wczytane kwestie. Pierwsza publikacja
+     * parsuje tekst w tle, więc czeka do ~3 s (tylko dopóki ścieżka jest nasza).
+     */
+    override suspend fun showing(): Boolean {
+        val gen = generation ?: return false
+        val key = url
+        repeat(30) {
+            val (ours, loaded) = main {
+                val ours = controller.currentSidecarGenerationFor(key) == gen && controller._uiState.value.selectedAddonSubtitle?.url == key
+                ours to controller.sidecarTimedCues.isNotEmpty()
+            }
+            if (!ours) { android.util.Log.w(TAG, "na ekranie: nie — ścieżkę napisów AI zastąpiono"); return false }
+            if (loaded) return true
+            kotlinx.coroutines.delay(100)
+        }
+        android.util.Log.w(TAG, "na ekranie: nie — odtwarzacz nie wczytał kwestii AI w 3 s")
+        return false
     }
 
     override suspend fun restore(option: SubtitleOption) = main {
@@ -92,6 +120,18 @@ class ExoPlayerPort(private val controller: PlayerRuntimeController, private val
     }
 
     companion object {
+        private const val TAG = "ForkAiSubtitles"
+
+        /**
+         * 23.11 (zgłoszenie: „komunikat, że przetłumaczono, a napisów nie ma”): napisy AI to wybór użytkownika. Bez tego
+         * automat bazy ([com.nuvio.tv.ui.screens.player.tryAutoSelectPreferredSubtitleFromAvailableTracks], od 21.11 najpierw
+         * napisy wbudowane) przy pierwszej zmianie ścieżek wybierał z powrotem wbudowane (np. angielskie) i zatrzymywał napisy AI.
+         */
+        internal fun claimSubtitleSlot(controller: PlayerRuntimeController) {
+            controller.isUserExplicitSubtitleSelection = true
+            controller.autoSubtitleSelected = true
+        }
+
         fun toDocCues(timed: List<CuesWithTiming>): List<DocCue> {
             val out = ArrayList<DocCue>(timed.size)
             for (t in timed.sortedBy { it.startTimeUs }) {

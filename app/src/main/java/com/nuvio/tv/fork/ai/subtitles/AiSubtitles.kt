@@ -133,7 +133,7 @@ object AiSubtitles {
                     }
                     Log.i(TAG, "start session=$id na bieżąco: wbudowane ${track.first} (${track.second})")
                     LiveEmbeddedTranslation.run(controller, port, engine, model, track.first, track.second ?: "und") { msg ->
-                        _state.value = AiState(id, port.materialId, AiStage.TRANSLATING, notice = msg, message = msg, published = LiveEmbeddedTranslation.translated.value.isNotEmpty())
+                        _state.value = AiState(id, port.materialId, AiStage.TRANSLATING, notice = msg, message = msg, published = LiveEmbeddedTranslation.shown)
                     }
                     return@launch
                 }
@@ -191,8 +191,10 @@ object AiSubtitles {
         scope.launch {
             val cues = doc.cues.mapIndexedNotNull { i, cue -> doc.translationFor(i)?.let { cue.copy(text = it) } ?: cue.takeIf { fallback } }
             val r = port.publish(cues, "AI PL (zapisane)")
-            _state.value = AiState(++sessionCounter, doc.materialId, AiStage.DONE, doc.doneBlocks, doc.blocks.size, published = r == PublishResult.OK,
-                message = if (r == PublishResult.OK) "Zapisane napisy AI włączone" else "Nie udało się włączyć", notice = "")
+            val shown = r == PublishResult.OK && port.showing()
+            Log.i(TAG, "zapisane napisy AI: publikacja=$r, na ekranie=$shown")
+            _state.value = AiState(++sessionCounter, doc.materialId, AiStage.DONE, doc.doneBlocks, doc.blocks.size, published = shown,
+                message = if (shown) "Zapisane napisy AI włączone" else "Nie udało się włączyć", notice = "")
         }
         return "Włączam zapisane napisy AI (${doc.status})"
     }

@@ -32,8 +32,10 @@ object LiveEmbeddedTranslation {
     /** Polskie kwestie gotowe do tej pory (rosnąca lista, posortowana). */
     val translated: StateFlow<List<DocCue>> = _translated.asStateFlow()
     @Volatile var active = false; private set
+    /** 23.11: ostatnia publikacja jest na ekranie (panel „pokazane” tylko wtedy). */
+    @Volatile var shown = false; private set
 
-    fun reset() { if (!active) _translated.value = emptyList() }
+    fun reset() { if (!active) { _translated.value = emptyList(); shown = false } }
 
     /** Najlepsza wbudowana ścieżka nie po polsku (język oryginału, potem angielski). */
     fun sourceTrack(controller: PlayerRuntimeController, original: String?): Pair<String, String?>? {
@@ -63,6 +65,7 @@ object LiveEmbeddedTranslation {
         trackKey: String, language: String, onState: (String) -> Unit,
     ) {
         active = true
+        shown = false
         _translated.value = emptyList()
         val done = LinkedHashMap<String, String>() // id kwestii → tekst polski
         var glossary = emptyMap<String, String>()
@@ -133,9 +136,11 @@ object LiveEmbeddedTranslation {
                 _translated.value = out
                 val r = port.publish(out, "AI PL (wbudowane)")
                 published++
-                Log.i(TAG, "blok $published: ${chunk.size} kwestii w ${lastBlockMs} ms, od ${chunk.first().startMs - pos} ms przed filmem, razem ${out.size}, publikacja=$r")
-                if (r == PublishResult.USER_SWITCHED || r == PublishResult.PLAYER_GONE) { onState(""); return }
-                onState("AI: przetłumaczono ${out.size} kwestii (na bieżąco)")
+                // 23.11: „przetłumaczono” tylko, gdy polskie kwestie naprawdę są w odtwarzaczu.
+                shown = r == PublishResult.OK && port.showing()
+                Log.i(TAG, "blok $published: ${chunk.size} kwestii w ${lastBlockMs} ms, od ${chunk.first().startMs - pos} ms przed filmem, razem ${out.size}, publikacja=$r, na ekranie=$shown")
+                if (r == PublishResult.USER_SWITCHED || r == PublishResult.PLAYER_GONE) { Log.i(TAG, "koniec: $r"); onState(""); return }
+                onState(if (shown) "AI: przetłumaczono ${out.size} kwestii (na bieżąco)" else "AI: przetłumaczono ${out.size} kwestii, czekam, aż odtwarzacz je pokaże")
             }
         } finally {
             ahead.stop()
