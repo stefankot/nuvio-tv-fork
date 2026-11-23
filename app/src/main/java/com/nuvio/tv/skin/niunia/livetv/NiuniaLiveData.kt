@@ -352,4 +352,66 @@ internal object NiuniaLiveOrder {
 
     private fun numbersOf(list: List<LiveTvChannel>): Map<String, Int> =
         HashMap<String, Int>(list.size * 2).also { m -> list.forEachIndexed { i, ch -> m.putIfAbsent(ch.streamUrl, i + 1) } }
+
+    // ------------------------------------------------------------------ zapis na dysku (23.11 etap 1c)
+    //
+    // JMGO iptvdb4: pełna lista (59 323 kanały) na ekranie dopiero po 9 s — przy każdym wejściu kolejność czekała na 6 indeksów
+    // z dysku (TvIndexStore, ~5–7 s) i liczyła kraj/kategorie od nowa. ZASADY §2: po restarcie tylko odczyt. Tu: ostatni wynik
+    // (adresy kanałów w kolejności + kategorie) w pliku; ta sama lista → gotowe od razu; zmieniona → ostatnia kolejność
+    // (nowe kanały na końcu) od razu, pełne liczenie w tle jak dotąd.
+    private const val DISK_VERSION = 1
+
+    private fun fingerprint(input: List<LiveTvChannel>): Long {
+        var h = input.size.toLong()
+        for (c in input) h = h * 31 + c.streamUrl.hashCode()
+        return h
+    }
+
+    private fun diskFile(c: android.content.Context) = java.io.File(java.io.File(c.applicationContext.filesDir, "fork_tv"), "live_order_v$DISK_VERSION.bin.gz")
+
+    /** Zapis wyniku (w tle, po [prepare]). */
+    fun saveToDisk(c: android.content.Context, p: Prepared) {
+        if (!p.sorted || p.shown.size <= SYNC_LIMIT) return
+        val t0 = android.os.SystemClock.elapsedRealtime()
+        try {
+            val f = diskFile(c); f.parentFile?.mkdirs()
+            val tmp = java.io.File(f.path + ".tmp")
+            java.io.DataOutputStream(java.util.zip.GZIPOutputStream(tmp.outputStream().buffered(1 shl 16)).buffered(1 shl 16)).use { o ->
+                o.writeInt(DISK_VERSION); o.writeLong(fingerprint(p.input)); o.writeUTF(p.mode.toString()); o.writeInt(p.hidden.hashCode())
+                o.writeInt(p.categories.size); p.categories.forEach { o.writeUTF(it.key); o.writeUTF(it.name) }
+                o.writeInt(p.shown.size); p.shown.forEach { o.writeUTF(it.streamUrl) }
+            }
+            if (!tmp.renameTo(f)) android.util.Log.w("ForkNiunia", "live tv: kolejność na dysku: nie udało się zapisać ${f.name}")
+            else android.util.Log.i("ForkNiunia", "live tv: kolejność ${p.shown.size} kanałów zapisana w ${android.os.SystemClock.elapsedRealtime() - t0} ms")
+        } catch (e: Exception) {
+            android.util.Log.w("ForkNiunia", "live tv: kolejność na dysku: ${e.javaClass.simpleName}: ${e.message}")
+        }
+    }
+
+    /** Ostatni wynik z dysku dla [input]: `sorted` = ta sama lista (bez liczenia), inaczej ostatnia kolejność do czasu liczenia. */
+    fun fromDisk(c: android.content.Context, input: List<LiveTvChannel>, hidden: Set<String>, mode: com.nuvio.tv.fork.tv.country.TvCountry.Mode?): Prepared? {
+        val f = diskFile(c)
+        if (!f.isFile || input.size <= SYNC_LIMIT) return null
+        val t0 = android.os.SystemClock.elapsedRealtime()
+        return try {
+            java.io.DataInputStream(java.util.zip.GZIPInputStream(f.inputStream().buffered(1 shl 16)).buffered(1 shl 16)).use { i ->
+                if (i.readInt() != DISK_VERSION) return null
+                val fp = i.readLong()
+                if (i.readUTF() != mode.toString() || i.readInt() != hidden.hashCode()) return null
+                val cats = List(i.readInt()) { NiuniaLiveFilter.Category(i.readUTF(), i.readUTF()) }
+                val byUrl = HashMap<String, LiveTvChannel>(input.size * 2)
+                input.forEach { byUrl.putIfAbsent(it.streamUrl, it) }
+                val shown = ArrayList<LiveTvChannel>(input.size)
+                val used = HashSet<String>(input.size * 2)
+                repeat(i.readInt()) { val u = i.readUTF(); byUrl[u]?.let { ch -> if (used.add(u)) shown += ch } }
+                input.forEach { if (used.add(it.streamUrl)) shown += it }
+                val same = fp == fingerprint(input)
+                android.util.Log.i("ForkNiunia", "live tv: kolejność z dysku ${shown.size} kanałów w ${android.os.SystemClock.elapsedRealtime() - t0} ms (${if (same) "ta sama lista" else "lista zmieniona — liczenie w tle"})")
+                NiuniaListMaps.byGuide(shown); NiuniaListMaps.byUrl(shown)
+                Prepared(input, hidden, shown, cats, numbersOf(shown), sorted = same, mode = mode).also { if (same) last = it }
+            }
+        } catch (e: Exception) {
+            android.util.Log.w("ForkNiunia", "live tv: kolejność z dysku: ${e.javaClass.simpleName}: ${e.message}"); null
+        }
+    }
 }

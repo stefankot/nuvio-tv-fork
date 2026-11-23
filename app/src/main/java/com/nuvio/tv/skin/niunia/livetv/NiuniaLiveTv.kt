@@ -185,6 +185,8 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
             prepared = compute()
             return@LaunchedEffect
         }
+        // 23.11 etap 1c: ostatni wynik z dysku — ta sama lista: gotowe; zmieniona: ostatnia kolejność od razu, liczenie niżej.
+        withContext(Dispatchers.IO) { NiuniaLiveOrder.fromDisk(context, input, hiddenGroups, countryMode) }?.let { prepared = it; if (it.sorted) return@LaunchedEffect }
         // Do czasu wyniku zostaje poprzednia lista (np. 326 kanałów z zapisanej listy), a przy pierwszym wejściu — kolejność listy.
         if (prepared.input.isEmpty()) prepared = NiuniaLiveOrder.unsorted(input, hiddenGroups, countryMode)
         val t0 = android.os.SystemClock.elapsedRealtime()
@@ -202,6 +204,8 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
             NiuniaLiveOrder.unsorted(input, hiddenGroups, countryMode)
         }
         Log.i(TAG, "live tv: kolejność i kategorie ${input.size} kanałów w tle w ${android.os.SystemClock.elapsedRealtime() - t0} ms")
+        val done = prepared
+        withContext(Dispatchers.IO) { NiuniaLiveOrder.saveToDisk(context, done) }
     }
     val shown = prepared.shown
     val categories = prepared.categories

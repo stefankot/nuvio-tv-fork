@@ -12,6 +12,7 @@ import com.nuvio.tv.reshaped.livetv.liveTvNameKey
 import com.nuvio.tv.reshaped.livetv.liveTvNameTag
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
@@ -66,6 +67,11 @@ object GuideDbBridge {
     private val wanted = LinkedHashSet<String>()
     @Volatile private var rowsJob: kotlinx.coroutines.Job? = null
     private val io = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + Dispatchers.IO)
+    /** Jak `BackgroundWork` NuvioPlusIPTV: długie przeliczenia na jednym wątku o niskim priorytecie, żeby nie zabierały ekranu. */
+    private val background = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() +
+        java.util.concurrent.Executors.newSingleThreadExecutor { r ->
+            Thread({ android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND); r.run() }, "ForkTvPlusBg")
+        }.asCoroutineDispatcher())
     /** Rośnie po każdej paczce wierszy z bazy: ekrany Niuni przeliczają wiersze (Reshaped ma swoje `guideVersion`). */
     val version = kotlinx.coroutines.flow.MutableStateFlow(0)
     /** [publish] z [load] — tylko „teraz” i priorytet: most TV (indeks szukania, odcinki) czeka na pełny przegląd w tle ([fullPass]). */
@@ -275,8 +281,10 @@ object GuideDbBridge {
         val revision = try { db.revision() } catch (e: Exception) { Log.w(TAG, "przegląd: rewizja: ${e.javaClass.simpleName}: ${e.message}"); return }
         if (!dbChanged && revision == passRevision) return
         if (passJob?.isActive == true) return
-        passJob = io.launch {
+        passJob = background.launch {
             kotlinx.coroutines.delay(60_000)
+            // Nie w czasie oglądania (jak BackgroundWork NuvioPlusIPTV): czeka, aż nic nie gra.
+            while (com.nuvio.tv.fork.sources.PlayerBridge.current()?.isPlaying == true) kotlinx.coroutines.delay(30_000)
             val t0 = System.currentTimeMillis()
             val now = LiveTvClock.nowEpochMs()
             if (dbChanged || com.nuvio.tv.skin.kicia.livetv.ForgeEpgCategories.needsGuideRead()) recordCategories(db, now)
@@ -302,6 +310,14 @@ object GuideDbBridge {
             val missing = listed.count { (id, names, _) -> id !in state.meta && wanted(id, names, request) }
             if (missing == 0) { Log.i(TAG, "$src: bez zmian (${state.meta.size} kanałów w bazie)"); return false }
             Log.i(TAG, "$src: bez zmian, ale $missing nowych kanałów listy — czytam ponownie")
+        }
+        // Próg pamięci (NuvioPlusIPTV `LiveTvRepository` ~2500): sterta > 85 % → GC; nadal > 85 % → ten przewodnik później.
+        val rt = Runtime.getRuntime()
+        fun used() = rt.totalMemory() - rt.freeMemory()
+        if (used() > rt.maxMemory() * 0.85) System.gc()
+        if (used() > rt.maxMemory() * 0.85) {
+            Log.w(TAG, "$src: pamięć prawie pełna (${used() / 1048576} z ${rt.maxMemory() / 1048576} MB) — przewodnik przy następnym odczycie")
+            return false
         }
         val t0 = System.currentTimeMillis()
         val writer = db.startSource(src)
