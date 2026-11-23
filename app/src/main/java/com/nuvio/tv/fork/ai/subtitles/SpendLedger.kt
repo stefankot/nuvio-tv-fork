@@ -55,33 +55,77 @@ private data class SpendFile(val entries: List<SpendEntry> = emptyList())
 
 /**
  * Persistent cost ledger: a request reserves its worst-case cost before it is sent and is settled with the
- * real usage afterwards. A request with an unknown outcome stays reserved at full cost. The limit is local:
- * the provider's own billing may be delayed or differ slightly (shown to the user in settings).
+ * real usage afterwards. The limit is local: the provider's own billing may be delayed or differ slightly
+ * (shown to the user in settings).
+ *
+ * Fork 23.11 (JMGO, napisyai4: „Limit na tytuł wyczerpany”, napisy AI nie pojawiły się): rezerwacja to najgorszy przypadek
+ * (16 tys. tokenów odpowiedzi ≈ 0,12 $ przy ok. 0,01 $ prawdziwego kosztu), a zapytanie przerwane (wyjście z filmu, Wstecz
+ * po automatycznym włączeniu, inne napisy, błąd sieci) zostawało tak policzone NA ZAWSZE — kilka przerwań i film był
+ * zablokowany. Teraz najgorszy przypadek liczy się tylko, dopóki zapytanie trwa ([finished] jeszcze nie wołane); zapytanie
+ * o nieznanym wyniku liczy się jak zwykłe (średni rozliczony koszt z rejestru, nie więcej niż rezerwacja). Dotyczy też
+ * starych wpisów — bez zmiany formatu pliku.
  */
 class SpendLedger(private val file: File, private val perTitleUsd: () -> Double, private val perDayUsd: () -> Double) {
     private val json = Json { ignoreUnknownKeys = true }
+    private val fileKey = file.absolutePath
 
     fun reserve(id: String, title: String, usd: Double, day: LocalDate = LocalDate.now()): Unit = edit { entries ->
         require(entries.none { it.id == id }) { "Duplicate spend id" }
         val dayKey = day.toString()
-        val titleTotal = entries.filter { it.title == title }.sumOf { it.usd }
-        val dayTotal = entries.filter { it.day == dayKey }.sumOf { it.usd }
-        if (titleTotal + usd > perTitleUsd()) throw SpendLimitException("Limit na tytuł wyczerpany")
-        if (dayTotal + usd > perDayUsd()) throw SpendLimitException("Dzienny limit wyczerpany")
+        val usual = usualCost(entries)
+        val forTitle = entries.filter { it.title == title }
+        val titleTotal = forTitle.sumOf { counted(it, usual) }
+        val dayTotal = entries.filter { it.day == dayKey }.sumOf { counted(it, usual) }
+        if (titleTotal + usd > perTitleUsd()) {
+            report("na tytuł", forTitle, usual, usd, perTitleUsd())
+            throw SpendLimitException("Limit na tytuł wyczerpany")
+        }
+        if (dayTotal + usd > perDayUsd()) {
+            report("dzienny", entries.filter { it.day == dayKey }, usual, usd, perDayUsd())
+            throw SpendLimitException("Dzienny limit wyczerpany")
+        }
         entries += SpendEntry(id, title, dayKey, usd, settled = false)
+        inFlight += "$fileKey|$id"
     }
 
     /** Real cost from usage; it may exceed the reservation only by provider rounding, it is recorded anyway. */
-    fun settle(id: String, usd: Double) = edit { entries ->
-        val i = entries.indexOfFirst { it.id == id }
-        if (i >= 0) entries[i] = entries[i].copy(usd = usd, settled = true)
+    fun settle(id: String, usd: Double) {
+        edit { entries ->
+            val i = entries.indexOfFirst { it.id == id }
+            if (i >= 0) entries[i] = entries[i].copy(usd = usd, settled = true)
+        }
+        finished(id)
     }
 
     /** Only for requests that provably never left the device. */
-    fun release(id: String) = edit { entries -> entries.removeAll { it.id == id && !it.settled } }
+    fun release(id: String) {
+        edit { entries -> entries.removeAll { it.id == id && !it.settled } }
+        finished(id)
+    }
 
-    fun spentForTitle(title: String): Double = read().filter { it.title == title }.sumOf { it.usd }
-    fun spentForDay(day: LocalDate = LocalDate.now()): Double = read().filter { it.day == day.toString() }.sumOf { it.usd }
+    /** Zapytanie [id] się skończyło (odpowiedź, błąd albo przerwanie): nierozliczone = nieznany wynik, liczone jak zwykłe. */
+    fun finished(id: String) { synchronized(lock) { inFlight.remove("$fileKey|$id") } }
+
+    fun spentForTitle(title: String): Double = read().let { all -> val u = usualCost(all); all.filter { it.title == title }.sumOf { counted(it, u) } }
+    fun spentForDay(day: LocalDate = LocalDate.now()): Double = read().let { all -> val u = usualCost(all); all.filter { it.day == day.toString() }.sumOf { counted(it, u) } }
+
+    /** Średni rozliczony koszt zapytania (ostatnie 50); null = brak danych (wtedy cała rezerwacja). */
+    private fun usualCost(entries: List<SpendEntry>): Double? =
+        entries.filter { it.settled && it.usd > 0 }.takeLast(50).takeIf { it.isNotEmpty() }?.map { it.usd }?.average()
+
+    private fun counted(e: SpendEntry, usual: Double?): Double = when {
+        e.settled || "$fileKey|${e.id}" in inFlight || usual == null -> e.usd
+        else -> minOf(e.usd, usual)
+    }
+
+    private fun report(kind: String, entries: List<SpendEntry>, usual: Double?, usd: Double, limit: Double) {
+        val unknown = entries.filter { !it.settled && "$fileKey|${it.id}" !in inFlight }
+        val running = entries.count { !it.settled && "$fileKey|${it.id}" in inFlight }
+        android.util.Log.w("ForkAi", "SpendLedger: limit $kind ${"%.2f".format(java.util.Locale.ROOT, limit)} $: rozliczone " +
+            "${"%.3f".format(java.util.Locale.ROOT, entries.filter { it.settled }.sumOf { it.usd })} $ (${entries.count { it.settled }}), " +
+            "nieznany wynik ${unknown.size} (liczone po ${usual?.let { "%.4f".format(java.util.Locale.ROOT, it) } ?: "całej rezerwacji"} $), " +
+            "w toku $running, nowa rezerwacja ${"%.3f".format(java.util.Locale.ROOT, usd)} $")
+    }
 
     private fun read(): List<SpendEntry> = synchronized(lock) { load() }
 
@@ -102,7 +146,11 @@ class SpendLedger(private val file: File, private val perTitleUsd: () -> Double,
         atomicWrite(file, json.encodeToString(SpendFile.serializer(), SpendFile(entries)))
     }
 
-    private companion object { val lock = Any() }
+    private companion object {
+        val lock = Any()
+        /** Rezerwacje zapytań, które jeszcze trwają w tym procesie (plik|id) — tylko one liczą się w najgorszym przypadku. */
+        val inFlight: MutableSet<String> = java.util.Collections.synchronizedSet(HashSet())
+    }
 }
 
 /** fsync + rename(2): atomic on one filesystem, available on API 24 (no java.nio.file). */

@@ -100,6 +100,7 @@ object AiAuto {
         val key = filmKey(s) ?: return false
         if (key != film) { film = key; autoOn = false; manual = false; reportedUnavailable = null; readySince = 0L }
         if (!enabled(c)) return false
+        if (autoOn) failedDuringBubble()
         if (manual || autoOn || active() || AiSubtitles.running) return true
         if (com.nuvio.tv.reshaped.livetv.LiveTvPlaybackRegistry.isLiveTv(s.currentStreamUrl)) return true // IPTV bez napisów AI
         val sync = AutoSyncSyncedSubtitle.status.value
@@ -122,6 +123,19 @@ object AiAuto {
         bubble.value = (if (why.startsWith("brak")) "Brak polskich napisów" else "Polskie napisy nie pasują do filmu") +
             " — tłumaczę je na polski (AI). Naciśnij Wstecz, aby anulować"
         return true
+    }
+
+    /**
+     * 23.11 (JMGO: dymek „tłumaczę je na polski” obok „AI: Limit na tytuł wyczerpany”): gdy tłumaczenie nie ruszyło, dymek
+     * mówi prawdę i znika po 4 s, a Wstecz znowu zamyka odtwarzacz.
+     */
+    internal fun failedDuringBubble() {
+        val st = AiSubtitles.state.value ?: return
+        if (st.stage != AiStage.FAILED && st.stage != AiStage.STOPPED) return
+        if (bubble.value?.contains("tłumaczę") != true) return
+        cancellableUntil = 0L
+        bubble.value = "Nie udało się przetłumaczyć napisów: ${st.message.ifBlank { "błąd" }}"
+        Log.w(TAG, "napisy AI auto: tłumaczenie nie ruszyło (${st.stage}: ${st.message.take(120)}) — dymek poprawiony")
     }
 
     /**

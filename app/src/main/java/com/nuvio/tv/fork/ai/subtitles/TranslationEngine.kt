@@ -150,15 +150,19 @@ class TranslationEngine(
                 eta.record(provider.model, stage, cues, clock() - started)
                 return result
             } catch (e: CancellationException) {
+                android.util.Log.i("ForkAi", "TranslationEngine: zapytanie przerwane ($stage, $cues kwestii) — koszt nieznany, liczony jak zwykłe zapytanie")
                 throw e // reservation kept: the request may have been sent and billed
             } catch (e: ProviderException) {
                 android.util.Log.w("ForkAi", "TranslationEngine: dostawca http=${e.httpCode} transient=${e.transient} próba=$attempt: ${e.message?.take(200)}")
                 if (!e.maybeSent) ledger.release(spendId)
+                ledger.finished(spendId) // 23.11: nieznany wynik nie blokuje już limitu najgorszym przypadkiem (SpendLedger)
                 if (!e.transient || attempt >= settings.maxRetries) throw BlockFailedException(e.message ?: "Błąd dostawcy")
                 attempt++
                 val wait = (e.retryAfterMs ?: (2_000L shl attempt)).coerceIn(1_000L, 60_000L)
                 onEvent(EngineEvent.Waiting(if (e.httpCode == 429) "limit dostawcy" else "przerwa połączenia", clock() + wait))
                 delay(wait)
+            } finally {
+                ledger.finished(spendId) // 23.11: przerwane zapytanie przestaje się liczyć w najgorszym przypadku
             }
         }
     }
