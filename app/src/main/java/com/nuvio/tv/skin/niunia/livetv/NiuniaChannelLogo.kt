@@ -47,7 +47,7 @@ internal fun NiuniaChannelLogo(
     val url = chain.getOrNull(index)
     if (url == null) {
         Box(modifier, contentAlignment = alignment) {
-            androidx.compose.material3.Text(channel.name, style = nameStyle, color = NiuniaColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
+            androidx.compose.material3.Text(com.nuvio.tv.fork.tv.names.ChannelNames.shown(channel.name), style = nameStyle, color = NiuniaColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
         }
         return
     }

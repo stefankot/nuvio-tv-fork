@@ -170,19 +170,29 @@ object TvStore {
         recompute(System.currentTimeMillis())
     }
 
-    /** The guide's kept programmes changed (each minute-ish tick or a read): looks for new episodes again. */
-    fun updateSchedule(channels: List<LiveTvChannel>, kept: Map<String, List<LiveTvProgramme>>, nowMs: Long) = synchronized(lock) {
+    /**
+     * The guide's kept programmes changed (each minute-ish tick or a read): looks for new episodes again.
+     *
+     * JMGO ram1 23.11 (ANR 20:28 przy włączaniu kanału): całe przeszukanie przewodnika (~600 tys. programów, wyrażenia
+     * regularne na każdy tytuł) szło pod [lock], a start kanału ([onWatched], wątek główny) czekał na tę blokadę ponad 5 s.
+     * Teraz liczone bez blokady (tytuły przez pamięć [com.nuvio.tv.fork.tv.most.TvBridge.programKey]), pod blokadą tylko podmiana.
+     */
+    fun updateSchedule(channels: List<LiveTvChannel>, kept: Map<String, List<LiveTvProgramme>>, nowMs: Long) {
         val watched = watchedKeys()
-        if (watched.isEmpty()) return@synchronized
-        channelsByKey = channels.associateBy { it.guideKey }
-        val titleKeys = HashMap<String, String>()
-        keptAirings = kept.flatMap { (guideKey, list) ->
-            list.mapNotNull { p ->
-                val key = titleKeys.getOrPut(p.title) { ShowIdentity.normalizeTitle(p.title) }
-                if (key in watched) Airing(guideKey, p.title, p.startEpochMs, p.stopEpochMs, p.description) else null
-            }
+        if (watched.isEmpty()) return
+        val t0 = System.nanoTime()
+        val byKey = channels.associateBy { it.guideKey }
+        val found = ArrayList<Airing>()
+        for ((guideKey, list) in kept) for (p in list) {
+            if (com.nuvio.tv.fork.tv.most.TvBridge.programKey(p.title) in watched) found += Airing(guideKey, p.title, p.startEpochMs, p.stopEpochMs, p.description)
         }
-        recompute(nowMs)
+        synchronized(lock) {
+            channelsByKey = byKey
+            keptAirings = found
+            recompute(nowMs)
+        }
+        val ms = (System.nanoTime() - t0) / 1_000_000
+        if (ms > 500) Log.i(TAG, "updateSchedule: ${kept.size} kanałów, ${found.size} emisji obserwowanych w $ms ms (bez blokady)")
     }
 
     /** The viewer has seen [ids] announced. */

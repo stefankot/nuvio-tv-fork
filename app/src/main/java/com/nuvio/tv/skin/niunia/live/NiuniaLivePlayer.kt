@@ -484,7 +484,7 @@ internal data class NiuniaLiveData(
                 if (logo != null || channel.logoUrl != null) add("Playlista")
             }
             return NiuniaLiveData(
-                title = p?.title ?: tvdb?.title ?: tm?.title ?: channel.name,
+                title = p?.title ?: tvdb?.title ?: tm?.title ?: com.nuvio.tv.fork.tv.names.ChannelNames.shown(channel.name),
                 description = tvdb?.overview ?: tm?.overview ?: p?.description,
                 image = tvdb?.backdropUrl ?: tm?.backdropUrl ?: p?.image?.takeIf { it.isNotBlank() } ?: logo ?: forgeChannelLogo(channel),
                 programmeLogo = null,
@@ -570,7 +570,7 @@ private fun LiveRow(row: List<NiuniaLiveTile>, focused: Int, clockMs: Long, stat
             NiuniaWideTile(
                 image = t.programme.image?.takeIf { it.isNotBlank() }, caption = if (t.programme.image.isNullOrBlank()) null else cap ?: t.programme.title,
                 focused = i == focused, dot = if (t.live) true else if (t.archive) false else null, badge = badge,
-                fallbackTitle = t.programme.title, fallbackSub = t.channel.name + " · " + hm(t.programme.startEpochMs),
+                fallbackTitle = t.programme.title, fallbackSub = com.nuvio.tv.fork.tv.names.ChannelNames.shown(t.channel.name) + " · " + hm(t.programme.startEpochMs),
             )
         }
     }
@@ -649,7 +649,7 @@ private fun NiuniaLiveDetails(
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (st != NiuniaPlayState.ARCHIVE) NiuniaStateChip(stringResource(R.string.niunia_live_live), NiuniaPlayState.LIVE)
                     else NiuniaStateChip(stringResource(R.string.niunia_live_archive), NiuniaPlayState.ARCHIVE)
-                    Text(listOfNotNull(shown?.let { hm(it.startEpochMs) + " – " + hm(it.stopEpochMs) }, channel.name).joinToString(" · "),
+                    Text(listOfNotNull(shown?.let { hm(it.startEpochMs) + " – " + hm(it.stopEpochMs) }, com.nuvio.tv.fork.tv.names.ChannelNames.shown(channel.name)).joinToString(" · "),
                         style = NiuniaText.Button.copy(fontSize = 14.sp, lineHeight = 20.sp), color = NiuniaColors.Text, maxLines = 1)
                 }
                 val type = stringResource(when { episodes.isNotEmpty() || shown?.episode != null || data.isTv == true -> R.string.niunia_live_type_series; data.isTv == false -> R.string.niunia_live_type_film; else -> R.string.niunia_live_type_show })
@@ -681,7 +681,7 @@ private fun NiuniaLiveDetails(
                 LaunchedEffect(sec, idx) { if (sec == 2) rs.animateScrollToItem((idx - 2).coerceAtLeast(0)) }
                 LazyRow(Modifier.padding(top = NiuniaSpace.TitleToRow - 22.dp), state = rs, contentPadding = PaddingValues(horizontal = NiuniaDims.Gutter), horizontalArrangement = Arrangement.spacedBy(NiuniaSpace.TileGap)) {
                     itemsIndexed(upcoming) { i, (p, label) ->
-                        NiuniaTextTile(dayLabel(ctx, p.startEpochMs, nowMs), hm(p.startEpochMs), channel.name, label, focused = sec == 2 && idx == i, big = true)
+                        NiuniaTextTile(dayLabel(ctx, p.startEpochMs, nowMs), hm(p.startEpochMs), com.nuvio.tv.fork.tv.names.ChannelNames.shown(channel.name), label, focused = sec == 2 && idx == i, big = true)
                     }
                 }
                 Spacer(Modifier.height(NiuniaSpace.AfterRow))
@@ -698,7 +698,7 @@ private fun NiuniaLiveDetails(
             NiuniaShelfTitle(stringResource(R.string.niunia_pinfo_info), on = false, modifier = Modifier.padding(start = NiuniaDims.Gutter).height(22.dp).top(4))
             val placeNames = shown?.let { ForgeEpgCategories.programmePlaceNames(channel.guideKey, it) }
             val fields = listOfNotNull(
-                stringResource(R.string.niunia_live_l_channel) to (if (number > 0) "$number · " else "") + channel.name,
+                stringResource(R.string.niunia_live_l_channel) to (if (number > 0) "$number · " else "") + com.nuvio.tv.fork.tv.names.ChannelNames.shown(channel.name),
                 placeNames?.let { (b, l) -> stringResource(R.string.niunia_live_l_category) to listOfNotNull(b, l).joinToString(" › ") },
                 shown?.let { stringResource(R.string.niunia_live_l_airing) to dayLabel(ctx, it.startEpochMs, nowMs).lowercase() + " " + hm(it.startEpochMs) + "–" + hm(it.stopEpochMs) },
                 channel.catchup?.days?.takeIf { it > 0 }?.let { stringResource(R.string.niunia_live_l_archive) to stringResource(R.string.niunia_live_archive_back, it) },

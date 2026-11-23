@@ -166,7 +166,12 @@ internal fun favouriteTiles(channels: List<LiveTvChannel>, favUrls: Set<String>,
         val p = current[ch.guideKey]?.takeIf { isLive(it, now) } ?: return@forEach
         if (ShowIdentity.normalizeTitle(p.title) in favShows) out += tileFor(ch, p, now)
     }
-    channels.filter { it.streamUrl in favUrls }.forEach { ch -> current[ch.guideKey]?.takeIf { isLive(it, now) }?.let { out += tileFor(ch, it, now) } }
+    // 23.11 (właściciel: „ulubione ładują się powoli i w większości nie pokazują miniaturek”): każdy ulubiony kanał ma kafelek
+    // od razu — z obrazkiem programu, gdy przewodnik go ma (te najpierw), inaczej logo i nazwa (program dojdzie z przewodnikiem).
+    val favs = channels.filter { it.streamUrl in favUrls }.distinctBy { it.streamUrl }
+        .map { ch -> current[ch.guideKey]?.takeIf { isLive(it, now) }?.let { tileFor(ch, it, now) } ?: NiuniaLiveTile(ch, null, NiuniaTileMark.LIVE) }
+        .sortedByDescending { t -> when { !t.programme?.image.isNullOrBlank() -> 2; t.programme != null -> 1; else -> 0 } }
+    out += favs
     return out.distinctBy { it.key }.take(20)
 }
 

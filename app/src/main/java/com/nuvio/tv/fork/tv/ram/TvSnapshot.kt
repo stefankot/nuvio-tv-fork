@@ -14,13 +14,14 @@ import java.util.zip.GZIPOutputStream
 /**
  * Próbka startowa telewizji (właściciel 23.11: „w RAM trzymać tylko małą próbkę programów startową, tak żeby szybko po
  * wejściu do zakładki IPTV rysował się ekran”). Najwyżej [MAX_CHANNELS] kanałów — pierwsze z ekranu telewizji, ulubione,
- * ostatnie i te z rzędu „Dla Ciebie” — z programem od godziny temu do [AHEAD_MS] naprzód. Plik `filesDir/fork_tv/snapshot_v1.bin.gz`
+ * ostatnie i te z rzędu „Dla Ciebie” — z programem od godziny temu do [AHEAD_MS] naprzód. Plik `filesDir/fork_tv/snapshot_v2.bin.gz` (v2 z obrazkami programów)
  * (kilkaset KB), w pamięci po starcie aplikacji. Ekran telewizji i „Dla Ciebie” pokazują ją, dopóki pełne dane się
  * wczytują albo gdy telewizja jest zwolniona z pamięci ([TvRam]).
  */
 object TvSnapshot {
     private const val TAG = "ForkTvRam"
-    private const val VERSION = 1
+    // 2 (23.11, właściciel: „ulubione w większości nie pokazują miniaturek”): program z obrazkiem; plik v1 zostaje nieczytany.
+    private const val VERSION = 2
     const val MAX_CHANNELS = 160
     private const val PER_CHANNEL = 14
     private const val AHEAD_MS = 12L * 60 * 60 * 1000
@@ -64,7 +65,7 @@ object TvSnapshot {
                 val progs = HashMap<String, List<LiveTvProgramme>>()
                 repeat(inp.readInt()) {
                     val key = inp.readUTF()
-                    progs[key] = List(inp.readInt()) { LiveTvProgramme(inp.readUTF(), inp.readLong(), inp.readLong(), episode = opt(inp)) }
+                    progs[key] = List(inp.readInt()) { LiveTvProgramme(inp.readUTF(), inp.readLong(), inp.readLong(), episode = opt(inp), image = opt(inp)) }
                 }
                 data = Data(saved, channels, progs, fav)
             }
@@ -96,7 +97,7 @@ object TvSnapshot {
             val progs = LinkedHashMap<String, List<LiveTvProgramme>>()
             for (c in ordered) if (c.guideKey !in progs) {
                 val l = schedule(c.guideKey).filter { it.stopEpochMs > now - 60 * 60_000 && it.startEpochMs < now + AHEAD_MS }.take(PER_CHANNEL)
-                if (l.isNotEmpty()) progs[c.guideKey] = l.map { LiveTvProgramme(it.title, it.startEpochMs, it.stopEpochMs, episode = it.episode) }
+                if (l.isNotEmpty()) progs[c.guideKey] = l.map { LiveTvProgramme(it.title, it.startEpochMs, it.stopEpochMs, episode = it.episode, image = it.image?.takeIf { u -> u.length <= 1_000 }) }
             }
             f.parentFile?.mkdirs()
             val tmp = File(f.path + ".tmp")
@@ -105,7 +106,7 @@ object TvSnapshot {
                 o.writeInt(favoriteUrls.size); favoriteUrls.forEach { o.writeUTF(it) }
                 o.writeInt(ordered.size); ordered.forEach { writeChannel(o, it) }
                 o.writeInt(progs.size)
-                for ((k, l) in progs) { o.writeUTF(k); o.writeInt(l.size); l.forEach { p -> o.writeUTF(p.title); o.writeLong(p.startEpochMs); o.writeLong(p.stopEpochMs); optW(o, p.episode) } }
+                for ((k, l) in progs) { o.writeUTF(k); o.writeInt(l.size); l.forEach { p -> o.writeUTF(p.title); o.writeLong(p.startEpochMs); o.writeLong(p.stopEpochMs); optW(o, p.episode); optW(o, p.image) } }
             }
             if (!tmp.renameTo(f)) throw java.io.IOException("nie udało się zapisać ${f.name}")
             data = Data(now, ordered, progs, favoriteUrls.toHashSet())

@@ -62,7 +62,7 @@ internal fun niuniaToggleFavourite(context: android.content.Context, ch: com.nuv
         return
     }
     android.util.Log.i("ForkNiunia", "live tv: długie OK → ulubione ${if (after) "dodane" else "usunięte"}: ${ch.name}")
-    android.widget.Toast.makeText(context, context.getString(if (after) R.string.niunia_live_fav_added else R.string.niunia_live_fav_removed, ch.name), android.widget.Toast.LENGTH_SHORT).show()
+    android.widget.Toast.makeText(context, context.getString(if (after) R.string.niunia_live_fav_added else R.string.niunia_live_fav_removed, com.nuvio.tv.fork.tv.names.ChannelNames.shown(ch.name)), android.widget.Toast.LENGTH_SHORT).show()
 }
 
 @Composable
@@ -92,7 +92,7 @@ internal fun NiuniaLiveTileCard(
             if (p == null) {
                 Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
                     if (logo != null) NiuniaChannelLogo(tile.channel, Modifier.size(64.dp, 44.dp))
-                    Text(tile.channel.name, style = NiuniaText.Meta.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold), color = NiuniaColors.Text,
+                    Text(com.nuvio.tv.fork.tv.names.ChannelNames.shown(tile.channel.name), style = NiuniaText.Meta.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold), color = NiuniaColors.Text,
                         maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp))
                 }
                 NiuniaStatusDot(live = true)
@@ -143,5 +143,5 @@ internal fun NiuniaLiveTileCard(
 /** „program · E5 · kanał” (przewodnik) albo „program · Pt 20:15” (Odkrywaj — godzina tylko dla tego, co dopiero będzie). */
 internal fun caption(tile: NiuniaLiveTile): String {
     val p = tile.programme ?: return tile.channel.name
-    return listOfNotNull(p.title, tile.extra?.takeIf { it.isNotBlank() }, tile.channel.name.takeIf { tile.withChannel }).joinToString(" · ")
+    return listOfNotNull(p.title, tile.extra?.takeIf { it.isNotBlank() }, com.nuvio.tv.fork.tv.names.ChannelNames.shown(tile.channel.name).takeIf { tile.withChannel }).joinToString(" · ")
 }

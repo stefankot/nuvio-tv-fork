@@ -1,0 +1,11 @@
+--- a
++++ b
+@@ -1673,7 +1673,7 @@
+         val sameStream = liveTvSameStreamKeys(channels)
+         // Names (and missing logos) decide name matches and guide logos: a list that renames
+         // channels keeping their ids must not be served the matches kept for the old names.
+-        val cacheKey = LiveTvGuideCache.key(epgUrls, guideKeys, window, catchupKeys) * 31 + liveTvGuideMatchingKey(channels)
++        val cacheKey = com.nuvio.tv.fork.tv.guide.GuideReuse.cacheKey(appContext, epgUrls, _uiState.value.sources.map { it.id }, window) ?: (LiveTvGuideCache.key(epgUrls, guideKeys, window, catchupKeys) * 31 + liveTvGuideMatchingKey(channels)) // Fork patch: zapis-przewodnika - zmiana listy kanałów nie kasuje zapisu (JMGO 23.11: każde wejście czytało XMLTV od zera)
+         // Fork patch: kicia-epg (Kicia 14.11, JMGO C1): jeden zapis na klucz (każdy profil ma własną listę), inaczej zmiana
+         // profilu nadpisywała wspólny plik i następny start czytał cały XMLTV od nowa (70 s na JMGO).
+         val cacheFile = LiveTvGuideCache.fileFor(guideDir(), LiveTvGuideCache.FILE_NAME, cacheKey)

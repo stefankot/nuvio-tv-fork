@@ -24,6 +24,12 @@ internal object ForgeChannelFailed {
     val selected = mutableIntStateOf(0)
     private var okDown = false
 
+    /**
+     * 23.11 (właściciel): kanał mimo wszystko ruszył i gra pod oknem — wtedy okno nie zatrzymuje (zamyka się samo,
+     * Wstecz i OK tylko je chowają). Stan odtwarzacza z [com.nuvio.tv.fork.sources.PlayerBridge].
+     */
+    fun playingBehind(): Boolean = com.nuvio.tv.fork.sources.PlayerBridge.current()?.let { it.isPlaying && it.error == null } == true
+
     /** The window just came up: the first button, and an OK pressed before it does not count. */
     fun shown() { selected.intValue = 0; okDown = false }
 
@@ -51,15 +57,28 @@ internal object ForgeChannelFailed {
         val down = event.action == KeyEvent.ACTION_DOWN
         when (event.keyCode) {
             KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_ESCAPE -> if (!down) {
-                Log.i(TAG, "kanał nie odpowiada: Wstecz → okno zamknięte, powrót do listy (${channel.value?.name})")
-                channel.value = null
-                exit?.invoke()
+                if (playingBehind()) {
+                    // 23.11 (właściciel: „okno nie pozostawia możliwości wyjścia, gdy kanał już leciał w tle”): obraz jest — tylko zamknij okno.
+                    Log.i(TAG, "kanał nie odpowiada: Wstecz → okno zamknięte, kanał gra dalej (${channel.value?.name})")
+                    channel.value = null
+                } else {
+                    Log.i(TAG, "kanał nie odpowiada: Wstecz → okno zamknięte, powrót do listy (${channel.value?.name})")
+                    channel.value = null
+                    exit?.invoke()
+                }
             }
             KeyEvent.KEYCODE_DPAD_LEFT -> if (down) selected.intValue = 0
             KeyEvent.KEYCODE_DPAD_RIGHT -> if (down) selected.intValue = 1
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> when {
                 down && event.repeatCount == 0 -> okDown = true
-                !down && okDown -> { okDown = false; if (selected.intValue == 0) retry(state) else next(state) }
+                !down && okDown -> {
+                    okDown = false
+                    if (selected.intValue == 0 && playingBehind()) {
+                        // 23.11: „Spróbuj ponownie”, a kanał już gra — bez restartu, okno znika.
+                        Log.i(TAG, "kanał nie odpowiada: OK, kanał już gra → okno zamknięte bez restartu (${channel.value?.name})")
+                        channel.value = null
+                    } else if (selected.intValue == 0) retry(state) else next(state)
+                }
             }
             KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_CHANNEL_UP, KeyEvent.KEYCODE_CHANNEL_DOWN -> Unit
             else -> return false
@@ -71,7 +90,18 @@ internal object ForgeChannelFailed {
 @Composable
 internal fun ForgeChannelFailedDialog(state: LiveTvPlayerState) {
     val failed = ForgeChannelFailed.channel.value
-    LaunchedEffect(failed) { if (failed != null) ForgeChannelFailed.shown() }
+    LaunchedEffect(failed) {
+        if (failed == null) return@LaunchedEffect
+        ForgeChannelFailed.shown()
+        // 23.11: obraz ruszył po pokazaniu okna — okno znika samo (sprawdzane co sekundę, póki jest na ekranie).
+        while (ForgeChannelFailed.channel.value === failed) {
+            kotlinx.coroutines.delay(1_000L)
+            if (ForgeChannelFailed.channel.value === failed && ForgeChannelFailed.playingBehind()) {
+                Log.i("ForkLiveTv", "kanał nie odpowiada: ${failed.name} jednak gra → okno zamknięte samo")
+                ForgeChannelFailed.channel.value = null
+            }
+        }
+    }
     ForgeDialog(
         visible = failed != null,
         title = "Kanał nie odpowiada",

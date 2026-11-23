@@ -470,7 +470,7 @@ private fun Guide(
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             if (p != null && isLive(p, now)) com.nuvio.tv.skin.niunia.components.NiuniaTag(stringResource(R.string.niunia_live_live), com.nuvio.tv.skin.niunia.components.NiuniaTagKind.Live) // NTag live-badge (5,2:1)
-            val text = if (p == null) ch.name else listOf(p.title, ch.name, "${hhmm(p.startEpochMs)} – ${hhmm(p.stopEpochMs)}").joinToString(" · ")
+            val text = if (p == null) com.nuvio.tv.fork.tv.names.ChannelNames.shown(ch.name) else listOf(p.title, com.nuvio.tv.fork.tv.names.ChannelNames.shown(ch.name), "${hhmm(p.startEpochMs)} – ${hhmm(p.stopEpochMs)}").joinToString(" · ")
             Text(text, style = NiuniaText.Body, color = NiuniaColors.Text70, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }

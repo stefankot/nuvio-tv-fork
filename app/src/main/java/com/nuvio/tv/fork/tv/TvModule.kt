@@ -33,6 +33,8 @@ object TvModule : ForkModule {
         // 23.11 (JMGO zawieszał się: 194 tys. filmów z listy M3U jako „kanały” zapychało pamięć).
         // 23.11 (właściciel: „IPTV do RAM tylko w zakładce IPTV” — miejsce na Whisper i TTS).
         com.nuvio.tv.fork.registry.ModuleSetting(com.nuvio.tv.fork.tv.ram.TvRam.KEY, com.nuvio.tv.fork.registry.SettingsLevel.ESSENTIAL, "Telewizja", "Telewizja w pamięci tylko na ekranie telewizji", "Po wyjściu z telewizji kanały i przewodnik zwalniają pamięć (zostają zapisane); pierwsze wejście trwa chwilę dłużej", defaultValue = true),
+        com.nuvio.tv.fork.registry.ModuleSetting(com.nuvio.tv.fork.tv.names.ChannelNames.KEY, com.nuvio.tv.fork.registry.SettingsLevel.ESSENTIAL, "Telewizja", "Same nazwy kanałów", "Bez dopisków listy, kraju i jakości, np. „PL: Polsat Cafe HD” jako „Polsat Cafe”", defaultValue = true),
+        com.nuvio.tv.fork.registry.ModuleSetting(com.nuvio.tv.fork.tv.guide.GuideReuse.KEY, com.nuvio.tv.fork.registry.SettingsLevel.ADVANCED, "Telewizja", "Szybki start przewodnika", "Zapisany program kanałów działa także po zmianie listy u dostawcy; nowe kanały dostaną program przy następnym pobraniu", defaultValue = true),
         com.nuvio.tv.fork.registry.ModuleSetting(com.nuvio.tv.fork.tv.vod.LiveVod.KEY, com.nuvio.tv.fork.registry.SettingsLevel.ESSENTIAL, "Telewizja", "Bez filmów i seriali na liście kanałów", "Filmy i seriale z list IPTV nie są pokazywane jako kanały; telewizja działa szybciej i się nie zawiesza", defaultValue = true),
         com.nuvio.tv.fork.registry.ModuleSetting(com.nuvio.tv.fork.perf.PerfFlags.PREVIEW_AUTOSTOP_KEY, com.nuvio.tv.fork.registry.SettingsLevel.ADVANCED, "Telewizja", "Zatrzymaj podgląd kanału po minucie", "Oszczędza procesor słabych telewizorów; zostaje logo, zmiana kanału wznawia podgląd", defaultValue = true),
         com.nuvio.tv.fork.registry.ModuleSetting("tv_for_you_row", com.nuvio.tv.fork.registry.SettingsLevel.ESSENTIAL, "Telewizja", "Rząd „Dla Ciebie” nad przewodnikiem", "Karty: wznów, nowy odcinek, na żywo", defaultValue = true),
@@ -76,6 +78,7 @@ object TvModule : ForkModule {
         LaunchedEffect(Unit) {
             com.nuvio.tv.fork.tv.logo.ForkLogoPrefs.load(c)
             com.nuvio.tv.fork.tv.ram.TvRam.start(c)
+            com.nuvio.tv.fork.tv.names.ChannelNames.start(c)
             // 23.11 (TvRam): bez rozgrzewki telewizja wchodzi do pamięci dopiero na ekranie telewizji.
             if (!com.nuvio.tv.fork.tv.ram.TvRam.warmUpAllowed()) return@LaunchedEffect
             val pid = EntryPointAccessors.fromApplication(c.applicationContext, Deps::class.java).profiles().activeProfileId.value
