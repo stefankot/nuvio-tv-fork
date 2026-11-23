@@ -65,6 +65,27 @@ Decyzja właściciela (23.11, ten wątek): „zajmij się wszystkimi poważnymi 
   mapę dla Szukaj — do zastąpienia zapytaniem do bazy); 0 ANR. Zdublowany przewodnik nadal nierozpoznany (jeden plik spakowany,
   drugi nie — rozmiar nie pasował) → poprawka e4099f85c (lista kanałów z początku pliku, wynik pamiętany), NIESKOMPILOWANA.
 
+- **iptvdb5 NA JMGO — etap 1c** (23.11 ~20:20 Mac; BUILD SUCCESSFUL 9 min 34 s; md5 `f3390e6ac55bd9e94da0a4e51300bec6` zgodny;
+  `.stage/apk/iptvdb5-v7a.apk`; commity 908aca495, e4099f85c): kolejność i kategorie listy na dysku (`NiuniaLiveOrder.saveTo/readFrom`),
+  przegląd w tle na wątku niskiego priorytetu i nie w czasie oglądania, próg pamięci 85 % przed importem, zdublowany przewodnik po
+  liście kanałów z początku pliku. Pomiar 1 (`iptv-pomiar-db6`): próbka 183 kanały (z kategoriami) 0,08 s, wiersze z bazy 0,7 s,
+  kolejność liczona 3,7 s i zapisana w 385 ms, **zdublowane przewodniki rozpoznane** (FlixNest 30 093 = 30 093, hls.gd 788 = 788 —
+  bez drugiego importu). Pomiar 2 (`iptv-pomiar-db7`): **kolejność z dysku 59 323 kanałów w 650 ms („ta sama lista”)** — pełna lista
+  4,8 s po wejściu (było 9 s; resztę zajmuje odczyt listy Reshaped), wiersze z bazy 0,7 s, priorytet 184 ms; 0 ANR.
+- **Testy (właściciel 23.11 ~20:20: „stress testing i testy jednostkowe”)**:
+  - JVM (build `iptvtest1`, 12 min 21 s): **162 testy `com.nuvio.tv.fork.tv.*` + `com.nuvio.tv.skin.niunia.livetv.*`, 0 nieudanych**;
+    nowe: `GuideDbLinksTest` 11 (id > nazwa, przewodnik z id wygrywa z innym z samą nazwą, dodany przez użytkownika, kolejność
+    przewodników źródła, logo tylko bez logo, brak dopasowania, `wanted`, wspólne listy duplikatów, obciążenie 60 tys. kanałów ×
+    5 przewodników **0,6 s**), `NiuniaLiveOrderDiskTest` 6 (ta sama/zmieniona lista, inny kraj/ukryte grupy, mała lista, uszkodzony
+    plik, obciążenie 60 tys. **0,14 s**), `TvSnapshotTest` +1 (próbka nie nadpisuje się pustą). Bazy SQLite nie da się testować
+    w JVM (brak Robolectric) — sprawdzona na JMGO.
+  - JMGO obciążenie (`.stage/jmgo/stres_tv.sh 8`, `.stage/jmgo/stres-20261123-2024/`): 8 cykli po ~105 s (wejście, 2× intencja,
+    co 3. cykl kanał od razu w trakcie wczytywania, 40↓ 40↑ 15↓ 15↑, zmiana kategorii, co 2. Home + 55 s): **0 ANR, 0 awarii**,
+    sterta w TV 242–249 MB, po Home 77 MB. Proces 2× zatrzymany w tle przez **`com.jmgo.hippo`** (czyściciel JMGO;
+    `exit-info`: „USER REQUESTED, stop … from pid 1391”, importance 400, PSS 480–634 MB) — nie awaria, ale następne wejście to
+    zimny start. Do zrobienia: mniejszy PSS po wyjściu z telewizji (pamięć obrazków Coil, odtwarzacz podglądu, natywne bufory).
+  - Ostrzeżenia w logu: tylko brakujące logo kanałów (HTTP 404 → następne źródło logo).
+
 ### WYMAGANIE WŁAŚCICIELA (23.11 ~19:30, po iptvdb2) — następny krok
 (ZROBIONE w iptvdb4: pkt 2–4 i próbka kategorii z pkt 1; zostało: lista kanałów bez czekania — etap 1c w `ARCHITEKTURA.md`)
 „Te czasy nie są dobre. To musi działać szybciej. Nie da się używać cache w każdym miejscu? Czy ekran główny IPTV nie może czytać
