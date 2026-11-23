@@ -531,6 +531,9 @@ private fun GuideRow(
         LiveTvRepository.schedule(ch.guideKey).ifEmpty { if (com.nuvio.tv.fork.tv.ram.TvRam.enabled) com.nuvio.tv.fork.tv.ram.TvSnapshot.programmesFor(ch.guideKey) else emptyList() }
     }
     val visible = remember(schedule, winStart) { schedule.filter { it.stopEpochMs > winStart && it.startEpochMs < winEnd } }
+    // 23.11 (przewodnik w bazie, GuideDbBridge): cofnięty w czasie wiersz kanału z catch-up dociąga minione dni z bazy.
+    val needCtx = LocalContext.current
+    LaunchedEffect(ch.guideKey, winStart) { com.nuvio.tv.fork.tv.plus.GuideDbBridge.need(needCtx, ch, winStart) }
     var focused by remember { mutableStateOf(false) }
     var sel by remember { mutableIntStateOf(-1) }
     val logo = forgeChannelLogo(ch)

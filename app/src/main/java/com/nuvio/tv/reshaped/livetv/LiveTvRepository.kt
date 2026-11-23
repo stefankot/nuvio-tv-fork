@@ -1602,7 +1602,7 @@ object LiveTvRepository {
     }
 
     private suspend fun loadHistory(channel: LiveTvChannel, catchup: LiveTvCatchup): List<LiveTvProgramme> {
-        val archived = LiveTvArchive.read(archiveFile(), channel.guideKey)
+        val archived = com.nuvio.tv.fork.tv.plus.GuideDbBridge.history(appContext, channel.guideKey, LiveTvClock.nowEpochMs() - LiveTvArchive.pastMsFor(catchup.days)) ?: LiveTvArchive.read(archiveFile(), channel.guideKey) // Fork patch: baza-przewodnika (catch-up z bazy)
         val nowMs = LiveTvClock.nowEpochMs()
         val reach = nowMs - LiveTvArchive.pastMsFor(catchup.days)
         val earliest = minOf(
@@ -1755,6 +1755,8 @@ object LiveTvRepository {
                     // stops the download and read instead of letting them compete with playback.
                     val finished = whileSeen {
                         val force = forceGuideDownload
+                        // Fork patch: baza-przewodnika (właściciel 23.11: kopia silnika NuvioPlusIPTV — XMLTV strumieniowo do SQLite, tylko zmienione pliki; w pamięci okno −12 h…+36 h; catch-up z bazy w loadHistory)
+                        if (com.nuvio.tv.fork.tv.plus.GuideDbBridge.enabled(appContext)) { val read = com.nuvio.tv.fork.tv.plus.GuideDbBridge.load(appContext, epgUrls, guideFiles, downloads, channels, _uiState.value.favoriteUrls.toHashSet(), sourceLinks, sourcesById.mapValues { it.value.epgUrl }, force, EPG_DOWNLOAD_MS) { kept, logos, failedLinks -> publishGuide(kept, logos, LiveTvClock.nowEpochMs(), failedLinks) }; if (force && epgGeneration == generation) forceGuideDownload = false; schedule = read.first; nextReadAtMs = read.second; firstRead = false; return@whileSeen Unit } // Fork patch: baza-przewodnika
                         // Fork patch: kicia-epg (Kicia 24e08b945): najpierw mały wycinek „teraz”, pokazany od razu.
                         if (firstRead && !force && keptSchedule.isEmpty()) {
                             val quick = withContext(Dispatchers.IO) { LiveTvGuideCache.readNow(nowFile, cacheKey, guideFiles, nowMs) }
