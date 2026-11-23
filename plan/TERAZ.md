@@ -9,7 +9,7 @@ Prompt (wklej w nowym wątku albo napisz „kontynuuj”):
 
 STAN (23.11 ~03:00):
 - Commity tego wątku: `93b1db614` (pętla 3 + poprawki), `8709aad22` (pętla 4 + poprawki), commit pętli 5 z handoffem (ostatni w `git log` tego wątku). Wszystko wypchnięte na `skin-niunia`.
-- **APK ux5** (arm64, md5 `65474db0087e88ca5c999c25dbfc018c`, kopia `.stage/apk/ux5-arm64.apk`) na emulatorze `nuvio_tv` (md5 zgodny, `compile -m speed`). Emulator po testach wyłączony (`adb emu kill`). JMGO nadal ma build173 v7a z wątku Live TV — paczki UX (długie OK itd.) NIE MA jeszcze na TV.
+- **APK ux5** (arm64, md5 `65474db0087e88ca5c999c25dbfc018c`, kopia `.stage/apk/ux5-arm64.apk`) na emulatorze `nuvio_tv` (md5 zgodny, `compile -m speed`). Emulator po testach wyłączony (`adb emu kill`). **JMGO: od 23.11 09:07 (Mac) ma APK uxtv v7a z `45ce074ec`** (build `uxtv`, 1 min 51 s, md5 `e20cd249a71b968aa185521393553a31` zgodny po `adb pull`, `compile -m speed`; kopia `.stage/apk/uxtv-v7a.apk`) — NIETESTOWANY. Uwaga: instalacja zamknęła aplikację, którą ktoś miał otwartą od ok. 2 min (potem uruchomiona ponownie `am start`); przed następną instalacją sprawdzać ekran w tym samym kroku i przerwać, gdy na wierzchu jest fork.
 - Wyniki: pętla 3 (ux3) 18 ścieżek OK 0 / UWAGA 18 (czasy na przeciążonym emulatorze); pętla 4 (ux4) 13 min ręcznie + 29 ścieżek OK 25 / UWAGA 4 / BŁĄD 0; pętla 5 (ux5) ok. 5 min ręcznie + 32 ścieżki OK 26 / UWAGA 6 / BŁĄD 0 (uwagi: ograniczenia skryptu i zamierzone zachowanie).
 - Poprawione i potwierdzone na emulatorze [B]: okno „Kanał nie odpowiada” (jeden Wstecz → lista z fokusem na kanale; ◄► i OK działają na przyciskach także w Niuni), ▲ z kanałów na wybraną kategorię, długie OK na odcinku = okno „Akcje odcinka” Nuvio, po Wstecz z głębi strony tytułu ▼ trafia w odcinki, komunikat „Nie mamy strony tej osoby”, „Co mogę powiedzieć” z fokusem (przewija się).
 - Na emulatorze obsada nie ma id TMDB (strona osoby się nie otwiera) — powrót fokusu z osoby/„Podobne” na stronę tytułu sprawdzić na TV.
@@ -17,7 +17,7 @@ STAN (23.11 ~03:00):
 - Testy: `fork-tools/test/instaluj_emu.sh <apk>` (instalacja + md5 + speed), martwy kanał do testu okna błędu: „Active Family HD (1080i)” (4. na liście iptv-org PL, adres 404). Pierwsza intencja `com.nuvio.fork.OPEN` tuż po zimnym starcie ginie — wysłać drugi raz.
 
 KOLEJKA:
-1. JMGO (gdy nikt nie ogląda): build v7a z `skin-niunia` (`bash fork-tools/build.sh uxtv :app:assembleFullDebug -PforkAbi=armeabi-v7a`), instalacja, `plan/DO_SPRAWDZENIA_NA_TV.md` → „UX długie OK” (pilot: realne trzymanie OK) + `jmgo_sesja.sh 10`.
+1. JMGO (gdy nikt nie ogląda): build v7a i instalacja ZROBIONE (uxtv, wyżej); zostało `plan/DO_SPRAWDZENIA_NA_TV.md` → „UX długie OK” (pilot: realne trzymanie OK) + `jmgo_sesja.sh 10`.
 2. RAPORT otwarte: pkt 6 (profile Niuni bez długiego OK — wymaga wpięć), pkt 10 (ekrany bazy bez powrotu fokusu — kod bazy, raczej nie ruszać), pkt 14 (Odtwórz bez dodatków — tylko Toast), zimny start w ścieżce 1 mierzony do „stabilnego” ekranu (Główna się zmienia) — poprawić pomiar w `sciezki.py`.
 3. Ścieżki jeszcze nieuruchamiane w pętlach 3–5: 6, 9, 31–45, 49 (YouTube, Kalendarz, Dodatki, moduły forka, Profile) — przy następnej pętli.
 Kolejka JMGO/SQLite z wątku Live TV (sekcja niżej) — nadal aktualna, w tym wątku nieruszana.
