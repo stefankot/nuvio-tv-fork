@@ -22,7 +22,11 @@ object TvSnapshot {
     private const val TAG = "ForkTvRam"
     // 2 (23.11, właściciel: „ulubione w większości nie pokazują miniaturek”): program z obrazkiem; plik v1 zostaje nieczytany.
     private const val VERSION = 2
-    const val MAX_CHANNELS = 160
+    // 23.11 etap 1b (właściciel: „np. tylko po 10 pierwszych programów z każdej kategorii”): pierwsza strona (FIRST_PAGE)
+    // + po [PER_CATEGORY] kanałów każdej kategorii Niuni + ulubione — razem najwyżej MAX_CHANNELS.
+    const val MAX_CHANNELS = 400
+    const val FIRST_PAGE = 160
+    const val PER_CATEGORY = 10
     private const val PER_CHANNEL = 14
     private const val AHEAD_MS = 12L * 60 * 60 * 1000
     private const val SAVE_EVERY_MS = 10L * 60 * 1000

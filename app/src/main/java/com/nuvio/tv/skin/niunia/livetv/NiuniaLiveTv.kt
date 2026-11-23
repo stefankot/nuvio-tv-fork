@@ -208,7 +208,13 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
     // 23.11 (TvRam): próbka startowa z pełnej listy — w tle, najwyżej raz na 10 min (albo gdy zmieni się pierwsza strona).
     LaunchedEffect(prepared, snapshot == null, state.currentProgrammes.isNotEmpty()) {
         if (snapshot != null || !prepared.sorted || state.currentProgrammes.isEmpty() || prepared.shown.isEmpty()) return@LaunchedEffect
-        val first = prepared.shown.take(com.nuvio.tv.fork.tv.ram.TvSnapshot.MAX_CHANNELS)
+        // Etap 1b: pierwsza strona + po 10 kanałów każdej kategorii (przełączenie kategorii od razu, zanim wczyta się lista).
+        val perCategory = try {
+            prepared.categories.flatMap { cat -> ForgeEpgCategories.filter(prepared.shown, cat.key, state.hiddenChannelKeys, "")?.take(com.nuvio.tv.fork.tv.ram.TvSnapshot.PER_CATEGORY).orEmpty() }
+        } catch (e: Exception) {
+            Log.w(TAG, "live tv: próbka kategorii: ${e.javaClass.simpleName}: ${e.message}"); emptyList()
+        }
+        val first = (prepared.shown.take(com.nuvio.tv.fork.tv.ram.TvSnapshot.FIRST_PAGE) + perCategory).distinctBy { it.streamUrl }
         val all = repoState.channels
         val fav = repoState.favoriteUrls
         val alertKeys = alerts.map { it.airing.guideKey }

@@ -72,6 +72,8 @@ object GuideDbBridge {
     @Volatile var partialPublish = false
         private set
     @Volatile private var passJob: kotlinx.coroutines.Job? = null
+    /** Plik przewodnika → ten sam przewodnik w bazie ("" = żaden); klucz z rozmiarem i datą pliku. */
+    private val twinMemo = java.util.concurrent.ConcurrentHashMap<String, String>()
 
     /**
      * Pełny program kanału z pamięci wierszy (łatka `dostawca/LiveTvRepository/16` w `schedule()`): gdy go nie ma — [kept]
@@ -196,8 +198,13 @@ object GuideDbBridge {
         epgUrls.forEachIndexed { i, _ ->
             val f = guideFiles[i]
             if (!f.isFile || f.length() == 0L) return@forEachIndexed
-            // JMGO iptvdb3: pierwszy plik o podobnym rozmiarze bywa innym przewodnikiem — sprawdzamy każdy podobny.
-            val twin = done.firstOrNull { (src, size) -> size > 0 && kotlin.math.abs(size - f.length()) <= size / 10 && sameChannels(db, src, f) }?.first
+            // JMGO iptvdb3/4: jeden plik spakowany, drugi nie — rozmiar nic nie mówi; lista kanałów z początku pliku raz,
+            // porównana z każdym przewodnikiem już w bazie.
+            // Wynik pamiętany dla pliku bez zmian (odczyt co 30 min nie czyta początku pliku za każdym razem).
+            val memoKey = "${f.name}:${f.length()}:${f.lastModified()}:${done.joinToString(",") { it.first }}"
+            val twin = if (done.isEmpty()) null else twinMemo.getOrPut(memoKey) {
+                headChannels(f)?.let { ids -> done.firstOrNull { (src, _) -> sameChannels(db, src, ids, f.name) }?.first }.orEmpty()
+            }.ifEmpty { null }
             if (twin != null) { alias[srcOf(f)] = twin; Log.i(TAG, "${srcOf(f)}: ten sam przewodnik co $twin — bez drugiego importu"); return@forEachIndexed }
             changed = importFile(db, f, srcOf(f), request, now) || changed
             done += srcOf(f) to f.length()
@@ -330,10 +337,17 @@ object GuideDbBridge {
         }
     }
 
-    /** Czy [f] ma na początku tę samą listę kanałów (≥ 50), co przewodnik [src] w bazie. Czyta tylko `<channel>` do pierwszego programu. */
-    private fun sameChannels(db: EpgDatabase, src: String, f: File): Boolean = try {
+    /** Czy lista kanałów [ids] (≥ 50) to lista przewodnika [src] w bazie. */
+    private fun sameChannels(db: EpgDatabase, src: String, ids: Set<String>, name: String): Boolean = try {
         val stored = db.sourceChannels(src).mapTo(HashSet()) { it.first }
-        if (stored.size < 50) false else {
+        (stored.size >= 50 && ids == stored).also { Log.i(TAG, "$name vs $src: ${ids.size} / ${stored.size} kanałów — ${if (it) "ten sam przewodnik" else "inny"}") }
+    } catch (e: Exception) {
+        Log.w(TAG, "$name: porównanie kanałów: ${e.javaClass.simpleName}: ${e.message}"); false
+    }
+
+    /** Kanały `<channel>` z początku pliku (do pierwszego programu); null — za mało albo błąd. */
+    private fun headChannels(f: File): Set<String>? = try {
+        run {
             val ids = HashSet<String>()
             open(f).use { input ->
                 val parser = android.util.Xml.newPullParser()
@@ -349,10 +363,10 @@ object GuideDbBridge {
                     event = parser.next()
                 }
             }
-            (ids == stored).also { Log.i(TAG, "${f.name} vs $src: ${ids.size} / ${stored.size} kanałów — ${if (it) "ten sam przewodnik" else "inny"}") }
+            ids.takeIf { it.size >= 50 }
         }
     } catch (e: Exception) {
-        Log.w(TAG, "${f.name}: porównanie kanałów: ${e.javaClass.simpleName}: ${e.message}"); false
+        Log.w(TAG, "${f.name}: kanały z początku pliku: ${e.javaClass.simpleName}: ${e.message}"); null
     }
 
     /** Plik przewodnika Reshaped: gzip albo zwykły XML. */
