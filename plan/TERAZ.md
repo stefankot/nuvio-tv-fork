@@ -3,11 +3,11 @@
 Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–13: `plan/archiwum/TERAZ-historia-watki-1-13.md` (tylko `grep`, nie czytaj całości). Sekcje z 22.11 (build163–169c, scalenie, aktualizacja bazy): `plan/archiwum/TERAZ-historia-22.11.md`.
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
-## NAJPIERW (23.11 ~11:30 — wątek „Przebudowa ustawień”, przerwany: koniec tokenów) — PROMPT HANDOFF
+## NAJPIERW (23.11 ~12:00 — wątek „Przebudowa ustawień”, WSTRZYMANY: wznowić po zakończeniu wątku naprawy napisów) — PROMPT HANDOFF
 Prompt (wklej w nowym wątku albo napisz „kontynuuj”):
 > Kontynuuj przebudowę ustawień forka Nuvio Android TV (`/Users/milajovovich/Desktop/nuvio 2/NuvioFork`, gałąź `skin-niunia`). Zasady: `ZASADY.md`. Stan, ustalenia i dokładne kroki: `plan/ustawienia/STAN.md` — rób „NASTĘPNE KROKI” po kolei (najpierw ekran `skin/niunia/settings/NiuniaSettingsTree.kt`, potem wpięcia w `SimpleSettingsGate` i `ForkSettingsNav.gate`, testy JVM, `DRZEWO.md`/`INWENTARZ.md`, build v7a, test na JMGO, szukanie).
 
-Stan: rejestr drzewa (`fork/settings/tree/SettingsTreeSpec.kt`, 7 kategorii, tryb prosty = podzbiór, „Więcej” w grupach), szukanie po polsku (`SettingsTreeSearch.kt` + generowane `SettingsTreeWords.kt`), `SettingsTreeRuntime.kt`, wpięcie sekcji Odtwarzania (64/65), inwentarz surowy 469 pozycji. Ekran Niuni i wpięcia w bramki — NIE ZROBIONE. Kod niekompilowany (pierwszy build sprawdzi). Szukanie dziś nie działa po polsku (szczegóły w STAN.md).
+Stan: rejestr drzewa (`fork/settings/tree/SettingsTreeSpec.kt`, 7 kategorii, tryb prosty = podzbiór, „Więcej” w grupach), szukanie po polsku (`SettingsTreeSearch.kt` + generowane `SettingsTreeWords.kt`), `SettingsTreeRuntime.kt`, wpięcie sekcji Odtwarzania (64/65), inwentarz surowy 469 pozycji. Szkic ekranu Niuni: `plan/ustawienia/szkic/NiuniaSettingsTree.kt.txt` (poza kodem); wpięcia w bramki — NIE ZROBIONE. Kod niekompilowany (pierwszy build sprawdzi). Szukanie dziś nie działa po polsku (szczegóły w STAN.md).
 
 ## ZROBIONE 23.11 ~11:10 — napisy AI „przetłumaczone, a nie ma ich na ekranie” (zgłoszenie właściciela)
 - Przyczyna i poprawka: `plan/DECYZJE.md` (23.11, napisy AI). Commity d26d63cf0 + 155b18316, w APK `ram1` (JMGO, md5 401f507e…).
