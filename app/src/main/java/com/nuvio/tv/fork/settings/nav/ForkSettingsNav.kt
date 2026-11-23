@@ -47,6 +47,8 @@ object ForkSettingsNav {
      */
     @Composable
     fun gate(isEssentialMode: Boolean, detour: String?, setDetour: (String?) -> Unit): Boolean {
+        // 23.11: kategoria Nuvio otwarta z drzewa ustawień Niuni — ustawia kategorię i Wstecz wraca do drzewa.
+        com.nuvio.tv.fork.settings.tree.SettingsTreeRuntime.detourGate(isEssentialMode, detour, setDetour)?.let { return it }
         val c = LocalContext.current
         val on = remember { enabled(c) }
         if (isEssentialMode || !on) return false

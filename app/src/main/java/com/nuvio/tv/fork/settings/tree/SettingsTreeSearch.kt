@@ -37,12 +37,14 @@ object SettingsTreeSearch {
 
     class Entry(val category: TreeCategory, val group: TreeGroup, val item: TreeItem, val title: String, val main: String, val inner: List<String>)
 
+    // Punkty: nazwa 80–100, opis i słowa kluczowe 60, nazwa grupy 50, wiersz w środku ekranu 40, nazwa kategorii 30.
+
     /** Indeks z pełnego drzewa (nie z widoku trybu prostego — szukanie znajduje też ukryte pozycje). */
     fun index(tree: List<TreeCategory>, words: Map<String, List<String>> = SettingsTreeWords.byFile): List<Entry> =
         tree.flatMap { c ->
             c.groups.flatMap { g ->
                 g.items.map { i ->
-                    Entry(c, g, i, i.title, listOf(i.title, i.description, i.keywords, g.title, c.title).joinToString(" "),
+                    Entry(c, g, i, i.title, listOf(i.title, i.description, i.keywords).joinToString(" "),
                         i.words.flatMap { words[it].orEmpty() }.distinct())
                 }
             }
@@ -59,10 +61,16 @@ object SettingsTreeSearch {
                 t.startsWith(nq) -> 90
                 matches(q, e.title) -> 80
                 matches(q, e.main) -> 60
+                matches(q, e.group.title + " " + e.main) -> 50
+                matches(q, e.category.title + " " + e.group.title + " " + e.main) -> 30
                 else -> -1
             }
-            if (score >= 0) TreeHit(e.category, e.group, e.item, null, score)
-            else e.inner.firstOrNull { matches(q, it) }?.let { TreeHit(e.category, e.group, e.item, it, 40) }
+            val inner = if (score >= 50) null else e.inner.firstOrNull { matches(q, it) }
+            when {
+                inner != null -> TreeHit(e.category, e.group, e.item, inner, 40)
+                score >= 0 -> TreeHit(e.category, e.group, e.item, null, score)
+                else -> null
+            }
         }
         return hits.sortedWith(compareByDescending<TreeHit> { it.score }.thenBy { it.item.level.ordinal }.thenBy { it.item.title.length })
             .distinctBy { it.item.id }.take(LIMIT)

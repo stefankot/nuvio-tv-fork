@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -136,7 +135,9 @@ fun NiuniaSettingsTree(navigate: (String) -> Unit) {
     }
     val rowRequesters = remember(rows) { rows.associate { it.key to FocusRequester() } }
     val firstRow = rows.firstOrNull { it !is PanelRow.Head }?.key
-    val listState = rememberLazyListState()
+    // Osobna lista na kategorię: wspólna trzymała przewinięcie z poprzedniej kategorii, pierwszy wiersz nowej nie był narysowany
+    // i ► z szyny nie wchodził do panelu (JMGO ust3).
+    val listState = remember(cat.id) { androidx.compose.foundation.lazy.LazyListState() }
     val partsFocus = remember { FocusRequester() }
 
     if (tvSources) com.nuvio.tv.ui.reshaped.livetv.LiveTvSourceDialog(onDismiss = { tvSources = false; pendingFocus = SettingsTreeRuntime.lastItem })
@@ -168,7 +169,7 @@ fun NiuniaSettingsTree(navigate: (String) -> Unit) {
         repeat(20) { if (!ok) { withFrameNanos { }; ok = try { partsFocus.requestFocus() == true } catch (e: IllegalStateException) { false } } }
         if (!ok) { Log.w(TAG, "panel części: brak fokusu, przesuwam w prawo"); focusManager.moveFocus(FocusDirection.Right) }
     }
-    BackHandler(enabled = searching) { searching = false; Log.i(TAG, "szukanie: zamknięte"); scope.launch { withFrameNanos { }; runCatching { railRequesters[0].requestFocus() } } }
+    BackHandler(enabled = searching) { searching = false; Log.i(TAG, "szukanie: zamknięte"); scope.launch { withFrameNanos { }; runCatching { railRequesters[0].requestFocus() }.onFailure { Log.w(TAG, "fokus Szukaj: ${it.javaClass.simpleName}: ${it.message}") } } }
     BackHandler(enabled = !searching && partsOpen != null) { pendingFocus = partsOpen; partsOpen = null }
     BackHandler(enabled = !searching && partsOpen == null && panelFocused) {
         try { railRequesters[sel + 1].requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "Wstecz → szyna: ${e.javaClass.simpleName}: ${e.message}") }
@@ -195,7 +196,7 @@ fun NiuniaSettingsTree(navigate: (String) -> Unit) {
             is TreeTarget.Playback -> { Log.i(TAG, "Odtwarzanie, sekcja ${t.section}"); SettingsTreeJump.set(t.section); navigate(com.nuvio.tv.ui.navigation.Screen.PlaybackSettings.route) }
             is TreeTarget.Parts -> { Log.i(TAG, "panel części ${item.id}: ${t.groups}"); partsOpen = item.id }
             is TreeTarget.Special -> special(c, t.id, navigate, openSources = { tvSources = true }, setLevel = { simple ->
-                if (simple) SimpleLevel.toSimple(c) else scope.launch { SimpleLevel.set(c, UiLevel.ADVANCED) }
+                if (simple) SimpleLevel.toSimple(c) else fullLevel(c)
                 showFull = false; Log.i(TAG, "tryb ustawień → ${if (simple) "prosty" else "pełny"}")
             }).also { scope.launch { delay(400); rev++ } }
         }
@@ -222,13 +223,13 @@ fun NiuniaSettingsTree(navigate: (String) -> Unit) {
                             if (selected != i || searching || partsOpen != null) { selected = i; searching = false; partsOpen = null; SettingsTreeRuntime.lastCategory = i }
                         }
                     },
-                    onClick = { firstRow?.let { runCatching { rowRequesters[it]?.requestFocus() } } })
+                    onClick = { firstRow?.let { k -> runCatching { rowRequesters[k]?.requestFocus() }.onFailure { Log.w(TAG, "fokus panelu: ${it.javaClass.simpleName}: ${it.message}") } } })
             }
         }
         // Panel.
         Column(Modifier.weight(1f).fillMaxHeight().padding(top = NiuniaSize.ContentTop)) {
             when {
-                searching -> SearchPanel(full, query, onQuery = { query = it }, railLeft = railRequesters[0], onOpen = { hit ->
+                searching -> SearchPanel(full, query, onQuery = { query = it }, onOpen = { hit ->
                     val inView = SettingsTreeSpec.forMode(full, mode).indexOfFirst { it.id == hit.category.id }
                     val visibleNow = inView >= 0 && (mode == TreeMode.FULL || hit.item.level == TreeLevel.NOOB)
                     if (!visibleNow) showFull = true
@@ -263,7 +264,8 @@ fun NiuniaSettingsTree(navigate: (String) -> Unit) {
                     ) {
                         items(rows.size, key = { rows[it].key }) { i ->
                             val r = rows[i]
-                            val left = Modifier.focusProperties { left = railRequesters[sel + 1] }
+                            // ◄ zawsze na kategorię; ▼ z ostatniej pozycji zostaje w panelu (wcześniej skakał na szynę i zmieniał kategorię).
+                            val left = Modifier.focusProperties { left = railRequesters[sel + 1]; if (i == rows.lastIndex) down = FocusRequester.Cancel }
                             when (r) {
                                 is PanelRow.Head -> NiuniaListRow(r.title, onClick = null, kind = NiuniaRowKind.Header)
                                 is PanelRow.Item -> {
@@ -284,7 +286,7 @@ fun NiuniaSettingsTree(navigate: (String) -> Unit) {
                                 PanelRow.ShowAll -> NiuniaListRow(stringResource(R.string.settings_tree_show_all), kind = NiuniaRowKind.Setting,
                                     trailing = NiuniaTrailing.Chevron, modifier = left, focusRequester = rowRequesters[r.key],
                                     onFocus = { if (it) focusedDesc = c.getString(R.string.settings_tree_show_all_desc) },
-                                    onClick = { Log.i(TAG, "tryb prosty → pełny (Pokaż wszystkie)"); scope.launch { SimpleLevel.set(c, UiLevel.ADVANCED) } })
+                                    onClick = { Log.i(TAG, "tryb prosty → pełny (Pokaż wszystkie)"); fullLevel(c) })
                             }
                         }
                     }
@@ -303,7 +305,7 @@ private val DESC_H = androidx.compose.ui.unit.Dp(48f)
 
 /** Szukanie: pole, klawiatura Niuni, wyniki (cała treść drzewa, także ukryta w trybie prostym i pod „Więcej”). */
 @Composable
-private fun SearchPanel(full: List<TreeCategory>, query: String, onQuery: (String) -> Unit, railLeft: FocusRequester,
+private fun SearchPanel(full: List<TreeCategory>, query: String, onQuery: (String) -> Unit,
                         onOpen: (com.nuvio.tv.fork.settings.tree.TreeHit) -> Unit) {
     val index = remember(full) { SettingsTreeSearch.index(full) }
     val hits = remember(index, query) { SettingsTreeSearch.search(index, query) }
@@ -315,7 +317,7 @@ private fun SearchPanel(full: List<TreeCategory>, query: String, onQuery: (Strin
         tone = if (query.isEmpty()) NiuniaTone.Tertiary else NiuniaTone.Primary, lines = 1)
     Spacer(Modifier.height(NiuniaSpacing.Space12))
     Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space24)) {
-        Column(Modifier.width(NiuniaSize.SplitCol).focusProperties { left = railLeft }) {
+        Column(Modifier.width(NiuniaSize.SplitCol)) {
             com.nuvio.tv.skin.niunia.search.Keyboard(digits = digits, firstKey = firstKey, onMode = { digits = it },
                 onKey = { onQuery(query + it) }, onSpace = { onQuery("$query ") }, onDelete = { onQuery(query.dropLast(1)) }, onClear = { onQuery("") })
         }
@@ -339,6 +341,12 @@ private fun SearchPanel(full: List<TreeCategory>, query: String, onQuery: (Strin
 }
 
 private class RowValue(val text: String?, val trailing: NiuniaTrailing)
+
+/** Pełne drzewo bez zmiany trybu Nuvio (Podstawowy/Zaawansowany) — zmienia tylko widok ustawień forka. */
+private fun fullLevel(c: Context) {
+    ForkFeatures.setStr(c, com.nuvio.tv.fork.settings.FirstRunDefaults.LEVEL_KEY, UiLevel.ADVANCED.name)
+    SimpleLevel.changes.value++
+}
 
 private fun forge(c: Context) = c.getSharedPreferences("forge_prefs", Context.MODE_PRIVATE)
 private fun switch(on: Boolean) = RowValue(null, if (on) NiuniaTrailing.SwitchOn else NiuniaTrailing.SwitchOff)
@@ -365,8 +373,9 @@ private fun value(c: Context, item: TreeItem): RowValue = when (val t = item.tar
         "home_youtube" -> switch(forge(c).getBoolean("home_youtube", true))
         "reminder_card" -> switch(forge(c).getBoolean("reminder_card", true))
         "tv_layout" -> RowValue(if (forge(c).getBoolean("tv_browse_b", false)) "Przeglądaj i przewodnik" else "Przewodnik z ostatnimi", NiuniaTrailing.None)
-        "sources_answer" -> RowValue(ANSWERS.firstOrNull { it.first == com.nuvio.tv.fork.sources.SourceChoiceState.current }?.second
-            ?: if (com.nuvio.tv.fork.sources.SourceChoiceState.current.isEmpty()) c.getString(R.string.settings_tree_unknown) else "Własne", NiuniaTrailing.None)
+        "sources_answer" -> com.nuvio.tv.fork.sources.SourceChoice.answer(c).let { a ->
+            RowValue(ANSWERS.firstOrNull { it.first == a }?.second ?: if (a.isEmpty()) c.getString(R.string.settings_tree_unknown) else "Własne", NiuniaTrailing.None)
+        }
         "subtitle_size" -> RowValue(SIZES.getOrNull(ForkFeatures.str(c, "tree_subtitle_size", "-1").toIntOrNull() ?: -1)?.second ?: c.getString(R.string.settings_tree_unknown), NiuniaTrailing.None)
         "night_mode" -> RowValue(NIGHT.firstOrNull { it.first == ForkFeatures.str(c, "night_mode", "OFF") }?.second?.second ?: "Wyłączony", NiuniaTrailing.None)
         "start_page" -> RowValue(START.firstOrNull { it.first == ForkFeatures.str(c, "launcher_start_page", "HOME") }?.second?.second ?: "Ekran główny", NiuniaTrailing.None)
@@ -393,7 +402,7 @@ private fun special(c: Context, id: String, navigate: (String) -> Unit, openSour
         "reminder_card" -> { val v = !forge(c).getBoolean("reminder_card", true); forge(c).edit().putBoolean("reminder_card", v).apply(); com.nuvio.tv.skin.kicia.ForgePrefs.setReminderCard(v) }
         "tv_layout" -> { val v = !forge(c).getBoolean("tv_browse_b", false); forge(c).edit().putBoolean("tv_browse_b", v).apply(); com.nuvio.tv.skin.kicia.ForgePrefs.setTvBrowseB(v) }
         "sources_answer" -> {
-            val i = ANSWERS.indexOfFirst { it.first == com.nuvio.tv.fork.sources.SourceChoiceState.current }
+            val i = ANSWERS.indexOfFirst { it.first == com.nuvio.tv.fork.sources.SourceChoice.answer(c) }
             val next = ANSWERS[(i + 1).mod(ANSWERS.size)]
             Log.i(TAG, "polski czy jakość → ${next.first}")
             SettingsTreeRuntime.runAction(c, "sources", next.second)

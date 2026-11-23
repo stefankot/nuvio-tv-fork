@@ -66,6 +66,15 @@ object SimpleLevel {
 @Composable
 fun SimpleSettingsGate(navigate: (String) -> Unit): Boolean {
     val c = LocalContext.current
+    // 23.11 (właściciel: „ustawienia trudne w obsłudze”): w Niuni jedno drzewo ustawień dla wszystkich poziomów
+    // (fork/settings/tree). Wyłącznik `fork_settings_tree` = dawne ekrany. Objazd do kategorii Nuvio rysuje SettingsScreen.
+    val niunia = com.nuvio.tv.skin.niunia.nav.niuniaNavActive()
+    val treeOn = remember { com.nuvio.tv.fork.settings.tree.SettingsTreeRuntime.enabled(c) }
+    if (niunia && treeOn) {
+        if (com.nuvio.tv.fork.settings.tree.SettingsTreeRuntime.detour != null) return false
+        com.nuvio.tv.skin.niunia.settings.NiuniaSettingsTree(navigate)
+        return true
+    }
     val levelChanges by SimpleLevel.changes.collectAsState()
     var simple by remember(levelChanges) { mutableStateOf(SimpleLevel.isSimple(c) && ForkFeatures.enabled(c, "module_settings_simple", true)) }
     if (!simple) return false

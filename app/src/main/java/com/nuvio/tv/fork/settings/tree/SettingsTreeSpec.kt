@@ -140,7 +140,7 @@ object SettingsTreeSpec {
         SlotCategory("napisy", "Napisy i dźwięk", "Język, napisy, napisy AI i lektor", "subtitles", listOf(
             g("napisy", "Napisy",
                 s("subtitle_size", "Rozmiar napisów", "Małe, średnie albo duże napisy", N, sp("subtitle_size"), "napisy wielkosc rozmiar czcionka", module = "sources"),
-                s("subtitles", "Język i wygląd napisów", "Preferowany język, kolor i styl napisów", N, pb("SUBTITLES"),
+                s("subtitles", "Napisy: język i wygląd", "Preferowany język, kolor i styl napisów", N, pb("SUBTITLES"),
                     "napisy jezyk kolor styl wymuszone sdh", listOf("PlaybackSubtitleSettings", "SubtitleAppearanceEditor")),
                 m(com.nuvio.tv.fork.subs.PolishFirst.KEY, M),
                 s("autosync", "Napisy równo z mową", "Automatyczne dopasowanie napisów do dialogów", M, parts(ItemsGroup.AUTOSYNC, ItemsGroup.AUTOSYNC_BUBBLE),
@@ -159,25 +159,29 @@ object SettingsTreeSpec {
                     "dzwiek audio jezyk glosnosc kanaly downmix tryb nocny", listOf("PlaybackAudioSettings")),
                 s("lektor", "Lektor", "Głos czytający polskie napisy", N, TreeTarget.ModuleSwitch("lektor", false), "lektor glos czytanie napisow tts"),
                 m("lektor_auto", M),
+                m("a:Lektor: silnik głosu*", M, kw = "glos chirp gemini synteza"),
                 m("a:Lektor: głośność względem filmu (100% / 70% / 50% / 130% / 160%)", M, "Głośność lektora"),
                 m("a:Lektor: ściszanie filmu pod lektorem (−6 / −3 / bez / −10 / −14 dB)", M, "Ściszanie filmu pod lektorem"),
                 m("lektor_band_duck", M),
                 m(com.nuvio.tv.fork.lektor.LektorStore.KEY_DRIVE, W),
                 m(com.nuvio.tv.fork.lektor.LektorStore.KEY, W),
                 m("a:Lektor: wyczyść pamięć podręczną", W, "Lektor: wyczyść zapisane nagrania"),
+                m("a:Lektor Chirp*", W, kw = "glos lektora"),
+                m("a:Lektor Gemini*", W, kw = "glos lektora gemini"),
                 s("asr", "Rozpoznawanie mowy", "Model mowy do dopasowania napisów (pobierany raz)", W, parts(ItemsGroup.ASR),
-                    "whisper mowa model rozpoznawanie", listOf("AsrModelSettingsItems")),
+                    "whisper mowa model rozpoznawanie"),
             ),
         )),
         SlotCategory("tv", "Telewizja", "Kanały na żywo, program i archiwum", "tv", listOf(
             g("kanaly", "Kanały i program",
                 s("tv_sources", "Listy kanałów i program", "Dodaj listę kanałów i adres programu telewizyjnego", N, sp("tv_sources"),
                     "iptv m3u xtream epg zrodla lista kanalow program przewodnik", listOf("ForgeSettingsContent")),
-                s("tv_search", "Szukaj w telewizji", "Znajdź kanał albo program", N, sp("tv_search"), "szukaj kanal program"),
+                s("tv_search", "Szukaj w telewizji", "Znajdź kanał albo program", M, sp("tv_search"), "szukaj kanal program"),
                 m(com.nuvio.tv.fork.tv.country.TvCountry.KEY_PREFER, M),
                 m(com.nuvio.tv.fork.tv.country.TvCountry.KEY_ONLY, M),
                 m("a:Zmień kraj IPTV", M, "Kraj kanałów", "Każde naciśnięcie wybiera następny kraj (domyślnie Polska)", "kraj polska"),
                 m(com.nuvio.tv.fork.tv.vod.LiveVod.KEY, M),
+                m("tv_plain_names", M),
                 s("logo_mode", "Logo kanałów", "Skąd brać logo kanałów", M, sp("logo_mode"), "logo logotypy"),
                 s("forge_tv", "Własne logo i kanały bez programu", "Adres logotypów i lista kanałów, dla których nie ma programu", W, base("FORGE"),
                     "logo epg bez programu", listOf("ForgeSettingsContent")),
@@ -200,6 +204,8 @@ object SettingsTreeSpec {
             ),
             g("tv_pamiec", "Pamięć telewizji",
                 m(com.nuvio.tv.fork.tv.ram.TvRam.KEY, W),
+                m("tv_guide_db", W),
+                m("tv_guide_reuse", W),
                 m(com.nuvio.tv.fork.perf.PerfFlags.PREVIEW_AUTOSTOP_KEY, W),
                 s("reminder_card", "Karta przypomnień (skórka Kicia)", "Karta w rogu, gdy program z przypomnieniem się zaczyna", W, sp("reminder_card"), "przypomnienie karta"),
                 s("tv_layout", "Układ telewizji (skórka Kicia)", "Przewodnik z ostatnimi albo osobna strona Przeglądaj", W, sp("tv_layout"), "uklad przewodnik"),
@@ -207,7 +213,7 @@ object SettingsTreeSpec {
         )),
         SlotCategory("wyglad", "Wygląd", "Skórka, ekran główny i tryb nocny", "home", listOf(
             g("skorka", "Skórka i język",
-                s("skin", "Skórka", "Wygląd całej aplikacji", N, parts(ItemsGroup.SKIN), "skorka niunia kicia wyglad motyw", listOf("SkinSettingsItems")),
+                s("skin", "Skórka", "Wygląd całej aplikacji", N, parts(ItemsGroup.SKIN), "skorka niunia kicia wyglad motyw"),
                 s("theme", "Kolory, czcionka i język", "Motyw, czarne tło i język aplikacji", N, route("theme_settings"),
                     "jezyk aplikacji motyw kolory amoled czcionka ikona", listOf("ThemeSettingsScreen")),
                 s("menu_style", "Menu i styl ekranu głównego", "Pasek menu i wygląd jak w serwisach streamingowych", W, parts(ItemsGroup.PILL_NAV, ItemsGroup.NETFLIX_UI),
@@ -221,6 +227,7 @@ object SettingsTreeSpec {
                 s("home_youtube", "YouTube na ekranie głównym", "Półka z filmami YouTube (więcej danych i pamięci)", M, sp("home_youtube"), "youtube polka"),
                 m(com.nuvio.tv.fork.images.ForkImageQuality.KEY, M),
                 m(com.nuvio.tv.fork.images.NativeBlur.KEY, W),
+                m("discover_show_*", W, kw = "odkrywaj rzad"),
                 s("calendar", "Kalendarz w menu", "Pozycja Kalendarz w menu aplikacji", W, TreeTarget.Toggle("fork_calendar", true), "kalendarz premiery"),
             ),
             g("noc", "Tryb nocny",
@@ -284,7 +291,7 @@ object SettingsTreeSpec {
                 s("help", "Pomoc i dziennik błędów", "Zgłoś problem i zobacz, co się działo", N, route("fork_tools"), "pomoc blad dziennik log"),
                 m("a:Test łącza (ostatni film)", M, "Test łącza"),
                 m(com.nuvio.tv.fork.net.KeAutoTest.KEY, M),
-                s("device_test", "Test telewizora i łącza", "Sprawdź internet i sprzęt", W, parts(ItemsGroup.DEVICE_TEST), "test sprzet", listOf("DeviceTestSettingsItems")),
+                s("device_test", "Test telewizora i łącza", "Sprawdź internet i sprzęt", W, parts(ItemsGroup.DEVICE_TEST), "test sprzet"),
                 s("about", "O aplikacji i aktualizacje", "Wersja, aktualizacje i prywatność", M, route("about"), "wersja aktualizacja prywatnosc", listOf("AboutScreen", "UpdateChannelSettings")),
             ),
             g("ustawienia", "Ustawienia",
@@ -300,8 +307,18 @@ object SettingsTreeSpec {
         )),
     )
 
-    /** Wszystkie odwołania do modułów w slotach (test: każde istnieje, każda pozycja modułu ma miejsce). */
+    /** Wszystkie odwołania do modułów w slotach (test: każde istnieje, każda pozycja modułu ma miejsce). „x*” = wszystkie zaczynające się od x. */
     val moduleRefs: List<String> = layout.flatMap { c -> c.groups.flatMap { g -> g.slots.filterIsInstance<Slot.Module>().map { it.ref } } }
+
+    /** Czynności modułów obsłużone przez pozycje [TreeTarget.Special] (jeden wiersz z wartością zamiast kilku) — bez osobnych wierszy. */
+    val COVERED = setOf(
+        "a:Zawsze po polsku", "a:Po polsku przy dobrej jakości", "a:Oryginał z napisami",
+        "a:Napisy: małe", "a:Napisy: średnie", "a:Napisy: duże",
+        "a:Tryb nocny: według godzin 22:00–07:00", "a:Tryb nocny: włączony", "a:Tryb nocny: wyłączony",
+        "a:Po uruchomieniu pokaż: ekran główny", "a:Po uruchomieniu pokaż: telewizję", "a:Po uruchomieniu pokaż: ostatni kanał",
+    )
+
+    private fun slotted(ref: String) = ref in COVERED || moduleRefs.any { if (it.endsWith("*")) ref.startsWith(it.dropLast(1)) else it == ref }
 
     /**
      * Pełne drzewo: sloty modułów wypełnione pozycjami z rejestru (wyłączony moduł = pustka), pozycje bez slotu w miejscu
@@ -309,23 +326,23 @@ object SettingsTreeSpec {
      */
     fun build(entries: List<ModuleEntry>, visibleCategories: Set<String>? = null, enabledModules: Set<String>? = null): List<TreeCategory> {
         val byRef = entries.associateBy { it.ref }
-        val slotRefs = moduleRefs.toSet()
-        val extra = entries.filter { it.ref !in slotRefs && it.place != null }
+        val extra = entries.filter { !slotted(it.ref) && it.place != null }
             .groupBy({ it.place!! }, { it.toItem(null) }).mapValues { it.value.toMutableList() }.toMutableMap()
         fun visible(i: TreeItem) = (i.needsCategory == null || visibleCategories == null || i.needsCategory in visibleCategories) &&
             (i.module == null || enabledModules == null || i.module in enabledModules)
         val cats = layout.map { c ->
             TreeCategory(c.id, c.title, c.description, c.icon, c.groups.map { g ->
-                val items = g.slots.mapNotNull { sl ->
+                val items = g.slots.flatMap { sl ->
                     when (sl) {
-                        is Slot.Static -> sl.item
-                        is Slot.Module -> byRef[sl.ref]?.toItem(sl)
+                        is Slot.Static -> listOf(sl.item)
+                        is Slot.Module -> if (sl.ref.endsWith("*")) entries.filter { it.ref.startsWith(sl.ref.dropLast(1)) }.map { it.toItem(sl.copy(title = null)) }
+                            else listOfNotNull(byRef[sl.ref]?.toItem(sl))
                     }
                 }.filter(::visible) + (extra.remove(c.id + "/" + g.id) ?: emptyList<TreeItem>())
                 TreeGroup(g.id, g.title, items)
             })
         }
-        val leftover = entries.filter { it.ref !in slotRefs && it.place == null }.map { it.toItem(null).copy(level = TreeLevel.MORE) } +
+        val leftover = entries.filter { !slotted(it.ref) && it.place == null }.map { it.toItem(null).copy(level = TreeLevel.MORE) } +
             extra.values.flatten().map { it.copy(level = TreeLevel.MORE) }
         return cats.map { c ->
             if (c.id != "system" || leftover.isEmpty()) c else c.copy(groups = c.groups + TreeGroup(FALLBACK_GROUP, "Inne", leftover))
