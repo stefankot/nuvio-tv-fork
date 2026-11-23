@@ -370,11 +370,14 @@ internal object NiuniaLiveOrder {
     private fun diskFile(c: android.content.Context) = java.io.File(java.io.File(c.applicationContext.filesDir, "fork_tv"), "live_order_v$DISK_VERSION.bin.gz")
 
     /** Zapis wyniku (w tle, po [prepare]). */
-    fun saveToDisk(c: android.content.Context, p: Prepared) {
+    fun saveToDisk(c: android.content.Context, p: Prepared) = saveTo(diskFile(c), p)
+
+    /** Testy JVM (`NiuniaLiveOrderDiskTest`): zapis do [f]. */
+    internal fun saveTo(f: java.io.File, p: Prepared) {
         if (!p.sorted || p.shown.size <= SYNC_LIMIT) return
         val t0 = android.os.SystemClock.elapsedRealtime()
         try {
-            val f = diskFile(c); f.parentFile?.mkdirs()
+            f.parentFile?.mkdirs()
             val tmp = java.io.File(f.path + ".tmp")
             java.io.DataOutputStream(java.util.zip.GZIPOutputStream(tmp.outputStream().buffered(1 shl 16)).buffered(1 shl 16)).use { o ->
                 o.writeInt(DISK_VERSION); o.writeLong(fingerprint(p.input)); o.writeUTF(p.mode.toString()); o.writeInt(p.hidden.hashCode())
@@ -389,8 +392,11 @@ internal object NiuniaLiveOrder {
     }
 
     /** Ostatni wynik z dysku dla [input]: `sorted` = ta sama lista (bez liczenia), inaczej ostatnia kolejność do czasu liczenia. */
-    fun fromDisk(c: android.content.Context, input: List<LiveTvChannel>, hidden: Set<String>, mode: com.nuvio.tv.fork.tv.country.TvCountry.Mode?): Prepared? {
-        val f = diskFile(c)
+    fun fromDisk(c: android.content.Context, input: List<LiveTvChannel>, hidden: Set<String>, mode: com.nuvio.tv.fork.tv.country.TvCountry.Mode?): Prepared? =
+        readFrom(diskFile(c), input, hidden, mode)
+
+    /** Testy JVM: odczyt z [f]. */
+    internal fun readFrom(f: java.io.File, input: List<LiveTvChannel>, hidden: Set<String>, mode: com.nuvio.tv.fork.tv.country.TvCountry.Mode?): Prepared? {
         if (!f.isFile || input.size <= SYNC_LIMIT) return null
         val t0 = android.os.SystemClock.elapsedRealtime()
         return try {

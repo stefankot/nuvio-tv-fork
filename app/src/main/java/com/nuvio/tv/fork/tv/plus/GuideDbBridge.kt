@@ -394,11 +394,11 @@ object GuideDbBridge {
         return if (gz) BufferedInputStream(GZIPInputStream(raw, 64 * 1024), 64 * 1024) else raw
     }
 
-    private fun isPlaceholder(title: String): Boolean =
+    internal fun isPlaceholder(title: String): Boolean =
         title.equals("No information", true) || title.equals("Programming", true) || title.equals("Brak programu", true)
 
     /** Czy kanał przewodnika może zasilić jakiś kanał listy (id albo nazwa — jak `LiveTvEpg.channel/directKeys`). */
-    private fun wanted(id: String, names: List<String>, request: LiveTvGuideRequest): Boolean {
+    internal fun wanted(id: String, names: List<String>, request: LiveTvGuideRequest): Boolean {
         val gid = liveTvGuideId(id)
         if (request.keysById.containsKey(gid) || gid in request.keys) return true
         return names.any { request.keysByName.containsKey(liveTvNameKey(it)) }
@@ -406,7 +406,10 @@ object GuideDbBridge {
 
     // ------------------------------------------------------------------ linki
 
-    private class Feed(val src: String, val xid: String, val byName: Boolean, val sameTag: Boolean, val rank: Int)
+    internal class Feed(val src: String, val xid: String, val byName: Boolean, val sameTag: Boolean, val rank: Int)
+
+    /** Lista kanałów jednego pliku przewodnika (z bazy): [index] — miejsce adresu [url] wśród przewodników. */
+    internal class GuideListing(val url: String, val index: Int, val src: String, val channels: List<Triple<String, List<String>, String?>>)
 
     /**
      * Kanał listy → kanał przewodnika jak w Reshaped: w jednym pliku id wygrywa z nazwą, nazwa z tym samym krajem
@@ -421,23 +424,46 @@ object GuideDbBridge {
         val t0 = System.currentTimeMillis()
         val sourceForKey = HashMap<String, String>(channels.size * 2)
         channels.forEach { sourceForKey.putIfAbsent(it.guideKey, it.sourceId) }
-        val best = HashMap<String, Feed>(request.keys.size * 2)
-        val icons = HashMap<String, String>()
+        val listings = ArrayList<GuideListing>()
         epgUrls.forEachIndexed { index, url ->
             val f = guideFiles[index]
             if (!f.isFile || f.length() == 0L) return@forEachIndexed
             val src = alias[srcOf(f)] ?: srcOf(f)
             val listed = try { db.sourceChannels(src) } catch (e: Exception) { Log.w(TAG, "linki $src: ${e.javaClass.simpleName}: ${e.message}"); return@forEachIndexed }
+            listings += GuideListing(url, index, src, listed)
+        }
+        val (best, icons) = chooseFeeds(listings, epgUrls.size, request, sourceForKey, sourceLinks, addedGuides)
+        val links = HashMap<String, EpgDatabase.GuideLink>(best.size * 2)
+        best.forEach { (key, feed) -> links[key] = EpgDatabase.GuideLink(feed.src, feed.xid, request.shiftMsByKey[key] ?: 0L) }
+        try {
+            db.applyGuide(fp, links, emptyMap(), null, sources)
+            Log.i(TAG, "linki: ${links.size} z ${request.keys.size} kanałów listy ma przewodnik (${links.values.count { it.shiftMs != 0L }} z przesunięciem) w ${System.currentTimeMillis() - t0} ms")
+        } catch (e: Exception) {
+            Log.w(TAG, "linki: ${e.javaClass.simpleName}: ${e.message}")
+        }
+        return icons
+    }
+
+    /** Czysty wybór (testy JVM `GuideDbLinksTest`): najlepszy kanał przewodnika dla każdego klucza listy + logo z przewodnika. */
+    internal fun chooseFeeds(
+        listings: List<GuideListing>, epgCount: Int, request: LiveTvGuideRequest, sourceForKey: Map<String, String>,
+        sourceLinks: Map<String, List<String>>, addedGuides: Map<String, String>,
+    ): Pair<Map<String, Feed>, Map<String, String>> {
+        val best = HashMap<String, Feed>(request.keys.size * 2)
+        val icons = HashMap<String, String>()
+        for (listing in listings) {
+            val url = listing.url
+            val src = listing.src
             fun rank(key: String, byName: Boolean): Int {
                 com.nuvio.tv.fork.tv.guide.GuidePriority.repoRank(url, byName, NAME_MATCH_RANK)?.let { return it }
                 val added = addedGuides[sourceForKey[key]]?.trim().orEmpty()
                 if (added.isNotEmpty() && added == url) return -1
-                val order = sourceLinks[sourceForKey[key]]?.indexOf(url)?.takeIf { it >= 0 } ?: (epgUrls.size + index)
+                val order = sourceLinks[sourceForKey[key]]?.indexOf(url)?.takeIf { it >= 0 } ?: (epgCount + listing.index)
                 return if (byName) NAME_MATCH_RANK + order else order
             }
             // W pliku: najpierw wszystkie dopasowania po id, potem po nazwie.
             val inFile = HashMap<String, Feed>()
-            for ((id, names, icon) in listed) {
+            for ((id, _, icon) in listing.channels) {
                 val gid = liveTvGuideId(id)
                 val direct = request.keysById[gid] ?: if (gid in request.keys) listOf(gid) else null
                 direct?.forEach { key ->
@@ -445,7 +471,7 @@ object GuideDbBridge {
                     if (icon != null && key in request.keysWithoutLogo) icons.putIfAbsent(key, icon)
                 }
             }
-            for ((id, names, icon) in listed) {
+            for ((id, names, icon) in listing.channels) {
                 val gid = liveTvGuideId(id)
                 if (request.keysById.containsKey(gid) || gid in request.keys) continue
                 for (name in names) {
@@ -462,15 +488,7 @@ object GuideDbBridge {
             }
             inFile.forEach { (key, feed) -> if (feed.rank < (best[key]?.rank ?: Int.MAX_VALUE)) best[key] = feed }
         }
-        val links = HashMap<String, EpgDatabase.GuideLink>(best.size * 2)
-        best.forEach { (key, feed) -> links[key] = EpgDatabase.GuideLink(feed.src, feed.xid, request.shiftMsByKey[key] ?: 0L) }
-        try {
-            db.applyGuide(fp, links, emptyMap(), null, sources)
-            Log.i(TAG, "linki: ${links.size} z ${request.keys.size} kanałów listy ma przewodnik (${links.values.count { it.shiftMs != 0L }} z przesunięciem) w ${System.currentTimeMillis() - t0} ms")
-        } catch (e: Exception) {
-            Log.w(TAG, "linki: ${e.javaClass.simpleName}: ${e.message}")
-        }
-        return icons
+        return best to icons
     }
 
     private fun fingerprint(db: EpgDatabase, sources: List<String>, channels: List<LiveTvChannel>, sourceLinks: Map<String, List<String>>, addedGuides: Map<String, String>): String {
@@ -504,7 +522,7 @@ object GuideDbBridge {
         }
 
     /** EpgProgram → LiveTvProgramme; te same tytuły i adresy obrazków jako jeden obiekt (setki tysięcy wierszy). */
-    private fun convert(m: Map<String, List<EpgProgram>>): Map<String, List<LiveTvProgramme>> {
+    internal fun convert(m: Map<String, List<EpgProgram>>): Map<String, List<LiveTvProgramme>> {
         val pool = HashMap<String, String>()
         fun shared(s: String?): String? = s?.let { pool.getOrPut(it) { it } }
         val sameList = java.util.IdentityHashMap<List<EpgProgram>, List<LiveTvProgramme>>()

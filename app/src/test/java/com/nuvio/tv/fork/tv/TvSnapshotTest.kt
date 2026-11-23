@@ -39,7 +39,8 @@ class TvSnapshotTest {
         TvSnapshot.save(all.take(300), all, setOf(all[399].streamUrl), listOf("g450")) { sched[it].orEmpty() }
         TvSnapshot.loadFrom(f)
         val d = TvSnapshot.data!!
-        assertEquals(TvSnapshot.MAX_CHANNELS, d.channels.size)
+        // 23.11 etap 1b: limit 400 (pierwsza strona + kategorie + ulubione) — tu 300 z ekranu + ulubiony + „Dla Ciebie”.
+        assertEquals(minOf(TvSnapshot.MAX_CHANNELS, 302), d.channels.size)
         assertEquals("pierwsza strona ekranu na początku", "Kanał 1", d.channels.first().name)
         assertTrue("ulubiony spoza pierwszej strony", d.channels.any { it.name == "Kanał 400" })
         assertTrue("kanał z „Dla Ciebie”", d.channels.any { it.name == "Kanał 450" })
@@ -48,6 +49,22 @@ class TvSnapshotTest {
         assertEquals("Teraz", d.currentProgrammes(now)["g1"]?.title)
         assertEquals(ch(1), d.channels.first())
         assertEquals(setOf(all[399].streamUrl), d.favoriteUrls)
+    }
+
+    /** JMGO 23.11 (pomiar 2): próbka z programem dla 152 kanałów nadpisana zaraz po starcie próbką „przewodnik dla 0”. */
+    @Test fun `probka nie nadpisuje sie pusta, gdy przewodnik jeszcze sie wczytuje`() {
+        val f = File(tmp.newFolder(), "snapshot_v2.bin.gz")
+        TvSnapshot.loadFrom(f)
+        val all = (1..200).map(::ch)
+        val now = System.currentTimeMillis()
+        val full = all.associate { it.guideKey to listOf(LiveTvProgramme("Program ${it.guideKey}", now - 600_000, now + 600_000)) }
+        TvSnapshot.save(all.take(100), all, emptySet(), emptyList()) { full[it].orEmpty() }
+        assertEquals(100, TvSnapshot.data!!.programmes.size)
+        // Inna pierwsza strona (bez blokady „co 10 min”), ale przewodnik pusty — zapis pominięty, w pamięci i na dysku stara próbka.
+        TvSnapshot.save(all.drop(100), all, emptySet(), emptyList()) { emptyList() }
+        assertEquals(100, TvSnapshot.data!!.programmes.size)
+        TvSnapshot.loadFrom(f)
+        assertEquals(100, TvSnapshot.data!!.programmes.size)
     }
 
     @Test fun `pamiec indeksu zwolniona i wczytana znowu z dysku`() {
