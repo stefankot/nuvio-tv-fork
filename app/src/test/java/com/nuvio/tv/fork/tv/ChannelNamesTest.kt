@@ -23,6 +23,7 @@ class ChannelNamesTest {
     @Test fun `nazwa dostawcy przed krajem znika`() {
         assertEquals("TVN 7", c("Strong8K: PL| TVN 7 FHD"))
         assertEquals("Polsat News", c("Strong8K PL: Polsat News HD"))
+        assertEquals("TVN STYLE", c("Strong8K · PL: TVN STYLE ᴴᴰ (NA)")) // JMGO iptvdb2: separator „·”
     }
 
     @Test fun `sama nazwa zostaje`() {

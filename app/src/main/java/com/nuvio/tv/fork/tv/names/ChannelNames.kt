@@ -36,8 +36,8 @@ object ChannelNames {
         return out
     }
 
-    // „Strong8K: PL| …”, „Strong8K PL …” — nazwa dostawcy przed znacznikiem kraju.
-    private val PROVIDER = Regex("""^\s*[\p{L}\p{N}+._-]{2,24}\s*[:|]?\s+(?=[A-Z]{2,3}\s*[:|\]\-–])""")
+    // „Strong8K: PL| …”, „Strong8K PL …”, „Strong8K · PL: …” (JMGO iptvdb2) — nazwa dostawcy przed znacznikiem kraju.
+    private val PROVIDER = Regex("""^\s*[\p{L}\p{N}+._-]{2,24}\s*[:|·•]?\s+(?=[A-Z]{2,3}\s*[:|\]\-–])""")
     // „PL: ”, „PL| ”, „PL - ”, „[PL] ”, „(PL) ”, „|PL| ”, „PL ▎”.
     private val COUNTRY_HEAD = Regex("""^\s*(?:\|\s*[A-Z]{2,3}\s*\||\[\s*[A-Z]{2,3}\s*]|\(\s*[A-Z]{2,3}\s*\)|[A-Z]{2,3}\s*[:|]|[A-Z]{2,3}\s+[-–]\s)\s*""")
     // Na końcu: jakość, rozdzielczość, klatki, kodek (osobne słowo, także w nawiasie: „HD (1080i)”, „FHD 50fps”).

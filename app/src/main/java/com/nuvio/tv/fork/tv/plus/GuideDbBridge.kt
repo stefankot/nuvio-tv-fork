@@ -124,16 +124,18 @@ object GuideDbBridge {
         // 3. Do bazy tylko pliki zmienione albo z nowymi kanałami listy.
         val request = LiveTvGuideRequest.from(channels)
         var changed = false
-        // JMGO iptvdb1: przewodnik FlixNest pod dwoma adresami (lista Xtream i M3U) = ten sam plik, importowany 2× po 95 s.
+        // JMGO iptvdb1/2: przewodnik FlixNest pod dwoma adresami (lista Xtream i M3U) = ten sam program, importowany 2× po
+        // 95 s. Bajty plików się różnią (data wygenerowania), więc „ten sam” = ta sama lista kanałów na początku pliku.
         val alias = HashMap<String, String>()
-        val byContent = HashMap<String, String>()
+        val done = ArrayList<Pair<String, Long>>() // src, rozmiar pliku
         epgUrls.forEachIndexed { i, _ ->
             val f = guideFiles[i]
             if (!f.isFile || f.length() == 0L) return@forEachIndexed
-            val content = contentKey(f)
-            val first = content?.let { byContent.putIfAbsent(it, srcOf(f)) }
-            if (first != null) { alias[srcOf(f)] = first; Log.i(TAG, "${srcOf(f)}: ten sam przewodnik co $first — bez drugiego importu"); return@forEachIndexed }
+            val twin = done.firstOrNull { (_, size) -> size > 0 && kotlin.math.abs(size - f.length()) <= size / 10 }
+                ?.let { (src, _) -> src.takeIf { sameChannels(db, it, f) } }
+            if (twin != null) { alias[srcOf(f)] = twin; Log.i(TAG, "${srcOf(f)}: ten sam przewodnik co $twin — bez drugiego importu"); return@forEachIndexed }
             changed = importFile(db, f, srcOf(f), request, now) || changed
+            done += srcOf(f) to f.length()
         }
 
         // 4. Kanały listy → kanały przewodnika (gdy zmienił się plik, lista kanałów albo ranking).
@@ -239,13 +241,29 @@ object GuideDbBridge {
         }
     }
 
-    /** Rozmiar + CRC pierwszych 256 KB: ten sam plik pobrany z dwóch adresów. */
-    private fun contentKey(f: File): String? = try {
-        val crc = java.util.zip.CRC32()
-        f.inputStream().use { inp -> val buf = ByteArray(256 * 1024); val n = inp.read(buf); if (n > 0) crc.update(buf, 0, n) }
-        "${f.length()}:${crc.value}"
+    /** Czy [f] ma na początku tę samą listę kanałów (≥ 50), co przewodnik [src] w bazie. Czyta tylko `<channel>` do pierwszego programu. */
+    private fun sameChannels(db: EpgDatabase, src: String, f: File): Boolean = try {
+        val stored = db.sourceChannels(src).mapTo(HashSet()) { it.first }
+        if (stored.size < 50) false else {
+            val ids = HashSet<String>()
+            open(f).use { input ->
+                val parser = android.util.Xml.newPullParser()
+                parser.setFeature(org.xmlpull.v1.XmlPullParser.FEATURE_PROCESS_NAMESPACES, false)
+                try { parser.setFeature("http://xmlpull.org/v1/doc/features.html#relaxed", true) } catch (e: Exception) { Log.w(TAG, "${f.name}: tryb relaxed: ${e.javaClass.simpleName}") }
+                parser.setInput(input, null)
+                var event = parser.eventType
+                while (event != org.xmlpull.v1.XmlPullParser.END_DOCUMENT) {
+                    if (event == org.xmlpull.v1.XmlPullParser.START_TAG) {
+                        if (parser.name == "programme") break
+                        if (parser.name == "channel") parser.getAttributeValue(null, "id")?.let { ids += it }
+                    }
+                    event = parser.next()
+                }
+            }
+            (ids == stored).also { Log.i(TAG, "${f.name} vs $src: ${ids.size} / ${stored.size} kanałów — ${if (it) "ten sam przewodnik" else "inny"}") }
+        }
     } catch (e: Exception) {
-        Log.w(TAG, "${f.name}: odcisk pliku: ${e.javaClass.simpleName}: ${e.message}"); null
+        Log.w(TAG, "${f.name}: porównanie kanałów: ${e.javaClass.simpleName}: ${e.message}"); false
     }
 
     /** Plik przewodnika Reshaped: gzip albo zwykły XML. */
