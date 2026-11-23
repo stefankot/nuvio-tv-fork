@@ -26,3 +26,10 @@ Shimy Echo: BetaPerformanceSettings/BetaFeatures (ForkFeatures, domyślnie wył�
 - [NuvioTV-Dublagem](https://github.com/SaladinoGW/NuvioTV-Dublagem/tree/c683a2b6a84bf4af0b4b9b08d9faf1d7c0d33447) przypięty do `c683a2b6a84bf4af0b4b9b08d9faf1d7c0d33447`. Pliki źródłowe zachowują ścieżki i pakiety z Dublagem. Commit importu `dcaf5936d` przechowuje ich wersje 1:1, z dwoma zestawami importowanych testów i biblioteką FFT z forka.
 - Lokalne rozszerzenia analizatora i modelu żądania są zapisane w `fork-tools/patches/dublagem/01-background-analysis.patch`. Ograniczają zasięg i koszt analizy w tle, zachowując domyślne zachowanie Dublagem dla dotychczasowych wywołań.
 - Automatyczny dobór i cykl życia sesji są w `fork/dublagem/`. Integracja z bazowym odtwarzaczem jest w `fork-tools/hooks.tsv`. Aktualizacja forka Dublagem wymaga aktualizacji importu na nowych plikach, nałożenia łatki analizatora i ponownego zbudowania adaptera.
+
+## Silnik przewodnika NuvioPlusIPTV (23.11.2026, właściciel: „Skopiuj zatem optymalizacje, ale nie usuń funkcji związanych z catch-up”)
+- Źródło: [homelessbrian/NuvioPlusIPTV](https://github.com/homelessbrian/NuvioPlusIPTV/tree/e5643387f7029374f7deffe1618a544b3a4396a3) @ `e5643387f7029374f7deffe1618a544b3a4396a3` (GPL-3; ten sam kod Live TV co zoga2o3-ops/Nuvio-One).
+- `app/src/main/java/com/nuvio/tv/livetv/data/{EpgDatabase,XmltvParser,ProgrammeIdentityPool,SqliteCompact}.kt` → `app/src/main/java/com/nuvio/tv/fork/tv/plus/` (1:1).
+  Zmiany: pakiet `com.nuvio.tv.livetv.data` → `com.nuvio.tv.fork.tv.plus`, importy modeli, `LiveTvLoadReport.add` → `PlusShims.report` (log `ForkTvPlus`), `LiveTvSearchBridge.smallWords` → `PlusShims.smallWords` (kopia 1:1 z `livetv/ui/LiveTvSearch.kt`).
+- `livetv/model/LiveTvModels.kt` → `fork/tv/plus/PlusModels.kt`: tylko `EpgProgram`, `SUB_TITLE_MARK`, `subTitle`, `descriptionText`, `EpgAssignment` (1:1).
+- Adaptery forka (pisane od nowa) w `fork/tv/plus/`; projekt: `plan/iptv/ARCHITEKTURA.md`, porównanie forków: `plan/iptv/FORKI.md`.
