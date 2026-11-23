@@ -60,7 +60,7 @@ object AiSubtitlesModule : ForkModule {
         ModuleSetting(AiSettings.K_FALLBACK, SettingsLevel.ESSENTIAL, "AI napisy", "Oryginał tam, gdzie tłumaczenie niegotowe", "Wyłączone = brak napisów w tych miejscach", defaultValue = true),
         ModuleSetting(AiSettings.K_NOTICE, SettingsLevel.ESSENTIAL, "AI napisy", "Powiadomienie w rogu podczas tłumaczenia", defaultValue = true),
         // Fork 20.11 (canvas PlayerSubs/Settings): automat — domyślnie wyłączony (DECYZJE 20.11).
-        ModuleSetting(AiAuto.K_AUTO, SettingsLevel.ESSENTIAL, "AI napisy", "Napisy AI, gdy brak dobrych polskich", "Włączają się same, gdy nie ma polskich napisów albo nie pasują do filmu", defaultValue = false),
+        ModuleSetting(AiAuto.K_AUTO, SettingsLevel.ESSENTIAL, "AI napisy", "Napisy AI, gdy brak dobrych polskich", "Włączają się same, gdy po wyszukaniu napisów nie ma polskich albo nie pasują do filmu; Wstecz anuluje", defaultValue = true),
     )
     override fun actions() = listOf(
         ModuleAction("AI napisy: klucz, model, limity, zapisane", SettingsLevel.SIMPLE, "Gemini: klucz API, zgoda, limit wydatków, eksport SRT/VTT") { ForkFeatures.open?.invoke(ROUTE) },

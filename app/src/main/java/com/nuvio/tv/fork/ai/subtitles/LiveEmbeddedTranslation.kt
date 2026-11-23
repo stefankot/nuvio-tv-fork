@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import com.nuvio.tv.fork.logged
 
 /**
@@ -59,27 +61,80 @@ object LiveEmbeddedTranslation {
             .filter { it.text.isNotBlank() }.distinctBy { it.startTimeMs }.sortedBy { it.startTimeMs }
             .map { DocCue(id(it.startTimeMs), it.startTimeMs, it.endTimeMs, it.text) }
 
+    /**
+     * 23.11 (zgłoszenie „Pottery”: „napisy pojawiły się tylko przez chwilę”): do odtwarzacza idą WSZYSTKIE znane kwestie —
+     * polskie, gdzie gotowe, a w pozostałych oryginał (ustawienie „Oryginał tam, gdzie tłumaczenie niegotowe”). Wcześniej
+     * tylko przetłumaczone: ścieżka wbudowana była już wyłączona, więc każde spóźnienie tłumaczenia = brak napisów.
+     */
+    internal fun combine(all: List<DocCue>, done: Map<String, String>, fallbackOriginal: Boolean): List<DocCue> =
+        all.mapNotNull { c -> done[c.id]?.let { c.copy(text = it) } ?: c.takeIf { fallbackOriginal } }
+
     /** Pętla tłumaczenia; kończy się anulowaniem zadania (stop / zmiana odtwarzacza). */
     suspend fun run(
         controller: PlayerRuntimeController, port: PlayerPort, engine: TranslationEngine, model: String,
-        trackKey: String, language: String, onState: (String) -> Unit,
+        trackKey: String, language: String, fallbackOriginal: Boolean = true, onState: (String) -> Unit,
     ) {
         active = true
         shown = false
         _translated.value = emptyList()
-        val done = LinkedHashMap<String, String>() // id kwestii → tekst polski
+        // Fork 19.11 („Tak, pobieraj”): tekst kwestii z pliku MKV z wyprzedzeniem ~10 min (MkvAhead); bez tego bufor odtwarzacza.
+        val ahead = MkvAhead(controller.currentStreamUrl, controller.currentHeaders, language)
+        ahead.start({ port.positionMs() }, { cuesOf(controller, trackKey) })
+        try {
+            LiveRun(controller, port, engine, model, trackKey, language, fallbackOriginal, onState, ahead).run()
+        } finally {
+            ahead.stop()
+            active = false
+        }
+    }
+
+    private class LiveRun(
+        val controller: PlayerRuntimeController, val port: PlayerPort, val engine: TranslationEngine, val model: String,
+        val trackKey: String, val language: String, val fallbackOriginal: Boolean, val onState: (String) -> Unit, val ahead: MkvAhead,
+    ) {
+        val done = java.util.concurrent.ConcurrentHashMap<String, String>() // id kwestii → tekst polski (pętla + odświeżanie)
         var glossary = emptyMap<String, String>()
         var failures = 0
         var published = 0
         var lastBlockMs = 20_000L // szacowany czas tłumaczenia bloku (pierwszy: ~20 s), potem mierzony
         val startedAt = System.currentTimeMillis()
-        // Fork 19.11 („Tak, pobieraj”): tekst kwestii z pliku MKV z wyprzedzeniem ~10 min (MkvAhead); bez tego bufor odtwarzacza.
-        val ahead = MkvAhead(controller.currentStreamUrl, controller.currentHeaders, language)
-        ahead.start({ port.positionMs() }, { cuesOf(controller, trackKey) })
-        try {
+        val publishLock = Mutex()
+        @Volatile var takenOver = false
+        @Volatile var lastSignature = -1L
+        @Volatile var ended: PublishResult? = null
+
+        suspend fun known(): List<DocCue> = withContext(Dispatchers.Default) { MkvAhead.merge(ahead.cues(), cuesOf(controller, trackKey)) }
+
+        /** Wszystkie znane kwestie do odtwarzacza ([combine]); null = bez zmian od ostatniej publikacji. */
+        suspend fun publishAll(all: List<DocCue>, force: Boolean): PublishResult? = publishLock.withLock {
+            val signature = all.size * 1_000_003L + done.size + (all.lastOrNull()?.startMs ?: 0L)
+            if (!force && signature == lastSignature) return@withLock null
+            val out = combine(all, done, fallbackOriginal)
+            if (out.isEmpty()) return@withLock null
+            val r = port.publish(out, "AI PL (wbudowane)")
+            if (r == PublishResult.OK) { lastSignature = signature; takenOver = true }
+            if (r == PublishResult.USER_SWITCHED || r == PublishResult.PLAYER_GONE) ended = r
+            r
+        }
+
+        suspend fun run() = coroutineScope {
+            // Odświeżanie w tle co 2 s: nowe kwestie z bufora trafiają na ekran (oryginał) także w trakcie tłumaczenia.
+            val refresher = launch {
+                while (true) {
+                    delay(2_000)
+                    if (!takenOver || ended != null) continue
+                    val r = runCatching { publishAll(known(), force = false) }.logged("ForkAi", "LiveEmbeddedTranslation.refresh").getOrNull()
+                    if (r == PublishResult.RETRY_LATER) Log.i(TAG, "odświeżenie: odtwarzacz jeszcze wczytuje napisy")
+                }
+            }
+            try { loop() } finally { refresher.cancel() }
+        }
+
+        private suspend fun loop() {
             onState("AI: tłumaczę napisy wbudowane (${language}) na bieżąco")
             while (true) {
-                val all = withContext(Dispatchers.Default) { MkvAhead.merge(ahead.cues(), cuesOf(controller, trackKey)) }
+                ended?.let { Log.i(TAG, "koniec: $it"); onState(""); return }
+                val all = known()
                 val pos = port.positionMs()
                 // Fork 19.11: kwestie, które miną, zanim tłumaczenie wróci, zostają po angielsku (do pierwszej publikacji
                 // EN są widoczne) — tłumaczymy od miejsca, w którym film będzie po czasie tłumaczenia (+5 s zapasu).
@@ -132,19 +187,17 @@ object LiveEmbeddedTranslation {
                 val (rev, gl) = result.getOrThrow()
                 glossary = glossary + gl
                 window.subList(block.first, block.endExclusive).forEachIndexed { i, c -> rev.translations.getOrNull(i)?.let { done[c.id] = it } }
-                val out = all.filter { it.id in done }.map { it.copy(text = done.getValue(it.id)) }
-                _translated.value = out
-                val r = port.publish(out, "AI PL (wbudowane)")
+                val latest = known()
+                _translated.value = latest.filter { it.id in done }.map { it.copy(text = done.getValue(it.id)) } // lektor: tylko polskie
+                val r = publishAll(latest, force = true)
                 published++
                 // 23.11: „przetłumaczono” tylko, gdy polskie kwestie naprawdę są w odtwarzaczu.
                 shown = r == PublishResult.OK && port.showing()
-                Log.i(TAG, "blok $published: ${chunk.size} kwestii w ${lastBlockMs} ms, od ${chunk.first().startMs - pos} ms przed filmem, razem ${out.size}, publikacja=$r, na ekranie=$shown")
+                Log.i(TAG, "blok $published: ${chunk.size} kwestii w $lastBlockMs ms, od ${chunk.first().startMs - pos} ms przed filmem, " +
+                    "polskich ${done.size} z ${latest.size} znanych (reszta oryginał), publikacja=$r, na ekranie=$shown")
                 if (r == PublishResult.USER_SWITCHED || r == PublishResult.PLAYER_GONE) { Log.i(TAG, "koniec: $r"); onState(""); return }
-                onState(if (shown) "AI: przetłumaczono ${out.size} kwestii (na bieżąco)" else "AI: przetłumaczono ${out.size} kwestii, czekam, aż odtwarzacz je pokaże")
+                onState(if (shown) "AI: przetłumaczono ${done.size} kwestii (na bieżąco)" else "AI: przetłumaczono ${done.size} kwestii, czekam, aż odtwarzacz je pokaże")
             }
-        } finally {
-            ahead.stop()
-            active = false
         }
     }
 }

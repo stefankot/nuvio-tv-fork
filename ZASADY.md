@@ -58,6 +58,7 @@ Stare wersje: `plan/archiwum/zasady/` i historia gita.
 
 ## 7. Stałe decyzje produktowe
 - Napisy wbudowane w plik zawsze przed napisami z dodatków (wybór w odtwarzaczu, źródło AI napisów, ranking).
+- Napisy AI (23.11, właściciel): najpierw automatyczne szukanie napisów (dodatki, AutoSync z Reshaped) próbuje wszystkiego; gdy polskich nie ma albo nie pasują — tłumaczenie AI włącza się samo, z dyskretnym komunikatem w rogu (nie okno na środku), a Wstecz w czasie komunikatu anuluje tłumaczenie.
 - KE: tylko katalogi IPTV, filtry kanałów w EPG, testy łącza i sprzętu. IPTV/EPG z Reshaped.
 - Reshaped: z Dolby Vision i HDR10, bez aktualizatora, bez `epg-header`. Oficjalny odtwarzacz zostaje.
 - Pilot Arc w całej aplikacji (także IPTV). Rozpoznawanie mowy wielojęzyczne (Whisper tiny/base/small do wyboru).

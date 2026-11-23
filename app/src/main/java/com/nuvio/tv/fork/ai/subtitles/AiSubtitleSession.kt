@@ -32,6 +32,8 @@ interface PlayerPort {
     suspend fun restore(option: SubtitleOption)
     /** 23.11: opublikowane napisy naprawdę są w odtwarzaczu (komunikat „gotowe” tylko wtedy). */
     suspend fun showing(): Boolean = true
+    /** 23.11: napisy sprzed AI z powrotem (anulowanie, przerwane tłumaczenie); false = nie było czego przywracać. */
+    suspend fun restorePrevious(): Boolean = false
 }
 
 enum class AiMode { WATCH, PREPARE_ALL }
@@ -165,8 +167,23 @@ class AiSubtitleSession(
             refreshState()
             coroutineScope {
                 val ticker = launch { while (true) { delay(5_000); refreshState() } } // label refresh, no flicker
-                val workers = List(parallel.coerceIn(1, 2)) { launch { worker() } }
-                workers.forEach { it.join() }
+                // 23.11 (zgłoszenie: „po przewinięciu tylko angielskie napisy”): blok w miejscu odtwarzania od razu,
+                // zamiast czekać, aż zwolni się jeden z dwóch zajętych wątków (do kilku minut z oryginałem na ekranie).
+                val urgentJobs = java.util.concurrent.CopyOnWriteArrayList<kotlinx.coroutines.Job>()
+                val scope = this
+                val watcher = launch {
+                    while (true) {
+                        delay(1_000)
+                        val i = urgentBlock() ?: continue
+                        android.util.Log.i("ForkAi", "AiSubtitleSession: blok ${i + 1}/${doc.blocks.size} w miejscu odtwarzania — tłumaczę od razu (dodatkowy wątek)")
+                        urgentJobs += scope.launch { translate(i); refreshState() }
+                    }
+                }
+                do {
+                    List(parallel.coerceIn(1, 2)) { launch { worker() } }.forEach { it.join() }
+                    urgentJobs.toList().forEach { it.join() }
+                } while (stopReason == null && hasEligible())
+                watcher.cancel()
                 ticker.cancel()
             }
             if (stopReason != null) return finish(AiStage.STOPPED, stopReason!!)
@@ -194,9 +211,28 @@ class AiSubtitleSession(
             ?.also { inFlight[it] = System.currentTimeMillis() }
     }
 
+    /** Blok w miejscu odtwarzania, gdy nie jest gotowy ani w toku (najwyżej jeden wątek ponad [parallel]). */
+    internal suspend fun urgentBlock(): Int? = docLock.withLock {
+        if (stopReason != null || inFlight.size > parallel.coerceIn(1, 2)) return null
+        val i = BlockPlanner.priority(doc.blocks, doc.cues, port.positionMs()).firstOrNull() ?: return null
+        if (doc.blocks[i].accepted != null || i in inFlight || (failures[i] ?: 0) >= 2) return null
+        inFlight[i] = System.currentTimeMillis()
+        i
+    }
+
+    private suspend fun hasEligible(): Boolean = docLock.withLock {
+        doc.blocks.indices.any { doc.blocks[it].accepted == null && it !in inFlight && (failures[it] ?: 0) < 2 }
+    }
+
     private suspend fun worker() {
         while (true) {
             val index = nextBlock() ?: return
+            translate(index)
+            refreshState()
+        }
+    }
+
+    private suspend fun translate(index: Int) {
             try {
                 val (revision, glossary) = engine.translateBlock(doc, index)
                 docLock.withLock {
@@ -216,10 +252,9 @@ class AiSubtitleSession(
                     doc = doc.copy(blocks = blocks); store.save(doc)
                 }
             } finally {
-                docLock.withLock { inFlight.remove(index) }
+                // NonCancellable: anulowanie nie może zostawić bloku na zawsze „w toku”.
+                kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) { docLock.withLock { inFlight.remove(index) } }
             }
-            refreshState()
-        }
     }
 
     /** Full immutable set: checked translations, and the original (or nothing) where a block is not ready. */

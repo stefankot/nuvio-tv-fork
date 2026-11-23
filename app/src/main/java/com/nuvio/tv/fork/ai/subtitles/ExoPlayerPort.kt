@@ -73,6 +73,8 @@ class ExoPlayerPort(private val controller: PlayerRuntimeController, private val
         if (gen == null) {
             // First publication: same steps as the base add-on selection, with the text supplied in memory.
             val synthetic = Subtitle(id = "ai_pl_${docKeyProvider()}", url = key, lang = "pl", addonName = label, addonLogo = null)
+            val st = controller._uiState.value
+            before = Before(st.selectedAddonSubtitle?.takeUnless { it.url.startsWith("ai://") }, st.selectedSubtitleTrackIndex)
             claimSubtitleSlot(controller)
             controller.disableSubtitles()
             controller._uiState.update { it.copy(selectedAddonSubtitle = synthetic, selectedSubtitleTrackIndex = -1) }
@@ -112,6 +114,30 @@ class ExoPlayerPort(private val controller: PlayerRuntimeController, private val
         }
         android.util.Log.w(TAG, "na ekranie: nie — odtwarzacz nie wczytał kwestii AI w 3 s")
         return false
+    }
+
+    /** Napisy wybrane przed pierwszą publikacją AI (plik z dodatku albo indeks ścieżki wbudowanej; -1 = wyłączone). */
+    private data class Before(val addon: Subtitle?, val trackIndex: Int)
+    private var before: Before? = null
+
+    /**
+     * 23.11 (zgłoszenie „Pottery”: napisy tylko przez chwilę; właściciel: Wstecz anuluje tłumaczenie): wraca do napisów
+     * sprzed AI — tylko gdy na ekranie nadal są napisy AI (ręczny wybór użytkownika zostaje).
+     */
+    override suspend fun restorePrevious(): Boolean = main {
+        val b = before ?: return@main false
+        val st = controller._uiState.value
+        if (st.selectedAddonSubtitle?.url != url) { android.util.Log.i(TAG, "przywracanie: pominięte — wybrano już inne napisy"); return@main false }
+        val overlayWasShown = st.showSubtitleOverlay
+        when {
+            b.addon != null -> controller.onEvent(PlayerEvent.OnSelectAddonSubtitle(b.addon))
+            b.trackIndex >= 0 -> controller.onEvent(PlayerEvent.OnSelectSubtitleTrack(b.trackIndex))
+            else -> controller.onEvent(PlayerEvent.OnDisableSubtitles)
+        }
+        // Zdarzenia wyboru napisów w bazie otwierają okno napisów — przywrócenie ma być bez okna.
+        if (!overlayWasShown) controller.onEvent(PlayerEvent.OnDismissTransientOverlay)
+        android.util.Log.i(TAG, "przywracanie: napisy sprzed AI (${b.addon?.lang?.let { "plik $it" } ?: if (b.trackIndex >= 0) "wbudowane #${b.trackIndex}" else "wyłączone"})")
+        true
     }
 
     override suspend fun restore(option: SubtitleOption) = main {

@@ -54,6 +54,8 @@ object AiSubtitles {
     private var session: AiSubtitleSession? = null
     private var sessionCounter = 0L
     private var lastSource: SubtitleOption? = null
+    /** 23.11: odtwarzacz bieżącej sesji — przywraca napisy sprzed AI (anulowanie, przerwane tłumaczenie). */
+    @Volatile private var currentPort: PlayerPort? = null
     private val _state = MutableStateFlow<AiState?>(null)
     val state: StateFlow<AiState?> = _state.asStateFlow()
     val noticeHidden = MutableStateFlow(false)
@@ -113,6 +115,7 @@ object AiSubtitles {
         val id = ++sessionCounter
         var docKey = "pending"
         val port = ExoPlayerPort(controller) { docKey }
+        currentPort = port
         noticeHidden.value = false
         _state.value = AiState(id, port.materialId, AiStage.SOURCES, notice = "AI: przygotowanie tekstu — wczytuję napisy")
         job = scope.launch {
@@ -132,7 +135,7 @@ object AiSubtitles {
                         if (e is EngineEvent.Waiting) _state.value = AiState(id, port.materialId, AiStage.WAITING, notice = "AI: oczekiwanie (${e.reason})")
                     }
                     Log.i(TAG, "start session=$id na bieżąco: wbudowane ${track.first} (${track.second})")
-                    LiveEmbeddedTranslation.run(controller, port, engine, model, track.first, track.second ?: "und") { msg ->
+                    LiveEmbeddedTranslation.run(controller, port, engine, model, track.first, track.second ?: "und", AiSettings.fallbackOriginal(app)) { msg ->
                         _state.value = AiState(id, port.materialId, AiStage.TRANSLATING, notice = msg, message = msg, published = LiveEmbeddedTranslation.shown)
                     }
                     return@launch
@@ -163,7 +166,10 @@ object AiSubtitles {
                 throw e
             } catch (e: Exception) {
                 Log.w(TAG, "session=$id failed: ${e.javaClass.simpleName}: ${e.message?.take(160)}") // own messages only (no dialogue text, no key)
-                _state.value = AiState(id, port.materialId, AiStage.FAILED, message = e.message ?: "Błąd", notice = "AI: ${e.message ?: "błąd"}")
+                // 23.11 (zgłoszenie „Pottery”): przerwane tłumaczenie na bieżąco nie może zostawić ekranu bez napisów.
+                val restored = docKey.startsWith("live") && runCatching { port.restorePrevious() }.logged("ForkAi", "AiSubtitles.restoreAfterFailure").getOrDefault(false)
+                val msg = e.message ?: "błąd"
+                _state.value = AiState(id, port.materialId, AiStage.FAILED, message = msg, notice = "AI: $msg" + if (restored) " — wróciły napisy oryginalne" else "")
             }
         }
         return if (mode == AiMode.WATCH) "AI: tłumaczenie startuje (napisy pojawią się blok po bloku)" else "AI: przygotowuję cały materiał"
@@ -187,6 +193,7 @@ object AiSubtitles {
         if (controller.isUsingMpvEngine()) return "Odtwarzacz MPV: ten wariant jeszcze nieobsługiwany"
         stop(null)
         val port = ExoPlayerPort(controller) { doc.key }
+        currentPort = port
         val fallback = AiSettings.fallbackOriginal(c)
         scope.launch {
             val cues = doc.cues.mapIndexedNotNull { i, cue -> doc.translationFor(i)?.let { cue.copy(text = it) } ?: cue.takeIf { fallback } }
@@ -201,17 +208,34 @@ object AiSubtitles {
 
     fun stop(reason: String?) {
         job?.cancel(); job = null; session = null
+        if (reason != null) Log.i(TAG, "stop: $reason")
         if (reason != null) LiveEmbeddedTranslation.reset() // fork 19.11: kwestie na bieżąco nie przechodzą na następny film
         if (reason != null) _state.value?.let { st -> if (st.stage != AiStage.DONE) _state.value = st.copy(stage = AiStage.STOPPED, message = reason, notice = "") }
     }
 
     fun cancel(): String { stop("Anulowano (postęp zapisany)"); return "Tłumaczenie AI anulowane, postęp zapisany" }
 
+    /** 23.11 (właściciel: „przycisk anuluje tłumaczenie”): koniec tłumaczenia i napisy sprzed AI. */
+    fun cancelAndRestore(reason: String): String {
+        val port = currentPort
+        stop(reason)
+        scope.launch {
+            val restored = port != null && runCatching { port.restorePrevious() }.logged("ForkAi", "AiSubtitles.cancelAndRestore").getOrDefault(false)
+            Log.i(TAG, "anulowano ($reason), napisy sprzed AI: ${if (restored) "przywrócone" else "nie było czego przywracać"}")
+        }
+        return "Tłumaczenie AI anulowane"
+    }
+
     fun showOriginal(): String {
         val controller = controllerRef?.get() ?: return "Działa podczas odtwarzania"
-        val source = lastSource ?: return "Brak oryginału"
+        val port = currentPort
+        val source = lastSource
         stop("Pokazano oryginał (postęp zapisany)")
-        scope.launch { ExoPlayerPort(controller) { "" }.restore(source) }
+        scope.launch {
+            // 23.11: najpierw napisy sprzed AI (działa też dla napisów wbudowanych), potem źródło tłumaczenia.
+            val restored = port != null && runCatching { port.restorePrevious() }.logged("ForkAi", "AiSubtitles.showOriginal").getOrDefault(false)
+            if (!restored && source != null) ExoPlayerPort(controller) { "" }.restore(source)
+        }
         return "Oryginalne napisy"
     }
 }
