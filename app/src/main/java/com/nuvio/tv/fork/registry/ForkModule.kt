@@ -13,10 +13,12 @@ data class ModuleSetting(
     val title: String,
     val description: String = "",
     val defaultValue: Boolean = false,
+    /** Miejsce w drzewie ustawień „kategoria/grupa” (`fork/settings/tree`); null = miejsce z tabeli drzewa albo „Inne”. */
+    val place: String? = null,
 )
 
 /** Jednorazowa czynność w ustawieniach (np. wyczyść historię). */
-data class ModuleAction(val title: String, val level: SettingsLevel, val description: String = "", val run: (android.content.Context) -> Unit)
+data class ModuleAction(val title: String, val level: SettingsLevel, val description: String = "", val place: String? = null, val run: (android.content.Context) -> Unit)
 
 data class ModuleHomeRow(val id: String, val title: String, val order: Int = 0, val content: @Composable () -> Unit)
 

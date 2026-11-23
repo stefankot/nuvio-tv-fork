@@ -136,3 +136,6 @@ app/src/main/java/com/nuvio/tv/core/player/AutoPlayRace.kt	Placeholders.firstRea
 app/src/main/java/com/nuvio/tv/core/player/AutoPlayRace.kt	internal suspend fun pickInRankOrder(	AutoPlayRace	echo	gotowość równolegle, wybór najwyższej gotowej pozycji
 app/build.gradle.kts	// Fork hook: testy (kotlin.test z Reshaped na JUnit 4)	testImplementation(kotlin("test"))	testy	adnotacje kotlin.test (testy Reshaped audiosync, SyncDoc) działają na JUnit 4	
 app/build.gradle.kts	// Fork hook: testy (wykluczone testy bazy)	unitTests.isReturnDefaultValues = true	testy	testy bazy sprzeczne z decyzjami forka pomijane wg fork-tools/test/wykluczone-testy-bazy.txt	
+app/src/main/java/com/nuvio/tv/ui/screens/settings/PlaybackSettingsSections.kt	SettingsTreeJump.expanded()	var expandedSections	settings-tree	drzewo ustawień: rozwinięta sekcja	var expandedSections by rememberSaveable { mutableStateOf(emptyList<String>()) }
+app/src/main/java/com/nuvio/tv/ui/screens/settings/PlaybackSettingsSections.kt	SettingsTreeJump.Effect(	val listState	settings-tree	drzewo ustawień: przewinięcie i fokus	
+app/src/main/java/com/nuvio/tv/ui/screens/settings/PlaybackSettingsSections.kt	SettingsTreeJump.focus(section.name)	focusRequester =	settings-tree	drzewo ustawień: fokus sekcji	focusRequester = if (section == sections.first()) initialFocusRequester else null,

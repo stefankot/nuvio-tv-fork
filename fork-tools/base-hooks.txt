@@ -31,3 +31,4 @@ gradle.properties
 app/src/main/java/com/nuvio/tv/ui/screens/player/audiosync/SharedReferenceCache.kt
 app/src/main/java/com/nuvio/tv/core/player/AutoPlayRace.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerSubtitleTiming.kt
+app/src/main/java/com/nuvio/tv/ui/screens/settings/PlaybackSettingsSections.kt

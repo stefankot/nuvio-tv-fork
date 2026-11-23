@@ -188,7 +188,7 @@ private fun SearchField(query: String, placeholder: String) {
 
 /** NCollection search-keyboard: przełącznik abc/123 (segmenty), klawisze 36×36 po 6 w rzędzie (odstęp 4), SPACJA · ⌫ · WYCZYŚĆ. */
 @Composable
-private fun Keyboard(digits: Boolean, firstKey: FocusRequester, onMode: (Boolean) -> Unit, onKey: (String) -> Unit, onSpace: () -> Unit, onDelete: () -> Unit, onClear: () -> Unit) {
+internal fun Keyboard(digits: Boolean, firstKey: FocusRequester, onMode: (Boolean) -> Unit, onKey: (String) -> Unit, onSpace: () -> Unit, onDelete: () -> Unit, onClear: () -> Unit) {
     val keys = (if (digits) "1234567890" else "abcdefghijklmnopqrstuvwxyz").map { it.toString() }
     Column(Modifier.niuniaTrapArrows("klawiatura", setOf(androidx.compose.ui.focus.FocusDirection.Left, androidx.compose.ui.focus.FocusDirection.Right)),
         verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {

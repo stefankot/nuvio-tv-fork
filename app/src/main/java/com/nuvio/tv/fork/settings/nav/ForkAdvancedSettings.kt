@@ -183,7 +183,7 @@ private fun LeafDetail(leaf: NavLeaf, modifier: Modifier) {
 }
 
 /** Jedna grupa pozycji Reshaped (te same funkcje, co w kategorii „Nuvio Reshaped”). */
-private fun LazyListScope.itemsGroup(g: ItemsGroup, ps: PlayerSettings) {
+internal fun LazyListScope.itemsGroup(g: ItemsGroup, ps: PlayerSettings) {
     val internal = ps.playerPreference != PlayerPreference.EXTERNAL
     when (g) {
         ItemsGroup.AUTOSYNC -> autoSyncSettingsItems(enabled = internal)

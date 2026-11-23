@@ -38,8 +38,9 @@ internal fun PlaybackSettingsSections(
     initialFocusRequester: FocusRequester? = null
 ) {
     val sections = visiblePlaybackSections(playerSettings)
-    var expandedSections by rememberSaveable { mutableStateOf(emptyList<String>()) }
+    var expandedSections by rememberSaveable { mutableStateOf(com.nuvio.tv.fork.settings.tree.SettingsTreeJump.expanded()) } // Fork hook: settings-tree
     val listState = rememberLazyListState()
+    com.nuvio.tv.fork.settings.tree.SettingsTreeJump.Effect(listState, sections.map { it.name }) // Fork hook: settings-tree
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -62,7 +63,7 @@ internal fun PlaybackSettingsSections(
                             expandedSections + section.name
                         }
                     },
-                    focusRequester = if (section == sections.first()) initialFocusRequester else null,
+                    focusRequester = com.nuvio.tv.fork.settings.tree.SettingsTreeJump.focus(section.name) ?: if (section == sections.first()) initialFocusRequester else null, // Fork hook: settings-tree
                     modifier = Modifier.testTag(PlaybackSettingsTestTags.section(section))
                 ) {
                     PlaybackSectionContent(

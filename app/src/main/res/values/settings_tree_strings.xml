@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Drzewo ustawień Niuni (fork/settings/tree, skin/niunia/settings/NiuniaSettingsTree.kt). „Szukaj”, „Mniej”: niunia_tv_search, niunia_ds_less. -->
+<resources>
+    <string name="settings_tree_search_hint">Wpisz, czego szukasz: napisy, lektor, pilot…</string>
+    <string name="settings_tree_search_none">Nic nie pasuje do „%1$s”</string>
+    <string name="settings_tree_search_count">Wyniki: %1$d</string>
+    <string name="settings_tree_more">Więcej (%1$d)</string>
+    <string name="settings_tree_show_all">Pokaż wszystkie ustawienia</string>
+    <string name="settings_tree_show_all_desc">Teraz widać tylko najważniejsze. Ta pozycja włącza pełny tryb ustawień.</string>
+    <string name="settings_tree_more_desc">Rzadziej używane ustawienia tej grupy</string>
+    <string name="settings_tree_level_simple">Prosty</string>
+    <string name="settings_tree_level_full">Pełny</string>
+    <string name="settings_tree_unknown">—</string>
+</resources>
