@@ -84,7 +84,8 @@ class AiSubtitlesStayOnScreenTest {
         every { controller.isUsingMpvEngine() } returns false
         every { controller.disableSubtitles() } just Runs
         every { controller.selectSubtitleTrack(any()) } answers {
-            state.value = state.value.copy(selectedSubtitleTrackIndex = firstArg(), selectedAddonSubtitle = null)
+            // Funkcja rozszerzająca: pierwszy argument to odtwarzacz, drugi — indeks ścieżki.
+            state.value = state.value.copy(selectedSubtitleTrackIndex = secondArg(), selectedAddonSubtitle = null)
         }
         every { controller.startSidecarAddonSubtitle(any(), any()) } returns true
         every { controller.currentSidecarGenerationFor(any()) } answers { generation }
