@@ -30,6 +30,15 @@ Decyzja właściciela (23.11, ten wątek): „zajmij się wszystkimi poważnymi 
   Catch-up: `loadHistory` czyta minione dni z bazy (7 dni w bazie), Xtream `pastProgrammes` bez zmian; Niunia woła
   `GuideDbBridge.need` (wiersz przewodnika cofnięty > 11 h, odtwarzacz) → `requestHistory`. Logi `ForkTvPlus`.
 - Przełącznik „Przewodnik w bazie (szybki start)” (Telewizja, Zaawansowane, domyślnie tak); wyłączony = stary silnik.
+- **iptvdb1 NA JMGO** (23.11 18:26 Mac; BUILD SUCCESSFUL 13 min 47 s; v7a md5 `9733678de93a78cad4eb5a35c08c44f2` zgodny, `compile -m speed`;
+  kopia `.stage/apk/iptvdb1-v7a.apk`). Pomiar 1 (`.stage/jmgo/iptv-pomiar-db1`, pusta baza): import 5 plików 4 min 20 s
+  (FlixNest 29 271 kanałów / 560 662 programy w ~95 s — DWA RAZY, ten sam plik pod dwoma adresami), linki 29 392 z 52 454 kluczy
+  (jak dotąd ~29 tys.) w 19 s, okno −12…+36 h = 554 088 programów, kategorie 11 237 w 14 s; sterta 200–450 MB; 0 ANR.
+  Pomiar 2 (`iptv-pomiar-db2`, baza pełna): **ulubione + próbka (153 kanały) z bazy w 237 ms** (3,8 s po wejściu — tyle Reshaped
+  czyta listę kanałów; próbka startowa pokazuje ekran w 0,1 s), sterta stabilnie 260–290 MB (stary: 365–470), 0 ANR.
+  Błędy adaptera (poprawione w 62685f992, build `iptvdb2`): każde wejście czytało przewodniki ponownie („N nowych kanałów listy” —
+  wymagane kanały bez programów nie trafiały do bazy jako znane), drugi import tego samego pliku, okno „teraz” wszystkich kanałów
+  dopiero po sprawdzeniu plików (teraz od razu z bazy).
 - Ryzyka do sprawdzenia na JMGO: czas pierwszego importu 5 plików do bazy (strumieniowo, ale 600 tys.+ wierszy na słabym CPU),
   liczba kanałów z programem po linkach vs. dotychczasowe ~29 tys. (`ForkTvPlus: linki: N z M`), opis programu w Niuni dla
   kanałów spoza priorytetu (okno „light” bez opisów), dni w przyszłości > +36 h w wyborze dnia (tylko dla kanałów, które je mają).
