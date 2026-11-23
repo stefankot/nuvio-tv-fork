@@ -94,13 +94,24 @@ Część BŁĘDÓW to ograniczenia skryptu (Toast niewidoczny dla uiautomatora, 
   fokus na tym kanale (log `kanał nie odpowiada: Wstecz → okno zamknięte`); ▲ z 1. kanału → „Wszystkie”, po wyborze „Sport” → „Sport”;
   Wstecz ze strony tytułu → ten sam plakat Głównej; długie OK na odcinku 2 (Dexter: Resurrection) → „Akcje odcinka”, puszczenie nic
   nie wybiera, Wstecz → fokus na odcinku 2, „Oznacz jako obejrzane” / „…nieobejrzane” działa w obie strony.
-- 33. [P] NOWY BŁĄD: w oknie „Kanał nie odpowiada” w Niuni ◄► i OK nie trafiały w przyciski — OK otwierał nakładkę odtwarzacza Niuni
+- 33. [B] NOWY BŁĄD: w oknie „Kanał nie odpowiada” w Niuni ◄► i OK nie trafiały w przyciski — OK otwierał nakładkę odtwarzacza Niuni
   (klawisze odtwarzacza bierze najpierw nakładka) → okno samo obsługuje ◄► (wybór przycisku, fokus na ekranie za nim), OK i Wstecz.
-- 34. [P] Strona tytułu: po Wstecz z głębi (obsada) na hero lista pod spodem zostawała przewinięta — ▼ z hero trafiało w „Zwiastuny”
+- 34. [B] Strona tytułu: po Wstecz z głębi (obsada) na hero lista pod spodem zostawała przewinięta — ▼ z hero trafiało w „Zwiastuny”
   zamiast w odcinki → hero z fokusem = lista od góry.
-- 35. [P] Osoba bez strony (obsada bez id TMDB — na emulatorze wszystkie): komunikat „Nie udało się otworzyć tego tytułu” →
+- 35. [B] Osoba bez strony (obsada bez id TMDB — na emulatorze wszystkie): komunikat „Nie udało się otworzyć tego tytułu” →
   „Nie mamy strony tej osoby”. Powrót fokusu z osoby (pkt 28) — do sprawdzenia na TV (tam obsada ma id TMDB).
-- 36. [P] Moduł głosowy, „Co mogę powiedzieć” (z Ustawień): lista bez fokusu — pilotem nie dało się jej przewinąć → wiersze z fokusem.
+- 36. [B] Moduł głosowy, „Co mogę powiedzieć” (z Ustawień): lista bez fokusu — pilotem nie dało się jej przewinąć → wiersze z fokusem.
 - Automatycznie (`cykl4/sciezki.md`, 29 ścieżek, 11,6 min): OK 25 / UWAGA 4 / BŁĄD 0. Uwagi: zimny start 27,7 s (skrypt czeka na
   „stabilny” ekran Głównej, a ta się zmienia — system: pierwsza klatka po 1,9 s), drugi przycisk menu bez tekstu dla uiautomatora,
   ścieżka 19 (oczekiwanie skryptu — poprawione), Kalendarz: Wstecz na poprzednią trasę testu.
+
+## Pętla 5 (23.11 02:40 – 02:57, APK ux5 = commit 8709aad22, arm64, md5 65474db0…)
+- Build ux5: pierwszy raz padł lint (`lintVitalAnalyzeFullDebug`: „Unexpected failure during lint analysis of PlayerPopCard.kt” — plik
+  niezmieniony, błąd narzędzia), powtórzony build OK w 1 min 33 s.
+- Ręcznie (ok. 5 min) [B]: „Kanał nie odpowiada” (Active Family HD) — ► „Następny kanał” / ◄ „Spróbuj ponownie” (fokus widoczny),
+  OK „Następny kanał” → American Crime Channel gra, OK „Spróbuj ponownie” → ponowienie (okno znów po 13 s), jeden Wstecz → lista z fokusem
+  na kanale; strona tytułu (Dexter: Resurrection): obsada → Wstecz → hero → ▼ = „Odcinek 1”; OK na osobie → „Nie mamy strony tej osoby”;
+  „Co mogę powiedzieć” — fokus na 1. poleceniu, ▼×25 przewija (75 poleceń).
+- Automatycznie (`cykl5/sciezki.md`, 32 ścieżki, 12,6 min): OK 26 / UWAGA 6 / BŁĄD 0. Uwagi: ścieżki 5, 20 (skrypt), 25 (długie OK
+  w Ustawieniach = zwykłe OK — dopuszczalne), 27 [i] (Wstecz w czasie buforowania najpierw chowa nakładkę odtwarzacza Niuni — zamierzone;
+  potem pokazało się okno błędu, bo kanał tym razem nie ruszył), 28/46 — czas 5,0–5,1 s (granica).

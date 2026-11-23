@@ -1,0 +1,434 @@
+[
+ {
+  "nr": 1,
+  "nazwa": "Start aplikacji → ekran główny z fokusem",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "start (6.2 s) → fokus: Odtwórz ⟨Lupin / Serial · Crime · Drama · 2021– / IMDb 7.5⟩"
+  ],
+  "s": 6
+ },
+ {
+  "nr": 2,
+  "nazwa": "Główna: OK „Odtwórz” w banerze",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa home (4.7 s) → fokus: Odtwórz ⟨Lupin / Serial · Crime · Drama · 2021– / IMDb 7.5⟩",
+   "OK na banerze na „Odtwórz” (4.5 s) → fokus: Odtwórz S1, O1 ⟨Obejrzyj z lektorem / Lupin / Serial · Crime · Drama · 4 sez⟩",
+   "Wstecz (4.9 s) → fokus: Odtwórz ⟨Lupin / Serial · Crime · Drama · 2021– / IMDb 7.5⟩"
+  ],
+  "s": 17
+ },
+ {
+  "nr": 3,
+  "nazwa": "Główna: długie OK w banerze → strona tytułu",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa home (4.8 s) → fokus: Odtwórz ⟨Lupin / Serial · Crime · Drama · 2021– / IMDb 7.5⟩",
+   "długie OK na „Odtwórz” (długie) → fokus: Odtwórz S1, O1 ⟨Obejrzyj z lektorem / Lupin / Serial · Crime · Drama · 4 sez⟩",
+   "Wstecz (4.6 s) → fokus: Odtwórz ⟨Lupin / Serial · Crime · Drama · 2021– / IMDb 7.5⟩"
+  ],
+  "s": 17
+ },
+ {
+  "nr": 4,
+  "nazwa": "Główna: ▼ rząd, ►×4, OK → tytuł, Wstecz → ten sam plakat",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa home (4.7 s) → fokus: Odtwórz ⟨Lupin / Serial · Crime · Drama · 2021– / IMDb 7.5⟩",
+   "DOWN×1 → fokus: Akcja · ★ 6.8 ⟨Popular / #2 Dziś / Dramat⟩",
+   "RIGHT×4 → fokus: Akcja · ★ 7.2 ⟨Popular / #1 Dziś / Akcja · ★ 6.8⟩",
+   "OK na „Akcja · ★ 7.2” (4.5 s) → fokus: Odtwórz S1, O1 ⟨Obejrzyj z lektorem / Black Doves / Serial · Action · Drama · 3 se⟩",
+   "Wstecz (7.2 s) → fokus: Akcja · ★ 7.2 ⟨Popular / #1 Dziś / Akcja · ★ 6.8⟩"
+  ],
+  "s": 26
+ },
+ {
+  "nr": 5,
+  "nazwa": "Główna: długie OK na plakacie → menu → „Do biblioteki”",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: menu: drugi przycisk „[bez nazwy 784x96 @568,566]”"
+  ],
+  "kroki": [
+   "trasa home (4.8 s) → fokus: Akcja · ★ 7.2 ⟨Popular / #6 Dziś / Kryminał · ★ 9.0⟩",
+   "DOWN×1 → plakat → fokus: Biograficzny ⟨New / Nowość / Akcja⟩",
+   "RIGHT×2 → fokus: Komedia ⟨New / Biograficzny / Nowość⟩",
+   "długie OK na „Komedia” (długie) → fokus: [bez nazwy 784x96 @568,454] ⟨The Bodyguard / Akcje tytułu / Dodaj do biblioteki⟩",
+   "DOWN×1 → fokus: [bez nazwy 784x96 @568,566] ⟨The Bodyguard / Akcje tytułu / Przejdź do szczegółów⟩",
+   "Wstecz (4.5 s) → fokus: Komedia ⟨New / Biograficzny / Nowość⟩"
+  ],
+  "s": 27
+ },
+ {
+  "nr": 7,
+  "nazwa": "Główna: szybkie przewijanie ▼×8 i ▲×8 — fokus nie ginie",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa home (4.8 s) → fokus: Komedia ⟨New / Thriller / Nowość⟩",
+   "DOWN×8 szybko → fokus: Przygodowy · ★ 7.7 ⟨Nowość / Kryminał / Nowość⟩",
+   "UP×8 szybko → fokus: Szukaj ⟨Lupin / Serial · Crime · Drama · 2021– / IMDb 7.5⟩"
+  ],
+  "s": 18
+ },
+ {
+  "nr": 8,
+  "nazwa": "Główna: ◄ do menu bocznego i z powrotem",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa home (4.6 s) → fokus: Odtwórz ⟨Lupin / Serial · Crime · Drama · 2021– / IMDb 7.5⟩",
+   "DOWN×1 → fokus: Akcja · ★ 6.8 ⟨Popular / #2 Dziś / Dramat⟩",
+   "LEFT×6 → fokus: Akcja · ★ 6.8 ⟨Popular / #2 Dziś / Dramat⟩",
+   "RIGHT×1 → fokus: Dramat ⟨Popular / #1 Dziś / Akcja · ★ 6.8⟩"
+  ],
+  "s": 17
+ },
+ {
+  "nr": 10,
+  "nazwa": "Główna: Wstecz z rzędu → baner/menu, drugi Wstecz → nie zamyka bez pytania",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa home (4.8 s) → fokus: Dramat ⟨Popular / #3 Dziś / Kryminał · ★ 8.3⟩",
+   "DOWN×2 → fokus: Kryminał ⟨New / Nowość / Dramat⟩",
+   "Wstecz (4.7 s) → fokus: Odtwórz ⟨Lupin / Serial · Crime · Drama · 2021– / IMDb 7.5⟩",
+   "Wstecz (4.6 s) → fokus: Główna ⟨Lupin / Serial · Crime · Drama · 2021– / IMDb 7.5⟩",
+   "Wstecz (4.6 s) → fokus: Odtwórz ⟨Lupin / Serial · Crime · Drama · 2021– / IMDb 7.5⟩"
+  ],
+  "s": 23
+ },
+ {
+  "nr": 11,
+  "nazwa": "Szukaj: wpis „bat” klawiaturą ekranową → wyniki → OK → długie OK",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa search (4.8 s) → fokus: a ⟨Filmy, seriale, TV, YouTube i  / abc / abc⟩",
+   "klawiatura „bat”: wpisane: bat → fokus: t ⟨bat / abc / abc⟩",
+   "RIGHT×7 → fokus: The Batman | Film · 2022 ⟨bat / abc / abc⟩",
+   "OK na wyniku na „The Batman | Film · 2022” (4.5 s) → fokus: Odtwórz ⟨Obejrzyj z lektorem / The Batman / Film · Action · Crime · 2022 ·⟩",
+   "Wstecz (4.7 s) → fokus: The Batman | Film · 2022 ⟨bat / abc / abc⟩",
+   "długie OK na wyniku na „The Batman | Film · 2022” (długie) → fokus: [bez nazwy 784x96 @568,454] ⟨The Batman / Akcje tytułu / Dodaj do biblioteki⟩",
+   "Wstecz z menu (4.5 s) → fokus: The Batman | Film · 2022 ⟨bat / abc / abc⟩"
+  ],
+  "s": 58
+ },
+ {
+  "nr": 12,
+  "nazwa": "Szukaj: polecane → OK → tytuł → Wstecz (fokus wraca na plakat)",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa search (4.6 s) → fokus: a ⟨Filmy, seriale, TV, YouTube i  / abc / abc⟩",
+   "► do prawej kolumny → fokus: Filmy ⟨Filmy, seriale, TV, YouTube i  / abc / abc⟩",
+   "DOWN×1 → fokus: Akcja · ★ 8.4 ⟨Filmy, seriale, TV, YouTube i  / abc / abc⟩",
+   "OK na „Akcja · ★ 8.4” (4.5 s) → fokus: Odtwórz ⟨Obejrzyj z lektorem / The Odyssey / Film · Action · Adventure · 20⟩",
+   "Wstecz (4.6 s) → fokus: Akcja · ★ 8.4 ⟨Filmy, seriale, TV, YouTube i  / abc / abc⟩"
+  ],
+  "s": 36
+ },
+ {
+  "nr": 13,
+  "nazwa": "Szukaj: długie OK na polecanym plakacie",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa search (4.6 s) → fokus: Akcja · ★ 8.4 ⟨Filmy, seriale, TV, YouTube i  / abc / abc⟩",
+   "► do prawej kolumny → fokus: Akcja · ★ 6.5 ⟨Filmy, seriale, TV, YouTube i  / abc / abc⟩",
+   "DOWN×1 → fokus: Akcja · ★ 6.5 ⟨Filmy, seriale, TV, YouTube i  / abc / abc⟩",
+   "długie OK na „Akcja · ★ 6.5” (długie) → fokus: [bez nazwy 784x96 @568,454] ⟨The End of Oak Street / Akcje tytułu / Dodaj do biblioteki⟩",
+   "Wstecz z menu (4.5 s) → fokus: Akcja · ★ 6.5 ⟨Filmy, seriale, TV, YouTube i  / abc / abc⟩"
+  ],
+  "s": 24
+ },
+ {
+  "nr": 14,
+  "nazwa": "Szukaj: kafelek „przeglądaj” → OK",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa search (4.8 s) → fokus: Akcja · ★ 8.4 ⟨Filmy, seriale, TV, YouTube i  / abc / abc⟩",
+   "► do prawej kolumny → fokus: Akcja · ★ 6.5 ⟨Filmy, seriale, TV, YouTube i  / abc / abc⟩",
+   "OK na „Akcja · ★ 6.5” (4.5 s) → fokus: Odtwórz ⟨Obejrzyj z lektorem / The End of Oak Street / Film · Action · Adventure · 20⟩",
+   "Wstecz (4.7 s) → fokus: Akcja · ★ 6.5 ⟨Filmy, seriale, TV, YouTube i  / abc / abc⟩"
+  ],
+  "s": 21
+ },
+ {
+  "nr": 15,
+  "nazwa": "Biblioteka: otwarcie, OK na pierwszej pozycji",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa library (4.8 s) → fokus: Biograficzny ⟨Biograficzny / Biblioteka / built-10m⟩",
+   "OK na „Biograficzny” (7.0 s) → fokus: Odtwórz ⟨Obejrzyj z lektorem / Madden / Film · Biography · Comedy · 20⟩",
+   "Wstecz (4.6 s) → fokus: Biograficzny ⟨Biograficzny / Biblioteka / built-11m⟩"
+  ],
+  "s": 19
+ },
+ {
+  "nr": 16,
+  "nazwa": "Biblioteka: długie OK na pozycji",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa library (4.7 s) → fokus: Biograficzny ⟨Biograficzny / Biblioteka / built-11m⟩",
+   "DOWN×1 → fokus: Biograficzny ⟨Biograficzny / built-11m⟩",
+   "długie OK na „Biograficzny” (długie) → fokus: [bez nazwy 784x96 @568,454] ⟨Madden / Akcje tytułu / Usuń z biblioteki⟩",
+   "Wstecz z menu (4.4 s) → fokus: Biograficzny ⟨Biograficzny / built-11m⟩"
+  ],
+  "s": 19
+ },
+ {
+  "nr": 17,
+  "nazwa": "Strona tytułu: przyciski ◄► i OK na każdym",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa home (4.8 s) → fokus: Odtwórz ⟨Lupin / Serial · Crime · Drama · 2021– / IMDb 7.5⟩",
+   "DOWN×2 → fokus: Biograficzny ⟨New / Nowość / Akcja⟩",
+   "OK → strona tytułu na „Biograficzny” (4.5 s) → fokus: Odtwórz ⟨Obejrzyj z lektorem / Madden / Film · Biography · Comedy · 20⟩",
+   "przyciski: Odtwórz / W bibliotece / O filmie → fokus: O filmie ⟨Obejrzyj z lektorem / Madden / Film · Biography · Comedy · 20⟩"
+  ],
+  "s": 27
+ },
+ {
+  "nr": 18,
+  "nazwa": "Strona tytułu: długie OK na przycisku „Odtwórz”",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa home (4.8 s) → fokus: Biograficzny ⟨New / Nowość / Akcja⟩",
+   "DOWN×2 → fokus: Przygodowy · ★ 7.7 ⟨Nowość / Kryminał / Nowość⟩",
+   "OK → strona tytułu na „Przygodowy · ★ 7.7” (4.5 s) → fokus: Odtwórz ⟨Obejrzyj z lektorem / Tenzing / Film · Adventure · Biography ·⟩",
+   "długie OK na „Odtwórz” (brak zdarzenia Niuni) → fokus: Odtwórz ⟨Obejrzyj z lektorem / Tenzing / Film · Adventure · Biography ·⟩",
+   "Wstecz (4.7 s) → fokus: Przygodowy · ★ 7.7 ⟨Nowość / Kryminał / Nowość⟩"
+  ],
+  "s": 27
+ },
+ {
+  "nr": 19,
+  "nazwa": "Strona tytułu: ▼ do odcinków/podobnych, OK, Wstecz",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa home (4.8 s) → fokus: Przygodowy · ★ 7.7 ⟨Nowość / Kryminał / Nowość⟩",
+   "DOWN×2 → fokus: Przygodowy · ★ 7.7 ⟨Nowość / Kryminał / Nowość⟩",
+   "OK → strona tytułu na „Przygodowy · ★ 7.7” (4.5 s) → fokus: Odtwórz ⟨Obejrzyj z lektorem / Tenzing / Film · Adventure · Biography ·⟩",
+   "DOWN×2 → fokus: Genden Phuntsok | GP ⟨Tenzing / Obsada i twórcy / Genden Phuntsok⟩",
+   "OK na „Genden Phuntsok | GP” (4.4 s, komunikat) → fokus: Genden Phuntsok | GP ⟨Tenzing / Obsada i twórcy / Genden Phuntsok⟩",
+   "Wstecz (strona pod hero → hero) (4.7 s) → fokus: Odtwórz ⟨Obejrzyj z lektorem / Tenzing / Film · Adventure · Biography ·⟩"
+  ],
+  "s": 30
+ },
+ {
+  "nr": 20,
+  "nazwa": "Strona tytułu: długie OK na „Podobne”",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: nie znaleziono: plakat „Podobne” (DOWN×6)"
+  ],
+  "kroki": [
+   "trasa home (4.8 s) → fokus: Przygodowy · ★ 7.7 ⟨Nowość / Kryminał / Nowość⟩",
+   "DOWN×2 → fokus: Przygodowy · ★ 7.7 ⟨Nowość / Kryminał / Nowość⟩",
+   "OK → strona tytułu na „Przygodowy · ★ 7.7” (4.4 s) → fokus: Odtwórz ⟨Obejrzyj z lektorem / Tenzing / Film · Adventure · Biography ·⟩"
+  ],
+  "s": 31
+ },
+ {
+  "nr": 21,
+  "nazwa": "Strona tytułu: obsada → osoba → plakat → Wstecz×2",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa home (4.8 s) → fokus: Przygodowy · ★ 7.7 ⟨Nowość / Kryminał / Nowość⟩",
+   "DOWN×2 → fokus: Przygodowy · ★ 7.7 ⟨Nowość / Kryminał / Nowość⟩",
+   "OK → strona tytułu na „Przygodowy · ★ 7.7” (4.5 s) → fokus: Odtwórz ⟨Obejrzyj z lektorem / Tenzing / Film · Adventure · Biography ·⟩",
+   "DOWN×1 → fokus: Zwiastun 1 ⟨Tenzing / Zwiastuny / Zwiastun 1⟩",
+   "DOWN×1 → fokus: Genden Phuntsok | GP ⟨Tenzing / Obsada i twórcy / Genden Phuntsok⟩",
+   "DOWN×1 → fokus: Pokaż cały opis | Więcej ⟨Tenzing / Opis / The untold and inspiring tale ⟩",
+   "DOWN×1 → fokus: Pokaż cały opis | Więcej ⟨Tenzing / Opis / The untold and inspiring tale ⟩",
+   "DOWN×1 → fokus: Pokaż cały opis | Więcej ⟨Tenzing / Opis / The untold and inspiring tale ⟩",
+   "DOWN×1 → fokus: Pokaż cały opis | Więcej ⟨Tenzing / Opis / The untold and inspiring tale ⟩",
+   "OK na osobie na „Pokaż cały opis | Więcej” (4.5 s) → fokus: Zwiń opis | Mniej ⟨Tenzing / Opis / The untold and inspiring tale ⟩",
+   "Wstecz (4.6 s) → fokus: Odtwórz ⟨Obejrzyj z lektorem / Tenzing / Film · Adventure · Biography ·⟩",
+   "Wstecz (4.8 s) → fokus: Przygodowy · ★ 7.7 ⟨Nowość / Kryminał / Nowość⟩"
+  ],
+  "s": 47
+ },
+ {
+  "nr": 22,
+  "nazwa": "Ustawienia: otwarcie i przejście ▼ po kategoriach",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa settings (4.7 s) → fokus: Profile ⟨Profile / Konto / Logowanie⟩",
+   "kategorie: Profile / Konto | Logowanie / Skórka | Niunia / Lektor | Włączony / Napisy i AutoSync / Dodatki / Źródła kanałów i EPG | Listy M3U / Xtream i program / Szukaj w telewizji / Wszystkie moduły / Pomoc i dziennik błędów / Zawsze po polsku / Po polsku przy dobrej jakości / Oryginał z napisami / Napisy: małe → fokus: Napisy: średnie ⟨Wszystkie moduły / Pomoc i dziennik błędów / Zawsze po polsku⟩"
+  ],
+  "s": 41
+ },
+ {
+  "nr": 23,
+  "nazwa": "Ustawienia: ► do treści kategorii, OK, Wstecz",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa settings (4.6 s) → fokus: Profile ⟨Profile / Konto / Logowanie⟩",
+   "RIGHT×1 → fokus: Profile ⟨Profile / Konto / Logowanie⟩",
+   "OK na „Profile” (4.5 s) → fokus: P | ★ | Profile 1 | GŁÓWNY ⟨NuvioTV / Zarządzaj profilami / Wybierz profil do edycji, prze⟩",
+   "Wstecz (4.6 s) → fokus: Profile ⟨Profile / Konto / Logowanie⟩"
+  ],
+  "s": 19
+ },
+ {
+  "nr": 24,
+  "nazwa": "Ustawienia odtwarzania: przełącznik OK dwa razy (stan wraca)",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa playback_settings (4.8 s) → fokus: Odtwarzacz | Domyślny odtwarzacz, silnik wbudowany i awaryjne przełączanie. | Zamknięte ⟨Ustawienia odtwarzania / Konfiguruj odtwarzanie wideo i / Odtwarzacz⟩",
+   "DOWN×1 → fokus: Wybór strumienia | Sposób wyboru strumienia po naciśnięciu odtwarzania. | Zamknięte ⟨Ustawienia odtwarzania / Konfiguruj odtwarzanie wideo i / Odtwarzacz⟩",
+   "OK×2 → fokus: Wybór strumienia | Sposób wyboru strumienia po naciśnięciu odtwarzania. | Zamknięte ⟨Ustawienia odtwarzania / Konfiguruj odtwarzanie wideo i / Odtwarzacz⟩"
+  ],
+  "s": 19
+ },
+ {
+  "nr": 25,
+  "nazwa": "Ustawienia: długie OK na pozycji (nie powinno nic psuć)",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: długie OK na „Profile”: zachowało się jak zwykłe OK"
+  ],
+  "kroki": [
+   "trasa settings (4.7 s) → fokus: Profile ⟨Profile / Konto / Logowanie⟩",
+   "RIGHT×1 → fokus: Profile ⟨Profile / Konto / Logowanie⟩",
+   "długie OK na „Profile” (brak zdarzenia Niuni) → fokus: P | ★ | Profile 1 | GŁÓWNY ⟨NuvioTV / Zarządzaj profilami / Wybierz profil do edycji, prze⟩",
+   "Wstecz (4.6 s) → fokus: Profile ⟨Profile / Konto / Logowanie⟩"
+  ],
+  "s": 19
+ },
+ {
+  "nr": 26,
+  "nazwa": "Live TV: wejście (stan pusty albo przewodnik)",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa reshaped_live_tv (4.7 s) → fokus: Wszystkie ⟨Te kanały nie mają programu TV / Ulubione / Ulubione⟩",
+   "Live TV → fokus: Wszystkie ⟨Te kanały nie mają programu TV / Ulubione / Ulubione⟩"
+  ],
+  "s": 5
+ },
+ {
+  "nr": 27,
+  "nazwa": "Live TV: OK na kanale → odtwarzanie → Wstecz",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: Wstecz z odtwarzacza: fokus „Spróbuj ponownie” zamiast „2 | 4 Fun Kids (576i) | Brak programu”"
+  ],
+  "kroki": [
+   "trasa reshaped_live_tv (4.7 s) → fokus: Wszystkie ⟨Te kanały nie mają programu TV / Ulubione / Ulubione⟩",
+   "DOWN×2 → fokus: 2 | 4 Fun Kids (576i) | Brak programu ⟨Te kanały nie mają programu TV / Wszystkie / Wszystkie⟩",
+   "OK na kanale na „2 | 4 Fun Kids (576i) | Brak programu” (6.2 s) → fokus: 4 Fun Kids (576i) | Uruchamianie strumienia… | LIVE | 02:54 | Poprzedni kanał | Następny k ⟨4 Fun Kids (576i) / Uruchamianie strumienia… / LIVE⟩",
+   "Wstecz z odtwarzacza (5.9 s) → fokus: Spróbuj ponownie ⟨4 Fun Kids (576i) / Buforowanie… / Kanał nie odpowiada⟩"
+  ],
+  "s": 27
+ },
+ {
+  "nr": 28,
+  "nazwa": "Live TV: długie OK na kanale",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: reshaped_live_tv: ładowanie 5.1 s"
+  ],
+  "kroki": [
+   "trasa reshaped_live_tv (5.1 s) → fokus: 2 | 4 Fun Kids (576i) | Brak programu ⟨Te kanały nie mają programu TV / Wszystkie / Wszystkie⟩",
+   "DOWN×2 → fokus: 4 | Active Family HD (1080i) | Brak programu ⟨Te kanały nie mają programu TV / Wszystkie / Wszystkie⟩",
+   "długie OK na „4 | Active Family HD (1080i) | Brak programu” (długie) → fokus: 4 | Active Family HD (1080i) | Brak programu ⟨Te kanały nie mają programu TV / Wszystkie / Wszystkie⟩"
+  ],
+  "s": 16
+ },
+ {
+  "nr": 29,
+  "nazwa": "Live TV: przewijanie listy ▼×15 i ▲×15",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa reshaped_live_tv (4.6 s) → fokus: Wszystkie ⟨Te kanały nie mają programu TV / Ulubione / Ulubione⟩",
+   "DOWN×15 (7.2 s) → fokus: 15 | Bigtime (720p) | Brak programu ⟨Te kanały nie mają programu TV / Wszystkie / Wszystkie⟩",
+   "UP×15 (7.1 s) → fokus: Wszystkie ⟨Te kanały nie mają programu TV / Ulubione / Ulubione⟩"
+  ],
+  "s": 19
+ },
+ {
+  "nr": 30,
+  "nazwa": "Live TV: Szukaj kanału",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa fork_tv_search (4.7 s) → fokus: Szukaj kanału lub programu ⟨Szukaj kanału lub programu / built-16m⟩",
+   "wpis „tvp” → fokus: tvp | Szukaj kanału lub programu ⟨tvp / Szukaj kanału lub programu / Kanały⟩"
+  ],
+  "s": 14
+ },
+ {
+  "nr": 46,
+  "nazwa": "Główna → Szukaj → Biblioteka → Główna (menu) — fokus wraca",
+  "wynik": "UWAGA",
+  "uwagi": [
+   "UWAGA: home: ładowanie 5.0 s"
+  ],
+  "kroki": [
+   "trasa home (5.0 s) → fokus: Przygodowy · ★ 7.7 ⟨Nowość / Kryminał / Nowość⟩",
+   "trasa search (4.9 s) → fokus: Akcja · ★ 6.5 ⟨Filmy, seriale, TV, YouTube i  / abc / abc⟩",
+   "trasa library (4.8 s) → fokus: Biograficzny ⟨Biograficzny / Biblioteka / built-17m⟩",
+   "trasa home (4.8 s) → fokus: Przygodowy · ★ 7.7 ⟨Nowość / Kryminał / Nowość⟩"
+  ],
+  "s": 20
+ },
+ {
+  "nr": 47,
+  "nazwa": "Główna: ►×12 w rzędzie (długi rząd), ◄×12",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa home (4.7 s) → fokus: Przygodowy · ★ 7.7 ⟨Nowość / Kryminał / Nowość⟩",
+   "DOWN×2 → fokus: Przygodowy · ★ 7.7 ⟨Nowość / Kryminał / Nowość⟩",
+   "►×12 (8.2 s) → fokus: Animacja · ★ 7.7 ⟨Nowość / Kryminał / Nowość⟩",
+   "◄×12 → fokus: Przygodowy · ★ 7.7 ⟨Nowość / Kryminał / Nowość⟩"
+  ],
+  "s": 24
+ },
+ {
+  "nr": 48,
+  "nazwa": "Strona tytułu: Wstecz z głębi (▼×4) wraca na górę albo wychodzi",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa home (4.7 s) → fokus: Przygodowy · ★ 7.7 ⟨Nowość / Kryminał / Nowość⟩",
+   "DOWN×2 → fokus: Przygodowy · ★ 7.7 ⟨Nowość / Kryminał / Nowość⟩",
+   "OK → strona tytułu na „Przygodowy · ★ 7.7” (4.5 s) → fokus: Odtwórz ⟨Obejrzyj z lektorem / Tenzing / Film · Adventure · Biography ·⟩",
+   "DOWN×4 → fokus: Pokaż cały opis | Więcej ⟨Tenzing / Opis / The untold and inspiring tale ⟩",
+   "Wstecz (4.6 s) → fokus: Odtwórz ⟨Obejrzyj z lektorem / Tenzing / Film · Adventure · Biography ·⟩",
+   "po Wstecz → fokus: Odtwórz ⟨Obejrzyj z lektorem / Tenzing / Film · Adventure · Biography ·⟩"
+  ],
+  "s": 24
+ },
+ {
+  "nr": 50,
+  "nazwa": "Długie OK na menu bocznym (nie powinno psuć)",
+  "wynik": "OK",
+  "uwagi": [],
+  "kroki": [
+   "trasa home (4.8 s) → fokus: Przygodowy · ★ 7.7 ⟨Nowość / Kryminał / Nowość⟩",
+   "długie OK na „Odtwórz” (długie) → fokus: Odtwórz S1, O1 ⟨Obejrzyj z lektorem / Lupin / Serial · Crime · Drama · 4 sez⟩",
+   "Wstecz (4.6 s) → fokus: Odtwórz ⟨Lupin / Serial · Crime · Drama · 2021– / IMDb 7.5⟩"
+  ],
+  "s": 18
+ }
+]

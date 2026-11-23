@@ -1,0 +1,65 @@
+[02:44:44] ścieżka 1: Start aplikacji → ekran główny z fokusem
+   → OK (6 s) 
+[02:44:50] ścieżka 2: Główna: OK „Odtwórz” w banerze
+   → OK (17 s) 
+[02:45:07] ścieżka 3: Główna: długie OK w banerze → strona tytułu
+   → OK (17 s) 
+[02:45:24] ścieżka 4: Główna: ▼ rząd, ►×4, OK → tytuł, Wstecz → ten sam plakat
+   → OK (26 s) 
+[02:45:50] ścieżka 5: Główna: długie OK na plakacie → menu → „Do biblioteki”
+   → UWAGA (27 s) UWAGA: menu: drugi przycisk „[bez nazwy 784x96 @568,566]”
+[02:46:17] ścieżka 7: Główna: szybkie przewijanie ▼×8 i ▲×8 — fokus nie ginie
+   → OK (18 s) 
+[02:46:35] ścieżka 8: Główna: ◄ do menu bocznego i z powrotem
+   → OK (17 s) 
+[02:46:52] ścieżka 10: Główna: Wstecz z rzędu → baner/menu, drugi Wstecz → nie zamyka bez pytania
+   → OK (23 s) 
+[02:47:15] ścieżka 11: Szukaj: wpis „bat” klawiaturą ekranową → wyniki → OK → długie OK
+   → OK (58 s) 
+[02:48:13] ścieżka 12: Szukaj: polecane → OK → tytuł → Wstecz (fokus wraca na plakat)
+   → OK (36 s) 
+[02:48:49] ścieżka 13: Szukaj: długie OK na polecanym plakacie
+   → OK (24 s) 
+[02:49:13] ścieżka 14: Szukaj: kafelek „przeglądaj” → OK
+   → OK (21 s) 
+[02:49:34] ścieżka 15: Biblioteka: otwarcie, OK na pierwszej pozycji
+   → OK (19 s) 
+[02:49:53] ścieżka 16: Biblioteka: długie OK na pozycji
+   → OK (19 s) 
+[02:50:12] ścieżka 17: Strona tytułu: przyciski ◄► i OK na każdym
+   → OK (27 s) 
+[02:50:39] ścieżka 18: Strona tytułu: długie OK na przycisku „Odtwórz”
+   → OK (27 s) 
+[02:51:07] ścieżka 19: Strona tytułu: ▼ do odcinków/podobnych, OK, Wstecz
+   → OK (30 s) 
+[02:51:37] ścieżka 20: Strona tytułu: długie OK na „Podobne”
+   → UWAGA (31 s) UWAGA: nie znaleziono: plakat „Podobne” (DOWN×6)
+[02:52:08] ścieżka 21: Strona tytułu: obsada → osoba → plakat → Wstecz×2
+   → OK (47 s) 
+[02:52:55] ścieżka 22: Ustawienia: otwarcie i przejście ▼ po kategoriach
+   → OK (41 s) 
+[02:53:36] ścieżka 23: Ustawienia: ► do treści kategorii, OK, Wstecz
+   → OK (19 s) 
+[02:53:55] ścieżka 24: Ustawienia odtwarzania: przełącznik OK dwa razy (stan wraca)
+   → OK (19 s) 
+[02:54:14] ścieżka 25: Ustawienia: długie OK na pozycji (nie powinno nic psuć)
+   → UWAGA (19 s) UWAGA: długie OK na „Profile”: zachowało się jak zwykłe OK
+[02:54:34] ścieżka 26: Live TV: wejście (stan pusty albo przewodnik)
+   → OK (5 s) 
+[02:54:38] ścieżka 27: Live TV: OK na kanale → odtwarzanie → Wstecz
+   → UWAGA (27 s) UWAGA: Wstecz z odtwarzacza: fokus „Spróbuj ponownie” zamiast „2 | 4 Fun Kids (576i) | Brak programu”
+[02:55:05] ścieżka 28: Live TV: długie OK na kanale
+   → UWAGA (16 s) UWAGA: reshaped_live_tv: ładowanie 5.1 s
+[02:55:21] ścieżka 29: Live TV: przewijanie listy ▼×15 i ▲×15
+   → OK (19 s) 
+[02:55:40] ścieżka 30: Live TV: Szukaj kanału
+   → OK (14 s) 
+[02:55:54] ścieżka 46: Główna → Szukaj → Biblioteka → Główna (menu) — fokus wraca
+   → UWAGA (20 s) UWAGA: home: ładowanie 5.0 s
+[02:56:13] ścieżka 47: Główna: ►×12 w rzędzie (długi rząd), ◄×12
+   → OK (24 s) 
+[02:56:38] ścieżka 48: Strona tytułu: Wstecz z głębi (▼×4) wraca na górę albo wychodzi
+   → OK (24 s) 
+[02:57:02] ścieżka 50: Długie OK na menu bocznym (nie powinno psuć)
+   → OK (18 s) 
+koniec: 12.6 min, {'OK': 26, 'UWAGA': 6, 'BŁĄD': 0}, raport /Users/milajovovich/Desktop/nuvio 2/NuvioFork/plan/ux/cykl5/sciezki.md

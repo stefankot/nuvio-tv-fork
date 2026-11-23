@@ -52,3 +52,8 @@ Emulator GTV (`nuvio_tv`, Google TV API 34, arm64 → build `-PforkAbi=arm64-v8a
 - Potwierdzone [B]: Wstecz w „Kanał nie odpowiada”, ▲ na wybraną kategorię, opcje odcinka na długie OK, powrót na plakat Głównej.
 - Poprawki po pętli 4 (RAPORT 33–36, do builda ux5): przyciski okna „Kanał nie odpowiada” w Niuni, lista pod hero od góry,
   komunikat osoby bez strony, fokus w „Co mogę powiedzieć”. Skrypt: ścieżka 19 i 29 (nowe sprawdzenie ▲ na „Wszystkie”).
+
+## Pętla 5 (23.11 02:40–02:57) — APK ux5 (md5 65474db0087e88ca5c999c25dbfc018c, `.stage/apk/ux5-arm64.apk`)
+- Build: lint padł losowo, powtórka 1 min 33 s. Ręcznie ok. 5 min + automatycznie 12,6 min (`cykl5/sciezki.md`: OK 26 / UWAGA 6 / BŁĄD 0).
+- Potwierdzone [B]: RAPORT 33–36 (przyciski okna błędu kanału, lista pod hero od góry, komunikat osoby, „Co mogę powiedzieć”).
+- Emulator wyłączony. Dalej: `plan/TERAZ.md` → NAJPIERW 23.11 ~03:00 (JMGO v7a + lista „UX długie OK”).
