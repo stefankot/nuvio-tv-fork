@@ -1,4 +1,7 @@
-# Przebudowa ustawień — stan pracy (23.11, WSTRZYMANE na prośbę właściciela)
+# Przebudowa ustawień — stan pracy
+
+**23.11 wieczór: kroki 1–5 ZROBIONE** (ekran Niuni, wpięcia, testy JVM, DRZEWO/INWENTARZ, build ust3 i test na JMGO — wyniki w `plan/TERAZ.md`, sekcja „ZROBIONE 23.11 wieczór — przebudowa ustawień”). Zostało: instalacja i test `ust4` (`.stage/apk/ust4-v7a.apk`, poprawki po teście ust3) na JMGO, gdy nikt nie używa (`fork-tools/test/jmgo_czekaj_wolny.sh 10`), potem pozycje „Do sprawdzenia” z TERAZ. Niżej historia wątku.
+
 
 **Wstrzymane 23.11 ~12:00: właściciel kazał wznowić ten wątek dopiero, gdy skończy się równoległy wątek naprawy napisów („napisy-tlumaczenie”).** Wznowienie: „kontynuuj” → ten plik, „NASTĘPNE KROKI”.
 
