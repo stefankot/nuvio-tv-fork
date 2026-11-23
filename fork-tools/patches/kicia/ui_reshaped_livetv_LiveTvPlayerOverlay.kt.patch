@@ -1,5 +1,5 @@
 diff --git a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverlay.kt b/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverlay.kt
-index 82e74ab..209cd5b 100644
+index 82e74ab..741ac81 100644
 --- a/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverlay.kt
 +++ b/app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvPlayerOverlay.kt
 @@ -178,11 +178,17 @@ internal class LiveTvPlayerState(
@@ -86,7 +86,7 @@ index 82e74ab..209cd5b 100644
          // Fork patch: dostawca #10 - gdy trwa sesja Live TV (wybrano kanał), klawisze zostają Live TV nawet gdy strumień chwilowo nie jest zarejestrowany
          if (!isActive() && currentListUrl == null) return false
 +        if (forgeLongBack(event)) return true // forge fix 14.11 (JMGO A2): a long Back always leaves at once
-+        if (com.nuvio.tv.skin.kicia.livetv.ForgeChannelFailed.channel.value != null) return com.nuvio.tv.skin.kicia.livetv.ForgeChannelFailed.onKey(event, exit) // forge fix 22.11 (UX): Back on „Kanał nie odpowiada” works the first time
++        if (com.nuvio.tv.skin.kicia.livetv.ForgeChannelFailed.channel.value != null) return com.nuvio.tv.skin.kicia.livetv.ForgeChannelFailed.onKey(this, event, exit) // forge fix 22.11 (UX): the „Kanał nie odpowiada” window runs its own keys (Back the first time, ◀▶ OK on its buttons)
 +        // test 15.11 (B-6): Back on the legend closes the legend only (it also left the player)
 +        if (com.nuvio.tv.skin.kicia.livetv.ForgeRemoteLegend.pressed != -1 && (event.keyCode == KeyEvent.KEYCODE_BACK || event.keyCode == KeyEvent.KEYCODE_ESCAPE)) {
 +            if (event.action == KeyEvent.ACTION_UP) com.nuvio.tv.skin.kicia.livetv.ForgeRemoteLegend.dismiss()

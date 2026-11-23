@@ -49,6 +49,7 @@
     <string name="niunia_detail_episode">Odcinek %1$d</string>
     <string name="niunia_detail_more_like">Więcej podobnych</string>
     <string name="niunia_detail_cast">Obsada i twórcy</string>
+    <string name="niunia_detail_no_person">Nie mamy strony tej osoby</string>
     <string name="niunia_detail_starring">Występują</string>
     <string name="niunia_detail_created_by">Twórcy</string>
     <string name="niunia_detail_directed_by">Reżyseria</string>

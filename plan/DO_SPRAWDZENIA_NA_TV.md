@@ -80,3 +80,6 @@ Lista dla właściciela. Wykonawca dopisuje tu wszystko, czego nie da się spraw
 - Live TV: przytrzymanie na kanale w przewodniku i na kafelku → „Dodano do ulubionych: …”, drugi raz „Usunięto…”; filtr „Ulubione” pokazuje kanał.
 - Strona serialu: przytrzymanie na „Sezon N” → „Sezon N: oznaczony jako obejrzany”, znaczniki odcinków.
 - Po przytrzymaniu, które otworzyło okno, i zamknięciu go Wstecz: krótkie OK na tym samym plakacie działa od razu (wcześniej ginęło).
+- (23.11, ux4/ux5) Strona tytułu: OK na osobie w „Obsada i twórcy” → strona osoby → Wstecz: fokus na tej samej osobie (na emulatorze obsada bez id TMDB — strona się nie otwiera, komunikat „Nie mamy strony tej osoby”). To samo dla plakatu z „Więcej podobnych”.
+- (23.11) Przytrzymanie OK na odcinku → okno „Akcje odcinka” (Oznacz jako obejrzane, sezon, poprzednie, Odtwórz); puszczenie nic nie wybiera; Wstecz → fokus na odcinku.
+- (23.11) Live TV, kanał, który nie działa → okno „Kanał nie odpowiada”: ◄► zmienia przycisk, OK „Następny kanał” włącza następny, „Spróbuj ponownie” — ten sam; jeden Wstecz wraca do listy (fokus na kanale).

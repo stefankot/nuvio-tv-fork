@@ -229,8 +229,13 @@ fun ForgeDialog(
     returnFocusTo: FocusRequester? = null,
     note: String? = null, // v7.6: explanation under the message, smaller
     topContent: (@Composable () -> Unit)? = null, // v7.6: e.g. the channel logo above the title
+    focusIndex: Int? = null, // UX 23.11: the button the caller's own key handling picked (the player's window, „Kanał nie odpowiada”)
 ) {
     val requesters = remember(buttons.size) { List(buttons.size) { FocusRequester() } }
+    LaunchedEffect(visible, focusIndex) {
+        if (visible && focusIndex != null) runCatching { requesters.getOrNull(focusIndex)?.requestFocus() }
+            .onFailure { android.util.Log.w("ForkKicia", "okno: fokus przycisku $focusIndex: ${it.javaClass.simpleName}: ${it.message}") }
+    }
     val group = remember { FocusRequester() }
     var wasVisible by remember { mutableStateOf(false) }
     LaunchedEffect(visible) {

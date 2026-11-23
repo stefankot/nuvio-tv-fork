@@ -1,0 +1,59 @@
+[02:18:14] ścieżka 1: Start aplikacji → ekran główny z fokusem
+   → UWAGA (28 s) UWAGA: zimny start 27.7 s
+[02:18:42] ścieżka 2: Główna: OK „Odtwórz” w banerze
+   → OK (17 s) 
+[02:18:58] ścieżka 3: Główna: długie OK w banerze → strona tytułu
+   → OK (17 s) 
+[02:19:15] ścieżka 4: Główna: ▼ rząd, ►×4, OK → tytuł, Wstecz → ten sam plakat
+   → OK (24 s) 
+[02:19:39] ścieżka 5: Główna: długie OK na plakacie → menu → „Do biblioteki”
+   → UWAGA (27 s) UWAGA: menu: drugi przycisk „[bez nazwy 784x96 @568,566]”
+[02:20:06] ścieżka 7: Główna: szybkie przewijanie ▼×8 i ▲×8 — fokus nie ginie
+   → OK (20 s) 
+[02:20:26] ścieżka 8: Główna: ◄ do menu bocznego i z powrotem
+   → OK (17 s) 
+[02:20:43] ścieżka 10: Główna: Wstecz z rzędu → baner/menu, drugi Wstecz → nie zamyka bez pytania
+   → OK (23 s) 
+[02:21:06] ścieżka 11: Szukaj: wpis „bat” klawiaturą ekranową → wyniki → OK → długie OK
+   → OK (58 s) 
+[02:22:04] ścieżka 12: Szukaj: polecane → OK → tytuł → Wstecz (fokus wraca na plakat)
+   → OK (36 s) 
+[02:22:40] ścieżka 14: Szukaj: kafelek „przeglądaj” → OK
+   → OK (22 s) 
+[02:23:02] ścieżka 15: Biblioteka: otwarcie, OK na pierwszej pozycji
+   → OK (17 s) 
+[02:23:19] ścieżka 16: Biblioteka: długie OK na pozycji
+   → OK (19 s) 
+[02:23:38] ścieżka 17: Strona tytułu: przyciski ◄► i OK na każdym
+   → OK (27 s) 
+[02:24:05] ścieżka 19: Strona tytułu: ▼ do odcinków/podobnych, OK, Wstecz
+   → UWAGA (30 s) UWAGA: Wstecz: fokus „Odtwórz” zamiast „Genden Phuntsok | GP”
+[02:24:35] ścieżka 21: Strona tytułu: obsada → osoba → plakat → Wstecz×2
+   → OK (50 s) 
+[02:25:24] ścieżka 22: Ustawienia: otwarcie i przejście ▼ po kategoriach
+   → OK (41 s) 
+[02:26:05] ścieżka 23: Ustawienia: ► do treści kategorii, OK, Wstecz
+   → OK (19 s) 
+[02:26:25] ścieżka 26: Live TV: wejście (stan pusty albo przewodnik)
+   → OK (5 s) 
+[02:26:29] ścieżka 27: Live TV: OK na kanale → odtwarzanie → Wstecz
+   → OK (30 s) 
+[02:27:00] ścieżka 28: Live TV: długie OK na kanale
+   → OK (15 s) 
+[02:27:15] ścieżka 29: Live TV: przewijanie listy ▼×15 i ▲×15
+   → OK (19 s) 
+[02:27:34] ścieżka 30: Live TV: Szukaj kanału
+   → OK (14 s) 
+[02:27:48] ścieżka 33: Kalendarz: otwarcie, ►×3, OK, Wstecz
+   → UWAGA (20 s) UWAGA: Wstecz: fokus „Szukaj kanału lub programu” zamiast „Month”
+[02:28:08] ścieżka 41: Moduły forka: przełącznik OK×2
+   → OK (19 s) 
+[02:28:27] ścieżka 46: Główna → Szukaj → Biblioteka → Główna (menu) — fokus wraca
+   → OK (19 s) 
+[02:28:47] ścieżka 47: Główna: ►×12 w rzędzie (długi rząd), ◄×12
+   → OK (24 s) 
+[02:29:11] ścieżka 48: Strona tytułu: Wstecz z głębi (▼×4) wraca na górę albo wychodzi
+   → OK (24 s) 
+[02:29:35] ścieżka 50: Długie OK na menu bocznym (nie powinno psuć)
+   → OK (18 s) 
+koniec: 11.6 min, {'OK': 25, 'UWAGA': 4, 'BŁĄD': 0}, raport /Users/milajovovich/Desktop/nuvio 2/NuvioFork/plan/ux/cykl4/sciezki.md

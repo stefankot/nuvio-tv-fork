@@ -77,13 +77,30 @@ Część BŁĘDÓW to ograniczenia skryptu (Toast niewidoczny dla uiautomatora, 
   „Więcej” → „Mniej” („Zwiń opis”) → „Więcej”; długie OK na „Sezon 1” → „sezon 1 obejrzany (5 odc.)”, drugie → „nieobejrzany”.
 - Automatycznie (`cykl3/sciezki.md`, 18 ścieżek, 15,4 min): OK 0 / UWAGA 18 / BŁĄD 0 — prawie wszystkie UWAGI to czas wczytania
   na emulatorze (zimny start 30 s, Główna 10–21 s, Live TV 8–12 s; Mac obciążony 5–6) — niemiarodajne, porównać na JMGO.
-- 27. [P] Okno „Kanał nie odpowiada”: pierwszy Wstecz nic nie robił (klawisze najpierw dostaje odtwarzacz, okno nie widziało
+- 27. [B] Okno „Kanał nie odpowiada”: pierwszy Wstecz nic nie robił (klawisze najpierw dostaje odtwarzacz, okno nie widziało
   Wstecz) → Wstecz od razu zamyka okno i wraca do listy kanałów; OK i strzałki działają na przyciskach okna (`ForgeChannelFailed.onKey`).
 - 28. [P] Strona tytułu (ścieżka 19): po Wstecz ze strony osoby (Obsada) albo tytułu z „Podobne” fokus wracał na „Odtwórz” →
   wraca na tę samą osobę/plakat.
-- 29. [P] Długie OK na odcinku od razu odtwarzało → okno opcji odcinka z Nuvio (Odtwórz, obejrzany/nieobejrzany, cały sezon,
+- 29. [B] Długie OK na odcinku od razu odtwarzało → okno opcji odcinka z Nuvio (Odtwórz, obejrzany/nieobejrzany, cały sezon,
   poprzednie odcinki); po zamknięciu fokus wraca na odcinek.
-- 30. [P] Live TV (ścieżka 29): ▲ z pierwszego kanału trafiał w kategorię najbliżej środka („Informacje”) → na ostatnio
+- 30. [B] Live TV (ścieżka 29): ▲ z pierwszego kanału trafiał w kategorię najbliżej środka („Informacje”) → na ostatnio
   wybraną pigułkę (na początku „Wszystkie”).
 - 31. [i] Odcinek obejrzany = pełny pasek postępu na kadrze (bez napisu) — czytelne na TV; uiautomator tego nie widzi.
 - 32. [i] Ścieżki 13, 20, 21: ograniczenia skryptu (klawisz „c” zamiast plakatu, tytuł bez „Podobne”) — nie błędy aplikacji.
+
+## Pętla 4 (23.11 02:06 – 02:31, APK ux4 = commit 93b1db614, arm64, md5 30f3abb2…)
+- Build ux4: `assembleFullDebug -PforkAbi=arm64-v8a` 9 min 21 s (przyrostowo). Emulator uruchomiony od nowa (świeży — czasy wczytania 4–6 s).
+- Ręcznie (ok. 13 min) [B]: martwy kanał (Active Family HD, adres 404) → okno „Kanał nie odpowiada” po 17 s, JEDEN Wstecz → lista,
+  fokus na tym kanale (log `kanał nie odpowiada: Wstecz → okno zamknięte`); ▲ z 1. kanału → „Wszystkie”, po wyborze „Sport” → „Sport”;
+  Wstecz ze strony tytułu → ten sam plakat Głównej; długie OK na odcinku 2 (Dexter: Resurrection) → „Akcje odcinka”, puszczenie nic
+  nie wybiera, Wstecz → fokus na odcinku 2, „Oznacz jako obejrzane” / „…nieobejrzane” działa w obie strony.
+- 33. [P] NOWY BŁĄD: w oknie „Kanał nie odpowiada” w Niuni ◄► i OK nie trafiały w przyciski — OK otwierał nakładkę odtwarzacza Niuni
+  (klawisze odtwarzacza bierze najpierw nakładka) → okno samo obsługuje ◄► (wybór przycisku, fokus na ekranie za nim), OK i Wstecz.
+- 34. [P] Strona tytułu: po Wstecz z głębi (obsada) na hero lista pod spodem zostawała przewinięta — ▼ z hero trafiało w „Zwiastuny”
+  zamiast w odcinki → hero z fokusem = lista od góry.
+- 35. [P] Osoba bez strony (obsada bez id TMDB — na emulatorze wszystkie): komunikat „Nie udało się otworzyć tego tytułu” →
+  „Nie mamy strony tej osoby”. Powrót fokusu z osoby (pkt 28) — do sprawdzenia na TV (tam obsada ma id TMDB).
+- 36. [P] Moduł głosowy, „Co mogę powiedzieć” (z Ustawień): lista bez fokusu — pilotem nie dało się jej przewinąć → wiersze z fokusem.
+- Automatycznie (`cykl4/sciezki.md`, 29 ścieżek, 11,6 min): OK 25 / UWAGA 4 / BŁĄD 0. Uwagi: zimny start 27,7 s (skrypt czeka na
+  „stabilny” ekran Głównej, a ta się zmienia — system: pierwsza klatka po 1,9 s), drugi przycisk menu bez tekstu dla uiautomatora,
+  ścieżka 19 (oczekiwanie skryptu — poprawione), Kalendarz: Wstecz na poprzednią trasę testu.

@@ -127,6 +127,8 @@ fun NiuniaDetail(
     // element (klucz zapisany przed przejściem; lista pod hero sama wraca do zapamiętanego miejsca).
     var returnTo by androidx.compose.runtime.saveable.rememberSaveable(meta.id) { mutableStateOf<String?>(null) }
     val returnFocus = remember { FocusRequester() }
+    val belowList = androidx.compose.foundation.lazy.rememberLazyListState()
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
     LaunchedEffect(meta.id) {
         Log.i(TAG, "szczegóły: ${meta.rawType} „${meta.name}” (sezony=${uiState.seasons.size}, odcinki=${uiState.episodesForSeason.size}, podobne=${uiState.moreLikeThis.size}, obsada=${meta.castMembers.size}, wznów=${uiState.nextToWatch?.isResume == true})")
         val back = returnTo
@@ -188,7 +190,12 @@ fun NiuniaDetail(
             Hero(meta, uiState, series, heroVideo, awards, playFocus, play,
                 onLibrary = { Log.i(TAG, "szczegóły: biblioteka (było ${uiState.isInLibrary})"); viewModel.onEvent(MetaDetailsEvent.OnToggleLibrary) },
                 onAbout = { focusAbout(if (series) "O serialu" else "O filmie") },
-                onFocus = { focusedRow = 0 },
+                onFocus = {
+                    focusedRow = 0
+                    // UX 23.11 (emulator): po Wstecz z głębi strony lista pod hero zostawała przewinięta — ▼ trafiało w zwiastuny/obsadę
+                    // zamiast w pierwszy rząd (odcinki). Hero z fokusem = lista od góry.
+                    if (belowList.firstVisibleItemIndex > 0 || belowList.firstVisibleItemScrollOffset > 0) scope.launch { belowList.scrollToItem(0) }
+                },
                 // UX 22.11: długie OK na „Do biblioteki” = wybór list (Trakt/MDBList), jak w Nuvio.
                 onLibraryLong = { Log.i(TAG, "szczegóły: długie OK → listy biblioteki"); viewModel.onEvent(MetaDetailsEvent.OnLibraryLongPress) })
         },
@@ -198,7 +205,7 @@ fun NiuniaDetail(
             PageLogo(meta)
             Box(Modifier.padding(top = 144.dp).fillMaxSize().clipToBounds()) {
                 com.nuvio.tv.skin.niunia.components.NiuniaVerticalScroll(pivot = 50.dp) {
-                    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(top = 16.dp, bottom = 48.dp)) {
+                    LazyColumn(Modifier.fillMaxSize(), state = belowList, contentPadding = PaddingValues(top = 16.dp, bottom = 48.dp)) {
                         // Episodes: pigułki sezonów (wybrany 24%), potem rząd odcinków (EpisodeCard).
                         if (series && uiState.seasons.isNotEmpty()) {
                             // Test JMGO build159: ▲ z odcinka trafiało w najbliższą pigułkę („Sezon 2”), nie w wybrany sezon.
@@ -316,7 +323,7 @@ fun NiuniaDetail(
                                                 onClick = {
                                                     val id = person.tmdbId
                                                     if (id != null) { Log.i(TAG, "szczegóły: osoba → ${person.name}"); returnTo = back; onNavigateToCastDetail(id, person.name, false) }
-                                                    else { Log.i(TAG, "szczegóły: ${person.name} bez id TMDB — brak strony osoby"); com.nuvio.tv.fork.ForkLog.say(context, TAG, context.getString(R.string.niunia_ds_no_play)) }
+                                                    else { Log.i(TAG, "szczegóły: ${person.name} bez id TMDB — brak strony osoby"); com.nuvio.tv.fork.ForkLog.say(context, TAG, context.getString(R.string.niunia_detail_no_person)) }
                                                 },
                                             )
                                         }

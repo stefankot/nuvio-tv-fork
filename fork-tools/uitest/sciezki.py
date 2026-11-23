@@ -534,7 +534,12 @@ def _(p):
     to_detail(p)
     move(p, "DOWN", 2)
     a, b = ok(p)
-    back(p, a)
+    # 23.11: gdy OK nie otworzyło ekranu (np. osoba bez strony — tylko komunikat), Wstecz ze strony pod hero wraca
+    # na hero („Odtwórz”) — tak ma być; powrót na ten sam element sprawdzamy tylko po wyjściu z innego ekranu.
+    if changed(a, b):
+        back(p, a)
+    else:
+        back(p, None, "Wstecz (strona pod hero → hero)")
 
 
 @path(20, "Strona tytułu: długie OK na „Podobne”")
@@ -643,6 +648,9 @@ def _(p):
         p.step(f"{d}×15 ({time.time() - t0:.1f} s)", s)
         if s.focus is None:
             p.note("BŁĄD", f"Live TV: po {d}×15 brak fokusu")
+        # UX 22.11 (RAPORT 30): ▲ z kanałów ma wrócić na wybraną kategorię (na starcie „Wszystkie”), nie na najbliższą środka.
+        elif d == "UP" and s.fb and s.fb[3] - s.fb[1] < 100 and s.focus != "Wszystkie" and "|" not in s.focus:
+            p.note("UWAGA", f"Live TV: po ▲×15 fokus „{s.focus}” zamiast „Wszystkie”")
 
 
 @path(30, "Live TV: Szukaj kanału")

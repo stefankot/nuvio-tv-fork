@@ -46,3 +46,9 @@ Emulator GTV (`nuvio_tv`, Google TV API 34, arm64 → build `-PforkAbi=arm64-v8a
 - Poprawki po pętli 3 (RAPORT 27–30, do builda ux4): Wstecz w „Kanał nie odpowiada”, powrót fokusu na stronie tytułu (osoba/podobne),
   długie OK na odcinku = opcje odcinka Nuvio, ▲ z kanałów na wybraną pigułkę.
 - Następny krok: `adb emu kill`, build `ux4` (`assembleFullDebug` arm64), instalacja, pętla 4 (≥ 10 min, połowa przez uiautomator).
+
+## Pętla 4 (23.11 02:06–02:31) — APK ux4 (md5 30f3abb22ad368f80ff3815f734b4490, `.stage/apk/ux4-arm64.apk`)
+- Build 9 min 21 s. Ręcznie ok. 13 min + automatycznie 11,6 min (`cykl4/sciezki.md`: OK 25 / UWAGA 4 / BŁĄD 0).
+- Potwierdzone [B]: Wstecz w „Kanał nie odpowiada”, ▲ na wybraną kategorię, opcje odcinka na długie OK, powrót na plakat Głównej.
+- Poprawki po pętli 4 (RAPORT 33–36, do builda ux5): przyciski okna „Kanał nie odpowiada” w Niuni, lista pod hero od góry,
+  komunikat osoby bez strony, fokus w „Co mogę powiedzieć”. Skrypt: ścieżka 19 i 29 (nowe sprawdzenie ▲ na „Wszystkie”).
