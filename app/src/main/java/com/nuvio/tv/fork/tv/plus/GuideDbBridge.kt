@@ -131,8 +131,8 @@ object GuideDbBridge {
         epgUrls.forEachIndexed { i, _ ->
             val f = guideFiles[i]
             if (!f.isFile || f.length() == 0L) return@forEachIndexed
-            val twin = done.firstOrNull { (_, size) -> size > 0 && kotlin.math.abs(size - f.length()) <= size / 10 }
-                ?.let { (src, _) -> src.takeIf { sameChannels(db, it, f) } }
+            // JMGO iptvdb3: pierwszy plik o podobnym rozmiarze bywa innym przewodnikiem — sprawdzamy każdy podobny.
+            val twin = done.firstOrNull { (src, size) -> size > 0 && kotlin.math.abs(size - f.length()) <= size / 10 && sameChannels(db, src, f) }?.first
             if (twin != null) { alias[srcOf(f)] = twin; Log.i(TAG, "${srcOf(f)}: ten sam przewodnik co $twin — bez drugiego importu"); return@forEachIndexed }
             changed = importFile(db, f, srcOf(f), request, now) || changed
             done += srcOf(f) to f.length()
