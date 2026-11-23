@@ -6,7 +6,20 @@ odtwarzaniu kanału, „Kanał nie odpowiada” bez wyjścia, gdy kanał już le
 (kolejni dostawcy FlixNest: Trex, Dream 4K, DINO, Neo 4K Pro — w 95% te same kanały).
 
 Decyzja właściciela (23.11, ten wątek): „zajmij się wszystkimi poważnymi błędami, ale nie przebudową całego silnika teraz”.
-**Przebudowa silnika (SQLite) — WSTRZYMANA**, kierunek niżej.
+**23.11 wieczór — WZNOWIONA przez kopię**: „Skopiuj zatem optymalizacje, ale nie usuń funkcji związanych z catch-up”
+(po porównaniu forków `FORKI.md`). Projekt: `ARCHITEKTURA.md` (silnik przewodnika z NuvioPlusIPTV: SQLite + strumieniowy XMLTV).
+
+## Pomiary JMGO 23.11 17:45–18:01 (APK napisyai5 z poprawkami 9055fee9f; `.stage/jmgo/iptv-pomiar-{1,2}`, `iptv-test-zapisu`)
+- Pomiar 1 (pierwsze wejście po instalacji, nowy klucz zapisu, bez próbki): ekran 0,15 s, kanały hls.gd (326) 0,8 s, wszystkie
+  59 323 kanały 6,6 s, start przewodnika 3,3 s, **program „teraz” po ~66 s**, pełny przewodnik ~3 min; sterta 40 → 204–230 →
+  363–424 MB; **0 ANR**. Zapis przewodnika nie powstał (aplikację zamknął pomiar 2, ~40 s po końcu odczytu).
+- Pomiar 2: próbka startowa 160 kanałów w 27 ms, ekran z próbką od razu, ale **próbka nadpisana wersją „przewodnik dla 0”**
+  (zapis przed przewodnikiem + `IOException` przy dwóch zapisach naraz) — poprawione (`TvSnapshot`, bez builda); program ~64 s,
+  szczyt sterty 469 MB; 0 ANR.
+- Test zapisu (bez zamykania aplikacji; Home, 75 s, ponowne wejście): lista 5 s, wycinek „teraz” 15 s, pełny zapis ~26 s.
+- Wniosek: zapis działa tylko, gdy pełny odczyt (~3 min) skończy się na ekranie telewizji; nawet wtedy 15–26 s. Obecny silnik
+  nie zejdzie do < 1 s → baza przewodnika (`ARCHITEKTURA.md`).
+- Niesprawdzone jeszcze: włączenie kanału w trakcie wczytywania (ANR), okno „Kanał nie odpowiada”, nazwy, ulubione.
 
 ## Przyczyny (zbadane z logów JMGO, bez nowego pomiaru — urządzenie było zajęte)
 - **100 s**: każdy pomiar 23.11 (`.stage/jmgo/pamiec-20261123-1013`, `-1056`, `anr-20261123`) ma `saved programmes: miss (no file)`.

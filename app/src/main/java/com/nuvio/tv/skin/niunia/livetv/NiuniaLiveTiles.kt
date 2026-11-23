@@ -142,6 +142,6 @@ internal fun NiuniaLiveTileCard(
 
 /** „program · E5 · kanał” (przewodnik) albo „program · Pt 20:15” (Odkrywaj — godzina tylko dla tego, co dopiero będzie). */
 internal fun caption(tile: NiuniaLiveTile): String {
-    val p = tile.programme ?: return tile.channel.name
+    val p = tile.programme ?: return com.nuvio.tv.fork.tv.names.ChannelNames.shown(tile.channel.name)
     return listOfNotNull(p.title, tile.extra?.takeIf { it.isNotBlank() }, com.nuvio.tv.fork.tv.names.ChannelNames.shown(tile.channel.name).takeIf { tile.withChannel }).joinToString(" · ")
 }

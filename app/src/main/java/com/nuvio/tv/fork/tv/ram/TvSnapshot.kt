@@ -79,7 +79,13 @@ object TvSnapshot {
      * Zapis próbki z pełnych danych ekranu telewizji (w tle; najwyżej raz na [SAVE_EVERY_MS], chyba że zmieniła się
      * pierwsza strona listy). [first] — kanały w kolejności ekranu.
      */
-    fun save(first: List<LiveTvChannel>, all: List<LiveTvChannel>, favoriteUrls: Set<String>, extraGuideKeys: Collection<String>, schedule: (String) -> List<LiveTvProgramme>) {
+    fun save(first: List<LiveTvChannel>, all: List<LiveTvChannel>, favoriteUrls: Set<String>, extraGuideKeys: Collection<String>, schedule: (String) -> List<LiveTvProgramme>) =
+        synchronized(saveLock) { saveLocked(first, all, favoriteUrls, extraGuideKeys, schedule) }
+
+    // JMGO 23.11 (pomiar 2): dwa zapisy naraz → „IOException: nie udało się zapisać snapshot_v2.bin.gz”.
+    private val saveLock = Any()
+
+    private fun saveLocked(first: List<LiveTvChannel>, all: List<LiveTvChannel>, favoriteUrls: Set<String>, extraGuideKeys: Collection<String>, schedule: (String) -> List<LiveTvProgramme>) {
         val f = file ?: return
         if (first.isEmpty()) return
         val now = System.currentTimeMillis()
@@ -98,6 +104,14 @@ object TvSnapshot {
             for (c in ordered) if (c.guideKey !in progs) {
                 val l = schedule(c.guideKey).filter { it.stopEpochMs > now - 60 * 60_000 && it.startEpochMs < now + AHEAD_MS }.take(PER_CHANNEL)
                 if (l.isNotEmpty()) progs[c.guideKey] = l.map { LiveTvProgramme(it.title, it.startEpochMs, it.stopEpochMs, episode = it.episode, image = it.image?.takeIf { u -> u.length <= 1_000 }) }
+            }
+            // JMGO 23.11 (pomiar 2): zaraz po starcie, zanim przewodnik doszedł, dobra próbka (program dla 152 kanałów)
+            // została nadpisana próbką „przewodnik dla 0” — następne wejście nie miało programu. Mniej niż połowa
+            // poprzednich programów = przewodnik jeszcze się wczytuje: bez zapisu.
+            val before = data?.programmes?.size ?: 0
+            if (before > 0 && progs.size < before / 2) {
+                Log.i(TAG, "próbka startowa: bez zapisu — program dla ${progs.size} kanałów, w zapisie ${before} (przewodnik jeszcze się wczytuje)")
+                return
             }
             f.parentFile?.mkdirs()
             val tmp = File(f.path + ".tmp")
