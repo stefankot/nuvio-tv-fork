@@ -24,9 +24,11 @@ object AiSettings {
     const val K_REVIEW = "ai_sub_review"; const val K_FALLBACK = "ai_sub_fallback_original"; const val K_NOTICE = "ai_sub_notice"
     const val K_CONSENT_TEXT = "ai_sub_consent_text"
     val titleLimits = listOf("1.0", "0.3", "3.0"); val dayLimits = listOf("3.0", "1.0", "10.0")
+    /** Właściciel 23.11 („Tak, podnieś”): 3 $ na odcinek (tryb na bieżąco ~1,4 $/godz.), 10 $ dziennie; wcześniej 1 $ / 3 $. */
+    const val DEFAULT_TITLE = "3.0"; const val DEFAULT_DAY = "10.0"
     fun model(c: Context) = ForkFeatures.str(c, K_MODEL, ModelPricing.DEFAULT_MODEL).takeIf { it in ModelPricing.models } ?: ModelPricing.DEFAULT_MODEL
-    fun titleLimit(c: Context) = ForkFeatures.str(c, K_TITLE, "1.0").toDoubleOrNull() ?: 1.0
-    fun dayLimit(c: Context) = ForkFeatures.str(c, K_DAY, "3.0").toDoubleOrNull() ?: 3.0
+    fun titleLimit(c: Context) = ForkFeatures.str(c, K_TITLE, DEFAULT_TITLE).toDoubleOrNull() ?: 3.0
+    fun dayLimit(c: Context) = ForkFeatures.str(c, K_DAY, DEFAULT_DAY).toDoubleOrNull() ?: 10.0
     fun review(c: Context) = ForkFeatures.enabled(c, K_REVIEW, true)
     fun fallbackOriginal(c: Context) = ForkFeatures.enabled(c, K_FALLBACK, true)
     fun notice(c: Context) = ForkFeatures.enabled(c, K_NOTICE, true)

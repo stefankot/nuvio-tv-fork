@@ -115,8 +115,8 @@ fun AiSubtitlesScreen() {
             }
         }
         item { check(refresh >= 0) /* odśwież napis po zmianie */; Button(onClick = { cycle(c, AiSettings.K_MODEL, ModelPricing.models, ModelPricing.DEFAULT_MODEL); refresh++ }) { Text("Model: ${AiSettings.model(c)}" + (ModelPricing.priceFor(AiSettings.model(c))?.let { "  ($${it.inputPerM}/$${it.outputPerM} za 1M tokenów)" } ?: "")) } }
-        item { check(refresh >= 0) /* odśwież napis po zmianie */; Button(onClick = { cycle(c, AiSettings.K_TITLE, AiSettings.titleLimits, "1.0"); refresh++ }) { Text("Limit na film/odcinek: $${AiSettings.titleLimit(c)}") } }
-        item { check(refresh >= 0) /* odśwież napis po zmianie */; Button(onClick = { cycle(c, AiSettings.K_DAY, AiSettings.dayLimits, "3.0"); refresh++ }) { Text("Limit dzienny: $${AiSettings.dayLimit(c)} (dziś wydano ok. $${"%.3f".format(java.util.Locale.ROOT, spentToday ?: 0.0)})") } }
+        item { check(refresh >= 0) /* odśwież napis po zmianie */; Button(onClick = { cycle(c, AiSettings.K_TITLE, AiSettings.titleLimits, AiSettings.DEFAULT_TITLE); refresh++ }) { Text("Limit na film/odcinek: $${AiSettings.titleLimit(c)}") } }
+        item { check(refresh >= 0) /* odśwież napis po zmianie */; Button(onClick = { cycle(c, AiSettings.K_DAY, AiSettings.dayLimits, AiSettings.DEFAULT_DAY); refresh++ }) { Text("Limit dzienny: $${AiSettings.dayLimit(c)} (dziś wydano ok. $${"%.3f".format(java.util.Locale.ROOT, spentToday ?: 0.0)})") } }
         item { Text("Limity liczy aplikacja z danych zwróconych przez Google; rozliczenie Google może się nieznacznie różnić i przychodzić z opóźnieniem.", style = MaterialTheme.typography.bodySmall) }
         if (message.isNotEmpty()) item { Text(message, style = MaterialTheme.typography.titleMedium) }
         item { Text("Zapisane tłumaczenia (${docs.size})", style = MaterialTheme.typography.titleMedium) }
