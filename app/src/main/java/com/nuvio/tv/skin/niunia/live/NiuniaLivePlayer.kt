@@ -343,8 +343,10 @@ internal fun NiuniaLivePlayer(
     nav.appContext = context.applicationContext
     val state = NiuniaLive.state
     // 23.11 (przewodnik w bazie): odcinki z archiwum w rzędzie pod odtwarzaczem — minione dni kanału z bazy.
-    LaunchedEffect(channel.guideKey) { com.nuvio.tv.fork.tv.plus.GuideDbBridge.need(context, channel, 0L) }
-    val schedule = LiveTvRepository.schedule(channel.guideKey)
+    LaunchedEffect(channel.guideKey) { com.nuvio.tv.fork.tv.plus.GuideDbBridge.need(context, channel, 0L); com.nuvio.tv.fork.tv.plus.GuideDbBridge.want(context, listOf(channel.guideKey)) }
+    val dbRows by com.nuvio.tv.fork.tv.plus.GuideDbBridge.version.collectAsState()
+    // Odczyt [dbRows] w kompozycji = przeliczenie po paczce wierszy z bazy (jak dotąd: schedule() przy każdej kompozycji).
+    val schedule = if (dbRows >= 0) LiveTvRepository.schedule(channel.guideKey) else emptyList()
     val scrubProgramme = scrubMs?.let { t -> schedule.firstOrNull { t >= it.startEpochMs && t < it.stopEpochMs } }
     val shown = scrubProgramme ?: replay ?: now
     val archive = replay != null

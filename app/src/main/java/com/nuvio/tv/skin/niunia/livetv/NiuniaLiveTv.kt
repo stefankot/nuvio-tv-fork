@@ -527,7 +527,11 @@ private fun GuideRow(
 ) {
     val winEnd = winStart + WINDOW_MS
     // 23.11 (TvRam): dopóki przewodnik się wczytuje — program z próbki startowej (kanały pierwszej strony).
-    val schedule = remember(ch.guideKey, guideVersion) {
+    // 23.11 etap 1b (przewodnik w bazie): wiersz na ekranie prosi bazę o pełny program kanału; po paczce [dbRows] rośnie.
+    val dbCtx = LocalContext.current
+    val dbRows by com.nuvio.tv.fork.tv.plus.GuideDbBridge.version.collectAsState()
+    LaunchedEffect(ch.guideKey) { com.nuvio.tv.fork.tv.plus.GuideDbBridge.want(dbCtx, listOf(ch.guideKey)) }
+    val schedule = remember(ch.guideKey, guideVersion, dbRows) {
         LiveTvRepository.schedule(ch.guideKey).ifEmpty { if (com.nuvio.tv.fork.tv.ram.TvRam.enabled) com.nuvio.tv.fork.tv.ram.TvSnapshot.programmesFor(ch.guideKey) else emptyList() }
     }
     val visible = remember(schedule, winStart) { schedule.filter { it.stopEpochMs > winStart && it.startEpochMs < winEnd } }

@@ -12,6 +12,7 @@ import com.nuvio.tv.reshaped.livetv.liveTvNameKey
 import com.nuvio.tv.reshaped.livetv.liveTvNameTag
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
 import java.io.File
@@ -49,6 +50,63 @@ object GuideDbBridge {
 
     @Volatile private var database: EpgDatabase? = null
     @Volatile private var enabledCache: Boolean? = null
+    @Volatile private var appContext: Context? = null
+
+    // ------------------------------------------------------------------ leniwe wiersze (etap 1b)
+    //
+    // Właściciel 23.11 ~19:30 (iptvdb2: „teraz” 11 s, pełne okno 72 s): „czy ekran nie może czytać najpierw małej części, a potem
+    // dociągać resztę?”. W pamięci Reshaped (kept) jest tylko bieżący i następny program wszystkich kanałów ([NOW_AHEAD_MS]);
+    // pełne okno −[PAST_MS]…+[AHEAD_MS] mają tylko kanały, o które pyta ekran ([want]) — paczkami z bazy, w pamięci [ROWS_MAX].
+    private const val NOW_AHEAD_MS = 2 * HOUR
+    private const val ROWS_MAX = 800
+    private const val ROWS_BATCH = 200
+    private val rows = object : LinkedHashMap<String, List<LiveTvProgramme>>(256, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, List<LiveTvProgramme>>?): Boolean = size > ROWS_MAX
+    }
+    private val wanted = LinkedHashSet<String>()
+    @Volatile private var rowsJob: kotlinx.coroutines.Job? = null
+    private val io = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + Dispatchers.IO)
+    /** Rośnie po każdej paczce wierszy z bazy: ekrany Niuni przeliczają wiersze (Reshaped ma swoje `guideVersion`). */
+    val version = kotlinx.coroutines.flow.MutableStateFlow(0)
+    /** [publish] z [load] — tylko „teraz” i priorytet: most TV (indeks szukania, odcinki) czeka na pełny przegląd w tle ([fullPass]). */
+    @Volatile var partialPublish = false
+        private set
+    @Volatile private var passJob: kotlinx.coroutines.Job? = null
+
+    /**
+     * Pełny program kanału z pamięci wierszy (łatka `dostawca/LiveTvRepository/16` w `schedule()`): gdy go nie ma — [kept]
+     * (bieżący i następny); ekran prosi o niego przez [want].
+     */
+    fun rowFor(guideKey: String, kept: List<LiveTvProgramme>): List<LiveTvProgramme> {
+        if (appContext == null) return kept
+        synchronized(rows) { return rows[guideKey] ?: kept }
+    }
+
+    /** Ekran pokazuje te kanały: ich pełne okno z bazy w tle (paczkami), potem [version] + 1. Tanie, gdy już są. */
+    fun want(c: Context, keys: Collection<String>) {
+        if (keys.isEmpty() || !enabled(c)) return
+        if (appContext == null) appContext = c.applicationContext
+        synchronized(rows) { keys.forEach { if (!rows.containsKey(it)) wanted += it } ; if (wanted.isEmpty()) return }
+        if (rowsJob?.isActive == true) return
+        rowsJob = io.launch {
+            kotlinx.coroutines.delay(20)
+            while (true) {
+                val batch = synchronized(rows) { wanted.take(ROWS_BATCH).also { wanted.removeAll(it.toSet()) } }
+                if (batch.isEmpty()) break
+                val t0 = System.currentTimeMillis()
+                val db = db(c)
+                if (db.fingerprint() == null) { synchronized(rows) { wanted.clear() }; break }
+                val now = LiveTvClock.nowEpochMs()
+                val got = convert(safeRange(db, now - PAST_MS, now + AHEAD_MS, light = true, channels = batch))
+                synchronized(rows) { batch.forEach { k -> rows[k] = got[k].orEmpty() } }
+                version.value = version.value + 1
+                Log.i(TAG, "wiersze z bazy: ${got.size} z ${batch.size} kanałów w ${System.currentTimeMillis() - t0} ms")
+            }
+        }
+    }
+
+    /** Nowy przewodnik w bazie: stare wiersze do wymiany. */
+    private fun dropRows() { synchronized(rows) { rows.clear(); wanted.clear() }; version.value = version.value + 1 }
 
     fun enabled(c: Context): Boolean =
         enabledCache ?: com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(c, KEY, true).also {
@@ -81,8 +139,13 @@ object GuideDbBridge {
         publish: (Map<String, List<LiveTvProgramme>>, Map<String, String>?, Set<String>?) -> Unit,
     ): Pair<Map<String, List<LiveTvProgramme>>, Long> = withContext(Dispatchers.IO) {
         val t0 = System.currentTimeMillis()
+        appContext = c.applicationContext
         val db = db(c)
         val now = LiveTvClock.nowEpochMs()
+        val publishPart = { kept: Map<String, List<LiveTvProgramme>>, l: Map<String, String>?, f: Set<String>? ->
+            partialPublish = true
+            try { publish(kept, l, f) } finally { partialPublish = false }
+        }
         val logosFile = File(File(c.filesDir, "fork_tv"), "guide_db_logos.tsv")
         var logos: Map<String, String>? = readLogos(logosFile)
 
@@ -91,15 +154,17 @@ object GuideDbBridge {
         if (db.fingerprint() != null && priority.isNotEmpty()) {
             val first = convert(safeRange(db, now - HOUR, now + 6 * HOUR, light = false, channels = priority))
             Log.i(TAG, "start: ${first.size} z ${priority.size} kanałów priorytetowych z bazy w ${System.currentTimeMillis() - t0} ms")
-            if (first.isNotEmpty()) publish(first, logos, null)
+            if (first.isNotEmpty()) publishPart(first, logos, null)
+            want(c, priority)
         }
 
-        // 1b. Wszystkie kanały blisko „teraz” z bazy, zanim sprawdzimy pliki (import trwa minuty, gdy dostawca je zmienił).
+        // 1b. Wszystkie kanały: tylko bieżący i następny program (iptvdb2: okno −3…+6 h = 8 s, −12…+36 h = 72 s).
         val hadGuide = db.fingerprint() != null
+        var kept: Map<String, List<LiveTvProgramme>> = emptyMap()
         if (hadGuide) {
-            val early = convert(safeRange(db, now - 3 * HOUR, now + 6 * HOUR, light = true, channels = null))
-            Log.i(TAG, "start: okno „teraz” dla ${early.size} kanałów z bazy po ${System.currentTimeMillis() - t0} ms")
-            if (early.isNotEmpty()) publish(withPriority(early, priority, db, now), logos, null)
+            kept = withPriority(convert(safeRange(db, now, now + NOW_AHEAD_MS, light = true, channels = null)), priority, db, now)
+            Log.i(TAG, "start: „teraz i następny” dla ${kept.size} kanałów z bazy po ${System.currentTimeMillis() - t0} ms")
+            if (kept.isNotEmpty()) publishPart(kept, logos, null)
         }
 
         // 2. Pobranie przewodników, które są stare (jak readGuide Reshaped; nieudane pobranie zostawia poprzedni plik).
@@ -146,21 +211,21 @@ object GuideDbBridge {
             writeLogos(logosFile, logos)
         }
 
-        // 5. Okno dla wszystkich kanałów: najpierw blisko „teraz”, potem szersze.
-        if (changed || !hadGuide) {
-            val near = convert(safeRange(db, now - 3 * HOUR, now + 6 * HOUR, light = true, channels = null))
-            publish(withPriority(near, priority, db, now), logos, failed)
+        // 5. Nowy przewodnik w bazie: „teraz i następny” od nowa, wiersze ekranu od nowa.
+        val dbChanged = changed || !hadGuide
+        if (dbChanged) {
+            dropRows()
+            kept = withPriority(convert(safeRange(db, now, now + NOW_AHEAD_MS, light = true, channels = null)), priority, db, now)
+            want(c, priority)
         }
-        val wide = convert(safeRange(db, now - PAST_MS, now + AHEAD_MS, light = true, channels = null))
-        val kept = withPriority(wide, priority, db, now)
-        publish(kept, logos, failed)
-        // Kategorie programów Kici (filtry „Filmy”, „Sport”… w Niuni) zbierał parser Reshaped — tu z bazy, dla tego samego okna.
-        if (changed || com.nuvio.tv.skin.kicia.livetv.ForgeEpgCategories.needsGuideRead()) recordCategories(db, now)
+        publishPart(kept, logos, failed)
         val programmes = kept.values.sumOf { it.size }
-        Log.i(TAG, "przewodnik z bazy: ${kept.size} kanałów, $programmes programów (−12 h…+36 h) w ${System.currentTimeMillis() - t0} ms" +
+        Log.i(TAG, "przewodnik z bazy: ${kept.size} kanałów, $programmes programów (teraz i następny) w ${System.currentTimeMillis() - t0} ms" +
             (if (failed.isNotEmpty()) ", nieudane przewodniki: ${failed.size}" else ""))
-        // Okno przesuwa się z czasem; plik sprawdzany co godzinę (pobranie i tak dopiero po downloadEveryMs).
-        kept to (now + HOUR)
+        // 6. Indeks szukania, odcinki obserwowanych, dziennik catch-up, kategorie — w tle, raz na zmianę bazy (i raz po starcie aplikacji).
+        fullPass(c, channels, dbChanged, publish)
+        // „Teraz i następny” wystarcza na ~2 h; odczyt z bazy co 30 min (pliki i tak pobierane po downloadEveryMs).
+        kept to (now + 30 * 60_000L)
     }
 
     /**
@@ -190,6 +255,30 @@ object GuideDbBridge {
         if (channel.catchup == null || !enabled(c)) return
         if (fromMs > LiveTvClock.nowEpochMs() - PAST_MS + HOUR) return
         com.nuvio.tv.reshaped.livetv.LiveTvRepository.requestHistory(channel)
+    }
+
+    /**
+     * Pełne okno wszystkich kanałów dla rzeczy liczonych z całego przewodnika ([com.nuvio.tv.fork.tv.most.TvBridge.onGuideRead]:
+     * indeks szukania programów, nowe odcinki obserwowanych, dziennik catch-up) i kategorie Kici — w tle, 60 s po wejściu,
+     * tylko gdy baza się zmieniła od ostatniego przeglądu albo pierwszy raz po starcie aplikacji. Mapa puszczana po przeglądzie.
+     */
+    private var passRevision = 0L
+    private fun fullPass(c: Context, channels: List<LiveTvChannel>, dbChanged: Boolean, publish: (Map<String, List<LiveTvProgramme>>, Map<String, String>?, Set<String>?) -> Unit) {
+        val db = db(c)
+        val revision = try { db.revision() } catch (e: Exception) { Log.w(TAG, "przegląd: rewizja: ${e.javaClass.simpleName}: ${e.message}"); return }
+        if (!dbChanged && revision == passRevision) return
+        if (passJob?.isActive == true) return
+        passJob = io.launch {
+            kotlinx.coroutines.delay(60_000)
+            val t0 = System.currentTimeMillis()
+            val now = LiveTvClock.nowEpochMs()
+            if (dbChanged || com.nuvio.tv.skin.kicia.livetv.ForgeEpgCategories.needsGuideRead()) recordCategories(db, now)
+            val all = convert(safeRange(db, now - PAST_MS, now + AHEAD_MS, light = true, channels = null))
+            if (all.isEmpty()) return@launch
+            com.nuvio.tv.fork.tv.most.TvBridge.onGuideRead(channels, all, now)
+            passRevision = revision
+            Log.i(TAG, "przegląd w tle: ${all.size} kanałów, ${all.values.sumOf { it.size }} programów (indeks, odcinki, archiwum) w ${System.currentTimeMillis() - t0} ms")
+        }
     }
 
     // ------------------------------------------------------------------ import

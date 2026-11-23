@@ -50,6 +50,9 @@ object TvBridge {
     }
 
     fun onGuideRead(channels: List<LiveTvChannel>, kept: Map<String, List<LiveTvProgramme>>, nowMs: Long) {
+        // 23.11 (przewodnik w bazie, etap 1b): ekran dostaje tylko „teraz i następny” — indeks szukania i odcinki liczy pełny
+        // przegląd w tle (GuideDbBridge.fullPass), inaczej każdy częściowy odczyt przebudowywałby indeks.
+        if (com.nuvio.tv.fork.tv.plus.GuideDbBridge.partialPublish) return
         // 22.11: indeks szukania TV (w tle, przyrostowo) — także przy wyłączonym module TV, bo służy szukaniu w Live TV.
         com.nuvio.tv.fork.tv.index.TvTextIndex.submit(channels, kept)
         if (!enabled) return

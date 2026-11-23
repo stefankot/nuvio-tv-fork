@@ -1,0 +1,11 @@
+--- a
++++ b
+@@ -1539,7 +1539,7 @@
+      * before them the older days of a catch-up channel once they were looked at ([requestHistory]).
+      */
+     fun schedule(guideKey: String): List<LiveTvProgramme> {
+-        val kept = keptSchedule[guideKey].orEmpty()
++        val kept = com.nuvio.tv.fork.tv.plus.GuideDbBridge.rowFor(guideKey, keptSchedule[guideKey].orEmpty()) // Fork patch: baza-wiersze (pełny program widocznych kanałów z bazy, reszta: teraz i następny)
+         synchronized(history) {
+             val entry = history[guideKey] ?: return kept
+             if (entry.kept === kept) return entry.merged
