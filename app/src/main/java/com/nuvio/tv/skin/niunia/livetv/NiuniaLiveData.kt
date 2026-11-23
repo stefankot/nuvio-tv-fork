@@ -110,6 +110,9 @@ internal object NiuniaListMaps {
     @Volatile private var guide: Memo? = null
     @Volatile private var url: Memo? = null
 
+    /** 23.11 (TvRam): po wyjściu z telewizji. */
+    fun clear() { guide = null; url = null }
+
     fun byGuide(list: List<LiveTvChannel>): Map<String, LiveTvChannel> = guide?.takeIf { it.list === list }?.map
         ?: HashMap<String, LiveTvChannel>(list.size * 2).also { m -> list.forEach { m.putIfAbsent(it.guideKey, it) } }.also { guide = Memo(list, it) }
 

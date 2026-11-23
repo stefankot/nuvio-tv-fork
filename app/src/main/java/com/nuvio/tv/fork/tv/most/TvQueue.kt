@@ -19,9 +19,13 @@ data class ResolvedItem(val item: QueueItem, val channel: LiveTvChannel, val pro
 /** Buduje kolejkę „Dla Ciebie” ze stanu Reshaped i danych modułu TV. */
 object TvQueue {
     fun build(): List<ResolvedItem> {
-        val state = LiveTvRepository.uiState.value
+        val live = LiveTvRepository.uiState.value
         val data = TvBridge.data ?: return emptyList()
         val now = LiveTvClock.nowEpochMs()
+        // 23.11 (TvRam): telewizja poza jej ekranem nie jest w pamięci — „Dla Ciebie” z próbki startowej.
+        val snap = if (live.channels.isEmpty() && com.nuvio.tv.fork.tv.ram.TvRam.enabled) com.nuvio.tv.fork.tv.ram.TvSnapshot.data else null
+        val state = if (snap == null) live else live.copy(channels = snap.channels, currentProgrammes = snap.currentProgrammes(now), favoriteUrls = live.favoriteUrls.ifEmpty { snap.favoriteUrls })
+        val scheduleOf: (String) -> List<LiveTvProgramme> = { key -> snap?.programmes?.get(key) ?: LiveTvRepository.schedule(key) }
         val byGuide = LinkedHashMap<String, LiveTvChannel>()
         state.channels.forEach { byGuide.putIfAbsent(it.guideKey, it) }
         val onNow = state.currentProgrammes
@@ -40,7 +44,7 @@ object TvQueue {
         return ForYouQueue.build(QueueInput(inProgress, alerts, favourites, usual, any)).mapNotNull { item ->
             val channel = byGuide[item.guideKey] ?: return@mapNotNull null
             val programme = if (item.badge == Badge.LIVE) onNow[item.guideKey]
-            else LiveTvRepository.schedule(item.guideKey).firstOrNull { it.startEpochMs == item.startMs }
+            else scheduleOf(item.guideKey).firstOrNull { it.startEpochMs == item.startMs }
             ResolvedItem(item, channel, programme)
         }
     }

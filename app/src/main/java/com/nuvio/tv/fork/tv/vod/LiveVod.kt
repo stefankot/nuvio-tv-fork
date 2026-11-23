@@ -44,6 +44,26 @@ object LiveVod {
         }
     }
 
+    /**
+     * 23.11 (JMGO: „brak programu” przez ~26 s po wejściu): lista zapisana na dysku przed odsiewem miała 194 tys. filmów —
+     * każde wejście czytało ją całą (~11 s przy pełnej pamięci) i dopiero potem ruszał przewodnik. Zapisana lista z filmami
+     * jest odsiewana i przepisywana bez nich (raz, w tle); kolejne wejścia czytają tylko kanały.
+     */
+    internal fun saved(c: Context, file: java.io.File, source: com.nuvio.tv.reshaped.livetv.LiveTvSource, entry: com.nuvio.tv.reshaped.livetv.LiveTvListCache.Entry): com.nuvio.tv.reshaped.livetv.LiveTvListCache.Entry {
+        val live = live(c, entry.channels)
+        if (live === entry.channels) return entry
+        val clean = com.nuvio.tv.reshaped.livetv.LiveTvListCache.Entry(live, entry.epgUrls, entry.groupOrder, entry.savedAtMs)
+        Thread({
+            try {
+                com.nuvio.tv.reshaped.livetv.LiveTvListCache.write(file, source, clean)
+                Log.i(TAG, "lista: zapis bez filmów i seriali (${live.size} kanałów) — następne wejście szybsze")
+            } catch (e: Exception) {
+                Log.w(TAG, "lista: zapis bez filmów: ${e.javaClass.simpleName}: ${e.message}")
+            }
+        }, "fork-tv-vod-save").apply { isDaemon = true }.start()
+        return clean
+    }
+
     /** Adres pliku filmu/serialu, nie kanału na żywo. Bez wyrażeń regularnych (setki tysięcy pozycji). */
     internal fun isVodUrl(url: String): Boolean {
         var p = url.substringBefore('?').substringBefore('#')

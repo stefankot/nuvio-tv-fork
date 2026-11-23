@@ -4,6 +4,7 @@
     <string name="niunia_live_all">Wszystkie</string>
     <string name="niunia_live_until">%1$s · do %2$s</string>
     <string name="niunia_live_no_guide">Brak programu</string>
+    <string name="niunia_live_guide_loading">Wczytuję program…</string>
     <string name="niunia_live_no_source">Brak listy kanałów. Dodaj listę (M3U, Xtream) — także z telefonu przez kod QR.</string>
     <string name="niunia_live_add_source">Dodaj listę kanałów</string>
     <string name="niunia_settings_tv">Telewizja</string>

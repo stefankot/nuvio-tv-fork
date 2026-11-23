@@ -28,13 +28,13 @@ class DiskMemo(val name: String, val version: String = "1", private val poolValu
     val map = ConcurrentHashMap<String, String>()
     @Volatile var dirty = false
         private set
-    private val loadedLatch = CountDownLatch(1)
+    @Volatile private var loadedLatch = CountDownLatch(1)
     @Volatile private var dir: File? = null
 
     val fileName: String get() = "${name}_v$version.tsv.gz"
 
     /** Wczytanie (w tle, raz); stare wersje pliku tej pamięci są usuwane. */
-    fun load(dir: File) {
+    @Synchronized fun load(dir: File) {
         if (this.dir != null) return
         this.dir = dir
         val t0 = System.nanoTime()
@@ -90,6 +90,19 @@ class DiskMemo(val name: String, val version: String = "1", private val poolValu
         Saver.schedule(this)
         Log.i(TAG, "pamięć $name: usunięte $stale wpisów kanałów, których już nie ma (zostaje ${map.size})")
         return stale
+    }
+
+    /**
+     * 23.11 (TvRam): wyjście z pamięci po opuszczeniu telewizji — zmiany zapisane, mapa pusta, plik zostaje; następne
+     * [load] wczytuje go od nowa. Tylko z wątku tła.
+     */
+    @Synchronized fun unload() {
+        if (dir == null) return
+        if (dirty) saveNow()
+        map.clear()
+        pool?.clear()
+        dir = null
+        loadedLatch = CountDownLatch(1)
     }
 
     /** Zapis teraz (wątek zapisu albo testy). */

@@ -28,6 +28,8 @@ object TvBridge {
     fun attach(context: Context, profileId: Int) {
         // 22.11: trwałe indeksy TV (teksty, kategorie, kraj) — wczytanie z dysku w tle, bez liczenia od nowa po starcie.
         com.nuvio.tv.fork.tv.index.TvIndexStore.attach(context)
+        // 23.11 (TvRam): kategorie wracają z pliku po zwolnieniu telewizji z pamięci (po starcie: bez zmian, raz).
+        com.nuvio.tv.skin.kicia.livetv.ForgeEpgCategories.ensure(context)
         enabled = ForkFeatures.enabled(context, "module_tv", true)
         if (!enabled) { data = null; return }
         ForkTvHooks.sink = { title, start, extra -> EpgExtras.put(title, start, extra) }
@@ -39,6 +41,12 @@ object TvBridge {
             autoFollow = { ForkFeatures.enabled(app, "tv_auto_follow", true) },
             save = { job -> io.execute(job) },
         )
+    }
+
+    /** 23.11 (TvRam): po wyjściu z telewizji — bez kopii całego przewodnika i mapy kanałów (wracają z następnym odczytem). */
+    fun releaseMemory() {
+        lastKept = emptyMap()
+        TvStore.releaseMemory()
     }
 
     fun onGuideRead(channels: List<LiveTvChannel>, kept: Map<String, List<LiveTvProgramme>>, nowMs: Long) {

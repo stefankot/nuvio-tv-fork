@@ -27,7 +27,7 @@ object TvIndexStore {
     @Volatile private var dir: File? = null
     private val all get() = listOfNotNull(names, keys, titles, titleKeys, fingerprints, country, places)
 
-    fun attach(c: Context) {
+    @Synchronized fun attach(c: Context) {
         if (dir != null) return
         val d = File(c.applicationContext.filesDir, "fork_tv_index")
         dir = d
@@ -56,6 +56,15 @@ object TvIndexStore {
         val names = channels.mapTo(HashSet(channels.size * 2)) { it.name }
         listOf(this.names, keys, country).forEach { it.retainOnly(names) }
         places?.let { p -> p.retainOnly(channels.mapTo(HashSet(channels.size * 2)) { ch -> ch.tvgName?.takeIf { it.isNotBlank() } ?: ch.name }) }
+    }
+
+    /** 23.11 (TvRam): po wyjściu z telewizji pamięci zapisują zmiany i oddają RAM; następne [attach] wczytuje je z dysku. */
+    @Synchronized fun unload() {
+        if (dir == null) return
+        val n = all.sumOf { it.map.size }
+        all.forEach { it.unload() }
+        dir = null
+        android.util.Log.i("ForkTvIndex", "pamięci indeksów: zwolnione $n wpisów (zostają na dysku)")
     }
 
     /** Czeka na wczytanie wszystkich pamięci (tylko z wątków tła). Bez [attach] (testy) — od razu. */

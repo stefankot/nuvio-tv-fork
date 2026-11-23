@@ -251,7 +251,7 @@ object LiveTvRepository {
         idleJob = scope.launch {
             while (isActive) {
                 _uiState.subscriptionCount.first { it == 0 }
-                val back = withTimeoutOrNull(IDLE_RELEASE_MS) { _uiState.subscriptionCount.first { it > 0 } }
+                val back = withTimeoutOrNull(com.nuvio.tv.fork.tv.ram.TvRam.idleReleaseMs(IDLE_RELEASE_MS)) { _uiState.subscriptionCount.first { it > 0 } } // Fork patch: pamiec - telewizja w RAM tylko na jej ekranie (45 s)
                 if (back != null) continue
                 val released = withContext(serial) {
                     if (_uiState.subscriptionCount.value > 0) {
@@ -1025,7 +1025,7 @@ object LiveTvRepository {
      */
     private suspend fun loadSource(source: LiveTvSource, useSaved: Boolean = false): Pair<LoadedSource, LiveTvError?> {
         val savedFile = savedListFile(source)
-        val saved = if (savedFile != null && useSaved) withContext(Dispatchers.IO) { LiveTvListCache.read(savedFile, source) } else null
+        val saved = if (savedFile != null && useSaved) withContext(Dispatchers.IO) { LiveTvListCache.read(savedFile, source)?.let { com.nuvio.tv.fork.tv.vod.LiveVod.saved(appContext, savedFile, source, it) } } else null // Fork patch: bez-vod - zapisana lista z filmami przepisana bez nich
         val nowMs = System.currentTimeMillis()
         val fetched = if (saved != null && nowMs - saved.savedAtMs in 0 until EPG_DOWNLOAD_MS) {
             FetchedSource(saved.channels, saved.epgUrls, saved.groupOrder, notice = null)

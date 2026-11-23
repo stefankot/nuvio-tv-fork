@@ -95,6 +95,9 @@ object TvStore {
     private var channelsByKey: Map<String, LiveTvChannel> = emptyMap()
     private var keptAirings: List<Airing> = emptyList()
 
+    /** 23.11 (TvRam): po wyjściu z telewizji bez mapy wszystkich kanałów (wraca z następnym odczytem przewodnika). */
+    fun releaseMemory() = synchronized(lock) { channelsByKey = emptyMap() }
+
     /** Loads the lists of [profileId] (once per profile). */
     fun attach(context: Context, profileId: Int) = synchronized(lock) {
         if (this.profileId == profileId && dir != null) return@synchronized

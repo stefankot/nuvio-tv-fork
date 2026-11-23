@@ -1,0 +1,11 @@
+--- a
++++ b
+@@ -251,7 +251,7 @@
+         idleJob = scope.launch {
+             while (isActive) {
+                 _uiState.subscriptionCount.first { it == 0 }
+-                val back = withTimeoutOrNull(IDLE_RELEASE_MS) { _uiState.subscriptionCount.first { it > 0 } }
++                val back = withTimeoutOrNull(com.nuvio.tv.fork.tv.ram.TvRam.idleReleaseMs(IDLE_RELEASE_MS)) { _uiState.subscriptionCount.first { it > 0 } } // Fork patch: pamiec - telewizja w RAM tylko na jej ekranie (45 s)
+                 if (back != null) continue
+                 val released = withContext(serial) {
+                     if (_uiState.subscriptionCount.value > 0) {

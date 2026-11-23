@@ -20,6 +20,9 @@ object TvSearchIndexCache {
     private val lock = Mutex()
     @Volatile private var cached: Triple<Int, Long, TvSearchIndex>? = null
 
+    /** 23.11 (TvRam): po wyjściu z telewizji. */
+    fun clear() { cached = null }
+
     suspend fun get(): TvSearchIndex = lock.withLock {
         val channels = LiveTvRepository.uiState.value.channels
         val now = System.currentTimeMillis()

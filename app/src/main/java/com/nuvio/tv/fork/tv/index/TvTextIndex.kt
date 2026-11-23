@@ -208,6 +208,11 @@ object TvTextIndex {
     /** Czy indeks programów ma już dane (przed pierwszym przebiegiem szukanie idzie starą drogą). */
     fun ready(): Boolean = version > 0 && keysByTitle.isNotEmpty()
 
+    /** 23.11 (TvRam): po wyjściu z telewizji spis tytułów i poprzedni odczyt przewodnika wychodzą z RAM (spis jest na dysku). */
+    fun releaseMemory() = synchronized(this) {
+        keysByTitle.clear(); lastSchedule = emptyMap(); restored = false; version++
+    }
+
     /** Testy: „restart aplikacji” — pamięć w RAM znika, trwała pamięć (TvIndexStore) zostaje. */
     internal fun forgetMemoryForTests() = synchronized(this) {
         keysByTitle.clear(); lastSchedule = emptyMap(); version = 0; restored = false

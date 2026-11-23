@@ -126,13 +126,28 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
     // Test JMGO build151: bez tego (robiły to tylko ekrany Kici) indeks kategorii programów był pusty → „Kategorie · 0”.
     remember { com.nuvio.tv.skin.kicia.ForgePrefs.ensure(context) }
     rememberForgeLogoVersion()
-    val state by LiveTvRepository.uiState.collectAsState()
+    val repoState by LiveTvRepository.uiState.collectAsState()
     val favShows by TvStore.favoriteShows.collectAsState()
     val alerts by TvStore.alerts.collectAsState()
     val recent by TvStore.recent.collectAsState()
     val resume by TvStore.resume.collectAsState()
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) { while (true) { delay(30_000); now = System.currentTimeMillis() } }
+    // 23.11 (TvRam, właściciel: „mała próbka startowa, żeby ekran rysował się szybko”): dopóki pełna lista się wczytuje,
+    // ekran pokazuje zapisaną próbkę (pierwsze kanały, ulubione, „Dla Ciebie”) z programem na teraz.
+    // JMGO 23.11 („brak programu na wszystkich kanałach przez długi czas”): także po wczytaniu listy, dopóki przewodnik
+    // nie dojdzie, „teraz na antenie” kanałów z próbki pochodzi z niej.
+    val snap = if (com.nuvio.tv.fork.tv.ram.TvRam.enabled) com.nuvio.tv.fork.tv.ram.TvSnapshot.data else null
+    val snapshot = if (snap != null && repoState.shownChannels.isEmpty() && !repoState.isLoaded) snap else null
+    val snapNow = snap != null && repoState.currentProgrammes.isEmpty()
+    val state = remember(repoState, snapshot, snapNow, now / MIN_MS) {
+        if (snapshot == null && !snapNow) repoState else repoState.copy(
+            channels = snapshot?.channels ?: repoState.channels,
+            shownChannels = snapshot?.channels ?: repoState.shownChannels,
+            currentProgrammes = if (snapNow) snap!!.currentProgrammes(now) else repoState.currentProgrammes,
+            favoriteUrls = repoState.favoriteUrls.ifEmpty { snap!!.favoriteUrls },
+        ).also { Log.i(TAG, "live tv: próbka startowa — ${if (snapshot != null) "${snapshot.channels.size} kanałów, " else ""}program na teraz, dopóki przewodnik się wczytuje") }
+    }
     var mode by remember { mutableStateOf(if (NiuniaLiveStart.consumeSearch()) LiveMode.SEARCH.also { Log.i(TAG, "live tv: start w trybie Szukaj") } else LiveMode.GUIDE) }
     // Paczka „oczywiste” pkt 2: po powrocie z odtwarzacza ten sam filtr i dzień (lista kanałów jak przed wyjściem).
     var filter by remember { mutableStateOf<NiuniaLiveFilter>(NiuniaLiveReturn.restoredFilter() ?: NiuniaLiveFilter.All) }
@@ -190,6 +205,21 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
     }
     val shown = prepared.shown
     val categories = prepared.categories
+    // 23.11 (TvRam): próbka startowa z pełnej listy — w tle, najwyżej raz na 10 min (albo gdy zmieni się pierwsza strona).
+    LaunchedEffect(prepared, snapshot == null, state.currentProgrammes.isNotEmpty()) {
+        if (snapshot != null || !prepared.sorted || state.currentProgrammes.isEmpty() || prepared.shown.isEmpty()) return@LaunchedEffect
+        val first = prepared.shown.take(com.nuvio.tv.fork.tv.ram.TvSnapshot.MAX_CHANNELS)
+        val all = repoState.channels
+        val fav = repoState.favoriteUrls
+        val alertKeys = alerts.map { it.airing.guideKey }
+        withContext(Dispatchers.IO) {
+            val d = com.nuvio.tv.fork.tv.most.TvBridge.data
+            val t = System.currentTimeMillis()
+            val extra = alertKeys + d?.records()?.filter { it.state == com.nuvio.tv.fork.tv.WatchState.IN_PROGRESS }?.map { it.guideKey }.orEmpty() +
+                d?.let { com.nuvio.tv.fork.tv.ChannelStats.usualForDayPart(it.sessions(), com.nuvio.tv.fork.tv.DayPart.of(t), t) }.orEmpty()
+            com.nuvio.tv.fork.tv.ram.TvSnapshot.save(first, all, fav, extra) { LiveTvRepository.schedule(it) }
+        }
+    }
     val filtered = remember(shown, filter, state.favoriteUrls, favShows, alerts) {
         when (val f = filter) {
             is NiuniaLiveFilter.Category -> ForgeEpgCategories.filter(shown, f.key, state.hiddenChannelKeys, "") ?: shown
@@ -257,7 +287,7 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
         }
     }
 
-    if (!state.hasSource || (state.isLoaded && shown.isEmpty())) {
+    if (snapshot == null && (!state.hasSource || (state.isLoaded && shown.isEmpty()))) {
         // UX 22.11 (test emulatora): napis odsyłał do „Ustawienia → Telewizja”, a w Niuni takiej pozycji nie było —
         // teraz przycisk od razu otwiera okno źródeł Nuvio (M3U / Xtream / Stalker, adres EPG, telefon przez QR).
         var sources by remember { mutableStateOf(false) }
@@ -496,7 +526,10 @@ private fun GuideRow(
     requester: FocusRequester? = null,
 ) {
     val winEnd = winStart + WINDOW_MS
-    val schedule = remember(ch.guideKey, guideVersion) { LiveTvRepository.schedule(ch.guideKey) }
+    // 23.11 (TvRam): dopóki przewodnik się wczytuje — program z próbki startowej (kanały pierwszej strony).
+    val schedule = remember(ch.guideKey, guideVersion) {
+        LiveTvRepository.schedule(ch.guideKey).ifEmpty { if (com.nuvio.tv.fork.tv.ram.TvRam.enabled) com.nuvio.tv.fork.tv.ram.TvSnapshot.programmesFor(ch.guideKey) else emptyList() }
+    }
     val visible = remember(schedule, winStart) { schedule.filter { it.stopEpochMs > winStart && it.startEpochMs < winEnd } }
     var focused by remember { mutableStateOf(false) }
     var sel by remember { mutableIntStateOf(-1) }
@@ -558,7 +591,9 @@ private fun GuideRow(
         }
         Box(Modifier.padding(start = GRID_X).fillMaxSize().clipToBounds()) {
             if (visible.isEmpty()) {
-                Cell(stringResource(R.string.niunia_live_no_guide), 0.dp, dpFor(WINDOW_MS), live = false, focused = focused, cut = false, new = false)
+                // 23.11: w trakcie wczytywania przewodnika „Wczytuję program…”, nie „Brak programu”.
+                val loadingGuide = LiveTvRepository.uiState.value.isEpgLoading
+                Cell(stringResource(if (loadingGuide) R.string.niunia_live_guide_loading else R.string.niunia_live_no_guide), 0.dp, dpFor(WINDOW_MS), live = false, focused = focused, cut = false, new = false)
             }
             // Test JMGO build152: strzałka ‹ (Edge) zasłaniała początek tytułu programu, który zaczyna się równo z oknem.
             val leftEdge = focused && schedule.any { it.startEpochMs < winStart } && winStart > minStart

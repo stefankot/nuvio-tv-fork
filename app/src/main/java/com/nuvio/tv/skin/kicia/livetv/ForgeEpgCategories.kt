@@ -227,6 +227,21 @@ object ForgeEpgCategories {
     /** Programme categories change only with a guide read; screens key their lists on this. */
     fun programmeVersion(): Int = version.get()
 
+    /**
+     * 23.11 (TvRam): po wyjściu z telewizji kategorie kanałów i programów wychodzą z RAM (plik zostaje); następne [ensure]
+     * (TvBridge.attach przy wejściu) wczytuje je jak po starcie. Czeka na trwający zapis pliku, żeby go nie uciąć.
+     */
+    fun releaseMemory() {
+        io.launch {
+            saveJob?.join()
+            val n = programmeCats.size
+            channelCache.clear(); decodedPlaces.clear(); programmeCats.clear(); placeOfCat.clear()
+            file = null; loaded = false
+            version.incrementAndGet()
+            android.util.Log.i("ForkKiciaLivetv", "kategorie: zwolnione $n wpisów programów (plik zostaje)")
+        }
+    }
+
     /** Called once at start (ForgePrefs.ensure): reads the categories kept from the last guide read. */
     fun ensure(context: Context) {
         // 22.11: zapisane kategorie kanałów zaczynają się wczytywać od razu (trwała pamięć, TvIndexStore).
