@@ -94,6 +94,14 @@ object GuideDbBridge {
             if (first.isNotEmpty()) publish(first, logos, null)
         }
 
+        // 1b. Wszystkie kanały blisko „teraz” z bazy, zanim sprawdzimy pliki (import trwa minuty, gdy dostawca je zmienił).
+        val hadGuide = db.fingerprint() != null
+        if (hadGuide) {
+            val early = convert(safeRange(db, now - 3 * HOUR, now + 6 * HOUR, light = true, channels = null))
+            Log.i(TAG, "start: okno „teraz” dla ${early.size} kanałów z bazy po ${System.currentTimeMillis() - t0} ms")
+            if (early.isNotEmpty()) publish(withPriority(early, priority, db, now), logos, null)
+        }
+
         // 2. Pobranie przewodników, które są stare (jak readGuide Reshaped; nieudane pobranie zostawia poprzedni plik).
         val failed = HashSet<String>()
         epgUrls.forEachIndexed { i, url ->
@@ -116,22 +124,31 @@ object GuideDbBridge {
         // 3. Do bazy tylko pliki zmienione albo z nowymi kanałami listy.
         val request = LiveTvGuideRequest.from(channels)
         var changed = false
+        // JMGO iptvdb1: przewodnik FlixNest pod dwoma adresami (lista Xtream i M3U) = ten sam plik, importowany 2× po 95 s.
+        val alias = HashMap<String, String>()
+        val byContent = HashMap<String, String>()
         epgUrls.forEachIndexed { i, _ ->
             val f = guideFiles[i]
-            if (f.isFile && f.length() > 0L) changed = importFile(db, f, srcOf(f), request, now) || changed
+            if (!f.isFile || f.length() == 0L) return@forEachIndexed
+            val content = contentKey(f)
+            val first = content?.let { byContent.putIfAbsent(it, srcOf(f)) }
+            if (first != null) { alias[srcOf(f)] = first; Log.i(TAG, "${srcOf(f)}: ten sam przewodnik co $first — bez drugiego importu"); return@forEachIndexed }
+            changed = importFile(db, f, srcOf(f), request, now) || changed
         }
 
         // 4. Kanały listy → kanały przewodnika (gdy zmienił się plik, lista kanałów albo ranking).
-        val sources = guideFiles.filter { it.isFile && it.length() > 0L }.map(::srcOf)
+        val sources = guideFiles.filter { it.isFile && it.length() > 0L }.map(::srcOf).filter { it !in alias }
         val fp = fingerprint(db, sources, channels, sourceLinks, addedGuides)
         if (changed || db.fingerprint() != fp) {
-            logos = link(db, epgUrls, guideFiles, request, channels, sourceLinks, addedGuides, fp, sources)
+            logos = link(db, epgUrls, guideFiles, request, channels, sourceLinks, addedGuides, fp, sources, alias)
             writeLogos(logosFile, logos)
         }
 
         // 5. Okno dla wszystkich kanałów: najpierw blisko „teraz”, potem szersze.
-        val near = convert(safeRange(db, now - 3 * HOUR, now + 6 * HOUR, light = true, channels = null))
-        publish(withPriority(near, priority, db, now), logos, failed)
+        if (changed || !hadGuide) {
+            val near = convert(safeRange(db, now - 3 * HOUR, now + 6 * HOUR, light = true, channels = null))
+            publish(withPriority(near, priority, db, now), logos, failed)
+        }
         val wide = convert(safeRange(db, now - PAST_MS, now + AHEAD_MS, light = true, channels = null))
         val kept = withPriority(wide, priority, db, now)
         publish(kept, logos, failed)
@@ -201,7 +218,9 @@ object GuideDbBridge {
                 ) { channels -> seen = channels; null }
             }
             val listed = result.channels.values.map { Triple(it.id, it.displayNames, it.icon) }
-            val keptIds = result.programChannelIds.filter { wanted(it, result.channels[it]?.displayNames.orEmpty(), request) }
+            // JMGO iptvdb1: tylko kanały z programami → wymagane kanały bez programów liczone przy każdym wejściu jako
+            // „nowe” i plik czytany od nowa. Wszystkie wymagane (z programami i bez) — jak `kept` w NuvioPlusIPTV.
+            val keptIds = (result.channels.keys + result.programChannelIds).filter { wanted(it, result.channels[it]?.displayNames.orEmpty(), request) }
             val extra = result.programChannelIds.filter { it !in result.channels }
             writer.finish(stamp, listed, keptIds, listed = result.channels.size, extraIds = extra)
             Log.i(TAG, "$src: do bazy ${keptIds.size} kanałów, $stored programów w ${System.currentTimeMillis() - t0} ms" +
@@ -218,6 +237,15 @@ object GuideDbBridge {
             Log.w(TAG, "$src: za mało pamięci przy zapisie do bazy")
             return false
         }
+    }
+
+    /** Rozmiar + CRC pierwszych 256 KB: ten sam plik pobrany z dwóch adresów. */
+    private fun contentKey(f: File): String? = try {
+        val crc = java.util.zip.CRC32()
+        f.inputStream().use { inp -> val buf = ByteArray(256 * 1024); val n = inp.read(buf); if (n > 0) crc.update(buf, 0, n) }
+        "${f.length()}:${crc.value}"
+    } catch (e: Exception) {
+        Log.w(TAG, "${f.name}: odcisk pliku: ${e.javaClass.simpleName}: ${e.message}"); null
     }
 
     /** Plik przewodnika Reshaped: gzip albo zwykły XML. */
@@ -251,6 +279,7 @@ object GuideDbBridge {
     private fun link(
         db: EpgDatabase, epgUrls: List<String>, guideFiles: List<File>, request: LiveTvGuideRequest, channels: List<LiveTvChannel>,
         sourceLinks: Map<String, List<String>>, addedGuides: Map<String, String>, fp: String, sources: List<String>,
+        alias: Map<String, String>,
     ): Map<String, String> {
         val t0 = System.currentTimeMillis()
         val sourceForKey = HashMap<String, String>(channels.size * 2)
@@ -260,7 +289,7 @@ object GuideDbBridge {
         epgUrls.forEachIndexed { index, url ->
             val f = guideFiles[index]
             if (!f.isFile || f.length() == 0L) return@forEachIndexed
-            val src = srcOf(f)
+            val src = alias[srcOf(f)] ?: srcOf(f)
             val listed = try { db.sourceChannels(src) } catch (e: Exception) { Log.w(TAG, "linki $src: ${e.javaClass.simpleName}: ${e.message}"); return@forEachIndexed }
             fun rank(key: String, byName: Boolean): Int {
                 com.nuvio.tv.fork.tv.guide.GuidePriority.repoRank(url, byName, NAME_MATCH_RANK)?.let { return it }
