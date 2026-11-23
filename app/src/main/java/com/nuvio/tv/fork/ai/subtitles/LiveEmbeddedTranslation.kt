@@ -139,7 +139,7 @@ object LiveEmbeddedTranslation {
                 // Fork 19.11: kwestie, które miną, zanim tłumaczenie wróci, zostają po angielsku (do pierwszej publikacji
                 // EN są widoczne) — tłumaczymy od miejsca, w którym film będzie po czasie tłumaczenia (+5 s zapasu).
                 val lead = if (published == 0) minOf(lastBlockMs + 5_000, 30_000L) else 0L
-                val todo = all.filter { it.id !in done && it.endMs >= pos - 2_000 + lead && it.startMs <= pos + (if (ahead.active) MkvAhead.WINDOW_MS else AHEAD_MS) }
+                val todo = all.filter { !done.containsKey(it.id) && it.endMs >= pos - 2_000 + lead && it.startMs <= pos + (if (ahead.active) MkvAhead.WINDOW_MS else AHEAD_MS) }
                 val urgent = todo.firstOrNull()?.let { it.startMs - pos < 30_000 } == true
                 if (todo.isEmpty() || (todo.size < 8 && !urgent)) {
                     if (published == 0) onState("AI: czekam na napisy do tłumaczenia… ${(System.currentTimeMillis() - startedAt) / 1000} s")
@@ -188,7 +188,7 @@ object LiveEmbeddedTranslation {
                 glossary = glossary + gl
                 window.subList(block.first, block.endExclusive).forEachIndexed { i, c -> rev.translations.getOrNull(i)?.let { done[c.id] = it } }
                 val latest = known()
-                _translated.value = latest.filter { it.id in done }.map { it.copy(text = done.getValue(it.id)) } // lektor: tylko polskie
+                _translated.value = latest.filter { done.containsKey(it.id) }.map { it.copy(text = done.getValue(it.id)) } // lektor: tylko polskie
                 val r = publishAll(latest, force = true)
                 published++
                 // 23.11: „przetłumaczono” tylko, gdy polskie kwestie naprawdę są w odtwarzaczu.
