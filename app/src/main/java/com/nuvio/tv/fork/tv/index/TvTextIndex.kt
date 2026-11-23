@@ -93,6 +93,8 @@ object TvTextIndex {
         val t0 = System.nanoTime()
         var newNames = 0
         for (ch in channels) if (names[ch.name] == null) { val n = norm(ch.name); names.put(ch.name, n); keys.put(ch.name, channelKey(n)); newNames++ }
+        // 23.11: nazwy pozycji, których nie ma już na listach (np. odsiane filmy), znikają z pamięci i z dysku.
+        TvIndexStore.pruneNames(channels)
         var changed = 0
         var newTitles = 0
         fun titleOf(raw: String): String = titleNorm[raw] ?: norm(raw.trim()).also { titleNorm.put(raw, it); newTitles++ }

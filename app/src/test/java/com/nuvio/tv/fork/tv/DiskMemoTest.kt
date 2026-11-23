@@ -46,6 +46,19 @@ class DiskMemoTest {
         assertSame(m["A"], m["B"])
     }
 
+    @Test fun `zbedne nazwy usuwane tylko przy wiekszej zmianie`() {
+        val dir = tmp.newFolder()
+        val m = DiskMemo("names", "1").apply { load(dir) }
+        repeat(10_000) { m.put("k$it", "v") }
+        val keep = (0 until 9_000).mapTo(HashSet()) { "k$it" }
+        assertEquals("1000 zbędnych z 10000 — mała zmiana, bez usuwania", 0, m.retainOnly(keep))
+        val few = (0 until 2_000).mapTo(HashSet()) { "k$it" }
+        assertEquals(8_000, m.retainOnly(few))
+        assertEquals(2_000, m.map.size)
+        assertTrue(m.saveNow())
+        assertEquals(2_000, DiskMemo("names", "1").apply { load(dir) }.map.size)
+    }
+
     @Test fun `zepsuty plik - pusta pamiec zamiast bledu`() {
         val dir = tmp.newFolder()
         File(dir, "names_v1.tsv.gz").writeText("to nie gzip")

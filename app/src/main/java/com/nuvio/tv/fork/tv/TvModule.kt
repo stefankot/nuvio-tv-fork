@@ -30,6 +30,8 @@ object TvModule : ForkModule {
     )
 
     override fun settings() = listOf(
+        // 23.11 (JMGO zawieszał się: 194 tys. filmów z listy M3U jako „kanały” zapychało pamięć).
+        com.nuvio.tv.fork.registry.ModuleSetting(com.nuvio.tv.fork.tv.vod.LiveVod.KEY, com.nuvio.tv.fork.registry.SettingsLevel.ESSENTIAL, "Telewizja", "Bez filmów i seriali na liście kanałów", "Filmy i seriale z list IPTV nie są pokazywane jako kanały; telewizja działa szybciej i się nie zawiesza", defaultValue = true),
         com.nuvio.tv.fork.registry.ModuleSetting(com.nuvio.tv.fork.perf.PerfFlags.PREVIEW_AUTOSTOP_KEY, com.nuvio.tv.fork.registry.SettingsLevel.ADVANCED, "Telewizja", "Zatrzymaj podgląd kanału po minucie", "Oszczędza procesor słabych telewizorów; zostaje logo, zmiana kanału wznawia podgląd", defaultValue = true),
         com.nuvio.tv.fork.registry.ModuleSetting("tv_for_you_row", com.nuvio.tv.fork.registry.SettingsLevel.ESSENTIAL, "Telewizja", "Rząd „Dla Ciebie” nad przewodnikiem", "Karty: wznów, nowy odcinek, na żywo", defaultValue = true),
         com.nuvio.tv.fork.registry.ModuleSetting(LiveNoAsk.KEY, com.nuvio.tv.fork.registry.SettingsLevel.ESSENTIAL, "Telewizja", "Archiwum bez pytania „czy na pewno”", "Wstecz od razu wraca do przewodnika, ▲▼ od razu zmienia kanał", defaultValue = true),

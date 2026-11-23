@@ -74,6 +74,24 @@ class DiskMemo(val name: String, val version: String = "1", private val poolValu
 
     fun clear() { if (map.isNotEmpty()) { map.clear(); dirty = true; Saver.schedule(this) } }
 
+    /**
+     * Usuwa wpisy spoza [keep] (kanały, których nie ma już na żadnej liście), ale tylko przy większej zmianie: zbędnych
+     * co najmniej [minStale] i co najmniej 1/5 pamięci — chwilowy brak jednej listy nie kasuje policzonych wpisów.
+     * Zwraca liczbę usuniętych (0 = bez zmian).
+     */
+    fun retainOnly(keep: Set<String>, minStale: Int = 5_000): Int {
+        if (dir != null && loadedLatch.count > 0L) return 0 // jeszcze się wczytuje
+        var stale = 0
+        for (k in map.keys) if (k !in keep) stale++
+        if (stale < minStale || stale * 5 < map.size) return 0
+        val it = map.keys.iterator()
+        while (it.hasNext()) if (it.next() !in keep) it.remove()
+        dirty = true
+        Saver.schedule(this)
+        Log.i(TAG, "pamięć $name: usunięte $stale wpisów kanałów, których już nie ma (zostaje ${map.size})")
+        return stale
+    }
+
     /** Zapis teraz (wątek zapisu albo testy). */
     @Synchronized fun saveNow(): Boolean {
         val d = dir ?: return false

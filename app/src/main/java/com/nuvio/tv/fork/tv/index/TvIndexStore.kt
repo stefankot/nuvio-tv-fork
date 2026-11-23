@@ -46,6 +46,18 @@ object TvIndexStore {
         return m
     }
 
+    /**
+     * 23.11 (JMGO: pamięci trzymały 250 tys. nazw, także pozycji, których już nie ma na listach — np. filmów odsianych
+     * przez LiveVod): po przebiegu indeksu z pełną listą kanałów usuwa wpisy nazw spoza listy (tylko przy większej
+     * zmianie, patrz [DiskMemo.retainOnly]). Tylko z wątku tła.
+     */
+    fun pruneNames(channels: List<com.nuvio.tv.reshaped.livetv.LiveTvChannel>) {
+        if (channels.isEmpty()) return
+        val names = channels.mapTo(HashSet(channels.size * 2)) { it.name }
+        listOf(this.names, keys, country).forEach { it.retainOnly(names) }
+        places?.let { p -> p.retainOnly(channels.mapTo(HashSet(channels.size * 2)) { ch -> ch.tvgName?.takeIf { it.isNotBlank() } ?: ch.name }) }
+    }
+
     /** Czeka na wczytanie wszystkich pamięci (tylko z wątków tła). Bez [attach] (testy) — od razu. */
     fun awaitLoaded(timeoutMs: Long = 15_000): Boolean = dir == null || all.all { it.awaitLoaded(timeoutMs) }
 

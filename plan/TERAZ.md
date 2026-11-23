@@ -3,6 +3,34 @@
 Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–13: `plan/archiwum/TERAZ-historia-watki-1-13.md` (tylko `grep`, nie czytaj całości). Sekcje z 22.11 (build163–169c, scalenie, aktualizacja bazy): `plan/archiwum/TERAZ-historia-22.11.md`.
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
+## NAJPIERW (23.11 ~10:00 — wątek „JMGO zawiesza się po kilkunastu s”) — PROMPT HANDOFF
+Prompt (wklej w nowym wątku albo napisz „kontynuuj”):
+> Kontynuuj pracę nad forkiem Nuvio Android TV (`/Users/milajovovich/Desktop/nuvio 2/NuvioFork`, gałąź `skin-niunia`). Zasady: `ZASADY.md`. Przeczytaj tę sekcję i rób kolejkę po kolei. Najpierw sprawdź na JMGO wynik poprawki pamięci (punkt 1), potem zrób VOD jako źródła plików (punkt 2 — pomysł właściciela).
+
+PRZYCZYNA ZAWIESZANIA (zbadane 23.11, `.stage/jmgo/anr-20261123/`: ANR z dropboxa, zrzut pamięci `nuvio.hprof` 612 MB, `hist.txt`, `chains.txt`):
+- Sterta Javy 511 z 512 MB po ~15–60 s od startu, 10 mln obiektów, 158 s samego GC → każde naciśnięcie pilota czeka na GC → „nie odpowiada”. Nie wyciek — stały zbiór danych: 254 049 „kanałów”.
+- Lista M3U FlixNest (194 726 pozycji) to prawie same filmy i seriale: adresy pośrednika `/p/<19>/<3>/<6>/<tytuł>%3Amkv.m3u8` (rozszerzenie pliku zakodowane przed `.m3u8`), grupy „FILME”, „Series”, „NETFLIX MOVIES”, „PL - KINO”; w próbce 2008 pozycji tylko 1 kanał `.ts`. Prawdziwe kanały: Xtream FlixNest 58 997 (`/live/…/….ts`) + hls.gd 326.
+- Na każdą pozycję: obiekt kanału (~700 B z tekstami), 4 mapy przewodnika (`LiveTvGuideRequest.keysById/keys/keysByName/tagsByKey` po ~250 tys.), pamięci indeksów build173 (`DiskMemo` names/keys/country/places po ~250 tys., te same nazwy jako osobne obiekty) — razem ~3,4 mln tekstów (~290 MB).
+- Narzędzia: `fork-tools/test/hprof_hist.py` (histogram, duże tablice, łańcuchy właścicieli; czysty Python), `hprof_channels.py`, `hprof_urls.py` (próbka kanałów i kształt adresów bez loginu), `jmgo_pamiec.sh [s] [trasa]` (sterta co 10 s po starcie). Zrzut: `adb shell am dumpheap com.nuviodebug.com /data/local/tmp/x.hprof` (~3 min na JMGO), potem `adb pull` i usunąć z TV.
+
+POPRAWKA (build `vod1`, ten wątek):
+- `fork/tv/vod/LiveVod` — filmy i seriale z list IPTV nie są kanałami (adres pliku wideo, także `%3Amkv.m3u8`, ścieżki `/movie/`, `/series/`); przełącznik „Bez filmów i seriali na liście kanałów” w „Telewizja” (domyślnie włączony). Wpięcie: łatka `dostawca/LiveTvRepository/11-bez-vod` (pobrana lista przed zapisem i lista z zapisu w `tagSource`).
+- `DiskMemo.retainOnly` + `TvIndexStore.pruneNames` (wołane z `TvTextIndex.update`): nazwy pozycji, których nie ma na listach, znikają z pamięci i dysku (tylko gdy zbędnych ≥ 5000 i ≥ 1/5).
+- Testy: `LiveVodTest`, `DiskMemoTest` (zbędne nazwy).
+- **vod1 NA JMGO** (23.11 10:12 Mac; BUILD SUCCESSFUL 12 min 53 s; testy `com.nuvio.tv.fork.tv.*` 139, 0 nieudanych; v7a md5 `3b2a8ff921f057b87ce7083ecd5f0e79` zgodny po `adb pull`, `compile -m speed`; kopia `.stage/apk/vod1-v7a.apk`). Instalacja zastąpiła wiszącą starą wersję (sterta 511/512 MB, ostatni klawisz 6 min wcześniej).
+- Pomiar `jmgo_pamiec.sh 240 reshaped_live_tv` (`.stage/jmgo/pamiec-20261123-1013/`): `ForkTvVod: pominięte filmy i seriale 194549 z 194726 pozycji, zostaje 177 kanałów`; Live TV 59 500 kanałów (było 254 049); pamięci: names/country −194 910, keys −193 515, places −16 442 wpisów; kategorie i kolejność 1,3 s; **0 ANR**; sterta 137 MB (11 s) → ~290 MB (1 min) → 365 MB po pełnym odczycie przewodnika (szczyt 468 MB przy parsowaniu 5 przewodników od nowa; było 511/512 i ciągłe GC).
+- Drugi zrzut (`n2.hprof`, `hist2.txt`, `chains2.txt`): 359 MB, bez jednego winowajcy — przewodnik 601 tys. `LiveTvProgramme` (okno `Regular` z łatki dostawca #5: 7 dni wstecz / 8 naprzód, do 400 programów na kanał, ~29 tys. kanałów z przewodnikiem), mapy `LiveTvGuideRequest` trzymane przez korutynę `startEpg` po odczycie, `NiuniaListMaps$Memo`, pamięci indeksów (puste tablice CHM po usunięciu nie maleją — kilka MB), `TvData.log` 73 533 wpisów. Zapas ~150 MB — wystarczy na dziś, ale nie na 4 kolejnych dostawców (pkt 3).
+
+KOLEJKA:
+1. JMGO: `jmgo_pamiec.sh 240 reshaped_live_tv` i `jmgo_sesja.sh 10` (gdy nikt nie ogląda) — cel: sterta < 250 MB, 0 ANR; w logu `ForkTvVod: lista: pominięte filmy i seriale …`, `pamięć names: usunięte …`.
+2. **VOD jako źródła plików (właściciel 23.11: „VOD oddzielić i traktować nie jako kanały, tylko skróty do plików w chmurze z indeksem do wyszukiwania — jak Torbox”)**:
+   - lista M3U, w której większość pozycji to pliki (`LiveVod.isVodUrl`), = lista VOD (FlixNest daje VOD osobną playlistą); w Live TV jej nie ma (już działa);
+   - indeks na dysku, nie w pamięci: SQLite (`android.database.sqlite`, FTS4; zgoda właściciela 22.11) — tytuł znormalizowany, rok, sezon/odcinek (SxxEyy z nazwy), grupa/język, źródło, adres (adres ma token: tylko w `filesDir`, nigdy w logach); zasilanie strumieniowo przy pobraniu listy (bez trzymania 200 tys. pozycji w RAM), przyrostowo po skrócie listy; Xtream VOD (`get_vod_streams`, `get_series`) tak samo;
+   - użycie: na stronie filmu/serialu źródło „Filmy z list IPTV” obok dodatków i Torboxa — wpięcie jedną instrukcją w `StreamRepositoryImpl.getStreamsFromAllAddons` (dopisanie grupy źródeł); dopasowanie po tytule + roku (filmy) i tytule + SxxEyy (odcinki); w Szukaj sekcja „Filmy i seriale z IPTV”;
+   - przełącznik (domyślnie włączony), logi `ForkVod`, testy dopasowania tytułów.
+3. Ryzyko: właściciel doda 4 kolejnych dostawców FlixNest (po ~60 tys. kanałów na żywo) → znów ~300 tys. kanałów w pamięci. Przed tym: baza SQLite kanałów (kolejka wątku Live TV niżej, pkt 2) — lista i indeksy na dysku, w pamięci tylko to, co na ekranie.
+4. Dalej kolejki niżej (UX 23.11 ~03:00 i Live TV 22.11).
+
 ## NAJPIERW (23.11 ~03:00 — wątek „UX/UI: pętle 3–5, emulator GTV”) — PROMPT HANDOFF
 Prompt (wklej w nowym wątku albo napisz „kontynuuj”):
 > Kontynuuj wątek UX/UI forka Nuvio Android TV (`/Users/milajovovich/Desktop/nuvio 2/NuvioFork`, gałąź `skin-niunia`). Zasady: `ZASADY.md` (emulator GTV i Gradle NIGDY razem; build tylko `bash fork-tools/build.sh …` w zakładce terminala; > 10 min — sprawdź, czy się kompiluje, > 20 min — przerwij; po każdej pętli zapis w `plan/ux/`). Stan: `plan/ux/STAN.md`, `plan/ux/RAPORT.md`. Pętle 1–5 zrobione na emulatorze; następny krok to build v7a tej paczki na JMGO i lista „UX długie OK” z `plan/DO_SPRAWDZENIA_NA_TV.md` (tylko gdy nikt nie ogląda), potem dalsze ścieżki z RAPORT (otwarte punkty niżej).

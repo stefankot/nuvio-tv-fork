@@ -1068,7 +1068,7 @@ object LiveTvRepository {
                 }
                 // An Xtream panel's M3U link names no guide more often than not; the panel still has one.
                 val guides = playlist.epgUrls.ifEmpty { listOfNotNull(xtreamGuideUrlFor(source.url)) }
-                playlist.channels to guides
+                com.nuvio.tv.fork.tv.vod.LiveVod.live(appContext, playlist.channels) to guides // Fork patch: bez-vod - filmy i seriale z listy nie są kanałami (zapis listy też bez nich)
             }
             LiveTvSourceType.Xtream -> {
                 val settings = source.xtream
@@ -1094,7 +1094,7 @@ object LiveTvRepository {
 
     /** [fetched]'s channels tagged with [source], its guide links and category order. */
     private fun tagSource(source: LiveTvSource, fetched: FetchedSource): Pair<LoadedSource, LiveTvError?> {
-        val channels = fetched.channels
+        val channels = com.nuvio.tv.fork.tv.vod.LiveVod.live(appContext, fetched.channels) // Fork patch: bez-vod - także lista zapisana wcześniej z filmami
         val epgUrls = fetched.epgUrls
         val providerOrder = fetched.providerOrder
         val notice = fetched.notice
