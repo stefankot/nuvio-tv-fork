@@ -50,6 +50,29 @@ Decyzja właściciela (23.11, ten wątek): „zajmij się wszystkimi poważnymi 
   (`archiwum kanału z bazy: 147 programów`); Wstecz ×2 → lista z fokusem na kanale. Nazwy: „Strong8K · PL: TVN STYLE ᴴᴰ (NA)”
   zostawała jako „Strong8K · PL: TVN STYLE” (separator „·”) — poprawione w 0187deb32 (+ test), zdublowany przewodnik
   rozpoznawany po liście kanałów — build `iptvdb3`.
+- **iptvdb3 NA JMGO** (23.11 ~19:30 Mac; BUILD SUCCESSFUL 9 min 43 s; ChannelNamesTest 3/3; md5 `8a89f896f05dd9ef34dd6bf338c885d6` zgodny;
+  `.stage/apk/iptvdb3-v7a.apk`): nazwy na kafelkach czyste („Kuchenne rewolucje · TVN STYLE”, „Eurosport 3”); priorytet z bazy
+  210 ms, „teraz” 28 823 kanałów 8,2 s, wszystkie pliki „bez zmian”. Zdublowany przewodnik nadal nierozpoznany (porównanie z
+  pierwszym plikiem o podobnym rozmiarze, innym) — poprawka 80dbdbdc2, NIESKOMPILOWANA (następny build).
+
+### WYMAGANIE WŁAŚCICIELA (23.11 ~19:30, po iptvdb2) — następny krok
+„Te czasy nie są dobre. To musi działać szybciej. Nie da się używać cache w każdym miejscu? Czy ekran główny IPTV nie może czytać
+najpierw jakiejś małej części żeby tylko narysować ekran, a potem dociągać resztę? Przewodnik — 72 s to bardzo długo na rysowanie
+jednego ekranu. „Teraz” — 11 s też bardzo długo. Nie można użyć cache jakiejś minimalnej próbki?”
+Plan (etap 1b, przed etapem 2):
+1. **Ekran startowy z dysku < 1 s**: `TvSnapshot` → „ekran startowy”: dla KAŻDEJ kategorii Niuni i ulubionych pierwsze ~10 kanałów
+   z programem −1 h…+12 h i obrazkami (dziś 160 kanałów z pierwszej strony), zapisywany w tle po odczycie z bazy; ekran rysuje się
+   z niego zanim Reshaped wczyta listę 59 tys. kanałów (dziś 3–8 s).
+2. **Priorytet z bazy bez czekania na listę**: zapytanie `GuideDbBridge` dla kanałów ekranu startowego wołane od razu przy wejściu
+   (dziś dopiero w `startEpg` po liście → 3,5 s; samo zapytanie 0,2 s).
+3. **Leniwe dociąganie zamiast okna dla wszystkich**: przy starcie NIE czytać −12…+36 h dla 29 tys. kanałów (72 s, szczyt 406 MB).
+   Wiersze widoczne na ekranie pytają bazę o swoje okno (paczkami, ms; pamięć LRU), przewijanie dociąga następne; „teraz” dla
+   wszystkich tylko „teraz + następny” (≈2 wiersze/kanał) albo tylko dla widocznych. Wymaga 1 linii w `LiveTvRepository.schedule()`
+   (łatka: brak w pamięci → `GuideDbBridge.rows(guideKey)` + dociągnięcie w tle) — jak `loadChannelsNow/rememberPriority`
+   w NuvioPlusIPTV (`LiveTvRepository.kt` ~1180–1240).
+4. Rzeczy liczone z całego przewodnika (TvStore odcinki, szukanie programów, „Dla Ciebie”) — w tle, z zapytań do bazy
+   (`EpgDatabase.findByWords`, `scanListingsGrouped`), nie z mapy w pamięci.
+Cel pomiaru: ekran z programem < 1 s, przewodnik widocznego ekranu < 1 s, sterta < 200 MB.
 - Ryzyka do sprawdzenia na JMGO: czas pierwszego importu 5 plików do bazy (strumieniowo, ale 600 tys.+ wierszy na słabym CPU),
   liczba kanałów z programem po linkach vs. dotychczasowe ~29 tys. (`ForkTvPlus: linki: N z M`), opis programu w Niuni dla
   kanałów spoza priorytetu (okno „light” bez opisów), dni w przyszłości > +36 h w wyborze dnia (tylko dla kanałów, które je mają).
