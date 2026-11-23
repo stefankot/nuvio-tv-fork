@@ -39,6 +39,17 @@ Decyzja właściciela (23.11, ten wątek): „zajmij się wszystkimi poważnymi 
   Błędy adaptera (poprawione w 62685f992, build `iptvdb2`): każde wejście czytało przewodniki ponownie („N nowych kanałów listy” —
   wymagane kanały bez programów nie trafiały do bazy jako znane), drugi import tego samego pliku, okno „teraz” wszystkich kanałów
   dopiero po sprawdzeniu plików (teraz od razu z bazy).
+- **iptvdb2 NA JMGO** (23.11 ~19:03 Mac; BUILD SUCCESSFUL 11 min 57 s; md5 `9eedcf5eb16add12df5cc31ff34ceb05` zgodny, `compile -m speed`;
+  `.stage/apk/iptvdb2-v7a.apk`). Pomiar 1 (`iptv-pomiar-db3`, jednorazowe uzupełnienie bazy po iptvdb1): ulubione z bazy 0,4 s,
+  „teraz” 28 846 kanałów po 8,8 s, sterta 290–310 MB, 0 ANR; zdublowany przewodnik NIE rozpoznany (bajty plików różne).
+  **Pomiar 2 — stan ustalony** (`iptv-pomiar-db4`): ekran z próbką 0,6 s, program z bazy dla 159 kanałów (ulubione + pierwszy ekran)
+  3,5 s po wejściu (zapytanie 259 ms; resztę czeka `startEpg` na listę kanałów Reshaped), wszystkie 59 323 kanały 8,4 s, „teraz”
+  dla 28 846 kanałów 11 s, **wszystkie 5 plików „bez zmian” — zero czytania XML**, pełne okno (540 tys. programów) 72 s; sterta
+  stabilnie 276–280 MB, szczyt 406 MB; 0 ANR.
+  Test ręczny: włączenie kanału (RT HD) w trakcie importu — gra, 0 ANR; odtwarzacz dociąga archiwum catch-up z bazy
+  (`archiwum kanału z bazy: 147 programów`); Wstecz ×2 → lista z fokusem na kanale. Nazwy: „Strong8K · PL: TVN STYLE ᴴᴰ (NA)”
+  zostawała jako „Strong8K · PL: TVN STYLE” (separator „·”) — poprawione w 0187deb32 (+ test), zdublowany przewodnik
+  rozpoznawany po liście kanałów — build `iptvdb3`.
 - Ryzyka do sprawdzenia na JMGO: czas pierwszego importu 5 plików do bazy (strumieniowo, ale 600 tys.+ wierszy na słabym CPU),
   liczba kanałów z programem po linkach vs. dotychczasowe ~29 tys. (`ForkTvPlus: linki: N z M`), opis programu w Niuni dla
   kanałów spoza priorytetu (okno „light” bez opisów), dni w przyszłości > +36 h w wyborze dnia (tylko dla kanałów, które je mają).
