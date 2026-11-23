@@ -3,6 +3,19 @@
 Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–13: `plan/archiwum/TERAZ-historia-watki-1-13.md` (tylko `grep`, nie czytaj całości). Sekcje z 22.11 (build163–169c, scalenie, aktualizacja bazy): `plan/archiwum/TERAZ-historia-22.11.md`.
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
+## NAJPIERW (23.11 ~16:40 — wątek „Napisy AI: tłumaczenie nie pokazuje się”) — ZROBIONE, czeka na decyzję właściciela o limitach
+Prompt (wklej w nowym wątku albo napisz „kontynuuj”):
+> Kontynuuj wątek napisów AI forka Nuvio Android TV (`/Users/milajovovich/Desktop/nuvio 2/NuvioFork`, gałąź `skin-niunia`). Zasady: `ZASADY.md`. Stan w tej sekcji. Jeśli właściciel zdecydował o limitach kosztu AI (niżej „Do decyzji”), ustaw je; potem kolejka 0 (przebudowa ustawień).
+
+Stan:
+- `napisyai5` NA JMGO (23.11 16:24 Mac; BUILD SUCCESSFUL 8 min 36 s; testy `com.nuvio.tv.fork.ai.subtitles.*` 53, 0 nieudanych, w tym `AiSpendAfterCancelTest` 2/2; v7a md5 `e967b94c3901fd84f2709bb5bc50f55b` zgodny po `adb pull`, `compile -m speed`; kopia `.stage/apk/napisyai5-v7a.apk`). Zawiera wszystkie commity do 8d4fcf76f (też IPTV 9055fee9f i ustawienia 34b7bde26 — wspólny build).
+- Poprzedni wątek zainstalował `napisyai4` (15:08) i przerwał test bez zapisu: dymek „tłumaczę je na polski”, obok „AI: Limit na tytuł wyczerpany”, napisów brak.
+- Przyczyny (`plan/DECYZJE.md`, 23.11 wieczór): (1) przerwane zapytania zostawiały rezerwację najgorszego kosztu (~0,12 $) na zawsze — poprawione (8d4fcf76f), na JMGO stare wpisy liczą się już po średniej 0,035 $; (2) PRAWDZIWE koszty: tryb „na bieżąco” (napisy wbudowane, np. Pottery S9E4) ~0,03 $ za ≤30 kwestii → godzinny odcinek ~1,3–1,4 $ > limit 1 $ na odcinek (Pottery: 0,895 $ w 30 zapytaniach, tłumaczenie staje po ~40 min); (3) limit dzienny 3 $: 23.11 rozliczono 2,705 $ (71 zapytań, głównie testy wątków) — do końca dnia AI tłumaczy najwyżej 1–2 bloki.
+- Test JMGO (`.stage/jmgo/napisy/test-napisyai5.log`, zrzuty `mih1-3s.png`): Pottery S9E4 → automat → `SpendLedger: limit na tytuł 1.00 $: rozliczone 0.895 $ (30), nieznany wynik 0` → dymek „Nie udało się przetłumaczyć napisów: Limit na tytuł wyczerpany” (poprawka dymka działa). Made in Heaven S1E2 (dodatki, bez PL) → automat → blok w 24 s → `publikacja: napisy AI wybrane (608 kwestii)` → **zrzut: polski napis AI na ekranie** („Bo książę z Delhi ma niespodziankę...”); kolejny blok zatrzymał limit dzienny. Odtwarzanie wstrzymane, JMGO na stronie głównej.
+- Nowy skrypt `fork-tools/test/jmgo_instaluj.sh <apk>` (sprawdza, czy coś gra, HOME gdy fork na wierzchu bez dźwięku, md5, `compile -m speed`).
+
+Do decyzji właściciela (pieniądze — nie zmieniane bez zgody, ZASADY §6): limit na odcinek 1 $ → 3 $ (tryb „na bieżąco” kosztuje ~1,4 $/godz.), limit dzienny 3 $ → 10 $; obie wartości są już na liście w Ustawienia → Moduły → AI napisy. Możliwe tańsze tłumaczenie „na bieżąco” (większe kawałki, gdy tekst znany z wyprzedzeniem; mniej „myślenia” modelu) — osobne zadanie, tylko na polecenie.
+
 ## NAJPIERW (23.11 ~15:30 — wątek „IPTV: poważne błędy”; przebudowa silnika IPTV WSTRZYMANA przez właściciela) — PROMPT HANDOFF
 Prompt (wklej w nowym wątku albo napisz „kontynuuj”):
 > Kontynuuj wątek IPTV forka Nuvio Android TV (`/Users/milajovovich/Desktop/nuvio 2/NuvioFork`, gałąź `skin-niunia`). Zasady: `ZASADY.md`. Stan, przyczyny i lista sprawdzeń: `plan/iptv/STAN.md`. Najpierw sprawdź na JMGO wspólny build z poprawkami błędów telewizji (sekcja „Do sprawdzenia”), dopiero na polecenie właściciela wróć do przebudowy silnika (SQLite).
