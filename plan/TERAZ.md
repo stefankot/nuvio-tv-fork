@@ -3,6 +3,12 @@
 Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–13: `plan/archiwum/TERAZ-historia-watki-1-13.md` (tylko `grep`, nie czytaj całości). Sekcje z 22.11 (build163–169c, scalenie, aktualizacja bazy): `plan/archiwum/TERAZ-historia-22.11.md`.
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
+## NAJPIERW (23.11 ~15:30 — wątek „IPTV: poważne błędy”; przebudowa silnika IPTV WSTRZYMANA przez właściciela) — PROMPT HANDOFF
+Prompt (wklej w nowym wątku albo napisz „kontynuuj”):
+> Kontynuuj wątek IPTV forka Nuvio Android TV (`/Users/milajovovich/Desktop/nuvio 2/NuvioFork`, gałąź `skin-niunia`). Zasady: `ZASADY.md`. Stan, przyczyny i lista sprawdzeń: `plan/iptv/STAN.md`. Najpierw sprawdź na JMGO wspólny build z poprawkami błędów telewizji (sekcja „Do sprawdzenia”), dopiero na polecenie właściciela wróć do przebudowy silnika (SQLite).
+
+Stan: poprawki 5 poważnych błędów telewizji w commicie 9055fee9f (zawieszenie przy włączaniu kanału — blokada `TvStore`; „Kanał nie odpowiada”, gdy kanał gra; start ~100 s — zapis przewodnika ważny mimo zmian listy, łatka `dostawca/LiveTvRepository/14`; same nazwy kanałów; ulubione z kafelkami i obrazkami). Wspólny build v7a z wątkami napisów i ustawień — uzgadniany 23.11 ~15:30 (właściciel: „dogadaj się z innymi wątkami, żeby zrobić wspólnego builda”); nieskompilowane do tego czasu.
+
 ## NAJPIERW (23.11 ~12:00 — wątek „Przebudowa ustawień”, WSTRZYMANY: wznowić po zakończeniu wątku naprawy napisów) — PROMPT HANDOFF
 Prompt (wklej w nowym wątku albo napisz „kontynuuj”):
 > Kontynuuj przebudowę ustawień forka Nuvio Android TV (`/Users/milajovovich/Desktop/nuvio 2/NuvioFork`, gałąź `skin-niunia`). Zasady: `ZASADY.md`. Stan, ustalenia i dokładne kroki: `plan/ustawienia/STAN.md` — rób „NASTĘPNE KROKI” po kolei (najpierw ekran `skin/niunia/settings/NiuniaSettingsTree.kt`, potem wpięcia w `SimpleSettingsGate` i `ForkSettingsNav.gate`, testy JVM, `DRZEWO.md`/`INWENTARZ.md`, build v7a, test na JMGO, szukanie).
