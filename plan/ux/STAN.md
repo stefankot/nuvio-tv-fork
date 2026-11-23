@@ -40,6 +40,9 @@ Emulator GTV (`nuvio_tv`, Google TV API 34, arm64 → build `-PforkAbi=arm64-v8a
 - Następny krok: `adb emu kill`, build `ux3` (`assembleFullDebug` arm64), potem testy JVM Niuni (`NiuniaOkGateTest` i reszta `*Niunia*`),
   pętla 3 (≥ 10 min): Live TV powrót fokusu, podpowiedź EPG, „Szukaj w telewizji” z Ustawień Niuni, zwiastun, sezon.
 
-## Pętla 3 (23:25–23:40, przerwana — koniec kontekstu wątku) — APK ux3 (md5 b9acf233…)
-- Testy JVM Niuni 82/82 (NiuniaOkGateTest 8/8). Potwierdzone: podpowiedź EPG, powrót fokusu na kanał, pozycje Telewizja w Ustawieniach Niuni.
-- Nowy błąd: okno „Kanał nie odpowiada” — pierwszy Wstecz nic nie robi. Dalej: `plan/TERAZ.md` → NAJPIERW 22.11 ~23:25.
+## Pętla 3 (22.11 23:25–23:51) — APK ux3 (md5 b9acf233…)
+- Testy JVM Niuni 82/82 (NiuniaOkGateTest 8/8). Ręcznie ok. 15 min + automatycznie 15,4 min (`cykl3/sciezki.md`: OK 0 / UWAGA 18 / BŁĄD 0,
+  uwagi = czas wczytania na obciążonym emulatorze). Potwierdzone: Live TV, Ustawienia Niuni, zwiastun, „Więcej/Mniej”, długie OK na sezonie.
+- Poprawki po pętli 3 (RAPORT 27–30, do builda ux4): Wstecz w „Kanał nie odpowiada”, powrót fokusu na stronie tytułu (osoba/podobne),
+  długie OK na odcinku = opcje odcinka Nuvio, ▲ z kanałów na wybraną pigułkę.
+- Następny krok: `adb emu kill`, build `ux4` (`assembleFullDebug` arm64), instalacja, pętla 4 (≥ 10 min, połowa przez uiautomator).

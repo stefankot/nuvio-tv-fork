@@ -123,8 +123,23 @@ fun NiuniaDetail(
     val playFocus = remember { FocusRequester() }
     val belowFocus = remember { FocusRequester() }
     var focusedRow by remember { mutableIntStateOf(0) }
+    // UX 22.11 (ścieżka 19): po Wstecz ze strony osoby albo tytułu z „Podobne” fokus wracał na „Odtwórz” — teraz na ten sam
+    // element (klucz zapisany przed przejściem; lista pod hero sama wraca do zapamiętanego miejsca).
+    var returnTo by androidx.compose.runtime.saveable.rememberSaveable(meta.id) { mutableStateOf<String?>(null) }
+    val returnFocus = remember { FocusRequester() }
     LaunchedEffect(meta.id) {
         Log.i(TAG, "szczegóły: ${meta.rawType} „${meta.name}” (sezony=${uiState.seasons.size}, odcinki=${uiState.episodesForSeason.size}, podobne=${uiState.moreLikeThis.size}, obsada=${meta.castMembers.size}, wznów=${uiState.nextToWatch?.isResume == true})")
+        val back = returnTo
+        if (back != null) {
+            repeat(6) { attempt ->
+                kotlinx.coroutines.delay(80)
+                try {
+                    if (returnFocus.requestFocus(androidx.compose.ui.focus.FocusDirection.Enter)) { Log.i(TAG, "szczegóły: powrót fokusu → $back"); returnTo = null; return@LaunchedEffect }
+                    if (attempt == 5) Log.w(TAG, "szczegóły: powrót fokusu na $back: element nie przyjął fokusu — fokus na Odtwórz")
+                } catch (e: IllegalStateException) { if (attempt == 5) Log.w(TAG, "szczegóły: powrót fokusu na $back: ${e.javaClass.simpleName}: ${e.message} — fokus na Odtwórz") }
+            }
+            returnTo = null
+        }
         try { playFocus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "szczegóły: fokus startowy: ${e.javaClass.simpleName}: ${e.message}") }
     }
 
@@ -142,6 +157,8 @@ fun NiuniaDetail(
     val episodeReturn = remember { FocusRequester() }
     val firstEpisode = remember { FocusRequester() }
     var episodeOpen by remember { mutableStateOf<Video?>(null) }
+    // UX 22.11: długie OK na odcinku = okno opcji odcinka z Nuvio (Odtwórz, obejrzany/nieobejrzany, sezon, poprzednie odcinki).
+    var optionsEpisode by remember { mutableStateOf<Video?>(null) }
     var lastEpisodeId by remember { mutableStateOf<String?>(null) }
     var fullDescription by remember { mutableStateOf(false) }
     // Z-13: nagrody tytułu (źródło: NiuniaAwardsRepo; bez źródła pusto — pasek się nie rysuje, lista pokazuje stan pusty).
@@ -228,7 +245,7 @@ fun NiuniaDetail(
                                                     .then(if (idx == 0) Modifier.focusRequester(firstEpisode) else Modifier),
                                                 onFocus = { if (it) focusedRow = 1 },
                                                 onClick = { Log.i(TAG, "szczegóły: odcinek S${video.season}:O${video.episode} → strona odcinka"); lastEpisodeId = video.id; episodeOpen = video },
-                                                onLongClick = { Log.i(TAG, "szczegóły: długie OK → odtwórz S${video.season}:O${video.episode}"); playEpisode(video) },
+                                                onLongClick = { Log.i(TAG, "szczegóły: długie OK → opcje odcinka S${video.season}:O${video.episode}"); lastEpisodeId = video.id; optionsEpisode = video },
                                             )
                                         }
                                     }
@@ -267,12 +284,14 @@ fun NiuniaDetail(
                                         items(uiState.moreLikeThis, key = { "${it.rawType}_${it.id}" }) { item ->
                                             // Właściciel 22.11: podobne z Trakt/Simkl/TMDB są poziome — plakat pionowy zamiast kadrowania do pionu.
                                             val (art, fallback) = androidx.compose.runtime.remember(item) { com.nuvio.tv.skin.niunia.components.niuniaPortrait(item, "") }
+                                            val back = "podobne:${item.rawType}_${item.id}"
                                             NiuniaPoster(
+                                                modifier = if (returnTo == back) Modifier.focusRequester(returnFocus) else Modifier,
                                                 art = art, fallback = fallback, title = item.name, logo = item.logo, meta = NiuniaLabels.meta(item),
                                                 label = NiuniaLabels.label(context, item, 0, rankingRow = false), baked = art != null,
                                                 award = com.nuvio.tv.skin.niunia.components.niuniaPosterAward(item.id),
                                                 onFocus = { if (it) focusedRow = 2 },
-                                                onOk = { Log.i(TAG, "szczegóły: podobne → ${item.id}"); onNavigateToDetail(item.id, item.rawType, null) },
+                                                onOk = { Log.i(TAG, "szczegóły: podobne → ${item.id}"); returnTo = back; onNavigateToDetail(item.id, item.rawType, null) },
                                                 onLongOk = { posterOptions(item, null) },
                                             )
                                         }
@@ -288,13 +307,15 @@ fun NiuniaDetail(
                                 com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
                                     LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space20)) {
                                         itemsIndexed(cast.take(20), key = { i, it -> "${i}_${it.name}" }) { i, person ->
+                                            val back = "osoba:$i"
                                             NiuniaCastCard(
                                                 name = person.name, role = person.character, photo = person.photo,
-                                                modifier = if (i == 0) Modifier.focusRequester(aboutFocus) else Modifier,
+                                                modifier = (if (i == 0) Modifier.focusRequester(aboutFocus) else Modifier)
+                                                    .then(if (returnTo == back) Modifier.focusRequester(returnFocus) else Modifier),
                                                 onFocus = { if (it) focusedRow = 3 },
                                                 onClick = {
                                                     val id = person.tmdbId
-                                                    if (id != null) { Log.i(TAG, "szczegóły: osoba → ${person.name}"); onNavigateToCastDetail(id, person.name, false) }
+                                                    if (id != null) { Log.i(TAG, "szczegóły: osoba → ${person.name}"); returnTo = back; onNavigateToCastDetail(id, person.name, false) }
                                                     else { Log.i(TAG, "szczegóły: ${person.name} bez id TMDB — brak strony osoby"); com.nuvio.tv.fork.ForkLog.say(context, TAG, context.getString(R.string.niunia_ds_no_play)) }
                                                 },
                                             )
@@ -328,6 +349,37 @@ fun NiuniaDetail(
                 Log.i(TAG, "odcinek: Wstecz → odcinki")
                 episodeOpen = null
             })
+    }
+    optionsEpisode?.let { ep ->
+        val sn = ep.season ?: 0
+        val en = ep.episode ?: 0
+        val wp = uiState.episodeProgressMap[sn to en]
+        val seasonEps = uiState.episodesForSeason
+        com.nuvio.tv.ui.screens.detail.EpisodeOptionsOverlay(
+            episode = ep,
+            isWatched = wp?.isCompleted() == true || (sn to en) in uiState.watchedEpisodes,
+            blurUnwatchedEpisodes = uiState.blurUnwatchedEpisodes,
+            style = uiState.episodeOptionsOverlayStyle,
+            isPending = "${ep.id}:${ep.season ?: -1}:${ep.episode ?: -1}" in uiState.episodeWatchedPendingKeys,
+            isSeasonFullyWatched = seasonEps.isNotEmpty() && seasonEps.all { (sn to (it.episode ?: 0)) in uiState.watchedEpisodes },
+            hasPreviousEpisodes = seasonEps.any { (it.episode ?: Int.MAX_VALUE) < en },
+            onDismiss = { Log.i(TAG, "odcinek: opcje zamknięte"); optionsEpisode = null },
+            onNavigateEpisode = { step ->
+                val i = seasonEps.indexOfFirst { it.id == ep.id }
+                seasonEps.getOrNull(i + step)?.let { optionsEpisode = it; lastEpisodeId = it.id }
+            },
+            onPlay = { Log.i(TAG, "odcinek: opcje → odtwórz S$sn:O$en"); optionsEpisode = null; playEpisode(ep) },
+            onToggleWatched = { Log.i(TAG, "odcinek: opcje → obejrzany przełączony S$sn:O$en"); optionsEpisode = null; viewModel.onEvent(MetaDetailsEvent.OnToggleEpisodeWatched(ep)) },
+            onMarkSeasonWatched = { Log.i(TAG, "odcinek: opcje → sezon $sn obejrzany"); optionsEpisode = null; viewModel.onEvent(MetaDetailsEvent.OnMarkSeasonWatched(sn)) },
+            onMarkSeasonUnwatched = { Log.i(TAG, "odcinek: opcje → sezon $sn nieobejrzany"); optionsEpisode = null; viewModel.onEvent(MetaDetailsEvent.OnMarkSeasonUnwatched(sn)) },
+            onMarkPreviousEpisodesWatched = { Log.i(TAG, "odcinek: opcje → poprzednie obejrzane S$sn:O$en"); optionsEpisode = null; viewModel.onEvent(MetaDetailsEvent.OnMarkPreviousEpisodesWatched(ep)) },
+        )
+    }
+    LaunchedEffect(optionsEpisode) {
+        if (optionsEpisode == null && episodeOpen == null && lastEpisodeId != null) {
+            kotlinx.coroutines.delay(80)
+            try { episodeReturn.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odcinek: powrót fokusu po opcjach: ${e.javaClass.simpleName}: ${e.message}") }
+        }
     }
     LaunchedEffect(episodeOpen) {
         if (episodeOpen == null && lastEpisodeId != null) {

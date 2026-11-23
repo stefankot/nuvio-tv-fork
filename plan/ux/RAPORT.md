@@ -28,17 +28,17 @@ Stan pętli i kolejność prac: `plan/ux/STAN.md`.
 10. [ ] Kalendarz / Dodatki / Kolejność katalogów: Wstecz z pozycji wraca na „Home” zamiast na element, z którego weszło (ekrany bazy).
 
 ### Strona tytułu
-11. [P] Karty „Zwiastun N”: każda odtwarzała ten sam zwiastun z TMDB (wybrany film YouTube ignorowany) i przez kilka sekund
+11. [B] Karty „Zwiastun N”: każda odtwarzała ten sam zwiastun z TMDB (wybrany film YouTube ignorowany) i przez kilka sekund
     nic nie było widać → odtwarza wybrany zwiastun, od razu komunikat „Wczytuję zwiastun…”.
-12. [P] „Więcej” przy opisie: po rozwinięciu nadal „Więcej” → „Mniej” (opis „Zwiń opis”).
-13. [P] Pigułki sezonów: długie OK = cały sezon obejrzany / nieobejrzany (jak w Nuvio), z potwierdzeniem.
+12. [B] „Więcej” przy opisie: po rozwinięciu nadal „Więcej” → „Mniej” (opis „Zwiń opis”).
+13. [B] Pigułki sezonów: długie OK = cały sezon obejrzany / nieobejrzany (jak w Nuvio), z potwierdzeniem.
 14. [i] „Odtwórz” bez dodatków ze źródłami: tylko krótki komunikat systemowy (Toast) — działa, ale łatwo przeoczyć.
 
 ### Live TV
 15. [P] Pusty Live TV odsyłał do „Ustawienia → Telewizja”, której w Niuni nie ma (brak jakiegokolwiek wejścia do źródeł
     Live TV w ustawieniach Niuni na poziomie Prostym) → przycisk „Dodaj listę kanałów” na pustym ekranie i pozycja
     „Telewizja → Źródła kanałów i EPG” w Ustawieniach Niuni (okno źródeł Nuvio z QR).
-16. [ ] „Szukaj w telewizji” (fork_tv_search): po otwarciu brak fokusu.
+16. [B] „Szukaj w telewizji” (fork_tv_search): po otwarciu fokus na polu „Szukaj kanału lub programu” (pętla 3).
 
 ### YouTube (OneTube — kod obcy, bez zmian wg ZASADY)
 17. [i] Bez logowania: ekran „Home” pusty, ▼ z zakładki nie dochodzi do przycisku „Sign in” pod komunikatem; teksty po angielsku.
@@ -70,3 +70,20 @@ Część BŁĘDÓW to ograniczenia skryptu (Toast niewidoczny dla uiautomatora, 
 - 25. [i] „Odśwież dodatki”, „Zmień kolejność” (ekrany bazy): brak widocznej zmiany po OK w odczycie uiautomatora — do sprawdzenia na TV.
 - 26. [i] Ekran błędu kanału („Kanał nie odpowiada”, „Spróbuj ponownie” / „Następny kanał”) — czytelny; Wstecz wychodzi
   (przy przeciążeniu emulatora z opóźnieniem ~1 s, JankStats 1,2 s).
+
+## Pętla 3 (22.11 23:25 – 23:51, APK ux3, arm64)
+- Ręcznie [B]: podpowiedź EPG, powrót fokusu na kanał po Wstecz, „Źródła kanałów i EPG” i „Szukaj w telewizji” w Ustawieniach Niuni;
+  Lupin: karta „Zwiastun 1” → komunikat, zwiastun gra po ~3 s (log `zwiastun znaleziony (wybrany)`), Wstecz → fokus na karcie;
+  „Więcej” → „Mniej” („Zwiń opis”) → „Więcej”; długie OK na „Sezon 1” → „sezon 1 obejrzany (5 odc.)”, drugie → „nieobejrzany”.
+- Automatycznie (`cykl3/sciezki.md`, 18 ścieżek, 15,4 min): OK 0 / UWAGA 18 / BŁĄD 0 — prawie wszystkie UWAGI to czas wczytania
+  na emulatorze (zimny start 30 s, Główna 10–21 s, Live TV 8–12 s; Mac obciążony 5–6) — niemiarodajne, porównać na JMGO.
+- 27. [P] Okno „Kanał nie odpowiada”: pierwszy Wstecz nic nie robił (klawisze najpierw dostaje odtwarzacz, okno nie widziało
+  Wstecz) → Wstecz od razu zamyka okno i wraca do listy kanałów; OK i strzałki działają na przyciskach okna (`ForgeChannelFailed.onKey`).
+- 28. [P] Strona tytułu (ścieżka 19): po Wstecz ze strony osoby (Obsada) albo tytułu z „Podobne” fokus wracał na „Odtwórz” →
+  wraca na tę samą osobę/plakat.
+- 29. [P] Długie OK na odcinku od razu odtwarzało → okno opcji odcinka z Nuvio (Odtwórz, obejrzany/nieobejrzany, cały sezon,
+  poprzednie odcinki); po zamknięciu fokus wraca na odcinek.
+- 30. [P] Live TV (ścieżka 29): ▲ z pierwszego kanału trafiał w kategorię najbliżej środka („Informacje”) → na ostatnio
+  wybraną pigułkę (na początku „Wszystkie”).
+- 31. [i] Odcinek obejrzany = pełny pasek postępu na kadrze (bez napisu) — czytelne na TV; uiautomator tego nie widzi.
+- 32. [i] Ścieżki 13, 20, 21: ograniczenia skryptu (klawisz „c” zamiast plakatu, tytuł bez „Podobne”) — nie błędy aplikacji.

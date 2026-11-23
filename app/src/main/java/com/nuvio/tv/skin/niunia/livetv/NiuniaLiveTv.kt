@@ -399,7 +399,9 @@ private fun Guide(
         }
         com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
             // Test JMGO build151 (B3-3): ▲ z „Wszystkie” otwierał menu zamiast kafli nad pigułkami → wprost na kafle (ostatni z fokusem).
-            LazyRow(Modifier.fillMaxWidth().height(56.dp).onPreviewKeyEvent { e ->
+            // UX 22.11 (emulator, ścieżka 29): ▲ z pierwszego kanału trafiał w pigułkę najbliżej środka („Informacje”) zamiast
+            // w ostatnio wybraną — teraz ostatnia pigułka z fokusem, na początku „Wszystkie”.
+            LazyRow(Modifier.fillMaxWidth().height(56.dp).focusRestorer(allFocus).onPreviewKeyEvent { e ->
                 if (e.type != KeyEventType.KeyDown || e.key != Key.DirectionUp || tiles.isEmpty()) return@onPreviewKeyEvent false
                 try { tilesFocus.requestFocus(); true } catch (ex: IllegalStateException) { Log.w(TAG, "live tv: ▲ na kafle: ${ex.javaClass.simpleName}: ${ex.message}"); false }
             }, contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = 120.dp), horizontalArrangement = Arrangement.spacedBy(6.dp),

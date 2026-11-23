@@ -277,6 +277,7 @@ internal class LiveTvPlayerState(
         // Fork patch: dostawca #10 - gdy trwa sesja Live TV (wybrano kanał), klawisze zostają Live TV nawet gdy strumień chwilowo nie jest zarejestrowany
         if (!isActive() && currentListUrl == null) return false
         if (forgeLongBack(event)) return true // forge fix 14.11 (JMGO A2): a long Back always leaves at once
+        if (com.nuvio.tv.skin.kicia.livetv.ForgeChannelFailed.channel.value != null) return com.nuvio.tv.skin.kicia.livetv.ForgeChannelFailed.onKey(event, exit) // forge fix 22.11 (UX): Back on „Kanał nie odpowiada” works the first time
         // test 15.11 (B-6): Back on the legend closes the legend only (it also left the player)
         if (com.nuvio.tv.skin.kicia.livetv.ForgeRemoteLegend.pressed != -1 && (event.keyCode == KeyEvent.KEYCODE_BACK || event.keyCode == KeyEvent.KEYCODE_ESCAPE)) {
             if (event.action == KeyEvent.ACTION_UP) com.nuvio.tv.skin.kicia.livetv.ForgeRemoteLegend.dismiss()

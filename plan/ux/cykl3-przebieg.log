@@ -1,0 +1,37 @@
+[23:35:58] ścieżka 1: Start aplikacji → ekran główny z fokusem
+   → UWAGA (31 s) UWAGA: zimny start 30.1 s
+[23:36:29] ścieżka 2: Główna: OK „Odtwórz” w banerze
+   → UWAGA (48 s) UWAGA: home: ładowanie 21.4 s
+[23:37:17] ścieżka 3: Główna: długie OK w banerze → strona tytułu
+   → UWAGA (39 s) UWAGA: home: ładowanie 16.0 s
+[23:37:56] ścieżka 4: Główna: ▼ rząd, ►×4, OK → tytuł, Wstecz → ten sam plakat
+   → UWAGA (53 s) UWAGA: home: ładowanie 13.0 s
+[23:38:49] ścieżka 5: Główna: długie OK na plakacie → menu → „Do biblioteki”
+   → UWAGA (69 s) UWAGA: home: ładowanie 17.6 s; UWAGA: menu: drugi przycisk „[bez nazwy 784x96 @568,566]”
+[23:39:58] ścieżka 11: Szukaj: wpis „bat” klawiaturą ekranową → wyniki → OK → długie OK
+   → UWAGA (111 s) UWAGA: search: ładowanie 10.8 s
+[23:41:49] ścieżka 12: Szukaj: polecane → OK → tytuł → Wstecz (fokus wraca na plakat)
+   → UWAGA (65 s) UWAGA: search: ładowanie 8.1 s
+[23:42:54] ścieżka 13: Szukaj: długie OK na polecanym plakacie
+   → UWAGA (49 s) UWAGA: search: ładowanie 9.7 s; UWAGA: Wstecz z menu: fokus „Komedia” zamiast „c”
+[23:43:43] ścieżka 17: Strona tytułu: przyciski ◄► i OK na każdym
+   → UWAGA (45 s) UWAGA: home: ładowanie 11.4 s
+[23:44:28] ścieżka 18: Strona tytułu: długie OK na przycisku „Odtwórz”
+   → UWAGA (50 s) UWAGA: home: ładowanie 10.5 s
+[23:45:18] ścieżka 19: Strona tytułu: ▼ do odcinków/podobnych, OK, Wstecz
+   → UWAGA (49 s) UWAGA: home: ładowanie 9.9 s; UWAGA: Wstecz: fokus „Odtwórz” zamiast „Genden Phuntsok | GP”
+[23:46:06] ścieżka 20: Strona tytułu: długie OK na „Podobne”
+   → UWAGA (50 s) UWAGA: home: ładowanie 11.2 s; UWAGA: nie znaleziono: plakat „Podobne” (DOWN×6)
+[23:46:56] ścieżka 21: Strona tytułu: obsada → osoba → plakat → Wstecz×2
+   → UWAGA (80 s) UWAGA: home: ładowanie 13.2 s
+[23:48:16] ścieżka 26: Live TV: wejście (stan pusty albo przewodnik)
+   → UWAGA (9 s) UWAGA: reshaped_live_tv: ładowanie 8.9 s
+[23:48:26] ścieżka 27: Live TV: OK na kanale → odtwarzanie → Wstecz
+   → UWAGA (76 s) UWAGA: reshaped_live_tv: ładowanie 7.8 s
+[23:49:41] ścieżka 28: Live TV: długie OK na kanale
+   → UWAGA (25 s) UWAGA: reshaped_live_tv: ładowanie 8.0 s
+[23:50:06] ścieżka 29: Live TV: przewijanie listy ▼×15 i ▲×15
+   → UWAGA (46 s) UWAGA: reshaped_live_tv: ładowanie 12.4 s
+[23:50:52] ścieżka 30: Live TV: Szukaj kanału
+   → UWAGA (28 s) UWAGA: fork_tv_search: ładowanie 11.8 s
+koniec: 15.4 min, {'OK': 0, 'UWAGA': 18, 'BŁĄD': 0}, raport /Users/milajovovich/Desktop/nuvio 2/NuvioFork/plan/ux/cykl3/sciezki.md
