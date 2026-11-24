@@ -3,10 +3,11 @@
 Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–13: `plan/archiwum/TERAZ-historia-watki-1-13.md` (tylko `grep`, nie czytaj całości). Sekcje z 22.11 (build163–169c, scalenie, aktualizacja bazy): `plan/archiwum/TERAZ-historia-22.11.md`.
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
-## NAJPIERW (24.11 wieczór — UX JMGO po E3; właściciel: żadnych kolejnych przebiegów, E4 nie uruchamiać)
+## NAJPIERW (24.11 wieczór — UX JMGO po E4: podsumowanie napisane, pętli 2 nie było; właściciel zakazał kolejnych przebiegów)
 - Na JMGO jest `uxj3` (md5 6deb562d…); pełny wiarygodny przebieg pętli 1 NIE powstał (tester czytał fokus za wcześnie), realnych poprawek aplikacji jest mało. Wszystko ustalone: `plan/ux/jmgo/PRZEKAZANIE.md` (problemy aplikacji z dowodami, pułapki narzędzi, propozycja zadania).
 - Nowe narzędzie: stały czytnik ekranu `fork-tools/uitest/fastdump/` (odczyt 2,1 s → 0,05–0,6 s, 50 ścieżek ~12 min). Zasady dyscypliny: `ZASADY.md` §9.
 - Dalej tylko na polecenie właściciela: poprawki aplikacji (pamięć 1 GB, powrót ze strony tytułu, Szukaj ◄, Live TV fokus) — jeden build, weryfikacja tylko dotkniętych ścieżek.
+- E4: pętli 2 NIE uruchomiono (zakaz właściciela zapisany przez E3); nie było zmian w `app/` po `uxj3`, więc bez builda. Dla właściciela: `plan/ux/jmgo/PODSUMOWANIE.md` (trzy stany napisane/zbudowane/sprawdzone, czasy przed/po, co zostało). Kryterium „2 pętle bez błędu” niespełnione.
 
 ## NAJPIERW (24.11 — Niunia Live TV: brakujące ekrany z makiety, paczka `tv1`)
 - Właściciel: „gdzie podziały się poprawki do ekranów — nie ma ich w kompilacji (IPTV z wyborem kraju i języka, akcja na long press); sprawdź, co nie zostało scalone, zbuduj”. Przyczyna: ke4 (Z-1…Z-23) wdrożył Z-21 i Z-14 tylko częściowo (lista „Nie zrobione” w `plan/niunia-ke/ODDANIE-ke4.md`); scalenie 2bf887aaa niczego nie zgubiło.
