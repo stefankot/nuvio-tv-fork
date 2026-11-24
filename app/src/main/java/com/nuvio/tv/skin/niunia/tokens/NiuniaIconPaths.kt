@@ -24,6 +24,8 @@ object NiuniaIconPaths {
         "play-small" to listOf("M6 4l14 8-14 8z" to true),
         "plus" to listOf("M12 5v14M5 12h14" to false),
         "check" to listOf("M5 12l5 5 9-10" to false),
+        // UX JMGO (ręczne testy 24.11): „Usuń z »Oglądaj dalej«” jako jedyna pozycja okna nie miała ikony.
+        "close" to listOf("M6 6l12 12M18 6L6 18" to false),
         "info" to listOf("M3.0,12.0a9.0,9.0 0 1,0 18.0,0a9.0,9.0 0 1,0 -18.0,0z" to false, "M12 11v5M12 8h.01" to false),
         "chevron-right" to listOf("M9 6l6 6-6 6" to false),
         "chevron-left" to listOf("M15 6l-6 6 6 6" to false),

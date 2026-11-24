@@ -51,6 +51,13 @@ fun NiuniaLibrary(onNavigateToDetail: (String, String, String?) -> Unit, viewMod
     // UX 22.11: długie OK na pozycji = menu opcji (szczegóły, biblioteka, obejrzane).
     val posterOptions = com.nuvio.tv.skin.niunia.components.rememberNiuniaPosterOptions { id, type, url -> onNavigateToDetail(id, type, url) }
     LaunchedEffect(items.size) { Log.i(TAG, "biblioteka: ${items.size} pozycji") }
+    // UX JMGO (ręczne testy 24.11): przez ~1 s wczytywania był ekran „Biblioteka jest pusta” z fokusem na „Przeglądaj”,
+    // a po wczytaniu fokus spadał na chip „Wszystko”. W czasie wczytywania samo tło; fokus startowy daje półka (NiuniaLibraryShelves).
+    if (items.isEmpty() && state.isLoading) {
+        LaunchedEffect(Unit) { Log.i(TAG, "biblioteka: wczytywanie — bez ekranu „pusta”") }
+        Box(Modifier.fillMaxSize().background(com.nuvio.tv.skin.niunia.tokens.NiuniaColor.Bg))
+        return
+    }
     if (items.isEmpty()) {
         // Makieta Library (NContentBlock empty): tytuł 20/26, podpowiedź 14/20 w 70%, przycisk „Przeglądaj filmy i seriale” z fokusem.
         // Pionowo na środku, poziomo od lewej 40 dp (decyzja: nic nie centrujemy w poziomie).

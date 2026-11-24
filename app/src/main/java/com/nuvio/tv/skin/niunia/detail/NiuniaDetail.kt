@@ -675,7 +675,7 @@ private fun Hero(
                 val ep = heroVideo?.takeIf { series }
                 // UX JMGO (ręczne testy 24.11): opisy z Wikipedii miały przypisy „Europe.[1]” — usunięte z wyświetlanego tekstu.
                 val description = (ep?.overview?.takeIf { it.isNotBlank() } ?: meta.description)?.replace(Regex("\\[\\d{1,3}]"), "")?.takeIf { it.isNotBlank() }
-                val prefix = ep?.let { v -> listOfNotNull("S${v.season}, E${v.episode}", v.title.takeIf { it.isNotBlank() }).joinToString(" · ") }
+                val prefix = ep?.let { v -> listOfNotNull("S${v.season}, E${v.episode}", v.title.takeUnless { niuniaGenericEpisodeTitle(it, v.episode) }).joinToString(" · ") }
                 if (description != null) NText(if (prefix != null) "**$prefix:** $description" else description, variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 3)
                 val dateLine = listOfNotNull(
                     niuniaDate(ep?.released ?: meta.released),

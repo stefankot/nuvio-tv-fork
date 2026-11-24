@@ -209,7 +209,8 @@ private fun ProfileItem(
         Spacer(Modifier.height(6.dp))
         Text(
             name, style = NiuniaText.Meta.copy(fontSize = 12.sp, lineHeight = 16.sp), color = if (focused) NiuniaColors.Text else NiuniaColors.Text70,
-            maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Start,
+            // UX JMGO (ręczne testy 24.11): dwa profile „Stef+Patryk (K…” nie do odróżnienia — imię w dwóch liniach.
+            maxLines = 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Start,
         )
     }
 }

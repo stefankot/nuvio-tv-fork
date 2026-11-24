@@ -39,6 +39,7 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -138,6 +139,15 @@ internal fun NiuniaLibraryContent(
         else listOf("g:" to items.map { "g:${it.type}_${it.id}" })
     }
     com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(if (restore.active) restore.requester else first)
+    // UX JMGO (ręczne testy 24.11): po wejściu fokus na pierwszy plakat (wcześniej spadał na chip „Wszystko”, gdy aktywne
+    // były „Seriale”). Powrót ze strony tytułu ma własną ścieżkę (restore).
+    LaunchedEffect(Unit) {
+        if (restore.active) return@LaunchedEffect
+        androidx.compose.runtime.withFrameNanos { }
+        kotlinx.coroutines.delay(60)
+        try { first.requestFocus(); Log.i(TAG, "biblioteka: fokus startowy → pierwszy plakat") }
+        catch (e: IllegalStateException) { Log.w(TAG, "biblioteka: fokus startowy: ${e.javaClass.simpleName}: ${e.message}") }
+    }
 
     fun facts(e: LibraryEntry): String {
         val added = e.listedAt.takeIf { it > 0L }?.let { t ->
@@ -173,7 +183,13 @@ internal fun NiuniaLibraryContent(
         )
     }
 
-    Box(Modifier.fillMaxSize().background(NiuniaColors.Bg)) {
+    // UX JMGO (ręczne testy 24.11): ◄ z pierwszego plakatu/chipa stał w miejscu — przy lewej krawędzi ◄ otwiera menu
+    // (onKeyEvent: najpierw własne klawisze rzędów, dopiero nieobsłużone ◄ trafia tutaj).
+    val edgeFm = androidx.compose.ui.platform.LocalFocusManager.current
+    Box(Modifier.fillMaxSize().background(NiuniaColors.Bg).onKeyEvent { e ->
+        if (panel || e.type != KeyEventType.KeyDown || e.key != Key.DirectionLeft) false
+        else edgeFm.moveFocus(FocusDirection.Left) || com.nuvio.tv.skin.niunia.nav.NiuniaNavActions.toMenu("biblioteka ◄ przy krawędzi")
+    }) {
         Column(Modifier.fillMaxSize().padding(top = 76.dp)) {
             // Zakładki typu + „Sortuj i filtruj”; ▲ z tego rzędu = menu (jak dotąd z pierwszego rzędu plakatów).
             // UX JMGO 24.11 (F3, pętla 0 ścieżka 21): ▲ z treści wraca na ostatnio zaznaczony chip (wcześniej: najbliższy w osi pionowej).

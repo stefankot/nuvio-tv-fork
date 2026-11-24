@@ -318,7 +318,7 @@ fun NiuniaHome(
                     close("szczegóły") { cw -> onNavigateToDetail(niuniaCwContentId(cw), niuniaCwContentType(cw), "") }
                 },
                 com.nuvio.tv.skin.niunia.components.NiuniaDialogAction(ctx.getString(R.string.niunia_ke_mark_watched), icon = "check") { close("obejrzane", cwActions.markWatched) },
-                com.nuvio.tv.skin.niunia.components.NiuniaDialogAction(ctx.getString(R.string.niunia_ke_remove_cw)) { close("usuń", cwActions.remove) },
+                com.nuvio.tv.skin.niunia.components.NiuniaDialogAction(ctx.getString(R.string.niunia_ke_remove_cw), icon = "close") { close("usuń", cwActions.remove) },
             ),
         )
     }

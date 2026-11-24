@@ -505,7 +505,11 @@ private fun Guide(
                 // UX 22.11 (test emulatora, lista bez przewodnika): „Nic tu jeszcze nie ma.” nad pełną listą kanałów myliło —
                 // gdy żaden kanał nie ma programu, podpowiedź, skąd go wziąć.
                 val noGuide = remember(guideVersion, channels.size) { LiveTvRepository.uiState.value.currentProgrammes.isEmpty() && channels.isNotEmpty() }
-                Text(stringResource(if (noGuide) R.string.niunia_tv_rail_no_guide else R.string.niunia_tv_rail_empty), style = NiuniaText.Body, color = NiuniaColors.Text50, modifier = Modifier.padding(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 128.dp))
+                // UX JMGO (ręczne testy 24.11): zaraz po starcie (przewodnik jeszcze się wczytuje, wiersze „Wczytuję program…”)
+                // pojawiało się „Te kanały nie mają programu TV” — podpowiedź dopiero po 20 s bez programu.
+                var guideWaited by remember { mutableStateOf(false) }
+                LaunchedEffect(Unit) { delay(20_000); guideWaited = true }
+                if (!noGuide || guideWaited) Text(stringResource(if (noGuide) R.string.niunia_tv_rail_no_guide else R.string.niunia_tv_rail_empty), style = NiuniaText.Body, color = NiuniaColors.Text50, modifier = Modifier.padding(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 128.dp))
             } else com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
                 LazyRow(Modifier.padding(top = 74.dp).focusRequester(tilesFocus).focusRestorer(), state = tilesState, contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 6.dp, bottom = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
