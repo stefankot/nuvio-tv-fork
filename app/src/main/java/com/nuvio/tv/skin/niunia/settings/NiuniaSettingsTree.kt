@@ -375,7 +375,12 @@ private val START = listOf("HOME" to ("Po uruchomieniu pokaż: ekran główny" t
 private fun value(c: Context, item: TreeItem): RowValue = when (val t = item.target) {
     is TreeTarget.Toggle -> switch(ForkFeatures.enabled(c, t.key, t.default))
     is TreeTarget.ModuleSwitch -> switch(ForkFeatures.enabled(c, ForkRegistry.switchKey(t.module), t.default))
-    is TreeTarget.Action -> RowValue(null, NiuniaTrailing.None)
+    // UX JMGO (ręczne testy 24.11): „Kraj kanałów” (każde OK = następny kraj) nie pokazywał, jaki kraj jest wybrany —
+    // na JMGO po cichu „Niemcy”, przy włączonym „Najpierw kanały z mojego kraju”.
+    is TreeTarget.Action -> RowValue(
+        if (t.title == "Zmień kraj IPTV") com.nuvio.tv.fork.tv.country.TvCountry.nameOf(com.nuvio.tv.fork.tv.country.TvCountry.countryCode(c)) else null,
+        NiuniaTrailing.None,
+    )
     is TreeTarget.Special -> when (t.id) {
         "level" -> RowValue(c.getString(if (SimpleLevel.isSimple(c)) R.string.settings_tree_level_simple else R.string.settings_tree_level_full), NiuniaTrailing.None)
         "logo_mode" -> RowValue(LOGO[forge(c).getInt("logo_mode", 0).coerceIn(0, 3)], NiuniaTrailing.None)
