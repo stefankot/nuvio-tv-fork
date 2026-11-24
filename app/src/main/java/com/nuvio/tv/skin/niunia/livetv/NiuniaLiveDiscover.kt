@@ -48,7 +48,12 @@ internal fun NiuniaLiveDiscover(
         )
     }
     val rows = rememberComputed(channels, favUrls, now / (5 * MIN_MS), empty = null as List<NiuniaDiscoverRow>?, what = "odkrywaj") {
-        discoverRows(channels, favUrls, current, now, titles)
+        // UX JMGO (ręczne testy 24.11): w „Ulubione” 4× „Kuchenne rewolucje” (kopie kanału z kilku list), a „Dla ciebie”
+        // i „Teraz na żywo” proponowały kanały „Niedostępne” (RT, CNBC). Jeden kafel na program i godzinę, bez niedostępnych.
+        discoverRows(channels, favUrls, current, now, titles).map { r ->
+            NiuniaDiscoverRow(r.title, r.tiles.filterNot { NiuniaLiveStatus.unavailable(context, it.channel.streamUrl) }
+                .distinctBy { t -> t.programme?.let { p -> p.title.trim().lowercase() + "|" + p.startEpochMs } ?: t.channel.streamUrl })
+        }.filter { it.tiles.isNotEmpty() }
     }
     val first = remember { FocusRequester() }
     LaunchedEffect(rows?.size) {
