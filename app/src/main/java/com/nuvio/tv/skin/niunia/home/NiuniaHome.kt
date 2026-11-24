@@ -101,6 +101,9 @@ fun NiuniaHome(
     val posterOptions = com.nuvio.tv.skin.niunia.components.rememberNiuniaPosterOptions { id, type, url -> onNavigateToDetail(id, type, url) }
     // UX 22.11: długie OK na „Oglądaj dalej” = menu bazy (szczegóły, od początku, wybierz źródło, obejrzane, usuń).
     var cwMenu by remember { mutableStateOf<ContinueWatchingItem?>(null) }
+    // Z-12: karta tytułu (rząd + indeks klikniętego plakatu); przełącznik niunia_title_card (domyślnie włączony).
+    var pager by remember { mutableStateOf<Pair<com.nuvio.tv.domain.model.CatalogRow, Int>?>(null) }
+    val titleCard = remember { com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(context, "niunia_title_card", true) }
     // Baner: tylko filmy i seriale z dużym obrazem tła (bez pozycji „narzędziowych” dodatków, np. „Delete all files”).
     // Najpierw źródła wybrane w ustawieniach (heroItems), potem wszystkie rzędy ekranu głównego.
     val heroes = remember(uiState.heroItems, uiState.catalogRows) {
@@ -178,7 +181,10 @@ fun NiuniaHome(
                                         modifier = restoreModifier(k, restoreFocus),
                                         award = com.nuvio.tv.skin.niunia.components.niuniaPosterAward(item.id), // Z-13
                                         onFocus = { if (it) { focusedRow = rowIndex; onItemFocus(item); rememberFocus(k, colIndex, i) } },
-                                        onOk = { Log.i(TAG, "rzędy: OK → strona tytułu ${item.id}"); onNavigateToDetail(item.id, item.rawType, row.addonBaseUrl) },
+                                        onOk = {
+                                            if (titleCard) { Log.i(TAG, "rzędy: OK → karta tytułu ${item.id} (${i + 1}/${row.items.size} w „${row.catalogName}”)"); pager = row to i }
+                                            else { Log.i(TAG, "rzędy: OK → strona tytułu ${item.id}"); onNavigateToDetail(item.id, item.rawType, row.addonBaseUrl) }
+                                        },
                                         onLongOk = { Log.i(TAG, "rzędy: długie OK → okno akcji ${item.id}"); posterOptions(item, row.addonBaseUrl) },
                                     )
                                 }
@@ -236,10 +242,32 @@ fun NiuniaHome(
         HomeEmpty(error = uiState.error, onRetry = onRetry)
         return
     }
+    val pagerOverlay: @Composable () -> Unit = {
+        pager?.let { (row, start) ->
+            NiuniaTitlePager(
+                items = row.items, start = start, rowName = row.catalogName, ranking = NiuniaLabels.isRankingRow(row.catalogName),
+                inLibrary = { m -> uiState.posterLibraryMembership[com.nuvio.tv.ui.screens.home.homeItemStatusKey(m.id, m.apiType)] == true },
+                onPlay = { m ->
+                    val route = com.nuvio.tv.ui.navigation.Screen.Detail.createRoute(m.id, m.rawType, row.addonBaseUrl, playOnLoad = true)
+                    val go = com.nuvio.tv.ui.screens.settings.ForkFeatures.open
+                    Log.i(TAG, "karta tytułu: Odtwórz ${m.id}")
+                    pager = null
+                    if (go != null) go(route) else onNavigateToDetail(m.id, m.rawType, row.addonBaseUrl)
+                },
+                onDetails = { m -> Log.i(TAG, "karta tytułu: (i) → strona tytułu ${m.id}"); pager = null; onNavigateToDetail(m.id, m.rawType, row.addonBaseUrl) },
+                onLibrary = { m -> Log.i(TAG, "karta tytułu: biblioteka ${m.id}"); onToggleLibrary(m, row.addonBaseUrl) },
+                onClose = { _ ->
+                    pager = null
+                    try { restoreFocus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "karta tytułu: powrót fokusu: ${e.javaClass.simpleName}: ${e.message}") }
+                },
+            )
+        }
+    }
     if (hero == null) {
-        Box(Modifier.fillMaxSize().background(NiuniaColors.Bg)) { rows() }
+        Box(Modifier.fillMaxSize().background(NiuniaColors.Bg)) { rows(); pagerOverlay() }
         return
     }
+    Box(Modifier.fillMaxSize()) {
     com.nuvio.tv.skin.niunia.components.NiuniaHeroPage(
         background = hero.background ?: hero.landscapePoster ?: hero.poster,
         heroFocus = heroFocus,
@@ -266,6 +294,8 @@ fun NiuniaHome(
         below = { rows() },
         scrim = { NiuniaSurface(NiuniaSurfaceKind.ScrimHero, Modifier.fillMaxSize()) },
     )
+    pagerOverlay()
+    }
 }
 
 private fun cwKey(cw: ContinueWatchingItem): String = when (cw) {

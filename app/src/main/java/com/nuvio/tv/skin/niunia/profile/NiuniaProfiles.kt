@@ -32,6 +32,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
@@ -154,6 +156,7 @@ fun NiuniaProfiles(
                 profileName = target.name,
                 error = pinError,
                 working = working,
+                onCancel = { pinFor = null },
                 onSubmit = { pin ->
                     viewModel.verifyProfilePin(target.id, pin) { result ->
                         result.onSuccess { verify ->
@@ -211,20 +214,42 @@ private fun ProfileItem(
     }
 }
 
-/** Okno PIN w stylu Niunii: tytuł, cztery pola z kropkami, klawisze 1–9, ⌫, 0, OK (fokus startuje na „1”). */
+/**
+ * Okno PIN w stylu Niunii (Z-14, makieta ProfilePin): tytuł z nazwą profilu, cztery kropki postępu, klawiatura 3 × 4
+ * (Anuluj, 0, Usuń), fokus startuje na środkowym klawiszu „5”; cyfry z pilota też działają; czwarta cyfra = sprawdzenie PIN-u.
+ * Błędny PIN: kropki czyszczą się, komunikat pod tytułem.
+ */
 @Composable
-private fun NiuniaPinDialog(profileName: String, error: String?, working: Boolean, onSubmit: (String) -> Unit) {
+private fun NiuniaPinDialog(profileName: String, error: String?, working: Boolean, onCancel: () -> Unit = {}, onSubmit: (String) -> Unit) {
     var digits by remember { mutableStateOf("") }
     val one = remember { FocusRequester() }
+    fun type(d: String) {
+        if (working || digits.length >= 4) return
+        digits += d
+        if (digits.length == 4) { Log.i(TAG, "PIN: 4 cyfry → sprawdzam"); onSubmit(digits) }
+    }
     LaunchedEffect(Unit) {
         try { one.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "PIN: fokus: ${e.javaClass.simpleName}: ${e.message}") }
     }
     LaunchedEffect(error) { if (error != null) digits = "" }
-    val keys = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "⌫", "0", "OK")
+    val cancel = stringResource(R.string.niunia_tv2_pin_cancel)
+    val delete = stringResource(R.string.niunia_tv2_pin_delete)
+    val keys = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", cancel, "0", delete)
     // Pkt 3 (canvas v86): okno od lewej krawędzi treści (40 dp), zawartość od lewej.
     Box(Modifier.fillMaxSize().background(Color(0x99000000)).padding(start = 40.dp), contentAlignment = Alignment.CenterStart) {
         Column(
-            with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.width(400.dp).forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Dialog, RoundedCornerShape(28.dp), fallback = Color(0xF53A3A3C), layer = LAYER_BACK) }.padding(24.dp).focusGroup(),
+            with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.width(400.dp).forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Dialog, RoundedCornerShape(28.dp), fallback = Color(0xF53A3A3C), layer = LAYER_BACK) }.padding(24.dp).focusGroup()
+                .onPreviewKeyEvent { e ->
+                    // Cyfry z pilota (0–9) wpisują PIN bez chodzenia po klawiaturze.
+                    if (e.type != androidx.compose.ui.input.key.KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                    val code = e.nativeKeyEvent.keyCode
+                    val d = when (code) {
+                        in android.view.KeyEvent.KEYCODE_0..android.view.KeyEvent.KEYCODE_9 -> code - android.view.KeyEvent.KEYCODE_0
+                        in android.view.KeyEvent.KEYCODE_NUMPAD_0..android.view.KeyEvent.KEYCODE_NUMPAD_9 -> code - android.view.KeyEvent.KEYCODE_NUMPAD_0
+                        else -> -1
+                    }
+                    if (d >= 0) { type(d.toString()); true } else false
+                },
             horizontalAlignment = Alignment.Start,
         ) {
             Text(stringResource(R.string.niunia_profiles_pin, profileName), style = NiuniaText.Button.copy(fontSize = 20.sp, lineHeight = 26.sp), color = NiuniaColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -246,11 +271,11 @@ private fun NiuniaPinDialog(profileName: String, error: String?, working: Boolea
                             Box(
                                 Modifier
                                     .size(104.dp, 40.dp)
-                                    .niuniaFocusable(RoundedCornerShape(50), scale = 1.06f, lift = false, focusRequester = if (key == "1") one else null, onFocus = { focused = it }, onOk = {
+                                    .niuniaFocusable(RoundedCornerShape(50), scale = 1.06f, lift = false, focusRequester = if (key == "5") one else null, onFocus = { focused = it }, onOk = {
                                         if (!working) when (key) {
-                                            "⌫" -> digits = digits.dropLast(1)
-                                            "OK" -> if (digits.length == 4) onSubmit(digits)
-                                            else -> if (digits.length < 4) digits += key
+                                            delete -> digits = digits.dropLast(1)
+                                            cancel -> { Log.i(TAG, "PIN: Anuluj"); onCancel() }
+                                            else -> type(key)
                                         }
                                     })
                                     .background(if (focused) NiuniaColors.Focus else NiuniaColors.Fill12, RoundedCornerShape(50)),

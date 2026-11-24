@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Niunia (24.11, paczka tv2): Z-8 tabela ocen odcinków, Z-12 karta tytułu, Z-21 status kanału, Z-14 PIN. -->
+<resources>
+    <string name="niunia_tv2_ratings_title">Oceny odcinków · %1$s</string>
+    <string name="niunia_tv2_ratings_button">Oceny odcinków</string>
+    <string name="niunia_tv2_ratings_best" formatted="false">Tylko najlepsze 20%</string>
+    <string name="niunia_tv2_ratings_summary">Średnia serialu %1$s · najlepsze 20%% od %2$s</string>
+    <string name="niunia_tv2_ratings_best_summary">Pokazane najlepsze 20%%: %1$d z %2$d odcinków (ocena od %3$s)</string>
+    <string name="niunia_tv2_ratings_none">Brak ocen odcinków</string>
+    <string name="niunia_tv2_ratings_season">Sezon %1$d</string>
+    <string name="niunia_tv2_ratings_episode">Sezon %1$d · Odcinek %2$d</string>
+    <string name="niunia_tv2_ratings_hint">OK — odtwórz odcinek · przytrzymaj OK — szczegóły</string>
+    <string name="niunia_tv2_pager_rank">#%1$d w %2$s</string>
+    <string name="niunia_tv2_unavailable">Niedostępny</string>
+    <string name="niunia_tv2_pin_cancel">Anuluj</string>
+    <string name="niunia_tv2_pin_delete">Usuń</string>
+    <string name="niunia_tv2_f_title">Filtry źródeł</string>
+    <string name="niunia_tv2_f_button">Filtry</string>
+    <string name="niunia_tv2_f_resolution">Rozdzielczość</string>
+    <string name="niunia_tv2_f_audio">Dźwięk</string>
+    <string name="niunia_tv2_f_hdr">HDR</string>
+    <string name="niunia_tv2_f_codec">Kodek</string>
+    <string name="niunia_tv2_f_addon">Dodatek</string>
+    <string name="niunia_tv2_f_save">Zapisz jako filtr</string>
+    <string name="niunia_tv2_f_clear">Wyczyść</string>
+    <string name="niunia_tv2_f_hidden">Wszystkie źródła ukrywa filtr</string>
+    <string name="niunia_tv2_hist_tab">Historia</string>
+    <string name="niunia_tv2_hist_today">Dziś</string>
+    <string name="niunia_tv2_hist_week">W tym tygodniu</string>
+    <string name="niunia_tv2_hist_earlier">Wcześniej</string>
+    <string name="niunia_tv2_hist_empty">Tu pojawią się tytuły, które zaczniesz oglądać</string>
+    <string name="niunia_tv2_hist_remove">Usuń z historii</string>
+    <string name="niunia_tv2_cat_loading">Wczytuję katalog…</string>
+    <string name="niunia_tv2_cat_empty">Ten katalog jest pusty</string>
+    <string name="niunia_tv2_studio_company">Wytwórnia</string>
+    <string name="niunia_tv2_studio_network">Sieć telewizyjna</string>
+    <string name="niunia_tv2_studio_popular">Popularne</string>
+    <string name="niunia_tv2_studio_top">Najwyżej oceniane</string>
+    <string name="niunia_tv2_studio_recent">Najnowsze</string>
+    <string name="niunia_tv2_discover_title">Odkrywaj</string>
+    <string name="niunia_tv2_discover_all_genres">Wszystkie gatunki</string>
+    <string name="niunia_tv2_preview_badge">Na żywo · %1$s</string>
+</resources>

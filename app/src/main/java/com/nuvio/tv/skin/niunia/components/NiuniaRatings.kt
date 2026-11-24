@@ -108,3 +108,25 @@ fun NiuniaRatingAverage(scores: List<NiuniaScore>, modifier: Modifier = Modifier
         Text(text, style = NiuniaType.Caption, color = NiuniaColor.OnFocus, maxLines = 1)
     }
 }
+
+/**
+ * `NRatings kind="row"` (Z-8): rząd ocen bez fokusu — nazwa serwisu (`caption-regular` 12/16 `text-70`) + wartość na kapsułce
+ * (`tag-h` 20, promień 6, `caption` 12/16 700, tekst `on-focus`) w kolorze skali ocen; odstęp 12, zawijanie 8; przecinek dziesiętny.
+ */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+fun NiuniaRatingsRow(scores: List<NiuniaScore>, modifier: Modifier = Modifier) {
+    if (scores.isEmpty()) return
+    LaunchedEffect(scores) { Log.i(TAG, "row: " + scores.joinToString(", ") { it.source + " " + it.label }) }
+    androidx.compose.foundation.layout.FlowRow(modifier, horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12), verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space8)) {
+        scores.forEach { s ->
+            Row(horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space4), verticalAlignment = Alignment.CenterVertically) {
+                Text(s.source, style = NiuniaType.CaptionRegular, color = NiuniaColor.Text70, maxLines = 1)
+                Row(Modifier.height(NiuniaSize.TagH).clip(RoundedCornerShape(NiuniaRadius.Radius6)).background(niuniaRatingColor(s.value10)).padding(horizontal = NiuniaSpacing.Space4 + 2.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Text(s.label.replace('.', ','), style = NiuniaType.Caption, color = NiuniaColor.OnFocus, maxLines = 1)
+                }
+            }
+        }
+    }
+}

@@ -165,6 +165,8 @@ fun NiuniaDetail(
     var fullDescription by remember { mutableStateOf(false) }
     // Z-17 (P-10): długie OK na sezonie = okno „Akcje sezonu”.
     var seasonMenu by remember { mutableStateOf<Int?>(null) }
+    // Z-8: tabela ocen odcinków (przycisk ★ w hero serialu).
+    var ratingsOpen by remember { mutableStateOf(false) }
     // Z-17 (P-15): ikona „Zwiastun” w hero = pierwszy zwiastun YouTube (ta sama nakładka co rząd zwiastunów).
     val heroTrailer = remember(meta.trailers) { meta.trailers.firstOrNull { !it.ytId.isNullOrBlank() } }
     // Z-13: nagrody tytułu (źródło: NiuniaAwardsRepo; bez źródła pusto — pasek się nie rysuje, lista pokazuje stan pusty).
@@ -208,8 +210,10 @@ fun NiuniaDetail(
                     Log.i(TAG, "szczegóły: hero → Zwiastun (${meta.trailers.size} zwiastunów)")
                     if (!extrasState.trailerLoading) android.widget.Toast.makeText(context, R.string.niunia_pinfo_trailer_loading, android.widget.Toast.LENGTH_SHORT).show()
                     extras.playTrailer(meta.name, meta.releaseInfo, meta.apiType, t.ytId)
-                } })
+                } },
+                onRatings = if (series && uiState.episodeImdbRatings.isNotEmpty()) ({ Log.i(TAG, "szczegóły: hero → Oceny odcinków"); ratingsOpen = true }) else null)
         },
+        detailBlur = true, // Z-2: lewa część obrazu rozmyta na API 31+
         // Z-2: przyciemnienie hero szczegółów — scrim-detail (API 31+) albo scrim-detail-flat (Android 11), dół scrim-detail-bottom; rysuje je tło strony (fork/glass).
         scrim = {
             val flat = android.os.Build.VERSION.SDK_INT < 31
@@ -417,6 +421,12 @@ fun NiuniaDetail(
         },
     )
     }
+    if (ratingsOpen) NiuniaEpisodeRatingsTable(
+        title = meta.name, episodes = meta.videos, ratings = uiState.episodeImdbRatings,
+        onPlay = { v -> ratingsOpen = false; playEpisode(v) },
+        onDetails = { v -> ratingsOpen = false; episodeOpen = v },
+        onClose = { ratingsOpen = false; try { playFocus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "szczegóły: fokus po tabeli ocen: ${e.message}") } },
+    )
     // Episode: strona odcinka nad stroną serialu; Wstecz → rząd odcinków (fokus na tym samym odcinku).
     episodeOpen?.let { ep ->
         EpisodePage(meta, ep, uiState,
@@ -549,7 +559,10 @@ private fun AboutSection(meta: Meta, series: Boolean, uiState: MetaDetailsUiStat
         if (info.isNotEmpty()) NiuniaFact(stringResource(R.string.niunia_detail_info), info, Modifier.weight(1f))
         // Z-10: pełne oceny z serwisami w sekcji „Opis” (kolumna „Oceny”); w hero tylko średnia.
         val scores = com.nuvio.tv.skin.niunia.components.niuniaScores(meta.imdbRating, uiState.mdbListRatings)
-        if (scores.isNotEmpty()) NiuniaFact(stringResource(R.string.niunia_ke_ratings), scores.chunked(3).map { row -> row.joinToString(" · ") { "${it.source} ${it.label}" } }, Modifier.weight(1f))
+        if (scores.isNotEmpty()) Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space4)) {
+            NText(stringResource(R.string.niunia_ke_ratings), variant = NiuniaTextVariant.LabelSmall, lines = 1)
+            com.nuvio.tv.skin.niunia.components.NiuniaRatingsRow(scores) // Z-8 (NRatings kind="row")
+        }
         val lang = meta.language?.takeIf { it.isNotBlank() }?.let { niuniaLanguageName(it) }
         if (lang != null) NiuniaFact(stringResource(R.string.niunia_ds_languages), listOf(ctx.getString(R.string.niunia_ds_original, lang)), Modifier.weight(1f))
     }
@@ -638,6 +651,7 @@ private fun Hero(
     onFocus: () -> Unit,
     onLibraryLong: (() -> Unit)? = null,
     onTrailer: (() -> Unit)? = null,
+    onRatings: (() -> Unit)? = null,
 ) {
     val ctx = LocalContext.current
     val next = uiState.nextToWatch
@@ -694,6 +708,8 @@ private fun Hero(
                         description = stringResource(if (series) R.string.niunia_ds_about_series else R.string.niunia_ds_about_movie), onFocus = { if (it) onFocus() }, haze = true)
                     // Z-17 (P-15): „Zwiastun” ostatni w rzędzie akcji hero (tylko gdy tytuł ma zwiastun).
                     if (onTrailer != null) NiuniaButton(onClick = onTrailer, icon = "trailer", description = stringResource(R.string.niunia_ke2_trailer), onFocus = { if (it) onFocus() }, haze = true)
+                    // Z-8: ★ „Oceny odcinków” → tabela sezon × odcinek (tylko serial z ocenami odcinków).
+                    if (onRatings != null) NiuniaButton(onClick = onRatings, icon = "star", description = stringResource(R.string.niunia_tv2_ratings_button), onFocus = { if (it) onFocus() }, haze = true)
                 }
                 // Z-13b: gdy tytuł ma nagrody — trzy linie nagród zamiast obsady i paska gal; bez nagród obsada jak dotąd.
                 if (awards.isNotEmpty()) com.nuvio.tv.skin.niunia.components.NiuniaAwardsText(awards) else Credits(meta, series, emptyList(), Modifier)

@@ -103,3 +103,16 @@ Lista dla właściciela. Wykonawca dopisuje tu wszystko, czego nie da się spraw
 - „Ramówka kanału” → lista dziś i jutro, fokus na „Teraz · …”; OK na trwającym → odtwarzacz, na minionym → archiwum albo komunikat „nie ma w archiwum”.
 - „Ukryj kanał” → znika z listy, komunikat; w opcjach innego kanału „Pokaż ukryte kanały (1)” → wraca.
 - Kanał, który nie rusza (dwie próby) → ekran „<kanał> nie odpowiada”, fokus na „Następny kanał”; ◄► przesuwa fokus; „Spróbuj ponownie” → ponowny start; „Lista kanałów” → przewodnik; Wstecz jak dotąd.
+
+## tv2 (24.11, Niunia: reszta Z-2…Z-21)
+- Odtwarzacz TV (Z-3): przyciski nad paskiem w jednym rzędzie (Poprzedni, Od początku, Pauza | Dodaj, Informacje, Więcej), pasek pod nimi, rząd programów wystaje niżej; ▼ z przycisków → pasek → rząd.
+- Nagrody (Z-13): strona tytułu z nagrodami (np. Oppenheimer, Avengers: Endgame) → kafelki gal i trzy linie nagród w hero; log `NAwards: Wikidata … nagród`; drugie wejście `z dysku`.
+- Odtwarzacz filmu (Z-14): wczytywanie „Buforuję… N%” z Inne źródło / Anuluj; zły link → „Nie udało się odtworzyć” z przyczyną, Inne źródło / Spróbuj ponownie / Wróć; Więcej → Zmień źródło: panel z ✓ przy obecnym, chipy dodatków; koniec odcinka → karta „Następny odcinek za N s”, Odtwórz następny / Oglądaj napisy końcowe.
+- Serial z ocenami odcinków (Z-8): ★ w hero → tabela sezon × odcinek, chip „Tylko najlepsze 20%” (szare komórki pomijane), OK odtwarza, długie OK = strona odcinka; w „O serialu” kolorowe kapsułki ocen.
+- Główna (Z-12): OK na plakacie w rzędzie → karta tytułu, fokus na Odtwórz; ► z (i) → następna karta; ◄ z Odtwórz → poprzednia; Wstecz → ten sam plakat.
+- Biblioteka: zakładka „Historia” (Dziś / W tym tygodniu / Wcześniej; długie OK → Usuń z historii). Profil z PIN-em: klawisze Anuluj / 0 / Usuń, fokus na 5, cyfry z pilota.
+- Źródła: chip „Filtry” → panel (Rozdzielczość, Dźwięk, HDR, Kodek, Dodatek), „Zapisz jako filtr” zostaje dla następnych tytułów, „Wyczyść”.
+- Zobacz wszystko (Główna) → siatka Niuni po 6; strona tytułu → studio → Niunia „Studio”; Szukaj → Odkrywaj → Niunia „Odkrywaj”.
+- Live TV (P-28): kanał, który nie ruszył → w przewodniku „Niedostępny” pod logo przez 24 h; po udanym włączeniu znika.
+- API 31+ (emulator, Z-2): lewa część obrazu hero strony tytułu rozmyta. JMGO (Android 11): bez zmian (płaskie).
+- Live TV (P-32): fokus w przewodniku → po ~1 s u góry po prawej obraz kanału na żywo (bez dźwięku) z „Na żywo · kanał”, po lewej tytuł, godziny i opis programu; ▲ do filtrów → wraca rząd kafelków; OK → pełny ekran bez zacięcia (log `podgląd zwolniony (pełny ekran)` przed startem odtwarzacza); szybkie przewijanie kanałów nie zawiesza przewodnika; HOME w trakcie → `podgląd zwolniony (aplikacja w tle)`.

@@ -84,6 +84,8 @@ internal fun NiuniaLibraryContent(
     val ctx = LocalContext.current
     var shelvesOn by rememberSaveable { mutableStateOf(true) }
     var panel by remember { mutableStateOf(false) }
+    // Z-14 (LibraryHistory): zakładka „Historia” obok zakładek typu.
+    var historyTab by rememberSaveable { mutableStateOf(false) }
     val filtered = state.selectedGenre != null || state.selectedYear != null || state.selectedWatchedFilter != LibraryWatchedFilter.ALL
     val items = state.visibleItems
     androidx.compose.runtime.LaunchedEffect(items.size) { com.nuvio.tv.skin.niunia.search.NiuniaKnownTitles.add(items.map { it.name }) } // Z-19: słownik Szukaj
@@ -163,15 +165,21 @@ internal fun NiuniaLibraryContent(
             ) {
                 val tabs = listOf(LibraryTypeTab.All) + state.availableTypeTabs.filter { it.key != LibraryTypeTab.ALL_KEY }
                 val selected = state.selectedTypeTab?.key ?: LibraryTypeTab.ALL_KEY
-                if (tabs.size > 1) NiuniaCollection(NiuniaCollectionKind.Tabs) {
-                    tabs.forEach { t ->
-                        NiuniaButton(onClick = { Log.i(TAG, "biblioteka: zakładka ${t.key}"); vm.onSelectTypeTab(t) },
+                NiuniaCollection(NiuniaCollectionKind.Tabs) {
+                    if (tabs.size > 1) tabs.forEach { t ->
+                        NiuniaButton(onClick = { Log.i(TAG, "biblioteka: zakładka ${t.key}"); historyTab = false; vm.onSelectTypeTab(t) },
                             label = niuniaTypeTabLabel(t, stringResource(R.string.niunia_ke_lib_all), stringResource(R.string.niunia_ke_lib_movies), stringResource(R.string.niunia_ke_lib_series)),
-                            kind = NiuniaButtonKind.Tab, selected = selected == t.key)
+                            kind = NiuniaButtonKind.Tab, selected = !historyTab && selected == t.key)
                     }
+                    NiuniaButton(onClick = { Log.i(TAG, "biblioteka: zakładka Historia"); historyTab = true }, label = stringResource(R.string.niunia_tv2_hist_tab),
+                        kind = NiuniaButtonKind.Tab, selected = historyTab)
                 }
-                NiuniaButton(onClick = { Log.i(TAG, "biblioteka: Sortuj i filtruj → panel"); panel = true }, label = stringResource(R.string.niunia_ke_lib_sort),
+                if (!historyTab) NiuniaButton(onClick = { Log.i(TAG, "biblioteka: Sortuj i filtruj → panel"); panel = true }, label = stringResource(R.string.niunia_ke_lib_sort),
                     kind = NiuniaButtonKind.Chip, selected = filtered || !shelvesOn, focusRequester = sortChip)
+            }
+            if (historyTab) {
+                NiuniaLibraryHistory(first, onOpen = { w -> onNavigateToDetail(w.contentId, w.contentType, null) })
+                return@Column
             }
             val fe = focusedEntry
             if (fe != null) NiuniaContentBlock(NiuniaBlockKind.Info, Modifier.padding(start = NiuniaDims.Gutter, top = NiuniaSpacing.Space16, end = NiuniaDims.Gutter)) {

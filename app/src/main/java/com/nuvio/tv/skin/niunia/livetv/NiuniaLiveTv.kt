@@ -306,6 +306,7 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
                 Log.i(TAG, "live tv: odtwarzam ${channel.name}" + (if (past) " archiwum „${programme?.title}”" else " na żywo"))
                 viewModel.launchedUrl = channel.streamUrl
                 NiuniaLiveReturn.commit(filter, dayOffset)
+                NiuniaLivePreview.release("pełny ekran") // P-32: jeden dekoder — podgląd zwolniony przed odtwarzaczem
                 onPlay(route)
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
@@ -470,10 +471,27 @@ private fun Guide(
         delay(80)
         try { allFocus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "live tv: fokus „Wszystkie”: ${e.javaClass.simpleName}: ${e.message}") }
     }
+    // Z-21 (P-32, makieta LiveTVRow): fokus w przewodniku = podgląd kanału na żywo u góry po prawej i opis programu po lewej
+    // zamiast rzędu kafelków (jeden odtwarzacz, bez dźwięku; przełącznik niunia_live_preview).
+    val previewCtx = LocalContext.current
+    val previewOn = remember { NiuniaLivePreview.enabled(previewCtx) }
+    val previewFor = info?.takeIf { gridFocused && previewOn }
+    if (previewFor != null) Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopEnd) { NiuniaLivePreviewBox(previewFor.first, previewFor.second) }
     // Test JMGO build141: nagłówek przewijał się pod przyciski u góry — kafelki, filtry i podziałka stoją, przewijają się tylko kanały.
     Column(Modifier.fillMaxSize().onPreviewKeyEvent { e -> if (e.type == KeyEventType.KeyDown) userKey = true; false }) {
         Box(Modifier.fillMaxWidth().height(236.dp)) {
-            if (tiles.isEmpty()) {
+            if (previewFor != null) {
+                val (pc, pp) = previewFor
+                Column(Modifier.padding(start = NiuniaDims.Gutter, top = 74.dp).width(420.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    com.nuvio.tv.skin.niunia.components.NiuniaText(pp?.title ?: com.nuvio.tv.fork.tv.names.ChannelNames.shown(pc.name), variant = com.nuvio.tv.skin.niunia.components.NiuniaTextVariant.TitleScreen, lines = 1)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (pp != null && isLive(pp, now)) com.nuvio.tv.skin.niunia.components.NiuniaTag(stringResource(R.string.niunia_live_live), com.nuvio.tv.skin.niunia.components.NiuniaTagKind.Live)
+                        com.nuvio.tv.skin.niunia.components.NiuniaText(listOfNotNull(pp?.let { "${whenLabel(it.startEpochMs, now)} – ${hhmm(it.stopEpochMs)}" }, com.nuvio.tv.fork.tv.names.ChannelNames.shown(pc.name)).joinToString(" · "),
+                            variant = com.nuvio.tv.skin.niunia.components.NiuniaTextVariant.LabelSmall, lines = 1)
+                    }
+                    pp?.description?.takeIf { it.isNotBlank() }?.let { com.nuvio.tv.skin.niunia.components.NiuniaText(it, variant = com.nuvio.tv.skin.niunia.components.NiuniaTextVariant.BodySmall, tone = com.nuvio.tv.skin.niunia.components.NiuniaTone.Secondary, lines = 2) }
+                }
+            } else if (tiles.isEmpty()) {
                 // UX 22.11 (test emulatora, lista bez przewodnika): „Nic tu jeszcze nie ma.” nad pełną listą kanałów myliło —
                 // gdy żaden kanał nie ma programu, podpowiedź, skąd go wziąć.
                 val noGuide = remember(guideVersion, channels.size) { LiveTvRepository.uiState.value.currentProgrammes.isEmpty() && channels.isNotEmpty() }
@@ -529,8 +547,9 @@ private fun Guide(
             }
         } }
     }
-    // Opis programu z fokusem (canvas: linia pod przewodnikiem).
+    // Opis programu z fokusem (canvas: linia pod przewodnikiem); przy podglądzie (P-32) opis jest u góry.
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomStart) {
+        if (previewFor != null) return@Box
         val (ch, p) = info ?: return@Box
         Row(
             Modifier.fillMaxWidth().background(Brush.verticalGradient(listOf(Color.Transparent, NiuniaColors.Bg, NiuniaColors.Bg)))
@@ -665,9 +684,14 @@ private fun GuideRow(
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Text(if (number > 0) number.toString() else "", style = NiuniaText.Meta.copy(fontSize = 15.sp), color = NiuniaColors.Text70, modifier = Modifier.width(24.dp), maxLines = 1)
-            Box(Modifier.weight(1f).height(30.dp), contentAlignment = Alignment.Center) {
-                NiuniaChannelLogo(ch) // Paczka „oczywiste” pkt 5: logo z zapasem, na końcu nazwa
-
+            // Z-21 (P-28): „Niedostępny” pod logo kanału przez 24 h po oknie „… nie odpowiada”.
+            val statusV = NiuniaLiveStatus.version.intValue
+            val down = remember(ch.streamUrl, statusV) { NiuniaLiveStatus.unavailable(dbCtx, ch.streamUrl) }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(Modifier.height(if (down) 22.dp else 30.dp), contentAlignment = Alignment.Center) {
+                    NiuniaChannelLogo(ch) // Paczka „oczywiste” pkt 5: logo z zapasem, na końcu nazwa
+                }
+                if (down) Text(stringResource(R.string.niunia_tv2_unavailable), style = com.nuvio.tv.skin.niunia.tokens.NiuniaType.CaptionRegular, color = if (focused) NiuniaColors.Text else NiuniaColors.Text50, maxLines = 1)
             }
         }
         Box(Modifier.padding(start = GRID_X).fillMaxSize().clipToBounds()) {

@@ -149,3 +149,6 @@ app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	Fork hook: skin
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	Fork hook: skin (Z-14 PlayerError)	// Error state	skin	skin: ekran błędu odtwarzania	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	Fork hook: skin (Z-14 PlayerSources)	StreamSourcesSidePanel(	skin	skin: panel Zmień źródło	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	Fork hook: skin (Z-14 PlayerNext)	PostPlayOverlay(	skin	skin: karta następnego odcinka	
+app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	Fork hook: skin (Z-14 CatalogAll)	CatalogSeeAllScreen(	skin	skin: cały katalog (CatalogAll)	
+app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	Fork hook: skin (Z-14 Studio)	TmdbEntityBrowseScreen(	skin	skin: studio i sieć (Studio)	
+app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	Fork hook: skin (Z-14 Discover)	DiscoverScreen(	skin	skin: Odkrywaj (Discover)	

@@ -44,7 +44,11 @@ internal fun NiuniaPlayerLiveError(state: LiveTvPlayerState, channel: LiveTvChan
     val buttons = remember { ForgeChannelFailed.buttons() }
     val requesters = remember { buttons.map { FocusRequester() } }
     val selected = ForgeChannelFailed.selected.intValue.coerceIn(0, buttons.lastIndex)
-    LaunchedEffect(channel) { Log.i(TAG, "odtwarzacz TV: „$name nie odpowiada” (ekran Niuni)") }
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    LaunchedEffect(channel) {
+        Log.i(TAG, "odtwarzacz TV: „$name nie odpowiada” (ekran Niuni)")
+        com.nuvio.tv.skin.niunia.livetv.NiuniaLiveStatus.failed(ctx, channel.streamUrl, name) // Z-21 (P-28): „Niedostępny” w przewodniku na 24 h
+    }
     LaunchedEffect(selected) {
         kotlinx.coroutines.delay(60)
         try { requesters[selected].requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz TV: fokus przycisku okna błędu: ${e.javaClass.simpleName}: ${e.message}") }

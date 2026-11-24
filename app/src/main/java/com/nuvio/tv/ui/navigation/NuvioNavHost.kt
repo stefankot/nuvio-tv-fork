@@ -1296,6 +1296,7 @@ private fun PlaybackNavHost(
         }
 
         rootComposable(Screen.Discover.route, withInset = discoverIsRoot) {
+            if (com.nuvio.tv.fork.ForkHooks.skinScreen("discover", mapOf<String, Any?>("onNavigateToDetail" to { id: String, t: String, url: String -> navController.navigate(Screen.Detail.createRoute(itemId = id, itemType = t, addonBaseUrl = url, heroBackdropUrl = HeroBackdropState.consumeAndClear())) }))) return@rootComposable // Fork hook: skin (Z-14 Discover)
             DiscoverScreen(
                 showBuiltInHeader = !hideBuiltInHeaders,
                 onNavigateToDetail = { itemId, itemType, addonBaseUrl ->
@@ -1572,6 +1573,7 @@ private fun PlaybackNavHost(
                     androidx.hilt.navigation.compose.hiltViewModel(backStackEntry)
                 }
 
+            if (!fromSearch && com.nuvio.tv.fork.ForkHooks.skinScreen("catalog_see_all", mapOf<String, Any?>("catalogId" to catalogId, "addonId" to addonId, "type" to type, "viewModel" to homeViewModel, "onNavigateToDetail" to { id: String, t: String, url: String -> navController.navigate(Screen.Detail.createRoute(id, t, url)) }, "onBack" to { navController.popBackStack(); Unit }))) return@composable // Fork hook: skin (Z-14 CatalogAll)
             CatalogSeeAllScreen(
                 catalogId = catalogId,
                 addonId = addonId,
@@ -1616,6 +1618,7 @@ private fun PlaybackNavHost(
                 }
             )
         ) {
+            if (com.nuvio.tv.fork.ForkHooks.skinScreen("tmdb_entity_browse", mapOf<String, Any?>("onNavigateToDetail" to { id: String, t: String, url: String? -> navController.navigate(Screen.Detail.createRoute(id, t, url)) }, "onBack" to { navController.popBackStack(); Unit }))) return@composable // Fork hook: skin (Z-14 Studio)
             TmdbEntityBrowseScreen(
                 onBackPress = { navController.popBackStack() },
                 onNavigateToDetail = { itemId, itemType, addonBaseUrl ->

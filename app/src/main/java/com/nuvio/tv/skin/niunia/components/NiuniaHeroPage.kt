@@ -31,8 +31,10 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.BlurEffect
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TileMode
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
@@ -63,6 +65,8 @@ fun NiuniaHeroPage(
     belowEnter: FocusRequester? = null,
     /** Przyciemnienie hero (scrim) — rysowane z tłem, żeby szkło przycisków (fork/glass) widziało przyciemniony obraz; znika razem z [hero]. */
     scrim: (@Composable BoxScope.() -> Unit)? = null,
+    /** Z-2 (hero szczegółów): na API 31+ lewa część obrazu rozmyta (`blur-detail` 36, maska `mask-detail`: pełne do 32 %, zanika do 64 %). */
+    detailBlur: Boolean = false,
 ) {
     var down by remember { mutableStateOf(false) }
     val belowFocus = belowFocusRequester ?: remember { FocusRequester() }
@@ -91,6 +95,20 @@ fun NiuniaHeroPage(
                 if (t > 0.01f) { scaleX = 1f + 0.08f * t; scaleY = 1f + 0.08f * t } // brzegi rozmycia poza ekranem
             },
         )
+        if (detailBlur && blurOk) {
+            val detailPx = with(LocalDensity.current) { 36.dp.toPx() }
+            LaunchedEffect(Unit) { Log.i(TAG, "$what: effects: blur (lewa część hero rozmyta, maska do 64 %)") }
+            AsyncImage(
+                model = background, contentDescription = null, contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+                    .graphicsLayer { renderEffect = BlurEffect(detailPx, detailPx, TileMode.Clamp); alpha = 1f - t; compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
+                    .drawWithContent {
+                        drawContent()
+                        drawRect(androidx.compose.ui.graphics.Brush.horizontalGradient(0f to Color.Black, 0.32f to Color.Black, 0.64f to Color.Transparent),
+                            blendMode = androidx.compose.ui.graphics.BlendMode.DstIn)
+                    },
+            )
+        }
         if (blurred != null) AsyncImage(
             model = blurred, contentDescription = null, contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize().graphicsLayer { alpha = t; scaleX = 1f + 0.08f * t; scaleY = 1f + 0.08f * t },

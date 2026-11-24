@@ -373,6 +373,11 @@ internal fun NiuniaLivePlayer(
     val shiftMs = if (!archive) ForgeMiniGuideNav.shiftMs() else 0L
     val playState = when { archive -> NiuniaPlayState.ARCHIVE; shiftMs > 0L -> NiuniaPlayState.DELAY; else -> NiuniaPlayState.LIVE }
     LaunchedEffect(channel.streamUrl) { nav.reset(archive); nav.noteChannel(channel.streamUrl); Log.i(TAG, "iptv: nakładka ${channel.name} (stan=$playState, program=${shown != null})") }
+    // Z-21 (P-28): kanał gra kilka sekund → znacznik „Niedostępny” zdjęty.
+    LaunchedEffect(channel.streamUrl) {
+        kotlinx.coroutines.delay(8_000)
+        if (com.nuvio.tv.skin.kicia.livetv.ForgeChannelFailed.playingBehind()) com.nuvio.tv.skin.niunia.livetv.NiuniaLiveStatus.ok(context, channel.streamUrl, channel.name)
+    }
     LaunchedEffect(nav.level) { while (nav.level > 0) { state?.showInfo(); kotlinx.coroutines.delay(2_500) } }
 
     // Dane: TVDB > TMDB (ten sam view model co karta programu Kicii) > EPG > playlista.

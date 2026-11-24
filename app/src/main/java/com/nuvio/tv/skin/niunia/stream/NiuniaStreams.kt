@@ -129,7 +129,10 @@ fun NiuniaStreams(
     var quick by rememberSaveable { mutableStateOf(NiuniaStreamQuick.ALL) }
     val base = uiState.filteredStreams
     val counts = remember(base) { NiuniaStreamQuick.values().associateWith { q -> base.count { niuniaStreamMatches(it, q) } } }
-    val shown = remember(base, quick) { base.filter { niuniaStreamMatches(it, quick) } }
+    // Z-14 (StreamsFilters): panel filtrów; zapisany filtr działa od wejścia.
+    var filters by remember { mutableStateOf(NiuniaStreamFilters.saved(ctx)) }
+    var filtersOpen by remember { mutableStateOf(false) }
+    val shown = remember(base, quick, filters) { base.filter { niuniaStreamMatches(it, quick) && NiuniaStreamFilters.matches(it, filters) } }
     val first = remember { FocusRequester() }
     LaunchedEffect(uiState.isLoading, base.size, quick) {
         Log.i(TAG, "źródła: ${if (uiState.isLoading) "wczytuję" else "${base.size} źródeł"}, filtr=${quick.name} (${shown.size}), dodatek=${uiState.selectedAddonFilter ?: "wszystkie"}, błąd=${uiState.error != null}")
@@ -161,6 +164,10 @@ fun NiuniaStreams(
                         NiuniaButton(onClick = { Log.i(TAG, "źródła: dodatek → ${a ?: "wszystkie"}"); onAddonFilter(a) },
                             label = a ?: stringResource(R.string.niunia_ke_src_all_addons), kind = NiuniaButtonKind.Chip, selected = uiState.selectedAddonFilter == a)
                     }
+                    item {
+                        NiuniaButton(onClick = { Log.i(TAG, "źródła: Filtry → panel"); filtersOpen = true },
+                            label = stringResource(R.string.niunia_tv2_f_button) + if (filters.isNotEmpty()) " · ${filters.size}" else "", kind = NiuniaButtonKind.Chip, selected = filters.isNotEmpty())
+                    }
                 }
                 when {
                     uiState.isLoading && base.isEmpty() -> Row(horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12), verticalAlignment = Alignment.CenterVertically) {
@@ -171,6 +178,11 @@ fun NiuniaStreams(
                         NiuniaText(stringResource(if (uiState.error != null) R.string.niunia_ke_src_error else R.string.niunia_ke_src_none), variant = NiuniaTextVariant.TitleSection)
                         NiuniaText(uiState.error ?: stringResource(R.string.niunia_ke_src_none_hint), variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 3)
                         NiuniaButton(onClick = { Log.i(TAG, "źródła: ponów"); onRetry() }, label = stringResource(R.string.niunia_ke_src_retry), icon = "restart", compact = true, focusRequester = first)
+                    }
+                    shown.isEmpty() && filters.isNotEmpty() -> NiuniaContentBlock(NiuniaBlockKind.Empty) {
+                        NiuniaText(stringResource(R.string.niunia_tv2_f_hidden), variant = NiuniaTextVariant.TitleSection)
+                        NiuniaButton(onClick = { Log.i(TAG, "źródła: filtr wyczyszczony (wszystko ukryte)"); filters = emptySet(); NiuniaStreamFilters.save(ctx, emptySet()) },
+                            label = stringResource(R.string.niunia_tv2_f_clear), compact = true, focusRequester = first)
                     }
                     else -> {
                         NiuniaCollectionHeader(stringResource(R.string.niunia_ke_src_count, shown.size, uiState.availableAddons.size.coerceAtLeast(1)), active = true,
@@ -194,5 +206,6 @@ fun NiuniaStreams(
                 }
             }
         }
+        if (filtersOpen) NiuniaStreamsFiltersPanel(uiState.availableAddons, filters, onChange = { filters = it }, onClose = { filtersOpen = false })
     }
 }

@@ -85,6 +85,27 @@ object NiuniaSkin : Skin {
         "youtube" -> SkinScreen { a ->
             com.nuvio.tv.skin.niunia.youtube.NiuniaYouTube(onPlay = a["onPlay"] as (com.nuvio.tv.youtube.YtPlayable) -> Unit); true
         }
+        // Z-14 (makiety CatalogAll, Studio): cały katalog rzędu Głównej i studio/sieć z TMDB w stylu Niuni.
+        "catalog_see_all" -> SkinScreen { a ->
+            com.nuvio.tv.skin.niunia.home.NiuniaCatalogAll(
+                catalogId = a["catalogId"] as String, addonId = a["addonId"] as String, type = a["type"] as String,
+                viewModel = a["viewModel"] as com.nuvio.tv.ui.screens.home.HomeViewModel,
+                onNavigateToDetail = a["onNavigateToDetail"] as (String, String, String) -> Unit,
+                onBack = a["onBack"] as () -> Unit,
+            ); true
+        }
+        "discover" -> SkinScreen { a ->
+            com.nuvio.tv.skin.niunia.search.NiuniaDiscover(
+                viewModel = androidx.hilt.navigation.compose.hiltViewModel(),
+                onNavigateToDetail = a["onNavigateToDetail"] as (String, String, String) -> Unit,
+            ); true
+        }
+        "tmdb_entity_browse" -> SkinScreen { a ->
+            com.nuvio.tv.skin.niunia.home.NiuniaStudio(
+                onBack = a["onBack"] as () -> Unit,
+                onNavigateToDetail = a["onNavigateToDetail"] as (String, String, String?) -> Unit,
+            ); true
+        }
         "livetv" -> SkinScreen { a ->
             com.nuvio.tv.skin.niunia.livetv.NiuniaLiveTv(onPlay = a["onPlay"] as (String) -> Unit); true
         }
