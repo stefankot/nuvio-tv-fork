@@ -137,7 +137,9 @@ private fun Card(
                     com.nuvio.tv.skin.niunia.components.NiuniaRatingAverage(com.nuvio.tv.skin.niunia.components.niuniaScores(item.imdbRating, null))
                 }
                 item.description?.takeIf { it.isNotBlank() }?.let { NiuniaText(it, variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 3) }
-                val dateLine = listOfNotNull(item.releaseInfo?.takeIf { it.isNotBlank() }, item.runtime?.takeIf { it.isNotBlank() }).joinToString(" · ")
+                // UX JMGO (ręczne testy 24.11): „1h47min” z dodatku → „1 godz. 47 min” jak na banerze i stronie tytułu.
+                val dateLine = listOfNotNull(item.releaseInfo?.takeIf { it.isNotBlank() },
+                    com.nuvio.tv.skin.niunia.detail.niuniaRuntimeLabel(androidx.compose.ui.platform.LocalContext.current, item.runtime)).joinToString(" · ")
                 if (dateLine.isNotBlank()) NiuniaText(dateLine, variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 1)
             }
             // ◄ z Odtwórz / ► z (i) = sąsiednia karta; przyciski kart nieaktywnych bez fokusu.

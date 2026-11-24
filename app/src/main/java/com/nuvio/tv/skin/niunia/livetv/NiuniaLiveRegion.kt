@@ -133,8 +133,11 @@ internal object NiuniaLiveRegion {
                 languageOf(cc)?.let { byLanguage[it] = (byLanguage[it] ?: 0) + 1 }
             }
         }
+        // UX JMGO (ręczne testy 24.11): „Polska” była za „Stany Zjednoczone” — aplikacja jest po polsku, więc Polska i język
+        // polski zawsze na górze (projektor ma ustawiony język systemu „en” bez kraju, więc nie z ustawień systemu).
         fun top(m: Map<String, Int>, name: (String) -> String) =
-            m.entries.sortedByDescending { it.value }.take(MAX_OPTIONS).map { Option(it.key, name(it.key), it.value) }
+            m.entries.sortedWith(compareByDescending<Map.Entry<String, Int>> { it.key == "pl" }.thenByDescending { it.value })
+                .take(MAX_OPTIONS).map { Option(it.key, name(it.key), it.value) }
         return Index(input, codes, top(byCountry, ::countryName), top(byLanguage, ::languageName))
     }
 

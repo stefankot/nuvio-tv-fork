@@ -154,6 +154,9 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
     var dayOffset by remember { mutableIntStateOf(NiuniaLiveReturn.restoredDay()) }
     val returnTo = remember { NiuniaLiveReturn.consume() }
     var dayPicker by remember { mutableStateOf(false) }
+    // UX JMGO (ręczne testy 24.11): Wstecz z listy dni stawiał fokus na pierwszym kafelku (kolejne OK włączało kanał) —
+    // teraz wraca na przycisk dnia.
+    val dayFocus = remember { FocusRequester() }
     var launching by remember { mutableStateOf(false) }
     val allFocus = remember { FocusRequester() }
     com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(if (mode == LiveMode.GUIDE) allFocus else null)
@@ -344,7 +347,7 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
 
     BackHandler(enabled = mode != LiveMode.GUIDE || dayPicker) {
         Log.i(TAG, "live tv: Wstecz → przewodnik")
-        if (dayPicker) dayPicker = false else mode = LiveMode.GUIDE
+        if (dayPicker) { dayPicker = false; refocus(dayFocus, "przycisk dnia") } else mode = LiveMode.GUIDE
     }
 
     Box(Modifier.fillMaxSize().background(NiuniaColors.Bg)) {
@@ -352,7 +355,9 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
             LiveMode.GUIDE -> Guide(
                 tiles = tiles, filter = filter, categories = categories, channels = guideChannels, numbers = numbers,
                 now = now, dayOffset = dayOffset, guideVersion = state.guideVersion, newKeys = newKeys, allFocus = allFocus, returnTo = returnTo,
-                regionActive = regionChoice.active, regionChip = regionChip, onRegion = { Log.i(TAG, "live tv: Kraj i język → panel"); regionPanel = true },
+                regionActive = regionChoice.active, regionChip = regionChip,
+                // UX JMGO (ręczne testy 24.11): po wyborze „Polska” chip dalej mówił „Kraj i język” — teraz nazwa wyboru.
+                regionLabel = regionChoice.takeIf { it.active }?.let { c -> if (c.tab == NiuniaLiveRegion.Tab.COUNTRY) NiuniaLiveRegion.countryName(c.code) else NiuniaLiveRegion.languageName(c.code) }, onRegion = { Log.i(TAG, "live tv: Kraj i język → panel"); regionPanel = true },
                 optionsReturn = optionsReturn, optionsFrom = optionsFrom,
                 onOptions = { ch, from -> Log.i(TAG, "live tv: długie OK → opcje kanału ${ch.name}"); optionsFrom = from; optionsFor = ch },
                 onFilter = { f ->
@@ -367,7 +372,7 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
         TopBar(
             mode = mode, dayLabel = dayLabel(dayOffset, now),
             onSearch = { Log.i(TAG, "live tv: Szukaj"); mode = LiveMode.SEARCH },
-            onDay = { dayPicker = true },
+            onDay = { dayPicker = true }, dayFocus = dayFocus,
             onDiscover = { Log.i(TAG, "live tv: Odkrywaj"); mode = LiveMode.DISCOVER },
         )
         if (dayPicker) DayPicker(dayOffset, now) { d ->
@@ -417,6 +422,7 @@ private fun Guide(
     returnTo: NiuniaLiveReturn.Entry? = null,
     regionActive: Boolean,
     regionChip: FocusRequester,
+    regionLabel: String? = null,
     onRegion: () -> Unit,
     optionsReturn: FocusRequester,
     optionsFrom: String?,
@@ -527,7 +533,7 @@ private fun Guide(
                 items(categories, key = { it.key }) { c -> val sel = (filter as? NiuniaLiveFilter.Category)?.key == c.key; FilterPill(c.name, sel, if (sel) selectedChip else null) { onFilter(c) } }
                 // Z-21 (P-25): „Kraj i język” na końcu filtrów; wybrany, gdy filtr kraju albo języka działa.
                 item(key = "__region") {
-                    com.nuvio.tv.skin.niunia.components.NiuniaButton(onClick = onRegion, label = stringResource(R.string.niunia_tv1_region), icon = "globe",
+                    com.nuvio.tv.skin.niunia.components.NiuniaButton(onClick = onRegion, label = regionLabel ?: stringResource(R.string.niunia_tv1_region), icon = "globe",
                         kind = com.nuvio.tv.skin.niunia.components.NiuniaButtonKind.Chip, selected = regionActive, focusRequester = regionChip)
                 }
             }
@@ -759,24 +765,24 @@ private fun Cell(title: String, x: Dp, w: Dp, live: Boolean, focused: Boolean, c
 
 /** Prawy górny róg, w linii zwiniętej nawigacji: Szukaj · Dziś · Odkrywaj (ikona + napis; bieżący ekran podświetlony). */
 @Composable
-private fun TopBar(mode: LiveMode, dayLabel: String, onSearch: () -> Unit, onDay: () -> Unit, onDiscover: () -> Unit) {
+private fun TopBar(mode: LiveMode, dayLabel: String, onSearch: () -> Unit, onDay: () -> Unit, onDiscover: () -> Unit, dayFocus: FocusRequester? = null) {
     Row(Modifier.fillMaxWidth().padding(top = com.nuvio.tv.skin.niunia.tokens.NiuniaSize.NavTop, end = NiuniaDims.Gutter), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
         TopButton(Icons.Outlined.Search, stringResource(R.string.niunia_tv_search), mode == LiveMode.SEARCH, onSearch)
-        TopButton(Icons.Outlined.CalendarToday, dayLabel, false, onDay)
+        TopButton(Icons.Outlined.CalendarToday, dayLabel, false, onDay, dayFocus)
         TopButton(Icons.Outlined.Explore, stringResource(R.string.niunia_tv_discover), mode == LiveMode.DISCOVER, onDiscover)
         com.nuvio.tv.skin.niunia.components.NiuniaClock() // Z-15: zegar na końcu paska akcji
     }
 }
 
 @Composable
-private fun TopButton(icon: ImageVector, text: String, on: Boolean, onOk: () -> Unit) {
+private fun TopButton(icon: ImageVector, text: String, on: Boolean, onOk: () -> Unit, focus: FocusRequester? = null) {
     // NButton small z ikoną (36 dp); bieżący tryb = wypełnienie 36 % (`active`).
     val name = when (icon) {
         Icons.Outlined.Search -> "search"
         Icons.Outlined.Explore -> "discover"
         else -> "calendar"
     }
-    com.nuvio.tv.skin.niunia.components.NiuniaButton(onClick = onOk, label = text, icon = name, small = true, active = on)
+    com.nuvio.tv.skin.niunia.components.NiuniaButton(onClick = onOk, label = text, icon = name, small = true, active = on, focusRequester = focus)
 }
 
 /** „Dziś”: lista dni otwierana przyciskiem (tydzień archiwum wstecz + 3 dni przodu, canvas `.day`). */

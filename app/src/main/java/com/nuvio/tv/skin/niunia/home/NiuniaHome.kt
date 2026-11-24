@@ -107,6 +107,9 @@ fun NiuniaHome(
     val playCw: (ContinueWatchingItem) -> Unit = { cw -> if (!niuniaOpenYouTubeCw(cw)) onContinueWatchingClick(cw) }
     // Z-12: karta tytułu (rząd + indeks klikniętego plakatu); przełącznik niunia_title_card (domyślnie włączony).
     var pager by remember { mutableStateOf<Pair<com.nuvio.tv.domain.model.CatalogRow, Int>?>(null) }
+    // UX JMGO (ręczne testy 24.11): Wstecz z karty przewiniętej na inny tytuł wracał na otwarty plakat — teraz na oglądany
+    // (klucz rzędu, indeks): rząd przewija się do niego i daje mu fokus.
+    var cardReturn by remember { mutableStateOf<Pair<String, Int>?>(null) }
     val titleCard = remember { com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(context, "niunia_title_card", true) }
     // Baner: tylko filmy i seriale z dużym obrazem tła (bez pozycji „narzędziowych” dodatków, np. „Delete all files”).
     // Najpierw źródła wybrane w ustawieniach (heroItems), potem wszystkie rzędy ekranu głównego.
@@ -178,6 +181,16 @@ fun NiuniaHome(
         try { firstFocus.requestFocus(); Log.i(TAG, "ekran główny: bez baneru — fokus na pierwszy element $firstKey") }
         catch (e: IllegalStateException) { Log.w(TAG, "ekran główny: fokus bez baneru: ${e.javaClass.simpleName}: ${e.message}") }
     }
+    // UX JMGO (ręczne testy 24.11): dwa rzędy „TMDB Popular” (filmy i seriale) — przy powtórzonej nazwie dopisany rodzaj.
+    val dupNames = remember(uiState.catalogRows) {
+        uiState.catalogRows.filter { it.items.isNotEmpty() }.groupingBy { it.catalogName }.eachCount().filterValues { it > 1 }.keys
+    }
+    fun rowTitle(r: com.nuvio.tv.domain.model.CatalogRow): String = when {
+        r.catalogName !in dupNames -> r.catalogName
+        r.rawType == "movie" -> context.getString(R.string.niunia_ux_row_movies, r.catalogName)
+        r.rawType == "series" -> context.getString(R.string.niunia_ux_row_series, r.catalogName)
+        else -> r.catalogName
+    }
     val rowsFailed = !uiState.isLoading && uiState.continueWatchingItems.isNotEmpty() && uiState.catalogRows.all { it.items.isEmpty() }
     LaunchedEffect(rowsFailed) {
         if (!rowsFailed) return@LaunchedEffect
@@ -222,11 +235,22 @@ fun NiuniaHome(
                     val top = firstBelow; firstBelow = false
                     item(key = "niunia_row_${row.addonId}_${row.catalogId}_${row.rawType}") {
                         val ranking = NiuniaLabels.isRankingRow(row.catalogName)
-                        RowTitle(row.catalogName, on = focusedRow == rowIndex, first = top)
+                        RowTitle(rowTitle(row), on = focusedRow == rowIndex, first = top)
                         com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
                             val rowKey = "r:${row.addonId}_${row.catalogId}_${row.rawType}:"
                             val st = androidx.compose.foundation.lazy.rememberLazyListState(initialFirstVisibleItemIndex = initialIndex(rowKey))
                             val colIndex = rowIndex + if (uiState.continueWatchingItems.isNotEmpty()) 1 else 0
+                            LaunchedEffect(cardReturn) {
+                                val r = cardReturn ?: return@LaunchedEffect
+                                if (r.first != rowKey) return@LaunchedEffect
+                                cardReturn = null
+                                try {
+                                    st.scrollToItem((r.second - 1).coerceAtLeast(0))
+                                    androidx.compose.runtime.withFrameNanos { }
+                                    restoreFocus.requestFocus()
+                                    Log.i(TAG, "karta tytułu: Wstecz → plakat ${r.second + 1} w rzędzie")
+                                } catch (e: IllegalStateException) { Log.w(TAG, "karta tytułu: powrót na oglądany plakat: ${e.javaClass.simpleName}: ${e.message}") }
+                            }
                             LazyRow(state = st, contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
                                 itemsIndexed(row.items, key = { _, it -> it.id }) { i, item ->
                                     val k = rowKey + item.id
@@ -318,9 +342,15 @@ fun NiuniaHome(
                 },
                 onDetails = { m -> Log.i(TAG, "karta tytułu: (i) → strona tytułu ${m.id}"); pager = null; onNavigateToDetail(m.id, m.rawType, row.addonBaseUrl) },
                 onLibrary = { m -> Log.i(TAG, "karta tytułu: biblioteka ${m.id}"); onToggleLibrary(m, row.addonBaseUrl) },
-                onClose = { _ ->
+                onClose = { page ->
                     pager = null
-                    try { restoreFocus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "karta tytułu: powrót fokusu: ${e.javaClass.simpleName}: ${e.message}") }
+                    val item = row.items.getOrNull(page)
+                    if (page != start && item != null) {
+                        val rowKey = "r:${row.addonId}_${row.catalogId}_${row.rawType}:"
+                        val col = uiState.catalogRows.indexOf(row) + if (uiState.continueWatchingItems.isNotEmpty()) 1 else 0
+                        rememberFocus(rowKey + item.id, col, page)
+                        cardReturn = rowKey to page
+                    } else try { restoreFocus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "karta tytułu: powrót fokusu: ${e.javaClass.simpleName}: ${e.message}") }
                 },
             )
         }

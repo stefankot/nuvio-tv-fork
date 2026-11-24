@@ -2,4 +2,6 @@
 <resources>
     <!-- UX JMGO (ręczne testy 24.11): komunikaty dopisane po testach na projektorze. -->
     <string name="niunia_ux_rows_failed">Rzędy z dodatków się nie wczytały. Za chwilę spróbuję jeszcze raz.</string>
+    <string name="niunia_ux_row_movies">%1$s · filmy</string>
+    <string name="niunia_ux_row_series">%1$s · seriale</string>
 </resources>

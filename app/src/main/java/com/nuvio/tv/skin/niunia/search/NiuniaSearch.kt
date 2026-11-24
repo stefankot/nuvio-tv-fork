@@ -130,7 +130,9 @@ fun NiuniaSearch(viewModel: SearchViewModel, onNavigateToDetail: (String, String
     // UX JMGO (ręczne testy 24.11): „dun” → „Muriel”, „Cztery noce marzeń” przed „Dune” (kolejność dodatków). Teraz najpierw
     // tytuły równe wpisanemu tekstowi, potem zaczynające się od niego, potem ze słowem od niego; w grupie kolejność dodatków.
     val results: List<Pair<MetaPreview, String>> = remember(state.catalogRows, state.submittedQuery) {
+        // Ten sam film z dwóch dodatków (inne id) był dwa razy („Dunkirk” · 2017) — jeden wpis na tytuł, rok i rodzaj.
         val all = state.catalogRows.flatMap { row -> row.items.map { it to row.addonBaseUrl } }.distinctBy { it.first.id }
+            .distinctBy { (m, _) -> m.releaseInfo?.take(4)?.takeIf { it.isNotBlank() }?.let { y -> niuniaSearchNorm(m.name) + "|" + y + "|" + m.rawType } ?: m.id }
         val q = niuniaSearchNorm(state.submittedQuery)
         if (q.isBlank()) all else all.sortedBy { niuniaSearchRank(niuniaSearchNorm(it.first.name), q) }
     }
