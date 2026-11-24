@@ -67,7 +67,7 @@ internal fun niuniaPlayerOverlay(kind: String, uiState: PlayerUiState, args: Map
     val exit = args["exit"] as? (() -> Unit)
     // Test JMGO tv2c: w odtwarzaczu TV na żywo ekran wczytywania filmu nakładał się na nakładkę kanału — Live TV zostaje przy
     // własnych oknach (strażnik kanału, „… nie odpowiada”), bez nakładek filmu.
-    if ((kind == "loading" || kind == "error") && com.nuvio.tv.ui.reshaped.livetv.LiveTvPlaybackRegistry.isLiveTv(uiState.currentStreamUrl)) return false
+    if ((kind == "loading" || kind == "error") && com.nuvio.tv.reshaped.livetv.LiveTvPlaybackRegistry.isLiveTv(uiState.currentStreamUrl)) return false
     return when (kind) {
         "loading" -> { if (args["visible"] == true) NiuniaPlayerLoading(uiState, onEvent, exit); true }
         "error" -> { uiState.error?.let { NiuniaPlayerError(uiState, it, onEvent, exit) }; true }
