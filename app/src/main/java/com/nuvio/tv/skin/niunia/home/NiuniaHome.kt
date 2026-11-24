@@ -427,6 +427,8 @@ private fun niuniaOpenYouTubeCw(cw: ContinueWatchingItem): Boolean {
         source = com.liskovsoft.youtubeapi.service.data.YouTubeMediaItem.fromIds(videoId, null),
     )
     Log.i(TAG, "„Oglądaj dalej”: YouTube $videoId → odtwarzacz YouTube")
+    com.nuvio.tv.skin.kicia.youtube.ForgeYouTubeLaunch.returnRoute = "home"
+    com.nuvio.tv.skin.kicia.youtube.ForgeYouTubeLaunch.playerShown = false
     com.nuvio.tv.skin.kicia.youtube.ForgeYouTubeLaunch.ask(item)
     go(com.nuvio.tv.ui.navigation.Screen.YouTube.route)
     return true

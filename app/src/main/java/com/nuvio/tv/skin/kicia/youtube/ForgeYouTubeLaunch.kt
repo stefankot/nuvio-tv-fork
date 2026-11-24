@@ -18,6 +18,11 @@ object ForgeYouTubeLaunch {
     /** The video to play now, once. */
     fun take(): YtItem? = _pending.value.also { _pending.value = null }
 
+    // UX JMGO (ręczne testy 24.11): film YouTube z „Oglądaj dalej” na Głównej otwiera się przez zakładkę YouTube, więc
+    // Wstecz z odtwarzacza lądował w YouTube. [returnRoute] = dokąd wrócić, [playerShown] = odtwarzacz naprawdę się pokazał.
+    @Volatile var returnRoute: String? = null
+    @Volatile var playerShown: Boolean = false
+
     // Fork 19.11 (właściciel: „search nie szuka w YouTube”): zapytanie z ekranu Szukaj, wykonane po otwarciu YouTube.
     private val _query = MutableStateFlow<String?>(null)
     val query: StateFlow<String?> = _query.asStateFlow()

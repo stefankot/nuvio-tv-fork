@@ -121,6 +121,7 @@ fun NiuniaYouTubeChrome(
     onSubtitleClearanceChanged: (Float) -> Unit,
 ) {
     val context = LocalContext.current
+    LaunchedEffect(Unit) { com.nuvio.tv.skin.kicia.youtube.ForgeYouTubeLaunch.playerShown = true }
     val yt: YouTubePlayerViewModel = hiltViewModel()
     val ytState by yt.state.collectAsState()
     val videoId = session?.videoId ?: viewModel.controller.contentId?.removePrefix(com.nuvio.tv.youtube.YouTubeProgress.ID_PREFIX)

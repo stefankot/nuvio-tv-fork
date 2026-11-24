@@ -109,6 +109,17 @@ fun NiuniaYouTube(onPlay: (YtPlayable) -> Unit, viewModel: YouTubeViewModel = fo
 
     BackHandler(enabled = state.subTitle != null) { Log.i(TAG, "youtube: Wstecz → kanał ${state.tab}"); viewModel.back() }
     val pending by ForgeYouTubeLaunch.pending.collectAsState()
+    // UX JMGO (ręczne testy 24.11): powrót z odtwarzacza filmu otwartego z „Oglądaj dalej” → z powrotem na Główną.
+    val returning = remember { ForgeYouTubeLaunch.pending.value == null }
+    LaunchedEffect(Unit) {
+        val to = ForgeYouTubeLaunch.returnRoute ?: return@LaunchedEffect
+        if (!returning) return@LaunchedEffect
+        val shown = ForgeYouTubeLaunch.playerShown
+        ForgeYouTubeLaunch.returnRoute = null; ForgeYouTubeLaunch.playerShown = false
+        if (!shown) return@LaunchedEffect
+        Log.i(TAG, "youtube: film z „Oglądaj dalej” zamknięty — Wstecz wraca na $to")
+        if (!com.nuvio.tv.skin.niunia.nav.NiuniaNavActions.open(to)) Log.w(TAG, "youtube: powrót na $to — brak przejścia")
+    }
     LaunchedEffect(pending) { ForgeYouTubeLaunch.take()?.let { item -> Log.i(TAG, "youtube: film z innego ekranu → odtwarzacz"); viewModel.activate(item, listOf(item), onPlay) } }
     val pendingQuery by ForgeYouTubeLaunch.query.collectAsState()
     LaunchedEffect(pendingQuery) { ForgeYouTubeLaunch.takeSearch()?.let { q -> Log.i(TAG, "youtube: szukaj z ekranu Szukaj"); viewModel.search(q) } }
