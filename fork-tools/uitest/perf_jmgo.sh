@@ -5,7 +5,7 @@
 #   pamiec <kat> <etykieta>  dumpsys meminfo (PSS, sterta Java, natywna, grafika) → <kat>/pamiec.txt
 #   perfetto <kat> <etykieta> [s=10]  ślad perfetto (sched gfx view am wm dalvik) w tle, w tym czasie wykonaj przejście;
 #                         plik <kat>/<etykieta>.perfetto-trace (otwierać w ui.perfetto.dev).
-# Tylko com.nuviodebug.com; nic nie czyści i nie zmienia ustawień systemu. Przed użyciem: jmgo_czekaj_wolny.sh.
+# Tylko com.nuviodebug.com; nic nie czyści. Przed użyciem: jmgo_czekaj_wolny.sh.
 set -u
 S=$(cd "$(dirname "$0")/../test" && pwd)
 eval "$(bash "$S/jmgo_adb.sh" --env)"; bash "$S/jmgo_adb.sh" >/dev/null

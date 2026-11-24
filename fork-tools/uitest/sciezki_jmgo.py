@@ -10,7 +10,7 @@ Wynik:   plan/ux/jmgo/cykl<N>/{sciezki.md, sciezki.json, fokus.csv, logcat.txt, 
 - Przytrzymanie: prawdziwe (`sendevent` na urządzeniu pilota /dev/input/event12: wciśnij, czekaj, puść) — system sam
   generuje powtórzenia jak przy pilocie. Długie OK = przytrzymanie OK 700 ms.
 - Bezpieczeństwo (prompt „JMGO: bezpieczeństwo”): przed każdą ścieżką sprawdzamy wierzch; dwa razy z rzędu cudza aplikacja =
-  ktoś używa TV → czekamy na „WOLNY” (jmgo_czekaj_wolny.sh). Żadnych zmian ustawień systemu, `pm clear`, PIN-ów, tłumaczenia AI.
+  ktoś używa TV → czekamy na „WOLNY” (jmgo_czekaj_wolny.sh). Żadnych `pm clear`, PIN-ów, tłumaczenia AI (ustawienia systemu: ZASADY §5 — wolno, gdy przyspiesza pracę).
   Ustawienia zmieniane w ścieżce wracają w tej samej ścieżce (przełącznik ×2). Odtwarzanie najwyżej ok. 10 s.
 
 Wynik ścieżki: OK / UWAGA (budżet „cel” przekroczony, reguła spełniona) / BŁĄD (reguła złamana, budżet „błąd”, awaria) /

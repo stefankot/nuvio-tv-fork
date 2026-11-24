@@ -44,6 +44,7 @@ Stare wersje: `plan/archiwum/zasady/` i historia gita.
 - W czasie builda nie czekaj bezczynnie: pisz dalej w `.stage/` (nie ruszaj plików, które Gradle czyta).
 
 ## 5. Testy na urządzeniu
+- Ustawienia urządzeń testowych (24.11, właściciel; zasada nadrzędna, zastępuje dawny zakaz „bez trwałych zmian ustawień projektora”): zmieniaj ustawienia JMGO i emulatora tak, żeby praca była wydajna (np. usługa śledzenia perfetto, opcje programisty), bez pytania i bez przywracania; każdą zmianę zapisz jednym zdaniem w `plan/DECYZJE.md`.
 - Tylko fork `com.nuviodebug.com` (nie `com.nuvio.tv`), start: `am start -n com.nuviodebug.com/com.nuvio.tv.launcher.AppIconDefault`. Nie ruszaj cudzych aplikacji i danych.
 - Po instalacji: porównaj md5 (`adb pull`) z plikiem z buildu, potem `cmd package compile -m speed -f com.nuviodebug.com`.
 - JMGO: `adb connect 192.168.31.252:5555` (Android 11, armeabi-v7a, profil właściciela zalogowany). Ostrożnie — ktoś może oglądać.
