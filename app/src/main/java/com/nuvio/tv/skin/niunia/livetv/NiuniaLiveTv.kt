@@ -312,7 +312,7 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
                 }
                 Log.i(TAG, "live tv: odtwarzam ${channel.name}" + (if (past) " archiwum „${programme?.title}”" else " na żywo"))
                 viewModel.launchedUrl = channel.streamUrl
-                NiuniaLiveReturn.commit(filter, dayOffset)
+                NiuniaLiveReturn.commit(filter, dayOffset, channel.streamUrl)
                 NiuniaLivePreview.release("pełny ekran") // P-32: jeden dekoder — podgląd zwolniony przed odtwarzaczem
                 onPlay(route)
             } catch (e: kotlinx.coroutines.CancellationException) {

@@ -37,6 +37,8 @@ internal object NiuniaLiveReturn {
     var dayOffset: Int = 0
         private set
     private var savedAt = 0L
+    /** Kanał włączony z listy — gdy w odtwarzaczu przełączono na inny (CH±, „Następny kanał”), powrót idzie na ten ostatni. */
+    private var playedUrl: String? = null
 
     /** Kafel nad przewodnikiem ([key] = [NiuniaLiveTile.key]). */
     fun fromTile(key: String) { pending = Entry.Tile(key) }
@@ -48,8 +50,9 @@ internal object NiuniaLiveReturn {
     fun fromOther() { pending = null }
 
     /** Tuż przed przejściem do odtwarzacza. */
-    fun commit(filter: NiuniaLiveFilter, dayOffset: Int) {
+    fun commit(filter: NiuniaLiveFilter, dayOffset: Int, url: String? = null) {
         entry = pending
+        playedUrl = url
         pending = null
         this.filter = filter
         this.dayOffset = dayOffset
@@ -62,6 +65,12 @@ internal object NiuniaLiveReturn {
         val e = entry ?: return null
         entry = null
         if (System.currentTimeMillis() - savedAt > VALID_MS) { Log.i(TAG, "live tv: powrót przeterminowany"); return null }
+        // UX JMGO (ręczne testy 24.11): po „Następny kanał” (RT → CNBC) Wstecz wracał na RT, nie na ostatnio oglądany kanał.
+        val recent = com.nuvio.tv.reshaped.livetv.LiveTvRepository.uiState.value.recentChannel?.streamUrl
+        if (playedUrl != null && recent != null && recent != playedUrl) {
+            Log.i(TAG, "live tv: w odtwarzaczu zmieniono kanał — powrót na ostatni (${logLabel(recent)})")
+            return Entry.Guide(recent, null)
+        }
         return e
     }
 

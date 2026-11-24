@@ -61,3 +61,7 @@ Sprawdzone na `uxr2` ✔: „Odtwórz S1, E1”; opis bez „[1]”; odcinki bez
 | 29 | Po odtwarzaczu obejrzany tytuł na początku rzędu, rząd przewinięty — fokus na niewidocznej karcie, ◄ nic nie robi (79–80) | R5: rząd przewija się na początek |
 
 Nie ruszam: „Finding stream source” po angielsku (zasada: bez tłumaczeń); chwilowa nakładka „Odświeżanie/Rozdzielczość” na zegarze w odtwarzaczu (kod bazy, kilka sekund).
+| 30 | Ustawienia › Telewizja: „Kraj kanałów” bez wartości; na JMGO ustawione „Niemcy” (log `country=de`) przy „Najpierw kanały z mojego kraju” (83) | R6: wartość przy pozycji. Samego ustawienia nie zmieniam (profil właściciela) — do decyzji: prawdopodobnie przestawione przez dawny automat testowy |
+
+- `uxr3`: commit 6965fce4a (R3, R3b), BUILD SUCCESSFUL 14 min 29 s, `.stage/apk/uxr3-v7a.apk`, instalacja 20:02.
+- `uxr4`: R4 + R5 + R6 (5229dfaaa, 3bfb5d97a, f682e7b45), build start 20:03.
