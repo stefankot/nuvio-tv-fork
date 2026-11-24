@@ -38,6 +38,7 @@ import com.nuvio.tv.skin.niunia.components.NiuniaPanelOverlay
 import com.nuvio.tv.skin.niunia.components.NiuniaRowKind
 import com.nuvio.tv.skin.niunia.components.NiuniaTrailing
 import com.nuvio.tv.skin.niunia.components.niuniaTrapArrows
+import com.nuvio.tv.skin.niunia.components.niuniaPanelTrap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -205,7 +206,7 @@ internal fun NiuniaLiveRegionPanel(index: NiuniaLiveRegion.Index?, onClose: () -
     }
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopEnd) {
         NiuniaPanelOverlay(stringResource(R.string.niunia_tv1_region),
-            Modifier.padding(top = 40.dp).niuniaTrapArrows("live tv: panel kraj i język", setOf(FocusDirection.Left, FocusDirection.Right, FocusDirection.Up, FocusDirection.Down)).focusGroup()) {
+            Modifier.padding(top = 40.dp).niuniaPanelTrap("live tv: panel kraj i język")) {
             Row(Modifier.padding(start = 8.dp, bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 NiuniaButton(onClick = { tab = NiuniaLiveRegion.Tab.COUNTRY; Log.i(TAG, "live tv: panel → Kraj") }, label = stringResource(R.string.niunia_tv1_country),
                     kind = NiuniaButtonKind.Chip, selected = tab == NiuniaLiveRegion.Tab.COUNTRY, focusRequester = countryChip)

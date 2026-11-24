@@ -19,6 +19,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -57,6 +60,7 @@ import com.nuvio.tv.skin.niunia.components.NiuniaTextVariant
 import com.nuvio.tv.skin.niunia.components.NiuniaTone
 import com.nuvio.tv.skin.niunia.components.NiuniaTrailing
 import com.nuvio.tv.skin.niunia.components.niuniaTrapArrows
+import com.nuvio.tv.skin.niunia.components.niuniaPanelTrap
 import com.nuvio.tv.skin.niunia.tokens.NiuniaColors
 import com.nuvio.tv.skin.niunia.tokens.NiuniaDims
 import com.nuvio.tv.skin.niunia.tokens.NiuniaSpacing
@@ -74,6 +78,7 @@ private const val DAY_MS = 86_400_000L
  * „Jeszcze nieobejrzane”, „Obejrzane”. Filtr (gatunek, rok, obejrzane) albo wyłączone półki → siatka plakatów jak dotąd.
  * Panel „Sortuj i filtruj” (po prawej): OK na wierszu przełącza wartość na następną, Wstecz zamyka.
  */
+@OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 internal fun NiuniaLibraryContent(
     state: LibraryUiState,
@@ -118,7 +123,13 @@ internal fun NiuniaLibraryContent(
         try { sortChip.requestFocus(); Log.i(TAG, "biblioteka: panel zamknięty, fokus → Sortuj i filtruj") } catch (e: IllegalStateException) { Log.w(TAG, "biblioteka: fokus po panelu: ${e.javaClass.simpleName}: ${e.message}") }
     }
     val first = remember { FocusRequester() }
-    com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(first)
+    // UX JMGO 24.11 (F5, pętla 0 ścieżka 22): Wstecz ze strony tytułu wraca na ten sam plakat z tym samym przewinięciem
+    // (wcześniej: na chip „Wszystko”). Pamięć po kluczu (NiuniaFocusMemory); inny układ (półki ↔ siatka) = fokus domyślny.
+    val restore = com.nuvio.tv.skin.niunia.components.rememberNiuniaFocusRestore("biblioteka") {
+        if (shelves) shelfList.mapIndexed { si, (_, _, list) -> "s$si:" to list.map { "s$si:${it.type}_${it.id}" } }
+        else listOf("g:" to items.map { "g:${it.type}_${it.id}" })
+    }
+    com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(if (restore.active) restore.requester else first)
 
     fun facts(e: LibraryEntry): String {
         val added = e.listedAt.takeIf { it > 0L }?.let { t ->
@@ -138,7 +149,7 @@ internal fun NiuniaLibraryContent(
     }
 
     @Composable
-    fun Poster(entry: LibraryEntry, modifier: Modifier) {
+    fun Poster(entry: LibraryEntry, modifier: Modifier, onFocused: () -> Unit = {}) {
         val rating = entry.imdbRating?.takeIf { it > 0f }?.let { "★ %.1f".format(java.util.Locale.US, it) }
         val (art, fallback) = remember(entry, posterPattern) {
             com.nuvio.tv.skin.niunia.components.niuniaPortrait(entry.toMetaPreview().copy(imdbId = entry.imdbId), posterPattern)
@@ -150,15 +161,16 @@ internal fun NiuniaLibraryContent(
             onOk = { Log.i(TAG, "biblioteka: OK → ${entry.type} ${entry.id}"); onNavigateToDetail(entry.id, entry.type, entry.addonBaseUrl) },
             onLongOk = { posterOptions(entry.toMetaPreview().copy(imdbId = entry.imdbId), entry.addonBaseUrl) },
             modifier = modifier,
-            onFocus = { if (it) focusedEntry = entry },
+            onFocus = { if (it) { focusedEntry = entry; onFocused() } },
         )
     }
 
     Box(Modifier.fillMaxSize().background(NiuniaColors.Bg)) {
         Column(Modifier.fillMaxSize().padding(top = 76.dp)) {
             // Zakładki typu + „Sortuj i filtruj”; ▲ z tego rzędu = menu (jak dotąd z pierwszego rzędu plakatów).
+            // UX JMGO 24.11 (F3, pętla 0 ścieżka 21): ▲ z treści wraca na ostatnio zaznaczony chip (wcześniej: najbliższy w osi pionowej).
             Row(
-                Modifier.padding(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter).onPreviewKeyEvent { e ->
+                Modifier.focusRestorer().padding(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter).onPreviewKeyEvent { e ->
                     if (e.type == KeyEventType.KeyDown && e.key == Key.DirectionUp) com.nuvio.tv.skin.niunia.nav.NiuniaNavActions.toMenu("biblioteka ▲ z zakładek") else false
                 },
                 horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12), verticalAlignment = Alignment.CenterVertically,
@@ -187,14 +199,21 @@ internal fun NiuniaLibraryContent(
                 NiuniaText(facts(fe), variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Tertiary, lines = 1)
             }
             if (shelves) {
-                LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(top = NiuniaSpacing.Space16, bottom = 48.dp), verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space24)) {
+                val (outerI, outerO) = restore.outerStart()
+                val colState = rememberLazyListState(outerI, outerO)
+                LazyColumn(Modifier.fillMaxSize(), state = colState, contentPadding = PaddingValues(top = NiuniaSpacing.Space16, bottom = 48.dp), verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space24)) {
                     shelfList.forEachIndexed { si, (title, sub, list) ->
                         item(key = "shelf_$si") {
                             Column(verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
                                 NiuniaCollectionHeader(title, active = focusedEntry != null && focusedEntry in list, modifier = Modifier.padding(start = NiuniaDims.Gutter).height(22.dp), sub = sub)
-                                LazyRow(contentPadding = PaddingValues(horizontal = NiuniaDims.Gutter), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
+                                val (rowI, rowO) = restore.innerStart("s$si:")
+                                val rowState = rememberLazyListState(rowI, rowO)
+                                LazyRow(state = rowState, contentPadding = PaddingValues(horizontal = NiuniaDims.Gutter), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
                                     itemsIndexed(list, key = { _, e -> "${si}_${e.type}_${e.id}" }) { i, e ->
-                                        Poster(e, if (si == 0 && i == 0) Modifier.focusRequester(first) else Modifier)
+                                        val k = "s$si:${e.type}_${e.id}"
+                                        Poster(e, (if (si == 0 && i == 0 && !restore.active) Modifier.focusRequester(first) else Modifier).then(restore.modifier(k))) {
+                                            restore.save(k, i, colState.firstVisibleItemIndex, colState.firstVisibleItemScrollOffset, rowState.firstVisibleItemIndex, rowState.firstVisibleItemScrollOffset)
+                                        }
                                     }
                                 }
                             }
@@ -202,15 +221,21 @@ internal fun NiuniaLibraryContent(
                     }
                 }
             } else {
+                val (gridI, gridO) = restore.outerStart()
+                val gridState = rememberLazyGridState(gridI, gridO)
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(NiuniaDims.PosterW),
+                    state = gridState,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = NiuniaSpacing.Space16, bottom = 48.dp),
                     horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap),
                     verticalArrangement = Arrangement.spacedBy(28.dp),
                 ) {
                     itemsIndexed(items, key = { _, it -> "${it.type}_${it.id}" }) { index, entry ->
-                        Poster(entry, if (index == 0) Modifier.focusRequester(first) else Modifier)
+                        val k = "g:${entry.type}_${entry.id}"
+                        Poster(entry, (if (index == 0 && !restore.active) Modifier.focusRequester(first) else Modifier).then(restore.modifier(k))) {
+                            restore.save(k, index, gridState.firstVisibleItemIndex, gridState.firstVisibleItemScrollOffset)
+                        }
                     }
                 }
             }
@@ -232,7 +257,7 @@ private fun SortPanel(state: LibraryUiState, vm: LibraryViewModel, shelvesOn: Bo
     }
     fun <T> next(list: List<T>, cur: T): T = if (list.isEmpty()) cur else list[(list.indexOf(cur) + 1).mod(list.size)]
     NiuniaPanelOverlay(stringResource(R.string.niunia_ke_lib_sort),
-        Modifier.niuniaTrapArrows("biblioteka: panel", setOf(FocusDirection.Left, FocusDirection.Right, FocusDirection.Up, FocusDirection.Down)).focusGroup()) {
+        Modifier.niuniaPanelTrap("biblioteka: panel")) {
         val sorts = state.availableSortOptions.ifEmpty { listOf(state.selectedSortOption) }
         NiuniaListRow(stringResource(R.string.niunia_ke_lib_order), value = stringResource(state.selectedSortOption.labelResId), trailing = NiuniaTrailing.Chevron, focusRequester = firstRow,
             onClick = { val n = next(sorts, state.selectedSortOption); Log.i(TAG, "biblioteka: kolejność → ${n.key}"); vm.onSelectSortOption(n) })

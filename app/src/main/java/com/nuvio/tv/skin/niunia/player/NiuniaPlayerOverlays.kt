@@ -44,6 +44,7 @@ import com.nuvio.tv.skin.niunia.components.NiuniaTextVariant
 import com.nuvio.tv.skin.niunia.components.NiuniaTone
 import com.nuvio.tv.skin.niunia.components.NiuniaTrailing
 import com.nuvio.tv.skin.niunia.components.niuniaTrapArrows
+import com.nuvio.tv.skin.niunia.components.niuniaPanelTrap
 import com.nuvio.tv.skin.niunia.tokens.NiuniaColor
 import com.nuvio.tv.skin.niunia.tokens.NiuniaRadius
 import com.nuvio.tv.skin.niunia.tokens.NiuniaSpacing
@@ -177,7 +178,7 @@ private fun NiuniaPlayerSources(uiState: PlayerUiState, onEvent: (PlayerEvent) -
     }
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopEnd) {
         NiuniaPanelOverlay(stringResource(R.string.niunia_pl1_sources_title),
-            Modifier.niuniaTrapArrows("odtwarzacz: zmień źródło", setOf(FocusDirection.Left, FocusDirection.Right, FocusDirection.Up, FocusDirection.Down)).focusGroup()) {
+            Modifier.niuniaPanelTrap("odtwarzacz: zmień źródło")) {
             if (uiState.sourceAvailableAddons.size > 1) androidx.compose.foundation.lazy.LazyRow(Modifier.padding(bottom = NiuniaSpacing.Space12), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space8)) {
                 item {
                     NiuniaButton(onClick = { onEvent(PlayerEvent.OnSourceAddonFilterSelected(null)) }, label = stringResource(R.string.niunia_pl1_all_count, uiState.sourceAllStreams.size),

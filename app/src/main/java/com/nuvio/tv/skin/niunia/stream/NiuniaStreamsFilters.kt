@@ -30,6 +30,7 @@ import com.nuvio.tv.skin.niunia.components.NiuniaPanelOverlay
 import com.nuvio.tv.skin.niunia.components.NiuniaRowKind
 import com.nuvio.tv.skin.niunia.components.NiuniaTrailing
 import com.nuvio.tv.skin.niunia.components.niuniaTrapArrows
+import com.nuvio.tv.skin.niunia.components.niuniaPanelTrap
 
 private const val TAG = "ForkNiunia"
 
@@ -89,7 +90,7 @@ internal fun NiuniaStreamsFiltersPanel(addons: List<String>, on: Set<String>, on
     fun toggle(k: String) { val n = if (k in on) on - k else on + k; Log.i(TAG, "źródła: filtr $k → ${k in n}"); onChange(n) }
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopEnd) {
         NiuniaPanelOverlay(stringResource(R.string.niunia_tv2_f_title),
-            Modifier.padding(top = 40.dp).niuniaTrapArrows("źródła: panel filtrów", setOf(FocusDirection.Left, FocusDirection.Right, FocusDirection.Up, FocusDirection.Down)).focusGroup()) {
+            Modifier.padding(top = 40.dp).niuniaPanelTrap("źródła: panel filtrów")) {
             LazyColumn(Modifier.heightIn(max = 360.dp)) {
                 NiuniaStreamFilters.SECTIONS.forEachIndexed { sec, title ->
                     val opts = if (sec == 4) addons.map { NiuniaStreamFilters.Option(4, "addon:$it", it, null) } else NiuniaStreamFilters.OPTIONS.filter { it.section == sec }

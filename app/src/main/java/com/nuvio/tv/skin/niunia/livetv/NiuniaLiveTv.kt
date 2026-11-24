@@ -455,7 +455,7 @@ private fun Guide(
                 else channelsState.scrollToItem(channels.indexOfFirst { it.streamUrl == restoreChannel }.coerceAtLeast(0))
                 delay(80)
                 restoreFocus.requestFocus()
-                Log.i(TAG, "live tv: fokus wraca na " + (restoreTileKey?.let { "kafel $it" } ?: "kanał $restoreChannel"))
+                Log.i(TAG, "live tv: fokus wraca na " + (restoreTileKey?.let { "kafel ${NiuniaLiveReturn.logLabel(it)}" } ?: ("kanał " + (restoreChannel?.let { NiuniaLiveReturn.logLabel(it) } ?: "?"))))
                 // UX 22.11 (test emulatora): po powrocie z kanału fokus po chwili lądował na „Szukaj” u góry (przebudowa ekranu
                 // po odtwarzaczu) — dopóki użytkownik nic nie naciśnie, ponów fokus na kanale/kafelku.
                 for (wait in longArrayOf(600, 900)) {

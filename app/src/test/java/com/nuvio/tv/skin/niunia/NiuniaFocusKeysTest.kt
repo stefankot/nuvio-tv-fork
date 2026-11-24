@@ -42,4 +42,16 @@ class NiuniaFocusKeysTest {
         val ms = (System.nanoTime() - t0) / 1_000_000 / 50.0
         assert(ms < 20.0) { "restoreIndex na 20 tys.: $ms ms" }
     }
+
+    // Pętla 0, ścieżka 19: Szukaj → „Odkrywaj” → Wstecz oddawał fokus klawiszowi „a” zamiast chipowi, który otworzył ekran (F5).
+    @Test fun searchReturnsToOpenerOfTheSameQuery() {
+        assertEquals(NiuniaFocusKeys.OPENER_DISCOVER, NiuniaFocusKeys.searchReturn(NiuniaFocusKeys.OPENER_DISCOVER, "", ""))
+        assertEquals("tt123", NiuniaFocusKeys.searchReturn("tt123", "bat", "bat"))
+    }
+
+    @Test fun searchIgnoresMemoryOfAnotherQuery() {
+        assertNull(NiuniaFocusKeys.searchReturn("tt123", "bat", "bate"))
+        assertNull(NiuniaFocusKeys.searchReturn(NiuniaFocusKeys.OPENER_DISCOVER, "", "a"))
+        assertNull("brak zapisu → klawisz startowy", NiuniaFocusKeys.searchReturn(null, "", ""))
+    }
 }

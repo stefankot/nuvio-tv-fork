@@ -1,0 +1,4 @@
+13:52 po startach: PSS 358679 KB, Java 66976 KB, natywna 44248 KB, grafika 44960 KB
+14:32 po ścieżkach: PSS 904755 KB, Java 119212 KB, natywna 392796 KB, grafika 129808 KB
+14:33 w Live TV: PSS 1078924 KB, Java 310076 KB, natywna 384592 KB, grafika 129812 KB
+14:33 po wyjściu z Live TV: PSS 1059628 KB, Java 282700 KB, natywna 380952 KB, grafika 167856 KB

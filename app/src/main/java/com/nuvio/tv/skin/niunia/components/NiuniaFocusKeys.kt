@@ -17,6 +17,17 @@ object NiuniaFocusKeys {
     }
 
     /**
+     * Szukaj (F5): który zapisany element dostaje fokus po powrocie — tylko gdy zapis dotyczy tego samego zapytania
+     * ([savedQuery] = [currentQuery]); inne zapytanie albo brak zapisu → fokus domyślny ekranu (klawisz „a”). Klucz może być
+     * identyfikatorem wyniku albo znacznikiem elementu, który otworzył ekran (np. [OPENER_DISCOVER]).
+     */
+    fun searchReturn(savedId: String?, savedQuery: String, currentQuery: String): String? =
+        savedId?.takeIf { savedQuery == currentQuery }
+
+    /** Znacznik chipu „Odkrywaj” w Szukaj jako elementu, który otworzył ekran Odkrywaj (powrót Wstecz → ten chip). */
+    const val OPENER_DISCOVER = "@odkrywaj"
+
+    /**
      * Klucz elementu do przywrócenia na ekranie z rzędami ([rows] = prefiks rzędu → klucze jego elementów, każdy klucz zaczyna się
      * od prefiksu). Rząd szukany po prefiksie [savedKey]; brak rzędu (zniknął cały) → null (fokus domyślny ekranu).
      */

@@ -53,9 +53,16 @@ internal fun NiuniaDiscover(viewModel: SearchViewModel, onNavigateToDetail: (Str
     val ui by viewModel.uiState.collectAsState()
     val posterOptions = com.nuvio.tv.skin.niunia.components.rememberNiuniaPosterOptions { id, t, url -> onNavigateToDetail(id, t, url) }
     val firstChip = remember { FocusRequester() }
-    val grid = rememberLazyGridState()
+    // UX JMGO 24.11 (F5, pętla 0 ścieżka 49): Wstecz ze strony tytułu wraca na ten sam kafelek z tym samym przewinięciem
+    // (wcześniej: fokus na pierwszym chipie „Seriale”, siatka od góry). Pamięć po kluczu: NiuniaFocusMemory.
+    val restore = com.nuvio.tv.skin.niunia.components.rememberNiuniaFocusRestore("odkrywaj") {
+        listOf("d:" to ui.discoverResults.mapIndexed { i, it -> "d:${i}_${it.id}" })
+    }
+    val (gridI, gridO) = restore.outerStart()
+    val grid = rememberLazyGridState(gridI, gridO)
     LaunchedEffect(ui.discoverLocation) { if (ui.discoverLocation != DiscoverLocation.OFF) viewModel.ensureDiscoverLoaded() }
     LaunchedEffect(Unit) {
+        if (restore.active) return@LaunchedEffect // powrót ze strony tytułu: fokus oddaje rememberNiuniaFocusRestore
         kotlinx.coroutines.delay(100)
         try { firstChip.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odkrywaj: fokus startowy: ${e.javaClass.simpleName}: ${e.message}") }
     }
@@ -111,13 +118,16 @@ internal fun NiuniaDiscover(viewModel: SearchViewModel, onNavigateToDetail: (Str
                     contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 8.dp, bottom = 48.dp),
                     horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap), verticalArrangement = Arrangement.spacedBy(28.dp),
                 ) {
-                    itemsIndexed(ui.discoverResults, key = { i, it -> "${i}_${it.id}" }) { _, item ->
+                    itemsIndexed(ui.discoverResults, key = { i, it -> "${i}_${it.id}" }) { idx, item ->
+                        val k = "d:${idx}_${item.id}"
                         val (art, fallback) = remember(item) { com.nuvio.tv.skin.niunia.components.niuniaPortrait(item, "") }
                         val url = catalog?.addonBaseUrl ?: ""
                         NiuniaPoster(
                             art = art, fallback = fallback, title = item.name, logo = item.logo, meta = com.nuvio.tv.skin.niunia.NiuniaLabels.meta(item), label = null, baked = art != null,
                             onOk = { Log.i(TAG, "odkrywaj: OK → ${item.id}"); onNavigateToDetail(item.id, item.rawType, url) },
                             onLongOk = { posterOptions(item, url) },
+                            modifier = restore.modifier(k),
+                            onFocus = { if (it) restore.save(k, idx, grid.firstVisibleItemIndex, grid.firstVisibleItemScrollOffset) },
                         )
                     }
                 }

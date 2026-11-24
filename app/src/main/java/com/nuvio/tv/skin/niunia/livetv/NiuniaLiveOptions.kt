@@ -37,6 +37,7 @@ import com.nuvio.tv.skin.niunia.components.NiuniaPanelOverlay
 import com.nuvio.tv.skin.niunia.components.NiuniaRowKind
 import com.nuvio.tv.skin.niunia.components.NiuniaTrailing
 import com.nuvio.tv.skin.niunia.components.niuniaTrapArrows
+import com.nuvio.tv.skin.niunia.components.niuniaPanelTrap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -153,7 +154,7 @@ internal fun NiuniaLiveOptionsPanel(
             OptionsPage.SCHEDULE -> stringResource(R.string.niunia_tv1_schedule_title, name)
         }
         NiuniaPanelOverlay(title,
-            Modifier.padding(top = 40.dp).niuniaTrapArrows("live tv: opcje kanału", setOf(FocusDirection.Left, FocusDirection.Right, FocusDirection.Up, FocusDirection.Down)).focusGroup()) {
+            Modifier.padding(top = 40.dp).niuniaPanelTrap("live tv: opcje kanału")) {
             when (page) {
                 OptionsPage.MAIN -> {
                     val fav = channel.streamUrl in repo.favoriteUrls

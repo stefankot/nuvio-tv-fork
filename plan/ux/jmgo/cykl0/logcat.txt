@@ -1,0 +1,850 @@
+
+===== ścieżka 1
+--------- beginning of main
+--------- beginning of system
+11-24 20:52:10.884 I/ActivityTaskManager(  979): START u0 {flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.launcher.AppIconDefault} from uid 2000
+11-24 20:52:10.895 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.nuviodebug.com: {320dpi always-compat}
+11-24 20:52:10.895 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.nuviodebug.com: {320dpi always-compat}
+11-24 20:52:10.953 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.nuviodebug.com: {320dpi always-compat}
+11-24 20:52:11.642 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.nuviodebug.com: {320dpi always-compat}
+11-24 20:52:12.363 I/ActivityTaskManager(  979): Displayed com.nuviodebug.com/com.nuvio.tv.launcher.AppIconDefault: +1s469ms
+11-24 20:52:12.448 I/ForkNiunia(29167): typografia: Satoshi 500/700, odstęp liter ≤ 0 (ekrany Nuvio)
+11-24 20:52:14.234 I/ActivityTaskManager(  979): Fully drawn com.nuviodebug.com/com.nuvio.tv.launcher.AppIconDefault: +3s351ms
+11-24 20:52:14.664 I/ForkNiunia(29167): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 20:52:14.670 I/ForkNiunia(29167): ekran główny: fokus startowy → play
+
+===== ścieżka 2
+--------- beginning of main
+--------- beginning of system
+11-24 20:52:26.952 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 20:52:26.957 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.nuviodebug.com: {320dpi always-compat}
+11-24 20:52:26.957 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.nuviodebug.com: {320dpi always-compat}
+11-24 20:52:26.963 W/ActivityTaskManager(  979): Tried to set launchTime (0) < mLastActivityLaunchTime (82355562)
+11-24 20:52:27.065 I/ActivityTaskManager(  979): Displayed com.nuviodebug.com/com.nuvio.tv.MainActivity: +108ms
+11-24 20:52:27.317 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 11
+11-24 20:52:28.117 I/ActivityTaskManager(  979): Fully drawn com.nuviodebug.com/com.nuvio.tv.MainActivity: +1s160ms
+11-24 20:52:28.421 I/ForkNiunia(29167): ekran główny: hero=8, dalej oglądaj=116, rzędy=3
+11-24 20:52:28.423 I/ForkNiunia(29167): ekran główny: fokus startowy → play
+11-24 20:52:28.785 I/ForkNiunia(29167): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 20:52:35.569 I/ForkNiunia(29167): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 20:52:38.960 I/ActivityTaskManager(  979): START u0 {act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10000100 cmp=com.jmgo.arwen/.ArwenHomeActivity (has extras)} from uid 0
+11-24 20:52:38.967 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.jmgo.arwen: {320dpi always-compat}
+11-24 20:52:38.982 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.android.permissioncontroller: {320dpi always-compat}
+11-24 20:52:41.605 I/ActivityTaskManager(  979): START u0 {flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.launcher.AppIconDefault} from uid 2000
+11-24 20:52:41.613 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.nuviodebug.com: {320dpi always-compat}
+
+===== ścieżka 3
+--------- beginning of main
+--------- beginning of system
+11-24 20:52:47.694 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 20:52:47.939 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 22
+11-24 20:52:48.121 I/ForkNiunia(29167): menu: otwarte
+11-24 20:52:48.802 I/ForkNiunia(29167): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 20:52:48.857 I/ForkNiunia(29167): menu: zamknięte
+11-24 20:52:48.857 I/ForkNiunia(29167): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 20:52:48.857 I/ForkNiunia(29167): ekran główny: fokus wraca na cw:p_tt0903747_tt0903747:1:1
+11-24 20:52:56.283 I/ForkNiunia(29167): ekran główny: ▲ → hero
+11-24 20:53:26.512 I/ForkNiunia(29167): menu: otwarte
+11-24 20:53:30.084 I/ForkNiunia(29167): menu: zamknięte
+11-24 20:53:30.118 I/ForkNiunia(29167): menu → treść (▶): element ekranu, menu otwarte=false
+11-24 20:53:33.405 I/ForkNiunia(29167): menu: otwarte
+
+===== ścieżka 4
+--------- beginning of main
+11-24 20:53:33.405 I/ForkNiunia(29167): menu: otwarte
+--------- beginning of system
+11-24 20:53:39.839 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 20:53:40.096 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 16
+11-24 20:53:40.903 I/ForkNiunia(29167): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 20:53:40.904 I/ForkNiunia(29167): ekran główny: fokus startowy → play
+11-24 20:53:40.905 I/ForkNiunia(29167): menu: zamknięte
+11-24 20:53:47.737 I/ForkNiunia(29167): ekran główny: ▼ → pod hero (rozmycie gotowe)
+
+===== ścieżka 5
+--------- beginning of system
+11-24 20:53:57.769 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+--------- beginning of main
+11-24 20:53:58.042 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 9
+11-24 20:53:58.169 I/ForkNiunia(29167): menu: otwarte
+11-24 20:53:58.877 I/ForkNiunia(29167): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 20:53:58.924 I/ForkNiunia(29167): menu: zamknięte
+11-24 20:53:58.924 I/ForkNiunia(29167): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 20:53:58.925 I/ForkNiunia(29167): ekran główny: fokus wraca na cw:p_tt21906238_tt21906238:1:1
+11-24 20:54:06.822 I/ForkNiunia(29167): ekran główny: ▲ → hero
+11-24 20:54:10.239 I/ForkNiunia(29167): ekran główny: ▼ → pod hero (rozmycie gotowe)
+
+===== ścieżka 6
+--------- beginning of system
+11-24 20:54:40.208 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+--------- beginning of main
+11-24 20:54:40.440 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 35
+11-24 20:54:40.624 I/ForkNiunia(29167): menu: otwarte
+11-24 20:54:41.318 I/ForkNiunia(29167): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 20:54:41.371 I/ForkNiunia(29167): menu: zamknięte
+11-24 20:54:41.371 I/ForkNiunia(29167): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 20:54:41.371 I/ForkNiunia(29167): ekran główny: fokus wraca na cw:p_tt47021035_tt47021035:1:1
+11-24 20:54:48.981 I/ForkNiunia(29167): ekran główny: ▲ → hero
+11-24 20:54:52.360 I/ForkNiunia(29167): ekran główny: ▼ → pod hero (rozmycie gotowe)
+
+===== ścieżka 7
+--------- beginning of main
+--------- beginning of system
+11-24 20:55:24.098 I/ForkNiunia(29167): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 20:55:24.919 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 17
+11-24 20:55:29.901 I/ForkNiunia(29167): ekran główny: ▲ → hero
+11-24 20:55:29.914 I/ForkNiunia(29167): menu: otwarte
+11-24 20:55:29.992 I/ForkNiunia(29167): menu: zamknięte
+11-24 20:55:29.993 I/ForkNiunia(29167): menu: otwarte
+11-24 20:55:30.004 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 9
+11-24 20:55:30.008 I/ForkNiunia(29167): menu: zamknięte
+11-24 20:55:30.008 I/ForkNiunia(29167): menu: otwarte
+
+===== ścieżka 8
+--------- beginning of main
+--------- beginning of system
+11-24 20:55:35.653 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 20:55:35.933 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 6
+11-24 20:55:36.765 I/ForkNiunia(29167): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 20:55:36.766 I/ForkNiunia(29167): ekran główny: fokus startowy → play
+11-24 20:55:36.766 I/ForkNiunia(29167): menu: zamknięte
+11-24 20:55:43.541 I/ForkNiunia(29167): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 20:56:16.801 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 110
+
+===== ścieżka 9
+--------- beginning of main
+--------- beginning of system
+11-24 20:56:52.611 I/ForkNiunia(29167): OK → Igrzyska śmierci: Wschód słońca w dniu dożynek
+11-24 20:56:52.611 I/ForkNiunia(29167): rzędy: OK → karta tytułu tt32558705 (3/20 w „TMDB Popular”)
+11-24 20:56:52.781 I/ForkNiunia(29167): karta tytułu: rząd „TMDB Popular”, karta 3/20
+11-24 20:56:53.031 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 38
+11-24 20:57:00.371 I/ForkNiunia(29167): karta tytułu: Wstecz → rząd (karta 3)
+
+===== ścieżka 10
+--------- beginning of main
+--------- beginning of system
+11-24 20:57:46.932 I/ForkNiunia(29167): OK → Madden
+11-24 20:57:46.933 I/ForkNiunia(29167): rzędy: OK → karta tytułu tt24818230 (4/20 w „TMDB Popular”)
+11-24 20:57:47.036 I/ForkNiunia(29167): karta tytułu: rząd „TMDB Popular”, karta 4/20
+11-24 20:57:47.158 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 1
+11-24 20:57:54.676 I/ForkNiunia(29167): karta tytułu: Wstecz → rząd (karta 4)
+
+===== ścieżka 11
+--------- beginning of main
+--------- beginning of system
+11-24 20:58:04.751 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 20:58:05.007 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 8
+11-24 20:58:05.155 I/ForkNiunia(29167): menu: otwarte
+11-24 20:58:05.976 I/ForkNiunia(29167): ekran główny: hero=8, dalej oglądaj=116, rzędy=3
+11-24 20:58:06.042 I/ForkNiunia(29167): menu: zamknięte
+11-24 20:58:06.042 I/ForkNiunia(29167): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 20:58:06.042 I/ForkNiunia(29167): ekran główny: fokus wraca na r:aio-metadata_tmdb.top_movie:tt24818230
+11-24 20:58:06.307 I/ForkNiunia(29167): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 20:58:16.762 I/ForkNiunia(29167): ekran główny: ▲ → hero
+11-24 20:58:20.183 I/ForkNiunia(29167): ekran główny: ▼ → pod hero (rozmycie gotowe)
+
+===== ścieżka 12
+--------- beginning of main
+--------- beginning of system
+11-24 20:58:43.892 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 20:58:44.191 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 64
+11-24 20:58:44.306 I/ForkNiunia(29167): menu: otwarte
+11-24 20:58:45.055 I/ForkNiunia(29167): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 20:58:45.111 I/ForkNiunia(29167): menu: zamknięte
+11-24 20:58:45.111 I/ForkNiunia(29167): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 20:58:45.111 I/ForkNiunia(29167): ekran główny: fokus wraca na r:aio-metadata_tmdb.top_movie:tt14413964
+11-24 20:58:55.678 I/ForkNiunia(29167): ekran główny: ▲ → hero
+11-24 20:58:59.122 I/ForkNiunia(29167): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 20:59:02.420 I/ForkNiunia(29167): menu: otwarte
+11-24 20:59:16.964 I/ForkNiunia(29167): menu: zamknięte
+11-24 20:59:16.965 I/ForkNiunia(29167): menu: otwarte
+11-24 20:59:20.378 I/ForkNiunia(29167): menu: zamknięte
+11-24 20:59:20.378 I/ForkNiunia(29167): menu: otwarte
+11-24 20:59:23.724 I/ForkNiunia(29167): menu: zamknięte
+11-24 20:59:23.724 I/ForkNiunia(29167): menu: otwarte
+11-24 20:59:27.042 I/ForkNiunia(29167): menu: zamknięte
+11-24 20:59:27.042 I/ForkNiunia(29167): menu: otwarte
+11-24 20:59:30.437 I/ForkNiunia(29167): menu: zamknięte
+11-24 20:59:30.486 I/ForkNiunia(29167): menu → treść (▼ z ostatniej): element ekranu, menu otwarte=false
+11-24 21:00:04.079 I/ForkNiunia(29167): ekran główny: ▲ → hero
+11-24 21:00:07.386 I/ForkNiunia(29167): menu: otwarte
+11-24 21:00:10.675 I/ForkNiunia(29167): menu: zamknięte
+11-24 21:00:10.675 I/ForkNiunia(29167): menu: otwarte
+11-24 21:00:14.062 I/ForkNiunia(29167): menu: zamknięte
+11-24 21:00:14.062 I/ForkNiunia(29167): menu: otwarte
+11-24 21:00:20.509 I/ForkNiunia(29167): menu: zamknięte
+11-24 21:00:20.509 I/ForkNiunia(29167): menu: otwarte
+11-24 21:00:23.790 I/ForkNiunia(29167): menu: zamknięte
+11-24 21:00:23.790 I/ForkNiunia(29167): menu: otwarte
+11-24 21:00:27.120 I/ForkNiunia(29167): menu: zamknięte
+11-24 21:00:27.154 I/ForkNiunia(29167): menu → treść (▶): element ekranu, menu otwarte=false
+
+===== ścieżka 13
+--------- beginning of main
+--------- beginning of system
+11-24 21:03:26.292 I/ForkNiunia(29167): OK → Główna
+11-24 21:03:26.580 I/ForkNiunia(29167): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 21:03:26.624 I/ForkNiunia(29167): menu: zamknięte
+11-24 21:03:26.624 I/ForkNiunia(29167): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 21:03:26.624 I/ForkNiunia(29167): ekran główny: fokus wraca na cw:p_tt0903747_tt0903747:1:1
+
+===== ścieżka 14
+--------- beginning of system
+11-24 21:03:34.485 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+--------- beginning of main
+11-24 21:03:34.849 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 7
+11-24 21:03:34.894 I/ForkNiunia(29167): menu: otwarte
+11-24 21:03:35.713 I/ForkNiunia(29167): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 21:03:35.759 I/ForkNiunia(29167): menu: zamknięte
+11-24 21:03:35.760 I/ForkNiunia(29167): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 21:03:35.760 I/ForkNiunia(29167): ekran główny: fokus wraca na cw:p_tt0903747_tt0903747:1:1
+11-24 21:03:42.956 I/ForkNiunia(29167): ekran główny: ▲ → hero
+11-24 21:03:46.294 I/ForkNiunia(29167): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 21:03:56.180 I/ForkNiunia(29167): ekran główny: Wstecz → hero
+11-24 21:03:56.180 I/ForkNiunia(29167): ekran główny: ▲ → hero
+11-24 21:04:04.354 I/ForkNiunia(29167): menu: otwarte
+
+===== ścieżka 15
+--------- beginning of main
+--------- beginning of system
+11-24 21:04:40.349 I/ForkNiunia(29167): OK → Główna
+11-24 21:04:40.349 I/ForkNiunia(29167): menu: ta sama zakładka home → treść
+11-24 21:04:40.360 I/ForkNiunia(29167): menu: zamknięte
+11-24 21:04:40.408 I/ForkNiunia(29167): menu → treść (ta sama zakładka): element ekranu, menu otwarte=false
+
+===== ścieżka 16
+--------- beginning of main
+--------- beginning of system
+11-24 21:04:47.729 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 21:04:47.840 I/ForkNiunia(29167): wyszukiwarka: fokus startowy → klawisz a
+11-24 21:04:59.829 I/ForkNiunia(29167): OK → b
+11-24 21:05:05.820 I/ForkNiunia(29167): OK → a
+11-24 21:05:06.233 I/ForkNiunia(29167): wyszukiwarka: „ba” → 128 wyników
+11-24 21:05:06.234 W/ForkNiunia(29167): NMedia: ImageLoadError: IllegalStateException: Unable to create a fetcher that supports: placeholder://empty
+11-24 21:05:06.252 W/ForkNiunia(29167): NMedia: ImageLoadError: IllegalStateException: Unable to create a fetcher that supports: placeholder://empty
+11-24 21:05:06.291 I/ForkNiunia(29167): wyszukiwarka: „ba” → 136 wyników
+11-24 21:05:07.118 I/ForkNiunia(29167): wyszukiwarka: „ba” → 254 wyników
+11-24 21:05:07.214 W/ForkNiunia(29167): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 21:05:07.391 W/ForkNiunia(29167): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 21:05:07.741 I/ForkNiunia(29167): wyszukiwarka: „ba” → 419 wyników
+11-24 21:05:07.958 I/ForkNiunia(29167): wyszukiwarka: „ba” → 603 wyników
+11-24 21:05:08.577 I/ForkNiunia(29167): wyszukiwarka: „ba” → 787 wyników
+11-24 21:05:08.977 I/ForkNiunia(29167): wyszukiwarka: „ba” → 879 wyników
+11-24 21:05:22.117 I/ForkNiunia(29167): OK → t
+11-24 21:05:22.484 I/ForkNiunia(29167): wyszukiwarka: „bat” → 879 wyników
+11-24 21:05:22.623 I/ForkNiunia(29167): wyszukiwarka: „bat” → 876 wyników
+11-24 21:05:23.517 I/ForkNiunia(29167): wyszukiwarka: „bat” → 724 wyników
+11-24 21:05:23.545 W/ForkNiunia(29167): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 21:05:23.650 W/ForkNiunia(29167): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 21:05:23.874 I/ForkNiunia(29167): wyszukiwarka: „bat” → 716 wyników
+11-24 21:05:24.140 I/ForkNiunia(29167): wyszukiwarka: „bat” → 627 wyników
+11-24 21:05:24.807 I/ForkNiunia(29167): wyszukiwarka: „bat” → 544 wyników
+
+===== ścieżka 17
+--------- beginning of system
+11-24 21:05:33.369 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+--------- beginning of main
+11-24 21:05:33.480 I/ForkNiunia(29167): wyszukiwarka: fokus startowy → klawisz a
+11-24 21:05:45.885 I/ForkNiunia(29167): OK → b
+11-24 21:05:52.020 I/ForkNiunia(29167): OK → a
+11-24 21:05:52.434 I/ForkNiunia(29167): wyszukiwarka: „ba” → 128 wyników
+11-24 21:05:52.434 W/ForkNiunia(29167): NMedia: ImageLoadError: IllegalStateException: Unable to create a fetcher that supports: placeholder://empty
+11-24 21:05:52.436 W/ForkNiunia(29167): NMedia: ImageLoadError: IllegalStateException: Unable to create a fetcher that supports: placeholder://empty
+11-24 21:05:52.533 I/ForkNiunia(29167): wyszukiwarka: „ba” → 140 wyników
+11-24 21:05:52.820 I/ForkNiunia(29167): wyszukiwarka: „ba” → 787 wyników
+11-24 21:05:52.836 W/ForkNiunia(29167): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 21:05:52.836 W/ForkNiunia(29167): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 21:05:52.864 W/ForkNiunia(29167): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 21:05:53.980 I/ForkNiunia(29167): wyszukiwarka: „ba” → 879 wyników
+11-24 21:06:08.574 I/ForkNiunia(29167): OK → t
+11-24 21:06:08.950 I/ForkNiunia(29167): wyszukiwarka: „bat” → 879 wyników
+11-24 21:06:08.985 I/ForkNiunia(29167): wyszukiwarka: „bat” → 881 wyników
+11-24 21:06:09.295 I/ForkNiunia(29167): wyszukiwarka: „bat” → 545 wyników
+11-24 21:06:09.313 W/ForkNiunia(29167): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 21:06:09.323 W/ForkNiunia(29167): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 21:06:10.631 I/ForkNiunia(29167): wyszukiwarka: „bat” → 544 wyników
+
+===== ścieżka 18
+--------- beginning of main
+--------- beginning of system
+11-24 21:07:32.792 I/ForkNiunia(29167): OK → Bat
+11-24 21:07:32.792 I/ForkNiunia(29167): wyszukiwarka: wynik → movie tmdb:1137928
+11-24 21:07:34.068 I/ForkNiunia(29167): szczegóły: movie „Bat” (sezony=0, odcinki=0, podobne=0, obsada=1, wznów=false)
+11-24 21:07:34.070 I/ForkNiunia(29167): NAwards: źródło → Wikidata
+11-24 21:07:34.070 I/ForkNiunia(29167): NAwards: tmdb:1137928 bez identyfikatora IMDb — Wikidata pominięte
+11-24 21:07:34.070 I/ForkNiunia(29167): NAwards: tmdb:1137928 (movie): 0 pozycji ze źródła „Wikidata”
+11-24 21:07:34.071 I/ForkNiunia(29167): szczegóły: effects: flat (scrim-detail-flat + scrim-detail-bottom, przyciski haze)
+11-24 21:07:34.071 I/ForkNiunia(29167): NAwards: strip: brak nagród, nic nie rysuję
+11-24 21:07:43.272 I/ForkNiunia(29167): wyszukiwarka: „bat” → 543 wyników
+11-24 21:07:43.275 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 48
+11-24 21:07:43.276 W/ForkNiunia(29167): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 21:07:43.315 W/ForkNiunia(29167): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 21:07:43.406 I/ForkNiunia(29167): wyszukiwarka: powrót — fokus na tmdb:1137928
+
+===== ścieżka 19
+--------- beginning of main
+--------- beginning of system
+11-24 21:08:19.641 I/ForkNiunia(29167): OK → Odkrywaj: gatunek, rok, katalog
+11-24 21:08:19.641 I/ForkNiunia(29167): wyszukiwarka: Odkrywaj
+11-24 21:08:19.712 I/ForkNiunia(29167): odkrywaj: movie, katalog=null, gatunek=wszystkie, wyniki=0
+11-24 21:08:19.817 I/ForkNiunia(29167): odkrywaj: series, katalog=Popular, gatunek=wszystkie, wyniki=0
+11-24 21:08:19.954 I/ForkNiunia(29167): odkrywaj: series, katalog=Popular, gatunek=wszystkie, wyniki=50
+11-24 21:08:20.057 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 14
+11-24 21:08:25.147 I/ForkNiunia(29167): wyszukiwarka: fokus startowy → klawisz a
+11-24 21:08:25.154 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 3
+
+===== ścieżka 20
+--------- beginning of main
+--------- beginning of system
+11-24 21:08:32.885 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 21:08:32.990 I/ForkNiunia(29167): wyszukiwarka: fokus startowy → klawisz a
+11-24 21:08:45.446 I/ForkNiunia(29167): OK → b
+11-24 21:08:51.717 I/ForkNiunia(29167): OK → a
+11-24 21:08:52.125 I/ForkNiunia(29167): wyszukiwarka: „ba” → 128 wyników
+11-24 21:08:52.126 W/ForkNiunia(29167): NMedia: ImageLoadError: IllegalStateException: Unable to create a fetcher that supports: placeholder://empty
+11-24 21:08:52.127 W/ForkNiunia(29167): NMedia: ImageLoadError: IllegalStateException: Unable to create a fetcher that supports: placeholder://empty
+11-24 21:08:52.201 I/ForkNiunia(29167): wyszukiwarka: „ba” → 140 wyników
+11-24 21:08:52.688 I/ForkNiunia(29167): wyszukiwarka: „ba” → 335 wyników
+11-24 21:08:52.702 W/ForkNiunia(29167): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 21:08:52.703 W/ForkNiunia(29167): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 21:08:53.007 I/ForkNiunia(29167): wyszukiwarka: „ba” → 327 wyników
+11-24 21:08:53.424 I/ForkNiunia(29167): wyszukiwarka: „ba” → 419 wyników
+11-24 21:08:53.708 I/ForkNiunia(29167): wyszukiwarka: „ba” → 603 wyników
+11-24 21:08:54.093 I/ForkNiunia(29167): wyszukiwarka: „ba” → 787 wyników
+11-24 21:08:54.227 I/ForkNiunia(29167): wyszukiwarka: „ba” → 879 wyników
+11-24 21:09:07.201 I/ForkNiunia(29167): OK → t
+11-24 21:09:07.572 I/ForkNiunia(29167): wyszukiwarka: „bat” → 879 wyników
+11-24 21:09:07.593 I/ForkNiunia(29167): wyszukiwarka: „bat” → 876 wyników
+11-24 21:09:08.009 I/ForkNiunia(29167): wyszukiwarka: „bat” → 795 wyników
+11-24 21:09:08.025 W/ForkNiunia(29167): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 21:09:08.052 W/ForkNiunia(29167): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 21:09:08.289 I/ForkNiunia(29167): wyszukiwarka: „bat” → 578 wyników
+11-24 21:09:08.456 I/ForkNiunia(29167): wyszukiwarka: „bat” → 544 wyników
+11-24 21:09:09.106 I/ForkNiunia(29167): wyszukiwarka: „bat” → 543 wyników
+11-24 21:09:42.233 W/ForkNiunia(29167): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 21:09:42.254 W/ForkNiunia(29167): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 21:09:42.387 W/ForkNiunia(29167): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 21:09:48.912 I/ForkNiunia(29167): wyniki: krawędź Right
+11-24 21:09:52.290 I/ForkNiunia(29167): wyniki: krawędź Right
+11-24 21:09:55.663 I/ForkNiunia(29167): wyniki: krawędź Right
+11-24 21:09:59.132 I/ForkNiunia(29167): wyniki: krawędź Right
+11-24 21:10:02.476 I/ForkNiunia(29167): wyniki: krawędź Right
+11-24 21:10:05.795 I/ForkNiunia(29167): wyniki: krawędź Right
+
+===== ścieżka 21
+--------- beginning of main
+--------- beginning of system
+11-24 21:10:09.251 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 21:10:09.315 I/ForkNiunia(29167): biblioteka: 0 pozycji
+11-24 21:10:09.315 I/ForkNiunia(29167): biblioteka: pusta, fokus startowy → Przeglądaj
+11-24 21:10:09.519 I/ForkNiunia(29167): biblioteka: 120 pozycji
+11-24 21:10:09.519 I/ForkNiunia(29167): biblioteka: półki Ostatnio dodane=20, Jeszcze nieobejrzane=120
+11-24 21:10:09.533 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 15
+11-24 21:10:09.896 I/ForkNiunia(29167): biblioteka: półki Ostatnio dodane=20, Jeszcze nieobejrzane=108, Obejrzane=12
+
+===== ścieżka 22
+--------- beginning of main
+--------- beginning of system
+11-24 21:11:07.188 I/ForkNiunia(29167): OK → Wszystko
+11-24 21:11:07.188 I/ForkNiunia(29167): biblioteka: zakładka __all__
+11-24 21:11:07.301 I/ForkNiunia(29167): biblioteka: 162 pozycji
+11-24 21:11:07.302 I/ForkNiunia(29167): biblioteka: półki Ostatnio dodane=20, Jeszcze nieobejrzane=150, Obejrzane=12
+11-24 21:11:12.699 I/ForkNiunia(29167): wyszukiwarka: „bat” → 543 wyników
+11-24 21:11:12.704 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 14
+11-24 21:11:12.718 W/ForkNiunia(29167): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 21:11:12.719 W/ForkNiunia(29167): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 21:11:12.820 I/ForkNiunia(29167): wyszukiwarka: powrót — fokus na tmdb:1137928
+11-24 21:11:12.894 W/ForkNiunia(29167): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 21:11:12.927 W/ForkNiunia(29167): NMedia: ImageLoadError: HttpException: HTTP 410
+
+===== ścieżka 23
+--------- beginning of main
+--------- beginning of system
+11-24 21:11:20.575 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 21:11:20.640 I/ForkNiunia(29167): biblioteka: 0 pozycji
+11-24 21:11:20.640 I/ForkNiunia(29167): biblioteka: pusta, fokus startowy → Przeglądaj
+11-24 21:11:20.830 I/ForkNiunia(29167): biblioteka: 162 pozycji
+11-24 21:11:20.830 I/ForkNiunia(29167): biblioteka: półki Ostatnio dodane=20, Jeszcze nieobejrzane=162
+11-24 21:11:20.840 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 3
+11-24 21:11:21.190 I/ForkNiunia(29167): biblioteka: półki Ostatnio dodane=20, Jeszcze nieobejrzane=150, Obejrzane=12
+11-24 21:11:29.075 I/ForkNiunia(29167): OK → Filmy (120)
+11-24 21:11:29.075 I/ForkNiunia(29167): biblioteka: zakładka movie
+11-24 21:11:29.305 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 1
+11-24 21:11:29.346 I/ForkNiunia(29167): biblioteka: 120 pozycji
+11-24 21:11:29.346 I/ForkNiunia(29167): biblioteka: półki Ostatnio dodane=20, Jeszcze nieobejrzane=108, Obejrzane=12
+11-24 21:11:34.506 I/ForkNiunia(29167): OK → Seriale (42)
+11-24 21:11:34.506 I/ForkNiunia(29167): biblioteka: zakładka series
+11-24 21:11:34.604 I/ForkNiunia(29167): biblioteka: 42 pozycji
+11-24 21:11:34.604 I/ForkNiunia(29167): biblioteka: półki Ostatnio dodane=20, Jeszcze nieobejrzane=42
+11-24 21:11:34.648 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 2
+11-24 21:11:39.905 I/ForkNiunia(29167): OK → Historia
+11-24 21:11:39.905 I/ForkNiunia(29167): biblioteka: zakładka Historia
+11-24 21:11:39.933 I/ForkNiunia(29167): biblioteka: historia 0 pozycji, rzędy=0
+11-24 21:11:39.994 I/ForkNiunia(29167): biblioteka: historia 45 pozycji, rzędy=3
+11-24 21:11:45.332 I/ForkNiunia(29167): OK → Historia
+11-24 21:11:45.332 I/ForkNiunia(29167): biblioteka: zakładka Historia
+11-24 21:11:50.628 I/ForkNiunia(29167): OK → Historia
+11-24 21:11:50.628 I/ForkNiunia(29167): biblioteka: zakładka Historia
+11-24 21:11:56.103 I/ForkNiunia(29167): OK → Historia
+11-24 21:11:56.103 I/ForkNiunia(29167): biblioteka: zakładka Historia
+11-24 21:12:01.336 I/ForkNiunia(29167): OK → Historia
+11-24 21:12:01.336 I/ForkNiunia(29167): biblioteka: zakładka Historia
+11-24 21:12:06.555 I/ForkNiunia(29167): OK → Historia
+11-24 21:12:06.555 I/ForkNiunia(29167): biblioteka: zakładka Historia
+
+===== ścieżka 24
+--------- beginning of main
+--------- beginning of system
+11-24 21:12:10.569 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 21:12:11.247 I/ForkNiunia(29167): szczegóły: movie „Oppenheimer” (sezony=0, odcinki=0, podobne=0, obsada=81, wznów=false)
+11-24 21:12:11.249 I/ForkNiunia(29167): szczegóły: effects: flat (scrim-detail-flat + scrim-detail-bottom, przyciski haze)
+11-24 21:12:11.250 I/ForkNiunia(29167): NAwards: strip: brak nagród, nic nie rysuję
+11-24 21:12:11.251 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 3
+11-24 21:12:11.891 I/ForkNiunia(29167): NAwards: Wikidata 7 wierszy → 6 nagród, 0 nominacji
+11-24 21:12:11.892 I/ForkNiunia(29167): NAwards: tt15398776 (movie): 6 pozycji ze źródła „Wikidata”
+11-24 21:12:12.060 I/ForkNiunia(29167): NAwards: text: 6 nagród + 0 nominacji; galas 3 (3 shown), categories 3 (1 shown)
+
+===== ścieżka 25
+--------- beginning of main
+--------- beginning of system
+11-24 21:12:49.237 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 21:12:49.493 I/ForkNiunia(29167): szczegóły: movie „Oppenheimer” (sezony=0, odcinki=0, podobne=0, obsada=81, wznów=true)
+11-24 21:12:49.494 I/ForkNiunia(29167): szczegóły: effects: flat (scrim-detail-flat + scrim-detail-bottom, przyciski haze)
+11-24 21:12:49.495 I/ForkNiunia(29167): NAwards: strip: brak nagród, nic nie rysuję
+11-24 21:12:49.496 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 9
+11-24 21:12:49.601 I/ForkNiunia(29167): NAwards: text: 6 nagród + 0 nominacji; galas 3 (3 shown), categories 3 (1 shown)
+11-24 21:12:55.951 I/ForkNiunia(29167): szczegóły: ▼ → pod hero (rozmycie gotowe)
+11-24 21:12:59.571 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 4
+11-24 21:13:02.770 I/ForkNiunia(29167): NAwards: summary: 6 nagród; 3 gala tiles, 3 category tiles (film 3 nagrody, acting 2 nagrody, directing 1 nagroda)
+11-24 21:13:12.485 I/ForkNiunia(29167): OK → Pokaż cały opis
+11-24 21:13:12.485 I/ForkNiunia(29167): szczegóły: opis cały
+11-24 21:13:16.411 I/ForkNiunia(29167): OK → Zwiń opis
+11-24 21:13:16.411 I/ForkNiunia(29167): szczegóły: opis skrócony
+
+===== ścieżka 26
+--------- beginning of system
+11-24 21:13:20.539 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+--------- beginning of main
+11-24 21:13:20.832 I/ForkNiunia(29167): szczegóły: movie „Oppenheimer” (sezony=0, odcinki=0, podobne=12, obsada=81, wznów=true)
+11-24 21:13:20.834 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 3
+11-24 21:13:20.836 I/ForkNiunia(29167): szczegóły: effects: flat (scrim-detail-flat + scrim-detail-bottom, przyciski haze)
+11-24 21:13:20.837 I/ForkNiunia(29167): NAwards: strip: brak nagród, nic nie rysuję
+11-24 21:13:20.849 I/ForkNiunia(29167): NAwards: summary: brak nagród, stan pusty
+11-24 21:13:20.967 I/ForkNiunia(29167): NAwards: text: 6 nagród + 0 nominacji; galas 3 (3 shown), categories 3 (1 shown)
+11-24 21:13:27.519 I/ForkNiunia(29167): szczegóły: ▼ → pod hero (rozmycie gotowe)
+11-24 21:13:34.630 I/ForkNiunia(29167): NAwards: summary: 6 nagród; 3 gala tiles, 3 category tiles (film 3 nagrody, acting 2 nagrody, directing 1 nagroda)
+
+===== ścieżka 27
+--------- beginning of system
+11-24 21:13:47.676 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+--------- beginning of main
+11-24 21:13:48.557 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 8
+11-24 21:13:48.573 I/ForkNiunia(29167): szczegóły: series „Breaking Bad” (sezony=6, odcinki=7, podobne=0, obsada=349, wznów=false)
+11-24 21:13:48.577 I/ForkNiunia(29167): szczegóły: effects: flat (scrim-detail-flat + scrim-detail-bottom, przyciski haze)
+11-24 21:13:48.582 I/ForkNiunia(29167): NAwards: strip: brak nagród, nic nie rysuję
+11-24 21:13:48.647 I/ForkNiunia(29167): NAwards: tt0903747 z dysku (106)
+11-24 21:13:48.678 I/ForkNiunia(29167): NAwards: tt0903747 (series): 106 pozycji ze źródła „Wikidata”
+11-24 21:13:48.757 I/ForkNiunia(29167): NAwards: text: 42 nagrody + 64 nominacje; galas 7 (2 shown), categories 11 (1 shown)
+
+===== ścieżka 28
+--------- beginning of main
+--------- beginning of system
+11-24 21:14:41.064 I/ForkNiunia(29167): długie OK → Odcinek 1, Pilot (flaga systemu)
+11-24 21:14:41.064 I/ForkNiunia(29167): szczegóły: długie OK → opcje odcinka S1:O1
+11-24 21:14:41.122 I/ForkNiunia(29167): okno: „Pilot” otwarte
+11-24 21:14:41.203 I/ForkNiunia(29167): okno „Pilot”: fokus startowy → „Oznacz jako obejrzany”
+11-24 21:14:41.440 I/ForkNiunia(29167): OK → Oznacz jako obejrzany: puszczenie bez wciśnięcia — pominięte
+11-24 21:14:46.203 I/ForkNiunia(29167): okno: „Pilot” zamknięte (Wstecz)
+11-24 21:14:46.203 I/ForkNiunia(29167): odcinek: opcje zamknięte
+
+===== ścieżka 29
+--------- beginning of system
+11-24 21:14:53.600 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+--------- beginning of main
+11-24 21:14:53.804 I/ForkNiunia(29167): szczegóły: series „Breaking Bad” (sezony=6, odcinki=7, podobne=12, obsada=349, wznów=true)
+11-24 21:14:53.806 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 7
+11-24 21:14:53.807 I/ForkNiunia(29167): szczegóły: effects: flat (scrim-detail-flat + scrim-detail-bottom, przyciski haze)
+11-24 21:14:53.808 I/ForkNiunia(29167): NAwards: strip: brak nagród, nic nie rysuję
+11-24 21:14:53.907 I/ForkNiunia(29167): NAwards: text: 42 nagrody + 64 nominacje; galas 7 (2 shown), categories 11 (1 shown)
+11-24 21:15:00.608 I/ForkNiunia(29167): szczegóły: ▼ → pod hero (rozmycie gotowe)
+11-24 21:15:10.967 I/ForkNiunia(29167): NAwards: summary: 42 nagrody · 64 nominacje; 7 gala tiles, 8 category tiles (acting 17 nagród · 20 nominacji, series 15 nagród · 21 nominacji, film 4 nagrody · 2 nominacje, edit 3 nagrody · 3 nominacje, directing 2 nagrody · 6 nominacji, writing 1 nagroda · 1 nominacja, camera 6 nominacji, other 5 nominacji)
+11-24 21:15:14.469 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 8
+
+===== ścieżka 30
+--------- beginning of main
+--------- beginning of system
+11-24 21:15:34.259 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 21:15:34.507 I/ForkNiunia(29167): szczegóły: movie „Oppenheimer” (sezony=0, odcinki=0, podobne=12, obsada=81, wznów=true)
+11-24 21:15:34.508 I/ForkNiunia(29167): szczegóły: effects: flat (scrim-detail-flat + scrim-detail-bottom, przyciski haze)
+11-24 21:15:34.509 I/ForkNiunia(29167): NAwards: strip: brak nagród, nic nie rysuję
+11-24 21:15:34.562 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 2
+11-24 21:15:34.604 I/ForkNiunia(29167): NAwards: text: 6 nagród + 0 nominacji; galas 3 (3 shown), categories 3 (1 shown)
+11-24 21:15:41.067 I/ForkNiunia(29167): szczegóły: ▼ → pod hero (rozmycie gotowe)
+11-24 21:15:44.274 I/ForkNiunia(29167): OK → Nowy zwiastun
+11-24 21:15:44.274 I/ForkNiunia(29167): szczegóły: zwiastun 1/3
+11-24 21:15:44.309 I/ForkNiunia(29167): odtwarzacz: zwiastun znaleziony (wybrany)
+11-24 21:15:44.431 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 4
+11-24 21:15:55.981 I/ForkNiunia(29167): odtwarzacz: zwiastun zamknięty (Wstecz)
+
+===== ścieżka 31
+--------- beginning of main
+--------- beginning of system
+11-24 21:16:03.551 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 21:16:03.807 I/ForkNiunia(29167): szczegóły: movie „Oppenheimer” (sezony=0, odcinki=0, podobne=0, obsada=81, wznów=true)
+11-24 21:16:03.809 I/ForkNiunia(29167): szczegóły: effects: flat (scrim-detail-flat + scrim-detail-bottom, przyciski haze)
+11-24 21:16:03.809 I/ForkNiunia(29167): NAwards: strip: brak nagród, nic nie rysuję
+11-24 21:16:03.811 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 2
+11-24 21:16:03.935 I/ForkNiunia(29167): NAwards: text: 6 nagród + 0 nominacji; galas 3 (3 shown), categories 3 (1 shown)
+11-24 21:16:10.449 I/ForkNiunia(29167): szczegóły: ▼ → pod hero (rozmycie gotowe)
+11-24 21:16:12.094 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 4
+11-24 21:16:13.137 I/ForkNiunia(29167): NAwards: summary: 6 nagród; 3 gala tiles, 3 category tiles (film 3 nagrody, acting 2 nagrody, directing 1 nagroda)
+11-24 21:16:20.104 I/ForkNiunia(29167): szczegóły: Wstecz → hero
+11-24 21:16:20.105 I/ForkNiunia(29167): szczegóły: ▲ → hero
+
+===== ścieżka 32
+--------- beginning of main
+--------- beginning of system
+11-24 21:16:34.592 I/ForkNiunia(29167): OK → Wznów, zostało 178 min
+11-24 21:16:34.592 I/ForkNiunia(29167): szczegóły: odtwórz tt15398776
+11-24 21:16:35.882 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 9
+11-24 21:16:35.898 I/ForkNiunia(29167): odtwarzacz: wczytywanie (ekran Niuni)
+11-24 21:16:41.088 I/ForkPerf(29167): first_play start_to_play_ms=5228 key_to_play_ms=-1 host=aiostreams.elfhosted.com
+11-24 21:16:41.107 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 6
+11-24 21:16:42.618 I/ForkNiunia(29167): odtwarzacz: komunikat „24 kl/s przy 60 Hz · ekran nie przełącza częstotliwości” (6 s)
+11-24 21:16:49.199 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 5
+11-24 21:16:50.063 I/ForkNiunia(29167): szczegóły: movie „Oppenheimer” (sezony=0, odcinki=0, podobne=12, obsada=81, wznów=true)
+11-24 21:16:50.070 I/ForkNiunia(29167): szczegóły: effects: flat (scrim-detail-flat + scrim-detail-bottom, przyciski haze)
+11-24 21:16:50.071 I/ForkNiunia(29167): NAwards: strip: brak nagród, nic nie rysuję
+11-24 21:16:50.186 I/ForkNiunia(29167): NAwards: text: 6 nagród + 0 nominacji; galas 3 (3 shown), categories 3 (1 shown)
+
+===== ścieżka 33
+--------- beginning of main
+--------- beginning of system
+11-24 21:17:11.489 I/ForkNiunia(29167): OK → Breaking Bad, S1, E1 · 58m, Zostało 58 min
+11-24 21:17:11.489 I/ForkNiunia(29167): rzędy: Oglądaj dalej → tt0903747
+11-24 21:17:11.970 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 18
+11-24 21:17:12.123 I/ForkNiunia(29167): odtwarzacz: wczytywanie (ekran Niuni)
+11-24 21:17:13.929 I/ForkPerf(29167): first_play start_to_play_ms=1827 key_to_play_ms=24607 host=addon.torrentclaw.com
+11-24 21:17:27.272 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 9
+11-24 21:17:27.342 I/ForkNiunia(29167): odtwarzacz: wczytywanie (ekran Niuni)
+11-24 21:17:29.706 I/ForkPerf(29167): first_play start_to_play_ms=2355 key_to_play_ms=40384 host=addon.torrentclaw.com
+11-24 21:17:31.630 I/ForkNiunia(29167): odtwarzacz: wczytuję odcinki serialu (S1)
+11-24 21:17:31.638 I/ForkNiunia(29167): odtwarzacz: podobne — TVDB bez listy podobnych, biorę TMDB
+11-24 21:17:31.638 I/ForkNiunia(29167): odtwarzacz: nakładka (serial=true, logo=true)
+11-24 21:17:31.745 I/ForkNiunia(29167): odtwarzacz: podobne=12 (źródło=TMDB, tmdb=true)
+11-24 21:17:35.903 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 19
+11-24 21:17:43.008 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 1
+11-24 21:17:50.831 I/ForkNiunia(29167): odtwarzacz: poziom 0 → 1 (rząd=7 odcinków)
+11-24 21:17:54.095 I/ForkNiunia(29167): Wstecz → poziom 0
+11-24 21:17:54.095 I/ForkNiunia(29167): odtwarzacz: poziom 1 → 0 (rząd=0 odcinków)
+
+===== ścieżka 34
+--------- beginning of main
+--------- beginning of system
+11-24 21:18:28.244 I/ForkNiunia(29167): OK → Breaking Bad, S1, E1 · 58m, Zostało 58 min
+11-24 21:18:28.244 I/ForkNiunia(29167): rzędy: Oglądaj dalej → tt0903747
+11-24 21:18:28.841 I/ForkNiunia(29167): odtwarzacz: wczytywanie (ekran Niuni)
+11-24 21:18:57.667 I/ForkNiunia(29167): odtwarzacz: wczytuję odcinki serialu (S1)
+11-24 21:18:57.671 I/ForkNiunia(29167): odtwarzacz: podobne — TVDB bez listy podobnych, biorę TMDB
+11-24 21:18:57.672 I/ForkNiunia(29167): odtwarzacz: nakładka (serial=true, logo=true)
+11-24 21:18:57.807 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 46
+11-24 21:18:57.821 I/ForkNiunia(29167): odtwarzacz: podobne=12 (źródło=TMDB, tmdb=true)
+11-24 21:19:16.375 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 5
+11-24 21:19:16.909 I/ForkNiunia(29167): szczegóły: series „Breaking Bad” (sezony=6, odcinki=7, podobne=0, obsada=349, wznów=true)
+11-24 21:19:16.911 I/ForkNiunia(29167): szczegóły: effects: flat (scrim-detail-flat + scrim-detail-bottom, przyciski haze)
+11-24 21:19:16.912 I/ForkNiunia(29167): NAwards: strip: brak nagród, nic nie rysuję
+11-24 21:19:17.012 I/ForkNiunia(29167): NAwards: text: 42 nagrody + 64 nominacje; galas 7 (2 shown), categories 11 (1 shown)
+
+===== ścieżka 35
+--------- beginning of main
+--------- beginning of system
+11-24 21:19:39.532 I/ForkNiunia(29167): OK → Breaking Bad, S1, E1 · 40m, Zostało 40 min
+11-24 21:19:39.533 I/ForkNiunia(29167): rzędy: Oglądaj dalej → tt0903747
+11-24 21:19:40.192 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 21
+11-24 21:19:40.242 I/ForkNiunia(29167): odtwarzacz: wczytywanie (ekran Niuni)
+11-24 21:19:59.330 I/ForkNiunia(29167): odtwarzacz: wczytuję odcinki serialu (S1)
+11-24 21:19:59.333 I/ForkNiunia(29167): odtwarzacz: podobne — TVDB bez listy podobnych, biorę TMDB
+11-24 21:19:59.333 I/ForkNiunia(29167): odtwarzacz: nakładka (serial=true, logo=true)
+11-24 21:19:59.406 I/ForkNiunia(29167): odtwarzacz: podobne=12 (źródło=TMDB, tmdb=true)
+11-24 21:20:03.005 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.android.providers.tv: {320dpi always-compat}
+11-24 21:20:07.077 I/ForkNiunia(29167): odtwarzacz: ikony: krawędź Up
+11-24 21:20:10.606 I/ForkNiunia(29167): odtwarzacz: ikony: krawędź Up
+11-24 21:20:24.365 I/ForkNiunia(29167): OK → Więcej
+11-24 21:20:24.365 I/ForkNiunia(29167): odtwarzacz: przycisk Więcej → panel Więcej
+11-24 21:20:25.239 I/ForkNiunia(29167): odtwarzacz: panel Więcej, fokus startowy Źródła
+11-24 21:20:51.690 I/ForkNiunia(29167): Wstecz → odtwarzacz (Więcej zamknięte)
+11-24 21:20:51.775 I/ForkNiunia(29167): odtwarzacz: Więcej zamknięte, fokus → Więcej
+11-24 21:20:55.831 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 29
+11-24 21:21:05.896 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 5
+11-24 21:21:05.900 I/ForkNiunia(29167): odtwarzacz: nakładka (serial=true, logo=true)
+
+===== ścieżka 36
+--------- beginning of main
+--------- beginning of system
+11-24 21:21:29.630 I/ForkNiunia(29167): OK → Breaking Bad, S1, E1 · 57m, Zostało 57 min
+11-24 21:21:29.630 I/ForkNiunia(29167): rzędy: Oglądaj dalej → tt0903747
+11-24 21:21:30.192 I/ForkNiunia(29167): odtwarzacz: wczytywanie (ekran Niuni)
+11-24 21:21:49.578 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 30
+11-24 21:21:50.068 I/ForkNiunia(29167): szczegóły: series „Breaking Bad” (sezony=6, odcinki=7, podobne=0, obsada=349, wznów=true)
+11-24 21:21:50.070 I/ForkNiunia(29167): szczegóły: effects: flat (scrim-detail-flat + scrim-detail-bottom, przyciski haze)
+11-24 21:21:50.070 I/ForkNiunia(29167): NAwards: strip: brak nagród, nic nie rysuję
+11-24 21:21:50.158 I/ForkNiunia(29167): NAwards: text: 42 nagrody + 64 nominacje; galas 7 (2 shown), categories 11 (1 shown)
+11-24 21:21:57.281 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 8
+11-24 21:21:57.281 I/ForkNiunia(29167): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 21:21:57.330 I/ForkNiunia(29167): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 21:21:57.331 I/ForkNiunia(29167): ekran główny: fokus wraca na cw:p_tt0903747_tt0903747:1:1
+
+===== ścieżka 37
+--------- beginning of main
+--------- beginning of system
+11-24 21:22:04.946 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 21:22:04.992 I/ForkNiunia(29167): live tv: próbka startowa — 243 kanałów, program na teraz, dopóki przewodnik się wczytuje
+11-24 21:22:05.002 I/ForkNiunia(29167): live tv: kraj IPTV Mode(prefer=true, only=false, country=de): 243 z 243 kanałów
+11-24 21:22:05.779 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 8
+11-24 21:22:05.791 I/ForkNiunia(29167): live tv: filtr=wszystkie, kafelki=8, kanały=243
+11-24 21:22:05.798 I/ForkNiunia(29167): live tv: próbka startowa — program na teraz, dopóki przewodnik się wczytuje
+11-24 21:22:05.832 I/ForkNiunia(29167): live tv: kraj IPTV Mode(prefer=true, only=false, country=de): 326 z 326 kanałów
+11-24 21:22:06.241 I/ForkNiunia(29167): live tv: filtr=wszystkie, kafelki=7, kanały=326
+11-24 21:22:08.604 I/ForkNiunia(29167): live tv: próbka startowa — program na teraz, dopóki przewodnik się wczytuje
+11-24 21:22:09.259 I/ForkNiunia(29167): live tv: kolejność z dysku 58622 kanałów w 576 ms (ta sama lista)
+11-24 21:22:11.658 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.nuviodebug.com: {320dpi always-compat}
+11-24 21:22:13.525 I/ForkNiunia(29167): live tv: wszystkie: 58622 z 58622 kanałów (4023 ms)
+11-24 21:22:13.727 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 4
+11-24 21:22:13.747 I/ForkNiunia(29167): live tv: filtr=wszystkie, kafelki=8, kanały=58622
+
+===== ścieżka 38
+--------- beginning of system
+11-24 21:22:17.788 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+--------- beginning of main
+11-24 21:22:19.821 I/ForkNiunia(29167): live tv: filtr=wszystkie, kafelki=8, kanały=58622
+11-24 21:22:19.846 I/ForkNiunia(29167): live tv: wszystkie: 58622 z 58622 kanałów (1536 ms)
+11-24 21:22:19.860 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 2
+11-24 21:22:30.246 I/ForkNiunia(29167): menu: otwarte
+11-24 21:22:34.045 I/ForkNiunia(29167): menu: zamknięte
+11-24 21:22:34.088 I/ForkNiunia(29167): menu → treść (▶): element ekranu, menu otwarte=false
+
+===== ścieżka 39
+--------- beginning of main
+--------- beginning of system
+11-24 21:23:32.902 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | GAO YANG - REANNE EVANS | Mon 23 Nov 10:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 3: HttpException: HTTP 404 → następne
+11-24 21:23:33.078 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | ISHPREET SINGH CHADHA - SANDERSON LAM | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 8: HttpException: HTTP 404 → następne
+11-24 21:23:33.141 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | JAK JONES - JOSHUA THOMOND | Mon 23 Nov 20:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 9: HttpException: HTTP 404 → następne
+11-24 21:23:33.184 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | JORDAN BROWN - THANAWAT TIRAPAIPONGBOON | Mon 23 Nov 22:40 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 15: HttpException: HTTP 404 → następne
+11-24 21:23:33.208 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | LIAM PULLEN - DENG HAOHUI | Mon 23 Nov 10:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 4: HttpException: HTTP 404 → następne
+11-24 21:23:33.354 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | NOPPON SAENGKHAM - JAMIE JONES | Mon 23 Nov 20:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 12: HttpException: HTTP 404 → następne
+11-24 21:23:33.355 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | RICKY WALDEN - FERGAL QUINN | Mon 23 Nov 10:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 1: HttpException: HTTP 404 → następne
+11-24 21:23:33.508 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | SAM CRAIGIE - JULIEN LECLERCQ | Mon 23 Nov 10:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 2: HttpException: HTTP 404 → następne
+11-24 21:23:33.558 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 10
+11-24 21:23:33.574 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | SI JIAHUI - IULIAN BOIKO | Mon 23 Nov 20:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 10: HttpException: HTTP 404 → następne
+11-24 21:23:33.650 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | SNOOKER | Mon 23 Nov 22:40 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 13: HttpException: HTTP 404 → następne
+11-24 21:23:33.795 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | STEVEN HALLWORTH - MINA AWAD | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 6: HttpException: HTTP 404 → następne
+11-24 21:23:33.795 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | 2026 U.S VIRGIN ISLANDS PARADISE JAM (3RD PLACE GAME) | Mon 23 Nov 23:30 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 9: HttpException: HTTP 404 → następne
+11-24 21:23:33.854 W/ForkNiunia(29167): logo kanału Strong8K · NEXT | SNOOKER | Tue 24 Nov 10:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 17: HttpException: HTTP 404 → następne
+11-24 21:23:33.958 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | 2026 U.S VIRGIN ISLANDS PARADISE JAM (4TH PLACE GAME) | Mon 23 Nov 21:00 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 6: HttpException: HTTP 404 → następne
+11-24 21:23:34.033 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | 2026 U.S VIRGIN ISLANDS PARADISE JAM (7TH PLACE GAME) | Mon 23 Nov 18:30 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 3: HttpException: HTTP 404 → następne
+11-24 21:23:34.085 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | AKRON VS. WRIGHT STATE | Mon 23 Nov 19:30 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 4: HttpException: HTTP 404 → następne
+11-24 21:23:34.136 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | INDIANA STATE VS. EAST CAROLINA (7TH PLACE GAME) | Mon 23 Nov 18:30 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 10: HttpException: HTTP 404 → następne
+11-24 21:23:34.184 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | INDIANA STATE VS. SOUTH DAKOTA STATE | Sat 21 Nov 21:00 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 50: HttpException: HTTP 404 → następne
+11-24 21:23:34.262 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | MIDDLE TENNESSEE VS. SOUTHERN ILLINOIS (4TH PLACE GAME) | Mon 23 Nov 21:22 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 11: HttpException: HTTP 404 → następne
+11-24 21:23:34.291 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | MONMOUTH VS. NORTH CAROLINA | Tue 24 Nov 02:03 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 15: HttpException: HTTP 404 → następne
+11-24 21:23:34.335 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | OLE MISS VS. CLEMSON (QUARTERFINAL #1) | Mon 23 Nov 20:30 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 5: HttpException: HTTP 404 → następne
+11-24 21:23:34.393 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | ST. BONAVENTURE VS. APP STATE | Mon 23 Nov 17:00 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 1: HttpException: HTTP 404 → następne
+11-24 21:23:34.438 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | STEPHEN F. AUSTIN VS. UTAH VALLEY (CHAMPIONSHIP) | Tue 24 Nov 02:32 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 16: HttpException: HTTP 404 → następne
+11-24 21:23:34.486 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | TEMPLE VS. UT MARTIN (3RD PLACE GAME) | Tue 24 Nov 00:04 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 12: HttpException: HTTP 404 → następne
+11-24 21:23:34.544 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | THE ICON LEAGUE: MATCHDAY 08 | Mon 23 Nov 17:30 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 2: HttpException: HTTP 404 → następne
+11-24 21:23:34.589 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | VCU VS. PROVIDENCE (QUARTERFINAL #3) | Tue 24 Nov 03:00 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 17: HttpException: HTTP 404 → następne
+11-24 21:23:34.620 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | WASHINGTON VS. #19 BYU (QUARTERFINAL #2) | Mon 23 Nov 23:00 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 13: HttpException: HTTP 404 → następne
+11-24 21:23:34.663 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | WASHINGTON VS. #21 BYU (QUARTERFINAL #2) | Mon 23 Nov 23:00 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 8: HttpException: HTTP 404 → następne
+11-24 21:23:34.736 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | WOFFORD VS. WAKE FOREST | Tue 24 Nov 00:00 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 14: HttpException: HTTP 404 → następne
+11-24 21:23:34.770 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | YALE VS. BELMONT | Mon 23 Nov 22:00 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 7: HttpException: HTTP 404 → następne
+11-24 21:23:34.838 W/ForkNiunia(29167): logo kanału Strong8K · LIVE | COLORADO STATE VS. #8 ARIZONA (QUARTERFINAL #4) | Tue 24 Nov 05:53 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 18: HttpException: HTTP 404 → następne
+11-24 21:23:34.871 W/ForkNiunia(29167): logo kanału Strong8K · NEXT | #17 MIAMI VS. TCU (QUARTERFINAL #1) | Tue 24 Nov 21:00 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 25: HttpException: HTTP 404 → następne
+11-24 21:23:34.912 W/ForkNiunia(29167): logo kanału Strong8K · NEXT | #9 TENNESSEE VS. MARYLAND (QUARTERFINAL #1) | Tue 24 Nov 21:00 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 26: HttpException: HTTP 404 → następne
+11-24 21:23:34.985 W/ForkNiunia(29167): logo kanału Strong8K · NEXT | AMERICAN UNIVERSITY VS. YALE | Tue 24 Nov 17:00 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 20: HttpException: HTTP 404 → następne
+11-24 21:23:35.199 W/ForkNiunia(29167): logo kanału Strong8K · NEXT | APP STATE VS. YALE | Tue 24 Nov 21:00 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 24: HttpException: HTTP 404 → następne
+11-24 21:23:35.267 W/ForkNiunia(29167): logo kanału Strong8K · NEXT | BELMONT VS. AKRON | Tue 24 Nov 18:30 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 21: HttpException: HTTP 404 → następne
+11-24 21:23:35.267 W/ForkNiunia(29167): logo kanału Strong8K · NEXT | CREIGHTON VS. MICHIGAN (QUARTERFINAL #2) | Tue 24 Nov 23:30 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 29: HttpException: HTTP 404 → następne
+11-24 21:23:35.267 W/ForkNiunia(29167): logo kanału Strong8K · NEXT | DAVIDSON VS. #13 NOTRE DAME | Tue 24 Nov 19:00 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 22: HttpException: HTTP 404 → następne
+11-24 21:23:35.339 W/ForkNiunia(29167): logo kanału Strong8K · NEXT | OLE MISS VS. #19 BYU (SEMIFINAL #1) | Tue 24 Nov 20:30 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 23: HttpException: HTTP 404 → następne
+11-24 21:23:35.380 W/ForkNiunia(29167): logo kanału Strong8K · NEXT | FLORIDA VS. #22 WEST VIRGINIA | Tue 24 Nov 21:30 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 27: HttpException: HTTP 404 → następne
+11-24 21:23:35.487 W/ForkNiunia(29167): logo kanału Strong8K · NEXT | SAN DIEGO STATE VS. IOWA STATE (QUARTERFINAL #2) | Tue 24 Nov 23:30 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 30: HttpException: HTTP 404 → następne
+11-24 21:23:35.547 W/ForkNiunia(29167): logo kanału Strong8K · NEXT | THE SOUTHWEST MAUI INVITATIONAL AS A PART OF FEAST WEEK PRESENTED BY LOWE'S (SEMIFINAL #2) | Tue 24 Nov 23:00 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 28: HttpException: HTTP 404 → następne
+11-24 21:23:35.585 W/ForkNiunia(29167): logo kanału Strong8K · NEXT | WRIGHT STATE VS. ST. BONAVENTURE | Tue 24 Nov 16:00 CET (DE) | 8K EXCLUSIVE | DE: DISNEY+ PPV 19: HttpException: HTTP 404 → następne
+11-24 21:23:35.640 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | OLE MISS - CLEMSON | MAUI INVITATIONAL | Mon 23 Nov 20:30 CET (DE) | 8K EXCLUSIVE | DE: DYN PPV 4: HttpException: HTTP 404 → następne
+11-24 21:23:35.702 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | POST SV MÜHLHAUSEN - BV BORUSSIA 09 DORTMUND | Mon 23 Nov 18:10 CET (DE) | 8K EXCLUSIVE | DE: DYN PPV 1: HttpException: HTTP 404 → następne
+11-24 21:23:35.750 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | TSV BAYER DORMAGEN - DESSAU-ROSSLAUER HV 06 | Mon 23 Nov 19:10 CET (DE) | 8K EXCLUSIVE | DE: DYN PPV 3: HttpException: HTTP 404 → następne
+11-24 21:23:35.799 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | TTF LIEBHERR OCHSENHAUSEN - SV WERDER BREMEN | Mon 23 Nov 18:40 CET (DE) | 8K EXCLUSIVE | DE: DYN PPV 2: HttpException: HTTP 404 → następne
+11-24 21:23:35.841 W/ForkNiunia(29167): logo kanału Strong8K · NEXT | BADEN VOLLEYS SSC KARLSRUHE - SVG LÜNEBURG | Tue 24 Nov 19:10 CET (DE) | 8K EXCLUSIVE | DE: DYN PPV 8: HttpException: HTTP 404 → następne
+11-24 21:23:35.914 W/ForkNiunia(29167): logo kanału Strong8K · NEXT | HALBFINALE | MAUI INVITATIONAL | Tue 24 Nov 20:30 CET (DE) | 8K EXCLUSIVE | DE: DYN PPV 9: HttpException: HTTP 404 → następne
+11-24 21:23:35.955 W/ForkNiunia(29167): logo kanału Strong8K · NEXT | IK SÄVEHOF - BERGISCHER HC | Tue 24 Nov 18:35 CET (DE) | 8K EXCLUSIVE | DE: DYN PPV 6: HttpException: HTTP 404 → następne
+11-24 21:23:36.020 W/ForkNiunia(29167): logo kanału Strong8K · NEXT | SG FLENSBURG-HANDEWITT - AGUAS SANTAS MILANEZA | Tue 24 Nov 18:35 CET (DE) | 8K EXCLUSIVE | DE: DYN PPV 5: HttpException: HTTP 404 → następne
+11-24 21:23:36.055 W/ForkNiunia(29167): logo kanału Strong8K · NEXT | SV WARNEMÜNDE - SWD POWERVOLLEYS DÜREN | Tue 24 Nov 18:40 CET (DE) | 8K EXCLUSIVE | DE: DYN PPV 7: HttpException: HTTP 404 → następne
+11-24 21:23:36.201 W/ForkNiunia(29167): logo kanału Strong8K · NEXT | VFL GUMMERSBACH - DICORPEBAL LOGROÑO LA RIOJA | Tue 24 Nov 20:35 CET (DE) | 8K EXCLUSIVE | DE: DYN PPV 10: HttpException: HTTP 404 → następne
+11-24 21:23:36.201 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | 1. FC KÖLN U23 W VS SGS ESSEN ♀ | Sun 22 Nov 19:00 CET (DE) | 8K EXCLUSIVE | DE: LEAGUES FOOTBALL PPV 14: HttpException: HTTP 404 → następne
+11-24 21:23:36.247 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | 1. FC PHÖNIX LÜBECK VS FC ST. PAULI II | Sun 22 Nov 14:00 CET (DE) | 8K EXCLUSIVE | DE: LEAGUES FOOTBALL PPV 1: HttpException: HTTP 404 → następne
+11-24 21:23:36.294 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | FC EINTRACHT NORDERSTEDT VS FSV SCHÖNINGEN | Sun 22 Nov 14:00 CET (DE) | 8K EXCLUSIVE | DE: LEAGUES FOOTBALL PPV 5: HttpException: HTTP 404 → następne
+11-24 21:23:36.353 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | FC GÜTERSLOH VS SC ROT-WEISS OBERHAUSEN | Sun 22 Nov 18:00 CET (DE) | 8K EXCLUSIVE | DE: LEAGUES FOOTBALL PPV 13: HttpException: HTTP 404 → następne
+11-24 21:23:36.400 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | FC VIKTORIA BERLIN VS TURBINE POTSDAM | Sun 22 Nov 14:00 CET (DE) | 8K EXCLUSIVE | DE: LEAGUES FOOTBALL PPV 7: HttpException: HTTP 404 → następne
+11-24 21:23:36.433 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | HAMBURGER SV II VS SV WERDER BREMEN II | Sun 22 Nov 15:00 CET (DE) | 8K EXCLUSIVE | DE: LEAGUES FOOTBALL PPV 12: HttpException: HTTP 404 → następne
+11-24 21:23:36.662 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | HERTHA BSC ♀ VS CARL ZEISS JENA W | Sun 22 Nov 14:00 CET (DE) | 8K EXCLUSIVE | DE: LEAGUES FOOTBALL PPV 3: HttpException: HTTP 404 → następne
+11-24 21:23:36.749 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | SC SAND VS EINTRACHT FRANKFURT II ♀ | Sun 22 Nov 14:00 CET (DE) | 8K EXCLUSIVE | DE: LEAGUES FOOTBALL PPV 4: HttpException: HTTP 404 → następne
+11-24 21:23:36.749 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | HSC HANNOVER VS VFB LÜBECK | Sun 22 Nov 14:00 CET (DE) | 8K EXCLUSIVE | DE: LEAGUES FOOTBALL PPV 8: HttpException: HTTP 404 → następne
+11-24 21:23:36.814 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | SG ANDERNACH VS BORUSSIA MÖNCHENGLADBACH ♀ | Sun 22 Nov 14:00 CET (DE) | 8K EXCLUSIVE | DE: LEAGUES FOOTBALL PPV 2: HttpException: HTTP 404 → następne
+11-24 21:23:36.879 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | SV MEPPEN ♀ VS VFL BOCHUM ♀ | Sun 22 Nov 14:00 CET (DE) | 8K EXCLUSIVE | DE: LEAGUES FOOTBALL PPV 11: HttpException: HTTP 404 → następne
+11-24 21:23:36.927 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | SV SANDHAUSEN VS SV STUTTGARTER KICKERS | Sun 22 Nov 14:00 CET (DE) | 8K EXCLUSIVE | DE: LEAGUES FOOTBALL PPV 10: HttpException: HTTP 404 → następne
+11-24 21:23:36.993 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | SV TODESFELDE VS SV ATLAS DELMENHORST | Sun 22 Nov 14:00 CET (DE) | 8K EXCLUSIVE | DE: LEAGUES FOOTBALL PPV 9: HttpException: HTTP 404 → następne
+11-24 21:23:37.328 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | TSG HOFFENHEIM II W VS FC INGOLSTADT W | Sun 22 Nov 14:00 CET (DE) | 8K EXCLUSIVE | DE: LEAGUES FOOTBALL PPV 6: HttpException: HTTP 404 → następne
+11-24 21:23:37.486 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | WEEK 7 | THURSDAY NIGHT: PATRIOTS AT BEARS | Fri 23 Oct 02:10 CEST (DE) | 8K EXCLUSIVE | DE: RTL+ PPV 1: HttpException: HTTP 404 → następne
+11-24 21:23:37.561 W/ForkNiunia(29167): logo kanału Strong8K · LIVE | WEEK 11 | MONDAY NIGHT: BENGALS AT COMMANDERS | Tue 24 Nov 02:10 CET (DE) | 8K EXCLUSIVE | DE: RTL+ PPV 2: HttpException: HTTP 404 → następne
+11-24 21:23:37.690 W/ForkNiunia(29167): logo kanału Strong8K · NEXT | BEZIRKSOBERLIGA - SPG BAVARIA/TURNERBUND 2 - FC BAYERN MÜNCHEN 2 | Tue 24 Nov 18:00 CET (DE) | 8K EXCLUSIVE | DE: SPORT EUROPE PPV 2: HttpException: HTTP 404 → następne
+11-24 21:23:37.737 W/ForkNiunia(29167): logo kanału Strong8K · NEXT | KREISLIGA 2 - SPG BAVARIA/TURNERBUND G1 - FC BAYERN MÜNCHEN G1 | Tue 24 Nov 18:00 CET (DE) | 8K EXCLUSIVE | DE: SPORT EUROPE PPV 1: HttpException: HTTP 404 → następne
+11-24 21:23:37.768 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | BOZNER FC VS MÖLTEN | Mon 23 Nov 20:27 CET (DE) | 8K EXCLUSIVE | DE: STAIGE PPV 3: HttpException: HTTP 404 → następne
+11-24 21:23:38.007 W/ForkNiunia(29167): logo kanału Strong8K · ENDED | BSV ROLEBER 1919 E.V. VS SV RHEINGRANATEN 11 | Mon 23 Nov 19:45 CET (DE) | 8K EXCLUSIVE | DE: STAIGE PPV 4: HttpException: HTTP 404 → następne
+11-24 21:23:38.755 I/ForkNiunia(29167): live tv: podgląd → Strong8K · LIVE | WEEK 11 | MONDAY NIGHT: BENGALS AT COMMANDERS | Tue 24 Nov 02:10 CET (DE) | 8K EXCLUSIVE | DE: RTL+ PPV 2
+11-24 21:23:40.975 I/ForkNiunia(29167): live tv: podgląd zamknięty (fokus poza przewodnikiem)
+11-24 21:23:41.016 I/ForkNiunia(29167): menu: otwarte
+11-24 21:23:41.020 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 65
+11-24 21:23:41.062 I/ForkNiunia(29167): menu: zamknięte
+11-24 21:23:41.062 I/ForkNiunia(29167): menu: otwarte
+11-24 21:23:41.110 I/ForkNiunia(29167): menu: zamknięte
+11-24 21:23:41.110 I/ForkNiunia(29167): menu: otwarte
+11-24 21:23:41.158 I/ForkNiunia(29167): menu: zamknięte
+11-24 21:23:41.158 I/ForkNiunia(29167): menu: otwarte
+
+===== ścieżka 40
+--------- beginning of main
+--------- beginning of system
+11-24 21:23:59.330 I/ForkNiunia(29167): OK → Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 5
+11-24 21:23:59.357 I/ForkNiunia(29167): live tv: odtwarzam Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 5 na żywo
+11-24 21:23:59.358 I/ForkNiunia(29167): live tv: zapamiętany powrót Guide(streamUrl=<adres strumienia usunięty>, startMs=null) (dzień 0)
+11-24 21:23:59.360 I/ForkNiunia(29167): live tv: podgląd zwolniony (pełny ekran)
+11-24 21:23:59.601 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 2
+11-24 21:23:59.702 I/ForkNiunia(29167): live tv: podgląd zamknięty (fokus poza przewodnikiem)
+11-24 21:23:59.775 I/ForkNiunia(29167): iptv: nakładka Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 5 (stan=LIVE, program=false)
+11-24 21:23:59.775 I/ForkNiunia(29167): iptv: rząd=0 (kategoria null)
+11-24 21:24:02.709 I/ForkNiunia(29167): odtwarzacz TV: „Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 5 nie odpowiada” (ekran Niuni)
+11-24 21:24:02.714 I/ForkNiunia(29167): live tv: kanał Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 5 oznaczony „Niedostępny” na 24 h
+11-24 21:24:03.623 I/ForkPerf(29167): first_play start_to_play_ms=4031 key_to_play_ms=134217 host=<host>
+11-24 21:24:21.132 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 15
+11-24 21:24:22.678 I/ForkNiunia(29167): live tv: filtr=wszystkie, kafelki=8, kanały=58622
+11-24 21:24:22.681 I/ForkNiunia(29167): live tv: wszystkie: 58622 z 58622 kanałów (1297 ms)
+11-24 21:24:22.761 I/ForkNiunia(29167): live tv: fokus wraca na kanał <adres strumienia usunięty>
+11-24 21:24:23.991 I/ForkNiunia(29167): live tv: podgląd → Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 5
+
+===== ścieżka 41
+--------- beginning of main
+--------- beginning of system
+11-24 21:24:40.331 I/ForkNiunia(29167): długie OK → Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 5 (flaga systemu)
+11-24 21:24:40.332 I/ForkNiunia(29167): live tv: długie OK → opcje kanału Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 5
+11-24 21:24:40.369 I/ForkNiunia(29167): live tv: opcje kanału Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 5, strona main
+11-24 21:24:40.451 I/ForkNiunia(29167): live tv: opcje kanału, fokus startowy (main)
+11-24 21:24:40.467 I/ForkNiunia(29167): live tv: podgląd zamknięty (fokus poza przewodnikiem)
+11-24 21:24:40.706 I/ForkNiunia(29167): OK → Dodaj do ulubionych: puszczenie bez wciśnięcia — pominięte
+11-24 21:24:57.424 I/ForkNiunia(29167): live tv: podgląd → Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 5
+11-24 21:25:00.183 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 4
+11-24 21:25:00.885 I/ForkNiunia(29167): live tv: podgląd → Strong8K · ENDED | BEN WOOLLASTON - MARK JOYCE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 7
+11-24 21:25:04.361 I/ForkNiunia(29167): live tv: podgląd → Strong8K · ENDED | BEN WOOLLASTON - MARK JOYCE | Tue 24 Nov 00:03 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 16
+11-24 21:25:07.657 I/ForkNiunia(29167): live tv: podgląd → Strong8K · ENDED | DAVID LILLEY - LUO ZETAO | Mon 23 Nov 23:29 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 14
+11-24 21:25:11.092 I/ForkNiunia(29167): live tv: podgląd → Strong8K · ENDED | ELLIOT SLESSOR - ARTEMIJS ZIZINS | Mon 23 Nov 20:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 11
+11-24 21:25:13.262 I/ForkNiunia(29167): live tv: opcje kanału Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 5 zamknięte (Wstecz)
+11-24 21:25:13.344 I/ForkNiunia(29167): live tv: fokus wraca na kanał Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 5
+11-24 21:25:14.569 I/ForkNiunia(29167): live tv: podgląd — obraz Strong8K · ENDED | ELLIOT SLESSOR - ARTEMIJS ZIZINS | Mon 23 Nov 20:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 11
+
+===== ścieżka 42
+--------- beginning of main
+--------- beginning of system
+11-24 21:25:21.802 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 21:25:23.541 I/ForkNiunia(29167): live tv: filtr=wszystkie, kafelki=8, kanały=58622
+11-24 21:25:23.543 I/ForkNiunia(29167): live tv: wszystkie: 58622 z 58622 kanałów (1269 ms)
+11-24 21:25:23.842 I/ForkNiunia(29167): live tv: podgląd zamknięty (fokus poza przewodnikiem)
+11-24 21:25:30.880 I/ForkNiunia(29167): live tv: podgląd → Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 5
+11-24 21:25:37.635 I/ForkNiunia(29167): live tv: podgląd → Strong8K · ENDED | BEN WOOLLASTON - MARK JOYCE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 7
+11-24 21:25:39.150 I/ForkNiunia(29167): live tv: podgląd — obraz Strong8K · ENDED | BEN WOOLLASTON - MARK JOYCE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 7
+11-24 21:25:45.920 I/ForkNiunia(29167): live tv: podgląd → Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 5
+11-24 21:25:49.425 I/ForkNiunia(29167): live tv: podgląd — obraz Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 5
+
+===== ścieżka 43
+--------- beginning of main
+--------- beginning of system
+11-24 21:25:51.995 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 21:25:52.277 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 2
+11-24 21:25:52.366 I/ForkNiunia(29167): live tv: podgląd zamknięty (fokus poza przewodnikiem)
+
+===== ścieżka 44
+--------- beginning of main
+--------- beginning of system
+11-24 21:26:32.294 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 21:26:32.614 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 4
+--------- beginning of crash
+11-24 21:26:32.888 E/AndroidRuntime( 1571): FATAL EXCEPTION: main
+11-24 21:26:32.888 E/AndroidRuntime( 1571): Process: com.android.inputmethod.latin, PID: 1571
+11-24 21:26:32.888 E/AndroidRuntime( 1571): java.lang.NullPointerException: Attempt to read from field 'java.lang.CharSequence android.view.inputmethod.ExtractedText.text' on a null object reference
+11-24 21:26:32.888 E/AndroidRuntime( 1571): 	at com.android.inputmethod.latin.LatinIME.onWindowShown(LatinIME.java:1090)
+11-24 21:26:32.888 E/AndroidRuntime( 1571): 	at android.inputmethodservice.InputMethodService.showWindow(InputMethodService.java:2112)
+11-24 21:26:32.888 E/AndroidRuntime( 1571): 	at android.inputmethodservice.InputMethodService$InputMethodImpl.showSoftInput(InputMethodService.java:744)
+11-24 21:26:32.888 E/AndroidRuntime( 1571): 	at android.inputmethodservice.InputMethodService$InputMethodImpl.showSoftInputWithToken(InputMethodService.java:716)
+11-24 21:26:32.888 E/AndroidRuntime( 1571): 	at android.inputmethodservice.IInputMethodWrapper.executeMessage(IInputMethodWrapper.java:226)
+11-24 21:26:32.888 E/AndroidRuntime( 1571): 	at com.android.internal.os.HandlerCaller$MyHandler.handleMessage(HandlerCaller.java:44)
+11-24 21:26:32.888 E/AndroidRuntime( 1571): 	at android.os.Handler.dispatchMessage(Handler.java:106)
+11-24 21:26:32.888 E/AndroidRuntime( 1571): 	at android.os.Looper.loop(Looper.java:223)
+11-24 21:26:32.888 E/AndroidRuntime( 1571): 	at android.app.ActivityThread.main(ActivityThread.java:7656)
+11-24 21:26:32.888 E/AndroidRuntime( 1571): 	at java.lang.reflect.Method.invoke(Native Method)
+11-24 21:26:32.888 E/AndroidRuntime( 1571): 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:592)
+11-24 21:26:32.888 E/AndroidRuntime( 1571): 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:949)
+11-24 21:26:34.076 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.android.inputmethod.latin: {320dpi always-compat}
+11-24 21:26:34.078 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.android.inputmethod.latin: {320dpi always-compat}
+11-24 21:26:34.362 W/ActivityTaskManager(  979): Current config: {1.0 ?mcc?mnc [en] ldltr sw540dp w960dp h540dp 320dpi lrg long land television -touch qwerty/v/v dpad/v winConfig={ mBounds=Rect(0, 0 - 1920, 1080) mAppBounds=Rect(0, 0 - 1920, 1080) mWindowingMode=fullscreen mDisplayWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_0} s.45} unchanged for IME proc com.android.inputmethod.latin
+11-24 21:26:34.362 W/ActivityTaskManager(  979): Current config: {1.0 ?mcc?mnc [en] ldltr sw540dp w960dp h540dp 320dpi lrg long land television -touch qwerty/v/v dpad/v winConfig={ mBounds=Rect(0, 0 - 1920, 1080) mAppBounds=Rect(0, 0 - 1920, 1080) mWindowingMode=fullscreen mDisplayWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_0} s.45} unchanged for IME proc com.android.inputmethod.latin
+11-24 21:26:34.392 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.android.providers.userdictionary: {320dpi always-compat}
+11-24 21:26:40.733 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 4
+
+===== ścieżka 45
+--------- beginning of main
+--------- beginning of system
+11-24 21:27:39.505 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 21:27:39.753 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 4
+11-24 21:27:51.709 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 1
+
+===== ścieżka 46
+--------- beginning of main
+--------- beginning of system
+11-24 21:27:59.556 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+
+===== ścieżka 47
+--------- beginning of main
+--------- beginning of system
+11-24 21:29:28.377 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 21:29:28.678 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 3
+11-24 21:29:28.681 I/ForkNiunia(29167): youtube: HOME — kart 0, wczytuję
+11-24 21:29:28.789 I/ForkNiunia(29167): youtube: fokus startowy → szyna
+11-24 21:29:30.772 I/ForkNiunia(29167): youtube: HOME — kart 12
+11-24 21:29:31.120 I/ForkNiunia(29167): youtube: HOME — kart 25
+11-24 21:29:31.294 I/ForkNiunia(29167): youtube: HOME — kart 45
+11-24 21:29:31.314 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.android.webview: {320dpi always-compat}
+11-24 21:29:31.509 I/ForkNiunia(29167): youtube: HOME — kart 64
+11-24 21:29:31.758 I/ForkNiunia(29167): youtube: HOME — kart 82
+11-24 21:29:31.860 I/ForkNiunia(29167): youtube: HOME — kart 96
+
+===== ścieżka 48
+--------- beginning of main
+--------- beginning of system
+11-24 21:29:49.547 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+
+===== ścieżka 49
+--------- beginning of main
+--------- beginning of system
+11-24 21:30:54.604 I/ForkNiunia(29167): OK → Below
+11-24 21:30:54.604 I/ForkNiunia(29167): odkrywaj: OK → tt35934755
+11-24 21:30:56.227 I/ForkNiunia(29167): szczegóły: series „W głębinach” (sezony=1, odcinki=6, podobne=0, obsada=80, wznów=false)
+11-24 21:30:56.229 I/ForkNiunia(29167): szczegóły: effects: flat (scrim-detail-flat + scrim-detail-bottom, przyciski haze)
+11-24 21:30:56.229 I/ForkNiunia(29167): NAwards: strip: brak nagród, nic nie rysuję
+11-24 21:30:56.229 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 27
+11-24 21:30:59.650 I/ForkNiunia(29167): NAwards: Wikidata 0 wierszy → 0 nagród, 0 nominacji
+11-24 21:30:59.651 I/ForkNiunia(29167): NAwards: tt35934755 (series): 0 pozycji ze źródła „Wikidata”
+11-24 21:31:04.756 I/ForkNiunia(29167): odkrywaj: series, katalog=Popular, gatunek=wszystkie, wyniki=100
+11-24 21:31:04.773 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 1
+
+===== ścieżka 50
+--------- beginning of main
+--------- beginning of system
+11-24 21:32:30.035 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 1
+11-24 21:32:37.248 I/ForkJank(29167): pominięte drobne/powtórzone przycięcia: 1

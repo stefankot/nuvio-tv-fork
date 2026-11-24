@@ -11,9 +11,23 @@ internal object NiuniaLiveReturn {
     private const val TAG = "ForkNiunia"
     private const val VALID_MS = 6L * 60 * 60 * 1000
 
+    /**
+     * Adres strumienia IPTV zawiera login i hasło dostawcy — nigdy do logu (ZASADY §3; log pętli 0 UX JMGO go ujawnił).
+     * Zamiast niego krótka, stała dla tego samego adresu etykieta; część po `|` (czas programu) zostaje.
+     */
+    fun logLabel(urlOrKey: String): String {
+        val url = urlOrKey.substringBefore('|')
+        val rest = urlOrKey.substringAfter('|', "")
+        return "#" + Integer.toHexString(url.hashCode()) + if (rest.isNotEmpty()) "|$rest" else ""
+    }
+
     sealed class Entry {
-        data class Tile(val key: String) : Entry()
-        data class Guide(val streamUrl: String, val startMs: Long?) : Entry()
+        data class Tile(val key: String) : Entry() {
+            override fun toString() = "Tile(${NiuniaLiveReturn.logLabel(key)})"
+        }
+        data class Guide(val streamUrl: String, val startMs: Long?) : Entry() {
+            override fun toString() = "Guide(${NiuniaLiveReturn.logLabel(streamUrl)}, startMs=$startMs)"
+        }
     }
 
     private var pending: Entry? = null

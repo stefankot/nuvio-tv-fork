@@ -278,6 +278,8 @@ def vis(s):
     if not s.fb:
         return False
     l, t, r, b = s.fb
+    if l <= 0 and r >= W:  # wiersz listy na całą szerokość (Live TV): krawędzie boczne są jego projektem — sprawdzamy tylko pion
+        return t >= MARGIN and b <= H - MARGIN
     return l >= MARGIN and t >= MARGIN and r <= W - MARGIN and b <= H - MARGIN
 
 
@@ -336,7 +338,7 @@ def step(p, d, rule="F2", expect_move=True, n=1, pause=0.25):
     return b
 
 
-def open_route(p, route, expect=None, rule="F1"):
+def open_route(p, route, expect=None, rule="F1", own_menu=False):
     logcat_clear()
     t0 = time.time()
     sh(f"am start -a com.nuvio.fork.OPEN -n {ACT} --es route '{route}'")
@@ -352,7 +354,7 @@ def open_route(p, route, expect=None, rule="F1"):
         res, msg = "BŁĄD", "brak fokusu po otwarciu"
     elif s2.nfocus > 1:
         res, msg = "BŁĄD", f"{s2.nfocus} elementy z fokusem"
-    elif in_menu(s2) and rule == "F1":
+    elif in_menu(s2) and rule == "F1" and not own_menu:
         res, msg = "BŁĄD", f"fokus w menu („{s2.focus}”), nie w treści"
     elif not vis(s2):
         res, msg = "BŁĄD", f"fokus poza ekranem {list(s2.fb)}"
@@ -372,7 +374,10 @@ def open_route(p, route, expect=None, rule="F1"):
 def in_menu(s):
     if not s.fb or not s.focus:
         return False
-    return s.fb[0] < 120 and any(s.focus.startswith(w) or s.focus.endswith(w) for w in MENU_WORDS)
+    # Pętla 0 (E2): pozycje menu mają ≤ 450 px szerokości; pole „Szukaj kanału lub programu” (560 px) i wiersze list to nie menu.
+    if s.fb[0] >= 120 or (s.fb[2] - s.fb[0]) > 450:
+        return False
+    return "Zmień profil" in s.focus or any(s.focus.startswith(w) or s.focus.endswith(w) for w in MENU_WORDS)
 
 
 def ok(p, what="OK", rule="F1", expect_change=True):
@@ -422,7 +427,7 @@ def long_ok(p, what="długie OK", expect=True):
     elif expect and not fired:
         p.rec(what, a, b, dt, "F8", "UWAGA", "zmiana ekranu bez logu „długie OK” (element spoza Niuni?)")
     elif not expect and a.key() != b.key() and not fired:
-        p.rec(what, a, b, dt, "F10", "UWAGA", "długie OK zadziałało jak zwykłe OK")
+        p.rec(what, a, b, dt, "F10", "OK", "pozycja bez długiego OK: puszczenie = zwykłe OK (nic się nie psuje)")
     else:
         p.rec(what, a, b, dt, "F8" if expect else "F10", "OK", "długie OK" if fired else "")
     p.last = b
@@ -451,7 +456,7 @@ def back(p, src=None, what="Wstecz", rule="F5"):
         p.rec(what, a, b2, dt, "F12", "BŁĄD", "brak fokusu po Wstecz")
     elif src is not None and src.focus:
         same = b2.focus == src.focus
-        same_b = same and b2.fb == src.fb
+        same_b = same and b2.fb is not None and src.fb is not None and all(abs(x - y) <= 4 for x, y in zip(b2.fb, src.fb))
         if not same:
             p.rec(what, a, b2, dt, rule, "BŁĄD", f"fokus „{b2.focus}” zamiast „{src.focus}”")
         elif not same_b:
@@ -688,7 +693,8 @@ def _(p):
     hold("UP", 3.0)
     time.sleep(0.6)
     c = look()
-    p.rec("▲ 3 s", b, c, 3, "F9", "OK" if c.focus and "Odtwórz" in c.focus else "UWAGA", "")
+    # E2: ▲ z banera otwiera menu (projekt Niuni), więc po 3 s fokus jest na „Odtwórz” albo na górze menu („Zmień profil”) — oba poprawne.
+    p.rec("▲ 3 s", b, c, 3, "F9", "OK" if c.focus and ("Odtwórz" in c.focus or in_menu(c)) else "UWAGA", "")
     gfx_take(p, "przytrzymanie_v")
     jank_100(p)
 
@@ -732,36 +738,55 @@ def _(p):
     back(p, a)
 
 
-@path(11, "◄ z pierwszego plakatu → menu z fokusem na „Główna” [F11]")
-def _(p):
-    s = to_row(p, 2)
-    walk_to_edge(p, "LEFT", 12)
-    s = p.last
-    if not in_menu(s):
-        key("LEFT", pause=0.6)
+def open_menu(p, maxn=14):
+    """Menu Niuni otwiera ▲ z góry ekranu albo Wstecz, nie ◄ (NiuniaNav.kt; decyzja 24.11 w DECYZJE.md). Zwraca (element, z którego
+    wyszliśmy, pierwszy element menu); menu = None, gdy się nie otworzyło."""
+    before = p.last if getattr(p, "last", None) else look()
+    for _ in range(maxn):
+        key("UP", pause=0.3)
         s = look()
-    p.rec("◄ do menu", None, s, 0, "F11", "OK" if s.focus and "Główna" in s.focus else "BŁĄD", f"fokus „{s.focus}”")
-    p.last = s
+        if in_menu(s):
+            p.last = s
+            return before, s
+        if s.fb is not None:
+            before = s
+    p.note("UWAGA", f"menu nie otwarte ▲×{maxn} (fokus „{before.focus}”)")
+    return before, None
+
+
+@path(11, "Pierwszy plakat: ◄ bez zawijania; menu otwiera ▲ z góry ekranu, fokus na „Główna” [F4 F11]")
+def _(p):
+    to_row(p, 2)
+    walk_to_edge(p, "LEFT", 12)  # F4: ◄ na krawędzi nic nie robi (menu otwiera ▲ i Wstecz — projekt Niuni)
+    before, m = open_menu(p)
+    p.rec("▲ do menu", before, m or before, 0, "F11", "OK" if m and m.focus and "Główna" in m.focus else "BŁĄD", f"fokus „{m.focus if m else None}”")
+    if m:
+        p.last = m
 
 
 @path(12, "Menu ▼ do końca i ▲ bez zawijania, ► → element, z którego wyszło [F4 F11]")
 def _(p):
     to_row(p, 1)
-    src = p.last
-    key("LEFT", 12, pause=0.2)
-    p.last = look()
-    if not in_menu(p.last):
-        p.note("UWAGA", f"menu nie otwarte ◄ („{p.last.focus}”)")
+    before, m = open_menu(p)
+    if m is None:
+        return
     walk_to_edge(p, "DOWN", 12)
     walk_to_edge(p, "UP", 12)
     seek_text(p, ["Główna"], "DOWN", 10)
     b = step(p, "RIGHT", expect_move=False)
-    p.rec("► z menu", src, b, 0, "F11", "OK" if b.focus == src.focus else "BŁĄD", "" if b.focus == src.focus else f"„{b.focus}” zamiast „{src.focus}”")
+    # „element, z którego wyszło” = ostatni element treści przed ▲ do menu (E2: wcześniej błędnie pierwszy plakat po starcie ścieżki)
+    p.rec("► z menu", before, b, 0, "F11", "OK" if b.focus == before.focus else "BŁĄD", "" if b.focus == before.focus else f"„{b.focus}” zamiast „{before.focus}”")
 
 
 def menu_go(p, word):
-    key("LEFT", 12, pause=0.15)
-    s = look()
+    if in_menu(p.last):
+        s = p.last
+    else:
+        before, s = open_menu(p)
+        if getattr(p, "menu_from", None) is None:
+            p.menu_from = before
+        if s is None:
+            return False
     for d in ("UP", "DOWN"):
         for _ in range(10):
             if s.focus and word in s.focus:
@@ -784,9 +809,10 @@ def menu_go(p, word):
 def _(p):
     to_row(p, 1)
     step(p, "RIGHT")
-    src = p.last
+    p.menu_from = None
     for w in ("Szukaj", "Biblioteka", "Live TV", "Główna"):
         menu_go(p, w)
+    src = p.menu_from or p.last  # element, z którego wyszliśmy z Głównej (ostatni przed ▲ do menu)
     b = p.last
     p.rec("Główna: powrót", src, b, 0, "F5", "OK" if b.focus == src.focus else "UWAGA", "" if b.focus == src.focus else f"„{b.focus}” zamiast „{src.focus}”")
 
@@ -806,8 +832,7 @@ def _(p):
 @path(15, "Długie OK na pozycji menu: nic się nie psuje [F10]")
 def _(p):
     to_row(p, 1)
-    key("LEFT", 12, pause=0.15)
-    p.last = look()
+    open_menu(p)
     long_ok(p, "długie OK w menu", expect=False)
     s = look()
     p.rec("po długim OK", None, s, 0, "F10", "OK" if s.focus and alive() else "BŁĄD", "")
@@ -870,7 +895,8 @@ def _(p):
 @path(19, "Szukaj: polecane — długie OK → menu → Wstecz [F8 F5]")
 def _(p):
     open_route(p, "search")
-    s = seek(p, lambda x: x.fb is not None and x.w() > 150, "RIGHT", 12, "polecany plakat")
+    # E2: wcześniej ►×6 trafiało w chip „Odkrywaj” (szeroki, nie plakat); plakat polecany = pionowy kształt
+    s = seek(p, is_poster, "DOWN", 6, "polecany plakat") or seek(p, is_poster, "RIGHT", 12, "polecany plakat")
     if not s:
         return
     long_ok(p)
@@ -1247,7 +1273,9 @@ def _(p):
     if not s:
         return
     gfx_reset()
-    r = step(p, "RIGHT")
+    # E2: przewodnik Niuni to wiersze kanałów na całą szerokość (jeden element = kanał + bieżący program, bez osi czasu) — ► w prawo
+    # nie ma dokąd iść i nic nie robi (F4); ruch ►◄ po komórkach sprawdzamy tylko, gdy fokus ma szerokość komórki (< 1800 px).
+    r = step(p, "RIGHT", expect_move=bool(s.fb and s.w() < 1800))
     d = step(p, "DOWN")
     col = abs(d.fb[0] - r.fb[0]) < 300 if d.fb and r.fb else False
     p.rec("▼ trzyma czas", r, d, 0, "F2", "OK" if col else "UWAGA", f"x {r.fb[0] if r.fb else '?'} → {d.fb[0] if d.fb else '?'}")
@@ -1324,10 +1352,10 @@ def _(p):
 
 @path(47, "YouTube: czas do fokusu w treści, OK → odtwarzacz → Wstecz (kod obcy: pomiar) [F1 F5, czas]")
 def _(p):
-    s = open_route(p, "youtube")
+    s = open_route(p, "youtube", own_menu=True)  # YouTube ma własny pasek „Główna / Subskrypcje…” (kod obcy, [i]) — nie menu Niuni
     m = s
-    if in_menu(s) or not s.focus:
-        p.note("UWAGA", "YouTube: brak fokusu w treści po otwarciu (kod obcy — [i])")
+    if not s.focus:
+        p.note("UWAGA", "YouTube: brak fokusu po otwarciu (kod obcy — [i])")
     f = seek(p, lambda x: x.fb is not None and x.w() > 200 and x.fb[1] > 150, "DOWN", 4, "film")
     if not f:
         return

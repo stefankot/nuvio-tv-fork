@@ -108,7 +108,7 @@ fun NiuniaSearch(viewModel: SearchViewModel, onNavigateToDetail: (String, String
     val posterOptions = com.nuvio.tv.skin.niunia.components.rememberNiuniaPosterOptions(onNavigateToDetail)
     // UX 22.11 (test emulatora): po Wstecz ze strony tytułu fokus wracał na klawisz „a” — teraz na otwarty wynik/plakat.
     val restore = remember { FocusRequester() }
-    val restoreId = remember { NiuniaSearchMemory.lastId?.takeIf { NiuniaSearchMemory.query == viewModel.uiState.value.query } }
+    val restoreId = remember { com.nuvio.tv.skin.niunia.components.NiuniaFocusKeys.searchReturn(NiuniaSearchMemory.lastId, NiuniaSearchMemory.query, viewModel.uiState.value.query) }
     com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(if (restoreId != null) restore else firstKey)
     LaunchedEffect(Unit) {
         viewModel.ensureDiscoverLoaded() // „Przeglądaj” (gatunki) i „Polecane” — jak ekran odkrywania Nuvio (test JMGO build147: puste)
@@ -205,9 +205,12 @@ fun NiuniaSearch(viewModel: SearchViewModel, onNavigateToDetail: (String, String
                         // Z-19 (P-18): chip „Odkrywaj: gatunek, rok, katalog” nad rzędami → ekran Odkrywaj.
                         NiuniaButton(onClick = {
                             Log.i(TAG, "wyszukiwarka: Odkrywaj")
+                            // UX JMGO 24.11 (F5, pętla 0 ścieżka 19): Wstecz z Odkrywaj wraca na ten chip, nie na klawisz „a”.
+                            NiuniaSearchMemory.lastId = com.nuvio.tv.skin.niunia.components.NiuniaFocusKeys.OPENER_DISCOVER; NiuniaSearchMemory.query = state.query
                             val go = com.nuvio.tv.ui.screens.settings.ForkFeatures.open
                             if (go != null) go(com.nuvio.tv.ui.navigation.Screen.Discover.route) else Log.w(TAG, "wyszukiwarka: Odkrywaj: brak nawigatora")
-                        }, label = stringResource(R.string.niunia_ke2_discover_chip), icon = "discover", kind = NiuniaButtonKind.Chip)
+                        }, label = stringResource(R.string.niunia_ke2_discover_chip), icon = "discover", kind = NiuniaButtonKind.Chip,
+                            focusRequester = if (restoreId == com.nuvio.tv.skin.niunia.components.NiuniaFocusKeys.OPENER_DISCOVER) restore else null)
                         Browse(state, ctx, viewModel, open, posterOptions, focusFor)
                     }
                     else Results(state.isSearching || (fix != null && fix?.done != true && results.isEmpty()), state.submittedQuery, results, tab, onTab = { tab = it; Log.i(TAG, "wyszukiwarka: zakładka $it") }, open, posterOptions, focusFor,

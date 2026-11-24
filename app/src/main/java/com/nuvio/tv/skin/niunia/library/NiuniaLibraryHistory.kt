@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -64,20 +65,29 @@ internal fun NiuniaLibraryHistory(
         ).filter { it.second.isNotEmpty() }
     }
     LaunchedEffect(history.size) { Log.i(TAG, "biblioteka: historia ${history.size} pozycji, rzędy=${groups.size}") }
+    // UX JMGO 24.11 (F5, pętla 0 ścieżka 22): Wstecz ze strony tytułu wraca na tę samą pozycję historii z tym samym przewinięciem.
+    val restore = com.nuvio.tv.skin.niunia.components.rememberNiuniaFocusRestore("biblioteka-historia") {
+        groups.mapIndexed { gi, (_, list) -> "h$gi:" to list.map { w -> "h$gi:${w.contentId}_${w.season}_${w.episode}" } }
+    }
+    val (outerI, outerO) = restore.outerStart()
+    val colState = rememberLazyListState(outerI, outerO)
     if (history.isEmpty()) {
         NiuniaContentBlock(NiuniaBlockKind.Empty, Modifier.padding(start = NiuniaDims.Gutter, top = NiuniaSpacing.Space40)) {
             NiuniaText(stringResource(R.string.niunia_tv2_hist_empty), variant = NiuniaTextVariant.Body, tone = NiuniaTone.Secondary, lines = 2)
         }
         return
     }
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(top = NiuniaSpacing.Space16, bottom = NiuniaSpacing.Space40), verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space24)) {
+    LazyColumn(Modifier.fillMaxSize(), state = colState, contentPadding = PaddingValues(top = NiuniaSpacing.Space16, bottom = NiuniaSpacing.Space40), verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space24)) {
         groups.forEachIndexed { gi, (title, list) ->
             item(key = "hist_$gi") {
                 Column(verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
                     NiuniaCollectionHeader(stringResource(title), active = true, modifier = Modifier.padding(start = NiuniaDims.Gutter).height(NiuniaSpacing.Space24),
                         sub = list.size.toString())
-                    LazyRow(contentPadding = PaddingValues(horizontal = NiuniaDims.Gutter), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
+                    val (rowI, rowO) = restore.innerStart("h$gi:")
+                    val rowState = rememberLazyListState(rowI, rowO)
+                    LazyRow(state = rowState, contentPadding = PaddingValues(horizontal = NiuniaDims.Gutter), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
                         itemsIndexed(list, key = { _, w -> "${gi}_${w.contentId}_${w.season}_${w.episode}" }) { i, w ->
+                            val k = "h$gi:${w.contentId}_${w.season}_${w.episode}"
                             val ep = if (w.season != null && w.episode != null) "S${w.season} E${w.episode}" else null
                             NiuniaPoster(
                                 art = w.poster, fallback = null, title = w.title, logo = null,
@@ -85,7 +95,8 @@ internal fun NiuniaLibraryHistory(
                                 label = null, baked = false,
                                 onOk = { Log.i(TAG, "biblioteka: historia → ${w.contentType} ${w.contentId}"); onOpen(w) },
                                 onLongOk = { Log.i(TAG, "biblioteka: historia, długie OK → ${w.contentId}"); menu = w },
-                                modifier = if (gi == 0 && i == 0) Modifier.focusRequester(first) else Modifier,
+                                modifier = (if (gi == 0 && i == 0 && !restore.active) Modifier.focusRequester(first) else Modifier).then(restore.modifier(k)),
+                                onFocus = { if (it) restore.save(k, i, colState.firstVisibleItemIndex, colState.firstVisibleItemScrollOffset, rowState.firstVisibleItemIndex, rowState.firstVisibleItemScrollOffset) },
                             )
                         }
                     }
