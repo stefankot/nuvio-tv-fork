@@ -5,7 +5,8 @@ S=$(cd "$(dirname "$0")" && pwd); idle=$(( ${1:-1} * 60000 )); max=$(( ${2:-180}
 eval "$(bash "$S/jmgo_adb.sh" --env)"; start=$(date +%s)
 while [ $(( $(date +%s) - start )) -lt $max ]; do
   bash "$S/jmgo_adb.sh" >/dev/null 2>&1
-  age=$(adb shell dumpsys input 2>/dev/null | grep -A10 "RecentQueue" | grep -o "age=[0-9]*" | tr -dc '0-9\n' | sort -n | head -1)
+  # 24.11: `dumpsys input` ma dwa bloki RecentQueue; drugi jest zamrożony (wiek stały ~1,2 s) i blokował „wolny” bez końca — bierzemy tylko pierwszy.
+  age=$(adb shell dumpsys input 2>/dev/null | grep -m1 -A10 "RecentQueue" | grep -o "age=[0-9]*" | tr -dc '0-9\n' | sort -n | head -1)
   # Grające odtwarzacze bez ekranu głównego JMGO (com.jmgo.arwen trzyma własny AudioTrack — to nie oglądanie; 24.11).
   home=$(adb shell pidof com.jmgo.arwen 2>/dev/null | tr -dc '0-9')
   play=$(adb shell dumpsys audio 2>/dev/null | grep "AudioPlaybackConfiguration piid" | grep "state:started" | grep -v "u/pid:[0-9]*/${home:-brak} " | wc -l | tr -dc 0-9)
