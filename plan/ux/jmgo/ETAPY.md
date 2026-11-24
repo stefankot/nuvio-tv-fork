@@ -14,6 +14,7 @@ Stan wyjściowy: commit `bc12adecd` (etap 0). Na JMGO `tv2e` (md5 63a75317…). 
 - Build tylko jeden naraz: buduje wyłącznie etap, który ma to w opisie.
 
 ## Status (każdy etap dopisuje swój wiersz na końcu: `E<n>: ZROBIONE <commit> — <1 zdanie>` albo `E<n>: BLOKADA — <powód>`)
+E2: ZROBIONE c0021653b — pętla 0 (15 OK / 17 UWAGA / 15 BŁĄD / 3 pominięte) przeanalizowana: 5 błędów aplikacji poprawionych w kodzie z testami JVM (powrót fokusu Biblioteka/Odkrywaj/Szukaj, wyciek fokusu z paneli, logi z adresem IPTV), 5 błędów oceny w skrypcie poprawionych; niezbudowane (wejdzie do `uxj2` w E3); otwarte: GPU poza Główną, PSS 884 MB, czasy fokusu (tv2e bez `ForkFocusTrace`) — `RAPORT.md`, `STAN.md`, `cykl0/wydajnosc.md`.
 
 ## E1 — zacięcia GPU na Głównej + build uxj1 + pomiar przed/po (JMGO)
 Ustalenie z pętli 0 (`cykl0/gfx/p04,p07,p08`): Janky 93–98 %, p95 65–150 ms, ALE „Slow UI thread 0”, „Slow issue draw commands 0”
