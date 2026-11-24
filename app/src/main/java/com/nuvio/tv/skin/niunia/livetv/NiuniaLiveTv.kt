@@ -157,6 +157,10 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
     // UX JMGO (ręczne testy 24.11): Wstecz z listy dni stawiał fokus na pierwszym kafelku (kolejne OK włączało kanał) —
     // teraz wraca na przycisk dnia.
     val dayFocus = remember { FocusRequester() }
+    // UX JMGO (ręczne testy 24.11): Wstecz z Odkrywaj/Szukaj stawiał fokus na „Wszystkie” — wraca na przycisk trybu.
+    val searchBtn = remember { FocusRequester() }
+    val discoverBtn = remember { FocusRequester() }
+    var openerBack by remember { mutableStateOf<FocusRequester?>(null) }
     var launching by remember { mutableStateOf(false) }
     val allFocus = remember { FocusRequester() }
     com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(if (mode == LiveMode.GUIDE) allFocus else null)
@@ -347,7 +351,8 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
 
     BackHandler(enabled = mode != LiveMode.GUIDE || dayPicker) {
         Log.i(TAG, "live tv: Wstecz → przewodnik")
-        if (dayPicker) { dayPicker = false; refocus(dayFocus, "przycisk dnia") } else mode = LiveMode.GUIDE
+        if (dayPicker) { dayPicker = false; refocus(dayFocus, "przycisk dnia") }
+        else { openerBack = if (mode == LiveMode.DISCOVER) discoverBtn else searchBtn; mode = LiveMode.GUIDE }
     }
 
     Box(Modifier.fillMaxSize().background(NiuniaColors.Bg)) {
@@ -355,6 +360,7 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
             LiveMode.GUIDE -> Guide(
                 tiles = tiles, filter = filter, categories = categories, channels = guideChannels, numbers = numbers,
                 now = now, dayOffset = dayOffset, guideVersion = state.guideVersion, newKeys = newKeys, allFocus = allFocus, returnTo = returnTo,
+                openerBack = openerBack, onOpenerUsed = { openerBack = null },
                 regionActive = regionChoice.active, regionChip = regionChip,
                 // UX JMGO (ręczne testy 24.11): po wyborze „Polska” chip dalej mówił „Kraj i język” — teraz nazwa wyboru.
                 regionLabel = regionChoice.takeIf { it.active }?.let { c -> if (c.tab == NiuniaLiveRegion.Tab.COUNTRY) NiuniaLiveRegion.countryName(c.code) else NiuniaLiveRegion.languageName(c.code) }, onRegion = { Log.i(TAG, "live tv: Kraj i język → panel"); regionPanel = true },
@@ -372,7 +378,7 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
         TopBar(
             mode = mode, dayLabel = dayLabel(dayOffset, now),
             onSearch = { Log.i(TAG, "live tv: Szukaj"); mode = LiveMode.SEARCH },
-            onDay = { dayPicker = true }, dayFocus = dayFocus,
+            onDay = { dayPicker = true }, dayFocus = dayFocus, searchFocus = searchBtn, discoverFocus = discoverBtn,
             onDiscover = { Log.i(TAG, "live tv: Odkrywaj"); mode = LiveMode.DISCOVER },
         )
         if (dayPicker) DayPicker(dayOffset, now) { d ->
@@ -419,6 +425,8 @@ private fun Guide(
     guideVersion: Int,
     newKeys: Set<String>,
     allFocus: FocusRequester,
+    openerBack: FocusRequester? = null,
+    onOpenerUsed: () -> Unit = {},
     returnTo: NiuniaLiveReturn.Entry? = null,
     regionActive: Boolean,
     regionChip: FocusRequester,
@@ -479,6 +487,11 @@ private fun Guide(
             }
         } else if (returnTo != null) Log.i(TAG, "live tv: miejsca powrotu już nie ma na liście ($returnTo)")
         delay(80)
+        if (openerBack != null) {
+            onOpenerUsed()
+            try { openerBack.requestFocus(); Log.i(TAG, "live tv: fokus wraca na przycisk trybu (Odkrywaj/Szukaj)"); return@LaunchedEffect }
+            catch (e: IllegalStateException) { Log.w(TAG, "live tv: fokus na przycisk trybu: ${e.javaClass.simpleName}: ${e.message}") }
+        }
         try { allFocus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "live tv: fokus „Wszystkie”: ${e.javaClass.simpleName}: ${e.message}") }
     }
     // Z-21 (P-32, makieta LiveTVRow): fokus w przewodniku = podgląd kanału na żywo u góry po prawej i opis programu po lewej
@@ -769,15 +782,16 @@ private fun Cell(title: String, x: Dp, w: Dp, live: Boolean, focused: Boolean, c
 
 /** Prawy górny róg, w linii zwiniętej nawigacji: Szukaj · Dziś · Odkrywaj (ikona + napis; bieżący ekran podświetlony). */
 @Composable
-private fun TopBar(mode: LiveMode, dayLabel: String, onSearch: () -> Unit, onDay: () -> Unit, onDiscover: () -> Unit, dayFocus: FocusRequester? = null) {
+private fun TopBar(mode: LiveMode, dayLabel: String, onSearch: () -> Unit, onDay: () -> Unit, onDiscover: () -> Unit, dayFocus: FocusRequester? = null,
+                   searchFocus: FocusRequester? = null, discoverFocus: FocusRequester? = null) {
     // UX JMGO (ręczne testy 24.11): ◄ z „Szukaj” (pierwszy przycisk paska) skakał w dół na kafelek — teraz otwiera menu.
     var searchFocused by remember { mutableStateOf(false) }
     Row(Modifier.fillMaxWidth().padding(top = com.nuvio.tv.skin.niunia.tokens.NiuniaSize.NavTop, end = NiuniaDims.Gutter).onPreviewKeyEvent { e ->
         if (searchFocused && e.type == KeyEventType.KeyDown && e.key == Key.DirectionLeft) com.nuvio.tv.skin.niunia.nav.NiuniaNavActions.toMenu("live tv ◄ z Szukaj") else false
     }, horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
-        TopButton(Icons.Outlined.Search, stringResource(R.string.niunia_tv_search), mode == LiveMode.SEARCH, onSearch, onFocus = { searchFocused = it })
+        TopButton(Icons.Outlined.Search, stringResource(R.string.niunia_tv_search), mode == LiveMode.SEARCH, onSearch, searchFocus, onFocus = { searchFocused = it })
         TopButton(Icons.Outlined.CalendarToday, dayLabel, false, onDay, dayFocus)
-        TopButton(Icons.Outlined.Explore, stringResource(R.string.niunia_tv_discover), mode == LiveMode.DISCOVER, onDiscover)
+        TopButton(Icons.Outlined.Explore, stringResource(R.string.niunia_tv_discover), mode == LiveMode.DISCOVER, onDiscover, discoverFocus)
         com.nuvio.tv.skin.niunia.components.NiuniaClock() // Z-15: zegar na końcu paska akcji
     }
 }
