@@ -73,3 +73,11 @@ Stare wersje: `plan/archiwum/zasady/` i historia gita.
 - Reshaped wymaga ffmpeg z `app/libs/*.aar`. Stringi Arc są w osobnych plikach `values/strings_*.xml`.
 - Pliki w `/tmp` mogą zniknąć po restarcie.
 - Perfetto na JMGO: usługa śledzenia włączona 24.11 na polecenie właściciela (`persist.traced.enable=1`); ślad: `perf_jmgo.sh perfetto`, odczyt bez pobierania narzędzi: `fork-tools/uitest/perfetto_plasterki.py <ślad> <pid>`.
+
+## 9. Dyscyplina pracy (24.11.2026, po dniu straconym na narzędzia testowe)
+- **Zadanie jest tym, co napisano.** Narzędzia testowe zmieniam tylko wtedy, gdy blokują zadanie, i najwyżej 30 min; potem wpis w `plan/BLOKADY.md` i dalej do zadania.
+- **Nowe lub zmienione narzędzie testowe najpierw na JEDNEJ ścieżce**, porównane z poprzednim wynikiem tej ścieżki; pełny przebieg dopiero, gdy zgadza się z poprzednim. Poprawiony tester → najpierw ponowna ocena istniejących logów, nowy przebieg tylko gdy się nie da.
+- **Jeden przebieg na jeden build.** Po przebiegu w ciągu 15 min: lista błędów APLIKACJI (z logów, bez błędów testera) → poprawki w kodzie → jeden build → przebieg. Nie wolno puszczać kolejnego przebiegu bez zmiany w `app/`.
+- **Przed buildem i instalacją:** `git diff --stat <commit APK>..HEAD -- app`. Brak zmian = ten sam APK: nie buduję, nie instaluję, wpis w `plan/DECYZJE.md`. Gdy właściciel wyraźnie kazał zbudować — buduję, bez pytania.
+- **Każde czekanie w tle** ma limit czasu (≤ 20 min) i warunek sprawdzony najpierw jednym ręcznym poleceniem (na pliku/wyniku, który naprawdę powstaje — nie na tekście z terminala).
+- **Właściciela pytam tylko o decyzję, której nie rozstrzyga ten plik.** Raport etapu zaczyna się od jednego zdania: ile realnych poprawek aplikacji powstało i ile sprawdzono na urządzeniu.
