@@ -1,0 +1,9 @@
+ForkFocus: jest
+[15:34:59] ścieżka 4: Baner ▼ → pierwszy rząd: plakat w całości widoczny, hero bez skoku [F2 F7, gfxinfo]
+   → BŁĄD (26 s) BŁĄD: klatki gfx baner_rzad: Janky 45.28%, p95 53 ms, klatek 53
+[15:35:25] ścieżka 7: Przytrzymana ▼ 3 s przez rzędy i ▲ do banera [F9, gfxinfo]
+   → BŁĄD (24 s) BŁĄD: klatki gfx przytrzymanie_v: Janky 78.38%, p95 117 ms, klatek 74
+[15:35:48] ścieżka 8: Przytrzymana ► 3 s w najdłuższym rzędzie, potem ◄ do początku [F4 F7 F9, gfxinfo]
+   → BŁĄD (35 s) BŁĄD: klatki gfx przytrzymanie_h: Janky 50.53%, p95 69 ms, klatek 283
+koniec: 1.4 min, {'OK': 0, 'UWAGA': 0, 'BŁĄD': 3, 'POMINIĘTA': 0}, raport /Users/milajovovich/Desktop/nuvio 2/NuvioFork/plan/ux/jmgo/cykl1gpu-cieply/sciezki.md
+KOD2=0

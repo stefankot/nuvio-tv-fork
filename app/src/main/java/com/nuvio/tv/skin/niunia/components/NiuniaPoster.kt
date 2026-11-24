@@ -78,9 +78,13 @@ fun NiuniaPoster(
             // DS v2: uniesienie 4 dp, ×1,1, cień i obwódka 3 dp; OK / długie OK (520 ms) przez niuniaOk.
             .niuniaOk(title, onFocus = { focused = it; onFocus?.invoke(it) }, onLongClick = onLongOk, onClick = onOk)
             .niuniaFocusLook(NiuniaFocusStyle.Lift, focused, shape)
-            .clip(shape)
+            // E1 (24.11, JMGO: wąskie gardło to GPU): treść plakatu (grafika, 1–2 warstwy rozmycia, 4 gradienty odcienia,
+            // stopka) jako warstwa sprzętowa — rysowana raz, potem przy przewijaniu i skali fokusu (warstwa wyżej) tylko
+            // przesuwana jednym obrazem. Wygląd ten sam (jak dawne clip(shape)).
+            .graphicsLayer { this.shape = shape; clip = true; compositingStrategy = CompositingStrategy.Offscreen }
             .background(NiuniaColors.Surface)
     ) {
+        if (!posterLayerLogged) { posterLayerLogged = true; android.util.Log.i("ForkNiunia", "plakat: treść w warstwie sprzętowej (rysowana raz, potem tylko przesuwana)") }
         AsyncImage(model = model, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
         // 22.11: na Androidzie 11 też, gdy rozmycie jest gotowe (liczone raz procesorem, pamięć Coil).
         val preblur = androidx.compose.runtime.remember { com.nuvio.tv.fork.images.NativeBlur.enabled(context) }
@@ -130,10 +134,31 @@ private fun BoxScope.BlurLayer(art: Any?, radius: Float, from: Float, to: Float)
     val model = androidx.compose.runtime.remember(art, pre, px) {
         if (pre && art is coil3.request.ImageRequest) art.newBuilder(ctx).transformations(com.nuvio.tv.fork.images.NativeBlur(px)).build() else art
     }
+    if (pre) {
+        // E1 (24.11): obraz jest już rozmyty, więc bufor maski obejmuje tylko dolną część (od [from]) zamiast całego
+        // plakatu — mniej pamięci i pikseli; obraz w środku ma pełną wysokość plakatu i ten sam rozmiar w Coil.
+        if (!blurCutLogged) { blurCutLogged = true; android.util.Log.i("ForkNiunia", "plakat: rozmycie w buforze tylko dolnej części (od ${(from * 100).toInt()} %)") }
+        val k = ((to - from) / (1f - from)).coerceIn(0f, 1f)
+        androidx.compose.ui.layout.Layout(
+            content = { AsyncImage(model = model, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()) },
+            modifier = Modifier.align(Alignment.BottomCenter)
+                .graphicsLayer { clip = true; compositingStrategy = CompositingStrategy.Offscreen }
+                .drawWithContent {
+                    drawContent()
+                    drawRect(Brush.verticalGradient(0f to Color.Transparent, k to Color.Black, 1f to Color.Black), blendMode = BlendMode.DstIn)
+                },
+        ) { measurables, c ->
+            val full = c.maxHeight
+            val cut = kotlin.math.ceil(full * (1f - from)).toInt().coerceIn(1, full)
+            val image = measurables.first().measure(androidx.compose.ui.unit.Constraints.fixed(c.maxWidth, full))
+            layout(c.maxWidth, cut) { image.place(0, cut - full) }
+        }
+        return
+    }
     Box(
         Modifier.fillMaxSize()
             .graphicsLayer {
-                if (!pre) renderEffect = BlurEffect(radius.dp.toPx(), radius.dp.toPx(), TileMode.Clamp)
+                renderEffect = BlurEffect(radius.dp.toPx(), radius.dp.toPx(), TileMode.Clamp)
                 compositingStrategy = CompositingStrategy.Offscreen
             }
             .drawWithContent {
@@ -144,6 +169,9 @@ private fun BoxScope.BlurLayer(art: Any?, radius: Float, from: Float, to: Float)
         AsyncImage(model = model, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
     }
 }
+
+@Volatile private var posterLayerLogged = false
+@Volatile private var blurCutLogged = false
 
 @Composable
 private fun BoxScope.Tint(dom: Color, baked: Boolean) {

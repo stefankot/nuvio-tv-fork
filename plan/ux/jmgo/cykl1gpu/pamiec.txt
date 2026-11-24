@@ -1,0 +1,2 @@
+15:31 po ścieżkach: PSS 877276 KB, Java 363368 KB, natywna 237260 KB, grafika 136048 KB
+15:36 po powtórce 4 7 8: PSS 647302 KB, Java 155724 KB, natywna 201996 KB, grafika 149220 KB

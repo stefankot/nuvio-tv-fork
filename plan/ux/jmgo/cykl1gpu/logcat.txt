@@ -1,0 +1,111 @@
+
+===== ścieżka 4
+--------- beginning of main
+11-24 22:28:02.426 I/ActivityTaskManager(  979): Displayed com.nuviodebug.com/com.nuvio.tv.MainActivity: +1s372ms
+11-24 22:28:02.571 I/ForkNiunia(31363): typografia: Satoshi 500/700, odstęp liter ≤ 0 (ekrany Nuvio)
+--------- beginning of system
+11-24 22:28:04.560 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 22:28:07.162 I/ForkNiunia(31363): plakat: treść w warstwie sprzętowej (rysowana raz, potem tylko przesuwana)
+11-24 22:28:07.164 I/ForkNiunia(31363): plakat: rozmycie w buforze tylko dolnej części (od 82 %)
+11-24 22:28:08.551 I/ForkNiunia(31363): ekran główny: hero=8, dalej oglądaj=116, rzędy=3
+11-24 22:28:08.571 I/ForkNiunia(31363): ekran główny: fokus startowy → play
+11-24 22:28:09.454 I/ForkJank(31363): pominięte drobne/powtórzone przycięcia: 9
+11-24 22:28:10.913 I/ForkNiunia(31363): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 22:28:19.089 I/ForkNiunia(31363): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 22:28:19.730 I/ForkNiunia(31363): ekran główny: tło pod hero: sam rozmyty obraz z przyciemnieniem (bez obrazu bazowego i osobnej warstwy)
+
+===== ścieżka 7
+--------- beginning of main
+--------- beginning of system
+11-24 22:28:40.220 I/ForkNiunia(31363): ekran główny: ▲ → hero
+11-24 22:28:43.381 I/ForkNiunia(31363): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 22:28:45.033 I/ForkNiunia(31363): ekran główny: tło pod hero: sam rozmyty obraz z przyciemnieniem (bez obrazu bazowego i osobnej warstwy)
+11-24 22:28:45.306 I/ForkJank(31363): pominięte drobne/powtórzone przycięcia: 23
+11-24 22:28:49.417 I/ForkNiunia(31363): ekran główny: ▲ → hero
+11-24 22:28:49.429 I/ForkNiunia(31363): menu: otwarte
+11-24 22:28:49.502 I/ForkNiunia(31363): menu: zamknięte
+11-24 22:28:49.502 I/ForkNiunia(31363): menu: otwarte
+11-24 22:28:49.530 I/ForkNiunia(31363): menu: zamknięte
+11-24 22:28:49.530 I/ForkNiunia(31363): menu: otwarte
+
+===== ścieżka 8
+--------- beginning of main
+11-24 22:28:49.417 I/ForkNiunia(31363): ekran główny: ▲ → hero
+11-24 22:28:49.429 I/ForkNiunia(31363): menu: otwarte
+11-24 22:28:49.502 I/ForkNiunia(31363): menu: zamknięte
+11-24 22:28:49.502 I/ForkNiunia(31363): menu: otwarte
+11-24 22:28:49.530 I/ForkNiunia(31363): menu: zamknięte
+11-24 22:28:49.530 I/ForkNiunia(31363): menu: otwarte
+--------- beginning of system
+11-24 22:28:58.277 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 22:28:59.020 I/ForkJank(31363): pominięte drobne/powtórzone przycięcia: 13
+11-24 22:29:00.230 I/ForkNiunia(31363): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 22:29:00.232 I/ForkNiunia(31363): ekran główny: fokus startowy → play
+11-24 22:29:00.233 I/ForkNiunia(31363): menu: zamknięte
+11-24 22:29:06.834 I/ForkNiunia(31363): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 22:29:07.388 I/ForkNiunia(31363): ekran główny: tło pod hero: sam rozmyty obraz z przyciemnieniem (bez obrazu bazowego i osobnej warstwy)
+11-24 22:29:13.972 I/ForkJank(31363): pominięte drobne/powtórzone przycięcia: 9
+11-24 22:29:33.178 I/ForkJank(31363): pominięte drobne/powtórzone przycięcia: 36
+
+===== ścieżka 39
+--------- beginning of main
+--------- beginning of system
+11-24 22:29:58.004 W/ForkNiunia(31363): logo kanału FOX News HD: HttpException: HTTP 404 → następne
+11-24 22:29:58.403 W/ForkNiunia(31363): logo kanału CGTN HD: HttpException: HTTP 404 → następne
+11-24 22:29:58.501 W/ForkNiunia(31363): logo kanału Asharq News: HttpException: HTTP 404 → następne
+11-24 22:29:58.576 W/ForkNiunia(31363): logo kanału France 24 EN: HttpException: HTTP 404 → następne
+11-24 22:29:58.721 I/ForkJank(31363): pominięte drobne/powtórzone przycięcia: 14
+11-24 22:29:58.756 W/ForkNiunia(31363): logo kanału Bloomberg TV: HttpException: HTTP 404 → następne
+11-24 22:29:59.918 W/ForkNiunia(31363): logo kanału PL: Biznes24 HD: HttpException: HTTP 404 → następne
+11-24 22:30:01.297 W/ForkNiunia(31363): logo kanału PL: Canal+ Extra 1 HD (without guarantee): HttpException: HTTP 404 → następne
+11-24 22:30:01.466 W/ForkNiunia(31363): logo kanału PL: Canal+ Extra 2 HD (without guarantee): HttpException: HTTP 404 → następne
+11-24 22:30:02.072 W/ForkNiunia(31363): logo kanału PL: Comedy Сentral HD: HttpException: HTTP 404 → następne
+11-24 22:30:02.208 W/ForkNiunia(31363): logo kanału PL: Discovery HD: HttpException: HTTP 404 → następne
+11-24 22:30:02.209 W/ForkNiunia(31363): logo kanału PL: Crime and Investigation HD: HttpException: HTTP 404 → następne
+11-24 22:30:02.439 W/ForkNiunia(31363): logo kanału PL: Discovery Turbo Xtra HD: HttpException: HTTP 404 → następne
+11-24 22:30:02.487 W/ForkNiunia(31363): logo kanału PL: Da Vinci HD: HttpException: HTTP 404 → następne
+11-24 22:30:02.543 W/ForkNiunia(31363): logo kanału PL: Disney Jr: HttpException: HTTP 404 → następne
+11-24 22:30:02.988 W/ForkNiunia(31363): logo kanału PL: Eurosport 1 HD: HttpException: HTTP 404 → następne
+11-24 22:30:03.376 W/ForkNiunia(31363): logo kanału PL: Extreme Sports: HttpException: HTTP 404 → następne
+11-24 22:30:04.232 I/ForkNiunia(31363): live tv: podgląd → PL: Eurosport 2 HD
+11-24 22:30:04.580 I/ForkNiunia(31363): live tv: podgląd — obraz PL: Eurosport 2 HD
+11-24 22:30:07.197 I/ForkNiunia(31363): menu: otwarte
+11-24 22:30:07.231 I/ForkNiunia(31363): live tv: podgląd zamknięty (fokus poza przewodnikiem)
+11-24 22:30:07.280 I/ForkNiunia(31363): menu: zamknięte
+11-24 22:30:07.280 I/ForkNiunia(31363): menu: otwarte
+11-24 22:30:07.287 I/ForkJank(31363): pominięte drobne/powtórzone przycięcia: 61
+11-24 22:30:07.298 I/ForkNiunia(31363): menu: zamknięte
+11-24 22:30:07.298 I/ForkNiunia(31363): menu: otwarte
+11-24 22:30:07.328 I/ForkNiunia(31363): menu: zamknięte
+11-24 22:30:07.328 I/ForkNiunia(31363): menu: otwarte
+
+===== ścieżka 42
+--------- beginning of main
+--------- beginning of system
+11-24 22:30:14.889 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 22:30:15.350 I/ForkJank(31363): pominięte drobne/powtórzone przycięcia: 2
+11-24 22:30:16.392 I/ForkNiunia(31363): live tv: filtr=wszystkie, kafelki=7, kanały=58622
+11-24 22:30:16.411 I/ForkNiunia(31363): live tv: wszystkie: 58622 z 58622 kanałów (1061 ms)
+11-24 22:30:16.479 I/ForkNiunia(31363): menu: zamknięte
+11-24 22:30:23.418 I/ForkNiunia(31363): live tv: podgląd → Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 5
+11-24 22:30:30.135 I/ForkNiunia(31363): live tv: podgląd → Strong8K · ENDED | BEN WOOLLASTON - MARK JOYCE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 7
+11-24 22:30:33.018 I/ForkNiunia(31363): live tv: podgląd — obraz Strong8K · ENDED | BEN WOOLLASTON - MARK JOYCE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 7
+11-24 22:30:38.630 I/ForkNiunia(31363): live tv: podgląd → Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 5
+11-24 22:30:41.082 I/ForkNiunia(31363): live tv: podgląd — obraz Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIVE | DE: DPLUS PPV 5
+
+===== ścieżka 49
+--------- beginning of main
+--------- beginning of system
+11-24 22:31:14.606 I/ForkNiunia(31363): OK → Only Murders in the Building
+11-24 22:31:14.606 I/ForkNiunia(31363): odkrywaj: OK → tt11691774
+11-24 22:31:14.779 I/ForkJank(31363): pominięte drobne/powtórzone przycięcia: 7
+11-24 22:31:17.256 I/ForkNiunia(31363): szczegóły: series „Zbrodnie po sąsiedzku” (sezony=7, odcinki=10, podobne=0, obsada=254, wznów=false)
+11-24 22:31:17.262 I/ForkNiunia(31363): NAwards: źródło → Wikidata
+11-24 22:31:17.267 I/ForkNiunia(31363): szczegóły: effects: flat (scrim-detail-flat + scrim-detail-bottom, przyciski haze)
+11-24 22:31:17.268 I/ForkNiunia(31363): NAwards: strip: brak nagród, nic nie rysuję
+11-24 22:31:20.996 I/ForkNiunia(31363): NAwards: Wikidata 1 wierszy → 0 nagród, 1 nominacji
+11-24 22:31:21.010 I/ForkNiunia(31363): NAwards: tt11691774 (series): 1 pozycji ze źródła „Wikidata”
+11-24 22:31:21.039 I/ForkNiunia(31363): NAwards: text: 0 nagród + 1 nominacja; galas 1 (1 shown), categories 1 (1 shown)
+11-24 22:31:26.155 I/ForkNiunia(31363): odkrywaj: series, katalog=Popular, gatunek=wszystkie, wyniki=100
+11-24 22:31:26.215 I/ForkJank(31363): pominięte drobne/powtórzone przycięcia: 17
+11-24 22:31:26.279 I/ForkNiunia(31363): odkrywaj: powrót — fokus na d:32_tt11691774

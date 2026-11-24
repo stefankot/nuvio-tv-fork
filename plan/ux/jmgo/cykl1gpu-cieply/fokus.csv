@@ -1,0 +1,18 @@
+sciezka,krok,klawisz,fokus_przed,fokus_po,czas_s,regula,wynik,uwaga
+4,1,trasa home,,"n:Siostra Kopciuszka Animacja · ★ 6.8 [80, 148, 340, 538]",3.58,F1,OK,"fokus 3.6 s, stabilnie 3.6 s; dtFocus - / dtFrame 85 ms; firstFocus 423 ms"
+4,2,▼,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]",3.27,F2,OK,przewinięcie/zmiana układu
+4,3,▼ do rzędu,,"n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]",0.00,F7,OK,
+4,4,►,"n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]","n:W te święta mam cię na oku, W te święta mam cię na oku · 107 W te święta mam cię na oku, W te święta mam cię na oku · 107m, Zostało 107 min | Zostało 1 [440, 148, 760, 376]",3.14,F2,OK,
+4,5,►,"n:W te święta mam cię na oku, W te święta mam cię na oku · 107 W te święta mam cię na oku, W te święta mam cię na oku · 107m, Zostało 107 min | Zostało 1 [440, 148, 760, 376]","n:Rywale, S1, E1 · 52m, Zostało 52 min Rywale, S1, E1 · 52m, Zostało 52 min | Zostało 52 min [800, 148, 1120, 376]",3.23,F2,OK,
+4,6,gfx baner_rzad,,,0.00,klatki,BŁĄD,"Janky 45.28%, p95 53 ms, klatek 53"
+7,1,trasa home,,"n:Rywale, S1, E1 · 52m, Zostało 52 min Rywale, S1, E1 · 52m, Zostało 52 min | Zostało 52 min [80, 148, 400, 376]",3.66,F1,OK,"fokus 3.7 s, stabilnie 3.7 s; dtFocus - / dtFrame 32 ms; firstFocus 400 ms"
+7,2,▼ 3 s,,"n:Dig (2026) Komedia [80, 522, 340, 912]",3.00,F9,OK,
+7,3,▲ 3 s,"n:Dig (2026) Komedia [80, 522, 340, 912]","n:Stef+Patryk S | Stef+Patryk | Zmień profil [56, 64, 424, 176]",3.00,F9,OK,
+7,4,gfx przytrzymanie_v,,,0.00,klatki,BŁĄD,"Janky 78.38%, p95 117 ms, klatek 74"
+8,1,trasa home,,"n:Odtwórz Odtwórz [80, 724, 400, 812]",3.29,F1,OK,"fokus 3.3 s, stabilnie 3.3 s; dtFocus - / dtFrame 62 ms; firstFocus 1145 ms"
+8,2,▼,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]",3.39,F2,OK,przewinięcie/zmiana układu
+8,3,▼,"n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]","n:Siostra Kopciuszka Animacja · ★ 6.8 [80, 148, 340, 538]",3.35,F2,OK,
+8,4,► 3 s,,"n:Ty, ja, my Dramat · ★ 6.3 [1580, 148, 1840, 538]",3.00,F7,OK,
+8,5,► na krawędzi (po 1),"n:Zobacz wszystko: TMDB Popular Zobacz wszystko | TMDB Popular [1580, 148, 1840, 538]","n:Zobacz wszystko: TMDB Popular Zobacz wszystko | TMDB Popular [1580, 148, 1840, 538]",0.00,F4,OK,
+8,6,◄ 4 s,"n:Ty, ja, my Dramat · ★ 6.3 [1580, 148, 1840, 538]","n:Siostra Kopciuszka Animacja · ★ 6.8 [80, 148, 340, 538]",4.00,F9,OK,
+8,7,gfx przytrzymanie_h,,,0.00,klatki,BŁĄD,"Janky 50.53%, p95 69 ms, klatek 283"

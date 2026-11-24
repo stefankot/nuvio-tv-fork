@@ -210,7 +210,7 @@ def trace_after(p, label):
         STATS["firstFocus"].append((label, st["firstFocus"][-1]))
     out = []
     if st["dtFrame"]:
-        out.append(f"dtFocus {st['dtFocus'][-1]} / dtFrame {st['dtFrame'][-1]} ms")
+        out.append(f"dtFocus {st['dtFocus'][-1] if st['dtFocus'] else '-'} / dtFrame {st['dtFrame'][-1]} ms")  # E1: dtFrame bez dtFocus → był IndexError
     if st["firstFocus"]:
         out.append(f"firstFocus {st['firstFocus'][-1]} ms")
     return "; ".join(out)

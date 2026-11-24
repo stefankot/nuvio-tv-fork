@@ -1,0 +1,16 @@
+ForkFocus: brak (APK bez pomiaru — tylko odczyty uiautomator)
+[15:28:04] ścieżka 4: Baner ▼ → pierwszy rząd: plakat w całości widoczny, hero bez skoku [F2 F7, gfxinfo]
+   → BŁĄD (25 s) UWAGA: F1 trasa home: fokus 9.5 s, stabilnie 9.5 s (budżet 0.6/3.0 s); BŁĄD: klatki gfx baner_rzad: Janky 90.48%, p95 125 ms, klatek 42
+[15:28:29] ścieżka 7: Przytrzymana ▼ 3 s przez rzędy i ▲ do banera [F9, gfxinfo]
+   → BŁĄD (26 s) UWAGA: F1 trasa home: fokus 6.1 s, stabilnie 6.1 s (budżet 0.6/3.0 s); BŁĄD: klatki gfx przytrzymanie_v: Janky 96.43%, p95 250 ms, klatek 56
+[15:28:54] ścieżka 8: Przytrzymana ► 3 s w najdłuższym rzędzie, potem ◄ do początku [F4 F7 F9, gfxinfo]
+   → BŁĄD (45 s) UWAGA: F1 trasa home: fokus 4.0 s, stabilnie 4.0 s (budżet 0.6/3.0 s); BŁĄD: klatki gfx przytrzymanie_h: Janky 41.23%, p95 65 ms, klatek 308
+[15:29:39] ścieżka 39: Lista kanałów: przytrzymana ▼ 5 s i ▲ [F9, gfxinfo]
+   → BŁĄD (35 s) UWAGA: F1 trasa reshaped_live_tv: fokus 4.1 s, stabilnie 4.1 s (budżet 0.6/3.0 s); BŁĄD: klatki gfx kanaly: Janky 49.3%, p95 150 ms, klatek 213
+[15:30:14] ścieżka 42: Przewodnik EPG: ►◄ w czasie, ▼▲ trzyma czas; podgląd nie kradnie fokusu [F2 F6, gfxinfo]
+   → OK (29 s) 
+[15:30:44] ścieżka 49: Odkrywaj / Zobacz wszystko: siatka ▼►, przytrzymana ▼, OK → tytuł → Wstecz na ten sam kafelek [F2 F5 F7 F9, gfxinfo]
+   → BŁĄD (50 s) BŁĄD: klatki gfx siatka: Janky 45.77%, p95 121 ms, klatek 284
+koniec: 3.5 min, {'OK': 1, 'UWAGA': 0, 'BŁĄD': 5, 'POMINIĘTA': 0}, raport /Users/milajovovich/Desktop/nuvio 2/NuvioFork/plan/ux/jmgo/cykl1gpu/sciezki.md
+15:31 po ścieżkach: PSS 877276 KB, Java 363368 KB, natywna 237260 KB, grafika 136048 KB
+KOD=0

@@ -1,0 +1,41 @@
+sciezka,krok,klawisz,fokus_przed,fokus_po,czas_s,regula,wynik,uwaga
+4,1,trasa home,,"n:Odtwórz Odtwórz [80, 724, 400, 812]",9.48,F1,UWAGA,"fokus 9.5 s, stabilnie 9.5 s (budżet 0.6/3.0 s)"
+4,2,▼,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]",3.35,F2,OK,przewinięcie/zmiana układu
+4,3,▼ do rzędu,,"n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]",0.00,F7,OK,
+4,4,►,"n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]","n:W te święta mam cię na oku, W te święta mam cię na oku · 107 W te święta mam cię na oku, W te święta mam cię na oku · 107m, Zostało 107 min | Zostało 1 [440, 148, 760, 376]",3.27,F2,OK,
+4,5,►,"n:W te święta mam cię na oku, W te święta mam cię na oku · 107 W te święta mam cię na oku, W te święta mam cię na oku · 107m, Zostało 107 min | Zostało 1 [440, 148, 760, 376]","n:Rywale, S1, E1 · 52m, Zostało 52 min Rywale, S1, E1 · 52m, Zostało 52 min | Zostało 52 min [800, 148, 1120, 376]",3.30,F2,OK,
+4,6,gfx baner_rzad,,,0.00,klatki,BŁĄD,"Janky 90.48%, p95 125 ms, klatek 42"
+7,1,trasa home,,"n:Rywale, S1, E1 · 52m, Zostało 52 min Rywale, S1, E1 · 52m, Zostało 52 min | Zostało 52 min [80, 148, 400, 376]",6.06,F1,UWAGA,"fokus 6.1 s, stabilnie 6.1 s (budżet 0.6/3.0 s)"
+7,2,▼ 3 s,,"n:Dig (2026) Komedia [80, 522, 340, 912]",3.00,F9,OK,
+7,3,▲ 3 s,"n:Dig (2026) Komedia [80, 522, 340, 912]","n:Stef+Patryk S | Stef+Patryk | Zmień profil [56, 64, 424, 176]",3.00,F9,OK,
+7,4,gfx przytrzymanie_v,,,0.00,klatki,BŁĄD,"Janky 96.43%, p95 250 ms, klatek 56"
+8,1,trasa home,,"n:Odtwórz Odtwórz [80, 724, 400, 812]",3.97,F1,UWAGA,"fokus 4.0 s, stabilnie 4.0 s (budżet 0.6/3.0 s)"
+8,2,▼,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]",3.30,F2,OK,przewinięcie/zmiana układu
+8,3,▼,"n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]","n:Siostra Kopciuszka Animacja · ★ 6.8 [80, 148, 340, 538]",3.30,F2,OK,
+8,4,► 3 s,,"n:Dziki Koń Dziewięć Komedia · ★ 8.1 [1580, 148, 1840, 538]",3.00,F7,OK,
+8,5,► na krawędzi (po 3),"n:Zobacz wszystko: TMDB Popular Zobacz wszystko | TMDB Popular [1580, 148, 1840, 538]","n:Zobacz wszystko: TMDB Popular Zobacz wszystko | TMDB Popular [1580, 148, 1840, 538]",0.00,F4,OK,
+8,6,◄ 4 s,"n:Dziki Koń Dziewięć Komedia · ★ 8.1 [1580, 148, 1840, 538]","n:Siostra Kopciuszka Animacja · ★ 6.8 [80, 148, 340, 538]",4.00,F9,OK,
+8,7,gfx przytrzymanie_h,,,0.00,klatki,BŁĄD,"Janky 41.23%, p95 65 ms, klatek 308"
+39,1,trasa reshaped_live_tv,,"n:Wszystkie Wszystkie [80, 472, 273, 544]",4.12,F1,UWAGA,"fokus 4.1 s, stabilnie 4.1 s (budżet 0.6/3.0 s)"
+39,2,▼×1,,"n:RT HD 110 | RT HD | Headline News | Documentary | In Conversation with Salman Khurshid [0, 728, 1920, 824]",0.00,-,OK,→ wiersz kanału
+39,3,▼ 5 s,,"n:PL: Eurosport 2 HD 176 | PL: Eurosport 2 HD | Igrzyska olimpijskie: Galeria Sław Mediolan-Cortina 2026 | Kola [0, 728, 1920, 824]",5.00,F7,OK,
+39,4,▲ 5 s,"n:PL: Eurosport 2 HD 176 | PL: Eurosport 2 HD | Igrzyska olimpijskie: Galeria Sław Mediolan-Cortina 2026 | Kola [0, 728, 1920, 824]","n:Stef+Patryk S | Stef+Patryk | Zmień profil [56, 64, 424, 176]",5.00,F9,OK,„n:Stef+Patryk S | Stef+Patryk | Zmień profil”
+39,5,gfx kanaly,,,0.00,klatki,BŁĄD,"Janky 49.3%, p95 150 ms, klatek 213"
+42,1,trasa reshaped_live_tv,,"n:Wszystkie Wszystkie [80, 472, 273, 544]",2.44,F1,OK,"fokus 2.4 s, stabilnie 2.4 s"
+42,2,▼×1,,"n:Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15 1 | Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIV [0, 632, 1920, 728]",0.00,-,OK,→ wiersz kanału
+42,3,►,"n:Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15 1 | Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIV [0, 632, 1920, 728]","n:Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15 1 | Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIV [0, 632, 1920, 728]",3.27,F2,OK,
+42,4,▼,"n:Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15 1 | Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIV [0, 632, 1920, 728]","n:Strong8K · ENDED | BEN WOOLLASTON - MARK JOYCE | Mon 23 Nov  2 | Strong8K · ENDED | BEN WOOLLASTON - MARK JOYCE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUS [0, 728, 1920, 824]",3.41,F2,OK,
+42,5,▼ trzyma czas,"n:Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15 1 | Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIV [0, 632, 1920, 728]","n:Strong8K · ENDED | BEN WOOLLASTON - MARK JOYCE | Mon 23 Nov  2 | Strong8K · ENDED | BEN WOOLLASTON - MARK JOYCE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUS [0, 728, 1920, 824]",0.00,F2,OK,x 0 → 0
+42,6,"podgląd po 2,5 s","n:Strong8K · ENDED | BEN WOOLLASTON - MARK JOYCE | Mon 23 Nov  2 | Strong8K · ENDED | BEN WOOLLASTON - MARK JOYCE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUS [0, 728, 1920, 824]","n:Strong8K · ENDED | BEN WOOLLASTON - MARK JOYCE | Mon 23 Nov  2 | Strong8K · ENDED | BEN WOOLLASTON - MARK JOYCE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUS [0, 728, 1920, 824]",2.50,F6,OK,
+42,7,▲,"n:Strong8K · ENDED | BEN WOOLLASTON - MARK JOYCE | Mon 23 Nov  2 | Strong8K · ENDED | BEN WOOLLASTON - MARK JOYCE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUS [0, 728, 1920, 824]","n:Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15 1 | Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIV [0, 632, 1920, 728]",3.35,F2,OK,
+42,8,◄,"n:Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15 1 | Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIV [0, 632, 1920, 728]","n:Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15 1 | Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIV [0, 632, 1920, 728]",3.54,F2,OK,
+42,9,gfx epg,,,0.00,klatki,OK,"Janky 1.64%, p95 10 ms, klatek 304"
+49,1,trasa discover,,"n:Seriale Seriale [230, 184, 383, 256]",2.83,F1,OK,"fokus 2.8 s, stabilnie 2.8 s"
+49,2,▼×2,,"n:The Body Dramat [80, 392, 340, 782]",0.00,-,OK,→ kafelek siatki
+49,3,►,"n:The Body Dramat [80, 392, 340, 782]","n:MobLand Kryminał · ★ 8.3 [380, 392, 640, 782]",3.30,F2,OK,
+49,4,▼,"n:MobLand Kryminał · ★ 8.3 [380, 392, 640, 782]","n:The Good Daughter Kryminał [380, 488, 640, 878]",3.59,F2,OK,
+49,5,▼ 2 s,"n:The Good Daughter Kryminał [380, 488, 640, 878]","n:Supernatural Dramat · ★ 8.4 [380, 487, 640, 877]",2.00,F7,OK,
+49,6,►,"n:Supernatural Dramat · ★ 8.4 [380, 487, 640, 877]","n:Only Murders in the Building Komedia · ★ 8.0 [680, 487, 940, 877]",3.59,F2,OK,
+49,7,OK kafelek,"n:Only Murders in the Building Komedia · ★ 8.0 [680, 487, 940, 877]","n:Odtwórz S1, O1 Odtwórz S1, O1 [80, 825, 458, 913]",11.08,F1,OK,pierwszy fokus 2.9 s
+49,8,Wstecz,"n:Odtwórz S1, O1 Odtwórz S1, O1 [80, 825, 458, 913]","n:Only Murders in the Building Komedia · ★ 8.0 [680, 487, 940, 877]",8.21,F5,OK,pierwszy fokus 2.4 s
+49,9,gfx siatka,,,0.00,klatki,BŁĄD,"Janky 45.77%, p95 121 ms, klatek 284"

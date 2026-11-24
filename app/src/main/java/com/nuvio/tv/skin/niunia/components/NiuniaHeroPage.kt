@@ -10,7 +10,6 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.gestures.BringIntoViewSpec
 import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
@@ -20,6 +19,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,7 +31,12 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.BlurEffect
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.CompositingStrategy
+import coil3.compose.AsyncImagePainter
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.runtime.LaunchedEffect
@@ -44,6 +49,8 @@ import com.nuvio.tv.skin.niunia.tokens.NiuniaColors
 import com.nuvio.tv.skin.niunia.tokens.NiuniaDims
 
 private const val TAG = "ForkNiunia"
+/** Przyciemnienie tła pod hero (55 % czerni). */
+private val DIM = Color(0x8C000000)
 
 /**
  * Strona z hero Niuni (właściciel 20.11): hero nie jest elementem przewijanej listy (był wyższy niż obszar listy, więc fokus
@@ -84,7 +91,14 @@ fun NiuniaHeroPage(
         Log.i(TAG, "$what: Wstecz → hero")
         try { heroFocus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "$what: fokus hero: ${e.javaClass.simpleName}: ${e.message}") }
     }
-    BoxWithConstraints(Modifier.fillMaxSize().background(NiuniaColors.Bg)) {
+    // E1 (24.11, JMGO: wąskie gardło to GPU): po zejściu pod hero (t = 1) i z wczytanym rozmytym obrazem nie rysujemy
+    // zasłoniętego tła ekranu ani obrazu bazowego, a przyciemnienie jest w rozmytym obrazie (filtr koloru) zamiast osobnej
+    // warstwy na cały ekran — ten sam wygląd, 3 wypełnienia ekranu mniej na klatkę.
+    var blurReady by remember(blurred) { mutableStateOf(false) }
+    val rest by remember { derivedStateOf { t >= 0.999f } }
+    val folded = rest && blurReady
+    LaunchedEffect(folded) { if (folded) Log.i(TAG, "$what: tło pod hero: sam rozmyty obraz z przyciemnieniem (bez obrazu bazowego i osobnej warstwy)") }
+    BoxWithConstraints(Modifier.fillMaxSize().drawBehind { if (!folded) drawRect(NiuniaColors.Bg) }) {
         val h = with(LocalDensity.current) { maxHeight.toPx() }
         // Szkło (fork/glass): obraz, rozmycie, przyciemnienie i scrim to warstwa tła dla przycisków i paneli strony.
         Box(with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.fillMaxSize().forkGlassBackdrop() }) {
@@ -93,7 +107,7 @@ fun NiuniaHeroPage(
             modifier = Modifier.fillMaxSize().graphicsLayer {
                 if (blurOk && blurred == null && t > 0.01f) renderEffect = BlurEffect(blurPx * t, blurPx * t, TileMode.Clamp)
                 if (t > 0.01f) { scaleX = 1f + 0.08f * t; scaleY = 1f + 0.08f * t } // brzegi rozmycia poza ekranem
-            },
+            }.drawWithContent { if (!folded) drawContent() },
         )
         if (detailBlur && blurOk) {
             val detailPx = with(LocalDensity.current) { 36.dp.toPx() }
@@ -111,10 +125,17 @@ fun NiuniaHeroPage(
         }
         if (blurred != null) AsyncImage(
             model = blurred, contentDescription = null, contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize().graphicsLayer { alpha = t; scaleX = 1f + 0.08f * t; scaleY = 1f + 0.08f * t },
+            onState = { blurReady = it is AsyncImagePainter.State.Success },
+            // Przy t = 1 to samo co obraz + warstwa 0x8C000000 nad nim (obraz zakrywa cały ekran), ale w jednym rysowaniu.
+            colorFilter = if (folded) ColorFilter.tint(DIM, BlendMode.SrcAtop) else null,
+            // Jedna treść → alfa na rysowaniu, bez bufora pozaekranowego w czasie przejścia.
+            modifier = Modifier.fillMaxSize().graphicsLayer {
+                alpha = t; scaleX = 1f + 0.08f * t; scaleY = 1f + 0.08f * t; compositingStrategy = CompositingStrategy.ModulateAlpha
+            }.drawWithContent { if (t > 0.001f) drawContent() },
         )
         if (scrim != null) Box(Modifier.fillMaxSize().graphicsLayer { alpha = 1f - t; translationY = -h * t }, content = scrim)
-        Box(Modifier.fillMaxSize().graphicsLayer { alpha = t }.background(if (blurOk || blurred != null) Color(0x8C000000) else Color(0xE62C2C2E)))
+        val dim = if (blurOk || blurred != null) DIM else Color(0xE62C2C2E)
+        Box(Modifier.fillMaxSize().drawBehind { if (t > 0.001f && !folded) drawRect(dim, alpha = t) })
         }
         Box(
             Modifier.fillMaxSize()
