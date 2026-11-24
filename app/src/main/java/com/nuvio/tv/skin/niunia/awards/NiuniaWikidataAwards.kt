@@ -34,7 +34,10 @@ class NiuniaWikidataAwards(private val context: Context) : NiuniaAwardsSource {
                 try { return@withContext decode(JSONArray(file.readText())).also { Log.i(AWARDS_TAG, "NAwards: $imdb z dysku (${it.size})") } }
                 catch (e: Exception) { Log.w(AWARDS_TAG, "NAwards: zapis $imdb uszkodzony: ${e.javaClass.simpleName}: ${e.message}") }
             }
-            val rows = query(imdb)
+            // Test JMGO tv2c: pierwsze zapytanie przekroczyło 12 s (SocketTimeoutException), z Maca 1,7 s — dłuższy limit i jedna ponowna próba.
+            val rows = try { query(imdb) } catch (e: java.net.SocketTimeoutException) {
+                Log.w(AWARDS_TAG, "NAwards: Wikidata $imdb: ${e.javaClass.simpleName}: ${e.message} — ponawiam raz"); query(imdb)
+            }
             val list = parse(rows)
             try {
                 file.parentFile?.mkdirs()
@@ -58,7 +61,7 @@ class NiuniaWikidataAwards(private val context: Context) : NiuniaAwardsSource {
         """.trimIndent()
         val url = URL("https://query.wikidata.org/sparql?format=json&query=" + URLEncoder.encode(sparql, "UTF-8"))
         val c = url.openConnection() as HttpURLConnection
-        c.connectTimeout = 8_000; c.readTimeout = 12_000
+        c.connectTimeout = 10_000; c.readTimeout = 25_000
         c.setRequestProperty("Accept", "application/sparql-results+json")
         c.setRequestProperty("User-Agent", "NuvioTvFork/1.0 (Android TV app; awards lookup)")
         try {

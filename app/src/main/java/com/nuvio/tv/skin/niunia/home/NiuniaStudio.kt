@@ -97,7 +97,7 @@ internal fun NiuniaStudio(
                             }
                             NiuniaContentBlock(NiuniaBlockKind.Info, Modifier.widthIn(max = 600.dp)) {
                                 NiuniaText(h.name, variant = NiuniaTextVariant.TitleScreen, lines = 1)
-                                NiuniaText(listOfNotNull(stringResource(if (h.kind.name.contains("NETWORK", true)) R.string.niunia_tv2_studio_network else R.string.niunia_tv2_studio_company), h.secondaryLabel, h.originCountry).joinToString(" · "),
+                                NiuniaText(listOfNotNull(stringResource(if (h.kind.name.contains("NETWORK", true)) R.string.niunia_tv2_studio_network else R.string.niunia_tv2_studio_company), h.secondaryLabel?.trim(), h.originCountry?.trim()).filter { it.isNotBlank() }.joinToString(" · "),
                                     variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 1)
                                 h.description?.takeIf { it.isNotBlank() }?.let { NiuniaText(it, variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Tertiary, lines = 2) }
                             }

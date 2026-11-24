@@ -124,7 +124,8 @@ internal object NiuniaLiveRegion {
         val byCountry = HashMap<String, Int>()
         val byLanguage = HashMap<String, Int>()
         input.forEachIndexed { i, ch ->
-            val cc = com.nuvio.tv.fork.tv.country.TvCountry.countryOf(ch, providers, listCountry)
+            // Test JMGO tv2c: z nazw wychodziły też „GMT”, „BK” — tylko kody krajów ISO (i „uk”).
+            val cc = com.nuvio.tv.fork.tv.country.TvCountry.countryOf(ch, providers, listCountry)?.takeIf { it == "uk" || it.uppercase() in ISO }
             codes[i] = cc
             if (cc != null) {
                 byCountry[cc] = (byCountry[cc] ?: 0) + 1
@@ -137,6 +138,7 @@ internal object NiuniaLiveRegion {
     }
 
     private const val MAX_OPTIONS = 30
+    private val ISO: Set<String> = Locale.getISOCountries().toHashSet()
 }
 
 /** Wynik filtra w tle: lista kanałów po wyborze kraju lub języka (bez wyboru albo bez trafień — [input] bez zmian) i indeks dla panelu. */

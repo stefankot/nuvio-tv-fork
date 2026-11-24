@@ -86,7 +86,7 @@ internal fun NiuniaDiscover(viewModel: SearchViewModel, onNavigateToDetail: (Str
                 items(listOf("movie", "series")) { t ->
                     NiuniaButton(onClick = { Log.i(TAG, "odkrywaj: typ → $t"); viewModel.onEvent(SearchEvent.SelectDiscoverType(t)) },
                         label = stringResource(if (t == "movie") R.string.niunia_ke_lib_movies else R.string.niunia_ke_lib_series), kind = NiuniaButtonKind.Chip,
-                        selected = ui.selectedDiscoverType == t, focusRequester = if (t == "movie") firstChip else null)
+                        selected = ui.selectedDiscoverType == t, focusRequester = if (t == ui.selectedDiscoverType) firstChip else null)
                 }
                 items(catalogs, key = { it.key }) { c ->
                     NiuniaButton(onClick = { Log.i(TAG, "odkrywaj: katalog → ${c.catalogName}"); viewModel.onEvent(SearchEvent.SelectDiscoverCatalog(c.key)) },

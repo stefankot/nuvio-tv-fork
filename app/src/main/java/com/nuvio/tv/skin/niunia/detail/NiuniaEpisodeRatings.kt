@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -106,23 +107,31 @@ internal fun NiuniaEpisodeRatingsTable(
             }
             NiuniaText(summary, variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 1)
             Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space24)) {
-                // Siatka: kolumna sezonu 80 + komórki 56 × 44, odstęp 4; przewija się w obu kierunkach za fokusem.
-                Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).horizontalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Box(Modifier.width(NiuniaSize.RatingLabelW))
-                        (1..maxEp).forEach { e -> Text("E$e", style = NiuniaType.Caption, color = NiuniaColor.Text50, textAlign = TextAlign.Center, modifier = Modifier.width(NiuniaSize.RatingCellW)) }
+                // Siatka: kolumna sezonu 80 (stoi w miejscu) + komórki 56 × 44, odstęp 4; komórki przewijają się w poziomie,
+                // całość w pionie, za fokusem. Test JMGO tv2c: przewijanie w prawo chowało etykiety „Sezon N”.
+                Row(Modifier.weight(1f).verticalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Column(Modifier.width(NiuniaSize.RatingLabelW), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(" ", style = NiuniaType.Caption, maxLines = 1)
+                        bySeason.keys.forEach { season ->
+                            Box(Modifier.height(NiuniaSize.H44), contentAlignment = Alignment.CenterStart) {
+                                Text(stringResource(R.string.niunia_tv2_ratings_season, season), style = NiuniaType.LabelSmall,
+                                    color = if (focused?.season == season) NiuniaColor.White else NiuniaColor.Text70, maxLines = 1)
+                            }
+                        }
                     }
-                    bySeason.forEach { (season, eps) ->
-                        val rowOn = focused?.season == season
-                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text(stringResource(R.string.niunia_tv2_ratings_season, season), style = NiuniaType.LabelSmall, color = if (rowOn) NiuniaColor.White else NiuniaColor.Text70,
-                                modifier = Modifier.width(NiuniaSize.RatingLabelW), maxLines = 1)
-                            val byEp = eps.associateBy { it.episode ?: 0 }
-                            (1..maxEp).forEach { e ->
-                                val v = byEp[e]
-                                if (v == null) Box(Modifier.size(NiuniaSize.RatingCellW, NiuniaSize.H44))
-                                else Cell(v, score(v), enabled = !best || (score(v) != null && threshold != null && score(v)!! >= threshold),
-                                    requester = if (v === firstRated) first else null, onFocus = { if (it) focused = v }, onPlay = onPlay, onDetails = onDetails)
+                    Column(Modifier.horizontalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            (1..maxEp).forEach { e -> Text("E$e", style = NiuniaType.Caption, color = NiuniaColor.Text50, textAlign = TextAlign.Center, modifier = Modifier.width(NiuniaSize.RatingCellW), maxLines = 1) }
+                        }
+                        bySeason.forEach { (_, eps) ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                                val byEp = eps.associateBy { it.episode ?: 0 }
+                                (1..maxEp).forEach { e ->
+                                    val v = byEp[e]
+                                    if (v == null) Box(Modifier.size(NiuniaSize.RatingCellW, NiuniaSize.H44))
+                                    else Cell(v, score(v), enabled = !best || (score(v) != null && threshold != null && score(v)!! >= threshold),
+                                        requester = if (v === firstRated) first else null, onFocus = { if (it) focused = v }, onPlay = onPlay, onDetails = onDetails)
+                                }
                             }
                         }
                     }

@@ -97,18 +97,20 @@ internal object NiuniaGuideChoice {
         val mine = ChannelDupes.plain(ChannelNames.shown(ch.name)).trim()
         val head = mine.substringBefore(' ').takeIf { it.length >= 2 } ?: mine
         val out = LinkedHashMap<String, Candidate>()
-        if (ch.guideKey.isNotEmpty()) out[ch.guideKey] = Candidate(ch.guideKey, ChannelNames.shown(ch.name), sameName = true, auto = true)
+        if (ch.guideKey.isNotEmpty()) out[ch.guideKey] = Candidate(ch.guideKey, ch.name.trim().take(60), sameName = true, auto = true)
         if (head.isEmpty()) return out.values.toList()
         val same = ArrayList<Candidate>()
         val similar = ArrayList<Candidate>()
         val seen = HashSet<String>(out.keys)
         for (o in all) {
             if (o.guideKey.isEmpty() || o.guideKey in seen) continue
-            if (!o.name.contains(head, ignoreCase = true) && !ChannelNames.shown(o.name).contains(head, ignoreCase = true)) continue
+            // Test JMGO tv2c: shown() dla każdego z 58 tys. kanałów trwało kilka sekund — najpierw tani test surowej nazwy.
+            if (!o.name.contains(head, ignoreCase = true)) continue
             val n = ChannelDupes.plain(ChannelNames.shown(o.name)).trim()
             if (!n.startsWith(head)) continue
             seen += o.guideKey
-            (if (n == mine) same else similar) += Candidate(o.guideKey, ChannelNames.shown(o.name), sameName = n == mine, auto = false)
+            // Test JMGO tv2c: krótka nazwa („CNBC”) była taka sama dla wszystkich kopii — pełna nazwa z listy.
+            (if (n == mine) same else similar) += Candidate(o.guideKey, o.name.trim().take(60), sameName = n == mine, auto = false)
             if (same.size >= limit) break
         }
         return (out.values + same + similar.sortedBy { it.name.length }).take(limit)
@@ -200,7 +202,8 @@ internal fun NiuniaLiveOptionsPanel(
                         try { first.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "live tv: fokus listy przewodników: ${e.javaClass.simpleName}: ${e.message}") }
                     }
                     val cands = list
-                    if (cands == null) NiuniaListRow(stringResource(R.string.niunia_tv1_guide_searching), onClick = null, enabled = false, focusRequester = null)
+                    // Test JMGO tv2c: wiersz bez fokusu w czasie szukania wypuszczał fokus spod panelu na kafelki.
+                    if (cands == null) NiuniaListRow(stringResource(R.string.niunia_tv1_guide_searching), onClick = { Log.i(TAG, "live tv: przewodniki jeszcze się szukają") }, focusRequester = first)
                     else {
                         val current = remember(choiceVersion) { NiuniaGuideChoice.keyFor(channel) }
                         LazyColumn(Modifier.heightIn(max = 380.dp), state = listState) {
