@@ -175,7 +175,9 @@ fun NiuniaProfileCard(
                 contentAlignment = Alignment.Center,
             ) { NiuniaIcon("check", size = NiuniaSpacing.Space12, tint = NiuniaColor.White) }
         }
-        Text(title, style = NiuniaType.CaptionRegular, color = if (focused) NiuniaColor.White else NiuniaColor.Text70, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        // UX JMGO (ręczne testy 24.11): „Stef+Patryk (Kaptain)” i „… (Kaptain) Copy” — oba ucięte do „Stef+Patryk (K…”. Dwie linie.
+        Text(title, style = NiuniaType.CaptionRegular, color = if (focused) NiuniaColor.White else NiuniaColor.Text70, maxLines = 2, overflow = TextOverflow.Ellipsis,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center)
     }
 }
 
