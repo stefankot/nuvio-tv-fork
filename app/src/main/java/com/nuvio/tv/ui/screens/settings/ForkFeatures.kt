@@ -17,6 +17,7 @@ object ForkFeatures {
     fun bind(navController: androidx.navigation.NavHostController) {
         open = { r -> navController.navigate(r) }
         com.nuvio.tv.fork.family.FamilyUsage.watch(navController) // statystyki używania (panel Rodzina)
+        com.nuvio.tv.fork.perf.ForkFocusTrace.watch(navController) // 24.11 UX JMGO: trasa do pomiaru fokusu
         if (nav === navController) return
         nav = navController
         val r = pendingRoute ?: return

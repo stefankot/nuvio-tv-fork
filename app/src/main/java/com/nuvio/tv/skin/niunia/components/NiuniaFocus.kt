@@ -14,6 +14,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
@@ -31,15 +32,20 @@ fun Modifier.niuniaFocusable(
     lift: Boolean = true,
     focusRequester: FocusRequester? = null,
     onFocus: ((Boolean) -> Unit)? = null,
+    traceName: String = "niunia",
     onOk: () -> Unit,
 ): Modifier {
     var focused by remember { mutableStateOf(false) }
+    val trace = com.nuvio.tv.fork.perf.ForkFocusTrace.on // 24.11 UX JMGO: pomiar fokusu (wyłączony = bez dodatkowych modyfikatorów)
+    val pos = remember { arrayOfNulls<androidx.compose.ui.layout.LayoutCoordinates>(1) }
     val s by animateFloatAsState(if (focused) scale else 1f, tween(180), label = "niuniaScale")
     val interaction = remember { MutableInteractionSource() }
     val withRequester = if (focusRequester != null) this.focusRequester(focusRequester) else this
     return withRequester
         .zIndex(if (focused) 1f else 0f)
+        .then(if (trace) Modifier.onGloballyPositioned { pos[0] = it } else Modifier)
         .onFocusChanged { st ->
+            if (st.isFocused && com.nuvio.tv.fork.perf.ForkFocusTrace.on) com.nuvio.tv.fork.perf.ForkFocusTrace.focused(traceName, niuniaBounds(pos[0]))
             if (st.isFocused != focused) {
                 focused = st.isFocused
                 onFocus?.invoke(st.isFocused)

@@ -69,4 +69,48 @@ class NiuniaOkGateTest {
         assertFalse(g.timer(first))
         assertEquals(Up.CLICK, g.up())
     }
+
+    // --- UX JMGO 24.11: przypadki z pętli na projektorze ---
+
+    @Test fun okHeldFromPreviousScreenThenFreshPressClicks() {
+        // OK trzymane na poprzednim ekranie: na nowym elemencie przychodzą same powtórzenia i puszczenie — nic nie robią.
+        val g = NiuniaOkGate()
+        assertEquals(Down.IGNORE, g.down(1000, 5, systemLong = true, hasLong = true))
+        assertEquals(Down.IGNORE, g.down(1050, 6, systemLong = true, hasLong = true))
+        assertEquals(Up.IGNORE, g.up())
+        assertEquals(Down.PRESS, g.down(2000, 0, false, true))
+        assertEquals(Up.CLICK, g.up())
+    }
+
+    @Test fun systemFlagOnFirstDownIsLongOnce() {
+        val g = NiuniaOkGate()
+        assertEquals(Down.LONG, g.down(1000, 0, systemLong = true, hasLong = true))
+        assertEquals(Down.HELD, g.down(1050, 1, systemLong = true, hasLong = true))
+        assertFalse("zegar po fladze nie odpala drugi raz", g.timer(g.downAt))
+        assertEquals(Up.AFTER_LONG, g.up())
+    }
+
+    @Test fun timerThenSystemFlagFiresOnlyOnce() {
+        val g = NiuniaOkGate()
+        g.down(1000, 0, false, true)
+        assertTrue(g.timer(g.downAt))
+        assertEquals(Down.HELD, g.down(1500, 10, systemLong = true, hasLong = true))
+        assertEquals(Up.AFTER_LONG, g.up())
+    }
+
+    @Test fun windowOpenedAt520msReleaseOnWindowDoesNotClick() {
+        // Długie OK otwiera okno: fokus przechodzi na pierwszy przycisk okna (stara bramka zerowana przez utratę fokusu),
+        // puszczenie OK trafia do przycisku okna, który nie widział wciśnięcia — pominięte; potem krótkie OK w oknie działa.
+        val poster = NiuniaOkGate(); val button = NiuniaOkGate()
+        poster.down(1000, 0, false, true)
+        assertTrue(poster.timer(poster.downAt))
+        poster.reset() // onFocusChanged(utrata) w niuniaOk
+        assertEquals(Down.IGNORE, button.down(1530, 3, systemLong = true, hasLong = false))
+        assertEquals(Up.IGNORE, button.up())
+        assertEquals(Down.PRESS, button.down(3000, 0, false, false))
+        assertEquals(Up.CLICK, button.up())
+        // po zamknięciu okna krótkie OK na plakacie od razu działa
+        assertEquals(Down.PRESS, poster.down(4000, 0, false, true))
+        assertEquals(Up.CLICK, poster.up())
+    }
 }

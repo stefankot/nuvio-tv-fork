@@ -8,6 +8,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.zIndex
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import com.nuvio.tv.fork.arc.RemoteGlobalHook
 import com.nuvio.tv.fork.registry.ForkRegistry
 import com.nuvio.tv.fork.registry.ModuleHomeRow
@@ -26,6 +28,7 @@ object ForkHooks {
     /** MainActivity.dispatchKeyEvent: pilot Arc poza odtwarzaczem. true = klawisz obsłużony. */
     fun onGlobalKey(activity: Activity, event: KeyEvent): Boolean {
         com.nuvio.tv.fork.family.FamilyUsage.key(event) // statystyki używania (panel Rodzina)
+        com.nuvio.tv.fork.perf.ForkFocusTrace.onKey(event) // 24.11 UX JMGO: pomiar fokusu (wyłączony = nic)
         // 23.11 (właściciel): Wstecz, póki widać dymek „tłumaczę napisy AI”, anuluje tłumaczenie (nie zamyka odtwarzacza).
         if (com.nuvio.tv.fork.ai.subtitles.AiAuto.onKey(event)) return true
         // P7 (18.11): przycisk Szukaj/Asystent na pilocie = nasłuch poleceń forka (moduł głosu) PRZED skórką Kicia,
@@ -98,7 +101,11 @@ object ForkHooks {
     // (EchoIntroHook i kopie PlaybackIntro* zostają nieużywane; przełącznik usunięty z ustawień).
     /** NuvioNavHost: treść ekranów. Dawniej intro Echo (A6, wyłączone 19.11); od 24.11 szkło: manager i warstwa źródłowa (fork/glass). */
     @Composable
-    fun screensWrap(content: @Composable () -> Unit) = com.nuvio.tv.fork.glass.ForkGlass.Host(content)
+    @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
+    fun screensWrap(content: @Composable () -> Unit) = com.nuvio.tv.fork.glass.ForkGlass.Host {
+        // 24.11 UX JMGO: testTag → resource-id dla UI Automatora (stabilne identyfikatory w testach ścieżek); sam znacznik, bez kosztu.
+        androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.fillMaxSize().semantics { testTagsAsResourceId = true }) { content() }
+    }
 
     /** StreamScreen: autoodtwarzanie wchodzi od razu w intro. */
     @Composable
@@ -149,6 +156,7 @@ object ForkHooks {
         // Tylko debug, do pomiarów A/B: --ez previews false (podgląd kanałów), --es module id --ez on false (moduł forka)
         if (intent.hasExtra("previews")) com.nuvio.tv.reshaped.livetv.LiveTvPreferences.setPreviews(c, intent.getBooleanExtra("previews", true))
         intent.getStringExtra("module")?.let { c.getSharedPreferences("fork_features", Context.MODE_PRIVATE).edit().putBoolean("module_$it", intent.getBooleanExtra("on", true)).apply() }
+        if (intent.hasExtra("focus_trace")) com.nuvio.tv.fork.perf.ForkFocusTrace.set(c, intent.getBooleanExtra("focus_trace", false))
         val route = intent.getStringExtra("route") ?: return
         com.nuvio.tv.ui.screens.settings.ForkFeatures.openDebug(route)
     }
@@ -179,7 +187,7 @@ object ForkHooks {
     @Composable
     fun moduleOverlays() {
         val c = LocalContext.current
-        remember(c) { com.nuvio.tv.skin.api.SkinPreferences.ensureLoaded(c); com.nuvio.tv.fork.sources.KeRanking.warm(c) } // skórka przed pierwszym ekranem; ranking KE: dekodery i TV
+        remember(c) { com.nuvio.tv.fork.perf.ForkFocusTrace.init(c); com.nuvio.tv.skin.api.SkinPreferences.ensureLoaded(c); com.nuvio.tv.fork.sources.KeRanking.warm(c) } // skórka przed pierwszym ekranem; ranking KE: dekodery i TV
         androidx.compose.runtime.LaunchedEffect(Unit) { com.nuvio.tv.fork.sources.ChaptersDefault.ensure(c) } // 22.11: rozdziały domyślnie włączone (raz)
         // Rodzina: przy pokazaniu aplikacji właściciel wysyła zmiany / rodzina pobiera; przy schowaniu właściciel wysyła.
         val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current

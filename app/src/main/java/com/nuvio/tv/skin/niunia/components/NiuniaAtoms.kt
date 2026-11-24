@@ -41,6 +41,9 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -109,6 +112,8 @@ fun Modifier.niuniaOk(
     var pressed by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val press by animateFloatAsState(if (pressed) NiuniaScale.ScalePress else 1f, tween(NiuniaMotion.DurPress.toInt()), label = "niuniaPress")
+    val trace = com.nuvio.tv.fork.perf.ForkFocusTrace.on // 24.11 UX JMGO: pomiar fokusu (wyłączony = bez dodatkowych modyfikatorów)
+    val pos = remember { arrayOfNulls<androidx.compose.ui.layout.LayoutCoordinates>(1) }
     fun fireLong(why: String) {
         pressed = false
         Log.i(DS_TAG, "długie OK → $name ($why)")
@@ -116,10 +121,13 @@ fun Modifier.niuniaOk(
     }
     return this
         .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
+        .testTag(niuniaTestTag(name)) // 24.11 UX JMGO: resource-id dla UI Automatora (korzeń: ForkHooks.screensWrap)
+        .then(if (trace) Modifier.onGloballyPositioned { pos[0] = it } else Modifier)
         .focusProperties { canFocus = enabled }
         .onFocusChanged {
             // UX 22.11: długie OK, które przeniosło fokus (okno, inny ekran), zostawiało element „wciśnięty” — następne OK ginęło.
             if (!it.isFocused && gate.downAt != 0L) { gate.reset(); pressed = false }
+            if (it.isFocused && com.nuvio.tv.fork.perf.ForkFocusTrace.on) com.nuvio.tv.fork.perf.ForkFocusTrace.focused(name, niuniaBounds(pos[0]))
             onFocus(it.isFocused)
         }
         .onPreviewKeyEvent { e ->
@@ -157,6 +165,16 @@ fun Modifier.niuniaOk(
         }
         .focusable(enabled)
         .graphicsLayer { scaleX = press; scaleY = press }
+}
+
+/** testTag elementu Niuni: „n:<nazwa>” (jedna linia, najwyżej 60 znaków) — w `uiautomator dump` jako resource-id. */
+internal fun niuniaTestTag(name: String): String = "n:" + name.replace('\n', ' ').trim().take(60)
+
+/** Granice elementu w pikselach okna (l, t, r, b) do logu ForkFocus; null, gdy element nie jest jeszcze ułożony. */
+internal fun niuniaBounds(c: androidx.compose.ui.layout.LayoutCoordinates?): IntArray? {
+    if (c == null || !c.isAttached) return null
+    val r = c.boundsInWindow()
+    return intArrayOf(r.left.toInt(), r.top.toInt(), r.right.toInt(), r.bottom.toInt())
 }
 
 /**

@@ -124,7 +124,38 @@ fun NiuniaHome(
     var memDown by remember { mutableStateOf(memory.down && memory.key != null) }
     com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(if (memDown) restoreFocus else if (heroes.isNotEmpty()) heroFocus else null)
     remember { memory.restorePending = memDown; 0 }
-    fun rememberFocus(key: String, row: Int, index: Int) { memory.key = key; memory.row = row; memory.index = index; memory.down = true; memDown = true }
+    fun rememberFocus(key: String, row: Int, index: Int) { memory.key = key; memory.target = key; memory.row = row; memory.index = index; memory.down = true; memDown = true }
+    // UX JMGO 24.11 (F5/F6): powrót po kluczu — „Oglądaj dalej” po obejrzeniu zmienia kolejność, usunięty plakat → sąsiad (NiuniaFocusKeys).
+    val rowKeys = remember(uiState.continueWatchingItems, uiState.catalogRows) {
+        buildList {
+            if (uiState.continueWatchingItems.isNotEmpty()) add("cw:" to uiState.continueWatchingItems.map { "cw:" + cwKey(it) })
+            uiState.catalogRows.filter { it.items.isNotEmpty() }.forEach { r ->
+                val p = "r:${r.addonId}_${r.catalogId}_${r.rawType}:"
+                add(p to (r.items.map { p + it.id } + (p + "__more")))
+            }
+        }
+    }
+    remember(rowKeys) {
+        if (memory.down) {
+            val t = com.nuvio.tv.skin.niunia.components.NiuniaFocusKeys.resolve(rowKeys, memory.key, memory.index)
+            if (t != null && t != memory.key) Log.i(TAG, "ekran główny: zapamiętany element zniknął/przesunięty — fokus na sąsiada $t")
+            memory.target = t ?: memory.key
+        }
+        0
+    }
+    // UX JMGO 24.11: onItemFocus (baza: wzbogacenie TMDB → nowy stan całego ekranu) dopiero po 250 ms bez ruchu — nie przy każdym
+    // kroku i nigdy w trakcie przytrzymania strzałki (powtórzenia co ~50 ms). Bez stanu Compose: ruch nie przebudowuje ekranu.
+    val focusScope = androidx.compose.runtime.rememberCoroutineScope()
+    val itemFocusJob = remember { arrayOfNulls<kotlinx.coroutines.Job>(1) }
+    fun itemFocusLater(item: MetaPreview) {
+        itemFocusJob[0]?.cancel()
+        itemFocusJob[0] = focusScope.launch { kotlinx.coroutines.delay(com.nuvio.tv.skin.niunia.components.NiuniaHold.SETTLE_MS); onItemFocus(item) }
+    }
+    fun initialIndex(prefix: String): Int {
+        val t = memory.target ?: return 0
+        if (!memory.down || !t.startsWith(prefix)) return 0
+        return rowKeys.firstOrNull { it.first == prefix }?.second?.indexOf(t)?.coerceAtLeast(0) ?: 0
+    }
     val posterPattern = remember(uiState.customPosterUrlPattern, uiState.customPosterEnabledScreens) {
         com.nuvio.tv.core.poster.patternForScreen(uiState.customPosterUrlPattern, com.nuvio.tv.core.poster.CustomPosterScreen.HOME, uiState.customPosterEnabledScreens)
     }
@@ -147,7 +178,7 @@ fun NiuniaHome(
                     item(key = "niunia_cw") {
                         RowTitle(stringResource(R.string.niunia_row_continue), on = focusedRow == -2, first = top)
                         com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
-                            val st = androidx.compose.foundation.lazy.rememberLazyListState(initialFirstVisibleItemIndex = if (memory.down && memory.key?.startsWith("cw:") == true) memory.index else 0)
+                            val st = androidx.compose.foundation.lazy.rememberLazyListState(initialFirstVisibleItemIndex = initialIndex("cw:"))
                             LazyRow(state = st, contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
                                 itemsIndexed(uiState.continueWatchingItems, key = { _, it -> cwKey(it) }) { i, cw ->
                                     val k = "cw:" + cwKey(cw)
@@ -167,7 +198,7 @@ fun NiuniaHome(
                         RowTitle(row.catalogName, on = focusedRow == rowIndex, first = top)
                         com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
                             val rowKey = "r:${row.addonId}_${row.catalogId}_${row.rawType}:"
-                            val st = androidx.compose.foundation.lazy.rememberLazyListState(initialFirstVisibleItemIndex = if (memory.down && memory.key?.startsWith(rowKey) == true) memory.index else 0)
+                            val st = androidx.compose.foundation.lazy.rememberLazyListState(initialFirstVisibleItemIndex = initialIndex(rowKey))
                             val colIndex = rowIndex + if (uiState.continueWatchingItems.isNotEmpty()) 1 else 0
                             LazyRow(state = st, contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
                                 itemsIndexed(row.items, key = { _, it -> it.id }) { i, item ->
@@ -184,7 +215,7 @@ fun NiuniaHome(
                                         baked = art != null,
                                         modifier = restoreModifier(k, restoreFocus),
                                         award = com.nuvio.tv.skin.niunia.components.niuniaPosterAward(item.id), // Z-13
-                                        onFocus = { if (it) { focusedRow = rowIndex; onItemFocus(item); rememberFocus(k, colIndex, i) } },
+                                        onFocus = { if (it) { focusedRow = rowIndex; itemFocusLater(item); rememberFocus(k, colIndex, i) } },
                                         onOk = {
                                             if (titleCard) { Log.i(TAG, "rzędy: OK → karta tytułu ${item.id} (${i + 1}/${row.items.size} w „${row.catalogName}”)"); pager = row to i }
                                             else { Log.i(TAG, "rzędy: OK → strona tytułu ${item.id}"); onNavigateToDetail(item.id, item.rawType, row.addonBaseUrl) }
@@ -523,7 +554,12 @@ internal fun niuniaRuntime(raw: String?): Pair<Int, Int>? {
 /** Ostatni element rzędów Głównej z fokusem (przeżywa przejście na stronę tytułu i z powrotem). */
 internal object NiuniaHomeMemory {
     /** Stan Compose: requester powrotu fokusu przechodzi na ostatni element (wyjście z menu). */
-    var key: String? by androidx.compose.runtime.mutableStateOf(null)
+    var key: String? = null
+    /**
+     * Element, który ma requester powrotu (stan Compose — wyjście z menu): ostatni z fokusem albo jego sąsiad, gdy zniknął.
+     * UX JMGO 24.11: czytany przez derivedStateOf w [restoreModifier] — ruch fokusu przebudowuje 2 elementy, nie wszystkie widoczne.
+     */
+    var target: String? by androidx.compose.runtime.mutableStateOf(null)
     /** Jednorazowy powrót fokusu po wejściu na ekran (Wstecz ze strony tytułu). */
     var restorePending: Boolean = false
     var row: Int = 0
@@ -534,7 +570,8 @@ internal object NiuniaHomeMemory {
 /** Element zapamiętany w [NiuniaHomeMemory] dostaje [restore] i fokus po wejściu na ekran. */
 @Composable
 private fun restoreModifier(key: String, restore: FocusRequester): Modifier {
-    if (!NiuniaHomeMemory.down || NiuniaHomeMemory.key != key) return Modifier
+    val isTarget by remember(key) { androidx.compose.runtime.derivedStateOf { NiuniaHomeMemory.target == key } }
+    if (!NiuniaHomeMemory.down || !isTarget) return Modifier
     LaunchedEffect(key) {
         if (!NiuniaHomeMemory.restorePending) return@LaunchedEffect
         NiuniaHomeMemory.restorePending = false

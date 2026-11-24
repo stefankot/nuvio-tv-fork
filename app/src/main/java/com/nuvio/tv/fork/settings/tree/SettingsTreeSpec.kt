@@ -294,6 +294,7 @@ object SettingsTreeSpec {
                 m("a:Test łącza (ostatni film)", M, "Test łącza"),
                 m(com.nuvio.tv.fork.net.KeAutoTest.KEY, M),
                 s("device_test", "Test telewizora i łącza", "Sprawdź internet i sprzęt", W, parts(ItemsGroup.DEVICE_TEST), "test sprzet"),
+                s("focus_trace", "Pomiar szybkości pilota", "Zapisuje w dzienniku, jak szybko reaguje zaznaczenie (do testów)", W, TreeTarget.Toggle(com.nuvio.tv.fork.perf.ForkFocusTrace.KEY, false), "fokus pomiar szybkosc pilot test dziennik"),
                 s("about", "O aplikacji i aktualizacje", "Wersja, aktualizacje i prywatność", M, route("about"), "wersja aktualizacja prywatnosc", listOf("AboutScreen", "UpdateChannelSettings")),
             ),
             g("ustawienia", "Ustawienia",
