@@ -386,6 +386,21 @@ private fun Guide(
     var info by remember { mutableStateOf<Pair<LiveTvChannel, LiveTvProgramme?>?>(null) }
     val tilesFocus = remember { FocusRequester() }
     var userKey by remember { mutableStateOf(false) }
+    // Z-21 (P-32): Wstecz z dowolnego miejsca przewodnika = fokus na wybranym chipie filtra, przewodnik wraca do „teraz”
+    // i pierwszego kanału; drugie Wstecz (z chipa) = menu (obsługuje PillNavScaffold).
+    val selectedChip = remember { FocusRequester() }
+    var gridFocused by remember { mutableStateOf(false) }
+    val guideScope = androidx.compose.runtime.rememberCoroutineScope()
+    BackHandler(enabled = gridFocused) {
+        Log.i(TAG, "live tv: Wstecz z przewodnika → chip ${filter.javaClass.simpleName}, „teraz”, 1. kanał")
+        winStart = windowStartFor(now)
+        focusTime.longValue = now
+        guideScope.launch {
+            try { channelsState.scrollToItem(0) } catch (e: IllegalStateException) { Log.w(TAG, "live tv: przewiń na 1. kanał: ${e.javaClass.simpleName}: ${e.message}") }
+            try { (if (filter == NiuniaLiveFilter.All) allFocus else selectedChip).requestFocus() }
+            catch (e: IllegalStateException) { Log.w(TAG, "live tv: fokus na chip: ${e.javaClass.simpleName}: ${e.message}"); try { allFocus.requestFocus() } catch (e2: IllegalStateException) { Log.w(TAG, "live tv: fokus „Wszystkie”: ${e2.message}") } }
+        }
+    }
     LaunchedEffect(Unit) {
         // Paczka „oczywiste” pkt 2: Wstecz z odtwarzacza → fokus na kafelku albo kanale, z którego program był włączony.
         if (restoreTileKey != null || restoreChannel != null) {
@@ -437,17 +452,17 @@ private fun Guide(
             }, contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = 120.dp), horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.Top) {
                 item { FilterPill(stringResource(R.string.niunia_live_all), filter == NiuniaLiveFilter.All, allFocus) { onFilter(NiuniaLiveFilter.All) } }
-                item { FilterPill(stringResource(R.string.niunia_tv_favourites), filter == NiuniaLiveFilter.Favourites) { onFilter(NiuniaLiveFilter.Favourites) } }
-                item { FilterPill(stringResource(R.string.niunia_tv_continue), filter == NiuniaLiveFilter.Continue) { onFilter(NiuniaLiveFilter.Continue) } }
+                item { FilterPill(stringResource(R.string.niunia_tv_favourites), filter == NiuniaLiveFilter.Favourites, if (filter == NiuniaLiveFilter.Favourites) selectedChip else null) { onFilter(NiuniaLiveFilter.Favourites) } }
+                item { FilterPill(stringResource(R.string.niunia_tv_continue), filter == NiuniaLiveFilter.Continue, if (filter == NiuniaLiveFilter.Continue) selectedChip else null) { onFilter(NiuniaLiveFilter.Continue) } }
                 if (categories.isNotEmpty()) item { Box(Modifier.padding(horizontal = 4.dp, vertical = 7.dp).width(1.dp).height(20.dp).background(NiuniaColors.Line)) }
-                items(categories, key = { it.key }) { c -> FilterPill(c.name, (filter as? NiuniaLiveFilter.Category)?.key == c.key) { onFilter(c) } }
+                items(categories, key = { it.key }) { c -> val sel = (filter as? NiuniaLiveFilter.Category)?.key == c.key; FilterPill(c.name, sel, if (sel) selectedChip else null) { onFilter(c) } }
             }
         }
         Ruler(winStart, now)
         if (channels.isEmpty()) {
             Text(stringResource(R.string.niunia_live_empty), style = NiuniaText.Body, color = NiuniaColors.Text50, modifier = Modifier.padding(start = NiuniaDims.Gutter, top = 12.dp))
         }
-        Box(Modifier.fillMaxWidth().weight(1f)) { com.nuvio.tv.skin.niunia.components.NiuniaVerticalScroll(pivot = ROW_H) {
+        Box(Modifier.fillMaxWidth().weight(1f).onFocusChanged { gridFocused = it.hasFocus }) { com.nuvio.tv.skin.niunia.components.NiuniaVerticalScroll(pivot = ROW_H) {
             LazyColumn(Modifier.fillMaxSize(), state = channelsState, contentPadding = PaddingValues(bottom = 56.dp)) {
                 items(channels, key = { "${it.sourceId}_${it.id}" }) { ch ->
                     GuideRow(
@@ -601,8 +616,11 @@ private fun GuideRow(
                 val start = maxOf(p.startEpochMs, winStart)
                 val stop = minOf(p.stopEpochMs, winEnd)
                 val i = schedule.indexOf(p)
+                // Z-1: komórka „teraz” ma u dołu czerwoną linię upływu liczoną od początku widocznej części.
+                val frac = if (isLive(p, now) && stop > start) ((now - start).toFloat() / (stop - start)).coerceIn(0f, 1f) else null
                 Cell(p.title, dpFor(start - winStart), (dpFor(stop - start) - 4.dp).coerceAtLeast(4.dp), live = isLive(p, now),
-                    focused = focused && i == sel, cut = focused && (p.startEpochMs < winStart || leftEdge && p.startEpochMs <= winStart), new = (ch.guideKey + "|" + p.startEpochMs) in newKeys)
+                    focused = focused && i == sel, cut = focused && (p.startEpochMs < winStart || leftEdge && p.startEpochMs <= winStart), new = (ch.guideKey + "|" + p.startEpochMs) in newKeys,
+                    elapsed = frac)
             }
             if (now in winStart until winEnd) Box(Modifier.offset(x = dpFor(now - winStart) - 1.dp).width(2.dp).height(ROW_H).background(NiuniaColors.Live))
             if (focused) {
@@ -626,21 +644,22 @@ private fun Edge(left: Boolean) {
     }
 }
 
-/** Komórka programu (canvas `.ecell`): jedna linia, trwający = biały napis i ▶, fokus = biała obwódka 2 dp. */
+/** Komórka programu (canvas `.ecell`, Z-1): jedna linia, bez ikony ▶; trwający = biały napis i czerwona linia upływu u dołu;
+ *  fokus = białe tło (`focus`) i ciemny napis, bez skali, linia zostaje. */
 @Composable
-private fun Cell(title: String, x: Dp, w: Dp, live: Boolean, focused: Boolean, cut: Boolean, new: Boolean) {
+private fun Cell(title: String, x: Dp, w: Dp, live: Boolean, focused: Boolean, cut: Boolean, new: Boolean, elapsed: Float? = null) {
     val shape = RoundedCornerShape(6.dp)
-    Row(
-        Modifier.offset(x = x).size(w, CELL_H).clip(shape)
-            .background(if (focused) NiuniaColors.Fill24 else NiuniaColors.Surface, shape)
-            .then(if (focused) Modifier.border(2.dp, NiuniaColors.Focus, shape) else Modifier)
-            .padding(start = if (cut) 40.dp else 12.dp, end = 12.dp),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        if (live && w > 40.dp) Icon(Icons.Outlined.PlayCircle, null, tint = NiuniaColors.Text, modifier = Modifier.size(16.dp))
-        if (w > 28.dp) Text(title, style = com.nuvio.tv.skin.niunia.tokens.NiuniaType.BodySmall, color = if (live || focused) NiuniaColors.Text else NiuniaColors.Text70,
-            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-        if (new && w > 120.dp) com.nuvio.tv.skin.niunia.components.NiuniaTag(stringResource(R.string.niunia_tv_new_chip), com.nuvio.tv.skin.niunia.components.NiuniaTagKind.Chip)
+    Box(Modifier.offset(x = x).size(w, CELL_H).clip(shape).background(if (focused) NiuniaColors.Focus else NiuniaColors.Surface, shape)) {
+        Row(
+            Modifier.fillMaxSize().padding(start = if (cut) 40.dp else 12.dp, end = 12.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (w > 28.dp) Text(title, style = com.nuvio.tv.skin.niunia.tokens.NiuniaType.BodySmall,
+                color = when { focused -> com.nuvio.tv.skin.niunia.tokens.NiuniaColor.OnFocus; live -> NiuniaColors.Text; else -> NiuniaColors.Text70 },
+                maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+            if (new && w > 120.dp) com.nuvio.tv.skin.niunia.components.NiuniaTag(stringResource(R.string.niunia_tv_new_chip), com.nuvio.tv.skin.niunia.components.NiuniaTagKind.Chip)
+        }
+        if (elapsed != null) Box(Modifier.align(Alignment.BottomStart).fillMaxWidth(elapsed).height(3.dp).background(NiuniaColors.Live))
     }
 }
 
@@ -651,6 +670,7 @@ private fun TopBar(mode: LiveMode, dayLabel: String, onSearch: () -> Unit, onDay
         TopButton(Icons.Outlined.Search, stringResource(R.string.niunia_tv_search), mode == LiveMode.SEARCH, onSearch)
         TopButton(Icons.Outlined.CalendarToday, dayLabel, false, onDay)
         TopButton(Icons.Outlined.Explore, stringResource(R.string.niunia_tv_discover), mode == LiveMode.DISCOVER, onDiscover)
+        com.nuvio.tv.skin.niunia.components.NiuniaClock() // Z-15: zegar na końcu paska akcji
     }
 }
 

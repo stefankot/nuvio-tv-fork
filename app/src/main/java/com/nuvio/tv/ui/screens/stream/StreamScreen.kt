@@ -445,6 +445,7 @@ fun StreamScreen(
             )
         } else {
             // Content overlay
+            if (com.nuvio.tv.fork.ForkHooks.skinScreen("streams", mapOf("uiState" to uiState, "resumeText" to resumeText, "onFilter" to { f: String? -> viewModel.onEvent(StreamScreenEvent.OnAddonFilterSelected(f)) }, "onRetry" to { viewModel.onEvent(StreamScreenEvent.OnRetry) }, "onPlay" to { stream: com.nuvio.tv.domain.model.Stream -> scope.coroutineLaunch { val info = viewModel.resolveStreamForPlayback(stream); if (info != null) { viewModel.persistBingeGroupForStream(stream); pendingRestoreOnResume = true; routePlayback(info); viewModel.onEvent(StreamScreenEvent.OnAutoPlayConsumed) } } }))) Unit else // Fork hook: skin (ekran źródeł skórki)
             Row(
                 modifier = Modifier.fillMaxSize()
             ) {

@@ -94,8 +94,11 @@ fun NiuniaHome(
     onToggleLibrary: (MetaPreview, String) -> Unit = { _, _ -> },
     onItemLongPress: (MetaPreview, String) -> Unit = { _, _ -> },
     cwActions: NiuniaCwActions? = null,
+    onRetry: () -> Unit = {},
 ) {
     val context = LocalContext.current
+    // Z-16 (P-2): długie OK na plakacie = okno akcji Niuni (TitleActions), nigdy akcja od razu; wybór list Trakt zostaje oknem bazy.
+    val posterOptions = com.nuvio.tv.skin.niunia.components.rememberNiuniaPosterOptions { id, type, url -> onNavigateToDetail(id, type, url) }
     // UX 22.11: długie OK na „Oglądaj dalej” = menu bazy (szczegóły, od początku, wybierz źródło, obejrzane, usuń).
     var cwMenu by remember { mutableStateOf<ContinueWatchingItem?>(null) }
     // Baner: tylko filmy i seriale z dużym obrazem tła (bez pozycji „narzędziowych” dodatków, np. „Delete all files”).
@@ -122,6 +125,8 @@ fun NiuniaHome(
     val hero = heroes.getOrNull(heroIndex % heroes.size.coerceAtLeast(1))
     LaunchedEffect(heroes.size, uiState.catalogRows.size) {
         Log.i(TAG, "ekran główny: hero=${heroes.size}, dalej oglądaj=${uiState.continueWatchingItems.size}, rzędy=${uiState.catalogRows.size}")
+        // Z-19: tytuły z Głównej i „Oglądaj dalej” = słownik poprawiania literówek w Szukaj.
+        com.nuvio.tv.skin.niunia.search.NiuniaKnownTitles.add(uiState.catalogRows.flatMap { r -> r.items.map { it.name } } + uiState.continueWatchingItems.map { niuniaContinueModel(it).title })
     }
 
     // Właściciel 20.11: hero poza listą (był przesunięty o ujemny margines), ▼ = animacja: hero wyjeżdża, tło rozmyte, rzędy wjeżdżają.
@@ -174,7 +179,22 @@ fun NiuniaHome(
                                         award = com.nuvio.tv.skin.niunia.components.niuniaPosterAward(item.id), // Z-13
                                         onFocus = { if (it) { focusedRow = rowIndex; onItemFocus(item); rememberFocus(k, colIndex, i) } },
                                         onOk = { Log.i(TAG, "rzędy: OK → strona tytułu ${item.id}"); onNavigateToDetail(item.id, item.rawType, row.addonBaseUrl) },
-                                        onLongOk = { Log.i(TAG, "rzędy: długie OK → opcje ${item.id}"); onItemLongPress(item, row.addonBaseUrl) },
+                                        onLongOk = { Log.i(TAG, "rzędy: długie OK → okno akcji ${item.id}"); posterOptions(item, row.addonBaseUrl) },
+                                    )
+                                }
+                                // Z-16 (P-4): ostatnia karta rzędu dodatku = „Zobacz wszystko” → cały katalog (CatalogAll).
+                                item(key = "niunia_more_${row.addonId}_${row.catalogId}") {
+                                    val k = rowKey + "__more"
+                                    com.nuvio.tv.skin.niunia.components.NiuniaMoreCard(
+                                        rowName = row.catalogName,
+                                        modifier = restoreModifier(k, restoreFocus),
+                                        onFocus = { if (it) { focusedRow = rowIndex; rememberFocus(k, colIndex, row.items.size) } },
+                                        onOk = {
+                                            val route = com.nuvio.tv.ui.navigation.Screen.CatalogSeeAll.createRoute(row.catalogId, row.addonId, row.apiType)
+                                            Log.i(TAG, "rzędy: Zobacz wszystko → ${row.addonId}/${row.catalogId} (${row.apiType})")
+                                            val go = com.nuvio.tv.ui.screens.settings.ForkFeatures.open
+                                            if (go != null) go(route) else { Log.w(TAG, "rzędy: Zobacz wszystko: brak nawigatora"); com.nuvio.tv.fork.ForkLog.say(context, TAG, context.getString(R.string.niunia_ke2_retry)) }
+                                        },
                                     )
                                 }
                             }
@@ -187,16 +207,34 @@ fun NiuniaHome(
     val menuItem = cwMenu
     if (menuItem != null && cwActions != null) {
         fun close(what: String, action: (ContinueWatchingItem) -> Unit) { Log.i(TAG, "„Oglądaj dalej”: $what ${niuniaCwContentId(menuItem)}"); cwMenu = null; action(menuItem) }
-        com.nuvio.tv.ui.components.ContinueWatchingOptionsDialog(
-            item = menuItem,
+        // Z-14 (makieta TitleActions): okno akcji „Oglądaj dalej” w stylu Niuni zamiast okna bazy.
+        val ctx = LocalContext.current
+        val (cwTitle, cwState, series) = niuniaCwDialogText(ctx, menuItem)
+        val resumeMs = (menuItem as? ContinueWatchingItem.InProgress)?.progress?.position?.takeIf { it > 0L }
+        com.nuvio.tv.skin.niunia.components.NiuniaActionsDialog(
+            eyebrow = ctx.getString(R.string.niunia_ke_cw_eyebrow),
+            title = cwTitle,
+            state = cwState,
             onDismiss = { cwMenu = null },
-            onRemove = { close("usuń", cwActions.remove) },
-            onDetails = { close("szczegóły") { cw -> onNavigateToDetail(niuniaCwContentId(cw), niuniaCwContentType(cw), "") } },
-            onStartFromBeginning = { close("od początku", cwActions.fromStart) },
-            showPlayManually = cwActions.showManual,
-            onPlayManually = { close("wybierz źródło", cwActions.playManually) },
-            onMarkWatched = { close("obejrzane", cwActions.markWatched) },
+            actions = listOfNotNull(
+                com.nuvio.tv.skin.niunia.components.NiuniaDialogAction(
+                    if (resumeMs != null) ctx.getString(R.string.niunia_ke_resume_at, niuniaClock(resumeMs)) else ctx.getString(R.string.niunia_ke_play), icon = "play",
+                ) { close("wznów", onContinueWatchingClick) },
+                if (resumeMs != null) com.nuvio.tv.skin.niunia.components.NiuniaDialogAction(ctx.getString(R.string.niunia_ke_from_start), icon = "restart") { close("od początku", cwActions.fromStart) } else null,
+                if (cwActions.showManual) com.nuvio.tv.skin.niunia.components.NiuniaDialogAction(ctx.getString(R.string.niunia_ke_choose_source), icon = "playlist-add", chevron = true) { close("wybierz źródło", cwActions.playManually) } else null,
+                com.nuvio.tv.skin.niunia.components.NiuniaDialogAction(ctx.getString(if (series) R.string.niunia_ke_details_series else R.string.niunia_ke_details_movie), icon = "info", chevron = true) {
+                    close("szczegóły") { cw -> onNavigateToDetail(niuniaCwContentId(cw), niuniaCwContentType(cw), "") }
+                },
+                com.nuvio.tv.skin.niunia.components.NiuniaDialogAction(ctx.getString(R.string.niunia_ke_mark_watched), icon = "check") { close("obejrzane", cwActions.markWatched) },
+                com.nuvio.tv.skin.niunia.components.NiuniaDialogAction(ctx.getString(R.string.niunia_ke_remove_cw)) { close("usuń", cwActions.remove) },
+            ),
         )
+    }
+    // Z-16 (P-5, makieta HomeEmpty): brak katalogów / błąd → blok pusty z jedną akcją (fokus na przycisku).
+    val nothing = !uiState.isLoading && uiState.catalogRows.all { it.items.isEmpty() } && uiState.continueWatchingItems.isEmpty()
+    if (nothing) {
+        HomeEmpty(error = uiState.error, onRetry = onRetry)
+        return
     }
     if (hero == null) {
         Box(Modifier.fillMaxSize().background(NiuniaColors.Bg)) { rows() }
@@ -292,8 +330,8 @@ private fun Hero(
                 val meta = listOfNotNull(type, item.genres.take(2).joinToString(" · ").ifBlank { null }, item.releaseInfo?.takeIf { it.isNotBlank() }, niuniaRuntime(item.runtime)?.let { (h, m) -> if (h > 0) ctx.getString(R.string.niunia_hours_minutes, h, m) else ctx.getString(R.string.niunia_minutes, m) } ?: item.runtime?.takeIf { it.isNotBlank() })
                     .joinToString(" · ")
                 NiuniaMetaLine(meta, tone = NiuniaTone.Primary) {
-                    item.imdbRating?.takeIf { it > 0f }?.let { NiuniaTag("IMDb %.1f".format(java.util.Locale.US, it), NiuniaTagKind.Quality) }
-                    item.ageRating?.takeIf { it.isNotBlank() }?.let { NiuniaTag(it, NiuniaTagKind.Age) }
+                    // Z-10: na Głównej tylko średnia ocen (zastępuje „16” i „IMDb/TMDB”).
+                    com.nuvio.tv.skin.niunia.components.NiuniaRatingAverage(com.nuvio.tv.skin.niunia.components.niuniaScores(item.imdbRating, null))
                 }
                 if (!item.description.isNullOrBlank()) NiuniaText(item.description, variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 2)
             }
@@ -322,17 +360,19 @@ private fun Hero(
 private fun ContinueCard(cw: ContinueWatchingItem, modifier: Modifier = Modifier, focusable: Boolean = true, onFocus: (Boolean) -> Unit, onLongOk: (() -> Unit)? = null, onOk: () -> Unit) {
     val ctx = LocalContext.current
     val m = remember(cw) { niuniaContinueModel(cw) }
+    // Z-16 (P-1): jeden stan na kartę: „Nowy sezon” › „Nowy odcinek” › „Premiera jutro” › „Następny: S1 E2” › „Zostało 39 min”.
+    val state = remember(cw) { niuniaCwState(ctx, cw) ?: m.caption }
     NiuniaMediaCard(
         preset = NiuniaCardPreset.ContinueWatchingCard,
         image = m.image,
         onClick = onOk,
         modifier = modifier,
         title = m.title,
-        caption = m.caption,
+        caption = state,
         progress = m.progress,
         play = m.progress != null,
         badge = if (m.nextUp) ctx.getString(R.string.niunia_label_new).takeIf { m.newSeason } else null,
-        description = listOfNotNull(m.title, m.caption).joinToString(", "),
+        description = listOfNotNull(m.title, m.caption, state?.takeIf { it != m.caption }).joinToString(", "),
         focusable = focusable,
         onFocus = onFocus,
         onLongClick = onLongOk,
@@ -364,6 +404,60 @@ internal fun niuniaContinueModel(cw: ContinueWatchingItem): NiuniaContinueModel 
         cw.info.name, "S${cw.info.season}, E${cw.info.episode}", cw.info.thumbnail ?: cw.info.backdrop ?: cw.info.poster, null,
         nextUp = true, newSeason = cw.info.isNewSeasonRelease,
     )
+}
+
+/** Z-16 (P-1): stan karty „Oglądaj dalej” wg ważności; null = zostaje podpis z [niuniaContinueModel]. */
+internal fun niuniaCwState(ctx: android.content.Context, cw: ContinueWatchingItem, now: Long = System.currentTimeMillis()): String? = when (cw) {
+    is ContinueWatchingItem.InProgress -> {
+        val p = cw.progress
+        val left = if (p.duration > 0) ((p.duration - p.position).coerceAtLeast(0) / 60_000L).toInt() else 0
+        if (left > 0) ctx.getString(R.string.niunia_ke2_cw_left, left) else null
+    }
+    is ContinueWatchingItem.NextUp -> {
+        val i = cw.info
+        val zone = java.time.ZoneId.systemDefault()
+        val day = i.releaseTimestamp?.let { java.time.Instant.ofEpochMilli(it).atZone(zone).toLocalDate() }
+        val today = java.time.Instant.ofEpochMilli(now).atZone(zone).toLocalDate()
+        when {
+            i.isNewSeasonRelease && i.hasAired -> ctx.getString(R.string.niunia_ke2_cw_new_season)
+            i.isReleaseAlert && i.hasAired -> ctx.getString(R.string.niunia_ke2_cw_new_episode)
+            !i.hasAired && day == today.plusDays(1) -> ctx.getString(R.string.niunia_ke2_cw_premiere_tomorrow)
+            !i.hasAired && !i.airDateLabel.isNullOrBlank() -> ctx.getString(R.string.niunia_ke2_cw_premiere, i.airDateLabel)
+            else -> ctx.getString(R.string.niunia_ke2_cw_next, i.season, i.episode)
+        }
+    }
+}
+
+/** Z-16 (P-5): pusta Główna — „Brak dodatków z katalogami” + „Otwórz dodatki”; błąd katalogów — „Spróbuj ponownie” (odświeża Główną). */
+@Composable
+private fun HomeEmpty(error: String?, onRetry: () -> Unit) {
+    val ctx = LocalContext.current
+    val focus = remember { androidx.compose.ui.focus.FocusRequester() }
+    com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(focus)
+    LaunchedEffect(error) {
+        Log.i(TAG, "ekran główny: pusty (${if (error != null) "błąd: $error" else "brak katalogów"}), fokus → przycisk")
+        kotlinx.coroutines.delay(80)
+        try { focus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "ekran główny: fokus pustego stanu: ${e.javaClass.simpleName}: ${e.message}") }
+    }
+    Box(Modifier.fillMaxSize().background(NiuniaColors.Bg).padding(start = NiuniaDims.Gutter, top = 120.dp)) {
+        com.nuvio.tv.skin.niunia.components.NiuniaContentBlock(com.nuvio.tv.skin.niunia.components.NiuniaBlockKind.Empty) {
+            com.nuvio.tv.skin.niunia.components.NiuniaText(ctx.getString(if (error != null) R.string.niunia_ke2_home_error_title else R.string.niunia_ke2_home_empty_title),
+                variant = com.nuvio.tv.skin.niunia.components.NiuniaTextVariant.TitleSection)
+            com.nuvio.tv.skin.niunia.components.NiuniaText(error ?: ctx.getString(R.string.niunia_ke2_home_empty_text),
+                variant = com.nuvio.tv.skin.niunia.components.NiuniaTextVariant.BodySmall, tone = com.nuvio.tv.skin.niunia.components.NiuniaTone.Secondary, lines = 3)
+            val route = com.nuvio.tv.ui.navigation.Screen.AddonManager.route
+            com.nuvio.tv.skin.niunia.components.NiuniaButton(
+                onClick = {
+                    if (error != null) { Log.i(TAG, "ekran główny: pusty → spróbuj ponownie"); onRetry(); return@NiuniaButton }
+                    Log.i(TAG, "ekran główny: pusty → $route")
+                    val go = com.nuvio.tv.ui.screens.settings.ForkFeatures.open
+                    if (go != null) go(route) else Log.w(TAG, "ekran główny: brak nawigatora dla $route")
+                },
+                label = ctx.getString(if (error != null) R.string.niunia_ke2_retry else R.string.niunia_ke2_home_open_addons),
+                icon = if (error != null) "restart" else "plus", compact = true, focusRequester = focus,
+            )
+        }
+    }
 }
 
 /** Długość z dodatku („148”, „148 min”, „2h 28min”) → (godziny, minuty); null = nieznany zapis. */
@@ -402,4 +496,30 @@ private fun restoreModifier(key: String, restore: FocusRequester): Modifier {
         Log.i(TAG, "ekran główny: fokus wraca na $key")
     }
     return Modifier.focusRequester(restore)
+}
+
+/** Tytuł, linia stanu i „serial?” do okna akcji „Oglądaj dalej” (Z-14): „S1, E1 · tytuł · zostało 39 min”, „Następny odcinek: S1, E4”, „Premiera …”. */
+private fun niuniaCwDialogText(ctx: android.content.Context, cw: ContinueWatchingItem): Triple<String, String?, Boolean> = when (cw) {
+    is ContinueWatchingItem.InProgress -> {
+        val p = cw.progress
+        val left = ((p.duration - p.position).coerceAtLeast(0L) / 60_000L).toInt().takeIf { p.duration > 0L && it > 0 }
+        val ep = if (p.season != null && p.episode != null) listOfNotNull("S${p.season}, E${p.episode}", p.episodeTitle?.takeIf { it.isNotBlank() }).joinToString(" · ") else null
+        Triple(p.name, listOfNotNull(ep, left?.let { ctx.getString(R.string.niunia_ke_left_min, it) }).joinToString(" · ").ifBlank { null }, p.season != null)
+    }
+    is ContinueWatchingItem.NextUp -> {
+        val i = cw.info
+        val ep = listOfNotNull("S${i.season}, E${i.episode}", i.episodeTitle?.takeIf { it.isNotBlank() }).joinToString(" · ")
+        val head = when {
+            !i.hasAired -> ctx.getString(R.string.niunia_ke_airs, i.airDateLabel ?: i.released?.take(10) ?: "")
+            i.isNewSeasonRelease -> ctx.getString(R.string.niunia_ke_new_season)
+            else -> ctx.getString(R.string.niunia_ke_next_up)
+        }
+        Triple(i.name, "$head: $ep", true)
+    }
+}
+
+/** 1:12:04 / 26:00 z milisekund. */
+private fun niuniaClock(ms: Long): String {
+    val t = ms / 1000; val h = t / 3600; val m = (t % 3600) / 60; val sec = t % 60
+    return if (h > 0) "%d:%02d:%02d".format(h, m, sec) else "%d:%02d".format(m, sec)
 }

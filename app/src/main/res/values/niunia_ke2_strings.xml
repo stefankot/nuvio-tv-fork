@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Skórka Niunia: pozycje Z-15…Z-23 (pomysły z przeglądu Nuvio KE przyjęte 23.11). -->
+<resources>
+    <!-- Z-18 osoba -->
+    <string name="niunia_ke2_age_one">%1$d rok</string>
+    <string name="niunia_ke2_age_few">%1$d lata</string>
+    <string name="niunia_ke2_age_many">%1$d lat</string>
+    <string name="niunia_ke2_born">ur. %1$s</string>
+    <string name="niunia_ke2_born_place">ur. %1$s, %2$s</string>
+    <string name="niunia_ke2_died">zm. %1$s w wieku %2$s</string>
+    <string-array name="niunia_ke2_months_gen">
+        <item>stycznia</item><item>lutego</item><item>marca</item><item>kwietnia</item><item>maja</item><item>czerwca</item>
+        <item>lipca</item><item>sierpnia</item><item>września</item><item>października</item><item>listopada</item><item>grudnia</item>
+    </string-array>
+    <!-- Z-16 Główna -->
+    <string name="niunia_ke2_cw_new_season">Nowy sezon</string>
+    <string name="niunia_ke2_cw_new_episode">Nowy odcinek</string>
+    <string name="niunia_ke2_cw_premiere_tomorrow">Premiera jutro</string>
+    <string name="niunia_ke2_cw_premiere">Premiera: %1$s</string>
+    <string name="niunia_ke2_cw_next">Następny: S%1$d E%2$d</string>
+    <string name="niunia_ke2_cw_left">Zostało %1$d min</string>
+    <string name="niunia_ke2_see_all">Zobacz wszystko</string>
+    <string name="niunia_ke2_home_empty_title">Brak dodatków z katalogami</string>
+    <string name="niunia_ke2_home_empty_text">Dodaj dodatek z katalogami filmów i seriali, a tu pojawią się rzędy.</string>
+    <string name="niunia_ke2_home_open_addons">Otwórz dodatki</string>
+    <string name="niunia_ke2_home_error_title">Nie udało się wczytać katalogów</string>
+    <string name="niunia_ke2_retry">Spróbuj ponownie</string>
+    <!-- Z-17 strona tytułu -->
+    <string name="niunia_ke2_trailer">Zwiastun</string>
+    <string name="niunia_ke2_no_trailer">Ten tytuł nie ma zwiastuna</string>
+    <string name="niunia_ke2_season_actions">Akcje sezonu</string>
+    <string name="niunia_ke2_season_from_first">Odtwórz od odcinka 1</string>
+    <string name="niunia_ke2_collection">Kolekcja: %1$s · %2$s</string>
+    <string name="niunia_ke2_films_one">1 film</string>
+    <string name="niunia_ke2_films_few">%1$d filmy</string>
+    <string name="niunia_ke2_films_many">%1$d filmów</string>
+    <string name="niunia_ke2_this_film">Ten film</string>
+    <string name="niunia_ke2_genres_studio">Gatunki i studio</string>
+    <string name="niunia_ke2_fact_premiere">Premiera</string>
+    <string name="niunia_ke2_premiere_cinema">kino %1$s</string>
+    <string name="niunia_ke2_premiere_digital">cyfrowo %1$s</string>
+    <string name="niunia_ke2_fact_collection">Część kolekcji</string>
+    <string name="niunia_ke2_fact_original">Tytuł oryginalny</string>
+    <!-- Z-19 Szukaj -->
+    <string name="niunia_ke2_discover_chip">Odkrywaj: gatunek, rok, katalog</string>
+    <string name="niunia_ke2_results_for">Wyniki dla „%1$s”</string>
+    <string name="niunia_ke2_search_exact">Szukaj dokładnie „%1$s”</string>
+    <string name="niunia_ke2_search_offline">Brak połączenia z siecią. Sprawdź internet i spróbuj ponownie.</string>
+    <!-- Z-21 Live TV -->
+    <string name="niunia_ke2_prev_channel">Poprzedni: %1$s</string>
+    <string name="niunia_ke2_status_down">Niedostępny</string>
+    <string name="niunia_ke2_status_gone">Źródło zniknęło</string>
+    <!-- Z-22 odtwarzacz -->
+    <string name="niunia_ke2_ends_at">kończy się o %1$s</string>
+    <string name="niunia_ke2_chapters">Rozdziały</string>
+    <string name="niunia_ke2_chapter_n">Rozdział %1$d</string>
+    <string name="niunia_ke2_chapter_now">teraz</string>
+    <string name="niunia_ke2_chapter_start">od początku</string>
+    <string name="niunia_ke2_sub_delay">Opóźnienie napisów</string>
+    <!-- Z-23 YouTube -->
+    <string name="niunia_ke2_yt_search">Szukaj</string>
+    <string name="niunia_ke2_yt_save_later">Zapisz na później</string>
+    <string name="niunia_ke2_yt_channel">Kanał</string>
+    <string name="niunia_ke2_yt_not_interested">Nie interesuje mnie</string>
+    <string name="niunia_ke2_yt_live">Na żywo</string>
+</resources>

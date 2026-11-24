@@ -32,6 +32,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.MoreHoriz
@@ -120,7 +121,7 @@ internal object NiuniaLive {
     var state: LiveTvPlayerState? = null
 }
 
-internal enum class NiuniaLiveSlot { CHANNEL, BAR, RESTART, PAUSE, LIVE, FAV, INFO, MORE }
+internal enum class NiuniaLiveSlot { CHANNEL, BAR, PREV, RESTART, PAUSE, LIVE, FAV, INFO, MORE }
 
 /** Kafel rzędu pod odtwarzaczem IPTV: inny odcinek programu albo program z tej samej kategorii EPG na innym kanale. */
 internal data class NiuniaLiveTile(val channel: LiveTvChannel, val programme: LiveTvProgramme, val live: Boolean, val archive: Boolean, val future: Boolean)
@@ -146,8 +147,25 @@ internal object NiuniaLiveNav {
     var shownTitle: String? = null
     var appContext: android.content.Context? = null
 
+    /** Z-4: program z archiwum — bez przełącznika kanałów (▲▼ tylko przenosi fokus, ◀ z pierwszego przycisku zostaje). */
+    var archiveMode = false
+
+    /** Z-21 (P-31): poprzedni kanał (adres na liście) — przycisk „Poprzedni: TVP1” zamiast długiego Wstecz; OK przełącza tam i z powrotem. */
+    var lastUrl: String? = null
+    var prevUrl by mutableStateOf<String?>(null)
+    fun noteChannel(url: String) {
+        if (lastUrl != null && lastUrl != url) { prevUrl = lastUrl; Log.i(TAG, "iptv: poprzedni kanał zapamiętany") }
+        lastUrl = url
+    }
+    fun prevChannel(state: LiveTvPlayerState): LiveTvChannel? {
+        val u = prevUrl ?: return null
+        return state.zapList().firstOrNull { it.streamUrl == u } ?: LiveTvRepository.uiState.value.channels.firstOrNull { it.streamUrl == u }
+    }
+
     fun reset(archive: Boolean) {
         level = 0; slot = if (archive) NiuniaLiveSlot.PAUSE else NiuniaLiveSlot.CHANNEL; rowIndex = 0; section = 0; index = 0
+        archiveMode = archive
+        if (archive) Log.i(TAG, "archive: channel switch, channel logo and up/down arrows hidden")
     }
 
     private fun go(to: Int, why: String) {
@@ -207,19 +225,19 @@ internal object NiuniaLiveNav {
         if (slot != NiuniaLiveSlot.CHANNEL && slot != NiuniaLiveSlot.BAR && slot !in buttons) slot = buttons.firstOrNull() ?: NiuniaLiveSlot.CHANNEL
         when (code) {
             KeyEvent.KEYCODE_DPAD_UP -> when (slot) {
-                NiuniaLiveSlot.CHANNEL -> { ForgeMiniGuideNav.paused = false; state.zap(-1); Log.i(TAG, "iptv: kanał ▲") }
+                NiuniaLiveSlot.CHANNEL -> if (archiveMode) Log.i(TAG, "iptv: archiwum — ▲ nie zmienia kanału") else { ForgeMiniGuideNav.paused = false; state.zap(-1); Log.i(TAG, "iptv: kanał ▲") }
                 NiuniaLiveSlot.BAR -> Unit
                 else -> if (scrubbable) slot = NiuniaLiveSlot.BAR
             }
             KeyEvent.KEYCODE_DPAD_DOWN -> when (slot) {
-                NiuniaLiveSlot.CHANNEL -> { ForgeMiniGuideNav.paused = false; state.zap(1); Log.i(TAG, "iptv: kanał ▼") }
+                NiuniaLiveSlot.CHANNEL -> if (archiveMode) Log.i(TAG, "iptv: archiwum — ▼ nie zmienia kanału") else { ForgeMiniGuideNav.paused = false; state.zap(1); Log.i(TAG, "iptv: kanał ▼") }
                 NiuniaLiveSlot.BAR -> slot = buttons.firstOrNull() ?: NiuniaLiveSlot.CHANNEL
                 else -> go(if (row.isNotEmpty()) 1 else 2, "▼ z przycisków")
             }
             KeyEvent.KEYCODE_DPAD_LEFT -> when (slot) {
                 NiuniaLiveSlot.BAR -> if (repeat == 0) state.openScrub(channel, -1, keepInfo = true)
                 NiuniaLiveSlot.CHANNEL -> Unit
-                else -> { val i = buttons.indexOf(slot); slot = if (i <= 0) NiuniaLiveSlot.CHANNEL else buttons[i - 1] }
+                else -> { val i = buttons.indexOf(slot); slot = if (i <= 0) (if (archiveMode) slot else NiuniaLiveSlot.CHANNEL) else buttons[i - 1] }
             }
             KeyEvent.KEYCODE_DPAD_RIGHT -> when (slot) {
                 NiuniaLiveSlot.BAR -> if (repeat == 0) state.openScrub(channel, 1, keepInfo = true)
@@ -239,6 +257,8 @@ internal object NiuniaLiveNav {
                 val p = state.replayingProgramme ?: state.startOverProgramme(channel)
                 if (p != null) state.playCatchup(channel, p) else appContext?.let { com.nuvio.tv.fork.ForkLog.say(it, TAG, it.getString(R.string.niunia_live_no_restart)) }
             }
+            NiuniaLiveSlot.PREV -> prevChannel(state)?.let { p -> ForgeMiniGuideNav.paused = false; Log.i(TAG, "iptv: Poprzedni → ${p.name}"); state.switchTo(p) }
+                ?: Log.w(TAG, "iptv: Poprzedni — kanału nie ma już na liście")
             NiuniaLiveSlot.PAUSE -> state.togglePause()
             NiuniaLiveSlot.LIVE -> { ForgeMiniGuideNav.paused = false; state.switchTo(channel, force = true) }
             NiuniaLiveSlot.FAV -> shownTitle?.let { t -> val on = TvStore.toggleFavoriteShow(t); Log.i(TAG, "iptv: ulubione programy → $on") }
@@ -348,7 +368,7 @@ internal fun NiuniaLivePlayer(
     val archive = replay != null
     val shiftMs = if (!archive) ForgeMiniGuideNav.shiftMs() else 0L
     val playState = when { archive -> NiuniaPlayState.ARCHIVE; shiftMs > 0L -> NiuniaPlayState.DELAY; else -> NiuniaPlayState.LIVE }
-    LaunchedEffect(channel.streamUrl) { nav.reset(archive); Log.i(TAG, "iptv: nakładka ${channel.name} (stan=$playState, program=${shown != null})") }
+    LaunchedEffect(channel.streamUrl) { nav.reset(archive); nav.noteChannel(channel.streamUrl); Log.i(TAG, "iptv: nakładka ${channel.name} (stan=$playState, program=${shown != null})") }
     LaunchedEffect(nav.level) { while (nav.level > 0) { state?.showInfo(); kotlinx.coroutines.delay(2_500) } }
 
     // Dane: TVDB > TMDB (ten sam view model co karta programu Kicii) > EPG > playlista.
@@ -373,7 +393,9 @@ internal fun NiuniaLivePlayer(
     val paused = state?.isPausedNow() == true
     val favShows by TvStore.favoriteShows.collectAsState()
     val favorite = shown != null && com.nuvio.tv.fork.tv.ShowIdentity.normalizeTitle(shown.title) in favShows
+    val prev = if (!archive && state != null) nav.prevUrl?.takeIf { it != channel.streamUrl }?.let { nav.prevChannel(state) } else null
     val buttons = buildList {
+        if (prev != null) add(NiuniaLiveSlot.PREV) // Z-21 (P-31): pierwszy nad paskiem, dopiero po zmianie kanału, nie w archiwum
         if (startOver || archive) add(NiuniaLiveSlot.RESTART)
         if (archive || group || paused) add(NiuniaLiveSlot.PAUSE)
         if (playState == NiuniaPlayState.DELAY) add(NiuniaLiveSlot.LIVE)
@@ -419,11 +441,13 @@ internal fun NiuniaLivePlayer(
                 // Pasek (.pline y 368).
                 LiveBar(shown, playState, clockMs, playheadMs, shiftMs, scrubMs, focused = focusSlot == NiuniaLiveSlot.BAR, modifier = Modifier.offset(x = 40.dp, y = 362.dp))
                 // Przełącznik kanałów (.chsw: 40, 398, szer. 110).
-                ChannelSwitch(channel, logo, focused = focusSlot == NiuniaLiveSlot.CHANNEL, modifier = Modifier.offset(x = 40.dp, y = 398.dp))
+                // Z-4: w archiwum bez przełącznika kanałów; przyciski zaczynają się od lewej krawędzi (x 40).
+                if (!archive) ChannelSwitch(channel, logo, focused = focusSlot == NiuniaLiveSlot.CHANNEL, modifier = Modifier.offset(x = 40.dp, y = 398.dp))
                 // Przyciski od x=170 (y 414) i po prawej (right 28).
-                Row(Modifier.offset(x = 170.dp, y = 414.dp), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.Top) {
-                    buttons.filter { it == NiuniaLiveSlot.RESTART || it == NiuniaLiveSlot.PAUSE || it == NiuniaLiveSlot.LIVE }.forEach { s ->
+                Row(Modifier.offset(x = if (archive) 40.dp else 170.dp, y = 414.dp), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.Top) {
+                    buttons.filter { it == NiuniaLiveSlot.PREV || it == NiuniaLiveSlot.RESTART || it == NiuniaLiveSlot.PAUSE || it == NiuniaLiveSlot.LIVE }.forEach { s ->
                         when (s) {
+                            NiuniaLiveSlot.PREV -> NiuniaPill(stringResource(R.string.niunia_ke2_prev_channel, prev?.name.orEmpty()), focusSlot == s, icon = Icons.Outlined.History, height = 40.dp)
                             NiuniaLiveSlot.RESTART -> NiuniaIconCircle(Icons.Outlined.Replay, stringResource(R.string.niunia_live_restart), focusSlot == s,
                                 label = if (focusSlot == s) stringResource(R.string.niunia_live_restart) else null, modifier = Modifier.width(64.dp))
                             NiuniaLiveSlot.PAUSE -> NiuniaIconCircle(if (paused) Icons.Outlined.PlayArrow else Icons.Outlined.Pause,

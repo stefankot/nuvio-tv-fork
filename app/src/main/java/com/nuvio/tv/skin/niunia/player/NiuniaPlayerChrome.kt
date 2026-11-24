@@ -94,6 +94,7 @@ import com.nuvio.tv.skin.niunia.components.niuniaFocusable
 import com.nuvio.tv.skin.niunia.tokens.NiuniaColors
 import com.nuvio.tv.skin.niunia.tokens.NiuniaText
 import com.nuvio.tv.skin.niunia.tokens.NiuniaSpace
+import com.nuvio.tv.skin.niunia.tokens.NiuniaDims
 import com.nuvio.tv.ui.screens.player.PlayerEvent
 import com.nuvio.tv.ui.screens.player.PlayerUiState
 import com.nuvio.tv.ui.screens.player.PlayerViewModel
@@ -128,6 +129,9 @@ fun NiuniaPlayerChrome(
     var panelOpen by remember { mutableStateOf(false) }
     var panelTab by remember { mutableIntStateOf(-1) }
     val audioButton = remember { FocusRequester() }
+    val lektorButton = remember { FocusRequester() }
+    val moreButton = remember { FocusRequester() }
+    val lektorOn = remember { com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(context, "module_lektor") }
     // Po zamknięciu panelu fokus wraca na „Dźwięk” (element, z którego wszedł) — bez tego fokus spadał na korzeń i nakładka znikała.
     var panelWasOpen by remember { mutableStateOf(false) }
     LaunchedEffect(panelOpen) {
@@ -136,7 +140,21 @@ fun NiuniaPlayerChrome(
         kotlinx.coroutines.delay(60)
         // Test JMGO build155: „Więcej opcji” zamyka panel i otwiera „Więcej” — fokus zostaje w nowym panelu (był zabierany na „Napisy”).
         if (moreOpen) { panelWasOpen = false; Log.i(TAG, "odtwarzacz: panel → Więcej, fokus w panelu Więcej"); return@LaunchedEffect }
-        try { (if (panelTab == 2) firstButton else audioButton).requestFocus(); Log.i(TAG, "odtwarzacz: panel zamknięty, fokus → ${if (panelTab == 2) "Napisy" else "Dźwięk"}") } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus po panelu: ${e.javaClass.simpleName}: ${e.message}") }
+        try { (when (panelTab) { 2 -> audioButton; 1 -> if (lektorOn) lektorButton else firstButton; else -> firstButton }).requestFocus(); Log.i(TAG, "odtwarzacz: panel zamknięty, fokus → ${when (panelTab) { 2 -> "Napisy"; 1 -> "Lektor"; else -> "Dźwięk" }}") } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus po panelu: ${e.javaClass.simpleName}: ${e.message}") }
+        // Test JMGO ke2: pierwsza prośba ginie, bo panel (exit = Cancel) jeszcze znika — druga po animacji wyjścia.
+        kotlinx.coroutines.delay(450)
+        if (!panelOpen && !moreOpen) try { (when (panelTab) { 2 -> audioButton; 1 -> if (lektorOn) lektorButton else firstButton; else -> firstButton }).requestFocus(); Log.i(TAG, "odtwarzacz: fokus po zamknięciu panelu (ponowienie)") } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus po panelu (ponowienie): ${e.javaClass.simpleName}: ${e.message}") }
+    }
+    // Z-14 (PlayerMore): po zamknięciu panelu Więcej fokus wraca na przycisk Więcej.
+    var moreWasOpen by remember { mutableStateOf(false) }
+    LaunchedEffect(moreOpen) {
+        if (moreOpen) { moreWasOpen = true; return@LaunchedEffect }
+        if (!moreWasOpen || panelOpen) return@LaunchedEffect
+        moreWasOpen = false
+        kotlinx.coroutines.delay(60)
+        try { moreButton.requestFocus(); Log.i(TAG, "odtwarzacz: Więcej zamknięte, fokus → Więcej") } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus po Więcej: ${e.javaClass.simpleName}: ${e.message}") }
+        kotlinx.coroutines.delay(450)
+        if (!moreOpen && !panelOpen) try { moreButton.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus po Więcej (ponowienie): ${e.javaClass.simpleName}: ${e.message}") }
     }
     var okDownAt by remember { mutableStateOf(0L) }
     var okLong by remember { mutableStateOf(false) }
@@ -165,7 +183,10 @@ fun NiuniaPlayerChrome(
     }
     LaunchedEffect(extrasState.message) { extrasState.message?.let { Toast.makeText(context, it, Toast.LENGTH_SHORT).show(); extras.clearMessage() } }
     val similar = extrasState.similar
-    val hasRow = (series && episodes.isNotEmpty()) || (!series && similar.isNotEmpty())
+    // Z-22 (P-34): plik z rozdziałami (≥ 2) → pod paskiem rząd „Rozdziały” zamiast „Podobne” (film); bez rozdziałów zostaje „Podobne”.
+    val chapters = if (uiState.chaptersEnabled) uiState.chapters else emptyList()
+    val chapterRow = !series && chapters.size >= 2
+    val hasRow = (series && episodes.isNotEmpty()) || (!series && (chapterRow || similar.isNotEmpty()))
     val rowFocus = remember { FocusRequester() }
     var moved by remember { mutableStateOf(false) }
     fun go(to: Int) {
@@ -218,6 +239,8 @@ fun NiuniaPlayerChrome(
                 if (series) "S${uiState.currentSeason}:O${uiState.currentEpisode}" else null,
                 uiState.currentEpisodeTitle?.takeIf { series && it.isNotBlank() },
                 speedLabel(uiState.playbackSpeed).takeIf { uiState.playbackSpeed != 1f },
+                // Z-22 (P-33): „kończy się o 22:42” = teraz + pozostały czas (z prędkością); liczone przy każdej zmianie pozycji.
+                niuniaEndsAt(timeline.duration, timeline.currentPosition, uiState.playbackSpeed)?.let { stringResource(R.string.niunia_ke2_ends_at, it) },
             ).joinToString(" · ")
             val quality = niuniaQualityGlyph(uiState.streamInfoData?.videoHeight, uiState.currentStreamName)
             // Napisy filmu nad całym blokiem sterowania (informacje i ikony stoją obok siebie nad paskiem).
@@ -236,13 +259,17 @@ fun NiuniaPlayerChrome(
                     },
                     horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12), verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    // Makieta PlayerSubs: ikona napisów otwiera ten sam panel na zakładce „Napisy”.
+                    // Z-6 (makieta Player / PlayerAudio / PlayerSubs): Dźwięk → Lektor → Napisy w kolejności zakładek panelu, każdy otwiera
+                    // panel na swojej zakładce (przycisk otwartej zakładki aktywny). Bez przycisku jakości „UHD”: jakość ręcznie w panelu
+                    // Więcej i na pilocie (decyzja właściciela 22.11), znacznik jakości zostaje w opisie. Z-14 (PlayerMore): przycisk Więcej.
+                    NiuniaButton(onClick = { panelTab = 0; panelOpen = true; Log.i(TAG, "odtwarzacz: panel → Dźwięk"); resetHide() }, icon = "audio",
+                        description = stringResource(R.string.niunia_player_audio), focusRequester = firstButton, active = panelOpen && panelTab == 0)
+                    if (lektorOn) NiuniaButton(onClick = { panelTab = 1; panelOpen = true; Log.i(TAG, "odtwarzacz: panel → Lektor"); resetHide() }, icon = "voice-over",
+                        description = stringResource(R.string.niunia_ds_tab_lektor), focusRequester = lektorButton, active = panelOpen && panelTab == 1)
                     NiuniaButton(onClick = { panelTab = 2; panelOpen = true; Log.i(TAG, "odtwarzacz: panel → Napisy"); resetHide() }, icon = "subtitles",
-                        description = stringResource(R.string.niunia_player_subtitles), focusRequester = firstButton, active = panelOpen && panelTab == 2)
-                    NiuniaButton(onClick = { onEvent(PlayerEvent.OnShowQualityOverlay); resetHide() }, glyph = quality, icon = if (quality == null) "settings" else null,
-                        description = stringResource(R.string.niunia_player_quality) + (quality?.let { ": $it" } ?: ""))
-                    NiuniaButton(onClick = { panelTab = -1; panelOpen = true; Log.i(TAG, "odtwarzacz: panel ${context.getString(R.string.niunia_ds_panel_title)}"); resetHide() }, icon = "audio",
-                        description = stringResource(R.string.niunia_player_audio), active = panelOpen && panelTab != 2, focusRequester = audioButton)
+                        description = stringResource(R.string.niunia_player_subtitles), active = panelOpen && panelTab == 2, focusRequester = audioButton)
+                    NiuniaButton(onClick = { panelOpen = false; moreOpen = true; Log.i(TAG, "odtwarzacz: przycisk Więcej → panel Więcej"); resetHide() }, icon = "more",
+                        description = stringResource(R.string.niunia_player_more), active = moreOpen, focusRequester = moreButton)
                 }
             }
             Spacer(Modifier.height(NiuniaSpace.PlayerGap))
@@ -306,6 +333,12 @@ fun NiuniaPlayerChrome(
                     icon = "chevron-down", kind = NiuniaButtonKind.Chip,
                     modifier = Modifier.padding(start = NiuniaSpacing.Space40, top = NiuniaSpacing.Space16))
             }
+        } else if (hasRow && chapterRow) {
+            NiuniaChapterRow(
+                chapters, timeline.currentPosition, focus = rowFocus, onUp = { go(0); true }, onDown = { go(2); true },
+                onSeek = { ms -> Log.i(TAG, "odtwarzacz: rozdział → ${ms / 1000} s"); onEvent(PlayerEvent.OnSeekTo(ms)); resetHide() },
+                modifier = Modifier.align(Alignment.BottomStart).offset(y = rowShift).padding(bottom = NiuniaSpace.AfterRow),
+            )
         } else if (hasRow) {
             NiuniaSimilarRow(
                 similar, focus = rowFocus, onUp = { go(0); true }, onDown = { go(2); true },
@@ -480,6 +513,17 @@ internal fun NiuniaSubtitlesTab(uiState: PlayerUiState, first: FocusRequester, o
     }
     NiuniaListRow(stringResource(R.string.niunia_ds_subs_off), trailing = if (off && !aiPublished) NiuniaTrailing.Check else NiuniaTrailing.None,
         focusRequester = if (focusKey == "off") first else null, onClick = { onEvent(PlayerEvent.OnDisableSubtitles) })
+    // Z-22 (P-36): „Opóźnienie napisów −0,5 s”: ◄ ► co 0,1 s (opóźnienie Nuvio), OK = 0.
+    if (!off || aiPublished) NiuniaListRow(
+        stringResource(R.string.niunia_ke2_sub_delay), value = niuniaDelayLabel(uiState.subtitleDelayMs),
+        modifier = Modifier.onPreviewKeyEvent { e ->
+            if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+            val d = when (e.key) { Key.DirectionLeft -> -100; Key.DirectionRight -> 100; else -> return@onPreviewKeyEvent false }
+            Log.i(TAG, "odtwarzacz: opóźnienie napisów ${uiState.subtitleDelayMs} → ${uiState.subtitleDelayMs + d} ms")
+            onEvent(PlayerEvent.OnAdjustSubtitleDelay(d, showOverlay = false)); true
+        },
+        onClick = { Log.i(TAG, "odtwarzacz: opóźnienie napisów → 0"); onEvent(PlayerEvent.OnResetSubtitleDelay(showOverlay = false)) },
+    )
     NiuniaListRow(stringResource(R.string.niunia_ds_subtitles_choose), trailing = NiuniaTrailing.Chevron,
         onClick = more)
 }
@@ -613,3 +657,62 @@ internal fun niuniaArchiveLengthMs(url: String?, streamMs: Long): Long? {
     return epg
 }
 private var archiveLogged: String? = null
+
+
+/** Z-22 (P-33): godzina końca „HH:MM”; null przy nieznanej długości. */
+internal fun niuniaEndsAt(durationMs: Long, positionMs: Long, speed: Float, now: Long = System.currentTimeMillis()): String? {
+    if (durationMs <= 0L) return null
+    val left = ((durationMs - positionMs).coerceAtLeast(0L) / speed.coerceAtLeast(0.25f)).toLong()
+    return com.nuvio.tv.skin.niunia.components.niuniaClockText(now + left)
+}
+
+/**
+ * Z-22 (P-34): rząd „Rozdziały” (NMediaCard ChapterCard: czas, „Rozdział N” albo nazwa z pliku, „teraz” przy bieżącym);
+ * pierwszy rozdział 0:00 z podpisem „od początku” zastępuje osobny przycisk. OK = skok do rozdziału.
+ */
+@Composable
+internal fun NiuniaChapterRow(
+    chapters: List<com.nuvio.tv.ui.screens.player.PlayerChapter>,
+    positionMs: Long,
+    focus: FocusRequester,
+    onUp: () -> Boolean,
+    onDown: () -> Boolean,
+    onSeek: (Long) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val current = chapters.indexOfLast { it.startMs <= positionMs }
+    LaunchedEffect(chapters.size) { Log.i(TAG, "odtwarzacz: rząd Rozdziały (${chapters.size}) zamiast Podobne") }
+    Column(modifier) {
+        NiuniaShelfTitle(stringResource(R.string.niunia_ke2_chapters), modifier = Modifier.padding(start = NiuniaDims.Gutter))
+        androidx.compose.foundation.lazy.LazyRow(
+            Modifier.padding(top = NiuniaSpace.TitleToRow - 22.dp).onPreviewKeyEvent {
+                if (it.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                when (it.key) { Key.DirectionUp -> onUp(); Key.DirectionDown -> onDown(); else -> false }
+            },
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = NiuniaDims.Gutter),
+            horizontalArrangement = Arrangement.spacedBy(NiuniaSpace.TileGap),
+        ) {
+            items(chapters.size) { i ->
+                val ch = chapters[i]
+                var focused by remember { mutableStateOf(false) }
+                Box(Modifier.niuniaFocusable(androidx.compose.foundation.shape.RoundedCornerShape(NiuniaDims.RadiusCard), scale = 1f, lift = false,
+                    focusRequester = if (i == (if (current >= 0) current else 0)) focus else null, onFocus = { focused = it }, onOk = { onSeek(ch.startMs) })) {
+                    NiuniaTextTile(
+                        top = formatScrubTime(ch.startMs),
+                        middle = ch.title?.takeIf { it.isNotBlank() } ?: stringResource(R.string.niunia_ke2_chapter_n, i + 1),
+                        bottomLeft = if (i == 0) stringResource(R.string.niunia_ke2_chapter_start) else null,
+                        bottomRight = if (i == current) stringResource(R.string.niunia_ke2_chapter_now) else null,
+                        focused = focused,
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** Z-22 (P-36): „−0,5 s” / „0 s” / „+0,3 s”. */
+internal fun niuniaDelayLabel(ms: Int): String {
+    if (ms == 0) return "0 s"
+    val v = "%.1f".format(java.util.Locale("pl", "PL"), kotlin.math.abs(ms) / 1000.0)
+    return (if (ms < 0) "\u2212" else "+") + v + " s"
+}

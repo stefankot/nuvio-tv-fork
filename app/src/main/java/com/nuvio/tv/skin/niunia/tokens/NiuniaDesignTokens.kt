@@ -1,4 +1,4 @@
-// WYGENEROWANE przez fork-tools/niunia/gen_tokens.py z design-system/tokens.json (Nuvio TV v2.0.0). Nie edytuj ręcznie.
+// WYGENEROWANE przez fork-tools/niunia/gen_tokens.py z design-system/tokens.json (Nuvio TV v2.1.0). Nie edytuj ręcznie.
 @file:Suppress("unused", "MemberVisibilityCanBePrivate")
 
 package com.nuvio.tv.skin.niunia.tokens
@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /** Plansza 960×540 dp: 1 px projektu = 1 dp = 1 sp (1 dp = 2 px przy 1080p). Tylko ciemny motyw. */
-const val NIUNIA_DS_VERSION = "2.0.0"
+const val NIUNIA_DS_VERSION = "2.1.0"
 
 /** Kolory (`color`). Role (inverse-surface, secondary-container …) to te same wartości co tokeny bazowe. */
 object NiuniaColor {
@@ -122,10 +122,10 @@ object NiuniaColor {
     val ChipOnImage = Color(0x59000000)
     /** Chip ring on image. */
     val OnImageRing = Color(0x59FFFFFF)
-    /** Series stack layer 1 dimming. */
-    val Stack1 = Color(0x73000000)
-    /** Series stack layer 2 dimming. */
-    val Stack2 = Color(0x9E000000)
+    /** Series stack layer 1 dimming (Z-7: lighter, the layer also has opacity-stack-1 0.7). */
+    val Stack1 = Color(0x33000000)
+    /** Series stack layer 2 dimming (Z-7: same as layer 1; the depth comes from opacity-stack-2 0.4). */
+    val Stack2 = Color(0x33000000)
     /** Secondary text on a focused (white) element; 9.3:1. */
     val OnFocus70 = Color(0xB3111111)
     /** Outline of age box. */
@@ -136,6 +136,18 @@ object NiuniaColor {
     val OnFmt = Color(0xFF1C1C1E)
     /** Fill of the LIVE tag; white text 5.2:1 (live #e5484d gave 3.9:1). */
     val LiveBadge = Color(0xFFC8323A)
+    /** Z-2 Glass (Haze) button fill at rest over a blurred backdrop (blur-haze). Focus stays solid white. */
+    val Haze = Color(0x29FFFFFF)
+    /** Z-2 1 dp top highlight of a Haze button (inset). */
+    val HazeEdge = Color(0x47FFFFFF)
+    /** Z-2 Haze button without blur (Android 11, effects=flat). White text 9.1:1. */
+    val HazeFlat = Color(0xFF48484A)
+    /** Z-2 Panel/sheet/sidebar without blur (Android 11). */
+    val GlassFlat = Color(0xF72C2C2E)
+    /** Z-2 Tab pill, tray and resting button without blur (Android 11). White text 11.4:1. */
+    val TrayFlat = Color(0xFF3A3A3C)
+    /** Z-2 Frosted text block of a focused card without blur (Android 11). */
+    val FrostFlat = Color(0xFF48484A)
 }
 
 /** Odstępy (`spacing`). */
@@ -256,6 +268,10 @@ object NiuniaSize {
     val SpotlightW = 280.dp
     /** Spotlight poster height. */
     val SpotlightH = 350.dp
+    /** Title pager card (Z-12): stage width minus 60 dp each side, so the neighbour cards peek 40 dp (gap space-20). */
+    val PagerCardW = 840.dp
+    /** Z-13b: max width of the award text in the hero's right column (3 lines, never wrapped; items dropped until each line fits). */
+    val AwardsTextW = 336.dp
     /** Cast avatar in player info sheets. */
     val Avatar84 = 84.dp
     /** Search result card width. */
@@ -328,6 +344,12 @@ object NiuniaSize {
     val TreeMaxH = 460.dp
     /** Player: how far the bottom rail sinks below the stage (38 dp stays visible). */
     val PlayerPeek = 77.dp
+    /** Z-5 Seek track thickness when the seek bar has focus (was scaleY 1.25 on the track, which also stretched the knob into an oval). */
+    val TrackHFocus = 12.dp
+    /** Z-8 Ratings table: episode cell width (height h-44). */
+    val RatingCellW = 56.dp
+    /** Z-8 Ratings table: season label column. */
+    val RatingLabelW = 80.dp
 }
 
 /** Skala typografii (`type`), Satoshi 500/700. */
@@ -391,6 +413,10 @@ object NiuniaOpacity {
     const val OpacityDisabled = 0.5f
     /** Unfocused Next card dimming. */
     const val OpacityDim = 0.3f
+    /** Z-7 Series stack: first layer under a programme tile. */
+    const val OpacityStack1 = 0.7f
+    /** Z-7 Series stack: second (bottom) layer under a programme tile. */
+    const val OpacityStack2 = 0.4f
 }
 
 /** Cień: przesunięcie Y, rozmycie, kolor; [ring] = obwódka (0 = brak). */
@@ -425,6 +451,10 @@ object NiuniaBlur {
     val BlurPoster2 = NiuniaBlurSpec(6.dp, 1.0f, 1.0f)
     /** Poster progressive blur, layer 3. */
     val BlurPoster3 = NiuniaBlurSpec(14.dp, 1.0f, 1.0f)
+    /** Z-2 Glass (Haze) button backdrop. */
+    val BlurHaze = NiuniaBlurSpec(20.dp, 1.8f, 1.0f)
+    /** Z-2 Blurred left part of a detail hero (film, series, TV programme). */
+    val BlurDetail = NiuniaBlurSpec(36.dp, 1.4f, 1.0f)
 }
 
 /** Gradient: [angle] w stopniach CSS (180 = z góry na dół, 90 = od lewej), przystanki (pozycja 0..1, kolor). */
@@ -475,6 +505,16 @@ object NiuniaGradient {
     val Tile4 = NiuniaGradientSpec(false, 150.0f, listOf(0.0f to Color(0xFF46405A), 1.0f to Color(0xFF201D2A)))
     /** Tone 5. */
     val Tile5 = NiuniaGradientSpec(false, 150.0f, listOf(0.0f to Color(0xFF3A3A4A), 1.0f to Color(0xFF1B1B23)))
+    /** Z-2 Tint over the blurred (haze) left part of a detail hero; text sits on it. */
+    val ScrimDetail = NiuniaGradientSpec(false, 90.0f, listOf(0.0f to Color(0x9E18181A), 0.4f to Color(0x5C18181A), 0.68f to Color(0x0018181A)))
+    /** Z-2 Mask: where the detail hero image is blurred (left, under the text). */
+    val MaskDetail = NiuniaGradientSpec(false, 90.0f, listOf(0.32f to Color(0xFF000000), 0.64f to Color(0x00000000)))
+    /** Z-2 Detail hero without blur (Android 11): solid skin background fading into the sharp image. */
+    val ScrimDetailFlat = NiuniaGradientSpec(false, 90.0f, listOf(0.0f to Color(0xFF2C2C2E), 0.3f to Color(0xF02C2C2E), 0.52f to Color(0x8C2C2C2E), 0.76f to Color(0x002C2C2E)))
+    /** Z-2 Replaces blurred/deep backdrops without blur (Android 11): skin colours only. */
+    val BackdropFlat = NiuniaGradientSpec(true, 180.0f, listOf(0.0f to Color(0xFF48484A), 0.35f to Color(0xFF3A3A3C), 0.75f to Color(0xFF2C2C2E)))
+    /** Z-2 Bottom of a detail hero (blur and flat): from 58% of the height text-50 stays >= 4.8:1 even on the brightest pixel (measured on the Odyssey, Rings of Power and TV backdrops). */
+    val ScrimDetailBottom = NiuniaGradientSpec(false, 180.0f, listOf(0.3f to Color(0x0018181A), 0.58f to Color(0xE618181A), 1.0f to Color(0xF018181A)))
 }
 
 /** Indeks nazwa z tokens.json → wartość z obiektów powyżej (test NiuniaTokensTest porównuje z JSON-em). */
@@ -539,6 +579,12 @@ object NiuniaTokenIndex {
         "fmt" to NiuniaColor.Fmt,
         "on-fmt" to NiuniaColor.OnFmt,
         "live-badge" to NiuniaColor.LiveBadge,
+        "haze" to NiuniaColor.Haze,
+        "haze-edge" to NiuniaColor.HazeEdge,
+        "haze-flat" to NiuniaColor.HazeFlat,
+        "glass-flat" to NiuniaColor.GlassFlat,
+        "tray-flat" to NiuniaColor.TrayFlat,
+        "frost-flat" to NiuniaColor.FrostFlat,
     )
     val spacing: Map<String, Dp> = mapOf(
         "space-4" to NiuniaSpacing.Space4,
@@ -599,6 +645,8 @@ object NiuniaTokenIndex {
         "still-h" to NiuniaSize.StillH,
         "spotlight-w" to NiuniaSize.SpotlightW,
         "spotlight-h" to NiuniaSize.SpotlightH,
+        "pager-card-w" to NiuniaSize.PagerCardW,
+        "awards-text-w" to NiuniaSize.AwardsTextW,
         "avatar-84" to NiuniaSize.Avatar84,
         "result-w" to NiuniaSize.ResultW,
         "result-h" to NiuniaSize.ResultH,
@@ -635,6 +683,9 @@ object NiuniaTokenIndex {
         "stroke-3" to NiuniaSize.Stroke3,
         "tree-max-h" to NiuniaSize.TreeMaxH,
         "player-peek" to NiuniaSize.PlayerPeek,
+        "track-h-focus" to NiuniaSize.TrackHFocus,
+        "rating-cell-w" to NiuniaSize.RatingCellW,
+        "rating-label-w" to NiuniaSize.RatingLabelW,
     )
     val type: Map<String, TextStyle> = mapOf(
         "caption" to NiuniaType.Caption,

@@ -68,6 +68,8 @@ fun NiuniaButton(
     focusRequester: FocusRequester? = null,
     onFocus: (Boolean) -> Unit = {},
     onLongClick: (() -> Unit)? = null,
+    /** Z-2: przycisk „szkło” (Haze) na hero szczegółów: biel 16 % (API 31+) albo haze-flat #48484a (Android 11). */
+    haze: Boolean = false,
 ) {
     var focused by remember { mutableStateOf(false) }
     val chipLike = kind == NiuniaButtonKind.Chip || kind == NiuniaButtonKind.Tab || kind == NiuniaButtonKind.Segment
@@ -83,6 +85,7 @@ fun NiuniaButton(
         focused -> NiuniaColor.Focus
         active -> NiuniaColor.Fill36
         selected && (chipLike || kind == NiuniaButtonKind.Standard || kind == NiuniaButtonKind.Icon) -> NiuniaColor.Fill24
+        haze -> if (android.os.Build.VERSION.SDK_INT >= 31) NiuniaColor.Haze else NiuniaColor.HazeFlat
         chipLike || keyLike || kind == NiuniaButtonKind.Bare -> Color.Transparent
         else -> NiuniaColor.Button
     }
