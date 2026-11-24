@@ -1,7 +1,7 @@
 #!/bin/bash
 # jmgo_czekaj_wolny.sh [min_bez_pilota=1] [max_min=180] : czeka, aż na JMGO nikt nie używa pilota przez N minut
 # i nic nie gra (żaden odtwarzacz poza ekranem głównym JMGO). Kod 0 = wolny, 1 = limit czasu. Sprawdza co 60 s.
-S=$(cd "$(dirname "$0")" && pwd); idle=$(( ${1:-1} * 60000 ))  # 24.11 właściciel: 1 min spoczynku pilota wystarczy (było 10); max=$(( ${2:-180} * 60 ))
+S=$(cd "$(dirname "$0")" && pwd); idle=$(( ${1:-1} * 60000 )); max=$(( ${2:-180} * 60 ))  # 24.11 właściciel: 1 min spoczynku pilota wystarczy (było 10)
 eval "$(bash "$S/jmgo_adb.sh" --env)"; start=$(date +%s)
 while [ $(( $(date +%s) - start )) -lt $max ]; do
   bash "$S/jmgo_adb.sh" >/dev/null 2>&1
