@@ -168,7 +168,9 @@ fun NiuniaDetail(
     // Z-17 (P-15): ikona „Zwiastun” w hero = pierwszy zwiastun YouTube (ta sama nakładka co rząd zwiastunów).
     val heroTrailer = remember(meta.trailers) { meta.trailers.firstOrNull { !it.ytId.isNullOrBlank() } }
     // Z-13: nagrody tytułu (źródło: NiuniaAwardsRepo; bez źródła pusto — pasek się nie rysuje, lista pokazuje stan pusty).
+    val awardsCtx = androidx.compose.ui.platform.LocalContext.current
     val awards by androidx.compose.runtime.produceState(emptyList<com.nuvio.tv.skin.niunia.awards.NiuniaAward>(), meta.id) {
+        com.nuvio.tv.skin.niunia.awards.NiuniaAwardsRepo.ensure(awardsCtx) // 24.11: Wikidata (przełącznik niunia_awards_wikidata)
         value = com.nuvio.tv.skin.niunia.awards.NiuniaAwardsRepo.load(meta.id, meta.rawType, meta.imdbId)
     }
     val extras: com.nuvio.tv.skin.niunia.player.NiuniaPlayerExtrasViewModel = androidx.hilt.navigation.compose.hiltViewModel()

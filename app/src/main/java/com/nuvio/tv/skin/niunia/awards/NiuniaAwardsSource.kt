@@ -1,12 +1,13 @@
 package com.nuvio.tv.skin.niunia.awards
 
+import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.CancellationException
 
 /**
- * Z-13: skąd brać nagrody tytułu. Aplikacja nie ma dziś źródła nagród z galą, kategorią i wynikiem (TMDB ich nie ma,
- * `Meta.awards` z dodatków to tylko zdanie w stylu OMDb, bez kategorii). Wybór źródła należy do właściciela
- * (plan/BLOKADY.md, „Z-13 źródło nagród”) — do tego czasu [NoAwardsSource]: pasek się nie rysuje, lista pokazuje stan pusty.
+ * Z-13: skąd brać nagrody tytułu. TMDB ich nie ma, `Meta.awards` z dodatków to tylko zdanie w stylu OMDb, bez kategorii.
+ * 24.11 właściciel: „wybierz sam źródło danych” → [NiuniaWikidataAwards] (przełącznik [NiuniaAwardsRepo.KEY], domyślnie
+ * włączony); wyłączony = [NoAwardsSource]: pasek się nie rysuje, lista pokazuje stan pusty.
  */
 interface NiuniaAwardsSource {
     /** Nazwa do logów. */
@@ -25,6 +26,14 @@ object NoAwardsSource : NiuniaAwardsSource {
 /** Nagrody dla ekranów Niuni: jedno źródło, pamięć ostatnich tytułów (pasek, lista i plakietki plakatów czytają to samo). */
 object NiuniaAwardsRepo {
     @Volatile var source: NiuniaAwardsSource = NoAwardsSource
+    const val KEY = "niunia_awards_wikidata"
+
+    /** Źródło wg przełącznika (czytane przy każdym wejściu na stronę tytułu; zmiana działa bez restartu). */
+    fun ensure(c: Context) {
+        val on = com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(c, KEY, true)
+        val want = if (on) (source as? NiuniaWikidataAwards ?: NiuniaWikidataAwards(c.applicationContext)) else NoAwardsSource
+        if (want !== source) { source = want; synchronized(cache) { cache.clear() }; Log.i(AWARDS_TAG, "NAwards: źródło → ${want.name}") }
+    }
 
     private const val MAX = 200
     private val cache = object : LinkedHashMap<String, List<NiuniaAward>>(64, 0.75f, true) {

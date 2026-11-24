@@ -416,60 +416,64 @@ internal fun NiuniaLivePlayer(
             // ▼: przyciski w górę (canvas Group: pasek 368 → 244), rząd 502 → 408 z tytułem nad nim.
             val lift by animateDpAsState(if (level >= 1) (-124).dp else 0.dp, label = "niuniaLiveLift")
             val rowLift by animateDpAsState(if (level >= 1) (-94).dp else 0.dp, label = "niuniaLiveRowLift")
+            // Z-3 (NPlayerControls kind live/delay/archive): rząd 1 = przełącznik kanałów + informacje + przyciski (do dołu,
+            // odstęp 24), rząd 2 = pasek postępu (odstęp 16) — jak w odtwarzaczu filmu. Rząd programów wystaje pod paskiem.
             Box(Modifier.fillMaxSize().offset(y = lift)) {
-                Column(Modifier.offset(x = 40.dp, y = 206.dp).width(600.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        val chip = when (playState) {
-                            NiuniaPlayState.ARCHIVE -> stringResource(R.string.niunia_live_archive)
-                            NiuniaPlayState.DELAY -> "−" + formatScrubTime(shiftMs)
-                            else -> stringResource(R.string.niunia_live_live)
+                Column(Modifier.align(Alignment.BottomStart).padding(start = 40.dp, end = 40.dp, bottom = if (row.isNotEmpty()) 76.dp else 46.dp).fillMaxWidth()) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                        // Z-4: w archiwum bez przełącznika kanałów.
+                        if (!archive) ChannelSwitch(channel, logo, focused = focusSlot == NiuniaLiveSlot.CHANNEL, modifier = Modifier)
+                        Column(Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            val chip = when (playState) {
+                                NiuniaPlayState.ARCHIVE -> stringResource(R.string.niunia_live_archive)
+                                NiuniaPlayState.DELAY -> "−" + formatScrubTime(shiftMs)
+                                else -> stringResource(R.string.niunia_live_live)
+                            }
+                            NiuniaStateChip(chip, playState)
+                            val day = if (archive && shown != null && dayStart(shown.startEpochMs) != dayStart(clockMs)) dayLabel(context, shown.startEpochMs, clockMs).lowercase().replaceFirstChar { it.uppercase() } + " " else ""
+                            val line = listOfNotNull(
+                                shown?.let { day + hm(it.startEpochMs) + " – " + hm(it.stopEpochMs) },
+                                channel.name,
+                                if (playState == NiuniaPlayState.DELAY) stringResource(R.string.niunia_live_still_live) else null,
+                            ).joinToString(" · ")
+                            Text(line, style = NiuniaText.Button.copy(fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.sp), color = NiuniaColors.Text, maxLines = 1)
                         }
-                        NiuniaStateChip(chip, playState)
-                        val day = if (archive && shown != null && dayStart(shown.startEpochMs) != dayStart(clockMs)) dayLabel(context, shown.startEpochMs, clockMs).lowercase().replaceFirstChar { it.uppercase() } + " " else ""
-                        val line = listOfNotNull(
-                            shown?.let { day + hm(it.startEpochMs) + " – " + hm(it.stopEpochMs) },
-                            channel.name,
-                            if (playState == NiuniaPlayState.DELAY) stringResource(R.string.niunia_live_still_live) else null,
-                        ).joinToString(" · ")
-                        Text(line, style = NiuniaText.Button.copy(fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.sp), color = NiuniaColors.Text, maxLines = 1)
-                    }
-                    val meta = listOfNotNull(episodeText(shown?.episode), data.genre).joinToString(" · ")
-                    if (meta.isNotEmpty()) Text(meta, style = NiuniaText.Body.copy(fontSize = 15.sp, lineHeight = 20.sp), color = NiuniaColors.Text70, maxLines = 1, modifier = Modifier.padding(top = 8.dp))
-                    if (data.programmeLogo != null) {
-                        AsyncImage(model = data.programmeLogo, contentDescription = data.title, contentScale = ContentScale.Fit, alignment = Alignment.BottomStart,
-                            modifier = Modifier.padding(top = 12.dp).width(300.dp).heightIn(max = 84.dp))
-                    } else {
-                        Text(data.title, style = NiuniaText.Logo.copy(fontSize = 32.sp, lineHeight = 38.sp), maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 6.dp))
-                    }
-                }
-                // Pasek (.pline y 368).
-                LiveBar(shown, playState, clockMs, playheadMs, shiftMs, scrubMs, focused = focusSlot == NiuniaLiveSlot.BAR, modifier = Modifier.offset(x = 40.dp, y = 362.dp))
-                // Przełącznik kanałów (.chsw: 40, 398, szer. 110).
-                // Z-4: w archiwum bez przełącznika kanałów; przyciski zaczynają się od lewej krawędzi (x 40).
-                if (!archive) ChannelSwitch(channel, logo, focused = focusSlot == NiuniaLiveSlot.CHANNEL, modifier = Modifier.offset(x = 40.dp, y = 398.dp))
-                // Przyciski od x=170 (y 414) i po prawej (right 28).
-                Row(Modifier.offset(x = if (archive) 40.dp else 170.dp, y = 414.dp), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.Top) {
-                    buttons.filter { it == NiuniaLiveSlot.PREV || it == NiuniaLiveSlot.RESTART || it == NiuniaLiveSlot.PAUSE || it == NiuniaLiveSlot.LIVE }.forEach { s ->
-                        when (s) {
-                            NiuniaLiveSlot.PREV -> NiuniaPill(stringResource(R.string.niunia_ke2_prev_channel, prev?.name.orEmpty()), focusSlot == s, icon = Icons.Outlined.History, height = 40.dp)
-                            NiuniaLiveSlot.RESTART -> NiuniaIconCircle(Icons.Outlined.Replay, stringResource(R.string.niunia_live_restart), focusSlot == s,
-                                label = if (focusSlot == s) stringResource(R.string.niunia_live_restart) else null, modifier = Modifier.width(64.dp))
-                            NiuniaLiveSlot.PAUSE -> NiuniaIconCircle(if (paused) Icons.Outlined.PlayArrow else Icons.Outlined.Pause,
-                                stringResource(if (paused) R.string.niunia_live_play else R.string.niunia_live_pause), focusSlot == s,
-                                label = if (focusSlot == s || archive) stringResource(if (paused) R.string.niunia_live_play else R.string.niunia_live_pause) else null, modifier = Modifier.width(64.dp))
-                            else -> NiuniaPill(stringResource(R.string.niunia_live_back_live), focusSlot == s, height = 40.dp, dot = NiuniaStatus.Live)
+                        val meta = listOfNotNull(episodeText(shown?.episode), data.genre).joinToString(" · ")
+                        if (meta.isNotEmpty()) Text(meta, style = NiuniaText.Body.copy(fontSize = 15.sp, lineHeight = 20.sp), color = NiuniaColors.Text70, maxLines = 1, modifier = Modifier.padding(top = 8.dp))
+                        if (data.programmeLogo != null) {
+                            AsyncImage(model = data.programmeLogo, contentDescription = data.title, contentScale = ContentScale.Fit, alignment = Alignment.BottomStart,
+                                modifier = Modifier.padding(top = 12.dp).width(300.dp).heightIn(max = 84.dp))
+                        } else {
+                            Text(data.title, style = NiuniaText.Logo.copy(fontSize = 32.sp, lineHeight = 38.sp), maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 6.dp))
+                        }
+                                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            val left = buttons.filter { it == NiuniaLiveSlot.PREV || it == NiuniaLiveSlot.RESTART || it == NiuniaLiveSlot.PAUSE || it == NiuniaLiveSlot.LIVE }
+                            val right = buttons.filter { it == NiuniaLiveSlot.FAV || it == NiuniaLiveSlot.INFO || it == NiuniaLiveSlot.MORE }
+                            left.forEach { s ->
+                                when (s) {
+                                    NiuniaLiveSlot.PREV -> NiuniaPill(stringResource(R.string.niunia_ke2_prev_channel, prev?.name.orEmpty()), focusSlot == s, icon = Icons.Outlined.History, height = 36.dp)
+                                    NiuniaLiveSlot.RESTART -> NiuniaIconCircle(Icons.Outlined.Replay, stringResource(R.string.niunia_live_restart), focusSlot == s)
+                                    NiuniaLiveSlot.PAUSE -> NiuniaIconCircle(if (paused) Icons.Outlined.PlayArrow else Icons.Outlined.Pause,
+                                        stringResource(if (paused) R.string.niunia_live_play else R.string.niunia_live_pause), focusSlot == s)
+                                    else -> NiuniaPill(stringResource(R.string.niunia_live_back_live), focusSlot == s, height = 36.dp, dot = NiuniaStatus.Live)
+                                }
+                            }
+                            // Pionowy separator (`divider`) między odtwarzaniem a programem.
+                            if (left.isNotEmpty() && right.isNotEmpty()) Box(Modifier.width(1.dp).height(24.dp).background(NiuniaColors.Line))
+                            right.forEach { s ->
+                                val (icon, label) = when (s) {
+                                    NiuniaLiveSlot.FAV -> (if (favorite) Icons.Outlined.Check else Icons.Outlined.Add) to stringResource(R.string.niunia_live_fav)
+                                    NiuniaLiveSlot.INFO -> Icons.Outlined.Info to stringResource(R.string.niunia_live_info)
+                                    else -> Icons.Outlined.MoreHoriz to stringResource(R.string.niunia_live_more)
+                                }
+                                NiuniaIconCircle(icon, label, focusSlot == s)
+                            }
                         }
                     }
-                }
-                Row(Modifier.align(Alignment.TopEnd).offset(x = (-28).dp, y = 414.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    buttons.filter { it == NiuniaLiveSlot.FAV || it == NiuniaLiveSlot.INFO || it == NiuniaLiveSlot.MORE }.forEach { s ->
-                        val (icon, label) = when (s) {
-                            NiuniaLiveSlot.FAV -> (if (favorite) Icons.Outlined.Check else Icons.Outlined.Add) to stringResource(R.string.niunia_live_fav)
-                            NiuniaLiveSlot.INFO -> Icons.Outlined.Info to stringResource(R.string.niunia_live_info)
-                            else -> Icons.Outlined.MoreHoriz to stringResource(R.string.niunia_live_more)
-                        }
-                        NiuniaIconCircle(icon, label, focusSlot == s, label = if (focusSlot == s) label else null, modifier = Modifier.width(64.dp))
-                    }
+                    Spacer(Modifier.height(16.dp))
+                    LiveBar(shown, playState, clockMs, playheadMs, shiftMs, scrubMs, focused = focusSlot == NiuniaLiveSlot.BAR, modifier = Modifier)
                 }
             }
             // Rząd (.rail y 502; ▼ → 408, w grupie z tytułem kategorii nad nim).
