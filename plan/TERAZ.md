@@ -3,6 +3,11 @@
 Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–13: `plan/archiwum/TERAZ-historia-watki-1-13.md` (tylko `grep`, nie czytaj całości). Sekcje z 22.11 (build163–169c, scalenie, aktualizacja bazy): `plan/archiwum/TERAZ-historia-22.11.md`.
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
+## NAJPIERW (24.11 — scalenie wczorajszych zmian i wspólny build `scal1124`)
+- Na polecenie właściciela („scal wszystkie poprawki z wczoraj, także zmiany w interfejsie”): niezacommitowane zmiany interfejsu z `wt-niunia-ke` (ke4: Z-1…Z-23, stan `plan/niunia-ke/ODDANIE-ke4.md`) zacommitowane w `niunia-ke` (0f42f7c4d) i scalone do `skin-niunia` (2bf887aaa; konflikt tylko `hooks.tsv`, `check.sh` 64/65). Pozostałe wczorajsze wątki (IPTV, napisy AI, ustawienia ust4) były już w `skin-niunia`.
+- NIE scalone: próba Liquid Glass (`wt-liquid-glass`, niezacommitowana) — wstrzymana przez właściciela, sprzeczna z ZASADY §2 do jego decyzji.
+- Build `scal1124` v7a: BUILD SUCCESSFUL 8 min 44 s, `.stage/apk/scal1124-v7a.apk`, md5 e6b431ba654566d62dcbfeaa3dd689a0. Instalacja 24.11 ~16:35 wstrzymana (ktoś oglądał) — czeka `jmgo_czekaj_wolny.sh 10 240`, potem `jmgo_instaluj.sh`. Nietestowany.
+
 ## NAJPIERW (23.11 ~18:10 — wątek IPTV: nowy silnik przewodnika z NuvioPlusIPTV) — PROMPT HANDOFF
 Prompt (wklej w nowym wątku albo napisz „kontynuuj”):
 > Kontynuuj wątek IPTV forka Nuvio Android TV (`/Users/milajovovich/Desktop/nuvio 2/NuvioFork`, gałąź `skin-niunia`). Zasady: `ZASADY.md`. Stan: `plan/iptv/STAN.md` (iptvdb1–4), plan: `plan/iptv/ARCHITEKTURA.md` → „Etap 1c” (pozostałe optymalizacje NuvioPlusIPTV — właściciel: „Masz skopiować wszystkie”) i „Etap 3 — VOD” (160 tys. materiałów; kopia `livetv/ondemand/` z NuvioPlusIPTV, wzór w `.stage/forki/NuvioPlusIPTV/src`). Na JMGO iptvdb5 (etap 1c: kolejność listy z dysku 0,65 s, pełna lista 4,8 s, wiersze z bazy 0,7 s; testy: 162 JVM 0 nieudanych, obciążenie 8 cykli 0 ANR/0 awarii — STAN.md). Następnie: mniejszy PSS po wyjściu z TV (JMGO `com.jmgo.hippo` zatrzymuje fork w tle przy PSS 480–634 MB), etap 1c pkt 5–6, potem etap 3 (VOD). Listę VOD właściciel dodaje sam w aplikacji (QR) — nie wpisuj adresów z tokenem konta.
