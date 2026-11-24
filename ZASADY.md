@@ -47,6 +47,7 @@ Stare wersje: `plan/archiwum/zasady/` i historia gita.
 - Tylko fork `com.nuviodebug.com` (nie `com.nuvio.tv`), start: `am start -n com.nuviodebug.com/com.nuvio.tv.launcher.AppIconDefault`. Nie ruszaj cudzych aplikacji i danych.
 - Po instalacji: porównaj md5 (`adb pull`) z plikiem z buildu, potem `cmd package compile -m speed -f com.nuviodebug.com`.
 - JMGO: `adb connect 192.168.31.252:5555` (Android 11, armeabi-v7a, profil właściciela zalogowany). Ostrożnie — ktoś może oglądać.
+  - Czekanie na wolny JMGO (24.11, właściciel: „godzina czekania na nic”): dźwięk ekranu głównego JMGO (`com.jmgo.arwen`) to NIE oglądanie (`jmgo_czekaj_wolny.sh` go pomija). Czekanie > 10 min → od razu sprawdź, co blokuje (wierzch, odtwarzacz w `dumpsys audio`); gdy na wierzchu jest ekran główny JMGO albo fork, a pilot nieużywany — testuj (`--bez-czekania`). Gdy właściciel mówi, że jest przy TV albo pyta, czemu nic się nie dzieje — testuj od razu. Nigdy nie czekaj w ciszy: jednym zdaniem napisz, na co czekasz.
 - Testy tekstowo (`fork-tools/test/{ui,tap,go,focus}.sh`, uiautomator); zrzuty ekranu tylko wyjątkowo. OK tylko gdy fokus jest na celu, nigdy na ślepo.
 - Emulator tylko na testy, nigdy razem z Gradle (8 GB RAM); po testach `adb emu kill`. Logowanie QR na emulatorze nie działa → „Continue without account”.
 - Czego nie da się sprawdzić bez TV → `plan/DO_SPRAWDZENIA_NA_TV.md`.
