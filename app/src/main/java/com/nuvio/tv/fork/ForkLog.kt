@@ -47,6 +47,8 @@ object ForkLog {
         Log.w(tag, "ekran: $msg")
         val app = context.applicationContext
         Handler(Looper.getMainLooper()).post {
+            // Szkło włączone i nakładka na ekranie: komunikat jako pigułka ze szkła (fork/glass), inaczej Toast systemu.
+            if (com.nuvio.tv.fork.glass.ForkGlass.showToast(msg)) return@post
             runCatching { Toast.makeText(app, msg, Toast.LENGTH_LONG).show() }
                 .onFailure { Log.w(tag, "Toast: ${it.javaClass.simpleName}: ${it.message}") }
         }

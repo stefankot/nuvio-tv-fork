@@ -39,7 +39,7 @@ internal fun NiuniaArchiveOfferCard(channelName: String) {
     val title = stringResource(R.string.niunia_adskip_title)
     Box(Modifier.fillMaxSize().padding(top = NiuniaSpacing.Space40 * 2, end = NiuniaSpacing.Space40), contentAlignment = Alignment.TopEnd) {
         Row(
-            Modifier.semantics { contentDescription = title }.clip(RoundedCornerShape(NiuniaRadius.Radius16)).background(NiuniaColor.Panel)
+            with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.semantics { contentDescription = title }.forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Panel, RoundedCornerShape(NiuniaRadius.Radius16), fallback = NiuniaColor.Panel) }
                 .padding(horizontal = NiuniaSpacing.Space16, vertical = NiuniaSpacing.Space12),
             horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12), verticalAlignment = Alignment.CenterVertically,
         ) {

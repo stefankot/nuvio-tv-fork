@@ -160,7 +160,7 @@ internal fun NiuniaLiveSearch(
         }
         // Klawiatura (x 40) + podpowiedzi.
         Column(Modifier.padding(start = 37.dp, top = 164.dp).width(224.dp)) {
-            Row(Modifier.padding(start = 3.dp).width(216.dp).height(32.dp).background(Color(0x0FFFFFFF), RoundedCornerShape(16.dp)).padding(3.dp)) {
+            Row(Modifier.padding(start = 3.dp).width(216.dp).height(32.dp).then(with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Chip, RoundedCornerShape(16.dp), fallback = Color(0x0FFFFFFF)) }).padding(3.dp)) {
                 Seg("abc", !digits, Modifier.weight(1f)) { digits = false }
                 Seg("123", digits, Modifier.weight(1f)) { digits = true }
             }
@@ -203,7 +203,7 @@ internal fun NiuniaLiveSearch(
         Column(Modifier.padding(start = 584.dp, top = 150.dp, end = NiuniaDims.Gutter).fillMaxSize()) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.niunia_tv_programmes) + (results?.let { " · ${it.programmes.size}" } ?: ""), style = NiuniaText.Row, color = NiuniaColors.Text50, modifier = Modifier.weight(1f))
-                Row(Modifier.width(150.dp).height(32.dp).background(Color(0x0FFFFFFF), RoundedCornerShape(16.dp)).padding(3.dp)) {
+                Row(Modifier.width(150.dp).height(32.dp).then(with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Chip, RoundedCornerShape(16.dp), fallback = Color(0x0FFFFFFF)) }).padding(3.dp)) {
                     Seg(stringResource(R.string.niunia_tv_view_rows), !grid, Modifier.weight(1f)) { grid = false; NiuniaLiveFilters.setSearchGrid(context, false); Log.i(TAG, "szukaj tv: widok rzędy") }
                     Seg(stringResource(R.string.niunia_tv_view_grid), grid, Modifier.weight(1f)) { grid = true; NiuniaLiveFilters.setSearchGrid(context, true); Log.i(TAG, "szukaj tv: widok siatka") }
                 }

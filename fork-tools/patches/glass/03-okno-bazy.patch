@@ -1,0 +1,10 @@
+--- a/app/src/main/java/com/nuvio/tv/ui/components/NuvioDialog.kt
++++ b/app/src/main/java/com/nuvio/tv/ui/components/NuvioDialog.kt
+@@ -78,6 +78,7 @@ fun NuvioDialog(
+                 .heightIn(max = maxDialogHeight)
+                 .clip(containerShape)
+                 .then(backgroundModifier)
++                .then(com.nuvio.tv.fork.glass.ForkGlass.dialogSurface(containerShape)) // Fork hook: glass
+                 .border(
+                     containerBorderWidth,
+                     containerBorderColor ?: NuvioTheme.colors.Border,

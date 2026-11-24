@@ -80,7 +80,7 @@ object SettingsTreeSpec {
 
     val SPECIALS = setOf(
         "tv_sources", "tv_search", "level", "logo_mode", "home_youtube", "reminder_card", "tv_layout",
-        "sources_answer", "subtitle_size", "night_mode", "start_page", "start_permission",
+        "sources_answer", "subtitle_size", "night_mode", "start_page", "start_permission", "glass",
     )
 
     private val N = TreeLevel.NOOB
@@ -214,6 +214,8 @@ object SettingsTreeSpec {
         SlotCategory("wyglad", "Wygląd", "Skórka, ekran główny i tryb nocny", "home", listOf(
             g("skorka", "Skórka i język",
                 s("skin", "Skórka", "Wygląd całej aplikacji", N, parts(ItemsGroup.SKIN), "skorka niunia kicia wyglad motyw"),
+                s("glass", "Szkło", "Przezroczyste menu, panele i przyciski. Na starszych telewizorach niedostępne.", N, sp("glass"),
+                    "szklo przezroczyste menu panele przyciski czyste grafit mroz"),
                 s("theme", "Kolory, czcionka i język", "Motyw, czarne tło i język aplikacji", N, route("theme_settings"),
                     "jezyk aplikacji motyw kolory amoled czcionka ikona", listOf("ThemeSettingsScreen")),
                 s("menu_style", "Menu i styl ekranu głównego", "Pasek menu i wygląd jak w serwisach streamingowych", W, parts(ItemsGroup.PILL_NAV, ItemsGroup.NETFLIX_UI),

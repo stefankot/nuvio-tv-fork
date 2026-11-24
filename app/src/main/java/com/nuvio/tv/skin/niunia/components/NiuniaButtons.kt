@@ -89,6 +89,17 @@ fun NiuniaButton(
         chipLike || keyLike || kind == NiuniaButtonKind.Bare -> Color.Transparent
         else -> NiuniaColor.Button
     }
+    val glassRole = when {
+        // Klawisze, „gołe” ikony oraz zakładki i segmenty (leżą w szklanej grupie) bez własnego szkła.
+        keyLike || kind == NiuniaButtonKind.Bare || kind == NiuniaButtonKind.Tab || kind == NiuniaButtonKind.Segment -> null
+        chipLike -> com.nuvio.tv.fork.glass.ForkGlass.Role.Chip
+        else -> com.nuvio.tv.fork.glass.ForkGlass.Role.Button
+    }
+    val restBg = when {
+        haze -> if (android.os.Build.VERSION.SDK_INT >= 31) NiuniaColor.Haze else NiuniaColor.HazeFlat
+        chipLike -> Color.Transparent
+        else -> NiuniaColor.Button
+    }
     val fg = when {
         focused -> NiuniaColor.OnFocus
         (chipLike && !selected) || keyLike -> NiuniaColor.Text70
@@ -117,9 +128,22 @@ fun NiuniaButton(
                     else -> Modifier
                 }
             )
-            .clip(shape)
-            .background(bg)
-            .then(if (!focused && !chipLike && !keyLike && kind != NiuniaButtonKind.Bare && !active) Modifier.border(1.dp, NiuniaColor.Fill12, shape) else Modifier)
+            .then(
+                // Szkło (fork/glass): przyciski i chipy na treści; klawisze i „gołe” ikony bez szkła. Fokus/wybór rysowany na szkle.
+                if (glassRole != null && com.nuvio.tv.fork.glass.ForkGlass.active != null) with(com.nuvio.tv.fork.glass.ForkGlass) {
+                    Modifier.forkGlass(glassRole, shape, fallback = restBg).background(
+                        when {
+                            focused -> NiuniaColor.Focus
+                            active -> NiuniaColor.Fill36
+                            selected && (chipLike || kind == NiuniaButtonKind.Standard || kind == NiuniaButtonKind.Icon) -> NiuniaColor.Fill24
+                            else -> Color.Transparent
+                        }
+                    )
+                } else Modifier
+                    .clip(shape)
+                    .background(bg)
+                    .then(if (!focused && !chipLike && !keyLike && kind != NiuniaButtonKind.Bare && !active) Modifier.border(1.dp, NiuniaColor.Fill12, shape) else Modifier)
+            )
             .padding(
                 horizontal = when {
                     square -> 0.dp

@@ -222,10 +222,10 @@ fun NiuniaSurface(kind: NiuniaSurfaceKind, modifier: Modifier = Modifier, shape:
         NiuniaSurfaceKind.ScrimDim -> modifier.background(NiuniaGradient.ScrimDim.brush())
         NiuniaSurfaceKind.ScrimSide -> modifier.background(NiuniaGradient.ScrimSide.brush())
         NiuniaSurfaceKind.ScrimHeroBottom -> modifier.background(NiuniaGradient.ScrimHeroBottom.brush())
-        NiuniaSurfaceKind.Panel -> modifier.clip(shape ?: RoundedCornerShape(NiuniaRadius.Radius16)).background(NiuniaColor.Fill12).padding(horizontal = NiuniaSpacing.Space16, vertical = NiuniaSpacing.Space12)
-        NiuniaSurfaceKind.Glass -> modifier.clip(shape ?: RoundedCornerShape(NiuniaRadius.Radius28)).background(NiuniaColor.Panel).border(1.dp, NiuniaColor.Fill12, shape ?: RoundedCornerShape(NiuniaRadius.Radius28))
-        NiuniaSurfaceKind.Tray -> modifier.clip(shape ?: CircleShape).background(NiuniaColor.Chrome).border(1.dp, NiuniaColor.Fill12, shape ?: CircleShape)
-        NiuniaSurfaceKind.Frost -> modifier.clip(shape ?: RoundedCornerShape(NiuniaRadius.Radius16)).background(NiuniaColor.Frost)
+        NiuniaSurfaceKind.Panel -> with(com.nuvio.tv.fork.glass.ForkGlass) { modifier.forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Panel, shape ?: RoundedCornerShape(NiuniaRadius.Radius16), fallback = NiuniaColor.Fill12) }.padding(horizontal = NiuniaSpacing.Space16, vertical = NiuniaSpacing.Space12)
+        NiuniaSurfaceKind.Glass -> with(com.nuvio.tv.fork.glass.ForkGlass) { modifier.forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Panel, shape ?: RoundedCornerShape(NiuniaRadius.Radius28), fallback = NiuniaColor.Panel, fallbackBorder = NiuniaColor.Fill12) }
+        NiuniaSurfaceKind.Tray -> with(com.nuvio.tv.fork.glass.ForkGlass) { modifier.forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Nav, shape ?: CircleShape, fallback = NiuniaColor.Chrome, fallbackBorder = NiuniaColor.Fill12) }
+        NiuniaSurfaceKind.Frost -> with(com.nuvio.tv.fork.glass.ForkGlass) { modifier.forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Panel, shape ?: RoundedCornerShape(NiuniaRadius.Radius16), fallback = NiuniaColor.Frost) }
         NiuniaSurfaceKind.Divider -> modifier.width(1.dp).height(NiuniaSize.Icon20).background(NiuniaColor.Line)
         NiuniaSurfaceKind.Rule -> modifier.fillMaxWidth().height(1.dp).background(NiuniaColor.Line)
     }
@@ -396,7 +396,7 @@ fun NiuniaProgress(value: Float, modifier: Modifier = Modifier, bar: Boolean = f
 @Composable
 fun NiuniaDots(count: Int, index: Int, modifier: Modifier = Modifier) {
     Row(
-        modifier.clip(CircleShape).background(NiuniaColor.Scrim30).padding(horizontal = NiuniaSpacing.Space8, vertical = NiuniaSpacing.Space4)
+        with(com.nuvio.tv.fork.glass.ForkGlass) { modifier.forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Chip, CircleShape, fallback = NiuniaColor.Scrim30) }.padding(horizontal = NiuniaSpacing.Space8, vertical = NiuniaSpacing.Space4)
             .semantics { contentDescription = "${index + 1} / $count" },
         horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space4), verticalAlignment = Alignment.CenterVertically,
     ) {

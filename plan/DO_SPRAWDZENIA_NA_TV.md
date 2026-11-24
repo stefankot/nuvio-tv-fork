@@ -83,3 +83,10 @@ Lista dla właściciela. Wykonawca dopisuje tu wszystko, czego nie da się spraw
 - (23.11, ux4/ux5) Strona tytułu: OK na osobie w „Obsada i twórcy” → strona osoby → Wstecz: fokus na tej samej osobie (na emulatorze obsada bez id TMDB — strona się nie otwiera, komunikat „Nie mamy strony tej osoby”). To samo dla plakatu z „Więcej podobnych”.
 - (23.11) Przytrzymanie OK na odcinku → okno „Akcje odcinka” (Oznacz jako obejrzane, sezon, poprzednie, Odtwórz); puszczenie nic nie wybiera; Wstecz → fokus na odcinku.
 - (23.11) Live TV, kanał, który nie działa → okno „Kanał nie odpowiada”: ◄► zmienia przycisk, OK „Następny kanał” włącza następny, „Spróbuj ponownie” — ten sam; jeden Wstecz wraca do listy (fokus na kanale).
+
+## Szkło (fork/glass, 24.11)
+- Telewizor z Androidem 13+ (API 33+): płynność przewijania rzędów pod otwartym menu i animacji hero ze szkłem (emulator liczy GPU programowo — nie mówi nic o wydajności TV); ewentualnie skala próbki 0,5 → 0,4.
+- Wspólne okno bazy `NuvioDialog` (okno nie na cały ekran): czy szkło próbkuje właściwe miejsce ekranu (biblioteka liczy położenie względem okna; przy oknie wyśrodkowanym może brać lewy górny róg ekranu — przy ciemnym odcieniu 72 % mało widoczne).
+- Panele odtwarzacza nad filmem: biblioteka nie widzi obrazu wideo (SurfaceView) — powinien być dawny wygląd panelu z obwódką szkła, bez przezroczystości.
+- Kontrast przycisków hero przy bardzo jasnym obrazie (Czyste szkło: odcień biały 6 % na scrimie hero).
+- JMGO (Android 11): pozycja „Szkło” wyszarzona, „Niedostępne na tym telewizorze”; wygląd jak przed zmianą; w logu „szkło wyłączone: API 30 < 33”.

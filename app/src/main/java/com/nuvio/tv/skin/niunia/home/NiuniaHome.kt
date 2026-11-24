@@ -264,6 +264,7 @@ fun NiuniaHome(
             )
         },
         below = { rows() },
+        scrim = { NiuniaSurface(NiuniaSurfaceKind.ScrimHero, Modifier.fillMaxSize()) },
     )
 }
 
@@ -317,8 +318,7 @@ private fun Hero(
         try { focus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "fokus hero: ${e.javaClass.simpleName}: ${e.message}") }
     }
     val ctx = LocalContext.current
-    Box(Modifier.fillMaxSize()) {
-        NiuniaSurface(NiuniaSurfaceKind.ScrimHero, Modifier.fillMaxSize())
+    Box(Modifier.fillMaxSize()) { // scrim hero rysuje NiuniaHeroPage (parametr scrim, fork/glass)
         Column(
             Modifier.align(Alignment.BottomStart).offset(y = if (peek.isNotEmpty()) NiuniaSize.Peek else -NiuniaSpacing.Space40)
                 .padding(horizontal = NiuniaSpacing.Space40),
@@ -340,7 +340,7 @@ private fun Hero(
                 NiuniaButton(onClick = onLibrary, icon = if (inLibrary) "check" else "plus",
                     description = stringResource(if (inLibrary) R.string.niunia_pinfo_in_library else R.string.niunia_ds_add_library))
                 NiuniaButton(onClick = onOpen, icon = "info", description = stringResource(R.string.niunia_ds_details))
-                if (count > 1) NiuniaButton(onClick = onNext, icon = "chevron-right", kind = NiuniaButtonKind.Bare, description = stringResource(R.string.niunia_ds_next_featured))
+                if (count > 1) NiuniaButton(onClick = onNext, icon = "chevron-right", kind = if (com.nuvio.tv.fork.glass.ForkGlass.active != null) NiuniaButtonKind.Icon else NiuniaButtonKind.Bare, /* szkło: „Następny” jak w makiecie */ description = stringResource(R.string.niunia_ds_next_featured))
             }
             if (count > 1) NiuniaDots(count.coerceAtMost(10), index % count.coerceAtMost(10))
             if (peek.isNotEmpty()) {

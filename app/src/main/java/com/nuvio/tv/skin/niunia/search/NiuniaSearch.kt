@@ -252,7 +252,7 @@ internal fun Keyboard(digits: Boolean, firstKey: FocusRequester, onMode: (Boolea
     val keys = (if (digits) "1234567890" else "abcdefghijklmnopqrstuvwxyz").map { it.toString() }
     Column(Modifier.niuniaTrapArrows("klawiatura", setOf(androidx.compose.ui.focus.FocusDirection.Left, androidx.compose.ui.focus.FocusDirection.Right)),
         verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
-        Row(Modifier.width(NiuniaSize.SplitCol).clip(CircleShape).background(NiuniaColor.Fill12).padding(NiuniaSpacing.Space4)) {
+        Row(with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.width(NiuniaSize.SplitCol).forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Chip, CircleShape, fallback = NiuniaColor.Fill12) }.padding(NiuniaSpacing.Space4)) {
             NiuniaButton(onClick = { onMode(false) }, label = stringResource(R.string.niunia_ds_search_kbd_letters), kind = NiuniaButtonKind.Segment, selected = !digits, modifier = Modifier.weight(1f))
             NiuniaButton(onClick = { onMode(true) }, label = stringResource(R.string.niunia_ds_search_kbd_digits), kind = NiuniaButtonKind.Segment, selected = digits, modifier = Modifier.weight(1f))
             // Paczka „oczywiste” pkt 12: wejście do sterowania głosem (moduł fork/voice; wyłączony moduł = brak przycisku).

@@ -708,7 +708,7 @@ private fun DayPicker(current: Int, now: Long, onPick: (Int) -> Unit) {
     val first = remember { FocusRequester() }
     LaunchedEffect(Unit) { try { first.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "live tv: fokus dnia: ${e.javaClass.simpleName}: ${e.message}") } }
     Box(Modifier.fillMaxSize().background(Color(0xB3000000)).padding(top = 80.dp), contentAlignment = Alignment.TopEnd) {
-        Row(Modifier.padding(end = NiuniaDims.Gutter).background(NiuniaColors.Surface2, RoundedCornerShape(16.dp)).padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.padding(end = NiuniaDims.Gutter).forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Menu, RoundedCornerShape(16.dp), fallback = NiuniaColors.Surface2, layer = LAYER_BACK) }.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             (-PAST_DAYS..3).forEach { d ->
                 var focused by remember { mutableStateOf(false) }
                 val shape = RoundedCornerShape(NiuniaDims.RadiusCard)

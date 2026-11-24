@@ -47,7 +47,7 @@ fun NiuniaDialog(title: String, onDismiss: () -> Unit, content: @Composable Colu
         Box(Modifier.fillMaxSize().background(NiuniaColor.Scrim), contentAlignment = Alignment.Center) {
             val shape = RoundedCornerShape(NiuniaRadius.Radius28)
             Column(
-                Modifier.width(NiuniaSize.DialogW).clip(shape).background(NiuniaColor.Panel).border(1.dp, NiuniaColor.Fill12, shape)
+                with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.width(NiuniaSize.DialogW).forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Dialog, shape, fallback = NiuniaColor.Panel, fallbackBorder = NiuniaColor.Fill12) }
                     .padding(NiuniaSpacing.Space24).focusGroup(),
                 verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space16),
                 content = content,

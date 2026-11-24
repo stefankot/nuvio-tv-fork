@@ -115,9 +115,7 @@ fun NiuniaProfiles(
         Row(
             Modifier
                 .padding(start = com.nuvio.tv.skin.niunia.tokens.NiuniaSpacing.Space20, top = com.nuvio.tv.skin.niunia.tokens.NiuniaSize.NavTop + com.nuvio.tv.skin.niunia.tokens.NiuniaSize.H44 + com.nuvio.tv.skin.niunia.tokens.NiuniaSpacing.Space4)
-                .clip(shape)
-                .background(com.nuvio.tv.skin.niunia.tokens.NiuniaColor.Panel)
-                .border(1.dp, com.nuvio.tv.skin.niunia.tokens.NiuniaColor.Fill12, shape)
+                .then(with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Panel, shape, fallback = com.nuvio.tv.skin.niunia.tokens.NiuniaColor.Panel, fallbackBorder = com.nuvio.tv.skin.niunia.tokens.NiuniaColor.Fill12) })
                 .horizontalScroll(rememberScrollState())
                 .padding(horizontal = com.nuvio.tv.skin.niunia.tokens.NiuniaSpacing.Space16, vertical = com.nuvio.tv.skin.niunia.tokens.NiuniaSpacing.Space12)
                 .niuniaTrapArrows("profile")
@@ -226,7 +224,7 @@ private fun NiuniaPinDialog(profileName: String, error: String?, working: Boolea
     // Pkt 3 (canvas v86): okno od lewej krawędzi treści (40 dp), zawartość od lewej.
     Box(Modifier.fillMaxSize().background(Color(0x99000000)).padding(start = 40.dp), contentAlignment = Alignment.CenterStart) {
         Column(
-            Modifier.width(400.dp).clip(RoundedCornerShape(28.dp)).background(Color(0xF53A3A3C)).padding(24.dp).focusGroup(),
+            with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.width(400.dp).forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Dialog, RoundedCornerShape(28.dp), fallback = Color(0xF53A3A3C), layer = LAYER_BACK) }.padding(24.dp).focusGroup(),
             horizontalAlignment = Alignment.Start,
         ) {
             Text(stringResource(R.string.niunia_profiles_pin, profileName), style = NiuniaText.Button.copy(fontSize = 20.sp, lineHeight = 26.sp), color = NiuniaColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)

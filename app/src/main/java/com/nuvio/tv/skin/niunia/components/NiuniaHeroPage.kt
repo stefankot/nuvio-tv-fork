@@ -61,6 +61,8 @@ fun NiuniaHeroPage(
     belowFocusRequester: FocusRequester? = null,
     /** Element, na który ▼ z hero ma trafić (np. 1. odcinek — makieta Episodes); null = pierwszy w stronie pod hero. */
     belowEnter: FocusRequester? = null,
+    /** Przyciemnienie hero (scrim) — rysowane z tłem, żeby szkło przycisków (fork/glass) widziało przyciemniony obraz; znika razem z [hero]. */
+    scrim: (@Composable BoxScope.() -> Unit)? = null,
 ) {
     var down by remember { mutableStateOf(false) }
     val belowFocus = belowFocusRequester ?: remember { FocusRequester() }
@@ -80,6 +82,8 @@ fun NiuniaHeroPage(
     }
     BoxWithConstraints(Modifier.fillMaxSize().background(NiuniaColors.Bg)) {
         val h = with(LocalDensity.current) { maxHeight.toPx() }
+        // Szkło (fork/glass): obraz, rozmycie, przyciemnienie i scrim to warstwa tła dla przycisków i paneli strony.
+        Box(with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.fillMaxSize().forkGlassBackdrop() }) {
         AsyncImage(
             model = background, contentDescription = null, contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize().graphicsLayer {
@@ -91,7 +95,9 @@ fun NiuniaHeroPage(
             model = blurred, contentDescription = null, contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize().graphicsLayer { alpha = t; scaleX = 1f + 0.08f * t; scaleY = 1f + 0.08f * t },
         )
+        if (scrim != null) Box(Modifier.fillMaxSize().graphicsLayer { alpha = 1f - t; translationY = -h * t }, content = scrim)
         Box(Modifier.fillMaxSize().graphicsLayer { alpha = t }.background(if (blurOk || blurred != null) Color(0x8C000000) else Color(0xE62C2C2E)))
+        }
         Box(
             Modifier.fillMaxSize()
                 .graphicsLayer { alpha = 1f - t; translationY = -h * t }

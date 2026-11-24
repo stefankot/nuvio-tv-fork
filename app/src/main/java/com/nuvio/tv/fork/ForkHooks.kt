@@ -89,9 +89,9 @@ object ForkHooks {
 
     // Właściciel 19.11: „usuń lub wyłącz intro w całości” — intro Echo (A6) wyłączone na stałe, trzy hooki nic nie robią
     // (EchoIntroHook i kopie PlaybackIntro* zostają nieużywane; przełącznik usunięty z ustawień).
-    /** NuvioNavHost: intro odtwarzania (Echo A6) — WYŁĄCZONE, sama treść. */
+    /** NuvioNavHost: treść ekranów. Dawniej intro Echo (A6, wyłączone 19.11); od 24.11 szkło: manager i warstwa źródłowa (fork/glass). */
     @Composable
-    fun introWrap(content: @Composable () -> Unit) = content()
+    fun screensWrap(content: @Composable () -> Unit) = com.nuvio.tv.fork.glass.ForkGlass.Host(content)
 
     /** StreamScreen: autoodtwarzanie wchodzi od razu w intro. */
     @Composable
@@ -189,7 +189,7 @@ object ForkHooks {
         remember(c) { com.nuvio.tv.fork.devprefs.DevPrefsServer.start(c) } // tylko debug: serwer ustawień 127.0.0.1:8765 (fork-tools/prefs.sh)
         val overlays = remember(c) { ForkRegistry.forContext(c).rootOverlays() }
         // Rysowane nad treścią aplikacji (wcześniej leżały pod nią, bo hook jest pierwszym elementem Box).
-        androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.fillMaxSize().zIndex(100f)) { overlays.forEach { it() }; com.nuvio.tv.fork.buildage.BuildAgeBadge() }
+        androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.fillMaxSize().zIndex(100f)) { overlays.forEach { it() }; com.nuvio.tv.fork.buildage.BuildAgeBadge(); com.nuvio.tv.fork.glass.ForkGlass.ToastOverlay() }
     }
 
     /** PlayerScreen: klawisze odtwarzacza dla modułów. true = obsłużony. */

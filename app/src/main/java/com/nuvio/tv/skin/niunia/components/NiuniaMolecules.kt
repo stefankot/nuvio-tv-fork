@@ -239,7 +239,7 @@ fun NiuniaContentBlock(kind: NiuniaBlockKind = NiuniaBlockKind.Info, modifier: M
         NiuniaBlockKind.Info -> modifier.widthIn(max = NiuniaSize.HeroInfoW)
         NiuniaBlockKind.Wide -> modifier.widthIn(max = NiuniaSize.HeroInfoW + NiuniaSize.StillW + NiuniaSpacing.Space40 + NiuniaSpacing.Space16)
         NiuniaBlockKind.Full, NiuniaBlockKind.Status -> modifier.fillMaxWidth()
-        NiuniaBlockKind.Panel -> modifier.width(NiuniaSize.HeroInfoW).clip(RoundedCornerShape(NiuniaRadius.Radius16)).background(NiuniaColor.Fill12)
+        NiuniaBlockKind.Panel -> with(com.nuvio.tv.fork.glass.ForkGlass) { modifier.width(NiuniaSize.HeroInfoW).forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Panel, RoundedCornerShape(NiuniaRadius.Radius16), fallback = NiuniaColor.Fill12) }
             .padding(horizontal = NiuniaSpacing.Space16, vertical = NiuniaSpacing.Space12)
         NiuniaBlockKind.Credits -> modifier.width(NiuniaSize.LandscapeW + NiuniaSpacing.Space40 * 2 + NiuniaSpacing.Space12)
         NiuniaBlockKind.Empty -> modifier

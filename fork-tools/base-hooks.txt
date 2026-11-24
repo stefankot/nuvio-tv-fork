@@ -32,3 +32,4 @@ app/src/main/java/com/nuvio/tv/ui/screens/player/audiosync/SharedReferenceCache.
 app/src/main/java/com/nuvio/tv/core/player/AutoPlayRace.kt
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerSubtitleTiming.kt
 app/src/main/java/com/nuvio/tv/ui/screens/settings/PlaybackSettingsSections.kt
+app/src/main/java/com/nuvio/tv/ui/components/NuvioDialog.kt

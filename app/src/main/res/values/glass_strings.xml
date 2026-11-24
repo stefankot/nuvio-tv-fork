@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Moduł fork/glass: ustawienie „Szkło” (wartości wyboru). -->
+    <string name="glass_title">Szkło</string>
+    <string name="glass_desc">Przezroczyste menu, panele i przyciski. Na starszych telewizorach niedostępne.</string>
+    <string name="glass_off">Wyłączone</string>
+    <string name="glass_preset_clear">Czyste szkło</string>
+    <string name="glass_preset_graphite">Nuvio grafit</string>
+    <string name="glass_preset_frost">Mróz</string>
+    <string name="glass_unavailable">Niedostępne na tym telewizorze</string>
+</resources>

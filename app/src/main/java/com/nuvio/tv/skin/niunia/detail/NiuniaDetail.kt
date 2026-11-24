@@ -208,6 +208,12 @@ fun NiuniaDetail(
                     extras.playTrailer(meta.name, meta.releaseInfo, meta.apiType, t.ytId)
                 } })
         },
+        // Z-2: przyciemnienie hero szczegółów — scrim-detail (API 31+) albo scrim-detail-flat (Android 11), dół scrim-detail-bottom; rysuje je tło strony (fork/glass).
+        scrim = {
+            val flat = android.os.Build.VERSION.SDK_INT < 31
+            Box(Modifier.fillMaxSize().background((if (flat) com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimDetailFlat else com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimDetail).brush()))
+            Box(Modifier.fillMaxSize().background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimDetailBottom.brush()))
+        },
         belowFocusRequester = belowFocus,
         belowEnter = if (series && uiState.episodesForSeason.isNotEmpty()) firstEpisode else null,
         below = {
@@ -641,8 +647,6 @@ private fun Hero(
         // Z-2: przyciemnienie hero szczegółów — scrim-detail (API 31+) albo scrim-detail-flat (Android 11, JMGO), dół scrim-detail-bottom.
         val flat = android.os.Build.VERSION.SDK_INT < 31
         LaunchedEffect(flat) { Log.i(TAG, "szczegóły: effects: ${if (flat) "flat" else "blur"} (scrim-detail${if (flat) "-flat" else ""} + scrim-detail-bottom, przyciski haze)") }
-        Box(Modifier.fillMaxSize().background((if (flat) com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimDetailFlat else com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimDetail).brush()))
-        Box(Modifier.fillMaxSize().background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimDetailBottom.brush()))
         Column(
             Modifier.align(Alignment.BottomStart).offset(y = if (stills.isNotEmpty()) NiuniaSize.Peek else -NiuniaSpacing.Space40)
                 .padding(horizontal = NiuniaSpacing.Space40).fillMaxWidth(),

@@ -270,7 +270,7 @@ fun NiuniaSettingsTree(navigate: (String) -> Unit) {
                                 is PanelRow.Head -> NiuniaListRow(r.title, onClick = null, kind = NiuniaRowKind.Header)
                                 is PanelRow.Item -> {
                                     val v = remember(rev, r.item.id) { value(c, r.item) }
-                                    NiuniaListRow(r.item.title, kind = NiuniaRowKind.Setting, value = v.text, trailing = v.trailing,
+                                    NiuniaListRow(r.item.title, kind = NiuniaRowKind.Setting, value = v.text, trailing = v.trailing, enabled = v.enabled,
                                         modifier = left, focusRequester = rowRequesters[r.key],
                                         onFocus = { if (it) focusedDesc = r.item.description },
                                         onClick = { activate(r.item) })
@@ -340,7 +340,7 @@ private fun SearchPanel(full: List<TreeCategory>, query: String, onQuery: (Strin
     }
 }
 
-private class RowValue(val text: String?, val trailing: NiuniaTrailing)
+private class RowValue(val text: String?, val trailing: NiuniaTrailing, val enabled: Boolean = true)
 
 /** Pełne drzewo bez zmiany trybu Nuvio (Podstawowy/Zaawansowany) — zmienia tylko widok ustawień forka. */
 private fun fullLevel(c: Context) {
@@ -379,6 +379,8 @@ private fun value(c: Context, item: TreeItem): RowValue = when (val t = item.tar
         "subtitle_size" -> RowValue(SIZES.getOrNull(ForkFeatures.str(c, "tree_subtitle_size", "-1").toIntOrNull() ?: -1)?.second ?: c.getString(R.string.settings_tree_unknown), NiuniaTrailing.None)
         "night_mode" -> RowValue(NIGHT.firstOrNull { it.first == ForkFeatures.str(c, "night_mode", "OFF") }?.second?.second ?: "Wyłączony", NiuniaTrailing.None)
         "start_page" -> RowValue(START.firstOrNull { it.first == ForkFeatures.str(c, "launcher_start_page", "HOME") }?.second?.second ?: "Ekran główny", NiuniaTrailing.None)
+        // Szkło (fork/glass): na API < 33 wyszarzone z dopiskiem „Niedostępne na tym telewizorze”.
+        "glass" -> RowValue(com.nuvio.tv.fork.glass.ForkGlass.label(c), NiuniaTrailing.None, enabled = com.nuvio.tv.fork.glass.ForkGlass.supported)
         "start_permission" -> RowValue(if (com.nuvio.tv.skin.kicia.ForgeSystemOptions.canStartFromBackground(c)) "Jest" else "Brak", NiuniaTrailing.Chevron)
         else -> RowValue(null, NiuniaTrailing.Chevron)
     }
@@ -414,6 +416,7 @@ private fun special(c: Context, id: String, navigate: (String) -> Unit, openSour
         "night_mode" -> cycle(NIGHT, ForkFeatures.str(c, "night_mode", "OFF"))
         "start_page" -> cycle(START, ForkFeatures.str(c, "launcher_start_page", "HOME"))
         "start_permission" -> com.nuvio.tv.skin.kicia.ForgeSystemOptions.openOverlayPermission(c)
+        "glass" -> com.nuvio.tv.fork.glass.ForkGlass.cycle(c)
         else -> Log.w(TAG, "nieznana pozycja specjalna $id")
     }
 }

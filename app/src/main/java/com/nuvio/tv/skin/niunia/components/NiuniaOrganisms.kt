@@ -91,7 +91,7 @@ fun NiuniaCollection(
             else -> NiuniaSpacing.Space20
         }
         val rowMod = when (kind) {
-            NiuniaCollectionKind.Tabs -> Modifier.clip(CircleShape).background(NiuniaColor.Scrim30).padding(NiuniaSpacing.Space4)
+            NiuniaCollectionKind.Tabs -> with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Chip, CircleShape, fallback = NiuniaColor.Scrim30) }.padding(NiuniaSpacing.Space4)
             NiuniaCollectionKind.SplitRow -> Modifier.fillMaxWidth()
             else -> Modifier
         }
@@ -127,7 +127,8 @@ enum class NiuniaHeroKind { Immersive, Player, Blurred, Deep, Ambient }
 fun NiuniaHeroBackdrop(kind: NiuniaHeroKind, image: Any?, modifier: Modifier = Modifier, blurAmount: Float = 1f, sidebarScrim: Boolean = false) {
     val blurOk = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val density = LocalDensity.current
-    Box(modifier.fillMaxSize().background(if (kind == NiuniaHeroKind.Ambient) Color.Transparent else NiuniaColor.Bg)) {
+    // Szkło (fork/glass): obraz ze scrimem to warstwa tła dla przycisków i paneli na nim.
+    Box(with(com.nuvio.tv.fork.glass.ForkGlass) { modifier.fillMaxSize().forkGlassBackdrop() }.background(if (kind == NiuniaHeroKind.Ambient) Color.Transparent else NiuniaColor.Bg)) {
         if (kind == NiuniaHeroKind.Ambient) Box(Modifier.fillMaxSize().background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.AmbientNews.brush()))
         if (image != null) {
             val spec = when (kind) { NiuniaHeroKind.Blurred -> NiuniaBlur.BlurBackdrop; NiuniaHeroKind.Deep -> NiuniaBlur.BlurDeep; else -> null }
@@ -161,8 +162,9 @@ fun NiuniaTabPill(label: String, icon: String, modifier: Modifier = Modifier, fo
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space4), verticalAlignment = Alignment.CenterVertically) {
         NiuniaIcon("chevron-left", Modifier.size(NiuniaSpacing.Space12, NiuniaSize.Icon16), size = NiuniaSize.Icon16, tint = NiuniaColor.Text70)
         Row(
-            Modifier.height(NiuniaSize.H36).clip(CircleShape).background(if (focused) NiuniaColor.Focus else NiuniaColor.Chrome)
-                .border(1.dp, if (focused) Color.Transparent else NiuniaColor.Fill12, CircleShape)
+            Modifier.height(NiuniaSize.H36)
+                .then(with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Nav, CircleShape, fallback = NiuniaColor.Chrome, fallbackBorder = if (focused) null else NiuniaColor.Fill12) })
+                .background(if (focused) NiuniaColor.Focus else Color.Transparent, CircleShape)
                 .padding(start = NiuniaSpacing.Space4, end = NiuniaSpacing.Space16),
             horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space8), verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -180,7 +182,7 @@ fun NiuniaSidebarPanel(modifier: Modifier = Modifier, content: @Composable Colum
     val shape = RoundedCornerShape(NiuniaRadius.Radius28)
     Column(
         Modifier.padding(start = NiuniaSpacing.Space20, top = NiuniaSpacing.Space20).then(modifier).width(NiuniaSize.SidebarW)
-            .clip(shape).background(NiuniaColor.Panel).border(1.dp, NiuniaColor.Fill12, shape)
+            .then(with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Nav, shape, fallback = NiuniaColor.Panel, fallbackBorder = NiuniaColor.Fill12) })
             .padding(horizontal = NiuniaSpacing.Space8, vertical = NiuniaSpacing.Space12),
         verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space4),
         content = content,
@@ -197,7 +199,8 @@ fun NiuniaSidebarPanel(modifier: Modifier = Modifier, content: @Composable Colum
 fun NiuniaPanelOverlay(title: String?, modifier: Modifier = Modifier, width: Dp = NiuniaSize.PlayerPanelW, content: @Composable ColumnScope.() -> Unit) {
     val shape = RoundedCornerShape(topStart = NiuniaRadius.Radius28, bottomStart = NiuniaRadius.Radius28)
     Column(
-        modifier.padding(top = NiuniaSpacing.Space20).width(width).clip(shape).background(NiuniaColor.Panel).border(1.dp, NiuniaColor.Fill12, shape)
+        modifier.padding(top = NiuniaSpacing.Space20).width(width)
+            .then(with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Panel, shape, fallback = NiuniaColor.Panel, fallbackBorder = NiuniaColor.Fill12) })
             .padding(NiuniaSpacing.Space16),
     ) {
         if (title != null) NiuniaText(title, Modifier.padding(start = NiuniaSpacing.Space8, bottom = NiuniaSpacing.Space12), variant = NiuniaTextVariant.TitleSection, lines = 1)

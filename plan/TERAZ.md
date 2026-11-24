@@ -3,6 +3,11 @@
 Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–13: `plan/archiwum/TERAZ-historia-watki-1-13.md` (tylko `grep`, nie czytaj całości). Sekcje z 22.11 (build163–169c, scalenie, aktualizacja bazy): `plan/archiwum/TERAZ-historia-22.11.md`.
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
+## NAJPIERW (24.11 ~10:30 — wątek „Szkło”: moduł fork/glass, zacommitowane, bez push)
+- Zrobione: `fork/glass/ForkGlass.kt` (LiquidGlass 0.8.2, tylko API 33+), ustawienie Wygląd → Skórka i język → „Szkło” (Wyłączone / Czyste szkło / Nuvio grafit / Mróz, od razu), szkło w komponentach Niuni (menu, przyciski, chipy, panele, okna, komunikaty) + wpięcia: NuvioNavHost (dawne intro → `screensWrap`), `NuvioDialog` (65/65), build.gradle; łatki `fork-tools/patches/glass/`; spis `plan/glass-spis.md`; Haze zostaje (`plan/DECYZJE.md`).
+- Buildy: `glass` (arm64, emulator: 4 wartości, menu, okno nad treścią sprawdzone) i `glass7a` (v7a). „›” Następny jako szklany przycisk dodany po buildzie arm64 (jest w glass7a).
+- JMGO: `glass7a` zainstalowany 24.11 17:30 (md5 zgodne, compile speed), „Szkło — Niedostępne na tym telewizorze”, log „API 30 < 33”, 0 błędów ForkGlass. Zostało: testy z DO_SPRAWDZENIA_NA_TV (szkło).
+
 ## NAJPIERW (24.11 — scalenie wczorajszych zmian i wspólny build `scal1124`)
 - Na polecenie właściciela („scal wszystkie poprawki z wczoraj, także zmiany w interfejsie”): niezacommitowane zmiany interfejsu z `wt-niunia-ke` (ke4: Z-1…Z-23, stan `plan/niunia-ke/ODDANIE-ke4.md`) zacommitowane w `niunia-ke` (0f42f7c4d) i scalone do `skin-niunia` (2bf887aaa; konflikt tylko `hooks.tsv`, `check.sh` 64/65). Pozostałe wczorajsze wątki (IPTV, napisy AI, ustawienia ust4) były już w `skin-niunia`.
 - NIE scalone: próba Liquid Glass (`wt-liquid-glass`, niezacommitowana) — wstrzymana przez właściciela, sprzeczna z ZASADY §2 do jego decyzji.

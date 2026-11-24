@@ -141,3 +141,7 @@ app/src/main/java/com/nuvio/tv/ui/screens/settings/PlaybackSettingsSections.kt	S
 app/src/main/java/com/nuvio/tv/ui/screens/settings/PlaybackSettingsSections.kt	SettingsTreeJump.focus(section.name)	focusRequester =	settings-tree	drzewo ustawień: fokus sekcji	focusRequester = if (section == sections.first()) initialFocusRequester else null,
 app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreen.kt	Fork hook: skin (ekran źródeł skórki)	// Content overlay	skin	skin: źródła (Niunia, Z-14)
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	Fork hook: skin (zegar skórki)	showClockOverlay	skin	skin: zegar odtwarzacza (Niunia Z-15, zawsze widoczny)	AnimatedVisibility(
+app/build.gradle.kts	// Fork hook: glass (szkło, API 33+)	haze-android	glass	zależność LiquidGlass 0.8.2
+app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	ForkHooks.screensWrap { // Fork hook: glass	PlaybackNavHost(	glass	manager szkła i warstwa treści ekranów (dawniej intro Echo)
+app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	} // Fork hook: glass (koniec warstwy)	PlaybackNavHost(	glass	koniec warstwy szkła
+app/src/main/java/com/nuvio/tv/ui/components/NuvioDialog.kt	ForkGlass.dialogSurface(containerShape)) // Fork hook: glass	.then(backgroundModifier)	glass	szkło wspólnego okna bazy

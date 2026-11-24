@@ -594,6 +594,7 @@ dependencies {
     // Local nextlib-mediainfo fork (static FFmpeg; no libav*.so in final AAR)
     implementation(files("libs/nextlib-mediainfo-local.aar"))
     implementation("io.github.abdallahmehiz:mpv-android-lib:0.2.1")
+    implementation("com.github.BuildItCode:LiquidGlass:0.8.2") // Fork hook: glass (szkło, API 33+)
     implementation("dev.chrisbanes.haze:haze-android:1.7.2") {
         exclude(group = "org.jetbrains.compose.ui")
         exclude(group = "org.jetbrains.compose.foundation")

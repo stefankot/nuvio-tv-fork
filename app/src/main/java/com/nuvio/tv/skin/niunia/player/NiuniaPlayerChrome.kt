@@ -559,9 +559,7 @@ internal fun NiuniaMorePanel(series: Boolean, speed: Float, close: () -> Unit, o
         Modifier
             .width(360.dp)
             .height(400.dp)
-            .clip(shape)
-            .background(Color(0xE61E1E22))
-            .border(1.dp, NiuniaColors.Line, shape)
+            .then(with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Panel, shape, fallback = Color(0xE61E1E22), fallbackBorder = NiuniaColors.Line) })
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
             .focusProperties { exit = { FocusRequester.Cancel } } // ▼▲ na krańcach nie wychodzą pod panel (test JMGO build155)

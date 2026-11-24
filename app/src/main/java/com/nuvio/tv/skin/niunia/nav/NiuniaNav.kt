@@ -178,6 +178,8 @@ internal fun NiuniaNavBar(
         }
     }
 
+    // Szkło (fork/glass): menu leży poza treścią ekranów — ten sam manager, próbka warstwy ekranu.
+    com.nuvio.tv.fork.glass.ForkGlass.Provide {
     Box(modifier.fillMaxSize()) {
         // Przyciemnienie od lewej, gdy panel jest otwarty (.scrim-side).
         if (openFraction > 0f) Box(
@@ -234,6 +236,7 @@ internal fun NiuniaNavBar(
                 }
             }
         }
+    }
     }
 }
 

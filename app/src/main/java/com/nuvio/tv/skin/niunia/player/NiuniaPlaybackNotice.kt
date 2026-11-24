@@ -97,8 +97,8 @@ internal fun NiuniaPlaybackNotice(uiState: PlayerUiState) {
             val n = notice ?: return@AnimatedVisibility
             val shape = RoundedCornerShape(NiuniaRadius.Radius16)
             Row(
-                Modifier.widthIn(max = NiuniaSize.HeroInfoW).clip(shape)
-                    .background(NiuniaColor.FrostFlat) // bez rozmycia pod spodem (wideo) szron 12 % byłby nieczytelny
+                // Nad wideo (SurfaceView) szkło nie ma czego próbkować: zostaje FrostFlat (szron 12 % byłby nieczytelny) + obwódka szkła.
+                with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.widthIn(max = NiuniaSize.HeroInfoW).forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Toast, shape, fallback = NiuniaColor.FrostFlat, layer = LAYER_BACK) }
                     .padding(horizontal = NiuniaSpacing.Space16, vertical = NiuniaSpacing.Space12),
                 horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12), verticalAlignment = Alignment.CenterVertically,
             ) {
