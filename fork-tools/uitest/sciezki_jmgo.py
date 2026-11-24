@@ -112,6 +112,7 @@ class Screen:
 
 
 FASTJAR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fastdump", "fastdump.jar")
+KEY_SETTLE = float(os.environ.get("FD_KEY_SETTLE", "0.7"))  # s po klawiszu przed odczytem (czytnik)
 QUIET = int(os.environ.get("FD_QUIET", "350"))  # ms ciszy na ekranie przed odczytem (zwykły dump: na sztywno 1000 ms, do 10 s)
 DUMPST = {"n": 0, "s": 0.0, "fast": 0, "legacy": 0, "fail": 0, "keys": 0}  # statystyka odczytów ekranu (koszt czasu testu)
 KEYNUM = {"KEYCODE_DPAD_UP": 19, "KEYCODE_DPAD_DOWN": 20, "KEYCODE_DPAD_LEFT": 21, "KEYCODE_DPAD_RIGHT": 22,
@@ -283,7 +284,9 @@ def key(k, n=1, pause=0.25):
     code = CODES.get(k, k)
     if code in KEYNUM and FAST.start() and FAST.press(KEYNUM[code], n, int(pause * 1000)):
         DUMPST["keys"] += n
-        time.sleep(pause)
+        # Odczyt drzewa dostępności (Compose) spóźnia się o jeden klawisz, gdy czytamy < ~0,7 s po naciśnięciu (pomiar 24.11: pauza 0,4 s →
+        # przestarzały fokus, 0,7 s → zgodny z logiem ForkFocus); pętle „▲ aż do …” przestrzeliwały. Zwykły dump miał to w czekaniu na ciszę 1 s.
+        time.sleep(max(pause, KEY_SETTLE))
         return
     if n > 1:
         sh(";".join([f"input keyevent {code}; sleep {pause}"] * n))
