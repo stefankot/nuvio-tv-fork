@@ -1,0 +1,106 @@
+sciezka,krok,klawisz,fokus_przed,fokus_po,czas_s,regula,wynik,uwaga
+1,1,zimny start,,"n:Odtwórz Odtwórz [80, 724, 400, 812]",8.15,F1,OK,TotalTime 1437 ms; fokus po 8.2 s
+1,2,po 6 s,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Odtwórz Odtwórz [80, 724, 400, 812]",6.00,F6,OK,
+2,1,trasa home,,"n:Odtwórz Odtwórz [80, 724, 400, 812]",3.84,F1,UWAGA,"fokus 3.8 s, stabilnie 3.8 s (budżet 0.6/3.0 s)"
+2,2,▼,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]",3.43,F2,OK,przewinięcie/zmiana układu
+2,3,HOME → ikona,"n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]","n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]",2.60,F1,OK,"TotalTime 278 ms; fokus: tam, gdzie był"
+3,1,trasa home,,"n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]",3.63,F1,OK,"fokus 3.6 s, stabilnie 3.6 s"
+3,2,► na krawędzi (po 3),"n:Następny wyróżniony tytuł Następny wyróżniony tytuł [648, 740, 704, 796]","n:Następny wyróżniony tytuł Następny wyróżniony tytuł [648, 740, 704, 796]",0.00,F4,OK,
+3,3,◄ na pierwszym,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Główna Główna [56, 264, 424, 336]",0.00,F11,OK,otwiera menu
+3,4,▲,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Główna Główna [56, 264, 424, 336]",3.27,F10,OK,
+4,1,trasa home,,"n:Odtwórz Odtwórz [80, 724, 400, 812]",3.12,F1,OK,"fokus 3.1 s, stabilnie 3.1 s"
+4,2,▼,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]",3.27,F2,OK,przewinięcie/zmiana układu
+4,3,▼ do rzędu,,"n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]",0.00,F7,OK,
+4,4,►,"n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]","n:W te święta mam cię na oku, W te święta mam cię na oku · 107 W te święta mam cię na oku, W te święta mam cię na oku · 107m, Zostało 107 min | Zostało 1 [440, 148, 760, 376]",3.31,F2,OK,
+4,5,►,"n:W te święta mam cię na oku, W te święta mam cię na oku · 107 W te święta mam cię na oku, W te święta mam cię na oku · 107m, Zostało 107 min | Zostało 1 [440, 148, 760, 376]","n:Rywale, S1, E1 · 52m, Zostało 52 min Rywale, S1, E1 · 52m, Zostało 52 min | Zostało 52 min [800, 148, 1120, 376]",3.21,F2,OK,
+4,6,gfx baner_rzad,,,0.00,klatki,BŁĄD,"Janky 50.94%, p95 57 ms, klatek 53"
+5,1,trasa home,,"n:Rywale, S1, E1 · 52m, Zostało 52 min Rywale, S1, E1 · 52m, Zostało 52 min | Zostało 52 min [80, 148, 400, 376]",3.45,F1,OK,"fokus 3.4 s, stabilnie 3.4 s"
+5,2,▼,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Rywale, S1, E1 · 52m, Zostało 52 min Rywale, S1, E1 · 52m, Zostało 52 min | Zostało 52 min [80, 148, 400, 376]",3.31,F2,OK,przewinięcie/zmiana układu
+5,3,►,"n:Rywale, S1, E1 · 52m, Zostało 52 min Rywale, S1, E1 · 52m, Zostało 52 min | Zostało 52 min [80, 148, 400, 376]","n:Apple's Local AI App for Mac Is Coming (Harbor), Apple's Loc Apple's Local AI App for Mac Is Coming (Harbor), Apple's Local AI App for Mac Is Coming (H [440, 148, 760, 376]",3.23,F2,OK,
+5,4,►,"n:Apple's Local AI App for Mac Is Coming (Harbor), Apple's Loc Apple's Local AI App for Mac Is Coming (Harbor), Apple's Local AI App for Mac Is Coming (H [440, 148, 760, 376]","n:Patoterapie - historie pacjentów skrzywdzonych przez terapeu Patoterapie - historie pacjentów skrzywdzonych przez terapeutów || Marianna Fijewska-Kalin [800, 148, 1120, 376]",3.56,F2,OK,
+5,5,►,"n:Patoterapie - historie pacjentów skrzywdzonych przez terapeu Patoterapie - historie pacjentów skrzywdzonych przez terapeutów || Marianna Fijewska-Kalin [800, 148, 1120, 376]","n:Igrzyska śmierci, Igrzyska śmierci · 135m, Zostało 135 min Igrzyska śmierci, Igrzyska śmierci · 135m, Zostało 135 min | Zostało 135 min [1160, 148, 1480, 376]",3.35,F2,OK,
+5,6,►,"n:Igrzyska śmierci, Igrzyska śmierci · 135m, Zostało 135 min Igrzyska śmierci, Igrzyska śmierci · 135m, Zostało 135 min | Zostało 135 min [1160, 148, 1480, 376]","n:Zobaczysz wszystko, Zobaczysz wszystko · 173m, Zostało 173 m Zobaczysz wszystko, Zobaczysz wszystko · 173m, Zostało 173 min | Zostało 173 min [1520, 148, 1840, 376]",3.51,F2,OK,
+5,7,►,"n:Zobaczysz wszystko, Zobaczysz wszystko · 173m, Zostało 173 m Zobaczysz wszystko, Zobaczysz wszystko · 173m, Zostało 173 min | Zostało 173 min [1520, 148, 1840, 376]","n:AI agents are already going rogue, AI agents are already goi AI agents are already going rogue, AI agents are already going rogue · 8m, Zostało 8 min | [1520, 148, 1840, 376]",3.23,F2,OK,
+5,8,►,"n:AI agents are already going rogue, AI agents are already goi AI agents are already going rogue, AI agents are already going rogue · 8m, Zostało 8 min | [1520, 148, 1840, 376]","n:Kino oczami Cunk, S1, E1 · 12m, Zostało 12 min Kino oczami Cunk, S1, E1 · 12m, Zostało 12 min | Zostało 12 min [1520, 148, 1840, 376]",3.31,F2,OK,
+5,9,▼,"n:Kino oczami Cunk, S1, E1 · 12m, Zostało 12 min Kino oczami Cunk, S1, E1 · 12m, Zostało 12 min | Zostało 12 min [1520, 148, 1840, 376]","n:Tylko na święta Romans · ★ 5.4 [1580, 148, 1840, 538]",3.34,F2,OK,
+5,10,▲,"n:Tylko na święta Romans · ★ 5.4 [1580, 148, 1840, 538]","n:Kino oczami Cunk, S1, E1 · 12m, Zostało 12 min Kino oczami Cunk, S1, E1 · 12m, Zostało 12 min | Zostało 12 min [1520, 148, 1840, 376]",3.31,F2,OK,
+5,11,powrót ▲,"n:Kino oczami Cunk, S1, E1 · 12m, Zostało 12 min Kino oczami Cunk, S1, E1 · 12m, Zostało 12 min | Zostało 12 min [1520, 148, 1840, 376]","n:Kino oczami Cunk, S1, E1 · 12m, Zostało 12 min Kino oczami Cunk, S1, E1 · 12m, Zostało 12 min | Zostało 12 min [1520, 148, 1840, 376]",0.00,F3,OK,
+6,1,trasa home,,"n:Kino oczami Cunk, S1, E1 · 12m, Zostało 12 min Kino oczami Cunk, S1, E1 · 12m, Zostało 12 min | Zostało 12 min [80, 148, 400, 376]",3.51,F1,OK,"fokus 3.5 s, stabilnie 3.5 s"
+6,2,▼,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Kino oczami Cunk, S1, E1 · 12m, Zostało 12 min Kino oczami Cunk, S1, E1 · 12m, Zostało 12 min | Zostało 12 min [80, 148, 400, 376]",3.28,F2,OK,przewinięcie/zmiana układu
+6,3,►,"n:Kino oczami Cunk, S1, E1 · 12m, Zostało 12 min Kino oczami Cunk, S1, E1 · 12m, Zostało 12 min | Zostało 12 min [80, 148, 400, 376]","n:Badhaai Do, Badhaai Do · 144m, Zostało 144 min Badhaai Do, Badhaai Do · 144m, Zostało 144 min | Zostało 144 min [440, 148, 760, 376]",3.38,F2,OK,
+6,4,►,"n:Badhaai Do, Badhaai Do · 144m, Zostało 144 min Badhaai Do, Badhaai Do · 144m, Zostało 144 min | Zostało 144 min [440, 148, 760, 376]","n:Star Trek: Następne pokolenie, S7, E5, Następny: S7 E5 Star Trek: Następne pokolenie, S7, E5, Następny: S7 E5 | Następny: S7 E5 [800, 148, 1120, 376]",3.48,F2,OK,
+6,5,►,"n:Star Trek: Następne pokolenie, S7, E5, Następny: S7 E5 Star Trek: Następne pokolenie, S7, E5, Następny: S7 E5 | Następny: S7 E5 [800, 148, 1120, 376]","n:Made in Heaven, S1, E2 · 44m, Zostało 44 min Made in Heaven, S1, E2 · 44m, Zostało 44 min | Zostało 44 min [1160, 148, 1480, 376]",3.39,F2,OK,
+6,6,▼,"n:Made in Heaven, S1, E2 · 44m, Zostało 44 min Made in Heaven, S1, E2 · 44m, Zostało 44 min | Zostało 44 min [1160, 148, 1480, 376]","n:Heartland Thriller · ★ 5.5 [1280, 148, 1540, 538]",3.28,F2,OK,
+6,7,kolumna ▼,"n:Made in Heaven, S1, E2 · 44m, Zostało 44 min Made in Heaven, S1, E2 · 44m, Zostało 44 min | Zostało 44 min [1160, 148, 1480, 376]","n:Heartland Thriller · ★ 5.5 [1280, 148, 1540, 538]",0.00,F2,OK,Δx=90 px
+6,8,▲,"n:Heartland Thriller · ★ 5.5 [1280, 148, 1540, 538]","n:Made in Heaven, S1, E2 · 44m, Zostało 44 min Made in Heaven, S1, E2 · 44m, Zostało 44 min | Zostało 44 min [1160, 148, 1480, 376]",3.37,F2,OK,
+6,9,▲ wraca,"n:Made in Heaven, S1, E2 · 44m, Zostało 44 min Made in Heaven, S1, E2 · 44m, Zostało 44 min | Zostało 44 min [1160, 148, 1480, 376]","n:Made in Heaven, S1, E2 · 44m, Zostało 44 min Made in Heaven, S1, E2 · 44m, Zostało 44 min | Zostało 44 min [1160, 148, 1480, 376]",0.00,F3,OK,
+7,1,trasa home,,"n:Made in Heaven, S1, E2 · 44m, Zostało 44 min Made in Heaven, S1, E2 · 44m, Zostało 44 min | Zostało 44 min [80, 148, 400, 376]",3.48,F1,OK,"fokus 3.5 s, stabilnie 3.5 s"
+7,2,▼ 3 s,,"n:Dig (2026) Komedia [80, 522, 340, 912]",3.00,F9,OK,
+7,3,▲ 3 s,"n:Dig (2026) Komedia [80, 522, 340, 912]","n:Stef+Patryk S | Stef+Patryk | Zmień profil [56, 64, 424, 176]",3.00,F9,OK,
+7,4,gfx przytrzymanie_v,,,0.00,klatki,BŁĄD,"Janky 83.95%, p95 93 ms, klatek 81"
+8,1,trasa home,,"n:Odtwórz Odtwórz [80, 724, 400, 812]",3.03,F1,OK,"fokus 3.0 s, stabilnie 3.0 s"
+8,2,▼,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]",3.34,F2,OK,przewinięcie/zmiana układu
+8,3,▼,"n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]","n:Siostra Kopciuszka Animacja · ★ 6.8 [80, 148, 340, 538]",3.31,F2,OK,
+8,4,► 3 s,,"n:Ty, ja, my Dramat · ★ 6.3 [1580, 148, 1840, 538]",3.00,F7,OK,
+8,5,► na krawędzi (po 1),"n:Zobacz wszystko: TMDB Popular Zobacz wszystko | TMDB Popular [1580, 148, 1840, 538]","n:Zobacz wszystko: TMDB Popular Zobacz wszystko | TMDB Popular [1580, 148, 1840, 538]",0.00,F4,OK,
+8,6,◄ 4 s,"n:Ty, ja, my Dramat · ★ 6.3 [1580, 148, 1840, 538]","n:Siostra Kopciuszka Animacja · ★ 6.8 [80, 148, 340, 538]",4.00,F9,OK,
+8,7,gfx przytrzymanie_h,,,0.00,klatki,BŁĄD,"Janky 58.23%, p95 69 ms, klatek 249"
+9,1,trasa home,,"n:Główna Główna [56, 264, 424, 336]",3.27,F1,BŁĄD,"fokus w menu („n:Główna Główna”), nie w treści"
+9,2,▼,"n:Stef+Patryk S | Stef+Patryk | Zmień profil [56, 64, 424, 176]","n:Szukaj Szukaj [56, 184, 424, 256]",3.06,F2,OK,
+9,3,▼,"n:Szukaj Szukaj [56, 184, 424, 256]","n:Główna Główna [56, 264, 424, 336]",3.14,F2,OK,
+9,4,►,"n:Główna Główna [56, 264, 424, 336]","n:Odtwórz Odtwórz [80, 724, 400, 812]",3.16,F2,OK,
+9,5,►,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Dodaj do biblioteki Dodaj do biblioteki [424, 724, 512, 812]",3.22,F2,OK,
+9,6,OK na plakacie,"n:Dodaj do biblioteki Dodaj do biblioteki [424, 724, 512, 812]","n:W bibliotece W bibliotece [424, 724, 512, 812]",7.23,F1,OK,pierwszy fokus 2.0 s
+9,7,Wstecz,"n:W bibliotece W bibliotece [424, 724, 512, 812]","n:Główna Główna [56, 264, 424, 336]",7.19,F5,BŁĄD,fokus „n:Główna Główna” zamiast „n:Dodaj do biblioteki Dodaj do biblioteki”
+10,1,trasa home,,"n:Odtwórz Odtwórz [80, 724, 400, 812]",3.18,F1,OK,"fokus 3.2 s, stabilnie 3.2 s"
+10,2,▼,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]",3.35,F2,OK,przewinięcie/zmiana układu
+10,3,▼,"n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]","n:Siostra Kopciuszka Animacja · ★ 6.8 [80, 148, 340, 538]",3.35,F2,OK,
+10,4,►,"n:Siostra Kopciuszka Animacja · ★ 6.8 [80, 148, 340, 538]","n:W te święta mam cię na oku Romans · ★ 6.2 [380, 148, 640, 538]",3.29,F2,OK,
+10,5,długie OK,"n:W te święta mam cię na oku Romans · ★ 6.2 [380, 148, 640, 538]","Szczegóły filmu [568, 514, 1352, 586]",5.19,F8,OK,długie OK
+10,6,Wstecz,"Szczegóły filmu [568, 514, 1352, 586]","n:W te święta mam cię na oku Romans · ★ 6.2 [380, 148, 640, 538]",7.92,F5,OK,pierwszy fokus 2.2 s
+10,7,krótkie OK po długim,"n:W te święta mam cię na oku Romans · ★ 6.2 [380, 148, 640, 538]","n:Odtwórz Odtwórz [160, 912, 480, 1000]",7.86,F1,OK,pierwszy fokus 2.2 s
+10,8,Wstecz,"n:Odtwórz Odtwórz [160, 912, 480, 1000]","n:Siostra Kopciuszka Animacja · ★ 6.8 [80, 148, 340, 538]",7.78,F5,BŁĄD,fokus „n:Siostra Kopciuszka Animacja · ★ 6.8” zamiast „n:W te święta mam cię na oku Romans · ★ 6.2”
+11,1,trasa home,,"n:Siostra Kopciuszka Animacja · ★ 6.8 [80, 148, 340, 538]",3.69,F1,OK,"fokus 3.7 s, stabilnie 3.7 s"
+11,2,▼,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]",3.36,F2,OK,przewinięcie/zmiana układu
+11,3,▼,"n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]","n:Siostra Kopciuszka Animacja · ★ 6.8 [80, 148, 340, 538]",3.49,F2,OK,
+11,4,◄ na krawędzi (po 0),"n:Siostra Kopciuszka Animacja · ★ 6.8 [80, 148, 340, 538]","n:Siostra Kopciuszka Animacja · ★ 6.8 [80, 148, 340, 538]",0.00,F4,OK,
+11,5,▲ do menu,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Główna Główna [56, 264, 424, 336]",0.00,F11,OK,fokus „n:Główna Główna”
+12,1,trasa home,,"n:Odtwórz Odtwórz [80, 724, 400, 812]",2.89,F1,OK,"fokus 2.9 s, stabilnie 2.9 s"
+12,2,▼,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]",3.38,F2,OK,przewinięcie/zmiana układu
+12,3,▼ na krawędzi (po 10),"n:Dig (2026) Komedia [80, 522, 340, 912]","n:Dig (2026) Komedia [80, 522, 340, 912]",0.00,F4,OK,
+12,4,▲ na krawędzi (po 8),"n:Stef+Patryk S | Stef+Patryk | Zmień profil [56, 64, 424, 176]","n:Stef+Patryk S | Stef+Patryk | Zmień profil [56, 64, 424, 176]",0.00,F4,OK,
+12,5,▼×2,,"n:Główna Główna [56, 264, 424, 336]",0.00,-,OK,→ Główna
+12,6,►,"n:Główna Główna [56, 264, 424, 336]","n:Odtwórz Odtwórz [80, 724, 400, 812]",3.18,F2,OK,
+12,7,► z menu,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Odtwórz Odtwórz [80, 724, 400, 812]",0.00,F11,OK,
+13,1,trasa home,,"n:Odtwórz Odtwórz [80, 724, 400, 812]",3.15,F1,OK,"fokus 3.1 s, stabilnie 3.1 s"
+13,2,▼,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]",3.31,F2,OK,przewinięcie/zmiana układu
+13,3,►,"n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]","n:W te święta mam cię na oku, W te święta mam cię na oku · 107 W te święta mam cię na oku, W te święta mam cię na oku · 107m, Zostało 107 min | Zostało 1 [440, 148, 760, 376]",3.36,F2,OK,
+13,4,menu → Szukaj,"n:Szukaj Szukaj [56, 184, 424, 256]","n:a a [80, 346, 152, 418]",7.98,F1,OK,pierwszy fokus 2.2 s
+13,5,menu → Biblioteka,"n:Biblioteka Biblioteka [56, 504, 424, 576]","n:Wszystko Wszystko [88, 160, 275, 232]",7.81,F1,OK,pierwszy fokus 2.4 s
+13,6,menu → Live TV,"n:Live TV Live TV [56, 344, 424, 416]","n:Wszystkie Wszystkie [80, 472, 273, 544]",10.09,F1,OK,pierwszy fokus 2.9 s
+13,7,menu → Główna,"n:Główna Główna [56, 264, 424, 336]","n:Odtwórz Odtwórz [80, 724, 400, 812]",9.31,F1,OK,pierwszy fokus 2.0 s
+13,8,Główna: powrót,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Odtwórz Odtwórz [80, 724, 400, 812]",0.00,F5,OK,
+14,1,trasa home,,"n:Odtwórz Odtwórz [80, 724, 400, 812]",3.17,F1,OK,"fokus 3.2 s, stabilnie 3.2 s"
+14,2,▼,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]",3.35,F2,OK,przewinięcie/zmiana układu
+14,3,▼,"n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]","n:Siostra Kopciuszka Animacja · ★ 6.8 [80, 148, 340, 538]",3.26,F2,OK,
+14,4,▼,"n:Siostra Kopciuszka Animacja · ★ 6.8 [80, 148, 340, 538]","n:Czarne lustro Sci-fi · ★ 8.7 [80, 148, 340, 538]",3.31,F2,OK,
+14,5,Wstecz 1,"n:Czarne lustro Sci-fi · ★ 8.7 [80, 148, 340, 538]","n:Odtwórz Odtwórz [80, 724, 400, 812]",7.24,F12,OK,pierwszy fokus 2.0 s
+14,6,Wstecz 2,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Główna Główna [56, 264, 424, 336]",7.26,F12,OK,pierwszy fokus 2.0 s
+15,1,trasa home,,"n:Odtwórz Odtwórz [80, 724, 400, 812]",3.31,F1,OK,"fokus 3.3 s, stabilnie 3.3 s"
+15,2,▼,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]",3.25,F2,OK,przewinięcie/zmiana układu
+15,3,długie OK w menu,"n:Główna Główna [56, 264, 424, 336]","n:Odtwórz Odtwórz [80, 724, 400, 812]",5.47,F10,OK,pozycja bez długiego OK: puszczenie = zwykłe OK (nic się nie psuje)
+15,4,po długim OK,,"n:Odtwórz Odtwórz [80, 724, 400, 812]",0.00,F10,OK,
+16,1,trasa search,,"n:a a [80, 346, 152, 418]",2.46,F1,OK,"fokus 2.5 s, stabilnie 2.5 s"
+16,2,klawiatura „bat”,,"n:t t [152, 586, 224, 658]",33.63,F6,OK,wpisane: bat
+16,3,wyniki po 3 s,"n:t t [152, 586, 224, 658]","n:t t [152, 586, 224, 658]",3.00,F6,OK,wyniki: tak
+17,1,trasa search,,"n:a a [80, 346, 152, 418]",2.79,F1,OK,"fokus 2.8 s, stabilnie 2.8 s"
+17,2,klawiatura „bat”,,"n:t t [152, 586, 224, 658]",32.99,F6,OK,wpisane: bat
+17,3,►×5 do wyników,,"n:Bat Bat | Film · Animacja · 2018 [592, 602, 1200, 762]",0.00,F2,OK,5 naciśnięć
+17,4,◄,"n:Bat Bat | Film · Animacja · 2018 [592, 602, 1200, 762]","n:x x [440, 586, 512, 658]",3.37,F2,OK,
+17,5,◄ z wyników,"n:x x [440, 586, 512, 658]","n:x x [440, 586, 512, 658]",0.00,F3,OK,
+17,6,gfx szukaj,,,0.00,klatki,UWAGA,"Janky 5.88%, p95 17 ms, klatek 34"
+18,1,trasa search,,"n:a a [80, 346, 152, 418]",2.22,F1,OK,"fokus 2.2 s, stabilnie 2.2 s"
+18,2,klawiatura „bat”,,"n:t t [152, 586, 224, 658]",32.27,F6,OK,wpisane: bat
+18,3,►×5,,"n:Bat Bat | Film · Animacja · 2018 [592, 602, 1200, 762]",0.00,-,OK,→ wynik
+18,4,OK na wyniku,"n:Bat Bat | Film · Animacja · 2018 [592, 602, 1200, 762]","n:Odtwórz Odtwórz [80, 912, 400, 1000]",7.92,F1,OK,pierwszy fokus 2.2 s
+18,5,Wstecz,"n:Odtwórz Odtwórz [80, 912, 400, 1000]","n:Bat Bat | Film · Animacja · 2018 [592, 602, 1200, 762]",7.52,F5,OK,pierwszy fokus 2.1 s

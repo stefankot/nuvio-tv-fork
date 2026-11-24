@@ -1,0 +1,25 @@
+zimny 1 TotalTime=3114 Displayed=3114 FullyDrawn=5011 firstFocus=
+zimny 2 TotalTime=1498 Displayed=1498 FullyDrawn=3496 firstFocus=
+zimny 3 TotalTime=1467 Displayed=1467 FullyDrawn=3301 firstFocus=
+zimny 4 TotalTime=1546 Displayed=1546 FullyDrawn=3441 firstFocus=
+zimny 5 TotalTime=1503 Displayed=1503 FullyDrawn=3295 firstFocus=
+zimny 6 TotalTime=1527 Displayed=1527 FullyDrawn=3177 firstFocus=
+zimny 7 TotalTime=1385 Displayed=1385 FullyDrawn=3297 firstFocus=
+zimny 8 TotalTime=1487 Displayed=1487 FullyDrawn=3404 firstFocus=
+zimny 9 TotalTime=1535 Displayed=1535 FullyDrawn=3384 firstFocus=
+zimny 10 TotalTime=1512 Displayed=1512 FullyDrawn=3286 firstFocus=
+ciepły 1 TotalTime=304
+ciepły 2 TotalTime=260
+ciepły 3 TotalTime=243
+ciepły 4 TotalTime=259
+ciepły 5 TotalTime=253
+ciepły 6 TotalTime=241
+ciepły 7 TotalTime=257
+ciepły 8 TotalTime=241
+ciepły 9 TotalTime=254
+ciepły 10 TotalTime=253
+zimny TotalTime: mediana 1507.5, min 1385, max 3114 (n=10)
+zimny Displayed: mediana 1507.5, min 1385, max 3114 (n=10)
+zimny FullyDrawn: mediana 3342.5, min 3177, max 5011 (n=10)
+zimny firstFocus: -
+ciepły TotalTime: mediana 253.5, min 241, max 304 (n=10)

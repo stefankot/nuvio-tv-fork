@@ -1,0 +1,69 @@
+WOLNY: pilot nieużywany 10 min, nic nie gra
+[15:50] pętla 1: start
+zimny 1 TotalTime=3114 Displayed=3114 FullyDrawn=5011 firstFocus=
+zimny 2 TotalTime=1498 Displayed=1498 FullyDrawn=3496 firstFocus=
+zimny 3 TotalTime=1467 Displayed=1467 FullyDrawn=3301 firstFocus=
+zimny 4 TotalTime=1546 Displayed=1546 FullyDrawn=3441 firstFocus=
+zimny 5 TotalTime=1503 Displayed=1503 FullyDrawn=3295 firstFocus=
+zimny 6 TotalTime=1527 Displayed=1527 FullyDrawn=3177 firstFocus=
+zimny 7 TotalTime=1385 Displayed=1385 FullyDrawn=3297 firstFocus=
+zimny 8 TotalTime=1487 Displayed=1487 FullyDrawn=3404 firstFocus=
+zimny 9 TotalTime=1535 Displayed=1535 FullyDrawn=3384 firstFocus=
+zimny 10 TotalTime=1512 Displayed=1512 FullyDrawn=3286 firstFocus=
+ciepły 1 TotalTime=304
+ciepły 2 TotalTime=260
+ciepły 3 TotalTime=243
+ciepły 4 TotalTime=259
+ciepły 5 TotalTime=253
+ciepły 6 TotalTime=241
+ciepły 7 TotalTime=257
+ciepły 8 TotalTime=241
+ciepły 9 TotalTime=254
+ciepły 10 TotalTime=253
+zimny TotalTime: mediana 1507.5, min 1385, max 3114 (n=10)
+zimny Displayed: mediana 1507.5, min 1385, max 3114 (n=10)
+zimny FullyDrawn: mediana 3342.5, min 3177, max 5011 (n=10)
+zimny firstFocus: -
+ciepły TotalTime: mediana 253.5, min 241, max 304 (n=10)
+15:54 po startach: PSS 359216 KB, Java 65736 KB, natywna 47212 KB, grafika 54756 KB
+ForkFocus: brak (APK bez pomiaru — tylko odczyty uiautomator)
+[15:54:47] ścieżka 1: Zimny start: fokus na „Odtwórz” w banerze; po dociągnięciu rzędów fokus nie skacze [F1 F6, czas]
+   → UWAGA (19 s) UWAGA: zimny start do fokusu 8.2 s (budżet 3.5 s, rozdzielczość odczytu ~2 s)
+[15:55:06] ścieżka 2: Ciepły start (HOME → ikona): fokus tam, gdzie był, albo na banerze [F1]
+   → UWAGA (18 s) UWAGA: F1 trasa home: fokus 3.8 s, stabilnie 3.8 s (budżet 0.6/3.0 s)
+[15:55:24] ścieżka 3: Baner: ◄► po przyciskach, skrajne bez zawijania, ▲ nie gubi fokusu [F4 F10]
+   → OK (53 s) 
+[15:56:17] ścieżka 4: Baner ▼ → pierwszy rząd: plakat w całości widoczny, hero bez skoku [F2 F7, gfxinfo]
+   → BŁĄD (21 s) BŁĄD: klatki gfx baner_rzad: Janky 50.94%, p95 57 ms, klatek 53
+[15:56:38] ścieżka 5: Rząd ►×6 → ▼ → ▲: ten sam plakat [F3]
+   → OK (42 s) 
+[15:57:20] ścieżka 6: Rząd 1, 4. plakat ▼ → rząd 2 (konwencja F3/F2) [F2 F3]
+   → OK (32 s) 
+[15:57:53] ścieżka 7: Przytrzymana ▼ 3 s przez rzędy i ▲ do banera [F9, gfxinfo]
+   → BŁĄD (26 s) BŁĄD: klatki gfx przytrzymanie_v: Janky 83.95%, p95 93 ms, klatek 81
+[15:58:19] ścieżka 8: Przytrzymana ► 3 s w najdłuższym rzędzie, potem ◄ do początku [F4 F7 F9, gfxinfo]
+   → BŁĄD (34 s) BŁĄD: klatki gfx przytrzymanie_h: Janky 58.23%, p95 69 ms, klatek 249
+[15:58:53] ścieżka 9: Plakat OK → tytuł → Wstecz: ten sam plakat, to samo przewinięcie [F5 F12, czas]
+   → BŁĄD (58 s) BŁĄD: F1 trasa home: fokus w menu („n:Główna Główna”), nie w treści; BŁĄD: F5 Wstecz: fokus „n:Główna Główna” zamiast „n:Dodaj do biblioteki Dodaj do biblioteki”
+[15:59:51] ścieżka 10: Długie OK na plakacie → menu → Wstecz: fokus na plakacie, puszczenie nic nie klika [F8 F5]
+   → BŁĄD (47 s) BŁĄD: F5 Wstecz: fokus „n:Siostra Kopciuszka Animacja · ★ 6.8” zamiast „n:W te święta mam cię na oku Romans · ★ 6.2”
+[16:00:39] ścieżka 11: Pierwszy plakat: ◄ bez zawijania; menu otwiera ▲ z góry ekranu, fokus na „Główna” [F4 F11]
+   → OK (36 s) 
+[16:01:15] ścieżka 12: Menu ▼ do końca i ▲ bez zawijania, ► → element, z którego wyszło [F4 F11]
+   → OK (93 s) 
+[16:02:49] ścieżka 13: Menu → Szukaj → Biblioteka → Live TV → Główna: pierwszy fokus w treści, Główna przywraca fokus [F1 F5, czas]
+   → OK (142 s) 
+[16:05:11] ścieżka 14: Wstecz z głębi rzędu: baner/menu, drugi Wstecz nie zamyka bez pytania [F12]
+   → OK (34 s) 
+[16:05:46] ścieżka 15: Długie OK na pozycji menu: nic się nie psuje [F10]
+   → OK (26 s) 
+[16:06:12] ścieżka 16: Szukaj: „bat” klawiaturą ekranową; fokus na klawiszu, wyniki bez kradzieży fokusu [F1 F6]
+   → OK (46 s) 
+[16:06:58] ścieżka 17: Szukaj: z klawiatury do wyników (liczba ►), ◄ wraca na ten sam klawisz [F2 F3, gfxinfo]
+   → UWAGA (61 s) UWAGA: klatki gfx szukaj: Janky 5.88%, p95 17 ms, klatek 34
+[16:08:00] ścieżka 18: Szukaj: wynik OK → tytuł → Wstecz: fokus na wyniku [F5]
+   → OK (72 s) 
+[16:09:12] ścieżka 19: Szukaj: polecane — długie OK → menu → Wstecz [F8 F5]
+fork-tools/uitest/petla_jmgo.sh: line 12:  7884 Terminated: 15          python3 -I "$R/fork-tools/uitest/sciezki_jmgo.py" --cykl "$N" --bez-czekania "$@"
+tee: /Users/milajovovich/Desktop/nuvio 2/NuvioFork/plan/ux/jmgo/cykl1/pamiec.txt: No such file or directory
+16:09 po ścieżkach: PSS 762072 KB, Java 218596 KB, natywna 158148 KB, grafika 177664 KB

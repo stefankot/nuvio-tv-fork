@@ -1,0 +1,1 @@
+15:54 po startach: PSS 359216 KB, Java 65736 KB, natywna 47212 KB, grafika 54756 KB

@@ -4,7 +4,8 @@
 Użycie:  python3 -I fork-tools/uitest/sciezki_jmgo.py --cykl N [--bez-czekania] [numery ścieżek ...]
 Wynik:   plan/ux/jmgo/cykl<N>/{sciezki.md, sciezki.json, fokus.csv, logcat.txt, gfx/*.txt}
 
-- Odczyt ekranu: `uiautomator dump --compressed` przez `exec-out` (JMGO: ~2,2 s na odczyt). Gdy aplikacja ma ForkFocusTrace
+- Odczyt ekranu: stały czytnik `fastdump/FastDump.java` (jedno połączenie UiAutomation, klawisze bez `input`, odczyt po ~350 ms ciszy:
+  ~0,1–0,6 s, ten sam XML); gdy nie działa albo `FASTDUMP=0` → `uiautomator dump --compressed` (JMGO: ~2,2 s i czeka ≥1 s na ciszę). Gdy aplikacja ma ForkFocusTrace
   (log `ForkFocus`, przełącznik w Narzędziach forka), ruch fokusu i czasy (dtFocus/dtFrame) bierzemy z logu, a `dump` tylko
   w punktach kontrolnych reguł (granice, widoczność, teksty).
 - Przytrzymanie: prawdziwe (`sendevent` na urządzeniu pilota /dev/input/event12: wciśnij, czekaj, puść) — system sam
@@ -16,7 +17,7 @@ Wynik:   plan/ux/jmgo/cykl<N>/{sciezki.md, sciezki.json, fokus.csv, logcat.txt, 
 Wynik ścieżki: OK / UWAGA (budżet „cel” przekroczony, reguła spełniona) / BŁĄD (reguła złamana, budżet „błąd”, awaria) /
 POMINIĘTA (ekranu brak — z powodem).
 """
-import csv, datetime, json, os, re, subprocess, sys, time
+import atexit, csv, datetime, json, os, re, select, subprocess, sys, time
 import xml.etree.ElementTree as ET
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -110,21 +111,143 @@ class Screen:
         return f"{self.focus} {list(self.fb) if self.fb else ''}"
 
 
-def dump():
+FASTJAR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fastdump", "fastdump.jar")
+QUIET = int(os.environ.get("FD_QUIET", "350"))  # ms ciszy na ekranie przed odczytem (zwykły dump: na sztywno 1000 ms, do 10 s)
+DUMPST = {"n": 0, "s": 0.0, "fast": 0, "legacy": 0, "fail": 0, "keys": 0}  # statystyka odczytów ekranu (koszt czasu testu)
+KEYNUM = {"KEYCODE_DPAD_UP": 19, "KEYCODE_DPAD_DOWN": 20, "KEYCODE_DPAD_LEFT": 21, "KEYCODE_DPAD_RIGHT": 22,
+          "KEYCODE_DPAD_CENTER": 23, "KEYCODE_BACK": 4, "KEYCODE_HOME": 3}
+
+
+class Fast:
+    """Stały czytnik ekranu na JMGO (fastdump/FastDump.java): jedno połączenie z UiAutomation na cały test, klawisze bez
+    uruchamiania `input`, odczyt po krótkiej ciszy (QUIET) zamiast `waitForIdle(1000, 10000)` zwykłego `uiautomator dump`
+    (24.11, właściciel: testy połowę czasu stały bezczynnie). Ten sam XML. Błąd → zwykły dump (FASTDUMP=0 wyłącza)."""
+
+    def __init__(self):
+        self.proc, self.buf, self.fails = None, b"", 0
+        self.dead = os.environ.get("FASTDUMP", "1") == "0"
+
+    def _read(self, pred, timeout):
+        fd, end = self.proc.stdout.fileno(), time.time() + timeout
+        while True:
+            m = pred(self.buf)
+            if m is not None:
+                return m
+            left = end - time.time()
+            if left <= 0:
+                return None
+            if select.select([fd], [], [], min(0.5, left))[0]:
+                chunk = os.read(fd, 1 << 16)
+                if not chunk:
+                    return None
+                self.buf += chunk
+
+    def start(self):
+        if self.proc is not None:
+            return True
+        if self.dead:
+            return False
+        try:
+            r = subprocess.run([ADB, "-s", DEV, "push", FASTJAR, "/data/local/tmp/fastdump.jar"], capture_output=True, text=True, timeout=40)
+            if r.returncode != 0:
+                raise RuntimeError("push: " + (r.stderr or r.stdout).strip()[:120])
+            os.makedirs(os.path.join(ROOT, ".stage"), exist_ok=True)
+            self.err = open(os.path.join(ROOT, ".stage", "fastdump_err.log"), "ab")
+            self.proc = subprocess.Popen([ADB, "-s", DEV, "shell", "-T", "app_process", "-Djava.class.path=/data/local/tmp/fastdump.jar:/system/framework/uiautomator.jar",
+                                          "/system/bin", "FastDump", str(W), str(H)], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=self.err, bufsize=0)
+            self.buf = b""
+
+            def ready(b):
+                i = b.find(b"#READY\n")
+                return i + 7 if i >= 0 else None
+            n = self._read(ready, 25)
+            if n is None:
+                raise RuntimeError("brak #READY: " + self.buf[:120].decode("utf-8", "replace"))
+            self.buf = self.buf[n:]
+            print("FastDump: czytnik ekranu działa")
+            return True
+        except Exception as e:
+            print(f"UWAGA: FastDump nie działa ({type(e).__name__}: {e}) — zwykły uiautomator dump")
+            self.stop()
+            self.dead = True
+            return False
+
+    def stop(self):
+        p, self.proc = self.proc, None
+        if p is None:
+            return
+        try:
+            p.stdin.write(b"Q\n")
+            p.stdin.close()
+            p.wait(timeout=4)
+        except Exception:
+            p.kill()
+
+    def cmd(self, line, timeout):
+        """→ (xml_bytes, idle_ms, dump_ms) albo None (błąd; czytnik wyłączony po 3 błędach)."""
+        try:
+            self.proc.stdin.write((line + "\n").encode())
+
+            def end(b):
+                m = re.search(rb"#END (\d+) (\d+)\n", b)
+                return m if m else None
+            m = self._read(end, timeout)
+            if m is None:
+                raise RuntimeError("brak odpowiedzi na: " + line)
+            x, self.buf = self.buf[:m.start()], self.buf[m.end():]
+            if b"#ERR" in x:
+                raise RuntimeError(x.decode("utf-8", "replace").strip()[:120])
+            return x, int(m.group(1)), int(m.group(2))
+        except Exception as e:
+            print(f"UWAGA: FastDump błąd ({type(e).__name__}: {e})")
+            DUMPST["fail"] += 1
+            self.stop()
+            self.fails += 1
+            if self.fails >= 3:
+                self.dead = True
+                print("UWAGA: FastDump wyłączony po 3 błędach — dalej zwykły uiautomator dump")
+            return None
+
+    def press(self, code, n, pause_ms):
+        r = self.cmd(f"X {code} {n} {pause_ms}", 8 + n * (pause_ms / 1000 + 0.5))
+        return r is not None
+
+
+FAST = Fast()
+atexit.register(FAST.stop)
+
+
+def dump(quiet=None):
+    t0 = time.time()
+    if FAST.start():
+        r = FAST.cmd(f"D {QUIET if quiet is None else quiet} 3000", 20)
+        if r is not None:
+            x = r[0].decode("utf-8", "replace")
+            i, j = x.find("<?xml"), x.rfind("</hierarchy>")
+            if i >= 0 and j > i:
+                try:
+                    root = ET.fromstring(x[i:j + 12])
+                    DUMPST["n"] += 1; DUMPST["fast"] += 1; DUMPST["s"] += time.time() - t0
+                    return root
+                except ET.ParseError as e:
+                    print(f"UWAGA: FastDump zły XML ({e})")
+                    DUMPST["fail"] += 1
     for _ in range(3):
         x = adb("exec-out", "uiautomator", "dump", "--compressed", "/dev/tty", timeout=25)
         i, j = x.find("<?xml"), x.rfind("</hierarchy>")
         if i >= 0 and j > i:
             try:
-                return ET.fromstring(x[i:j + 12])
+                root = ET.fromstring(x[i:j + 12])
+                DUMPST["n"] += 1; DUMPST["legacy"] += 1; DUMPST["s"] += time.time() - t0
+                return root
             except ET.ParseError:
                 pass
         time.sleep(0.4)
     return None
 
 
-def look():
-    return Screen(dump())
+def look(quiet=None):
+    return Screen(dump(quiet))
 
 
 def settle(maxs=10.0, need_focus=True):
@@ -158,6 +281,10 @@ ARROW = {"UP": "▲", "DOWN": "▼", "LEFT": "◄", "RIGHT": "►", "CENTER": "O
 
 def key(k, n=1, pause=0.25):
     code = CODES.get(k, k)
+    if code in KEYNUM and FAST.start() and FAST.press(KEYNUM[code], n, int(pause * 1000)):
+        DUMPST["keys"] += n
+        time.sleep(pause)
+        return
     if n > 1:
         sh(";".join([f"input keyevent {code}; sleep {pause}"] * n))
     else:
@@ -1521,6 +1648,12 @@ def main():
             for lab, v in sorted(STATS["firstFocus"], key=lambda x: -x[1])[:8]:
                 f.write(f"  - {lab}: {v} ms\n")
             json.dump(STATS, open(os.path.join(out, "forkfocus.json"), "w"), ensure_ascii=False)
+    d = DUMPST
+    odczyty = (f"odczyty ekranu: {d['n']} (czytnik {d['fast']}, zwykły {d['legacy']}, błędy czytnika {d['fail']}), "
+               f"razem {d['s'] / 60:.1f} min = {100 * d['s'] / max(total, 1):.0f}% czasu, średnio {d['s'] / max(d['n'], 1):.2f} s")
+    with open(os.path.join(out, "sciezki.md"), "a") as f:
+        f.write(f"\n## Czas testu\n\n- {odczyty}; klawisze przez czytnik: {d['keys']}\n")
+    print(odczyty)
     print(f"koniec: {total / 60:.1f} min, {cnt}, raport {out}/sciezki.md")
 
 

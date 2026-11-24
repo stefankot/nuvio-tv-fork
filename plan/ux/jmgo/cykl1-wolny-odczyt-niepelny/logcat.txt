@@ -1,0 +1,259 @@
+
+===== ścieżka 1
+--------- beginning of main
+--------- beginning of system
+11-24 22:54:50.074 I/ActivityTaskManager(  979): START u0 {flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.launcher.AppIconDefault} from uid 2000
+11-24 22:54:50.088 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.nuviodebug.com: {320dpi always-compat}
+11-24 22:54:50.089 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.nuviodebug.com: {320dpi always-compat}
+11-24 22:54:50.154 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.nuviodebug.com: {320dpi always-compat}
+11-24 22:54:50.844 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.nuviodebug.com: {320dpi always-compat}
+11-24 22:54:51.559 I/ActivityTaskManager(  979): Displayed com.nuviodebug.com/com.nuvio.tv.launcher.AppIconDefault: +1s437ms
+11-24 22:54:51.623 I/ForkNiunia( 9084): typografia: Satoshi 500/700, odstęp liter ≤ 0 (ekrany Nuvio)
+11-24 22:54:53.645 I/ActivityTaskManager(  979): Fully drawn com.nuviodebug.com/com.nuvio.tv.launcher.AppIconDefault: +3s570ms
+11-24 22:54:53.914 I/ForkNiunia( 9084): plakat: treść w warstwie sprzętowej (rysowana raz, potem tylko przesuwana)
+11-24 22:54:53.914 I/ForkNiunia( 9084): plakat: rozmycie w buforze tylko dolnej części (od 82 %)
+11-24 22:54:54.098 I/ForkNiunia( 9084): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 22:54:54.106 I/ForkNiunia( 9084): ekran główny: fokus startowy → play
+
+===== ścieżka 2
+--------- beginning of main
+--------- beginning of system
+11-24 22:55:06.747 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 22:55:06.752 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.nuviodebug.com: {320dpi always-compat}
+11-24 22:55:06.752 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.nuviodebug.com: {320dpi always-compat}
+11-24 22:55:06.762 W/ActivityTaskManager(  979): Tried to set launchTime (0) < mLastActivityLaunchTime (89712553)
+11-24 22:55:06.872 I/ActivityTaskManager(  979): Displayed com.nuviodebug.com/com.nuvio.tv.MainActivity: +121ms
+11-24 22:55:07.085 I/ForkJank( 9084): pominięte drobne/powtórzone przycięcia: 10
+11-24 22:55:07.912 I/ActivityTaskManager(  979): Fully drawn com.nuviodebug.com/com.nuvio.tv.MainActivity: +1s164ms
+11-24 22:55:08.264 I/ForkNiunia( 9084): ekran główny: hero=8, dalej oglądaj=116, rzędy=3
+11-24 22:55:08.269 I/ForkNiunia( 9084): ekran główny: fokus startowy → play
+11-24 22:55:08.628 I/ForkNiunia( 9084): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 22:55:15.282 I/ForkNiunia( 9084): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 22:55:15.821 I/ForkNiunia( 9084): ekran główny: tło pod hero: sam rozmyty obraz z przyciemnieniem (bez obrazu bazowego i osobnej warstwy)
+11-24 22:55:18.741 I/ActivityTaskManager(  979): START u0 {act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10000100 cmp=com.jmgo.arwen/.ArwenHomeActivity (has extras)} from uid 0
+11-24 22:55:18.749 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.jmgo.arwen: {320dpi always-compat}
+11-24 22:55:18.769 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.android.permissioncontroller: {320dpi always-compat}
+11-24 22:55:21.426 I/ActivityTaskManager(  979): START u0 {flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.launcher.AppIconDefault} from uid 2000
+11-24 22:55:21.440 I/ActivityTaskManager(  979): *********** COMPAT FOR PKG com.nuviodebug.com: {320dpi always-compat}
+
+===== ścieżka 3
+--------- beginning of main
+--------- beginning of system
+11-24 22:55:27.574 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 22:55:27.817 I/ForkJank( 9084): pominięte drobne/powtórzone przycięcia: 11
+11-24 22:55:28.007 I/ForkNiunia( 9084): menu: otwarte
+11-24 22:55:28.639 I/ForkNiunia( 9084): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 22:55:28.692 I/ForkNiunia( 9084): menu: zamknięte
+11-24 22:55:28.692 I/ForkNiunia( 9084): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 22:55:28.692 I/ForkNiunia( 9084): ekran główny: fokus wraca na cw:p_tt0903747_tt0903747:1:1
+11-24 22:55:29.250 I/ForkNiunia( 9084): ekran główny: tło pod hero: sam rozmyty obraz z przyciemnieniem (bez obrazu bazowego i osobnej warstwy)
+11-24 22:55:36.035 I/ForkNiunia( 9084): ekran główny: ▲ → hero
+11-24 22:56:07.402 I/ForkNiunia( 9084): menu: otwarte
+11-24 22:56:10.898 I/ForkNiunia( 9084): menu: zamknięte
+11-24 22:56:10.931 I/ForkNiunia( 9084): menu → treść (▶): element ekranu, menu otwarte=false
+11-24 22:56:14.418 I/ForkNiunia( 9084): menu: otwarte
+
+===== ścieżka 4
+--------- beginning of main
+11-24 22:56:14.418 I/ForkNiunia( 9084): menu: otwarte
+--------- beginning of system
+11-24 22:56:20.821 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 22:56:21.103 I/ForkJank( 9084): pominięte drobne/powtórzone przycięcia: 8
+11-24 22:56:21.895 I/ForkNiunia( 9084): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 22:56:21.896 I/ForkNiunia( 9084): ekran główny: fokus startowy → play
+11-24 22:56:21.897 I/ForkNiunia( 9084): menu: zamknięte
+11-24 22:56:28.827 I/ForkNiunia( 9084): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 22:56:29.370 I/ForkNiunia( 9084): ekran główny: tło pod hero: sam rozmyty obraz z przyciemnieniem (bez obrazu bazowego i osobnej warstwy)
+
+===== ścieżka 5
+--------- beginning of main
+--------- beginning of system
+11-24 22:56:38.769 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 22:56:38.988 I/ForkJank( 9084): pominięte drobne/powtórzone przycięcia: 8
+11-24 22:56:39.189 I/ForkNiunia( 9084): menu: otwarte
+11-24 22:56:39.912 I/ForkNiunia( 9084): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 22:56:39.968 I/ForkNiunia( 9084): menu: zamknięte
+11-24 22:56:39.968 I/ForkNiunia( 9084): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 22:56:39.968 I/ForkNiunia( 9084): ekran główny: fokus wraca na cw:p_tt21906238_tt21906238:1:1
+11-24 22:56:40.500 I/ForkNiunia( 9084): ekran główny: tło pod hero: sam rozmyty obraz z przyciemnieniem (bez obrazu bazowego i osobnej warstwy)
+11-24 22:56:47.330 I/ForkNiunia( 9084): ekran główny: ▲ → hero
+11-24 22:56:50.731 I/ForkNiunia( 9084): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 22:56:51.283 I/ForkNiunia( 9084): ekran główny: tło pod hero: sam rozmyty obraz z przyciemnieniem (bez obrazu bazowego i osobnej warstwy)
+
+===== ścieżka 6
+--------- beginning of system
+11-24 22:57:21.038 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+--------- beginning of main
+11-24 22:57:21.270 I/ForkJank( 9084): pominięte drobne/powtórzone przycięcia: 12
+11-24 22:57:21.441 I/ForkNiunia( 9084): menu: otwarte
+11-24 22:57:22.057 I/ForkNiunia( 9084): ekran główny: hero=8, dalej oglądaj=116, rzędy=3
+11-24 22:57:22.115 I/ForkNiunia( 9084): menu: zamknięte
+11-24 22:57:22.115 I/ForkNiunia( 9084): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 22:57:22.116 I/ForkNiunia( 9084): ekran główny: fokus wraca na cw:p_tt47021035_tt47021035:1:1
+11-24 22:57:22.432 I/ForkNiunia( 9084): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 22:57:22.681 I/ForkNiunia( 9084): ekran główny: tło pod hero: sam rozmyty obraz z przyciemnieniem (bez obrazu bazowego i osobnej warstwy)
+11-24 22:57:29.595 I/ForkNiunia( 9084): ekran główny: ▲ → hero
+11-24 22:57:32.960 I/ForkNiunia( 9084): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 22:57:33.503 I/ForkNiunia( 9084): ekran główny: tło pod hero: sam rozmyty obraz z przyciemnieniem (bez obrazu bazowego i osobnej warstwy)
+
+===== ścieżka 7
+--------- beginning of main
+--------- beginning of system
+11-24 22:58:07.859 I/ForkNiunia( 9084): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 22:58:08.523 I/ForkNiunia( 9084): ekran główny: tło pod hero: sam rozmyty obraz z przyciemnieniem (bez obrazu bazowego i osobnej warstwy)
+11-24 22:58:08.642 I/ForkJank( 9084): pominięte drobne/powtórzone przycięcia: 10
+11-24 22:58:13.764 I/ForkNiunia( 9084): ekran główny: ▲ → hero
+11-24 22:58:13.792 I/ForkNiunia( 9084): menu: otwarte
+11-24 22:58:13.795 I/ForkJank( 9084): pominięte drobne/powtórzone przycięcia: 6
+11-24 22:58:13.818 I/ForkNiunia( 9084): menu: zamknięte
+11-24 22:58:13.819 I/ForkNiunia( 9084): menu: otwarte
+11-24 22:58:13.871 I/ForkNiunia( 9084): menu: zamknięte
+11-24 22:58:13.871 I/ForkNiunia( 9084): menu: otwarte
+
+===== ścieżka 8
+--------- beginning of main
+--------- beginning of system
+11-24 22:58:19.564 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 22:58:19.798 I/ForkJank( 9084): pominięte drobne/powtórzone przycięcia: 2
+11-24 22:58:20.584 I/ForkNiunia( 9084): ekran główny: hero=8, dalej oglądaj=116, rzędy=3
+11-24 22:58:20.585 I/ForkNiunia( 9084): ekran główny: fokus startowy → play
+11-24 22:58:20.585 I/ForkNiunia( 9084): menu: zamknięte
+11-24 22:58:20.828 I/ForkNiunia( 9084): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 22:58:27.284 I/ForkNiunia( 9084): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 22:58:27.831 I/ForkNiunia( 9084): ekran główny: tło pod hero: sam rozmyty obraz z przyciemnieniem (bez obrazu bazowego i osobnej warstwy)
+11-24 22:58:35.466 I/ForkJank( 9084): pominięte drobne/powtórzone przycięcia: 16
+11-24 22:58:47.106 I/ForkJank( 9084): pominięte drobne/powtórzone przycięcia: 24
+
+===== ścieżka 9
+--------- beginning of main
+--------- beginning of system
+11-24 22:59:37.202 I/ForkNiunia( 9084): OK → Dodaj do biblioteki
+11-24 22:59:37.202 I/ForkNiunia( 9084): ekran główny: biblioteka tt14413964
+11-24 22:59:44.719 I/ForkNiunia( 9084): menu: otwarte
+
+===== ścieżka 10
+--------- beginning of main
+--------- beginning of system
+11-24 23:00:23.264 I/ForkNiunia( 9084): OK → W te święta mam cię na oku
+11-24 23:00:23.264 I/ForkNiunia( 9084): rzędy: OK → karta tytułu tt6611324 (2/20 w „TMDB Popular”)
+11-24 23:00:23.435 I/ForkNiunia( 9084): karta tytułu: rząd „TMDB Popular”, karta 2/20
+11-24 23:00:23.736 I/ForkJank( 9084): pominięte drobne/powtórzone przycięcia: 9
+11-24 23:00:31.342 I/ForkNiunia( 9084): karta tytułu: Wstecz → rząd (karta 2)
+
+===== ścieżka 11
+--------- beginning of main
+--------- beginning of system
+11-24 23:00:39.622 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 23:00:39.869 I/ForkJank( 9084): pominięte drobne/powtórzone przycięcia: 7
+11-24 23:00:40.044 I/ForkNiunia( 9084): menu: otwarte
+11-24 23:00:40.716 I/ForkNiunia( 9084): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 23:00:40.799 I/ForkNiunia( 9084): menu: zamknięte
+11-24 23:00:40.799 I/ForkNiunia( 9084): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 23:00:40.800 I/ForkNiunia( 9084): ekran główny: fokus wraca na r:aio-metadata_tmdb.top_movie:tt14413964
+11-24 23:00:41.412 I/ForkNiunia( 9084): ekran główny: tło pod hero: sam rozmyty obraz z przyciemnieniem (bez obrazu bazowego i osobnej warstwy)
+11-24 23:00:51.904 I/ForkNiunia( 9084): ekran główny: ▲ → hero
+11-24 23:00:55.286 I/ForkNiunia( 9084): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 23:00:55.831 I/ForkNiunia( 9084): ekran główny: tło pod hero: sam rozmyty obraz z przyciemnieniem (bez obrazu bazowego i osobnej warstwy)
+11-24 23:01:08.744 I/ForkNiunia( 9084): ekran główny: ▲ → hero
+11-24 23:01:11.903 I/ForkNiunia( 9084): menu: otwarte
+
+===== ścieżka 12
+--------- beginning of system
+11-24 23:01:15.647 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+--------- beginning of main
+11-24 23:01:15.876 I/ForkJank( 9084): pominięte drobne/powtórzone przycięcia: 15
+11-24 23:01:16.632 I/ForkNiunia( 9084): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 23:01:16.634 I/ForkNiunia( 9084): ekran główny: fokus startowy → play
+11-24 23:01:16.634 I/ForkNiunia( 9084): menu: zamknięte
+11-24 23:01:23.282 I/ForkNiunia( 9084): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 23:01:23.842 I/ForkNiunia( 9084): ekran główny: tło pod hero: sam rozmyty obraz z przyciemnieniem (bez obrazu bazowego i osobnej warstwy)
+11-24 23:01:26.650 I/ForkNiunia( 9084): ekran główny: ▲ → hero
+11-24 23:01:29.916 I/ForkNiunia( 9084): menu: otwarte
+11-24 23:01:33.191 I/ForkNiunia( 9084): menu: zamknięte
+11-24 23:01:33.192 I/ForkNiunia( 9084): menu: otwarte
+11-24 23:01:36.337 I/ForkNiunia( 9084): menu: zamknięte
+11-24 23:01:36.337 I/ForkNiunia( 9084): menu: otwarte
+11-24 23:01:39.508 I/ForkNiunia( 9084): menu: zamknięte
+11-24 23:01:39.508 I/ForkNiunia( 9084): menu: otwarte
+11-24 23:01:42.808 I/ForkNiunia( 9084): menu: zamknięte
+11-24 23:01:42.808 I/ForkNiunia( 9084): menu: otwarte
+11-24 23:01:45.998 I/ForkNiunia( 9084): menu: zamknięte
+11-24 23:01:46.032 I/ForkNiunia( 9084): menu → treść (▼ z ostatniej): element ekranu, menu otwarte=false
+11-24 23:01:49.165 I/ForkNiunia( 9084): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 23:01:49.712 I/ForkNiunia( 9084): ekran główny: tło pod hero: sam rozmyty obraz z przyciemnieniem (bez obrazu bazowego i osobnej warstwy)
+11-24 23:02:22.845 I/ForkNiunia( 9084): ekran główny: ▲ → hero
+11-24 23:02:26.237 I/ForkNiunia( 9084): menu: otwarte
+11-24 23:02:29.518 I/ForkNiunia( 9084): menu: zamknięte
+11-24 23:02:29.519 I/ForkNiunia( 9084): menu: otwarte
+11-24 23:02:32.784 I/ForkNiunia( 9084): menu: zamknięte
+11-24 23:02:32.784 I/ForkNiunia( 9084): menu: otwarte
+11-24 23:02:39.345 I/ForkNiunia( 9084): menu: zamknięte
+11-24 23:02:39.345 I/ForkNiunia( 9084): menu: otwarte
+11-24 23:02:42.672 I/ForkNiunia( 9084): menu: zamknięte
+11-24 23:02:42.672 I/ForkNiunia( 9084): menu: otwarte
+11-24 23:02:46.014 I/ForkNiunia( 9084): menu: zamknięte
+11-24 23:02:46.048 I/ForkNiunia( 9084): menu → treść (▶): element ekranu, menu otwarte=false
+
+===== ścieżka 13
+--------- beginning of main
+--------- beginning of system
+11-24 23:05:02.299 I/ForkNiunia( 9084): OK → Główna
+11-24 23:05:02.693 I/ForkNiunia( 9084): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 23:05:02.698 I/ForkNiunia( 9084): ekran główny: fokus startowy → play
+11-24 23:05:02.699 I/ForkNiunia( 9084): menu: zamknięte
+11-24 23:05:02.703 I/ForkJank( 9084): pominięte drobne/powtórzone przycięcia: 2
+
+===== ścieżka 14
+--------- beginning of system
+11-24 23:05:11.802 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+--------- beginning of main
+11-24 23:05:12.025 I/ForkJank( 9084): pominięte drobne/powtórzone przycięcia: 3
+11-24 23:05:12.224 I/ForkNiunia( 9084): menu: otwarte
+11-24 23:05:12.894 I/ForkNiunia( 9084): ekran główny: hero=8, dalej oglądaj=116, rzędy=3
+11-24 23:05:12.896 I/ForkNiunia( 9084): ekran główny: fokus startowy → play
+11-24 23:05:12.896 I/ForkNiunia( 9084): menu: zamknięte
+11-24 23:05:13.139 I/ForkNiunia( 9084): ekran główny: hero=8, dalej oglądaj=116, rzędy=4
+11-24 23:05:19.613 I/ForkNiunia( 9084): ekran główny: ▼ → pod hero (rozmycie gotowe)
+11-24 23:05:20.164 I/ForkNiunia( 9084): ekran główny: tło pod hero: sam rozmyty obraz z przyciemnieniem (bez obrazu bazowego i osobnej warstwy)
+11-24 23:05:29.557 I/ForkNiunia( 9084): ekran główny: Wstecz → hero
+11-24 23:05:29.558 I/ForkNiunia( 9084): ekran główny: ▲ → hero
+11-24 23:05:36.970 I/ForkNiunia( 9084): menu: otwarte
+
+===== ścieżka 15
+--------- beginning of main
+--------- beginning of system
+11-24 23:06:04.762 I/ForkNiunia( 9084): OK → Główna
+11-24 23:06:04.762 I/ForkNiunia( 9084): menu: ta sama zakładka home → treść
+11-24 23:06:04.783 I/ForkNiunia( 9084): menu: zamknięte
+11-24 23:06:04.835 I/ForkNiunia( 9084): menu → treść (ta sama zakładka): element ekranu, menu otwarte=false
+
+===== ścieżka 16
+--------- beginning of main
+--------- beginning of system
+11-24 23:06:12.297 I/ActivityTaskManager(  979): START u0 {act=com.nuvio.fork.OPEN flg=0x10000000 cmp=com.nuviodebug.com/com.nuvio.tv.MainActivity (has extras)} from uid 2000
+11-24 23:06:12.544 I/ForkJank( 9084): pominięte drobne/powtórzone przycięcia: 6
+11-24 23:06:12.552 I/ForkNiunia( 9084): wyszukiwarka: fokus startowy → klawisz a
+11-24 23:06:25.771 I/ForkNiunia( 9084): OK → b
+11-24 23:06:32.015 I/ForkNiunia( 9084): OK → a
+11-24 23:06:32.469 I/ForkNiunia( 9084): wyszukiwarka: „ba” → 128 wyników
+11-24 23:06:32.470 W/ForkNiunia( 9084): NMedia: ImageLoadError: IllegalStateException: Unable to create a fetcher that supports: placeholder://empty
+11-24 23:06:32.471 W/ForkNiunia( 9084): NMedia: ImageLoadError: IllegalStateException: Unable to create a fetcher that supports: placeholder://empty
+11-24 23:06:32.514 I/ForkNiunia( 9084): wyszukiwarka: „ba” → 140 wyników
+11-24 23:06:33.396 I/ForkNiunia( 9084): wyszukiwarka: „ba” → 327 wyników
+11-24 23:06:33.420 I/ForkJank( 9084): pominięte drobne/powtórzone przycięcia: 9
+11-24 23:06:33.433 W/ForkNiunia( 9084): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 23:06:33.487 W/ForkNiunia( 9084): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 23:06:34.121 I/ForkNiunia( 9084): wyszukiwarka: „ba” → 511 wyników
+11-24 23:06:34.788 I/ForkNiunia( 9084): wyszukiwarka: „ba” → 787 wyników
+11-24 23:06:35.405 I/ForkNiunia( 9084): wyszukiwarka: „ba” → 879 wyników
+11-24 23:06:47.977 I/ForkNiunia( 9084): OK → t
+11-24 23:06:48.360 I/ForkNiunia( 9084): wyszukiwarka: „bat” → 879 wyników
+11-24 23:06:48.387 I/ForkNiunia( 9084): wyszukiwarka: „bat” → 881 wyników
+11-24 23:06:48.982 I/ForkNiunia( 9084): wyszukiwarka: „bat” → 795 wyników
+11-24 23:06:49.031 W/ForkNiunia( 9084): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 23:06:49.062 W/ForkNiunia( 9084): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 23:06:49.117 W/ForkNiunia( 9084): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 23:06:49.117 W/ForkNiunia( 9084): NMedia: ImageLoadError: HttpException: HTTP 410
+11-24 23:06:49.422 I/ForkNiunia( 9084): wyszukiwarka: „bat” → 706 wyników
+11-24 23:06:50.216 I/ForkNiunia( 9084): wyszukiwarka: „bat” → 672 wyników
+11-24 23:06:50.389 I/ForkNiunia( 9084): wyszukiwarka: „bat” → 543 wyników
