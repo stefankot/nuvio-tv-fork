@@ -1573,7 +1573,7 @@ private fun PlaybackNavHost(
                     androidx.hilt.navigation.compose.hiltViewModel(backStackEntry)
                 }
 
-            if (!fromSearch && com.nuvio.tv.fork.ForkHooks.skinScreen("catalog_see_all", mapOf<String, Any?>("catalogId" to catalogId, "addonId" to addonId, "type" to type, "viewModel" to homeViewModel, "onNavigateToDetail" to { id: String, t: String, url: String -> navController.navigate(Screen.Detail.createRoute(id, t, url)) }, "onBack" to { navController.popBackStack(); Unit }))) return@composable // Fork hook: skin (Z-14 CatalogAll)
+            if (!fromSearch && com.nuvio.tv.fork.ForkHooks.skinScreen("catalog_see_all", mapOf<String, Any?>("catalogId" to catalogId, "addonId" to addonId, "type" to type, "viewModel" to homeViewModel, "onNavigateToDetail" to fun(id: String, t: String, url: String) { navController.navigate(Screen.Detail.createRoute(id, t, url)) }, "onBack" to fun() { navController.popBackStack() }))) return@composable // Fork hook: skin (Z-14 CatalogAll)
             CatalogSeeAllScreen(
                 catalogId = catalogId,
                 addonId = addonId,
