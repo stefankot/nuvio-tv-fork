@@ -1618,7 +1618,7 @@ private fun PlaybackNavHost(
                 }
             )
         ) {
-            if (com.nuvio.tv.fork.ForkHooks.skinScreen("tmdb_entity_browse", mapOf<String, Any?>("onNavigateToDetail" to { id: String, t: String, url: String? -> navController.navigate(Screen.Detail.createRoute(id, t, url)) }, "onBack" to { navController.popBackStack(); Unit }))) return@composable // Fork hook: skin (Z-14 Studio)
+            if (com.nuvio.tv.fork.ForkHooks.skinScreen("tmdb_entity_browse", mapOf<String, Any?>("onNavigateToDetail" to fun(id: String, t: String, url: String?) { navController.navigate(Screen.Detail.createRoute(id, t, url)) }, "onBack" to fun() { navController.popBackStack() }))) return@composable // Fork hook: skin (Z-14 Studio)
             TmdbEntityBrowseScreen(
                 onBackPress = { navController.popBackStack() },
                 onNavigateToDetail = { itemId, itemType, addonBaseUrl ->
