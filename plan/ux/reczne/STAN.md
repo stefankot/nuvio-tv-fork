@@ -81,3 +81,13 @@ Filtr kraju przywrócony na „Wszystkie kraje” po teście.
 
 Działa dobrze: Live TV › Szukaj „kuch” → 18 programów, 8 kanałów (106); odtwarzacz filmu — nakładka (koniec o…, UHD, dźwięk, lektor, napisy) (98); trzecie Wstecz z odtwarzacza wraca na ten sam film.
 - `uxr4`: R4–R6, BUILD SUCCESSFUL 13 min 57 s, instalacja 20:16. `uxr5`: R7–R11, build start 20:16.
+
+## Pętla 5 (testy na `uxr4` od 20:17; build `uxr5` od 20:16)
+Sprawdzone na `uxr4` ✔: Biblioteka — bez ekranu „pusta” w czasie wczytywania, fokus na 1. plakacie, aktywna „Seriale” widoczna (107, log); ◄ z 1. plakatu → menu (log); po obejrzeniu tytuł na początku „Oglądaj dalej”, fokus widoczny, pigułka schowana (112); „Kraj kanałów: Niemcy” (113). ✘: imiona profili nadal ucięte — R4 zmienił nieużywany `ProfileItem`; właściwa karta `NiuniaProfileCard` poprawiona w R12.
+
+| # | Znalezisko | Stan |
+|---|---|---|
+| 37 | Profile: imię ucięte (właściwy komponent) (108) | R12 |
+| 38 | Film YouTube z „Oglądaj dalej” na Głównej: Wstecz z odtwarzacza ląduje w zakładce YouTube (111) | R13: powrót na Główną (`ForgeYouTubeLaunch.returnRoute`, tylko gdy odtwarzacz się pokazał) |
+
+Uwaga dla właściciela: w danych są pozycje testowe `autoplayqa-subtitles` / `autoplayqa-finalsubtitles` (log MetaRepository) — ślad testów innego wątku.
