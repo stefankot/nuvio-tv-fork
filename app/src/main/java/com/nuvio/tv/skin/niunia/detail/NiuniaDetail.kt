@@ -265,7 +265,7 @@ fun NiuniaDetail(
                                             val m = niuniaEpisodeModel(video, wp?.position, wp?.duration, watched)
                                             NiuniaEpisodeCard(
                                                 image = video.thumbnail, eyebrow = stringResource(R.string.niunia_detail_episode, video.episode ?: 0),
-                                                title = video.title, description = video.overview, meta = m.meta, caption = m.caption, progress = m.progress, play = true,
+                                                title = video.title.takeUnless { niuniaGenericEpisodeTitle(it, video.episode) }, description = video.overview, meta = m.meta, caption = m.caption, progress = m.progress, play = true,
                                                 current = video.id == heroVideo?.id,
                                                 modifier = (if (video.id == lastEpisodeId) Modifier.focusRequester(episodeReturn) else Modifier)
                                                     .then(if (idx == 0) Modifier.focusRequester(firstEpisode) else Modifier),
@@ -673,7 +673,8 @@ private fun Hero(
                 NiuniaLogo(meta.logo, meta.name, NiuniaLogoSize.Hero)
                 NText(niuniaDetailMetaLine(ctx, meta, series, uiState.seasons.size), variant = NiuniaTextVariant.BodySmall, lines = 1)
                 val ep = heroVideo?.takeIf { series }
-                val description = (ep?.overview?.takeIf { it.isNotBlank() } ?: meta.description)?.takeIf { it.isNotBlank() }
+                // UX JMGO (ręczne testy 24.11): opisy z Wikipedii miały przypisy „Europe.[1]” — usunięte z wyświetlanego tekstu.
+                val description = (ep?.overview?.takeIf { it.isNotBlank() } ?: meta.description)?.replace(Regex("\\[\\d{1,3}]"), "")?.takeIf { it.isNotBlank() }
                 val prefix = ep?.let { v -> listOfNotNull("S${v.season}, E${v.episode}", v.title.takeIf { it.isNotBlank() }).joinToString(" · ") }
                 if (description != null) NText(if (prefix != null) "**$prefix:** $description" else description, variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 3)
                 val dateLine = listOfNotNull(
@@ -895,4 +896,15 @@ private fun InfoPanel(meta: Meta) {
 private fun RowTitle(text: String, on: Boolean) {
     // Tytuł 22 dp; rząd 34 dp od góry tytułu, po rzędzie 36 dp (rowPadding).
     Text(text, style = NiuniaText.Row, color = if (on) NiuniaColors.Text else NiuniaColors.Text50, maxLines = 1, modifier = Modifier.padding(start = NiuniaDims.Gutter).height(22.dp))
+}
+
+/**
+ * UX JMGO (ręczne testy 24.11): dodatki dają tytuły zastępcze („Episode 2”, „Odcinek 1”), które pod nagłówkiem „ODCINEK 2”
+ * powtarzały numer (i to po angielsku). true = tytuł niczego nie wnosi, karta go nie pokazuje.
+ */
+internal fun niuniaGenericEpisodeTitle(title: String?, episode: Int?): Boolean {
+    val t = title?.trim()?.lowercase() ?: return true
+    if (t.isEmpty()) return true
+    if (episode == null) return false
+    return Regex("""^(episode|odcinek|ep\.?|e)?\s*0*$episode$""").matches(t)
 }

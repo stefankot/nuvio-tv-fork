@@ -1,5 +1,10 @@
 package com.nuvio.tv.skin.niunia.youtube
 
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -152,7 +157,11 @@ fun NiuniaYouTube(onPlay: (YtPlayable) -> Unit, viewModel: YouTubeViewModel = fo
         Row(Modifier.fillMaxSize().padding(start = NiuniaDims.Gutter, top = 68.dp)) {
             // Szyna: 36 dp co 4 dp; ◄ z siatki wchodzi na otwarty kanał.
             Column(
+                // UX JMGO (ręczne testy 24.11): ◄ na szynie stał w miejscu — menu aplikacji było tylko pod Wstecz. Teraz ◄ = menu.
                 Modifier.width(NiuniaSize.H36).fillMaxHeight().zIndex(1f)
+                    .onPreviewKeyEvent { e ->
+                        if (e.type == KeyEventType.KeyDown && e.key == Key.DirectionLeft) com.nuvio.tv.skin.niunia.nav.NiuniaNavActions.toMenu("youtube ◄ z szyny") else false
+                    }
                     .focusProperties {
                         @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
                         enter = { railFocus[railActive] }

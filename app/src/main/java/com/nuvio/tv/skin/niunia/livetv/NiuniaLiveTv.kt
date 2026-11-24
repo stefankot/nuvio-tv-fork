@@ -257,13 +257,17 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
             else -> base
         }
     }
-    val tiles = remember(filter, filtered, base, state.currentProgrammes, now / (5 * MIN_MS), recent, resume, favShows, alerts) {
-        when (filter) {
+    // UX JMGO (ręczne testy 24.11): kanał, który właśnie „nie odpowiadał” (RT, CNBC), stał w kafelkach na górze jako
+    // propozycja — teraz kafelki Wszystkie i kategorii pomijają kanały oznaczone „Niedostępny” (24 h).
+    val statusV = NiuniaLiveStatus.version.intValue
+    val tiles = remember(filter, filtered, base, state.currentProgrammes, now / (5 * MIN_MS), recent, resume, favShows, alerts, statusV) {
+        val all = when (filter) {
             NiuniaLiveFilter.All -> recentTiles(base, state.currentProgrammes, now)
             NiuniaLiveFilter.Favourites -> favouriteTiles(base, state.favoriteUrls, state.currentProgrammes, now)
             NiuniaLiveFilter.Continue -> continueTiles(base, now)
             is NiuniaLiveFilter.Category -> categoryTiles(filtered, state.currentProgrammes, now)
         }
+        if (filter is NiuniaLiveFilter.All || filter is NiuniaLiveFilter.Category) all.filterNot { NiuniaLiveStatus.unavailable(context, it.channel.streamUrl) } else all
     }
     val guideChannels = remember(filter, filtered, base, tiles, state.favoriteUrls) {
         when (filter) {

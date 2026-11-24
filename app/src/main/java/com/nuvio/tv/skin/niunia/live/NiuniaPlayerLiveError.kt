@@ -53,7 +53,9 @@ internal fun NiuniaPlayerLiveError(state: LiveTvPlayerState, channel: LiveTvChan
         kotlinx.coroutines.delay(60)
         try { requesters[selected].requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz TV: fokus przycisku okna błędu: ${e.javaClass.simpleName}: ${e.message}") }
     }
-    Box(Modifier.fillMaxSize().zIndex(5f).background(NiuniaColor.Scrim), contentAlignment = Alignment.Center) {
+    // UX JMGO (ręczne testy 24.11): przy 60 % zaciemnienia spod okna przebijała nakładka odtwarzacza („RT HD”, tytuł audycji,
+    // przyciski) i tekst nachodził na tekst. Kanał i tak nie daje obrazu — tło prawie czarne.
+    Box(Modifier.fillMaxSize().zIndex(5f).background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.92f)), contentAlignment = Alignment.Center) {
         NiuniaContentBlock(NiuniaBlockKind.Empty) {
             NiuniaText(stringResource(R.string.niunia_tv1_error_title, name), variant = NiuniaTextVariant.TitleSection, lines = 2)
             NiuniaText(stringResource(R.string.niunia_tv1_error_body), variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 3)

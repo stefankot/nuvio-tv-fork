@@ -18,3 +18,13 @@ class NiuniaSearchRankTest {
         assertEquals(0, niuniaSearchRank(niuniaSearchNorm("Łódź"), niuniaSearchNorm("lodz")))
     }
 }
+
+class NiuniaGenericEpisodeTitleTest {
+    @Test fun `tytuly zastepcze sa ukrywane`() {
+        val d = com.nuvio.tv.skin.niunia.detail.niuniaGenericEpisodeTitle("Episode 2", 2)
+        assertEquals(true, d)
+        assertEquals(true, com.nuvio.tv.skin.niunia.detail.niuniaGenericEpisodeTitle("Odcinek 1", 1))
+        assertEquals(false, com.nuvio.tv.skin.niunia.detail.niuniaGenericEpisodeTitle("Pilot", 1))
+        assertEquals(false, com.nuvio.tv.skin.niunia.detail.niuniaGenericEpisodeTitle("Episode 2", 3))
+    }
+}

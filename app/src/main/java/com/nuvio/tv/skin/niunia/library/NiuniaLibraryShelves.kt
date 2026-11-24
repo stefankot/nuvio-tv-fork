@@ -177,8 +177,14 @@ internal fun NiuniaLibraryContent(
         Column(Modifier.fillMaxSize().padding(top = 76.dp)) {
             // Zakładki typu + „Sortuj i filtruj”; ▲ z tego rzędu = menu (jak dotąd z pierwszego rzędu plakatów).
             // UX JMGO 24.11 (F3, pętla 0 ścieżka 21): ▲ z treści wraca na ostatnio zaznaczony chip (wcześniej: najbliższy w osi pionowej).
+            // UX JMGO (ręczne testy 24.11): wejście w Bibliotekę z aktywną zakładką „Seriale” stawiało fokus na „Wszystko” — nie było
+            // widać, co jest wybrane. Pierwsze wejście w rząd zakładek = zakładka aktywna (potem ostatnio zaznaczona).
+            val tabsShown = state.availableTypeTabs.any { it.key != LibraryTypeTab.ALL_KEY } // przy 1 zakładce typów rząd ich nie rysuje
+            val activeChip = if (historyTab) chipReq.getOrPut("history") { FocusRequester() }
+                else if (tabsShown) chipReq.getOrPut("t:" + (state.selectedTypeTab?.key ?: LibraryTypeTab.ALL_KEY)) { FocusRequester() }
+                else FocusRequester.Default
             Row(
-                Modifier.focusRestorer().padding(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter).onPreviewKeyEvent { e ->
+                Modifier.focusRestorer(activeChip).padding(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter).onPreviewKeyEvent { e ->
                     if (e.type == KeyEventType.KeyDown && e.key == Key.DirectionUp) com.nuvio.tv.skin.niunia.nav.NiuniaNavActions.toMenu("biblioteka ▲ z zakładek") else false
                 },
                 horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12), verticalAlignment = Alignment.CenterVertically,
