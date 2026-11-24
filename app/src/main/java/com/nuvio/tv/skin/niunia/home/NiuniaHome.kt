@@ -122,7 +122,10 @@ fun NiuniaHome(
     val restoreFocus = remember { FocusRequester() }
     val memory = NiuniaHomeMemory
     var memDown by remember { mutableStateOf(memory.down && memory.key != null) }
-    com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(if (memDown) restoreFocus else if (heroes.isNotEmpty()) heroFocus else null)
+    // UX JMGO (ręczne testy 24.11): bez baneru (np. dodatek nie odpowiada) nic nie miało fokusu — ani po starcie, ani po
+    // wygaszaczu. Wtedy fokus idzie na pierwszy element pierwszego rzędu (firstFocus, LaunchedEffect niżej).
+    val firstFocus = remember { FocusRequester() }
+    com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(if (memDown) restoreFocus else if (heroes.isNotEmpty()) heroFocus else if (uiState.continueWatchingItems.isNotEmpty() || uiState.catalogRows.any { it.items.isNotEmpty() }) firstFocus else null)
     remember { memory.restorePending = memDown; 0 }
     fun rememberFocus(key: String, row: Int, index: Int) { memory.key = key; memory.target = key; memory.row = row; memory.index = index; memory.down = true; memDown = true }
     // UX JMGO 24.11 (F5/F6): powrót po kluczu — „Oglądaj dalej” po obejrzeniu zmienia kolejność, usunięty plakat → sąsiad (NiuniaFocusKeys).
@@ -167,6 +170,25 @@ fun NiuniaHome(
         com.nuvio.tv.skin.niunia.search.NiuniaKnownTitles.add(uiState.catalogRows.flatMap { r -> r.items.map { it.name } } + uiState.continueWatchingItems.map { niuniaContinueModel(it).title })
     }
 
+    val firstKey = rowKeys.firstOrNull()?.second?.firstOrNull()
+    fun firstModifier(k: String): Modifier = if (k == firstKey) Modifier.focusRequester(firstFocus) else Modifier
+    LaunchedEffect(heroes.isEmpty(), firstKey != null) {
+        if (heroes.isNotEmpty() || firstKey == null || memDown) return@LaunchedEffect
+        kotlinx.coroutines.delay(150)
+        try { firstFocus.requestFocus(); Log.i(TAG, "ekran główny: bez baneru — fokus na pierwszy element $firstKey") }
+        catch (e: IllegalStateException) { Log.w(TAG, "ekran główny: fokus bez baneru: ${e.javaClass.simpleName}: ${e.message}") }
+    }
+    val rowsFailed = !uiState.isLoading && uiState.continueWatchingItems.isNotEmpty() && uiState.catalogRows.all { it.items.isEmpty() }
+    LaunchedEffect(rowsFailed) {
+        if (!rowsFailed) return@LaunchedEffect
+        Log.w(TAG, "ekran główny: rzędy z dodatków puste (błąd: ${uiState.error ?: "brak"}) — komunikat, ponowna próba za 20 s")
+        repeat(3) { n ->
+            kotlinx.coroutines.delay(20_000L * (n + 1))
+            Log.i(TAG, "ekran główny: sama ponowna próba wczytania rzędów (${n + 1}/3)")
+            onRetry()
+        }
+    }
+
     // Właściciel 20.11: hero poza listą (był przesunięty o ujemny margines), ▼ = animacja: hero wyjeżdża, tło rozmyte, rzędy wjeżdżają.
     val rows: @Composable () -> Unit = {
         com.nuvio.tv.skin.niunia.components.NiuniaVerticalScroll {
@@ -182,13 +204,18 @@ fun NiuniaHome(
                             LazyRow(state = st, contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
                                 itemsIndexed(uiState.continueWatchingItems, key = { _, it -> cwKey(it) }) { i, cw ->
                                     val k = "cw:" + cwKey(cw)
-                                    ContinueCard(cw, modifier = restoreModifier(k, restoreFocus), onFocus = { if (it) { focusedRow = -2; rememberFocus(k, 0, i) } },
+                                    ContinueCard(cw, modifier = restoreModifier(k, restoreFocus).then(firstModifier(k)), onFocus = { if (it) { focusedRow = -2; rememberFocus(k, 0, i) } },
                                         onLongOk = if (cwActions != null) ({ Log.i(TAG, "rzędy: długie OK → opcje „Oglądaj dalej” ${niuniaCwContentId(cw)}"); cwMenu = cw }) else null,
                                         onOk = { Log.i(TAG, "rzędy: Oglądaj dalej → ${niuniaCwContentId(cw)}"); playCw(cw) })
                                 }
                             }
                         }
                     }
+                }
+                // UX JMGO (ręczne testy 24.11): dodatek odpowiadał 429 („za dużo zapytań”) — były tylko „Oglądaj dalej” i pusty ekran
+                // bez słowa. Teraz pod „Oglądaj dalej” komunikat z przyciskiem, a ponowna próba idzie sama (LaunchedEffect niżej).
+                if (rowsFailed) {
+                    item(key = "niunia_rows_failed") { RowsFailed(onRetry) }
                 }
                 uiState.catalogRows.forEachIndexed { rowIndex, row ->
                     if (row.items.isEmpty()) return@forEachIndexed
@@ -213,7 +240,7 @@ fun NiuniaHome(
                                         label = NiuniaLabels.label(context, item, i, ranking),
                                         // Plakaty z dodatków zwykle mają tytuł w grafice → wariant „baked” (decyzja: plan/DECYZJE.md, Niunia).
                                         baked = art != null,
-                                        modifier = restoreModifier(k, restoreFocus),
+                                        modifier = restoreModifier(k, restoreFocus).then(firstModifier(k)),
                                         award = com.nuvio.tv.skin.niunia.components.niuniaPosterAward(item.id), // Z-13
                                         onFocus = { if (it) { focusedRow = rowIndex; itemFocusLater(item); rememberFocus(k, colIndex, i) } },
                                         onOk = {
@@ -299,7 +326,8 @@ fun NiuniaHome(
         }
     }
     if (hero == null) {
-        Box(Modifier.fillMaxSize().background(NiuniaColors.Bg)) { rows(); pagerOverlay() }
+        // UX JMGO (ręczne testy 24.11): bez baneru tytuł pierwszego rzędu wchodził pod pigułkę menu „Główna” — odstęp od paska.
+        Box(Modifier.fillMaxSize().background(NiuniaColors.Bg)) { Box(Modifier.padding(top = 56.dp)) { rows() }; pagerOverlay() }
         return
     }
     Box(Modifier.fillMaxSize()) {
@@ -512,6 +540,19 @@ internal fun niuniaCwState(ctx: android.content.Context, cw: ContinueWatchingIte
 }
 
 /** Z-16 (P-5): pusta Główna — „Brak dodatków z katalogami” + „Otwórz dodatki”; błąd katalogów — „Spróbuj ponownie” (odświeża Główną). */
+/** Rzędy z dodatków się nie wczytały, a „Oglądaj dalej” jest: krótki tekst i „Spróbuj ponownie” pod rzędem. */
+@Composable
+private fun RowsFailed(onRetry: () -> Unit) {
+    val ctx = LocalContext.current
+    Column(Modifier.padding(start = NiuniaSpacing.Space40, top = NiuniaSpace.AfterRow), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        NiuniaText(ctx.getString(R.string.niunia_ux_rows_failed), variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 2)
+        NiuniaButton(
+            onClick = { Log.i(TAG, "ekran główny: rzędy puste → spróbuj ponownie (przycisk)"); onRetry() },
+            label = ctx.getString(R.string.niunia_ke2_retry), icon = "restart", compact = true,
+        )
+    }
+}
+
 @Composable
 private fun HomeEmpty(error: String?, onRetry: () -> Unit) {
     val ctx = LocalContext.current

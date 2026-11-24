@@ -46,10 +46,13 @@ fun ForgeAmbientClock(modifier: Modifier = Modifier) {
                 .height(260.dp)
                 .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = .62f)))),
         )
+        // UX JMGO (ręczne testy 24.11): logo i gatunki slajdu są w lewym dolnym rogu (AmbientSlideshow) — zegar je zasłaniał
+        // („02:14” na logo „HEARTLAND”). Zegar i data w prawym dolnym rogu.
         Column(
             Modifier
-                .align(Alignment.BottomStart)
-                .padding(start = ForgeDims.ContentStart, bottom = 34.dp),
+                .align(Alignment.BottomEnd)
+                .padding(end = ForgeDims.ContentStart, bottom = 34.dp),
+            horizontalAlignment = Alignment.End,
         ) {
             Text(time, style = ForgeText.saverClock)
             Text(date, style = ForgeText.head.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Medium))

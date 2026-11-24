@@ -1,5 +1,10 @@
 package com.nuvio.tv.skin.niunia.search
 
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -122,8 +127,12 @@ fun NiuniaSearch(viewModel: SearchViewModel, onNavigateToDetail: (String, String
     }
     val open: (String, String, String) -> Unit = { id, type, addon -> NiuniaSearchMemory.lastId = id; NiuniaSearchMemory.query = state.query; onNavigateToDetail(id, type, addon) }
     val focusFor: (String) -> Modifier = { id -> if (id == restoreId) Modifier.focusRequester(restore) else Modifier }
-    val results: List<Pair<MetaPreview, String>> = remember(state.catalogRows) {
-        state.catalogRows.flatMap { row -> row.items.map { it to row.addonBaseUrl } }.distinctBy { it.first.id }
+    // UX JMGO (ręczne testy 24.11): „dun” → „Muriel”, „Cztery noce marzeń” przed „Dune” (kolejność dodatków). Teraz najpierw
+    // tytuły równe wpisanemu tekstowi, potem zaczynające się od niego, potem ze słowem od niego; w grupie kolejność dodatków.
+    val results: List<Pair<MetaPreview, String>> = remember(state.catalogRows, state.submittedQuery) {
+        val all = state.catalogRows.flatMap { row -> row.items.map { it to row.addonBaseUrl } }.distinctBy { it.first.id }
+        val q = niuniaSearchNorm(state.submittedQuery)
+        if (q.isBlank()) all else all.sortedBy { niuniaSearchRank(niuniaSearchNorm(it.first.name), q) }
     }
     LaunchedEffect(results.size, state.submittedQuery) {
         if (state.submittedQuery.isNotBlank()) Log.i(TAG, "wyszukiwarka: „${state.submittedQuery}” → ${results.size} wyników")
@@ -180,7 +189,12 @@ fun NiuniaSearch(viewModel: SearchViewModel, onNavigateToDetail: (String, String
             SearchField(shownQuery, ctx.getString(R.string.niunia_ds_search_placeholder))
             Row(Modifier.padding(top = NiuniaSpacing.Space12).fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space40)) {
                 // Lewa kolumna: klawiatura + lista fraz.
-                Column(Modifier.width(NiuniaSize.SplitCol), verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
+                // UX JMGO (ręczne testy 24.11): ◄ z pierwszej kolumny klawiatury stał w miejscu — teraz otwiera menu jak na innych ekranach.
+                val fm = androidx.compose.ui.platform.LocalFocusManager.current
+                Column(Modifier.width(NiuniaSize.SplitCol).onPreviewKeyEvent { e ->
+                    if (e.type != KeyEventType.KeyDown || e.key != Key.DirectionLeft) false
+                    else fm.moveFocus(androidx.compose.ui.focus.FocusDirection.Left) || com.nuvio.tv.skin.niunia.nav.NiuniaNavActions.toMenu("wyszukiwarka ◄ z klawiatury")
+                }, verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
                     Keyboard(
                         digits = digits, firstKey = firstKey,
                         onMode = { digits = it; Log.i(TAG, "wyszukiwarka: klawiatura ${if (it) "123" else "abc"}") },
@@ -401,4 +415,18 @@ private fun highlight(label: String, q: String) = buildAnnotatedString {
     val i = label.lowercase().indexOf(q.lowercase())
     if (i < 0 || q.isBlank()) { append(label); return@buildAnnotatedString }
     append(label.substring(0, i)); withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = NiuniaColor.Text)) { append(label.substring(i, i + q.length)) }; append(label.substring(i + q.length))
+}
+
+/** Tekst do porównań w Szukaj: małe litery, bez polskich znaków i akcentów, pojedyncze spacje. */
+internal fun niuniaSearchNorm(t: String): String =
+    java.text.Normalizer.normalize(t.lowercase(), java.text.Normalizer.Form.NFD).replace(Regex("\\p{Mn}+"), "")
+        .replace('ł', 'l').replace(Regex("[^a-z0-9]+"), " ").trim()
+
+/** 0 = równy, 1 = zaczyna się od, 2 = słowo zaczyna się od, 3 = zawiera, 4 = reszta (dopasowanie dodatku po opisie itp.). */
+internal fun niuniaSearchRank(name: String, q: String): Int = when {
+    name == q -> 0
+    name.startsWith(q) -> 1
+    name.split(' ').any { it.startsWith(q) } -> 2
+    name.contains(q) -> 3
+    else -> 4
 }

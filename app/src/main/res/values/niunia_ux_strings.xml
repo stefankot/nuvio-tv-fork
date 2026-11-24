@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- UX JMGO (ręczne testy 24.11): komunikaty dopisane po testach na projektorze. -->
+    <string name="niunia_ux_rows_failed">Rzędy z dodatków się nie wczytały. Za chwilę spróbuję jeszcze raz.</string>
+</resources>
