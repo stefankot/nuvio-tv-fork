@@ -75,3 +75,9 @@ Filtr kraju przywrócony na „Wszystkie kraje” po teście.
 | 31 | Wstecz z karty: wyzerowanie stanu na początku efektu anulowało przewinięcie | R8: zerowanie na końcu |
 | 32 | Live TV: ◄ z „Szukaj” skacze na kafelek zamiast do menu | R8: ◄ z „Szukaj” = menu |
 | 33 | Po „Następny kanał” Wstecz wraca na kanał otwarty z listy | R7: na ostatnio oglądany (`recentChannel`) |
+| 34 | Live TV › Odkrywaj: 4× „Kuchenne rewolucje” w Ulubionych, CNBC/RT w „Dla ciebie” i „Teraz na żywo” (104) | R9: jeden kafel na program+godzinę, bez Niedostępnych |
+| 35 | Live TV: Wstecz z Odkrywaj/Szukaj → fokus na „Wszystkie” | R10: na przycisk trybu |
+| 36 | Szukaj: klawiatura bez polskich liter (Live TV › Szukaj ma) (105) | R11: ą…ż, dwie frazy podpowiedzi |
+
+Działa dobrze: Live TV › Szukaj „kuch” → 18 programów, 8 kanałów (106); odtwarzacz filmu — nakładka (koniec o…, UHD, dźwięk, lektor, napisy) (98); trzecie Wstecz z odtwarzacza wraca na ten sam film.
+- `uxr4`: R4–R6, BUILD SUCCESSFUL 13 min 57 s, instalacja 20:16. `uxr5`: R7–R11, build start 20:16.
