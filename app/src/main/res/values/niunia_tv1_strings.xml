@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Niunia Live TV (paczka tv1, 24.11): Z-21 kraj i język, wybór przewodnika, Z-14 opcje kanału i okno błędu kanału. -->
+<resources>
+    <string name="niunia_tv1_region">Kraj i język</string>
+    <string name="niunia_tv1_country">Kraj</string>
+    <string name="niunia_tv1_language">Język</string>
+    <string name="niunia_tv1_region_counting">Sprawdzam kanały…</string>
+    <string name="niunia_tv1_all_countries">Wszystkie kraje</string>
+    <string name="niunia_tv1_all_languages">Wszystkie języki</string>
+    <string name="niunia_tv1_region_note">Dotyczy listy kanałów i przewodnika</string>
+    <plurals name="niunia_tv1_channels">
+        <item quantity="one">%1$d kanał</item>
+        <item quantity="few">%1$d kanały</item>
+        <item quantity="many">%1$d kanałów</item>
+        <item quantity="other">%1$d kanału</item>
+    </plurals>
+
+    <string name="niunia_tv1_options_title">Opcje kanału · %1$s</string>
+    <string name="niunia_tv1_fav_remove">Usuń z ulubionych</string>
+    <string name="niunia_tv1_guide_pick">Wybierz przewodnik</string>
+    <string name="niunia_tv1_guide_now">Teraz: %1$s</string>
+    <string name="niunia_tv1_guide_auto">dobrany automatycznie</string>
+    <string name="niunia_tv1_schedule">Ramówka kanału</string>
+    <string name="niunia_tv1_schedule_sub">Dziś i jutro</string>
+    <string name="niunia_tv1_hide">Ukryj kanał</string>
+    <string name="niunia_tv1_hide_sub">Wróci z opcji kanału: Pokaż ukryte kanały</string>
+    <string name="niunia_tv1_hidden_toast">Ukryto kanał: %1$s</string>
+    <string name="niunia_tv1_unhide">Pokaż ukryte kanały (%1$d)</string>
+    <string name="niunia_tv1_unhidden_toast">Pokazano ukryte kanały: %1$d</string>
+    <string name="niunia_tv1_options_note">Zmiany zostają na tym TV</string>
+
+    <string name="niunia_tv1_guide_title">Przewodnik dla: %1$s</string>
+    <string name="niunia_tv1_guide_searching">Szukam przewodników…</string>
+    <string name="niunia_tv1_guide_auto_row">Dobrany automatycznie</string>
+    <string name="niunia_tv1_guide_same">Ta sama nazwa</string>
+    <string name="niunia_tv1_guide_similar">Inny kanał o podobnej nazwie</string>
+    <string name="niunia_tv1_guide_on_air">teraz: %1$s</string>
+    <string name="niunia_tv1_guide_no_now">bez programu na teraz</string>
+    <string name="niunia_tv1_guide_none">Bez przewodnika</string>
+    <string name="niunia_tv1_guide_none_sub">Kanał bez programu w siatce</string>
+
+    <string name="niunia_tv1_schedule_title">Ramówka · %1$s</string>
+    <string name="niunia_tv1_schedule_now">Teraz · %1$s</string>
+
+    <string name="niunia_tv1_error_title">%1$s nie odpowiada</string>
+    <string name="niunia_tv1_error_body">Kanał nie wysyła obrazu. Sprawdź połączenie z internetem albo włącz inny kanał.</string>
+    <string name="niunia_tv1_error_tries">Próbowałem go włączyć dwa razy.</string>
+    <string name="niunia_tv1_error_next">Następny kanał</string>
+    <string name="niunia_tv1_error_retry">Spróbuj ponownie</string>
+    <string name="niunia_tv1_error_list">Lista kanałów</string>
+</resources>

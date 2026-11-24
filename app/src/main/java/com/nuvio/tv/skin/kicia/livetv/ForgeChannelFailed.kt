@@ -20,8 +20,35 @@ internal object ForgeChannelFailed {
     private const val TAG = "ForkLiveTv"
     val channel = mutableStateOf<LiveTvChannel?>(null)
 
-    /** The window's button with the focus: 0 = Spróbuj ponownie, 1 = Następny kanał. */
+    /** The window's button with the focus: 0 = Spróbuj ponownie, 1 = Następny kanał (Niunia: [buttons]). */
     val selected = mutableIntStateOf(0)
+
+    enum class Action { RETRY, NEXT, LIST }
+
+    /**
+     * Z-14 (Niunia, makieta PlayerLiveError): Następny kanał (fokus) · Spróbuj ponownie · Lista kanałów; Kicia bez zmian:
+     * Spróbuj ponownie · Następny kanał.
+     */
+    fun buttons(): List<Action> =
+        if (com.nuvio.tv.skin.api.SkinPreferences.skin.value == com.nuvio.tv.skin.api.SkinId.NIUNIA) listOf(Action.NEXT, Action.RETRY, Action.LIST)
+        else listOf(Action.RETRY, Action.NEXT)
+
+    /** Runs a button: [exit] leaves the player for the channel list (null — the window only closes). */
+    fun run(state: LiveTvPlayerState, action: Action, exit: (() -> Unit)?) {
+        when (action) {
+            Action.RETRY -> if (playingBehind()) {
+                // 23.11: „Spróbuj ponownie”, a kanał już gra — bez restartu, okno znika.
+                Log.i(TAG, "kanał nie odpowiada: OK, kanał już gra → okno zamknięte bez restartu (${channel.value?.name})")
+                channel.value = null
+            } else retry(state)
+            Action.NEXT -> next(state)
+            Action.LIST -> {
+                Log.i(TAG, "kanał nie odpowiada: Lista kanałów (${channel.value?.name})")
+                channel.value = null
+                exit?.invoke()
+            }
+        }
+    }
     private var okDown = false
 
     /**
@@ -67,17 +94,13 @@ internal object ForgeChannelFailed {
                     exit?.invoke()
                 }
             }
-            KeyEvent.KEYCODE_DPAD_LEFT -> if (down) selected.intValue = 0
-            KeyEvent.KEYCODE_DPAD_RIGHT -> if (down) selected.intValue = 1
+            KeyEvent.KEYCODE_DPAD_LEFT -> if (down) selected.intValue = (selected.intValue - 1).coerceAtLeast(0)
+            KeyEvent.KEYCODE_DPAD_RIGHT -> if (down) selected.intValue = (selected.intValue + 1).coerceAtMost(buttons().lastIndex)
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> when {
                 down && event.repeatCount == 0 -> okDown = true
                 !down && okDown -> {
                     okDown = false
-                    if (selected.intValue == 0 && playingBehind()) {
-                        // 23.11: „Spróbuj ponownie”, a kanał już gra — bez restartu, okno znika.
-                        Log.i(TAG, "kanał nie odpowiada: OK, kanał już gra → okno zamknięte bez restartu (${channel.value?.name})")
-                        channel.value = null
-                    } else if (selected.intValue == 0) retry(state) else next(state)
+                    buttons().getOrNull(selected.intValue)?.let { run(state, it, exit) }
                 }
             }
             KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_CHANNEL_UP, KeyEvent.KEYCODE_CHANNEL_DOWN -> Unit
@@ -101,6 +124,10 @@ internal fun ForgeChannelFailedDialog(state: LiveTvPlayerState) {
                 ForgeChannelFailed.channel.value = null
             }
         }
+    }
+    if (com.nuvio.tv.skin.api.SkinPreferences.skin.value == com.nuvio.tv.skin.api.SkinId.NIUNIA) {
+        if (failed != null) com.nuvio.tv.skin.niunia.live.NiuniaPlayerLiveError(state, failed) // Z-14 PlayerLiveError
+        return
     }
     ForgeDialog(
         visible = failed != null,

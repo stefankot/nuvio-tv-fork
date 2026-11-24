@@ -95,3 +95,11 @@ Lista dla właściciela. Wykonawca dopisuje tu wszystko, czego nie da się spraw
 - [ ] Po instalacji włącz dowolny film z napisami: napisy są czcionką Atkinson Hyperlegible (okrągłe, szerokie litery), polskie znaki (ą, ę, ł, ż) wyglądają dobrze.
 - [ ] W odtwarzaczu: panel napisów → Czcionka: do wyboru Domyślna, Szeryfowa, Stała szerokość, Atkinson Hyperlegible, Tiresias. Tiresias zmienia wygląd napisów od razu.
 - [ ] Ustawienia › Napisy i dźwięk › „Czcionki Atkinson i Tiresias”: wyłączenie usuwa obie z listy (napisy wracają do domyślnej), ponowne włączenie dodaje je i wybiera Atkinson.
+
+## tv1 (24.11, Niunia Live TV: kraj i język, opcje kanału, okno błędu kanału)
+- Live TV: ► po filtrach do końca → chip „Kraj i język” (ikona globusa) → OK → panel po prawej, fokus na zaznaczonej pozycji („Wszystkie kraje” z ✓); lista krajów z liczbą kanałów; „Polska” → panel znika, fokus na chipie (wybrany), w rzędzie i przewodniku tylko polskie kanały; chip „Język” → „Polski”; „Wszystkie …” zdejmuje filtr; po restarcie aplikacji wybór zostaje. Log: `live tv: kraj i język → …`, `… z … kanałów (… ms)`.
+- Długie OK na kanale w przewodniku → „Opcje kanału · <kanał>”, fokus na „Dodaj do ulubionych”; Wstecz → fokus wraca na ten kanał. Długie OK na kafelku → te same opcje.
+- „Wybierz przewodnik” → „Przewodnik dla: …”: ✓ na „Dobrany automatycznie”, inne z „teraz: …”; wybór innego → siatka tego kanału pokazuje jego program; „Bez przewodnika” → „Brak programu”; powrót „Dobrany automatycznie”.
+- „Ramówka kanału” → lista dziś i jutro, fokus na „Teraz · …”; OK na trwającym → odtwarzacz, na minionym → archiwum albo komunikat „nie ma w archiwum”.
+- „Ukryj kanał” → znika z listy, komunikat; w opcjach innego kanału „Pokaż ukryte kanały (1)” → wraca.
+- Kanał, który nie rusza (dwie próby) → ekran „<kanał> nie odpowiada”, fokus na „Następny kanał”; ◄► przesuwa fokus; „Spróbuj ponownie” → ponowny start; „Lista kanałów” → przewodnik; Wstecz jak dotąd.

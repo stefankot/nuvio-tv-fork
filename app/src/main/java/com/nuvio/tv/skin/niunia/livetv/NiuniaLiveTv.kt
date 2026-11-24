@@ -209,6 +209,27 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
     }
     val shown = prepared.shown
     val categories = prepared.categories
+    // Z-21 (P-25): chip „Kraj i język” — filtr listy kanałów i przewodnika liczony w tle; Z-14/P-26: opcje kanału na długim OK.
+    remember { NiuniaLiveRegion.ensure(context); NiuniaGuideChoice.ensure(context) }
+    val regionChoice by NiuniaLiveRegion.choice
+    val providerNames = remember(state.sources) { state.sources.map { it.name }.filter { it.isNotBlank() } }
+    val region = rememberNiuniaRegion(shown, providerNames, regionChoice)
+    val base = region.shown
+    var regionPanel by remember { mutableStateOf(false) }
+    var optionsFor by remember { mutableStateOf<LiveTvChannel?>(null) }
+    var optionsFrom by remember { mutableStateOf<String?>(null) }
+    val regionChip = remember { FocusRequester() }
+    val optionsReturn = remember { FocusRequester() }
+    fun refocus(r: FocusRequester, what: String) {
+        scope.launch {
+            delay(80)
+            try { r.requestFocus(); Log.i(TAG, "live tv: fokus wraca na $what") }
+            catch (e: IllegalStateException) {
+                Log.w(TAG, "live tv: fokus na $what: ${e.javaClass.simpleName}: ${e.message}")
+                try { allFocus.requestFocus() } catch (e2: IllegalStateException) { Log.w(TAG, "live tv: fokus „Wszystkie”: ${e2.message}") }
+            }
+        }
+    }
     // 23.11 (TvRam): próbka startowa z pełnej listy — w tle, najwyżej raz na 10 min (albo gdy zmieni się pierwsza strona).
     LaunchedEffect(prepared, snapshot == null, state.currentProgrammes.isNotEmpty()) {
         if (snapshot != null || !prepared.sorted || state.currentProgrammes.isEmpty() || prepared.shown.isEmpty()) return@LaunchedEffect
@@ -230,24 +251,24 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
             com.nuvio.tv.fork.tv.ram.TvSnapshot.save(first, all, fav, extra) { LiveTvRepository.schedule(it) }
         }
     }
-    val filtered = remember(shown, filter, state.favoriteUrls, favShows, alerts) {
+    val filtered = remember(base, filter, state.favoriteUrls, favShows, alerts) {
         when (val f = filter) {
-            is NiuniaLiveFilter.Category -> ForgeEpgCategories.filter(shown, f.key, state.hiddenChannelKeys, "") ?: shown
-            else -> shown
+            is NiuniaLiveFilter.Category -> ForgeEpgCategories.filter(base, f.key, state.hiddenChannelKeys, "") ?: base
+            else -> base
         }
     }
-    val tiles = remember(filter, filtered, state.currentProgrammes, now / (5 * MIN_MS), recent, resume, favShows, alerts) {
+    val tiles = remember(filter, filtered, base, state.currentProgrammes, now / (5 * MIN_MS), recent, resume, favShows, alerts) {
         when (filter) {
-            NiuniaLiveFilter.All -> recentTiles(shown, state.currentProgrammes, now)
-            NiuniaLiveFilter.Favourites -> favouriteTiles(shown, state.favoriteUrls, state.currentProgrammes, now)
-            NiuniaLiveFilter.Continue -> continueTiles(shown, now)
+            NiuniaLiveFilter.All -> recentTiles(base, state.currentProgrammes, now)
+            NiuniaLiveFilter.Favourites -> favouriteTiles(base, state.favoriteUrls, state.currentProgrammes, now)
+            NiuniaLiveFilter.Continue -> continueTiles(base, now)
             is NiuniaLiveFilter.Category -> categoryTiles(filtered, state.currentProgrammes, now)
         }
     }
-    val guideChannels = remember(filter, filtered, tiles, state.favoriteUrls) {
+    val guideChannels = remember(filter, filtered, base, tiles, state.favoriteUrls) {
         when (filter) {
-            NiuniaLiveFilter.Favourites -> favouriteChannels(shown, state.favoriteUrls, tiles)
-            NiuniaLiveFilter.Continue -> tiles.map { it.channel }.distinctBy { it.streamUrl }.ifEmpty { shown }
+            NiuniaLiveFilter.Favourites -> favouriteChannels(base, state.favoriteUrls, tiles)
+            NiuniaLiveFilter.Continue -> tiles.map { it.channel }.distinctBy { it.streamUrl }.ifEmpty { base }
             else -> filtered
         }
     }
@@ -326,6 +347,9 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
             LiveMode.GUIDE -> Guide(
                 tiles = tiles, filter = filter, categories = categories, channels = guideChannels, numbers = numbers,
                 now = now, dayOffset = dayOffset, guideVersion = state.guideVersion, newKeys = newKeys, allFocus = allFocus, returnTo = returnTo,
+                regionActive = regionChoice.active, regionChip = regionChip, onRegion = { Log.i(TAG, "live tv: Kraj i język → panel"); regionPanel = true },
+                optionsReturn = optionsReturn, optionsFrom = optionsFrom,
+                onOptions = { ch, from -> Log.i(TAG, "live tv: długie OK → opcje kanału ${ch.name}"); optionsFrom = from; optionsFor = ch },
                 onFilter = { f ->
                     if (f is NiuniaLiveFilter.Category) NiuniaLiveFilters.used(context, f.key)
                     filter = f
@@ -345,6 +369,11 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
             Log.i(TAG, "live tv: dzień ${dayLabel(d, now)}")
             dayOffset = d; dayPicker = false; mode = LiveMode.GUIDE
         }
+        if (regionPanel && mode == LiveMode.GUIDE) NiuniaLiveRegionPanel(region.index) { regionPanel = false; refocus(regionChip, "chip Kraj i język") }
+        val opt = optionsFor
+        if (opt != null && mode == LiveMode.GUIDE) NiuniaLiveOptionsPanel(opt, state.channels, now,
+            onPlay = { c, p -> play(c, p, guideChannels) },
+            onClose = { optionsFor = null; refocus(optionsReturn, "kanał ${opt.name}") })
     }
 }
 
@@ -381,6 +410,12 @@ private fun Guide(
     newKeys: Set<String>,
     allFocus: FocusRequester,
     returnTo: NiuniaLiveReturn.Entry? = null,
+    regionActive: Boolean,
+    regionChip: FocusRequester,
+    onRegion: () -> Unit,
+    optionsReturn: FocusRequester,
+    optionsFrom: String?,
+    onOptions: (LiveTvChannel, String) -> Unit,
     onFilter: (NiuniaLiveFilter) -> Unit,
     onPlay: (LiveTvChannel, LiveTvProgramme?) -> Unit,
 ) {
@@ -447,7 +482,9 @@ private fun Guide(
                 LazyRow(Modifier.padding(top = 74.dp).focusRequester(tilesFocus).focusRestorer(), state = tilesState, contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 6.dp, bottom = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
                     items(tiles, key = { it.key }) { t ->
-                        NiuniaLiveTileCard(t, longBadge = true, focusRequester = if (t.key == restoreTileKey) restoreFocus else null, onFocus = { if (it) info = t.channel to t.programme }, onOk = { NiuniaLiveReturn.fromTile(t.key); onPlay(t.channel, t.programme) })
+                        NiuniaLiveTileCard(t, longBadge = true, focusRequester = if (t.key == restoreTileKey) restoreFocus else if (optionsFrom == "tile:" + t.key) optionsReturn else null,
+                            onFocus = { if (it) info = t.channel to t.programme }, onLongOk = { onOptions(t.channel, "tile:" + t.key) },
+                            onOk = { NiuniaLiveReturn.fromTile(t.key); onPlay(t.channel, t.programme) })
                     }
                 }
             }
@@ -466,6 +503,11 @@ private fun Guide(
                 item { FilterPill(stringResource(R.string.niunia_tv_continue), filter == NiuniaLiveFilter.Continue, if (filter == NiuniaLiveFilter.Continue) selectedChip else null) { onFilter(NiuniaLiveFilter.Continue) } }
                 if (categories.isNotEmpty()) item { Box(Modifier.padding(horizontal = 4.dp, vertical = 7.dp).width(1.dp).height(20.dp).background(NiuniaColors.Line)) }
                 items(categories, key = { it.key }) { c -> val sel = (filter as? NiuniaLiveFilter.Category)?.key == c.key; FilterPill(c.name, sel, if (sel) selectedChip else null) { onFilter(c) } }
+                // Z-21 (P-25): „Kraj i język” na końcu filtrów; wybrany, gdy filtr kraju albo języka działa.
+                item(key = "__region") {
+                    com.nuvio.tv.skin.niunia.components.NiuniaButton(onClick = onRegion, label = stringResource(R.string.niunia_tv1_region), icon = "globe",
+                        kind = com.nuvio.tv.skin.niunia.components.NiuniaButtonKind.Chip, selected = regionActive, focusRequester = regionChip)
+                }
             }
         }
         Ruler(winStart, now)
@@ -480,7 +522,8 @@ private fun Guide(
                         onWindow = { winStart = it },
                         onFocus = { p -> info = ch to p },
                         onOk = { p -> NiuniaLiveReturn.fromGuide(ch.streamUrl, p?.startEpochMs); onPlay(ch, p) },
-                        requester = if (ch.streamUrl == restoreChannel) restoreFocus else null,
+                        onLong = { onOptions(ch, "ch:" + ch.streamUrl) },
+                        requester = if (ch.streamUrl == restoreChannel) restoreFocus else if (optionsFrom == "ch:" + ch.streamUrl) optionsReturn else null,
                     )
                 }
             }
@@ -548,25 +591,30 @@ private fun GuideRow(
     onWindow: (Long) -> Unit,
     onFocus: (LiveTvProgramme?) -> Unit,
     onOk: (LiveTvProgramme?) -> Unit,
+    onLong: () -> Unit,
     requester: FocusRequester? = null,
 ) {
     val winEnd = winStart + WINDOW_MS
+    // Z-21 (P-26/P-27): przewodnik wybrany ręcznie w opcjach kanału ("" = bez przewodnika).
+    val choiceV = NiuniaGuideChoice.version.intValue
+    val gkey = remember(ch.guideKey, choiceV) { NiuniaGuideChoice.keyFor(ch) }
+    val gch = remember(ch, gkey) { if (gkey == ch.guideKey) ch else ch.copy(guideKey = gkey) }
     // 23.11 (TvRam): dopóki przewodnik się wczytuje — program z próbki startowej (kanały pierwszej strony).
     // 23.11 etap 1b (przewodnik w bazie): wiersz na ekranie prosi bazę o pełny program kanału; po paczce [dbRows] rośnie.
     val dbCtx = LocalContext.current
     val dbRows by com.nuvio.tv.fork.tv.plus.GuideDbBridge.version.collectAsState()
-    LaunchedEffect(ch.guideKey) { com.nuvio.tv.fork.tv.plus.GuideDbBridge.want(dbCtx, listOf(ch.guideKey)) }
-    val schedule = remember(ch.guideKey, guideVersion, dbRows) {
-        LiveTvRepository.schedule(ch.guideKey).ifEmpty { if (com.nuvio.tv.fork.tv.ram.TvRam.enabled) com.nuvio.tv.fork.tv.ram.TvSnapshot.programmesFor(ch.guideKey) else emptyList() }
+    LaunchedEffect(gkey) { if (gkey.isNotEmpty()) com.nuvio.tv.fork.tv.plus.GuideDbBridge.want(dbCtx, listOf(gkey)) }
+    val schedule = remember(gkey, guideVersion, dbRows) {
+        if (gkey.isEmpty()) emptyList()
+        else LiveTvRepository.schedule(gkey).ifEmpty { if (com.nuvio.tv.fork.tv.ram.TvRam.enabled) com.nuvio.tv.fork.tv.ram.TvSnapshot.programmesFor(gkey) else emptyList() }
     }
     val visible = remember(schedule, winStart) { schedule.filter { it.stopEpochMs > winStart && it.startEpochMs < winEnd } }
     // 23.11 (przewodnik w bazie, GuideDbBridge): cofnięty w czasie wiersz kanału z catch-up dociąga minione dni z bazy.
     val needCtx = LocalContext.current
-    LaunchedEffect(ch.guideKey, winStart) { com.nuvio.tv.fork.tv.plus.GuideDbBridge.need(needCtx, ch, winStart) }
+    LaunchedEffect(gkey, winStart) { if (gkey.isNotEmpty()) com.nuvio.tv.fork.tv.plus.GuideDbBridge.need(needCtx, gch, winStart) }
     var focused by remember { mutableStateOf(false) }
     var sel by remember { mutableIntStateOf(-1) }
     val logo = forgeChannelLogo(ch)
-    val ctx = LocalContext.current
 
     fun pick(t: Long): Int = schedule.indexOfFirst { t >= it.startEpochMs && t < it.stopEpochMs }.takeIf { it >= 0 }
         ?: schedule.indexOfFirst { it.startEpochMs >= t }.takeIf { it >= 0 } ?: (schedule.size - 1)
@@ -608,7 +656,8 @@ private fun GuideRow(
             }
             // UX 22.11: długie OK na wierszu kanału = ulubione tak/nie; OK/długie OK jak w całej Niuni (niuniaOk: zegar 520 ms
             // albo flaga systemu, puszczenie po długim OK nie klika).
-            .niuniaOk(ch.name, onLongClick = { niuniaToggleFavourite(ctx, ch) }, onClick = { onOk(schedule.getOrNull(sel)) }),
+            // Z-14 (LiveTVOptions): długie OK = opcje kanału (ulubione, przewodnik, ramówka, ukryj); wcześniej tylko ulubione.
+            .niuniaOk(ch.name, onLongClick = onLong, onClick = { onOk(schedule.getOrNull(sel)) }),
     ) {
         // Kanał: numer + logo (epg.ovh), bez logo — nazwa pogrubiona.
         Row(
@@ -636,7 +685,7 @@ private fun GuideRow(
                 // Z-1: komórka „teraz” ma u dołu czerwoną linię upływu liczoną od początku widocznej części.
                 val frac = if (isLive(p, now) && stop > start) ((now - start).toFloat() / (stop - start)).coerceIn(0f, 1f) else null
                 Cell(p.title, dpFor(start - winStart), (dpFor(stop - start) - 4.dp).coerceAtLeast(4.dp), live = isLive(p, now),
-                    focused = focused && i == sel, cut = focused && (p.startEpochMs < winStart || leftEdge && p.startEpochMs <= winStart), new = (ch.guideKey + "|" + p.startEpochMs) in newKeys,
+                    focused = focused && i == sel, cut = focused && (p.startEpochMs < winStart || leftEdge && p.startEpochMs <= winStart), new = (gkey + "|" + p.startEpochMs) in newKeys,
                     elapsed = frac)
             }
             if (now in winStart until winEnd) Box(Modifier.offset(x = dpFor(now - winStart) - 1.dp).width(2.dp).height(ROW_H).background(NiuniaColors.Live))
