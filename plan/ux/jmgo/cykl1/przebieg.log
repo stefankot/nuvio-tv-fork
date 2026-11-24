@@ -1,0 +1,138 @@
+WOLNY: pilot nieużywany 1 min, nic nie gra
+[17:02] pętla 1: start
+zimny 1 TotalTime=1011 Displayed=1011 FullyDrawn=2336 firstFocus=1222
+zimny 2 TotalTime=1455 Displayed=1455 FullyDrawn=2987 firstFocus=1860
+zimny 3 TotalTime=1461 Displayed=1461 FullyDrawn=3346 firstFocus=1935
+zimny 4 TotalTime=1455 Displayed=1455 FullyDrawn=3497 firstFocus=2094
+zimny 5 TotalTime=1434 Displayed=1434 FullyDrawn=3378 firstFocus=1990
+zimny 6 TotalTime=1501 Displayed=1501 FullyDrawn=3536 firstFocus=2062
+zimny 7 TotalTime=1408 Displayed=1408 FullyDrawn=3653 firstFocus=2335
+zimny 8 TotalTime=1459 Displayed=1459 FullyDrawn=3113 firstFocus=1657
+zimny 9 TotalTime=1476 Displayed=1476 FullyDrawn=3366 firstFocus=1997
+zimny 10 TotalTime=1450 Displayed=1450 FullyDrawn=3467 firstFocus=2116
+ciepły 1 TotalTime=370
+ciepły 2 TotalTime=232
+ciepły 3 TotalTime=240
+ciepły 4 TotalTime=267
+ciepły 5 TotalTime=252
+ciepły 6 TotalTime=251
+ciepły 7 TotalTime=251
+ciepły 8 TotalTime=257
+ciepły 9 TotalTime=272
+ciepły 10 TotalTime=224
+zimny TotalTime: mediana 1455, min 1011, max 1501 (n=10)
+zimny Displayed: mediana 1455, min 1011, max 1501 (n=10)
+zimny FullyDrawn: mediana 3372, min 2336, max 3653 (n=10)
+zimny firstFocus: mediana 1993.5, min 1222, max 2335 (n=10)
+ciepły TotalTime: mediana 251.5, min 224, max 370 (n=10)
+17:06 po startach: PSS 367064 KB, Java 64948 KB, natywna 47524 KB, grafika 61272 KB
+ForkFocus: brak (APK bez pomiaru — tylko odczyty uiautomator)
+[17:06:28] ścieżka 1: Zimny start: fokus na „Odtwórz” w banerze; po dociągnięciu rzędów fokus nie skacze [F1 F6, czas]
+FastDump: czytnik ekranu działa
+   → OK (13 s) 
+[17:06:42] ścieżka 2: Ciepły start (HOME → ikona): fokus tam, gdzie był, albo na banerze [F1]
+   → BŁĄD (7 s) BŁĄD: F1 HOME → ikona: TotalTime 505 ms; fokus: inaczej: n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min
+[17:06:49] ścieżka 3: Baner: ◄► po przyciskach, skrajne bez zawijania, ▲ nie gubi fokusu [F4 F10]
+   → OK (12 s) 
+[17:07:00] ścieżka 4: Baner ▼ → pierwszy rząd: plakat w całości widoczny, hero bez skoku [F2 F7, gfxinfo]
+   → BŁĄD (4 s) BŁĄD: klatki gfx baner_rzad: Janky 44.44%, p95 53 ms, klatek 54
+[17:07:05] ścieżka 5: Rząd ►×6 → ▼ → ▲: ten sam plakat [F3]
+   → BŁĄD (10 s) BŁĄD: F2 ▼: fokus nie ruszył się w stronę strzałki; BŁĄD: F2 ►: fokus nie ruszył się w stronę strzałki; BŁĄD: F2 ►: fokus nie ruszył się w stronę strzałki; BŁĄD: F2 ▲: fokus nie ruszył się w stronę strzałki; BŁĄD: F3 powrót ▲: „n:Rywale, S1, E1 · 52m, Zostało 52 min Rywale, S1, E1 · 52m, Zostało 52 min | Zostało 52 min” zamiast „n:Następny wyróżniony tytuł Następny wyróżniony tytuł”
+[17:07:15] ścieżka 6: Rząd 1, 4. plakat ▼ → rząd 2 (konwencja F3/F2) [F2 F3]
+   → BŁĄD (9 s) BŁĄD: F2 ▼: fokus nie ruszył się w stronę strzałki; UWAGA: F2 kolumna ▼: Δx=-340 px; BŁĄD: F2 ▲: fokus nie ruszył się w stronę strzałki; BŁĄD: F3 ▲ wraca: „n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min” zamiast „n:Szczegóły Szczegóły”
+[17:07:24] ścieżka 7: Przytrzymana ▼ 3 s przez rzędy i ▲ do banera [F9, gfxinfo]
+   → BŁĄD (13 s) BŁĄD: klatki gfx przytrzymanie_v: Janky 100.0%, p95 17 ms, klatek 1
+[17:07:37] ścieżka 8: Przytrzymana ► 3 s w najdłuższym rzędzie, potem ◄ do początku [F4 F7 F9, gfxinfo]
+   → BŁĄD (21 s) BŁĄD: F2 ▼: fokus nie ruszył się w stronę strzałki; BŁĄD: F2 ▼: fokus nie ruszył się w stronę strzałki; BŁĄD: klatki gfx przytrzymanie_h: Janky 21.67%, p95 21 ms, klatek 60
+[17:07:58] ścieżka 9: Plakat OK → tytuł → Wstecz: ten sam plakat, to samo przewinięcie [F5 F12, czas]
+   → BŁĄD (6 s) BŁĄD: F2 ▼: fokus zgubiony; BŁĄD: F2 ►: fokus zgubiony; BŁĄD: F2 ►: fokus zgubiony
+[17:08:05] ścieżka 10: Długie OK na plakacie → menu → Wstecz: fokus na plakacie, puszczenie nic nie klika [F8 F5]
+   → BŁĄD (11 s) BŁĄD: F2 ▼: fokus nie ruszył się w stronę strzałki; BŁĄD: F2 ▼: fokus nie ruszył się w stronę strzałki; BŁĄD: F8 długie OK: brak akcji długiego OK; BŁĄD: F5 Wstecz: fokus „n:Główna Główna” zamiast „n:Odtwórz Odtwórz”; BŁĄD: F5 Wstecz: fokus „n:Główna Główna” zamiast „n:Odtwórz Odtwórz”
+[17:08:16] ścieżka 11: Pierwszy plakat: ◄ bez zawijania; menu otwiera ▲ z góry ekranu, fokus na „Główna” [F4 F11]
+   → BŁĄD (7 s) BŁĄD: F2 ▼: fokus nie ruszył się w stronę strzałki; BŁĄD: F2 ▼: fokus nie ruszył się w stronę strzałki
+[17:08:24] ścieżka 12: Menu ▼ do końca i ▲ bez zawijania, ► → element, z którego wyszło [F4 F11]
+   → BŁĄD (8 s) BŁĄD: F2 ▼: fokus nie ruszył się w stronę strzałki; BŁĄD: F11 ► z menu: „n:Odtwórz Odtwórz” zamiast „n:Główna Główna”
+[17:08:32] ścieżka 13: Menu → Szukaj → Biblioteka → Live TV → Główna: pierwszy fokus w treści, Główna przywraca fokus [F1 F5, czas]
+   → BŁĄD (45 s) UWAGA: menu: brak pozycji „Szukaj”; UWAGA: menu: brak pozycji „Biblioteka”; UWAGA: menu: brak pozycji „Live TV”; BŁĄD: F1 menu → Główna: brak fokusu po OK; UWAGA: F5 Główna: powrót: „None” zamiast „n:W te święta mam cię na oku, W te święta mam cię na oku · 107 W te święta mam cię na oku, W te święta mam cię na oku · 107m, Zostało 107 min”
+[17:09:18] ścieżka 14: Wstecz z głębi rzędu: baner/menu, drugi Wstecz nie zamyka bez pytania [F12]
+   → BŁĄD (8 s) BŁĄD: F2 ▼: fokus zgubiony; BŁĄD: F2 ▼: fokus zgubiony
+[17:09:26] ścieżka 15: Długie OK na pozycji menu: nic się nie psuje [F10]
+   → BŁĄD (8 s) BŁĄD: F2 ▼: fokus nie ruszył się w stronę strzałki
+[17:09:34] ścieżka 16: Szukaj: „bat” klawiaturą ekranową; fokus na klawiszu, wyniki bez kradzieży fokusu [F1 F6]
+   → UWAGA (43 s) UWAGA: F6 klawiatura „bat”: nie doszedłem do b
+[17:10:18] ścieżka 17: Szukaj: z klawiatury do wyników (liczba ►), ◄ wraca na ten sam klawisz [F2 F3, gfxinfo]
+   → BŁĄD (45 s) UWAGA: F6 klawiatura „bat”: nie doszedłem do b; UWAGA: F2 ►×7 do wyników: 7 naciśnięć (> 6 — propozycja skrótu); BŁĄD: F3 ◄ z wyników: „n:Sterowanie głosem: powiedz, co włączyć Sterowanie głosem: powiedz, co włączyć | Powiedz” zamiast „n:f f”
+[17:11:03] ścieżka 18: Szukaj: wynik OK → tytuł → Wstecz: fokus na wyniku [F5]
+   → UWAGA (46 s) UWAGA: F6 klawiatura „bat”: nie doszedłem do b
+[17:11:48] ścieżka 19: Szukaj: polecane — długie OK → menu → Wstecz [F8 F5]
+   → UWAGA (10 s) UWAGA: nie znaleziono: polecany plakat (▼×6); UWAGA: nie znaleziono: polecany plakat (►×12)
+[17:11:58] ścieżka 20: Szukaj: kasowanie liter do pustego pola, fokus nie spada w niewidoczne miejsce [F6 F7]
+   → UWAGA (47 s) UWAGA: F6 klawiatura „bat”: nie doszedłem do b; UWAGA: nie znaleziono: ⌫/Usuń/Kasuj/Backspace/Delete (▼×8); UWAGA: nie znaleziono: ⌫/Usuń/Kasuj/Backspace/Delete (►×8)
+[17:12:46] ścieżka 21: Biblioteka: chipy ▼ do treści, ▲ na wybrany chip [F3]
+   → BŁĄD (3 s) BŁĄD: F3 ▲ na chip: „n:Seriale (40) Seriale (40)” zamiast „n:Filmy (121) Filmy (121)”
+[17:12:49] ścieżka 22: Biblioteka: Historia — OK → tytuł → Wstecz; długie OK na pozycji [F5 F8]
+   → POMINIĘTA (5 s) UWAGA: nie znaleziono: Historia (►×8); POMINIĘTA: brak zakładki „Historia”
+[17:12:54] ścieżka 23: Biblioteka: pusta lista — fokus na przycisku stanu pustego [F1 F10]
+   → POMINIĘTA (16 s) POMINIĘTA: brak pustej listy w Bibliotece
+[17:13:10] ścieżka 24: Film: fokus na „Odtwórz” w budżecie; ◄► po przyciskach bez zawijania [F1 F4, czas]
+   → OK (6 s) 
+[17:13:17] ścieżka 25: „Więcej” → „Mniej”: fokus zostaje na przycisku po zmianie układu [F6]
+   → OK (8 s) 
+[17:13:25] ścieżka 26: Serial: ▼ pigułki sezonów, ► sezon, ▼ odcinki, ▲ na wybraną pigułkę [F3 F6]
+   → UWAGA (6 s) UWAGA: nie znaleziono: Sezon 1/Sezon (▼×6)
+[17:13:31] ścieżka 27: Tabela sezon × odcinek (Z-8): ◄►▲▼ po komórkach, przewijanie trzyma fokus [F2 F7, gfxinfo]
+   → POMINIĘTA (7 s) UWAGA: nie znaleziono: ★ (►×6); POMINIĘTA: brak ★ (tabela ocen) w hero
+[17:13:38] ścieżka 28: Odcinek OK → wybór źródła → Wstecz: ten odcinek; długie OK = opcje odcinka [F5 F8]
+   → BŁĄD (8 s) UWAGA: F5 Wstecz: ten sam element, inne położenie [80, 416, 490, 955] vs [80, 515, 490, 1054]; BŁĄD: F8 długie OK: brak akcji długiego OK; BŁĄD: F5 Wstecz: fokus „n:Wznów, zostało S1, E1, 57 min Wznów, zostało S1, E1, 57 min | 57m” zamiast „n:Odcinek 1, Pilot Odcinek 1, Pilot | ODCINEK 1 | Pilot | Nauczyciel chemii w szkole średniej dowiaduje się,”
+[17:13:46] ścieżka 29: Obsada → Osoba → plakat → tytuł → Wstecz ×3: za każdym razem element źródłowy [F5]
+   → UWAGA (8 s) UWAGA: nie znaleziono osoby w obsadzie
+[17:13:54] ścieżka 30: Zwiastun: OK → od razu „Wczytuję zwiastun…” → Wstecz na kartę [F5 F12, czas]
+   → UWAGA (10 s) UWAGA: F5 Wstecz: ten sam element, inne położenie [80, 388, 490, 717] vs [80, 437, 490, 766]
+[17:14:04] ścieżka 31: Wstecz z głębi strony (▼×6): góra albo wyjście, fokus zawsze widoczny [F7 F12]
+   → OK (6 s) 
+[17:14:10] ścieżka 32: Wybór źródła: pierwszy fokus na pierwszym źródle; filtry ▲▼ wracają na wybrany filtr [F1 F3]
+   → UWAGA (5 s) UWAGA: zamiast listy źródeł: odtwarzanie albo brak listy
+[17:14:15] ścieżka 33: Odtwarzacz: OK nakładka, ▲ do przycisków nad paskiem, ◄►, ▼ na pasek [F3 F4]
+   → BŁĄD (20 s) BŁĄD: F2 ▼: fokus nie ruszył się w stronę strzałki
+[17:14:35] ścieżka 34: Przewijanie ◄► pojedyncze i przytrzymane; po schowaniu nakładki klawisz nie gubi fokusu [F9 F6]
+   → OK (21 s) 
+[17:14:56] ścieżka 35: „Zmień źródło” → lista → Wstecz na ten przycisk [F5]
+   → UWAGA (24 s) UWAGA: nie znaleziono: Więcej (▲×3); UWAGA: nie znaleziono: Więcej (►×6); UWAGA: nie znaleziono: Zmień źródło (▼×6); UWAGA: brak „Zmień źródło”
+[17:15:21] ścieżka 36: Wstecz z odtwarzacza → strona/Główna, fokus na źródle; czas pierwszej klatki [F5 F12, czas]
+   → BŁĄD (16 s) BŁĄD: F2 ▼: fokus nie ruszył się w stronę strzałki
+[17:15:37] ścieżka 37: Live TV: wejście — fokus na ostatnim lub pierwszym kanale; czas listy z dysku [F1, czas]
+   → OK (3 s) 
+[17:15:40] ścieżka 38: Chip „Kraj i język” → panel → Wstecz: fokus na chipie (bez zmiany wyboru) [F5 F6]
+   → POMINIĘTA (11 s) UWAGA: nie znaleziono: Kraj/Język/kraje (►×14); POMINIĘTA: brak chipa „Kraj i język”
+[17:15:51] ścieżka 39: Lista kanałów: przytrzymana ▼ 5 s i ▲ [F9, gfxinfo]
+   → OK (16 s) 
+[17:16:07] ścieżka 40: Kanał OK → odtwarzanie → Wstecz: ten sam kanał (okno „nie odpowiada”: przyciski i Wstecz) [F5 F1 F12]
+   → BŁĄD (14 s) BŁĄD: F5 Wstecz z kanału: fokus „00:16 | Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCL” zamiast „n:Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15 1 | Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIV”
+[17:16:20] ścieżka 41: Długie OK na kanale → „Opcje kanału” → ▼ po opcjach → Wstecz na kanał [F8 F5]
+   → BŁĄD (6 s) BŁĄD: F8 długie OK: brak akcji długiego OK; BŁĄD: F8 panel opcji: brak „Opcje kanału”; BŁĄD: F5 Wstecz: fokus „n:Wszystkie Wszystkie” zamiast „n:Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15 1 | Strong8K · ENDED | BEN MERTENS - JIMMY WHITE | Mon 23 Nov 15:30 CET (DE) | 8K EXCLUSIV”
+[17:16:26] ścieżka 42: Przewodnik EPG: ►◄ w czasie, ▼▲ trzyma czas; podgląd nie kradnie fokusu [F2 F6, gfxinfo]
+   → BŁĄD (14 s) BŁĄD: F1 trasa reshaped_live_tv: brak fokusu po otwarciu; BŁĄD: F2 ▼: fokus nie ruszył się w stronę strzałki; BŁĄD: F2 ▲: fokus nie ruszył się w stronę strzałki; UWAGA: klatki gfx epg: Janky 10.53%, p95 22 ms, klatek 19
+[17:16:40] ścieżka 43: „Szukaj w telewizji”: fokus w polu, wynik OK → Wstecz [F1 F5]
+   → UWAGA (48 s) UWAGA: F6 klawiatura „tvp”: nie doszedłem do v; UWAGA: nie znaleziono: wynik TVP (▼×8)
+[17:17:28] ścieżka 44: Ustawienia: ▼ kategorie, ► treść, ◄ ta sama kategoria; Wygląd → „Szkło” niedostępne [F3 F10]
+   → UWAGA (10 s) UWAGA: nie znaleziono: Szkło (▼×12)
+[17:17:38] ścieżka 45: Przełącznik OK ×2: stan wraca, fokus zostaje [F6]
+   → OK (4 s) 
+[17:17:42] ścieżka 46: Napisy → wygląd: Atkinson Hyperlegible domyślna, na liście Tiresias; lista → Wstecz bez zmiany [F1 F5]
+   → UWAGA (13 s) UWAGA: nie znaleziono: Czcionka (▼×25); UWAGA: brak pozycji „Czcionka”
+[17:17:55] ścieżka 47: YouTube: czas do fokusu w treści, OK → odtwarzacz → Wstecz (kod obcy: pomiar) [F1 F5, czas]
+   → UWAGA (3 s) UWAGA: nie znaleziono: film (▼×4)
+[17:17:58] ścieżka 48: Profile: ◄► po profilach, (PIN: wejście i Wstecz bez wpisywania) [F1 F5]
+   → OK (7 s) 
+[17:18:05] ścieżka 49: Odkrywaj / Zobacz wszystko: siatka ▼►, przytrzymana ▼, OK → tytuł → Wstecz na ten sam kafelek [F2 F5 F7 F9, gfxinfo]
+   → UWAGA (4 s) UWAGA: nie znaleziono: kafelek siatki (▼×5)
+[17:18:10] ścieżka 50: Kalendarz, Dodatki, Kolejność katalogów, Kolekcje: pierwszy fokus, Wstecz z pozycji na źródło [F1 F5]
+   → OK (15 s) 
+odczyty ekranu: 1068 (czytnik 1068, zwykły 0, błędy czytnika 0), razem 2.4 min = 20% czasu, średnio 0.14 s
+koniec: 11.9 min, {'OK': 11, 'UWAGA': 14, 'BŁĄD': 21, 'POMINIĘTA': 4}, raport /Users/milajovovich/Desktop/nuvio 2/NuvioFork/plan/ux/jmgo/cykl1/sciezki.md
+17:18 po ścieżkach: PSS 1008861 KB, Java 186900 KB, natywna 399908 KB, grafika 124768 KB
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+17:18 w Live TV: PSS 1171635 KB, Java 350068 KB, natywna 395760 KB, grafika 124248 KB
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+17:19 po wyjściu z Live TV: PSS 1163363 KB, Java 347596 KB, natywna 405204 KB, grafika 145100 KB
+[17:19] pętla 1: koniec

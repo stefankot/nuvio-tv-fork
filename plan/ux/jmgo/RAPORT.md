@@ -50,3 +50,10 @@ Skrypt `fork-tools/uitest/sciezki_jmgo.py` — poprawiona ocena (te „błędy�
 
 - **Czy ◄ z pierwszej kolumny ma otwierać menu?** Dziś menu otwiera ▲ z góry ekranu i Wstecz (projekt Niuni, decyzja 20.11). Reguła F11 z promptu mówi ◄. Zmiana wymaga ruszenia `PillNavScaffold` (kod bazy) — zostawiono bez zmiany, zapisano w `plan/DECYZJE.md`.
 - Przewodnik EPG z osią czasu (komórki programów w poziomie) — dziś go nie ma; to zmiana wyglądu.
+
+## Aktualizacja E3 (24.11, koniec dnia)
+- `[B]` P1 (ścieżka 21, ▲ na chip Biblioteki): **nie zadziałała** — `focusRestorer()` na rzędzie zakładek dał ten sam błąd („Seriale” zamiast „Filmy”) w 3 przebiegach na `uxj1`. `[P]` P7 (E3): jawne `exit` grupy treści → ostatnio zaznaczony chip (`NiuniaLibraryShelves.kt`, `uxj3`), niesprawdzona.
+- P2–P5: nie potwierdzone ani obalone — ścieżki 22 i 38 test pomija (brak zakładki „Historia” / chipa „Kraj i język”), 19, 41, 42 niejednoznaczne.
+- O3 pamięć: **gorzej** niż w pętli 0 (884 → 1 009 MB po ścieżkach; Java 187, natywna 400 MB), bez znanej przyczyny.
+- O4: `firstFocus` zimny start mediana 1 994 ms (pierwszy pomiar). O6/O8 (odczyt 2,2 s) rozwiązane przez szybki czytnik.
+- Nowe, niepoprawione: Wstecz ze strony tytułu o 49–125 px niżej (28, 30); Szukaj ◄ z wyników na „Sterowanie głosem” (17); Live TV bez fokusu po otwarciu i długie OK bez opcji kanału (40–42).

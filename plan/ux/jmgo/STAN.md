@@ -20,3 +20,9 @@
 1. **E1** (równolegle): zacięcia GPU na Głównej, build `uxj1`, pomiar przed/po (`plan/ux/jmgo/etap1-gpu.md`).
 2. **E3**: build `uxj2` (E1 + E2, polecenie z `ETAPY.md`), instalacja na JMGO, `petla_jmgo.sh 1`. W pętli 1 sprawdzić: P1–P5 z `RAPORT.md` (ścieżki 19, 21, 22, 41, 49), pomiar `ForkFocus` (dtFrame, OK → fokus, Wstecz), PSS po grupach ścieżek (O3), ścieżki, które nie doszły do celu (O7).
 3. Otwarte pytanie do właściciela (nie blokuje): ◄ z pierwszej kolumny a menu (`RAPORT.md`, `[makieta]`).
+
+## Pętla 1 (E3, 24.11) — stan na koniec dnia
+- APK na JMGO: **`uxj3`** (md5 6deb562d…) = `uxj1` (E1 + E2) + poprawka Biblioteki ▲ (E3). Test JVM niunia/perf: przechodzą; `SettingsTreeSpecTest` (cudzy, tryb prosty ≤ 20 pozycji) pada od `uxj1` — nie ruszany.
+- **Pełna, wiarygodna pętla 1 NIE została wykonana.** Przebieg C (17:06–17:19, `cykl1/`, APK `uxj1`): 11 OK / 14 UWAGA / 21 BŁĄD / 4 pominięte — ale tester czytał fokus za wcześnie (spóźnienie o jeden klawisz), więc 21 BŁĘDÓW to głównie błąd testera. Poprawiony tester (pauza 0,7 s, `e1698f73f`) nie dokończył przebiegu na `uxj3` — przerwany na polecenie właściciela. Pętla 2 nie była robiona.
+- Narzędzia (to jest realny wynik E3): stały czytnik ekranu `fork-tools/uitest/fastdump/` (odczyt 2,1 s → 0,05–0,6 s, pętla 40,6 → ~12 min), naprawione `jmgo_czekaj_wolny.sh` (zgubione `max=`, zamrożony drugi blok `RecentQueue`), trasa `home` na otwartej Głównej wchodzi ► w treść.
+- Co zostało (dane w `RAPORT.md` i `cykl1/wydajnosc.md`): pamięć (1 009 MB po ścieżkach, limit 480, gorzej niż pętla 0), zacięcia przy przytrzymaniu (E1: wątek UI i GC), Wstecz ze strony tytułu o 49–125 px niżej (28, 30), Szukaj ◄ z wyników (17), Live TV bez fokusu (40–42) — **bez poprawek**. Poprawka E2 „▲ w Bibliotece” (`focusRestorer`) nie zadziałała w 3 przebiegach (ścieżka 21); zastąpiona w E3 jawnym `exit` grupy — niesprawdzona.
