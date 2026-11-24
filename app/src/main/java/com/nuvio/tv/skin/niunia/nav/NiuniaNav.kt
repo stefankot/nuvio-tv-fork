@@ -190,6 +190,8 @@ internal fun NiuniaNavBar(
             modifier = Modifier.padding(start = NiuniaSpacing.Space20, top = NiuniaSize.NavTop).alpha(pillAlpha),
             leading = if (niuniaNavIcon(selected) == null) ({ EntryIcon(selected, size = 28, bg = Color.Transparent, tint = NiuniaColor.White, activeProfileColorHex) }) else null,
         )
+        // Z-15: zegar w prawym górnym rogu ekranów z menu; Live TV i YouTube mają go na końcu własnego paska akcji.
+        if (selected?.route != com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE && selected?.route != "youtube") com.nuvio.tv.skin.niunia.components.NiuniaClockCorner()
         // Panel boczny. Zawsze w drzewie, żeby PillNavScaffold mógł dać fokus pozycji (requesterFor); zamknięty = przezroczysty.
         com.nuvio.tv.skin.niunia.components.NiuniaSidebarPanel(
             Modifier

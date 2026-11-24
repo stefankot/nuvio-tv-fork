@@ -83,6 +83,7 @@ fun NiuniaPerson(
 
     // Układ stack-tight: od góry 40 dp, odstęp 24 między blokami.
     // Przewijanie tylko, gdy element wychodzi poza ekran (test JMGO build147: nagłówek z imieniem uciekał za górną krawędź).
+    androidx.compose.foundation.layout.Box(Modifier.fillMaxSize()) {
     com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
     LazyColumn(Modifier.fillMaxSize().background(com.nuvio.tv.skin.niunia.tokens.NiuniaColor.Bg), contentPadding = PaddingValues(top = 40.dp, bottom = 48.dp)) {
         item(key = "head") {
@@ -92,10 +93,9 @@ fun NiuniaPerson(
                 com.nuvio.tv.skin.niunia.components.NiuniaAvatar(com.nuvio.tv.skin.niunia.components.niuniaInitials(person.name), com.nuvio.tv.skin.niunia.tokens.NiuniaSize.Avatar120, photo = person.profilePhoto)
                 com.nuvio.tv.skin.niunia.components.NiuniaContentBlock(com.nuvio.tv.skin.niunia.components.NiuniaBlockKind.Wide) {
                     com.nuvio.tv.skin.niunia.components.NiuniaText(person.name, variant = com.nuvio.tv.skin.niunia.components.NiuniaTextVariant.TitleScreen, lines = 1)
-                    val line = listOfNotNull(
-                        person.knownFor?.takeIf { it.isNotBlank() }?.let { niuniaDepartment(it) }, // test JMGO build159: „Acting”
-                        person.placeOfBirth?.takeIf { it.isNotBlank() }?.let { stringResource(R.string.niunia_person_born_in, it) },
-                    ).joinToString(" · ")
+                    // Z-18 (P-16/P-17): „Aktorstwo · 37 lat · ur. 17 marca 1989, Stockholm, Sweden” (zm. → „zm. … w wieku …”).
+                    val dept = person.knownFor?.takeIf { it.isNotBlank() }?.let { niuniaDepartment(it) } // test JMGO build159: „Acting”
+                    val line = remember(person.tmdbId, dept) { (listOfNotNull(dept) + niuniaPersonFacts(context, person)).joinToString(" · ") }
                     if (line.isNotEmpty()) com.nuvio.tv.skin.niunia.components.NiuniaText(line, variant = com.nuvio.tv.skin.niunia.components.NiuniaTextVariant.BodySmall, tone = com.nuvio.tv.skin.niunia.components.NiuniaTone.Tertiary, lines = 1)
                     val bio = person.biography?.takeIf { it.isNotBlank() }
                     if (bio != null) {
@@ -138,6 +138,34 @@ fun NiuniaPerson(
         }
     }
     }
+    com.nuvio.tv.skin.niunia.components.NiuniaClockCorner() // Z-15
+    }
+}
+
+/** Z-18: wiek, data i miejsce urodzenia, data śmierci (TMDB birthday / deathday / place_of_birth). Czysta funkcja. */
+internal fun niuniaPersonFacts(ctx: android.content.Context, person: PersonDetail, today: java.time.LocalDate = java.time.LocalDate.now()): List<String> {
+    fun date(raw: String?): java.time.LocalDate? = raw?.takeIf { it.length >= 10 }?.let {
+        try { java.time.LocalDate.parse(it.take(10)) } catch (e: java.time.format.DateTimeParseException) { Log.w(TAG, "osoba: data „$it”: ${e.javaClass.simpleName}: ${e.message}"); null }
+    }
+    val months = ctx.resources.getStringArray(R.array.niunia_ke2_months_gen)
+    fun long(d: java.time.LocalDate) = "${d.dayOfMonth} ${months[d.monthValue - 1]} ${d.year}"
+    fun age(n: Int) = when {
+        n == 1 -> ctx.getString(R.string.niunia_ke2_age_one, n)
+        n % 10 in 2..4 && n % 100 !in 12..14 -> ctx.getString(R.string.niunia_ke2_age_few, n)
+        else -> ctx.getString(R.string.niunia_ke2_age_many, n)
+    }
+    val born = date(person.birthday)
+    val died = date(person.deathday)
+    val place = person.placeOfBirth?.trim()?.takeIf { it.isNotBlank() }
+    val out = ArrayList<String>()
+    if (born != null && died == null) out += age(java.time.Period.between(born, today).years)
+    when {
+        born != null && place != null -> out += ctx.getString(R.string.niunia_ke2_born_place, long(born), place)
+        born != null -> out += ctx.getString(R.string.niunia_ke2_born, long(born))
+        place != null -> out += ctx.getString(R.string.niunia_person_born_in, place)
+    }
+    if (died != null) out += ctx.getString(R.string.niunia_ke2_died, long(died), if (born != null) age(java.time.Period.between(born, died).years) else "?").let { if (born == null) it.substringBefore(" w wieku") else it }
+    return out
 }
 
 private fun year(item: MetaPreview): Int = (item.releaseInfo ?: item.released)?.take(4)?.toIntOrNull() ?: 0

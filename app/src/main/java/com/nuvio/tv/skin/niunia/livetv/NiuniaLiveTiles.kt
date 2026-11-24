@@ -23,6 +23,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Brush
@@ -95,7 +97,7 @@ internal fun NiuniaLiveTileCard(
                     Text(com.nuvio.tv.fork.tv.names.ChannelNames.shown(tile.channel.name), style = NiuniaText.Meta.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold), color = NiuniaColors.Text,
                         maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp))
                 }
-                NiuniaStatusDot(live = true)
+                // Z-1: bez kropek statusu.
                 return@Box
             }
             // Paczka „oczywiste” pkt 5: obraz programu, a gdy go nie ma albo się nie wczyta — logo kanału, a na końcu jego nazwa.
@@ -104,8 +106,8 @@ internal fun NiuniaLiveTileCard(
                 onError = { st -> imageFailed = true; android.util.Log.w("ForkNiunia", "obraz programu „${p.title}”: ${st.result.throwable.javaClass.simpleName}: ${st.result.throwable.message}") })
             else NiuniaChannelLogo(tile.channel, Modifier.fillMaxSize().padding(start = 36.dp, end = 36.dp, top = 18.dp, bottom = 40.dp),
                 nameStyle = NiuniaText.Logo.copy(fontSize = 22.sp, lineHeight = 26.sp))
-            val dot = when (tile.mark) { NiuniaTileMark.LIVE -> true; NiuniaTileMark.ARCHIVE, NiuniaTileMark.RESUME -> false; else -> null }
-            if (dot != null) NiuniaStatusDot(live = dot)
+            // Z-1: bez kropek statusu i ikony play; stan mówi mini pasek w podpisie (czerwony na żywo, biały obejrzane archiwum).
+            val dot: Boolean? = null
             val badge = when (tile.mark) {
                 NiuniaTileMark.NEW -> stringResource(if (longBadge) R.string.niunia_tv_badge_new_episode else R.string.niunia_tv_badge_new)
                 NiuniaTileMark.RESUME -> stringResource(R.string.niunia_tv_badge_resume)
@@ -130,12 +132,29 @@ internal fun NiuniaLiveTileCard(
                     .padding(start = 8.dp, end = 8.dp, top = 20.dp, bottom = 8.dp),
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                // Pasek podpisu NMediaCard: ▶ 12, mini postęp 24×4, podpis 12/16.
-                if (tile.withChannel) com.nuvio.tv.skin.niunia.components.NiuniaIcon("play-small", size = 12.dp)
-                tile.progress?.let { f -> com.nuvio.tv.skin.niunia.components.NiuniaProgress(f) }
-                Text(caption(tile), style = com.nuvio.tv.skin.niunia.tokens.NiuniaType.Caption, color = NiuniaColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                // Z-1: [mini pasek 24×4] + „Tytuł · Kanał” (tytuł caption 700, „· kanał” caption-regular 500), maks. 2 linie, kanał zawsze widoczny.
+                val live = tile.mark == NiuniaTileMark.LIVE
+                val bar = when { live -> tile.progress ?: 0f; (tile.progress ?: 0f) > 0f -> tile.progress; else -> null }
+                if (bar != null) com.nuvio.tv.skin.niunia.components.NiuniaProgress(bar, fillColor = if (live) com.nuvio.tv.skin.niunia.tokens.NiuniaColor.Live else null)
+                Text(tileCaption(tile), style = com.nuvio.tv.skin.niunia.tokens.NiuniaType.Caption, color = NiuniaColors.Text, maxLines = 2, overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.semantics { contentDescription = caption(tile) })
             }
             Box(Modifier.matchParentSize().background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.Gloss.brush()))
+        }
+    }
+}
+
+/** Z-1: podpis na kafelku — „**Tytuł** · Kanał” z krótką nazwą kanału; tytuł skracany, żeby kanał został. */
+internal fun tileCaption(tile: NiuniaLiveTile): androidx.compose.ui.text.AnnotatedString {
+    val p = tile.programme ?: return androidx.compose.ui.text.AnnotatedString(com.nuvio.tv.skin.niunia.components.niuniaShortChannel(tile.channel.name))
+    val ch = if (tile.withChannel) com.nuvio.tv.skin.niunia.components.niuniaShortChannel(tile.channel.name) else null
+    val title = listOfNotNull(p.title, tile.extra?.takeIf { it.isNotBlank() }).joinToString(" · ")
+    return androidx.compose.ui.text.buildAnnotatedString {
+        append(com.nuvio.tv.skin.niunia.components.niuniaTileTitle(title, ch))
+        if (ch != null) {
+            pushStyle(androidx.compose.ui.text.SpanStyle(fontWeight = androidx.compose.ui.text.font.FontWeight.Medium))
+            append(" · $ch")
+            pop()
         }
     }
 }

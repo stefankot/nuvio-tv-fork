@@ -1636,7 +1636,7 @@ fun PlayerScreen(
             !uiState.showDisplayModeInfo &&
             !postPlayRecommendationState.isVisible
 
-        AnimatedVisibility(
+        if (com.nuvio.tv.fork.ForkHooks.skinPlayerClock(uiState)) { /* Fork hook: skin (zegar skórki) */ } else AnimatedVisibility(
             visible = showClockOverlay,
             enter = fadeIn(animationSpec = tween(150)),
             exit = fadeOut(animationSpec = tween(150)),

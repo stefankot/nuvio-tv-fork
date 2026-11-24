@@ -129,19 +129,64 @@ fun NiuniaSearch(viewModel: SearchViewModel, onNavigateToDetail: (String, String
         if (state.submittedQuery.isNotBlank()) Log.i(TAG, "wyszukiwarka: „${state.submittedQuery}” → ${results.size} wyników")
     }
     val searching = state.query.isNotBlank()
+    // Z-19 (P-19): wynik nigdy pusty — przy 0 wynikach zapytanie poprawiane krok po kroku (NiuniaSearchFix).
+    var fix by remember { mutableStateOf<NiuniaFixActive?>(null) }
+    var exact by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(state.discoverResults, state.recentSearches, state.suggestions, results.size) {
+        NiuniaKnownTitles.add(state.discoverResults.map { it.name } + state.recentSearches + state.suggestions + results.map { it.first.name })
+    }
+    LaunchedEffect(state.query) {
+        if (fix != null && state.query != fix?.corrected) fix = null
+        if (exact != null && state.query != exact) exact = null
+    }
+    LaunchedEffect(state.submittedQuery, state.isSearching, results.isEmpty(), state.error) {
+        val q = state.submittedQuery
+        if (state.isSearching || q.isBlank() || state.query != q) return@LaunchedEffect
+        val f = fix
+        if (results.isNotEmpty()) {
+            if (f != null && f.corrected == q && !f.done) { Log.i(TAG, "Search: corrected \"${f.original}\" -> \"$q\" (krok ${f.step}): ${results.size} wyników"); fix = f.copy(done = true) }
+            return@LaunchedEffect
+        }
+        if (state.error != null) { Log.w(TAG, "Search: „$q” — błąd wyszukiwania (${state.error}), bez poprawiania"); return@LaunchedEffect }
+        if (exact == q) return@LaunchedEffect
+        val chain = f?.takeIf { it.corrected == q }
+        val original = chain?.original ?: q
+        if (chain == null) { if (q.trim().length < 3) return@LaunchedEffect; kotlinx.coroutines.delay(1500) } // pauza w pisaniu
+        fun key(x: String) = x.trim().lowercase()
+        val tried = (chain?.tried ?: emptySet()) + key(q)
+        // Liczenie odległości do kilku tysięcy tytułów poza wątkiem UI.
+        val titles = NiuniaKnownTitles.all()
+        val local = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { NiuniaSearchFix.localSteps(original, titles) }.filter { key(it.query) !in tried }
+        var next = local.firstOrNull { it.step < 4 }
+        var tmdbDone = chain?.tmdbDone ?: false
+        if (next == null && !tmdbDone) {
+            tmdbDone = true
+            val base = chain?.takeIf { it.step in 2..3 }?.corrected ?: original
+            NiuniaSearchFix.tmdbTitle(ctx, base)?.takeIf { key(it) !in tried }?.let { next = NiuniaFixStep(4, it) }
+        }
+        if (next == null) next = local.firstOrNull { it.step == 5 }
+        val n = next
+        if (n == null) { Log.i(TAG, "Search: „$original” — 0 wyników, poprawki wyczerpane (${tried.size} prób)"); return@LaunchedEffect }
+        Log.i(TAG, "Search: corrected \"$original\" -> \"${n.query}\" (krok ${n.step}), próba ${tried.size + 1}")
+        fix = NiuniaFixActive(original, n.query, n.step, tried + key(n.query), tmdbDone)
+        viewModel.onEvent(SearchEvent.QueryChanged(n.query))
+        viewModel.onEvent(SearchEvent.SubmitSearch)
+    }
+    // Pole pokazuje to, co wpisano; wyniki są dla poprawionego zapytania (nagłówek „Wyniki dla …”).
+    val shownQuery = fix?.takeIf { state.query == it.corrected }?.original ?: state.query
 
     Box(Modifier.fillMaxSize().background(NiuniaColor.Bg)) {
         Column(Modifier.fillMaxSize().padding(start = NiuniaSpacing.Space40, end = NiuniaSpacing.Space40, top = NiuniaSize.NavTop + NiuniaSize.H44)) {
-            SearchField(state.query, ctx.getString(R.string.niunia_ds_search_placeholder))
+            SearchField(shownQuery, ctx.getString(R.string.niunia_ds_search_placeholder))
             Row(Modifier.padding(top = NiuniaSpacing.Space12).fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space40)) {
                 // Lewa kolumna: klawiatura + lista fraz.
                 Column(Modifier.width(NiuniaSize.SplitCol), verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
                     Keyboard(
                         digits = digits, firstKey = firstKey,
                         onMode = { digits = it; Log.i(TAG, "wyszukiwarka: klawiatura ${if (it) "123" else "abc"}") },
-                        onKey = { k -> type(state.query + k) },
-                        onSpace = { type(state.query + " ") },
-                        onDelete = { type(state.query.dropLast(1)) },
+                        onKey = { k -> type(shownQuery + k) },
+                        onSpace = { type(shownQuery + " ") },
+                        onDelete = { type(shownQuery.dropLast(1)) },
                         onClear = { Log.i(TAG, "wyszukiwarka: wyczyść"); type(""); tab = NiuniaSearchTab.All },
                     )
                     val phrases = if (searching) niuniaSearchSuggestions(state.query, state.suggestions, results.map { it.first.name }) else state.recentSearches.take(3)
@@ -156,13 +201,28 @@ fun NiuniaSearch(viewModel: SearchViewModel, onNavigateToDetail: (String, String
                 }
                 // Prawa kolumna.
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space24)) {
-                    if (!searching) Browse(state, ctx, viewModel, open, posterOptions, focusFor)
-                    else Results(state.isSearching, state.submittedQuery, results, tab, onTab = { tab = it; Log.i(TAG, "wyszukiwarka: zakładka $it") }, open, posterOptions, focusFor)
+                    if (!searching) {
+                        // Z-19 (P-18): chip „Odkrywaj: gatunek, rok, katalog” nad rzędami → ekran Odkrywaj.
+                        NiuniaButton(onClick = {
+                            Log.i(TAG, "wyszukiwarka: Odkrywaj")
+                            val go = com.nuvio.tv.ui.screens.settings.ForkFeatures.open
+                            if (go != null) go(com.nuvio.tv.ui.navigation.Screen.Discover.route) else Log.w(TAG, "wyszukiwarka: Odkrywaj: brak nawigatora")
+                        }, label = stringResource(R.string.niunia_ke2_discover_chip), icon = "discover", kind = NiuniaButtonKind.Chip)
+                        Browse(state, ctx, viewModel, open, posterOptions, focusFor)
+                    }
+                    else Results(state.isSearching || (fix != null && fix?.done != true && results.isEmpty()), state.submittedQuery, results, tab, onTab = { tab = it; Log.i(TAG, "wyszukiwarka: zakładka $it") }, open, posterOptions, focusFor,
+                        corrected = fix?.takeIf { it.corrected == state.submittedQuery && results.isNotEmpty() }?.let { it.corrected to it.original },
+                        offline = state.error != null && results.isEmpty(),
+                        onExact = { orig -> Log.i(TAG, "wyszukiwarka: szukaj dokładnie „$orig”"); exact = orig; fix = null; type(orig); viewModel.onEvent(SearchEvent.SubmitSearch) },
+                        onRetry = { Log.i(TAG, "wyszukiwarka: spróbuj ponownie"); viewModel.onEvent(SearchEvent.SubmitSearch) })
                 }
             }
         }
     }
 }
+
+/** Z-19: trwające poprawianie — wpisane [original], wysłane [corrected] (krok [step]), wypróbowane zapytania (bez polskich znaków). */
+internal data class NiuniaFixActive(val original: String, val corrected: String, val step: Int, val tried: Set<String>, val tmdbDone: Boolean, val done: Boolean = false)
 
 /** Ostatnio otwarty wynik/plakat wyszukiwarki (powrót fokusu po Wstecz; tylko w pamięci procesu). */
 internal object NiuniaSearchMemory {
@@ -268,7 +328,13 @@ private fun Results(
     tab: NiuniaSearchTab, onTab: (NiuniaSearchTab) -> Unit, onNavigateToDetail: (String, String, String) -> Unit,
     niuniaSearchPosterOptions: (MetaPreview, String?) -> Unit,
     focusFor: (String) -> Modifier,
+    corrected: Pair<String, String>? = null,
+    offline: Boolean = false,
+    onExact: (String) -> Unit = {},
+    onRetry: () -> Unit = {},
 ) {
+    // Z-19: „Szukaj dokładnie »wpisane«” nad zakładkami (▲ z zakładek).
+    if (corrected != null) NiuniaButton(onClick = { onExact(corrected.second) }, label = stringResource(R.string.niunia_ke2_search_exact, corrected.second), icon = "search", kind = NiuniaButtonKind.Chip)
     val labels = listOf(
         NiuniaSearchTab.All to R.string.niunia_ds_search_tab_all, NiuniaSearchTab.Movies to R.string.niunia_ds_search_tab_movies,
         NiuniaSearchTab.Series to R.string.niunia_ds_search_tab_series, NiuniaSearchTab.Tv to R.string.niunia_ds_search_tab_tv,
@@ -291,7 +357,12 @@ private fun Results(
             },
         )
     }
+    if (corrected != null) NiuniaText(stringResource(R.string.niunia_ke2_results_for, corrected.first), variant = NiuniaTextVariant.TitleSection, lines = 1)
     when {
+        offline -> Column(verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space8)) {
+            NiuniaText(stringResource(R.string.niunia_ke2_search_offline), variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 2)
+            NiuniaButton(onClick = onRetry, label = stringResource(R.string.niunia_ke2_retry), icon = "restart", compact = true)
+        }
         searchingNow && results.isEmpty() -> NiuniaText(stringResource(R.string.niunia_search_searching), variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary)
         results.isEmpty() && submitted.isNotBlank() -> NiuniaText(stringResource(R.string.niunia_search_none, submitted), variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary)
         shown.isEmpty() && results.isNotEmpty() && tab != NiuniaSearchTab.Tv -> NiuniaText(stringResource(R.string.niunia_ds_search_tab_empty), variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Tertiary)

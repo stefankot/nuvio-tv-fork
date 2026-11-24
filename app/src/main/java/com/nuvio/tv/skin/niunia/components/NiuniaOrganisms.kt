@@ -98,7 +98,8 @@ fun NiuniaCollection(
         Row(
             rowMod,
             horizontalArrangement = if (kind == NiuniaCollectionKind.SplitRow) Arrangement.SpaceBetween else Arrangement.spacedBy(gap),
-            verticalAlignment = if (kind == NiuniaCollectionKind.SplitRow) Alignment.Bottom else Alignment.CenterVertically,
+            // Z-9: w hero wiersz akcji i obsada wyrównane do góry (przyciski 16 dp pod opisem, obsada rośnie w dół; bez pustego miejsca nad „Odtwórz”).
+            verticalAlignment = if (kind == NiuniaCollectionKind.SplitRow) Alignment.Top else Alignment.CenterVertically,
             content = content,
         )
     }
@@ -209,7 +210,7 @@ fun NiuniaPanelOverlay(title: String?, modifier: Modifier = Modifier, width: Dp 
 /**
  * Pasek postępu (jeden we wszystkich odtwarzaczach): czas · tor 8 dp z wypełnieniem i gałką 16 · czas.
  * Ton: biały (główny, archiwum), czerwony (na żywo), żółty (opóźnienie, z buforem i czerwoną kreską „na żywo”).
- * Fokus: grubszy tor (×1,25) i gałka z poświatą 5 dp. Fokus i klawisze nadaje [trackModifier] (przewijanie zostaje w odtwarzaczu).
+ * Fokus (Z-5): tor 8 → 12 dp (wysokość, nie skala) i okrągła gałka 20 dp z pierścieniem 5 dp. Fokus i klawisze nadaje [trackModifier] (przewijanie zostaje w odtwarzaczu).
  */
 @Composable
 fun NiuniaSeekBar(
@@ -225,7 +226,8 @@ fun NiuniaSeekBar(
     Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12), verticalAlignment = Alignment.CenterVertically) {
         Text(start, style = NiuniaType.Caption, color = NiuniaColor.Text, maxLines = 1)
         Canvas(trackModifier.weight(1f).height(NiuniaSize.Knob + NiuniaSpacing.Space8)) {
-            val h = NiuniaSize.TrackH.toPx() * (1f + 0.25f * grow)
+            // Z-5: w fokusie tor zmienia wysokość track-h 8 → track-h-focus 12 (nie skalę), gałka 16 → 20 z pierścieniem 5 dp.
+            val h = NiuniaSize.TrackH.toPx() + (NiuniaSize.TrackHFocus.toPx() - NiuniaSize.TrackH.toPx()) * grow
             val y = (size.height - h) / 2f
             val w = size.width
             val r = CornerRadius(h / 2f)

@@ -20,4 +20,8 @@ interface Skin {
     /** Nakładka odtwarzacza (sterowanie + panele): UiState wchodzi, PlayerEvent wychodzi. true = narysowano. */
     @Composable
     fun PlayerChrome(uiState: PlayerUiState, onEvent: (PlayerEvent) -> Unit, args: Map<String, Any?> = emptyMap()): Boolean = false
+
+    /** Zegar odtwarzacza zamiast zegara Nuvio (zawsze widoczny, także przy schowanej nakładce) i komunikaty bez fokusu. true = narysowano. */
+    @Composable
+    fun PlayerClock(uiState: PlayerUiState): Boolean = false
 }

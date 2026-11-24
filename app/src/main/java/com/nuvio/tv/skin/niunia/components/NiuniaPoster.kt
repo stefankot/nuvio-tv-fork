@@ -213,3 +213,37 @@ fun niuniaRealPoster(item: com.nuvio.tv.domain.model.MetaPreview): Pair<String?,
 }
 
 private val posterLogged = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+
+/**
+ * Z-16 (P-4): NMediaCard preset `MoreCard` — ostatnia karta rzędu dodatku: rozmiar plakatu, tło `surface`,
+ * chevron 28 + „Zobacz wszystko” + nazwa rzędu. Fokus jak plakat (×1,1, uniesienie 4, obwódka 3 dp).
+ */
+@Composable
+fun NiuniaMoreCard(
+    rowName: String,
+    onOk: () -> Unit,
+    modifier: Modifier = Modifier,
+    width: Dp = NiuniaDims.PosterW,
+    height: Dp = NiuniaDims.PosterH,
+    onFocus: ((Boolean) -> Unit)? = null,
+) {
+    val shape = RoundedCornerShape(com.nuvio.tv.skin.niunia.tokens.NiuniaRadius.Radius16)
+    var focused by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    val label = androidx.compose.ui.res.stringResource(com.nuvio.tv.R.string.niunia_ke2_see_all)
+    Box(
+        modifier
+            .size(width, height)
+            .niuniaOk("$label: $rowName", onFocus = { focused = it; onFocus?.invoke(it) }, onClick = onOk)
+            .niuniaFocusLook(NiuniaFocusStyle.Lift, focused, shape)
+            .clip(shape)
+            .background(NiuniaColors.Surface),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(Modifier.padding(horizontal = 12.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            NiuniaIcon("chevron-right", size = 28.dp)
+            Text(label, style = com.nuvio.tv.skin.niunia.tokens.NiuniaType.Label, maxLines = 1, textAlign = TextAlign.Center)
+            Text(rowName, style = com.nuvio.tv.skin.niunia.tokens.NiuniaType.Caption, color = com.nuvio.tv.skin.niunia.tokens.NiuniaColor.Text70,
+                maxLines = 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
+        }
+    }
+}

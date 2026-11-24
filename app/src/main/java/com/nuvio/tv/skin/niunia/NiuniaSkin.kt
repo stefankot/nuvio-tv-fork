@@ -11,7 +11,7 @@ import com.nuvio.tv.ui.screens.home.togglePosterLibrary
 /**
  * Niunia — własny projekt właściciela (canvas „Nuvio TV Apple TV Style App”, specyfikacja ~/Desktop/appletv/skin/SKIN.md).
  * Jedyny adapter: zamienia argumenty wpięć skórki na parametry ekranów Niunii.
- * Etap 1–2: ekran główny, wyszukiwarka, biblioteka. Etap 3: profile (z PIN-em), nakładka odtwarzacza, strona filmu/serialu (wpięcie „detail” w MetaDetailsScreen). YouTube zostaje ekranem Nuvio.
+ * Etap 1–2: ekran główny, wyszukiwarka, biblioteka. Etap 3: profile (z PIN-em), nakładka odtwarzacza, strona filmu/serialu (wpięcie „detail” w MetaDetailsScreen). YouTube: ekran główny Niuni (Z-23).
  */
 object NiuniaSkin : Skin {
     override val id = SkinId.NIUNIA
@@ -29,6 +29,7 @@ object NiuniaSkin : Skin {
                 // UX 22.11: długie OK — menu plakatu bazy (HomeScreen rysuje okno) i menu „Oglądaj dalej”.
                 onItemLongPress = (a["onCatalogItemLongPress"] as? (com.nuvio.tv.domain.model.MetaPreview, String) -> Unit) ?: { _, _ -> },
                 cwActions = androidx.compose.runtime.remember(vm, a["showContinueWatchingManualPlay"]) { niuniaCwActions(vm, a) },
+                onRetry = { vm.onEvent(com.nuvio.tv.ui.screens.home.HomeEvent.OnRetry) }, // Z-16 (P-5)
             ); true
         }
         "search" -> SkinScreen { a ->
@@ -70,6 +71,20 @@ object NiuniaSkin : Skin {
                 onNavigateToDetail = a["onNavigateToDetail"] as (String, String, String?) -> Unit,
             ); true
         }
+        // Z-14 (makieta Streams): lista źródeł w stylu Niuni; odtwarzanie, autoodtwarzanie i okna zostają w StreamScreen bazy.
+        "streams" -> SkinScreen { a ->
+            com.nuvio.tv.skin.niunia.stream.NiuniaStreams(
+                uiState = a["uiState"] as com.nuvio.tv.ui.screens.stream.StreamScreenUiState,
+                resumeText = a["resumeText"] as String?,
+                onAddonFilter = a["onFilter"] as (String?) -> Unit,
+                onRetry = a["onRetry"] as () -> Unit,
+                onPlay = a["onPlay"] as (com.nuvio.tv.domain.model.Stream) -> Unit,
+            ); true
+        }
+        // Z-23: ekran główny YouTube Niuni (szyna kanałów + siatka 3 kolumn, jak w Kicia/Forge S10); odtwarzacz zostaje NiuniaYouTubeChrome.
+        "youtube" -> SkinScreen { a ->
+            com.nuvio.tv.skin.niunia.youtube.NiuniaYouTube(onPlay = a["onPlay"] as (com.nuvio.tv.youtube.YtPlayable) -> Unit); true
+        }
         "livetv" -> SkinScreen { a ->
             com.nuvio.tv.skin.niunia.livetv.NiuniaLiveTv(onPlay = a["onPlay"] as (String) -> Unit); true
         }
@@ -92,6 +107,14 @@ object NiuniaSkin : Skin {
             playManually = (a["onContinueWatchingPlayManually"] as? (ContinueWatchingItem) -> Unit) ?: click,
             showManual = a["showContinueWatchingManualPlay"] as? Boolean ?: false,
         )
+    }
+
+    /** Z-15: zegar Niuni w każdym odtwarzaczu (film, serial, YouTube, Live TV), także przy schowanej nakładce. */
+    @androidx.compose.runtime.Composable
+    override fun PlayerClock(uiState: com.nuvio.tv.ui.screens.player.PlayerUiState): Boolean {
+        com.nuvio.tv.skin.niunia.components.NiuniaClockCorner()
+        com.nuvio.tv.skin.niunia.player.NiuniaPlaybackNotice(uiState) // Z-22 (P-35)
+        return true
     }
 
     /** Nakładka odtwarzacza Niunii: filmy, seriale i YouTube. Live TV: wygląd Niuni rysuje MiniGuide (skin/niunia/live). */

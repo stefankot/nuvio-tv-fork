@@ -383,9 +383,10 @@ fun NiuniaAvatar(initials: String, size: Dp, modifier: Modifier = Modifier, fill
 
 /** Mini pasek postępu 24×4 (albo na całą szerokość [bar]); na białym przycisku ciemny. */
 @Composable
-fun NiuniaProgress(value: Float, modifier: Modifier = Modifier, bar: Boolean = false, onFocus: Boolean = false) {
+fun NiuniaProgress(value: Float, modifier: Modifier = Modifier, bar: Boolean = false, onFocus: Boolean = false, fillColor: Color? = null) {
     val track = if (onFocus) NiuniaColor.OnFocus70 else NiuniaColor.Fill36
-    val fill = if (onFocus) NiuniaColor.OnFocus else NiuniaColor.White
+    // Z-1: kafelek programu na żywo ma czerwone wypełnienie (`live`), archiwum białe.
+    val fill = fillColor ?: if (onFocus) NiuniaColor.OnFocus else NiuniaColor.White
     Box((if (bar) modifier.fillMaxWidth() else modifier.width(NiuniaSize.Icon24)).height(NiuniaSize.ProgressH).clip(CircleShape).background(track)) {
         Box(Modifier.fillMaxWidth(value.coerceIn(0f, 1f)).height(NiuniaSize.ProgressH).background(fill))
     }

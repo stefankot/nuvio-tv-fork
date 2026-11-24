@@ -24,22 +24,22 @@ import com.nuvio.tv.skin.niunia.tokens.NiuniaDims
 
 /**
  * Oznaczenie serialu w IPTV (decyzja właściciela 20.11, canvas `.stack`): pod kafelkiem dwie warstwy z tym samym obrazkiem,
- * węższe o 8/16 dp i niżej o 5/10 dp, przyciemnione 0,55 / 0,38; środkowa odwrócona do góry nogami, dolna obrócona o 90°
+ * węższe o 8/16 dp i niżej o 5/10 dp, przezroczyste 0,7 / 0,4 i przyciemnione 20 % (Z-7); środkowa odwrócona do góry nogami, dolna obrócona o 90°
  * (obrazek dwa razy wyższy niż warstwa, wyśrodkowany). Bez napisu. [series] = false → sam kafelek, bez kosztu.
  */
 @Composable
 fun NiuniaSeriesStack(series: Boolean, image: String?, w: Dp, h: Dp, content: @Composable () -> Unit) {
     if (!series) { content(); return }
     Box(Modifier.size(w, h)) {
-        // Paczka „oczywiste” pkt 11 (21.11): karty pod spodem coraz bardziej przezroczyste (bliższa 60 %, dalsza 30 %).
-        Layer(image, w, w - 32.dp, h, y = 10.dp, dim = 0.38f, rotate = true, alpha = 0.30f)
-        Layer(image, w, w - 16.dp, h, y = 5.dp, dim = 0.55f, rotate = false, alpha = 0.60f)
+        // Z-7 (makieta v2.1): warstwy z przezroczystością opacity-stack-1/2 (0,7 / 0,4) i lżejszym przyciemnieniem stack-1/2 (20 % czerni).
+        Layer(image, w, w - 32.dp, h, y = 10.dp, dimColor = com.nuvio.tv.skin.niunia.tokens.NiuniaColor.Stack2, rotate = true, alpha = com.nuvio.tv.skin.niunia.tokens.NiuniaOpacity.OpacityStack2)
+        Layer(image, w, w - 16.dp, h, y = 5.dp, dimColor = com.nuvio.tv.skin.niunia.tokens.NiuniaColor.Stack1, rotate = false, alpha = com.nuvio.tv.skin.niunia.tokens.NiuniaOpacity.OpacityStack1)
         content()
     }
 }
 
 @Composable
-private fun Layer(image: String?, outer: Dp, w: Dp, h: Dp, y: Dp, dim: Float, rotate: Boolean, alpha: Float = 1f) {
+private fun Layer(image: String?, outer: Dp, w: Dp, h: Dp, y: Dp, dimColor: Color, rotate: Boolean, alpha: Float = 1f) {
     val shape = RoundedCornerShape(NiuniaDims.RadiusCard)
     BoxWithConstraints(
         Modifier.padding(start = (outer - w) / 2).offset(y = y).size(w, h).graphicsLayer { this.alpha = alpha }.clip(shape).background(NiuniaColors.Surface),
@@ -55,6 +55,6 @@ private fun Layer(image: String?, outer: Dp, w: Dp, h: Dp, y: Dp, dim: Float, ro
                     modifier = Modifier.fillMaxSize().graphicsLayer { scaleY = -1f })
             }
         }
-        Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 1f - dim)))
+        Box(Modifier.fillMaxSize().background(dimColor))
     }
 }

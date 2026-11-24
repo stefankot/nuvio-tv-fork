@@ -73,6 +73,13 @@ object ForkHooks {
         return skin.screen(route)?.Content(args) ?: false
     }
 
+    /** PlayerScreen: true = aktywny skin narysował własny zegar (zegar Nuvio wtedy się nie rysuje). */
+    @Composable
+    fun skinPlayerClock(uiState: PlayerUiState): Boolean {
+        val skin = SkinRegistry.skinFor(rememberSkinId()) ?: return false
+        return skin.PlayerClock(uiState)
+    }
+
     /** PlayerScreen: true = aktywny skin narysował nakładkę (sterowanie i panele) odtwarzacza. */
     @Composable
     fun skinPlayerChrome(uiState: PlayerUiState, args: Map<String, Any?> = emptyMap(), onEvent: (PlayerEvent) -> Unit): Boolean {
