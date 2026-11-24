@@ -476,6 +476,16 @@ def open_route(p, route, expect=None, rule="F1", own_menu=False):
     if s2.pkg != PKG:
         p.rec(f"trasa {route}", None, s2, total, rule, "BŁĄD", f"na wierzchu {s2.pkg}")
         return s2
+    # E3 (24.11): trasa „home” na już otwartą Główną otwiera menu z fokusem na „Główna” (zdarzenie testowe, nie ścieżka
+    # użytkownika) — wchodzimy ► w treść, jak użytkownik; bez tego kolejne kroki oceniałyby menu zamiast treści (pętla 1: 22 fałszywe BŁĘDY).
+    via_menu = False
+    if route == "home" and in_menu(s2) and not own_menu:
+        for _ in range(3):  # ► z menu → treść; fokus przechodzi asynchronicznie (menu zamyka się), więc czekamy aż się ustali
+            key("RIGHT", pause=0.4)
+            s3, _t = settle(6)
+            if s3.fb is not None and not in_menu(s3):
+                s2, via_menu, p.last = s3, True, s3
+                break
     res, msg = "OK", f"fokus {dt:.1f} s, stabilnie {total:.1f} s"
     if s2.focus is None:
         res, msg = "BŁĄD", "brak fokusu po otwarciu"
@@ -490,6 +500,8 @@ def open_route(p, route, expect=None, rule="F1", own_menu=False):
         msg += f" (budżet {B_OPEN[0]}/{B_DATA[0]} s)"
     if expect and not s2.has(*expect):
         res, msg = ("UWAGA" if res == "OK" else res), msg + f"; brak tekstu {expect}"
+    if via_menu:
+        msg += "; trasa na otwartej Głównej: menu z fokusem „Główna”, ► do treści"
     tr = trace_after(p, f"trasa {route}")
     if tr:
         msg += "; " + tr
@@ -1098,7 +1110,7 @@ DETAIL_SERIES = "detail/tt0903747/series"    # Breaking Bad
 
 def detail(p, route=DETAIL_MOVIE):
     s = open_route(p, route, rule="F1")
-    if s.focus and not s.focus.startswith(("Odtwórz", "Wznów")):
+    if s.focus and not re.sub(r"^n:", "", s.focus).startswith(("Odtwórz", "Wznów")):
         p.rec("pierwszy fokus tytułu", None, s, 0, "F1", "UWAGA", f"„{s.focus}” zamiast „Odtwórz”")
     return s
 

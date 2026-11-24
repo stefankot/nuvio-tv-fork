@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.input.key.Key
@@ -115,6 +116,13 @@ internal fun NiuniaLibraryContent(
     var focusedEntry by remember { mutableStateOf<LibraryEntry?>(null) }
     // Test JMGO ke2: po zamknięciu panelu fokus wracał na „Wszystko” — wraca na chip „Sortuj i filtruj”.
     val sortChip = remember { FocusRequester() }
+    // UX JMGO 24.11 (E3, pętla 1 ścieżka 21 „▲ na Seriale zamiast Filmy”): `focusRestorer` na rzędzie zakładek nie działał — ▲ z plakatu
+    // szedł do najbliższego chipa nad nim. Jawnie: grupa treści przy wyjściu ▲ oddaje fokus ostatnio zaznaczonemu (fokusem) chipowi.
+    val chipReq = remember { mutableMapOf<String, FocusRequester>().also { it["sort"] = sortChip } }
+    var lastChip by remember { mutableStateOf<String?>(null) }
+    val upToChip = Modifier.focusProperties {
+        exit = { d -> if (d == FocusDirection.Up) lastChip?.let { chipReq[it] } ?: FocusRequester.Default else FocusRequester.Default }
+    }.focusGroup()
     var panelWasOpen by remember { mutableStateOf(false) }
     LaunchedEffect(panel) {
         if (panel) { panelWasOpen = true; return@LaunchedEffect }
@@ -181,13 +189,15 @@ internal fun NiuniaLibraryContent(
                     if (tabs.size > 1) tabs.forEach { t ->
                         NiuniaButton(onClick = { Log.i(TAG, "biblioteka: zakładka ${t.key}"); historyTab = false; vm.onSelectTypeTab(t) },
                             label = niuniaTypeTabLabel(t, stringResource(R.string.niunia_ke_lib_all), stringResource(R.string.niunia_ke_lib_movies), stringResource(R.string.niunia_ke_lib_series)),
-                            kind = NiuniaButtonKind.Tab, selected = !historyTab && selected == t.key)
+                            kind = NiuniaButtonKind.Tab, selected = !historyTab && selected == t.key,
+                            focusRequester = chipReq.getOrPut("t:" + t.key) { FocusRequester() }, onFocus = { if (it) lastChip = "t:" + t.key })
                     }
                     NiuniaButton(onClick = { Log.i(TAG, "biblioteka: zakładka Historia"); historyTab = true }, label = stringResource(R.string.niunia_tv2_hist_tab),
-                        kind = NiuniaButtonKind.Tab, selected = historyTab)
+                        kind = NiuniaButtonKind.Tab, selected = historyTab,
+                        focusRequester = chipReq.getOrPut("history") { FocusRequester() }, onFocus = { if (it) lastChip = "history" })
                 }
                 if (!historyTab) NiuniaButton(onClick = { Log.i(TAG, "biblioteka: Sortuj i filtruj → panel"); panel = true }, label = stringResource(R.string.niunia_ke_lib_sort),
-                    kind = NiuniaButtonKind.Chip, selected = filtered || !shelvesOn, focusRequester = sortChip)
+                    kind = NiuniaButtonKind.Chip, selected = filtered || !shelvesOn, focusRequester = sortChip, onFocus = { if (it) lastChip = "sort" })
             }
             if (historyTab) {
                 NiuniaLibraryHistory(first, onOpen = { w -> onNavigateToDetail(w.contentId, w.contentType, null) })
@@ -201,7 +211,7 @@ internal fun NiuniaLibraryContent(
             if (shelves) {
                 val (outerI, outerO) = restore.outerStart()
                 val colState = rememberLazyListState(outerI, outerO)
-                LazyColumn(Modifier.fillMaxSize(), state = colState, contentPadding = PaddingValues(top = NiuniaSpacing.Space16, bottom = 48.dp), verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space24)) {
+                LazyColumn(Modifier.fillMaxSize().then(upToChip), state = colState, contentPadding = PaddingValues(top = NiuniaSpacing.Space16, bottom = 48.dp), verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space24)) {
                     shelfList.forEachIndexed { si, (title, sub, list) ->
                         item(key = "shelf_$si") {
                             Column(verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
@@ -226,7 +236,7 @@ internal fun NiuniaLibraryContent(
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(NiuniaDims.PosterW),
                     state = gridState,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().then(upToChip),
                     contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = NiuniaSpacing.Space16, bottom = 48.dp),
                     horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap),
                     verticalArrangement = Arrangement.spacedBy(28.dp),
