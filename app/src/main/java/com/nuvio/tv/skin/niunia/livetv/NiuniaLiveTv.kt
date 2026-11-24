@@ -770,8 +770,12 @@ private fun Cell(title: String, x: Dp, w: Dp, live: Boolean, focused: Boolean, c
 /** Prawy górny róg, w linii zwiniętej nawigacji: Szukaj · Dziś · Odkrywaj (ikona + napis; bieżący ekran podświetlony). */
 @Composable
 private fun TopBar(mode: LiveMode, dayLabel: String, onSearch: () -> Unit, onDay: () -> Unit, onDiscover: () -> Unit, dayFocus: FocusRequester? = null) {
-    Row(Modifier.fillMaxWidth().padding(top = com.nuvio.tv.skin.niunia.tokens.NiuniaSize.NavTop, end = NiuniaDims.Gutter), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
-        TopButton(Icons.Outlined.Search, stringResource(R.string.niunia_tv_search), mode == LiveMode.SEARCH, onSearch)
+    // UX JMGO (ręczne testy 24.11): ◄ z „Szukaj” (pierwszy przycisk paska) skakał w dół na kafelek — teraz otwiera menu.
+    var searchFocused by remember { mutableStateOf(false) }
+    Row(Modifier.fillMaxWidth().padding(top = com.nuvio.tv.skin.niunia.tokens.NiuniaSize.NavTop, end = NiuniaDims.Gutter).onPreviewKeyEvent { e ->
+        if (searchFocused && e.type == KeyEventType.KeyDown && e.key == Key.DirectionLeft) com.nuvio.tv.skin.niunia.nav.NiuniaNavActions.toMenu("live tv ◄ z Szukaj") else false
+    }, horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
+        TopButton(Icons.Outlined.Search, stringResource(R.string.niunia_tv_search), mode == LiveMode.SEARCH, onSearch, onFocus = { searchFocused = it })
         TopButton(Icons.Outlined.CalendarToday, dayLabel, false, onDay, dayFocus)
         TopButton(Icons.Outlined.Explore, stringResource(R.string.niunia_tv_discover), mode == LiveMode.DISCOVER, onDiscover)
         com.nuvio.tv.skin.niunia.components.NiuniaClock() // Z-15: zegar na końcu paska akcji
@@ -779,14 +783,14 @@ private fun TopBar(mode: LiveMode, dayLabel: String, onSearch: () -> Unit, onDay
 }
 
 @Composable
-private fun TopButton(icon: ImageVector, text: String, on: Boolean, onOk: () -> Unit, focus: FocusRequester? = null) {
+private fun TopButton(icon: ImageVector, text: String, on: Boolean, onOk: () -> Unit, focus: FocusRequester? = null, onFocus: (Boolean) -> Unit = {}) {
     // NButton small z ikoną (36 dp); bieżący tryb = wypełnienie 36 % (`active`).
     val name = when (icon) {
         Icons.Outlined.Search -> "search"
         Icons.Outlined.Explore -> "discover"
         else -> "calendar"
     }
-    com.nuvio.tv.skin.niunia.components.NiuniaButton(onClick = onOk, label = text, icon = name, small = true, active = on, focusRequester = focus)
+    com.nuvio.tv.skin.niunia.components.NiuniaButton(onClick = onOk, label = text, icon = name, small = true, active = on, focusRequester = focus, onFocus = onFocus)
 }
 
 /** „Dziś”: lista dni otwierana przyciskiem (tydzień archiwum wstecz + 3 dni przodu, canvas `.day`). */

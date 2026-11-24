@@ -252,13 +252,15 @@ fun NiuniaHome(
                             LaunchedEffect(cardReturn) {
                                 val r = cardReturn ?: return@LaunchedEffect
                                 if (r.first != rowKey) return@LaunchedEffect
-                                cardReturn = null
+                                // Stan zerowany dopiero na końcu: zmiana klucza efektu w trakcie anulowała przewijanie (test uxr3).
                                 try {
                                     st.scrollToItem((r.second - 1).coerceAtLeast(0))
                                     androidx.compose.runtime.withFrameNanos { }
                                     restoreFocus.requestFocus()
                                     Log.i(TAG, "karta tytułu: Wstecz → plakat ${r.second + 1} w rzędzie")
-                                } catch (e: IllegalStateException) { Log.w(TAG, "karta tytułu: powrót na oglądany plakat: ${e.javaClass.simpleName}: ${e.message}") }
+                                } catch (e: kotlinx.coroutines.CancellationException) { throw e }
+                                catch (e: IllegalStateException) { Log.w(TAG, "karta tytułu: powrót na oglądany plakat: ${e.javaClass.simpleName}: ${e.message}") }
+                                cardReturn = null
                             }
                             LazyRow(state = st, contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
                                 itemsIndexed(row.items, key = { _, it -> it.id }) { i, item ->

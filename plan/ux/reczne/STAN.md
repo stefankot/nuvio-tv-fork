@@ -65,3 +65,13 @@ Nie ruszam: „Finding stream source” po angielsku (zasada: bez tłumaczeń); 
 
 - `uxr3`: commit 6965fce4a (R3, R3b), BUILD SUCCESSFUL 14 min 29 s, `.stage/apk/uxr3-v7a.apk`, instalacja 20:02.
 - `uxr4`: R4 + R5 + R6 (5229dfaaa, 3bfb5d97a, f682e7b45), build start 20:03.
+
+## Pętla 4 (testy na `uxr3` od 20:05; build `uxr4` od 20:03)
+Sprawdzone na `uxr3` ✔: „TMDB Popular · filmy / · seriale” (88); karta „1 godz. 47 min” (89); panel „Kraj i język” — Polska na górze, chip „Polska” (94–95); Wstecz z listy dni → „Dziś” (log); „Rozmiar napisów: Małe” (96); Szukaj — drugi „Dunkirk” to film z 1958 (93, poprawne). ✘: Wstecz z karty tytułu na oglądany tytuł — efekt anulowany (`LeftCompositionCancellationException`), poprawione w R8.
+Filtr kraju przywrócony na „Wszystkie kraje” po teście.
+
+| # | Znalezisko | Stan |
+|---|---|---|
+| 31 | Wstecz z karty: wyzerowanie stanu na początku efektu anulowało przewinięcie | R8: zerowanie na końcu |
+| 32 | Live TV: ◄ z „Szukaj” skacze na kafelek zamiast do menu | R8: ◄ z „Szukaj” = menu |
+| 33 | Po „Następny kanał” Wstecz wraca na kanał otwarty z listy | R7: na ostatnio oglądany (`recentChannel`) |
