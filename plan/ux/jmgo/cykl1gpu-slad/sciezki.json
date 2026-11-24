@@ -1,0 +1,37 @@
+[
+ {
+  "nr": 8,
+  "nazwa": "Przytrzymana ► 3 s w najdłuższym rzędzie, potem ◄ do początku [F4 F7 F9, gfxinfo]",
+  "wynik": "BŁĄD",
+  "uwagi": [
+   "UWAGA: F1 trasa home: fokus 3.9 s, stabilnie 3.9 s (budżet 0.6/3.0 s); dtFocus - / dtFrame 92 ms; firstFocus 408 ms",
+   "BŁĄD: klatki gfx przytrzymanie_h: Janky 51.81%, p95 57 ms, klatek 249"
+  ],
+  "kroki": [
+   "trasa home [F1] UWAGA:  → n:Siostra Kopciuszka Animacja · ★ 6.8 (3.9 s) fokus 3.9 s, stabilnie 3.9 s (budżet 0.6/3.0 s); dtFocus - / dtFrame 92 ms; firstFocus 408 ms",
+   "  ForkFocus: dtFocus 7 / dtFrame 30 ms",
+   "▼ [F2] OK: n:Odtwórz Odtwórz → n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min (3.3 s) przewinięcie/zmiana układu",
+   "  ForkFocus: dtFocus 6 / dtFrame 29 ms",
+   "▼ [F2] OK: n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min → n:Siostra Kopciuszka Animacja · ★ 6.8 (3.3 s)",
+   "► 3 s [F7] OK:  → n:Zobacz wszystko: TMDB Popular Zobacz wszystko | TMDB Popular (3.0 s)",
+   "► na krawędzi (po 0) [F4] OK: n:Zobacz wszystko: TMDB Popular Zobacz wszystko | TMDB Popular → n:Zobacz wszystko: TMDB Popular Zobacz wszystko | TMDB Popular (0.0 s)",
+   "◄ 4 s [F9] OK: n:Zobacz wszystko: TMDB Popular Zobacz wszystko | TMDB Popular → n:Siostra Kopciuszka Animacja · ★ 6.8 (4.0 s)",
+   "gfx przytrzymanie_h [klatki] BŁĄD:  →  (0.0 s) Janky 51.81%, p95 57 ms, klatek 249"
+  ],
+  "miary": {
+   "open:home": 3.9,
+   "gfx:przytrzymanie_h": {
+    "frames": 249,
+    "janky%": 51.81,
+    "p95": 57,
+    "slowUI": 46,
+    "slowBmp": 0,
+    "50th": 17,
+    "90th": 38,
+    "99th": 250
+   },
+   "klatki>=100ms(log)": 0
+  },
+  "s": 41
+ }
+]

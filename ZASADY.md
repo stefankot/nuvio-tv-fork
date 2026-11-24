@@ -71,3 +71,4 @@ Stare wersje: `plan/archiwum/zasady/` i historia gita.
 - KSP ukrywa prawdziwe błędy („could not be resolved”): szukaj brakującej klasy w konstruktorze `@Inject`.
 - Reshaped wymaga ffmpeg z `app/libs/*.aar`. Stringi Arc są w osobnych plikach `values/strings_*.xml`.
 - Pliki w `/tmp` mogą zniknąć po restarcie.
+- Perfetto na JMGO: usługa śledzenia włączona 24.11 na polecenie właściciela (`persist.traced.enable=1`); ślad: `perf_jmgo.sh perfetto`, odczyt bez pobierania narzędzi: `fork-tools/uitest/perfetto_plasterki.py <ślad> <pid>`.

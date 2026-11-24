@@ -32,8 +32,25 @@ Pętla 0 = `tv2e` (`cykl0/gfx`). uxj1 „1. przebieg” = zaraz po instalacji i 
 Grafika +6…19 MB (warstwy plakatów), w granicach rozrzutu. Próg 480 MB był przekroczony już w pętli 0 (Java/natywna,
 nie warstwy) — sprawa dla E3/E4.
 
-## Zamiast perfetto: framestats ścieżki 8 (ostatnie 120 klatek, `fork-tools/uitest/framestats_faza.py`)
-Perfetto na JMGO niedostępny (`persist.traced.enable=0`; włączenie to zmiana ustawień systemu — nie robimy).
+## Ślad perfetto ścieżki 8 (`cykl1gpu/slad8.perfetto-trace`, 40 s, 32 MB — tylko lokalnie, poza gitem; odczyt `fork-tools/uitest/perfetto_plasterki.py <ślad> <pid>`)
+Usługa śledzenia na JMGO włączona na polecenie właściciela (`persist.traced.enable=1`, zostaje). Plasterki atrace aplikacji:
+| Wątek: plasterek | n | mediana | p90 |
+|---|---|---|---|
+| główny: `Choreographer#doFrame` | 260 | 7,8 ms | 103 ms |
+| główny: `animation` (rekompozycja Compose) | 234 | 6,6 ms | 53 ms |
+| główny: `traversal` (pomiar/układ, w tym komponowanie nowych elementów listy) | 225 | 1,7 ms | 46 ms |
+| główny: `ViewPostImeInputStage` (obsługa klawisza, ruch fokusu) | 77 | 7,3 ms | 76 ms |
+| główny: blokada przez GC (`Lock contention … HeapTaskDaemon`) | 4 | 2,0 ms | 138 ms |
+| RenderThread: `DrawFrame` | 226 | 7,6 ms | 45 ms |
+| GPU completion: `waiting for GPU completion` | 224 | 9,3 ms | 14 ms |
+
+Wnioski (3 zdania): (1) GPU po E1 mieści się w klatce (czekanie na GPU: mediana 9 ms, p90 14 ms) — zacięć Głównej nie robi
+już GPU. (2) Wąskim gardłem jest wątek główny: p90 klatki 103 ms to rekompozycja (p90 53 ms) + pomiar/układ z komponowaniem
+nowych plakatów (p90 46 ms) oraz obsługa klawisza z ruchem fokusu (p90 76 ms). (3) Dochodzą pauzy GC (blokada wątku
+głównego do 138 ms, sterta Java do 363 MB) — następny krok (E3/E4): mniej rekompozycji i alokacji przy ruchu fokusu
+i wchodzeniu nowych elementów listy, nie dalsze cięcie GPU.
+
+## Framestats ścieżki 8 (ostatnie 120 klatek, `fork-tools/uitest/framestats_faza.py`)
 | Faza | mediana | p90 |
 |---|---|---|
 | UI (wejście → zapis rysowania) | 9,5 ms | 65,3 ms |
@@ -41,7 +58,7 @@ Perfetto na JMGO niedostępny (`persist.traced.enable=0`; włączenie to zmiana 
 | GPU (swap → gotowe) | 10,2 ms | 15,8 ms |
 | całość | 14,9 ms | 71,3 ms |
 
-Wnioski: (1) GPU po E1 mieści się w klatce (mediana 10 ms, p90 16 ms), więc przewijanie w rzędzie spadło z 69 do 14–17 ms
+Te same wnioski z drugiego źródła: (1) GPU po E1 mieści się w klatce (mediana 10 ms, p90 16 ms), więc przewijanie w rzędzie spadło z 69 do 14–17 ms
 w medianie. (2) Pozostałe zacięcia (Janky 45–78 %) to teraz wątek UI: p90 65 ms przy wchodzeniu nowych plakatów/rzędów
 (komponowanie i układ nowych elementów, pierwsze rysowanie ich warstw) — najmocniej przy przytrzymanej ▼ (ścieżka 7).
 (3) Następny krok to koszt komponowania nowych elementów listy (wątek UI), nie GPU — do oceny w pętli 1 (E3) z `ForkFocusTrace`.

@@ -1,0 +1,8 @@
+sciezka,krok,klawisz,fokus_przed,fokus_po,czas_s,regula,wynik,uwaga
+8,1,trasa home,,"n:Siostra Kopciuszka Animacja · ★ 6.8 [80, 148, 340, 538]",3.93,F1,UWAGA,"fokus 3.9 s, stabilnie 3.9 s (budżet 0.6/3.0 s); dtFocus - / dtFrame 92 ms; firstFocus 408 ms"
+8,2,▼,"n:Odtwórz Odtwórz [80, 724, 400, 812]","n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]",3.27,F2,OK,przewinięcie/zmiana układu
+8,3,▼,"n:Breaking Bad, S1, E1 · 57m, Zostało 57 min Breaking Bad, S1, E1 · 57m, Zostało 57 min | Zostało 57 min [80, 148, 400, 376]","n:Siostra Kopciuszka Animacja · ★ 6.8 [80, 148, 340, 538]",3.31,F2,OK,
+8,4,► 3 s,,"n:Zobacz wszystko: TMDB Popular Zobacz wszystko | TMDB Popular [1580, 148, 1840, 538]",3.00,F7,OK,
+8,5,► na krawędzi (po 0),"n:Zobacz wszystko: TMDB Popular Zobacz wszystko | TMDB Popular [1580, 148, 1840, 538]","n:Zobacz wszystko: TMDB Popular Zobacz wszystko | TMDB Popular [1580, 148, 1840, 538]",0.00,F4,OK,
+8,6,◄ 4 s,"n:Zobacz wszystko: TMDB Popular Zobacz wszystko | TMDB Popular [1580, 148, 1840, 538]","n:Siostra Kopciuszka Animacja · ★ 6.8 [80, 148, 340, 538]",4.00,F9,OK,
+8,7,gfx przytrzymanie_h,,,0.00,klatki,BŁĄD,"Janky 51.81%, p95 57 ms, klatek 249"

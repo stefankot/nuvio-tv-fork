@@ -1,0 +1,201 @@
+
+===== ścieżka 8
+--------- beginning of main
+--------- beginning of system
+11-24 22:40:19.007 I/ForkFocus(31363): key=DPAD_DOWN rep=0 t=88841377
+11-24 22:40:19.031 I/ForkFocus(31363): focus=Siostra Kopciuszka bounds=[80,516][340,906] dtFocus=6 dtFrame=29 key=DPAD_DOWN
+11-24 22:40:22.163 I/ForkFocus(31363): key=DPAD_RIGHT rep=0 t=88844535
+11-24 22:40:22.184 I/ForkFocus(31363): focus=W te święta mam cię na oku bounds=[380,148][640,538] dtFocus=4 dtFrame=23 key=DPAD_RIGHT
+11-24 22:40:22.562 I/ForkFocus(31363): key=DPAD_RIGHT rep=1 t=88844935
+11-24 22:40:22.585 I/ForkFocus(31363): focus=Igrzyska śmierci: Wschód słońca w dniu dożynek bounds=[680,148][940,538] dtFocus=3 dtFrame=24 key=DPAD_RIGHT
+11-24 22:40:22.614 I/ForkFocus(31363): key=DPAD_RIGHT rep=2 t=88844986
+11-24 22:40:22.636 I/ForkFocus(31363): focus=Madden bounds=[980,148][1240,538] dtFocus=4 dtFrame=24 key=DPAD_RIGHT
+11-24 22:40:22.667 I/ForkFocus(31363): key=DPAD_RIGHT rep=3 t=88845037
+11-24 22:40:22.697 I/ForkFocus(31363): focus=Heartland bounds=[1280,148][1540,538] dtFocus=5 dtFrame=35 key=DPAD_RIGHT
+11-24 22:40:22.717 I/ForkFocus(31363): key=DPAD_RIGHT rep=4 t=88845087
+11-24 22:40:22.746 I/ForkFocus(31363): focus=Tylko na święta bounds=[1580,148][1840,538] dtFocus=6 dtFrame=33 key=DPAD_RIGHT
+11-24 22:40:22.767 I/ForkFocus(31363): key=DPAD_RIGHT rep=5 t=88845137
+11-24 22:40:22.796 I/ForkFocus(31363): focus=Allen bounds=[1880,148][1920,538] dtFocus=5 dtFrame=34 key=DPAD_RIGHT
+11-24 22:40:22.832 I/ForkFocus(31363): key=DPAD_RIGHT rep=6 t=88845188
+11-24 22:40:22.859 I/ForkFocus(31363): focus=Nie poddamy się bounds=[0,0][0,0] dtFocus=21 dtFrame=45 key=DPAD_RIGHT
+11-24 22:40:22.869 I/ForkFocus(31363): key=DPAD_RIGHT rep=7 t=88845239
+11-24 22:40:22.905 I/ForkFocus(31363): focus=Ebenezer Scrooge. Opowieść wigilijna bounds=? dtFocus=13 dtFrame=40 key=DPAD_RIGHT
+11-24 22:40:22.933 I/ForkFocus(31363): key=DPAD_RIGHT rep=8 t=88845289
+11-24 22:40:22.971 I/ForkFocus(31363): focus=Nie poddamy się bounds=? dtFocus=25 dtFrame=56 key=DPAD_RIGHT
+11-24 22:40:22.971 I/ForkFocus(31363): key=DPAD_RIGHT rep=9 t=88845339
+11-24 22:40:23.001 I/ForkFocus(31363): focus=Ebenezer Scrooge. Opowieść wigilijna bounds=? dtFocus=13 dtFrame=36 key=DPAD_RIGHT
+11-24 22:40:23.031 I/ForkFocus(31363): key=DPAD_RIGHT rep=10 t=88845389
+11-24 22:40:23.069 I/ForkFocus(31363): focus=Jak obrabować bank bounds=? dtFocus=27 dtFrame=54 key=DPAD_RIGHT
+11-24 22:40:23.069 I/ForkFocus(31363): key=DPAD_RIGHT rep=11 t=88845440
+11-24 22:40:23.100 I/ForkFocus(31363): focus=Ebenezer Scrooge. Opowieść wigilijna bounds=? dtFocus=9 dtFrame=35 key=DPAD_RIGHT
+11-24 22:40:23.130 I/ForkFocus(31363): key=DPAD_RIGHT rep=12 t=88845490
+11-24 22:40:23.178 I/ForkFocus(31363): focus=Jak obrabować bank bounds=? dtFocus=24 dtFrame=63 key=DPAD_RIGHT
+11-24 22:40:23.179 I/ForkFocus(31363): key=DPAD_RIGHT rep=13 t=88845541
+11-24 22:40:23.221 I/ForkFocus(31363): key=DPAD_RIGHT rep=14 t=88845591
+11-24 22:40:23.224 I/ForkFocus(31363): focus=Wolves Up Close with Bertie Gregory bounds=? dtFocus=20 dtFrame=58 key=DPAD_RIGHT
+11-24 22:40:23.259 I/ForkFocus(31363): focus=Jak obrabować bank bounds=[0,0][0,0] dtFocus=7 dtFrame=43 key=DPAD_RIGHT
+11-24 22:40:23.273 I/ForkFocus(31363): key=DPAD_RIGHT rep=15 t=88845642
+11-24 22:40:23.305 I/ForkFocus(31363): focus=Wolves Up Close with Bertie Gregory bounds=? dtFocus=13 dtFrame=38 key=DPAD_RIGHT
+11-24 22:40:23.328 I/ForkFocus(31363): key=DPAD_RIGHT rep=16 t=88845692
+11-24 22:40:23.386 I/ForkFocus(31363): key=DPAD_RIGHT rep=17 t=88845743
+11-24 22:40:23.393 I/ForkFocus(31363): focus=Jestem Rocky bounds=? dtFocus=22 dtFrame=75 key=DPAD_RIGHT
+11-24 22:40:23.410 I/ForkFocus(31363): focus=Wolves Up Close with Bertie Gregory bounds=[0,0][0,0] dtFocus=19 dtFrame=42 key=DPAD_RIGHT
+11-24 22:40:23.422 I/ForkFocus(31363): key=DPAD_RIGHT rep=18 t=88845793
+11-24 22:40:23.458 I/ForkFocus(31363): focus=Jestem Rocky bounds=? dtFocus=12 dtFrame=39 key=DPAD_RIGHT
+11-24 22:40:23.493 I/ForkFocus(31363): key=DPAD_RIGHT rep=19 t=88845844
+11-24 22:40:23.528 I/ForkFocus(31363): key=DPAD_RIGHT rep=20 t=88845895
+11-24 22:40:23.548 I/ForkFocus(31363): focus=Ramayana: Narodziny Legendy bounds=? dtFocus=32 dtFrame=78 key=DPAD_RIGHT
+11-24 22:40:23.557 I/ForkFocus(31363): focus=Jestem Rocky bounds=[0,0][0,0] dtFocus=10 dtFrame=36 key=DPAD_RIGHT
+11-24 22:40:23.585 I/ForkFocus(31363): key=DPAD_RIGHT rep=21 t=88845946
+11-24 22:40:23.616 I/ForkFocus(31363): focus=Ramayana: Narodziny Legendy bounds=? dtFocus=20 dtFrame=45 key=DPAD_RIGHT
+11-24 22:40:23.631 I/ForkFocus(31363): key=DPAD_RIGHT rep=22 t=88845996
+11-24 22:40:23.681 I/ForkFocus(31363): key=DPAD_RIGHT rep=23 t=88846047
+11-24 22:40:23.685 I/ForkFocus(31363): focus=O psie, który uratował święta bounds=? dtFocus=19 dtFrame=64 key=DPAD_RIGHT
+11-24 22:40:23.716 I/ForkFocus(31363): focus=Ramayana: Narodziny Legendy bounds=[0,0][0,0] dtFocus=11 dtFrame=43 key=DPAD_RIGHT
+11-24 22:40:23.727 I/ForkFocus(31363): key=DPAD_RIGHT rep=24 t=88846098
+11-24 22:40:23.771 I/ForkFocus(31363): focus=O psie, który uratował święta bounds=? dtFocus=11 dtFrame=48 key=DPAD_RIGHT
+11-24 22:40:23.783 I/ForkFocus(31363): key=DPAD_RIGHT rep=25 t=88846148
+11-24 22:40:23.828 I/ForkFocus(31363): key=DPAD_RIGHT rep=26 t=88846199
+11-24 22:40:23.832 I/ForkFocus(31363): focus=Godzilla Minus Zero bounds=? dtFocus=18 dtFrame=59 key=DPAD_RIGHT
+11-24 22:40:23.856 I/ForkFocus(31363): focus=O psie, który uratował święta bounds=[0,0][0,0] dtFocus=6 dtFrame=32 key=DPAD_RIGHT
+11-24 22:40:23.888 I/ForkFocus(31363): key=DPAD_RIGHT rep=27 t=88846250
+11-24 22:40:23.919 I/ForkFocus(31363): focus=Godzilla Minus Zero bounds=? dtFocus=17 dtFrame=43 key=DPAD_RIGHT
+11-24 22:40:23.937 I/ForkFocus(31363): key=DPAD_RIGHT rep=28 t=88846301
+11-24 22:40:23.964 I/ForkFocus(31363): focus=Historia Derry bounds=? dtFocus=17 dtFrame=38 key=DPAD_RIGHT
+11-24 22:40:23.978 I/ForkFocus(31363): key=DPAD_RIGHT rep=29 t=88846351
+11-24 22:40:24.017 I/ForkFocus(31363): focus=Godzilla Minus Zero bounds=? dtFocus=8 dtFrame=40 key=DPAD_RIGHT
+11-24 22:40:24.047 I/ForkFocus(31363): key=DPAD_RIGHT rep=30 t=88846402
+11-24 22:40:24.105 I/ForkFocus(31363): key=DPAD_RIGHT rep=31 t=88846453
+11-24 22:40:24.158 I/ForkFocus(31363): key=DPAD_RIGHT rep=32 t=88846504
+11-24 22:40:24.173 I/ForkFocus(31363): focus=Historia Derry bounds=? dtFocus=27 dtFrame=146 key=DPAD_RIGHT
+11-24 22:40:24.184 I/ForkFocus(31363): key=DPAD_RIGHT rep=33 t=88846554
+11-24 22:40:24.192 I/ForkFocus(31363): focus=Kurs kolizyjny bounds=? dtFocus=40 dtFrame=113 key=DPAD_RIGHT
+11-24 22:40:24.193 I/ForkFocus(31363): focus=Historia Derry bounds=? dtFocus=34 dtFrame=63 key=DPAD_RIGHT
+11-24 22:40:24.223 I/ForkFocus(31363): focus=Kurs kolizyjny bounds=? dtFocus=10 dtFrame=44 key=DPAD_RIGHT
+11-24 22:40:24.241 I/ForkFocus(31363): key=DPAD_RIGHT rep=34 t=88846605
+11-24 22:40:24.290 I/ForkFocus(31363): focus=Historia Derry bounds=? dtFocus=17 dtFrame=59 key=DPAD_RIGHT
+11-24 22:40:24.290 I/ForkFocus(31363): key=DPAD_RIGHT rep=35 t=88846656
+11-24 22:40:24.321 I/ForkFocus(31363): focus=Kurs kolizyjny bounds=? dtFocus=16 dtFrame=40 key=DPAD_RIGHT
+11-24 22:40:24.343 I/ForkFocus(31363): key=DPAD_RIGHT rep=36 t=88846707
+11-24 22:40:24.385 I/ForkFocus(31363): key=DPAD_RIGHT rep=37 t=88846757
+11-24 22:40:24.388 I/ForkFocus(31363): focus=Dziki Koń Dziewięć bounds=? dtFocus=20 dtFrame=56 key=DPAD_RIGHT
+11-24 22:40:24.421 I/ForkFocus(31363): focus=Kurs kolizyjny bounds=[0,0][0,0] dtFocus=5 dtFrame=38 key=DPAD_RIGHT
+11-24 22:40:24.441 I/ForkFocus(31363): key=DPAD_RIGHT rep=38 t=88846807
+11-24 22:40:24.487 I/ForkFocus(31363): focus=Dziki Koń Dziewięć bounds=? dtFocus=16 dtFrame=55 key=DPAD_RIGHT
+11-24 22:40:24.487 I/ForkFocus(31363): key=DPAD_RIGHT rep=39 t=88846858
+11-24 22:40:24.523 I/ForkFocus(31363): focus=Przebudzenie bounds=? dtFocus=13 dtFrame=40 key=DPAD_RIGHT
+11-24 22:40:24.542 I/ForkFocus(31363): key=DPAD_RIGHT rep=40 t=88846908
+11-24 22:40:24.568 I/ForkFocus(31363): focus=Dziki Koń Dziewięć bounds=? dtFocus=14 dtFrame=35 key=DPAD_RIGHT
+11-24 22:40:24.594 I/ForkFocus(31363): key=DPAD_RIGHT rep=41 t=88846959
+11-24 22:40:24.629 I/ForkFocus(31363): focus=Przebudzenie bounds=? dtFocus=18 dtFrame=44 key=DPAD_RIGHT
+11-24 22:40:24.637 I/ForkFocus(31363): key=DPAD_RIGHT rep=42 t=88847010
+11-24 22:40:24.666 I/ForkFocus(31363): focus=Dziki Koń Dziewięć bounds=? dtFocus=7 dtFrame=30 key=DPAD_RIGHT
+11-24 22:40:24.696 I/ForkFocus(31363): key=DPAD_RIGHT rep=43 t=88847061
+11-24 22:40:24.739 I/ForkFocus(31363): focus=Przebudzenie bounds=? dtFocus=17 dtFrame=53 key=DPAD_RIGHT
+11-24 22:40:24.740 I/ForkFocus(31363): key=DPAD_RIGHT rep=44 t=88847112
+11-24 22:40:24.768 I/ForkFocus(31363): focus=Ty, ja, my bounds=? dtFocus=10 dtFrame=31 key=DPAD_RIGHT
+11-24 22:40:24.791 I/ForkFocus(31363): key=DPAD_RIGHT rep=45 t=88847162
+11-24 22:40:24.824 I/ForkFocus(31363): focus=Przebudzenie bounds=? dtFocus=10 dtFrame=37 key=DPAD_RIGHT
+11-24 22:40:24.840 I/ForkFocus(31363): key=DPAD_RIGHT rep=46 t=88847213
+11-24 22:40:24.871 I/ForkFocus(31363): focus=Ty, ja, my bounds=? dtFocus=8 dtFrame=33 key=DPAD_RIGHT
+11-24 22:40:24.891 I/ForkFocus(31363): key=DPAD_RIGHT rep=47 t=88847264
+11-24 22:40:24.921 I/ForkFocus(31363): focus=Przebudzenie bounds=? dtFocus=7 dtFrame=32 key=DPAD_RIGHT
+11-24 22:40:24.945 I/ForkFocus(31363): key=DPAD_RIGHT rep=48 t=88847314
+11-24 22:40:24.986 I/ForkFocus(31363): focus=Ty, ja, my bounds=? dtFocus=13 dtFrame=47 key=DPAD_RIGHT
+11-24 22:40:24.998 I/ForkFocus(31363): key=DPAD_RIGHT rep=49 t=88847365
+11-24 22:40:25.044 I/ForkFocus(31363): focus=Zobacz wszystko: TMDB Popular bounds=? dtFocus=15 dtFrame=54 key=DPAD_RIGHT
+11-24 22:40:25.045 I/ForkFocus(31363): key=DPAD_RIGHT rep=50 t=88847416
+11-24 22:40:25.093 I/ForkFocus(31363): key=DPAD_RIGHT rep=51 t=88847466
+11-24 22:40:25.160 I/ForkFocus(31363): key=DPAD_RIGHT rep=52 t=88847517
+11-24 22:40:25.194 I/ForkFocus(31363): key=DPAD_RIGHT rep=53 t=88847567
+11-24 22:40:25.245 I/ForkFocus(31363): key=DPAD_RIGHT rep=54 t=88847618
+11-24 22:40:28.246 I/ForkFocus(31363): key=DPAD_RIGHT rep=0 t=88850616
+11-24 22:40:31.239 I/ForkFocus(31363): key=DPAD_LEFT rep=0 t=88853611
+11-24 22:40:31.259 I/ForkFocus(31363): focus=Ty, ja, my bounds=[1280,148][1540,538] dtFocus=4 dtFrame=22 key=DPAD_LEFT
+11-24 22:40:31.638 I/ForkFocus(31363): key=DPAD_LEFT rep=1 t=88854012
+11-24 22:40:31.658 I/ForkFocus(31363): focus=Przebudzenie bounds=[980,148][1240,538] dtFocus=2 dtFrame=21 key=DPAD_LEFT
+11-24 22:40:31.689 I/ForkFocus(31363): key=DPAD_LEFT rep=2 t=88854063
+11-24 22:40:31.716 I/ForkFocus(31363): focus=Dziki Koń Dziewięć bounds=[680,148][940,538] dtFocus=2 dtFrame=28 key=DPAD_LEFT
+11-24 22:40:31.740 I/ForkFocus(31363): key=DPAD_LEFT rep=3 t=88854113
+11-24 22:40:31.767 I/ForkFocus(31363): focus=Kurs kolizyjny bounds=[380,148][640,538] dtFocus=3 dtFrame=29 key=DPAD_LEFT
+11-24 22:40:31.790 I/ForkFocus(31363): key=DPAD_LEFT rep=4 t=88854163
+11-24 22:40:31.817 I/ForkFocus(31363): focus=Historia Derry bounds=[80,148][340,538] dtFocus=3 dtFrame=29 key=DPAD_LEFT
+11-24 22:40:31.841 I/ForkFocus(31363): key=DPAD_LEFT rep=5 t=88854214
+11-24 22:40:31.871 I/ForkFocus(31363): focus=Godzilla Minus Zero bounds=[0,148][40,538] dtFocus=3 dtFrame=31 key=DPAD_LEFT
+11-24 22:40:31.892 I/ForkFocus(31363): key=DPAD_LEFT rep=6 t=88854265
+11-24 22:40:31.925 I/ForkFocus(31363): focus=O psie, który uratował święta bounds=? dtFocus=10 dtFrame=35 key=DPAD_LEFT
+11-24 22:40:31.947 I/ForkFocus(31363): key=DPAD_LEFT rep=7 t=88854316
+11-24 22:40:31.995 I/ForkFocus(31363): focus=Ramayana: Narodziny Legendy bounds=? dtFocus=12 dtFrame=54 key=DPAD_LEFT
+11-24 22:40:31.997 I/ForkFocus(31363): key=DPAD_LEFT rep=8 t=88854366
+11-24 22:40:32.034 I/ForkFocus(31363): focus=Jestem Rocky bounds=? dtFocus=14 dtFrame=43 key=DPAD_LEFT
+11-24 22:40:32.047 I/ForkFocus(31363): key=DPAD_LEFT rep=9 t=88854417
+11-24 22:40:32.161 I/ForkFocus(31363): key=DPAD_LEFT rep=10 t=88854468
+11-24 22:40:32.170 I/ForkJank(31363): pominięte drobne/powtórzone przycięcia: 20
+11-24 22:40:32.196 I/ForkFocus(31363): key=DPAD_LEFT rep=11 t=88854518
+11-24 22:40:32.277 I/ForkFocus(31363): key=DPAD_LEFT rep=12 t=88854569
+11-24 22:40:32.343 I/ForkFocus(31363): key=DPAD_LEFT rep=13 t=88854634
+11-24 22:40:32.408 I/ForkFocus(31363): key=DPAD_LEFT rep=14 t=88854705
+11-24 22:40:32.480 I/ForkFocus(31363): key=DPAD_LEFT rep=15 t=88854771
+11-24 22:40:32.539 I/ForkFocus(31363): focus=Wolves Up Close with Bertie Gregory bounds=? dtFocus=80 dtFrame=446 key=DPAD_LEFT
+11-24 22:40:32.539 I/ForkFocus(31363): key=DPAD_LEFT rep=16 t=88854838
+11-24 22:40:32.626 I/ForkFocus(31363): key=DPAD_LEFT rep=17 t=88854910
+11-24 22:40:32.643 I/ForkFocus(31363): key=DPAD_LEFT rep=18 t=88854968
+11-24 22:40:32.658 I/ForkFocus(31363): key=DPAD_LEFT rep=19 t=88855019
+11-24 22:40:32.739 I/ForkFocus(31363): key=DPAD_LEFT rep=20 t=88855069
+11-24 22:40:32.799 I/ForkFocus(31363): key=DPAD_LEFT rep=21 t=88855120
+11-24 22:40:32.872 I/ForkFocus(31363): key=DPAD_LEFT rep=22 t=88855171
+11-24 22:40:32.930 I/ForkFocus(31363): focus=Jak obrabować bank bounds=? dtFocus=98 dtFrame=394 key=DPAD_LEFT
+11-24 22:40:32.930 I/ForkFocus(31363): key=DPAD_LEFT rep=23 t=88855229
+11-24 22:40:32.991 I/ForkFocus(31363): focus=Ebenezer Scrooge. Opowieść wigilijna bounds=? dtFocus=58 dtFrame=398 key=DPAD_LEFT
+11-24 22:40:32.991 I/ForkFocus(31363): key=DPAD_LEFT rep=24 t=88855299
+11-24 22:40:33.064 I/ForkFocus(31363): key=DPAD_LEFT rep=25 t=88855361
+11-24 22:40:33.168 I/ForkFocus(31363): key=DPAD_LEFT rep=26 t=88855425
+11-24 22:40:33.189 I/ForkFocus(31363): key=DPAD_LEFT rep=27 t=88855497
+11-24 22:40:33.203 I/ForkFocus(31363): key=DPAD_LEFT rep=28 t=88855552
+11-24 22:40:33.269 I/ForkFocus(31363): key=DPAD_LEFT rep=29 t=88855604
+11-24 22:40:33.358 I/ForkFocus(31363): key=DPAD_LEFT rep=30 t=88855655
+11-24 22:40:33.386 I/ForkFocus(31363): key=DPAD_LEFT rep=31 t=88855705
+11-24 22:40:33.461 I/ForkFocus(31363): key=DPAD_LEFT rep=32 t=88855756
+11-24 22:40:33.522 I/ForkFocus(31363): key=DPAD_LEFT rep=33 t=88855808
+11-24 22:40:33.622 I/ForkFocus(31363): key=DPAD_LEFT rep=34 t=88855883
+11-24 22:40:33.730 I/ForkFocus(31363): focus=Nie poddamy się bounds=? dtFocus=126 dtFrame=680 key=DPAD_LEFT
+11-24 22:40:33.731 I/ForkFocus(31363): key=DPAD_LEFT rep=35 t=88855943
+11-24 22:40:33.783 I/ForkFocus(31363): focus=Allen bounds=? dtFocus=76 dtFrame=660 key=DPAD_LEFT
+11-24 22:40:33.783 I/ForkFocus(31363): key=DPAD_LEFT rep=36 t=88856086
+11-24 22:40:33.829 I/ForkFocus(31363): key=DPAD_LEFT rep=37 t=88856151
+11-24 22:40:33.873 I/ForkFocus(31363): key=DPAD_LEFT rep=38 t=88856202
+11-24 22:40:33.926 I/ForkFocus(31363): key=DPAD_LEFT rep=39 t=88856253
+11-24 22:40:33.993 I/ForkFocus(31363): key=DPAD_LEFT rep=40 t=88856303
+11-24 22:40:34.046 I/ForkFocus(31363): key=DPAD_LEFT rep=41 t=88856354
+11-24 22:40:34.056 I/ForkFocus(31363): focus=Tylko na święta bounds=? dtFocus=92 dtFrame=776 key=DPAD_LEFT
+11-24 22:40:34.064 I/ForkFocus(31363): key=DPAD_LEFT rep=42 t=88856405
+11-24 22:40:34.100 I/ForkFocus(31363): key=DPAD_LEFT rep=43 t=88856456
+11-24 22:40:34.133 I/ForkFocus(31363): focus=Heartland bounds=? dtFocus=75 dtFrame=154 key=DPAD_LEFT
+11-24 22:40:34.133 I/ForkFocus(31363): focus=Madden bounds=? dtFocus=40 dtFrame=103 key=DPAD_LEFT
+11-24 22:40:34.134 I/ForkFocus(31363): key=DPAD_LEFT rep=44 t=88856507
+11-24 22:40:34.195 I/ForkFocus(31363): key=DPAD_LEFT rep=45 t=88856558
+11-24 22:40:34.240 I/ForkFocus(31363): key=DPAD_LEFT rep=46 t=88856609
+11-24 22:40:34.289 I/ForkFocus(31363): focus=Igrzyska śmierci: Wschód słońca w dniu dożynek bounds=? dtFocus=20 dtFrame=106 key=DPAD_LEFT
+11-24 22:40:34.295 I/ForkFocus(31363): key=DPAD_LEFT rep=47 t=88856659
+11-24 22:40:34.336 I/ForkFocus(31363): key=DPAD_LEFT rep=48 t=88856709
+11-24 22:40:34.348 I/ForkFocus(31363): focus=W te święta mam cię na oku bounds=? dtFocus=19 dtFrame=64 key=DPAD_LEFT
+11-24 22:40:34.390 I/ForkFocus(31363): key=DPAD_LEFT rep=49 t=88856759
+11-24 22:40:34.423 I/ForkFocus(31363): focus=Siostra Kopciuszka bounds=? dtFocus=14 dtFrame=39 key=DPAD_LEFT
+11-24 22:40:34.440 I/ForkFocus(31363): key=DPAD_LEFT rep=50 t=88856809
+11-24 22:40:34.488 I/ForkFocus(31363): key=DPAD_LEFT rep=51 t=88856860
+11-24 22:40:34.540 I/ForkFocus(31363): key=DPAD_LEFT rep=52 t=88856910
+11-24 22:40:34.589 I/ForkFocus(31363): key=DPAD_LEFT rep=53 t=88856960
+11-24 22:40:34.640 I/ForkFocus(31363): key=DPAD_LEFT rep=54 t=88857011
+11-24 22:40:34.688 I/ForkFocus(31363): key=DPAD_LEFT rep=55 t=88857061
+11-24 22:40:34.744 I/ForkFocus(31363): key=DPAD_LEFT rep=56 t=88857112
+11-24 22:40:34.791 I/ForkFocus(31363): key=DPAD_LEFT rep=57 t=88857163
+11-24 22:40:34.840 I/ForkFocus(31363): key=DPAD_LEFT rep=58 t=88857214
+11-24 22:40:34.891 I/ForkFocus(31363): key=DPAD_LEFT rep=59 t=88857265
+11-24 22:40:34.941 I/ForkFocus(31363): key=DPAD_LEFT rep=60 t=88857315
+11-24 22:40:34.991 I/ForkFocus(31363): key=DPAD_LEFT rep=61 t=88857365
+11-24 22:40:35.042 I/ForkFocus(31363): key=DPAD_LEFT rep=62 t=88857416
+11-24 22:40:35.092 I/ForkFocus(31363): key=DPAD_LEFT rep=63 t=88857466
+11-24 22:40:35.142 I/ForkFocus(31363): key=DPAD_LEFT rep=64 t=88857516
+11-24 22:40:35.193 I/ForkFocus(31363): key=DPAD_LEFT rep=65 t=88857566
+11-24 22:40:35.243 I/ForkFocus(31363): key=DPAD_LEFT rep=66 t=88857617
+11-24 22:40:35.293 I/ForkFocus(31363): key=DPAD_LEFT rep=67 t=88857667

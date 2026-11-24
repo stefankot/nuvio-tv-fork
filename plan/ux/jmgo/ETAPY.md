@@ -62,4 +62,4 @@ Pliki etapu: TYLKO `NiuniaHeroPage.kt`, `NiuniaPoster.kt` (ew. `niuniaFocusLook`
 3. `plan/ux/jmgo/PODSUMOWANIE.md` dla właściciela (prosto: co było wolne/mylące, co poprawiono, czasy przed/po, co zostało i
    dlaczego; trzy stany: napisane / zbudowane / sprawdzone na JMGO). Sekcja „NAJPIERW” w `plan/TERAZ.md` (3–5 wierszy).
 4. Commit + push, wiersz statusu.
-E1: ZROBIONE cb7675630 — uxj1 (md5 286737dd47baeac15ab74f502d74871a, zawiera E2 c0021653b) na JMGO: hero bez zasłoniętych warstw i plakat w warstwie sprzętowej, przytrzymana ► Janky 98 → 41–50 % (p50 69 → 14–17 ms), baner ▼ 93 → 45 %, ▼ 93 → 78 %; GPU teraz w klatce (mediana 10 ms), reszta zacięć to wątek UI; PSS 647–877 MB (grafika +6…19 MB) — `etap1-gpu.md`.
+E1: ZROBIONE cb7675630 — uxj1 (md5 286737dd47baeac15ab74f502d74871a, zawiera E2 c0021653b) na JMGO: hero bez zasłoniętych warstw i plakat w warstwie sprzętowej, przytrzymana ► Janky 98 → 41–50 % (p50 69 → 14–17 ms), baner ▼ 93 → 45 %, ▼ 93 → 78 %; GPU teraz w klatce (mediana 10 ms), reszta zacięć to wątek UI (ślad perfetto: rekompozycja p90 53 ms, układ 46 ms, klawisz/fokus 76 ms, GC); PSS 647–877 MB (grafika +6…19 MB) — `etap1-gpu.md`.

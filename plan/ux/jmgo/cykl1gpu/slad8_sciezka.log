@@ -1,0 +1,4 @@
+ForkFocus: jest
+[15:39:59] ścieżka 8: Przytrzymana ► 3 s w najdłuższym rzędzie, potem ◄ do początku [F4 F7 F9, gfxinfo]
+   → BŁĄD (41 s) UWAGA: F1 trasa home: fokus 3.9 s, stabilnie 3.9 s (budżet 0.6/3.0 s); dtFocus - / dtFrame 92 ms; firstFocus 408 ms; BŁĄD: klatki gfx przytrzymanie_h: Janky 51.81%, p95 57 ms, klatek 249
+koniec: 0.7 min, {'OK': 0, 'UWAGA': 0, 'BŁĄD': 1, 'POMINIĘTA': 0}, raport /Users/milajovovich/Desktop/nuvio 2/NuvioFork/plan/ux/jmgo/cykl1gpu-slad/sciezki.md
