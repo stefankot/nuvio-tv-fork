@@ -101,6 +101,10 @@ fun NiuniaHome(
     val posterOptions = com.nuvio.tv.skin.niunia.components.rememberNiuniaPosterOptions { id, type, url -> onNavigateToDetail(id, type, url) }
     // UX 22.11: długie OK na „Oglądaj dalej” = menu bazy (szczegóły, od początku, wybierz źródło, obejrzane, usuń).
     var cwMenu by remember { mutableStateOf<ContinueWatchingItem?>(null) }
+    // Właściciel 24.11 („na ekranie głównym nie da się otworzyć filmów z YouTube — wyskakuje błąd”): pozycje „Oglądaj dalej”
+    // z YouTube (id youtube:…) szły ścieżką filmów i seriali bazy (sprawdzenie źródeł z dodatków → „niedostępne”) — teraz
+    // otwierają odtwarzacz YouTube przez ekran YouTube Niuni (ForgeYouTubeLaunch), jak film wybrany na tym ekranie.
+    val playCw: (ContinueWatchingItem) -> Unit = { cw -> if (!niuniaOpenYouTubeCw(cw)) onContinueWatchingClick(cw) }
     // Z-12: karta tytułu (rząd + indeks klikniętego plakatu); przełącznik niunia_title_card (domyślnie włączony).
     var pager by remember { mutableStateOf<Pair<com.nuvio.tv.domain.model.CatalogRow, Int>?>(null) }
     val titleCard = remember { com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(context, "niunia_title_card", true) }
@@ -149,7 +153,7 @@ fun NiuniaHome(
                                     val k = "cw:" + cwKey(cw)
                                     ContinueCard(cw, modifier = restoreModifier(k, restoreFocus), onFocus = { if (it) { focusedRow = -2; rememberFocus(k, 0, i) } },
                                         onLongOk = if (cwActions != null) ({ Log.i(TAG, "rzędy: długie OK → opcje „Oglądaj dalej” ${niuniaCwContentId(cw)}"); cwMenu = cw }) else null,
-                                        onOk = { Log.i(TAG, "rzędy: Oglądaj dalej → ${niuniaCwContentId(cw)}"); onContinueWatchingClick(cw) })
+                                        onOk = { Log.i(TAG, "rzędy: Oglądaj dalej → ${niuniaCwContentId(cw)}"); playCw(cw) })
                                 }
                             }
                         }
@@ -225,7 +229,7 @@ fun NiuniaHome(
             actions = listOfNotNull(
                 com.nuvio.tv.skin.niunia.components.NiuniaDialogAction(
                     if (resumeMs != null) ctx.getString(R.string.niunia_ke_resume_at, niuniaClock(resumeMs)) else ctx.getString(R.string.niunia_ke_play), icon = "play",
-                ) { close("wznów", onContinueWatchingClick) },
+                ) { close("wznów", playCw) },
                 if (resumeMs != null) com.nuvio.tv.skin.niunia.components.NiuniaDialogAction(ctx.getString(R.string.niunia_ke_from_start), icon = "restart") { close("od początku", cwActions.fromStart) } else null,
                 if (cwActions.showManual) com.nuvio.tv.skin.niunia.components.NiuniaDialogAction(ctx.getString(R.string.niunia_ke_choose_source), icon = "playlist-add", chevron = true) { close("wybierz źródło", cwActions.playManually) } else null,
                 com.nuvio.tv.skin.niunia.components.NiuniaDialogAction(ctx.getString(if (series) R.string.niunia_ke_details_series else R.string.niunia_ke_details_movie), icon = "info", chevron = true) {
@@ -284,7 +288,7 @@ fun NiuniaHome(
                 onPlay = {
                     // Odtwórz: tytuł z „Oglądaj dalej” wznawia się od razu; inny — strona tytułu z fokusem na Odtwórz (bez nowego wpięcia, plan/DECYZJE.md).
                     val cw = uiState.continueWatchingItems.firstOrNull { c -> niuniaCwContentId(c) == hero.id }
-                    if (cw != null) { Log.i(TAG, "ekran główny: Odtwórz → wznów ${hero.id}"); onContinueWatchingClick(cw) } else open()
+                    if (cw != null) { Log.i(TAG, "ekran główny: Odtwórz → wznów ${hero.id}"); playCw(cw) } else open()
                 },
                 onOpen = open,
                 onLibrary = { Log.i(TAG, "ekran główny: biblioteka ${hero.id}"); onToggleLibrary(hero, addon) },
@@ -307,6 +311,24 @@ private fun cwKey(cw: ContinueWatchingItem): String = when (cw) {
 @Composable
 private fun RowTitle(text: String, on: Boolean, first: Boolean = false) {
     NiuniaCollectionHeader(text, active = on, modifier = Modifier.padding(start = NiuniaSpacing.Space40, top = if (first) NiuniaSpace.TopAfterHero else 0.dp).height(22.dp))
+}
+
+/** Film z YouTube z „Oglądaj dalej” → ekran YouTube Niuni odtwarza go od razu (wznowienie z YouTubeProgress). false = to nie YouTube. */
+private fun niuniaOpenYouTubeCw(cw: ContinueWatchingItem): Boolean {
+    val id = niuniaCwContentId(cw)
+    if (!com.nuvio.tv.youtube.YouTubeProgress.isYouTubeId(id)) return false
+    val videoId = id.removePrefix(com.nuvio.tv.youtube.YouTubeProgress.ID_PREFIX).takeIf { it.isNotBlank() } ?: return false
+    val go = com.nuvio.tv.ui.screens.settings.ForkFeatures.open ?: run { Log.w(TAG, "„Oglądaj dalej”: YouTube $videoId — brak nawigatora"); return false }
+    val m = niuniaContinueModel(cw)
+    val item = com.nuvio.tv.youtube.YtItem(
+        kind = com.nuvio.tv.youtube.YtKind.VIDEO, videoId = videoId, title = m.title, author = null, thumbnail = m.image, badge = null,
+        isLive = false, channelId = null, percentWatched = 0,
+        source = com.liskovsoft.youtubeapi.service.data.YouTubeMediaItem.fromIds(videoId, null),
+    )
+    Log.i(TAG, "„Oglądaj dalej”: YouTube $videoId → odtwarzacz YouTube")
+    com.nuvio.tv.skin.kicia.youtube.ForgeYouTubeLaunch.ask(item)
+    go(com.nuvio.tv.ui.navigation.Screen.YouTube.route)
+    return true
 }
 
 private fun niuniaCwContentId(cw: ContinueWatchingItem): String = when (cw) {
