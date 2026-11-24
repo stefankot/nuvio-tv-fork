@@ -1419,7 +1419,7 @@ def _(p):
 
 # ------------------------------------------------------------------ przebieg
 def wait_free():
-    r = subprocess.run(["bash", os.path.join(ROOT, "fork-tools", "test", "jmgo_czekaj_wolny.sh"), "10", "180"], capture_output=True, text=True)
+    r = subprocess.run(["bash", os.path.join(ROOT, "fork-tools", "test", "jmgo_czekaj_wolny.sh"), "1", "180"], capture_output=True, text=True)
     print(r.stdout.strip(), flush=True)
     return r.returncode == 0
 

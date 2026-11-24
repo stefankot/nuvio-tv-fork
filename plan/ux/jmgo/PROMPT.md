@@ -21,7 +21,7 @@ Zostawiasz po sobie: 50 ścieżek jako powtarzalny skrypt, testy jednostkowe (JV
 ## JMGO: bezpieczeństwo (twarde)
 
 - `adb connect 192.168.31.252:5555`, `export ANDROID_SERIAL=192.168.31.252:5555`. Android 11, armeabi-v7a, 1920×1080 px przy 320 dpi, czyli **1 dp = 2 px** (scena 960×540 dp).
-- Projektor należy do domowników. Przed każdą pętlą `bash fork-tools/test/jmgo_czekaj_wolny.sh 10 180`. Przed każdą ścieżką sprawdź, czy na wierzchu jest `com.nuviodebug.com` na oczekiwanym ekranie; dwa razy z rzędu coś innego = ktoś używa TV → przerwij, czekaj na „WOLNY”.
+- Projektor należy do domowników. Przed każdą pętlą `bash fork-tools/test/jmgo_czekaj_wolny.sh 1 180`. Przed każdą ścieżką sprawdź, czy na wierzchu jest `com.nuviodebug.com` na oczekiwanym ekranie; dwa razy z rzędu coś innego = ktoś używa TV → przerwij, czekaj na „WOLNY”.
 - Tylko `com.nuviodebug.com`. Nigdy `pm clear`, `pm uninstall`, kasowanie danych. Ustawienia systemu wolno zmieniać, gdy przyspiesza to pracę (ZASADY §5, 24.11). Profil właściciela zostaje zalogowany.
 - Nie wpisuj PIN-u, kluczy, haseł. Nie uruchamiaj tłumaczenia napisów AI (to płatne). Odtwarzanie najwyżej ok. 10 s na ścieżkę, potem Wstecz.
 - Każdą zmianę ustawień w ścieżce cofnij w tej samej ścieżce (przełącznik ×2, ulubione tak → nie). Nie ukrywaj kanałów na stałe.

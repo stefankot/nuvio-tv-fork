@@ -5,7 +5,7 @@ set -u
 R="$(cd "$(dirname "$0")/../.." && pwd)"; N=${1:?numer pętli}; shift
 O="$R/plan/ux/jmgo/cykl$N"; mkdir -p "$O"
 eval "$(bash "$R/fork-tools/test/jmgo_adb.sh" --env)"
-bash "$R/fork-tools/test/jmgo_czekaj_wolny.sh" 10 180 || { echo "JMGO zajęty"; exit 3; }
+bash "$R/fork-tools/test/jmgo_czekaj_wolny.sh" 1 180 || { echo "JMGO zajęty"; exit 3; }
 echo "[$(date +%H:%M)] pętla $N: start"
 bash "$R/fork-tools/uitest/perf_jmgo.sh" starty "$O" 10
 bash "$R/fork-tools/uitest/perf_jmgo.sh" pamiec "$O" "po startach"

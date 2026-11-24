@@ -138,3 +138,4 @@ Wykonawca nie pyta właściciela. Korzysta z tej listy. Właściciel może zmien
 - 24.11 (UX JMGO E1) Perfetto na JMGO niedostępny (`persist.traced.enable=0`, włączenie = zmiana ustawień systemu) → zamiast śladu `dumpsys gfxinfo … framestats` i `fork-tools/uitest/framestats_faza.py` (fazy UI / RenderThread / GPU).
 - 24.11 (UX JMGO E1) Właściciel: „włącz” usługę śledzenia na JMGO — `persist.traced.enable=1` (zostaje włączona); poprzedni wpis o niedostępnym perfetto nieaktualny. Ślad czytany własnym `perfetto_plasterki.py` (bez pobierania trace_processor).
 - 24.11 (właściciel) Usunięty zakaz zmian ustawień systemu na JMGO (PROMPT UX JMGO, komentarze skryptów); zasada nadrzędna w ZASADY §5: ustawienia urządzeń testowych zmieniamy tak, żeby praca była wydajna — usługa śledzenia na JMGO zostaje włączona.
+- 24.11 (właściciel) JMGO „wolny” już po 1 min spoczynku pilota (było 10 min): `jmgo_czekaj_wolny.sh` domyślnie 1, `petla_jmgo.sh`, `sciezki_jmgo.py`, PROMPT UX JMGO.
