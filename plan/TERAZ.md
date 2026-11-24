@@ -6,7 +6,7 @@ Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcj
 ## NAJPIERW (24.11 — scalenie wczorajszych zmian i wspólny build `scal1124`)
 - Na polecenie właściciela („scal wszystkie poprawki z wczoraj, także zmiany w interfejsie”): niezacommitowane zmiany interfejsu z `wt-niunia-ke` (ke4: Z-1…Z-23, stan `plan/niunia-ke/ODDANIE-ke4.md`) zacommitowane w `niunia-ke` (0f42f7c4d) i scalone do `skin-niunia` (2bf887aaa; konflikt tylko `hooks.tsv`, `check.sh` 64/65). Pozostałe wczorajsze wątki (IPTV, napisy AI, ustawienia ust4) były już w `skin-niunia`.
 - NIE scalone: próba Liquid Glass (`wt-liquid-glass`, niezacommitowana) — wstrzymana przez właściciela, sprzeczna z ZASADY §2 do jego decyzji.
-- Build `scal1124` v7a: BUILD SUCCESSFUL 8 min 44 s, `.stage/apk/scal1124-v7a.apk`, md5 e6b431ba654566d62dcbfeaa3dd689a0. Instalacja 24.11 ~16:35 wstrzymana (ktoś oglądał) — czeka `jmgo_czekaj_wolny.sh 10 240`, potem `jmgo_instaluj.sh`. Nietestowany.
+- Build `scal1124` v7a: BUILD SUCCESSFUL 8 min 44 s, `.stage/apk/scal1124-v7a.apk`, md5 e6b431ba654566d62dcbfeaa3dd689a0. ZAINSTALOWANY na JMGO 24.11 na polecenie właściciela („zainstaluj”): md5 zgodny, `compile -m speed`, aplikacja uruchomiona. Nietestowany (lista testu: `plan/niunia-ke/ODDANIE-ke4.md` „Test ke4”).
 
 ## NAJPIERW (23.11 ~18:10 — wątek IPTV: nowy silnik przewodnika z NuvioPlusIPTV) — PROMPT HANDOFF
 Prompt (wklej w nowym wątku albo napisz „kontynuuj”):
