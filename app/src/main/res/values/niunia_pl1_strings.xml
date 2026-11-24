@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Niunia, odtwarzacz (24.11, Z-14): wczytywanie, błąd, Zmień źródło, następny odcinek. -->
+<resources>
+    <string name="niunia_pl1_buffering">Buforuję…</string>
+    <string name="niunia_pl1_buffering_pct">Buforuję… %1$d%%</string>
+    <string name="niunia_pl1_other_source">Inne źródło</string>
+    <string name="niunia_pl1_cancel">Anuluj</string>
+    <string name="niunia_pl1_err_title">Nie udało się odtworzyć</string>
+    <string name="niunia_pl1_err_expired">Link do tego źródła wygasł. Inne źródło zwykle działa od razu.</string>
+    <string name="niunia_pl1_err_gone">Tego pliku już nie ma u dostawcy. Wybierz inne źródło.</string>
+    <string name="niunia_pl1_err_network">Źródło nie odpowiada. Sprawdź internet albo wybierz inne źródło.</string>
+    <string name="niunia_pl1_err_format">Ten telewizor nie umie odtworzyć tego pliku. Inne źródło albo odtwarzacz MPV zwykle pomaga.</string>
+    <string name="niunia_pl1_err_generic">Odtwarzacz przerwał to źródło. Inne źródło zwykle działa.</string>
+    <string name="niunia_pl1_mpv">Odtwarzacz MPV</string>
+    <string name="niunia_pl1_back">Wróć</string>
+    <string name="niunia_pl1_sources_title">Zmień źródło</string>
+    <string name="niunia_pl1_all_count">Wszystkie · %1$d</string>
+    <string name="niunia_pl1_sources_loading">Szukam źródeł…</string>
+    <string name="niunia_pl1_sources_none">Brak źródeł</string>
+    <string name="niunia_pl1_playing_now">teraz odtwarzane</string>
+    <string name="niunia_pl1_next">Następny odcinek</string>
+    <string name="niunia_pl1_next_in">Następny odcinek za %1$d s</string>
+    <string name="niunia_pl1_next_searching">Szukam źródła następnego odcinka…</string>
+    <string name="niunia_pl1_next_unaired">Ten odcinek jeszcze się nie ukazał.</string>
+    <string name="niunia_pl1_next_play">Odtwórz następny</string>
+    <string name="niunia_pl1_next_credits">Oglądaj napisy końcowe</string>
+</resources>

@@ -145,3 +145,7 @@ app/build.gradle.kts	// Fork hook: glass (szkło, API 33+)	haze-android	glass	za
 app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	ForkHooks.screensWrap { // Fork hook: glass	PlaybackNavHost(	glass	manager szkła i warstwa treści ekranów (dawniej intro Echo)
 app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	} // Fork hook: glass (koniec warstwy)	PlaybackNavHost(	glass	koniec warstwy szkła
 app/src/main/java/com/nuvio/tv/ui/components/NuvioDialog.kt	ForkGlass.dialogSurface(containerShape)) // Fork hook: glass	.then(backgroundModifier)	glass	szkło wspólnego okna bazy
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	Fork hook: skin (Z-14 PlayerLoading)	LoadingOverlay(	skin	skin: ekran wczytywania	
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	Fork hook: skin (Z-14 PlayerError)	// Error state	skin	skin: ekran błędu odtwarzania	
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	Fork hook: skin (Z-14 PlayerSources)	StreamSourcesSidePanel(	skin	skin: panel Zmień źródło	
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	Fork hook: skin (Z-14 PlayerNext)	PostPlayOverlay(	skin	skin: karta następnego odcinka	

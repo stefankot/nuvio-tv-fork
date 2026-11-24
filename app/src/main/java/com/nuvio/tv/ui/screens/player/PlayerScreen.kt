@@ -1385,6 +1385,7 @@ fun PlayerScreen(
             )
         }
 
+        if (com.nuvio.tv.fork.ForkHooks.skinPlayerOverlay("loading", uiState, mapOf("visible" to ((uiState.showLoadingOverlay || uiState.showEpisodeAutoPlayLoadingOverlay) && uiState.error == null && !postPlayRecommendationState.isVisible), "onEvent" to { e: PlayerEvent -> viewModel.onEvent(e) }, "exit" to exitPlayer))) Unit else // Fork hook: skin (Z-14 PlayerLoading)
         LoadingOverlay(
             visible = (uiState.showLoadingOverlay || uiState.showEpisodeAutoPlayLoadingOverlay) &&
                 uiState.error == null && !postPlayRecommendationState.isVisible,
@@ -1498,6 +1499,7 @@ fun PlayerScreen(
         )
 
         // Error state
+        if (com.nuvio.tv.fork.ForkHooks.skinPlayerOverlay("error", uiState, mapOf("onEvent" to { e: PlayerEvent -> viewModel.onEvent(e) }, "exit" to exitPlayerFromError))) Unit else // Fork hook: skin (Z-14 PlayerError)
         if (uiState.error != null) {
             ErrorOverlay(
                 message = uiState.error!!,
@@ -1578,6 +1580,7 @@ fun PlayerScreen(
                 .then(playerControlsDim)
                 .reportSubtitleClearance(subtitleClearanceGapPx) { skipClearancePx = it }
         )
+        if (com.nuvio.tv.fork.ForkHooks.skinPlayerOverlay("next", uiState, mapOf("onEvent" to { e: PlayerEvent -> viewModel.onEvent(e) }, "mode" to postPlayOverlayMode, "focus" to nextEpisodeFocusRequester))) Unit else // Fork hook: skin (Z-14 PlayerNext)
         PostPlayOverlay(
             mode = postPlayOverlayMode,
             controlsVisible = uiState.showControls,
@@ -1991,6 +1994,7 @@ fun PlayerScreen(
             modifier = playerControlsDim
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
+                if (com.nuvio.tv.fork.ForkHooks.skinPlayerOverlay("sources", uiState, mapOf("onEvent" to { e: PlayerEvent -> viewModel.onEvent(e) }, "focus" to sourceStreamsFocusRequester, "filename" to viewModel.playerStreamFilename(), "exit" to exitPlayer))) Unit else // Fork hook: skin (Z-14 PlayerSources)
                 StreamSourcesSidePanel(
                     uiState = uiState,
                     currentFilename = viewModel.playerStreamFilename(),

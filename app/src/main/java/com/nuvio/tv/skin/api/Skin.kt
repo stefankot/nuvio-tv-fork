@@ -24,4 +24,8 @@ interface Skin {
     /** Zegar odtwarzacza zamiast zegara Nuvio (zawsze widoczny, także przy schowanej nakładce) i komunikaty bez fokusu. true = narysowano. */
     @Composable
     fun PlayerClock(uiState: PlayerUiState): Boolean = false
+
+    /** Z-14: nakładki odtwarzacza ("loading", "error", "sources", "next") zamiast nakładek bazy. true = narysowano. */
+    @Composable
+    fun PlayerOverlay(kind: String, uiState: PlayerUiState, args: Map<String, Any?>): Boolean = false
 }

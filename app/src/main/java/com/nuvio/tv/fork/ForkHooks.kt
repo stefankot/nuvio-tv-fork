@@ -80,6 +80,13 @@ object ForkHooks {
         return skin.PlayerClock(uiState)
     }
 
+    /** PlayerScreen (Z-14): true = aktywny skin narysował nakładkę [kind] ("loading", "error", "sources", "next") zamiast bazy. */
+    @Composable
+    fun skinPlayerOverlay(kind: String, uiState: PlayerUiState, args: Map<String, Any?>): Boolean {
+        val skin = SkinRegistry.skinFor(rememberSkinId()) ?: return false
+        return skin.PlayerOverlay(kind, uiState, args)
+    }
+
     /** PlayerScreen: true = aktywny skin narysował nakładkę (sterowanie i panele) odtwarzacza. */
     @Composable
     fun skinPlayerChrome(uiState: PlayerUiState, args: Map<String, Any?> = emptyMap(), onEvent: (PlayerEvent) -> Unit): Boolean {

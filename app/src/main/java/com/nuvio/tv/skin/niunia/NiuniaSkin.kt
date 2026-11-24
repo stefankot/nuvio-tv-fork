@@ -109,6 +109,11 @@ object NiuniaSkin : Skin {
         )
     }
 
+    /** Z-14: wczytywanie, błąd, „Zmień źródło” i następny odcinek w stylu Niuni (skin/niunia/player/NiuniaPlayerOverlays.kt). */
+    @androidx.compose.runtime.Composable
+    override fun PlayerOverlay(kind: String, uiState: com.nuvio.tv.ui.screens.player.PlayerUiState, args: Map<String, Any?>): Boolean =
+        com.nuvio.tv.skin.niunia.player.niuniaPlayerOverlay(kind, uiState, args)
+
     /** Z-15: zegar Niuni w każdym odtwarzaczu (film, serial, YouTube, Live TV), także przy schowanej nakładce. */
     @androidx.compose.runtime.Composable
     override fun PlayerClock(uiState: com.nuvio.tv.ui.screens.player.PlayerUiState): Boolean {
