@@ -163,7 +163,7 @@ internal fun NiuniaLiveOptionsPanel(
                         when {
                             !NiuniaGuideChoice.isManual(channel) -> ctx.getString(R.string.niunia_tv1_guide_auto)
                             NiuniaGuideChoice.keyFor(channel).isEmpty() -> ctx.getString(R.string.niunia_tv1_guide_none)
-                            else -> allChannels.firstOrNull { it.guideKey == NiuniaGuideChoice.keyFor(channel) }?.let { ChannelNames.shown(it.name) } ?: NiuniaGuideChoice.keyFor(channel)
+                            else -> allChannels.firstOrNull { it.guideKey == NiuniaGuideChoice.keyFor(channel) }?.name?.trim()?.take(60) ?: NiuniaGuideChoice.keyFor(channel)
                         }
                     }
                     NiuniaListRow(stringResource(R.string.niunia_tv1_guide_pick), supporting = stringResource(R.string.niunia_tv1_guide_now, guideNow), trailing = NiuniaTrailing.Chevron,
