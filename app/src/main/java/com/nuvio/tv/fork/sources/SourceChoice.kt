@@ -56,6 +56,16 @@ object SourceChoice {
     }
 
     /** B04-9: napisy dla seniorów: rozmiar, półprzezroczyste tło, obrys. */
+    /**
+     * UX JMGO (ręczne testy 24.11): bieżący rozmiar napisów z ustawień odtwarzacza (drzewo ustawień pokazywało „—”, dopóki
+     * rozmiaru nie wybrano w nim samym). Domyślne 100 % = „Średnie”.
+     */
+    suspend fun subtitleSizeChoice(c: Context): SubtitleSizeChoice {
+        val store = EntryPointAccessors.fromApplication(c.applicationContext, Deps::class.java).player()
+        val size = store.playerSettings.first().subtitleStyle.size
+        return if (size in 95..140) SubtitleSizeChoice.MEDIUM else SubtitleSizeChoice.fromSize(size)
+    }
+
     suspend fun applySubtitleSize(c: Context, choice: SubtitleSizeChoice) {
         val store = EntryPointAccessors.fromApplication(c.applicationContext, Deps::class.java).player()
         store.setSubtitleSize(choice.sizePercent)

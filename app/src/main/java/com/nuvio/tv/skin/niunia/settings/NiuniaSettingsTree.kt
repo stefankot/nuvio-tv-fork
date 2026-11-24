@@ -102,6 +102,15 @@ fun NiuniaSettingsTree(navigate: (String) -> Unit) {
     val levelChanges by SimpleLevel.changes.collectAsState()
     var rev by remember { mutableIntStateOf(0) }
     var treeRev by remember { mutableIntStateOf(0) }
+    // UX JMGO (ręczne testy 24.11): „Rozmiar napisów” pokazywał „—”, dopóki nie wybrano go tutaj — odczyt z odtwarzacza.
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        if ((ForkFeatures.str(c, "tree_subtitle_size", "-1").toIntOrNull() ?: -1) >= 0) return@LaunchedEffect
+        try {
+            val ch = com.nuvio.tv.fork.sources.SourceChoice.subtitleSizeChoice(c)
+            ForkFeatures.setStr(c, "tree_subtitle_size", com.nuvio.tv.fork.sources.SubtitleSizeChoice.entries.indexOf(ch).toString())
+            Log.i(TAG, "rozmiar napisów z odtwarzacza: ${ch.title}"); rev++
+        } catch (e: Exception) { Log.w(TAG, "rozmiar napisów z odtwarzacza: ${e.javaClass.simpleName}: ${e.message}") }
+    }
     val visibleCats = remember(primary, party) { visibleSettingsCategories(primary, false, BuildConfig.IS_DEBUG_BUILD, party).map { it.name }.toSet() }
     val full = remember(visibleCats, treeRev) { SettingsTreeRuntime.tree(c, visibleCats) }
     var showFull by rememberSaveable { mutableStateOf(false) } // wynik szukania spoza trybu prostego: pełne drzewo na tę wizytę
