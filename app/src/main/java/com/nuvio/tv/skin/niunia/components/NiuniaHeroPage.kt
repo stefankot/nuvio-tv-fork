@@ -74,8 +74,11 @@ fun NiuniaHeroPage(
     scrim: (@Composable BoxScope.() -> Unit)? = null,
     /** Z-2 (hero szczegółów): na API 31+ lewa część obrazu rozmyta (`blur-detail` 36, maska `mask-detail`: pełne do 32 %, zanika do 64 %). */
     detailBlur: Boolean = false,
+    /** UX JMGO (ręczne testy 24.11): strona pod hero na wierzchu (true) / hero (false) — Główna chowa wtedy pigułkę menu. */
+    onDown: ((Boolean) -> Unit)? = null,
 ) {
     var down by remember { mutableStateOf(false) }
+    if (onDown != null) androidx.compose.runtime.LaunchedEffect(down) { onDown(down) }
     val belowFocus = belowFocusRequester ?: remember { FocusRequester() }
     val t by animateFloatAsState(if (down) 1f else 0f, tween(520, easing = FastOutSlowInEasing), label = "niuniaHeroPage")
     val blurOk = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S

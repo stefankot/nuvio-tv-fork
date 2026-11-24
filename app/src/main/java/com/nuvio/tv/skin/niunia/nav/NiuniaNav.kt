@@ -83,6 +83,12 @@ object NiuniaContentFocus {
     var requester: FocusRequester? = null
 }
 
+/** Stan ekranów Niuni ważny dla paska menu (UX JMGO 24.11). */
+object NiuniaNavChrome {
+    /** Główna: strona pod hero (rzędy) na wierzchu — pigułka menu schowana, żeby nie zasłaniała tytułu rzędu. */
+    val homeRows = androidx.compose.runtime.mutableStateOf(false)
+}
+
 /** Przejście do zakładki menu z ekranu Niuni (np. pusta biblioteka → Główna); ustawia [NiuniaNavBar]. */
 object NiuniaNavActions {
     @Volatile var openRoute: ((String) -> Boolean)? = null
@@ -126,7 +132,10 @@ internal fun NiuniaNavBar(
 ) {
     val open = state.hasFocus
     val openFraction by animateFloatAsState(if (open) 1f else 0f, tween(220), label = "niuniaNavOpen")
-    val pillAlpha by animateFloatAsState(if (open || hidden) 0f else 1f, tween(200), label = "niuniaNavPill")
+    // UX JMGO (ręczne testy 24.11): Główna wracała od razu w rzędach (po odtwarzaczu, profilu) z widoczną pigułką na tytule
+    // „Oglądaj dalej” — pigułka chowa się, dopóki Główna jest pod hero (nie tylko po ▼).
+    val homeRows = NiuniaNavChrome.homeRows.value && entries.firstOrNull { it.route == "home" }?.key == selectedKey
+    val pillAlpha by animateFloatAsState(if (open || hidden || homeRows) 0f else 1f, tween(200), label = "niuniaNavPill")
     // Kolejność panelu jak w projekcie: profil, potem zakładki (Szukaj, Główna, …), na końcu Ustawienia.
     val profile = entries.firstOrNull { it.kind == PillNavEntryKind.Profile }
     val items = entries.filter { it.kind != PillNavEntryKind.Profile }

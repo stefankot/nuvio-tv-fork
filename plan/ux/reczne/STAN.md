@@ -45,3 +45,19 @@ Sprawdzone na `uxr1`: kolejność wyników Szukaj „dun” (Dunkirk, Dune, Dung
 Uwagi: plakaty wyników Szukaj szare — serwer obrazków odpowiada HTTP 410 (dodatek); „Polska” w Live TV = kanały z polskiej listy dostawcy (są tam też RT, CNBC).
 - `uxr2`: commit 0699da986, BUILD SUCCESSFUL 11 min 55 s, `.stage/apk/uxr2-v7a.apk`.
 - R3: commit 77445a42f (+ rozmiar napisów, niezacommitowane w chwili zapisu).
+
+## Pętla 3 (testy na `uxr2` od 19:47; build `uxr3` od 19:47)
+Sprawdzone na `uxr2` ✔: „Odtwórz S1, E1”; opis bez „[1]”; odcinki bez „Episode 2” (70); YouTube ◄ z szyny → menu (log); kafelki Live TV bez RT/CNBC (73); ciemne tło „CNBC nie odpowiada” (74). ✘: Biblioteka nadal fokus na „Wszystko” (68) — przyczyna niżej (22).
+
+| # | Znalezisko (zrzut) | Stan |
+|---|---|---|
+| 22 | Biblioteka: przez ~1 s ekran „pusta” z fokusem na „Przeglądaj”, po wczytaniu fokus spada na „Wszystko” (68, log) | R4: w czasie wczytywania samo tło; fokus startowy na 1. plakat |
+| 23 | Biblioteka: ◄ z 1. plakatu nic nie robi | R4: ◄ przy krawędzi = menu (onKeyEvent, bez panelu) |
+| 24 | Strona tytułu: „S1, E1 · Odcinek 1:” w opisie | R4: bez zastępczego tytułu |
+| 25 | Live TV po starcie: „Te kanały nie mają programu TV…”, gdy program się wczytuje (72) | R4: podpowiedź po 20 s bez programu |
+| 26 | Profile: dwa „Stef+Patryk (K…” nie do odróżnienia (75) | R4: imię w 2 liniach |
+| 27 | „Usuń z »Oglądaj dalej«” bez ikony | R4: ikona „close” (x) |
+| 28 | Po odtwarzaczu Główna w rzędach z pigułką „Główna” na tytule rzędu (79) | R5: pigułka schowana, gdy Główna pod hero (`NiuniaNavChrome.homeRows`) |
+| 29 | Po odtwarzaczu obejrzany tytuł na początku rzędu, rząd przewinięty — fokus na niewidocznej karcie, ◄ nic nie robi (79–80) | R5: rząd przewija się na początek |
+
+Nie ruszam: „Finding stream source” po angielsku (zasada: bez tłumaczeń); chwilowa nakładka „Odświeżanie/Rozdzielczość” na zegarze w odtwarzaczu (kod bazy, kilka sekund).

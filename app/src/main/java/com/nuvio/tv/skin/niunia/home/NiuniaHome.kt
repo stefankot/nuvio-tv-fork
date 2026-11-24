@@ -191,6 +191,7 @@ fun NiuniaHome(
         r.rawType == "series" -> context.getString(R.string.niunia_ux_row_series, r.catalogName)
         else -> r.catalogName
     }
+    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { com.nuvio.tv.skin.niunia.nav.NiuniaNavChrome.homeRows.value = false } }
     val rowsFailed = !uiState.isLoading && uiState.continueWatchingItems.isNotEmpty() && uiState.catalogRows.all { it.items.isEmpty() }
     LaunchedEffect(rowsFailed) {
         if (!rowsFailed) return@LaunchedEffect
@@ -214,6 +215,14 @@ fun NiuniaHome(
                         RowTitle(stringResource(R.string.niunia_row_continue), on = focusedRow == -2, first = top)
                         com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
                             val st = androidx.compose.foundation.lazy.rememberLazyListState(initialFirstVisibleItemIndex = initialIndex("cw:"))
+                            // UX JMGO (ręczne testy 24.11): po obejrzeniu tytuł wskakuje na początek rzędu, a rząd zostawał przewinięty —
+                            // karta z fokusem była ucięta przy lewej krawędzi. Wtedy rząd wraca na początek.
+                            val firstCw = uiState.continueWatchingItems.firstOrNull()?.let { "cw:" + cwKey(it) }
+                            LaunchedEffect(firstCw) {
+                                if (firstCw == null || !NiuniaHomeMemory.down || NiuniaHomeMemory.target != firstCw) return@LaunchedEffect
+                                if (st.firstVisibleItemIndex == 0 && st.firstVisibleItemScrollOffset == 0) return@LaunchedEffect
+                                st.scrollToItem(0); Log.i(TAG, "„Oglądaj dalej”: obejrzany tytuł na początku rzędu — rząd przewinięty na początek")
+                            }
                             LazyRow(state = st, contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
                                 itemsIndexed(uiState.continueWatchingItems, key = { _, it -> cwKey(it) }) { i, cw ->
                                     val k = "cw:" + cwKey(cw)
@@ -385,6 +394,7 @@ fun NiuniaHome(
             )
         },
         below = { rows() },
+        onDown = { com.nuvio.tv.skin.niunia.nav.NiuniaNavChrome.homeRows.value = it },
         scrim = { NiuniaSurface(NiuniaSurfaceKind.ScrimHero, Modifier.fillMaxSize()) },
     )
     pagerOverlay()
