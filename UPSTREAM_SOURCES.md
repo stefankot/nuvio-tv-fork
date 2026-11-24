@@ -33,3 +33,8 @@ Shimy Echo: BetaPerformanceSettings/BetaFeatures (ForkFeatures, domyślnie wył�
   Zmiany: pakiet `com.nuvio.tv.livetv.data` → `com.nuvio.tv.fork.tv.plus`, importy modeli, `LiveTvLoadReport.add` → `PlusShims.report` (log `ForkTvPlus`), `LiveTvSearchBridge.smallWords` → `PlusShims.smallWords` (kopia 1:1 z `livetv/ui/LiveTvSearch.kt`).
 - `livetv/model/LiveTvModels.kt` → `fork/tv/plus/PlusModels.kt`: tylko `EpgProgram`, `SUB_TITLE_MARK`, `subTitle`, `descriptionText`, `EpgAssignment` (1:1).
 - Adaptery forka (pisane od nowa) w `fork/tv/plus/`; projekt: `plan/iptv/ARCHITEKTURA.md`, porównanie forków: `plan/iptv/FORKI.md`.
+
+## Czcionki napisów Atkinson i Tiresias (24.11.2026, właściciel: „Zainstaluj te fonty jako fonty napisów do wyboru… Ustaw Atkinson jako domyślny”)
+- Atkinson Hyperlegible Next (Braille Institute, OFL 1.1): `upstream/arc` @ `343b27591` `app/src/main/res/font/atkinson_hyperlegible_next_variable.ttf` → `app/src/main/assets/fork/subtitle-fonts/atkinson_hyperlegible_next.ttf` (1:1, md5 `4cb8eaa42c20e9c16b242d2fd5be4d7d`); licencja `assets/licenses/atkinson_hyperlegible_next_OFL.txt` (1:1 z Arc).
+- Tiresias LPfont (RNIB, GPL-3+ z wyjątkiem dla czcionek): pakiet Debiana `fonts-tiresias_0.1-6_all.deb` (deb.debian.org, sha256 `d810a936…b3fc38`) `usr/share/fonts/truetype/tiresias/tiresias_lpfont.ttf` → `assets/fork/subtitle-fonts/tiresias_lpfont.ttf` (1:1, md5 `d4be7993d1e17cd760d9e42f839bcc21`); licencja `assets/licenses/tiresias_COPYRIGHT.txt`. Inne wolne odmiany (Infofont, PCfont, Signfont) nie mają polskich liter; Screenfont nie jest wolna.
+- Kod forka (pisany od nowa): `fork/subfonts/` (wgranie przez `core/player/SubtitleFontStore.import` z Nuvio).

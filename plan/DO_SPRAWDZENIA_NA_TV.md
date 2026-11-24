@@ -90,3 +90,8 @@ Lista dla właściciela. Wykonawca dopisuje tu wszystko, czego nie da się spraw
 - Panele odtwarzacza nad filmem: biblioteka nie widzi obrazu wideo (SurfaceView) — powinien być dawny wygląd panelu z obwódką szkła, bez przezroczystości.
 - Kontrast przycisków hero przy bardzo jasnym obrazie (Czyste szkło: odcień biały 6 % na scrimie hero).
 - JMGO (Android 11): pozycja „Szkło” wyszarzona, „Niedostępne na tym telewizorze”; wygląd jak przed zmianą; w logu „szkło wyłączone: API 30 < 33”.
+
+## Czcionki napisów Atkinson i Tiresias (24.11)
+- [ ] Po instalacji włącz dowolny film z napisami: napisy są czcionką Atkinson Hyperlegible (okrągłe, szerokie litery), polskie znaki (ą, ę, ł, ż) wyglądają dobrze.
+- [ ] W odtwarzaczu: panel napisów → Czcionka: do wyboru Domyślna, Szeryfowa, Stała szerokość, Atkinson Hyperlegible, Tiresias. Tiresias zmienia wygląd napisów od razu.
+- [ ] Ustawienia › Napisy i dźwięk › „Czcionki Atkinson i Tiresias”: wyłączenie usuwa obie z listy (napisy wracają do domyślnej), ponowne włączenie dodaje je i wybiera Atkinson.
