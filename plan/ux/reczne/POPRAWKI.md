@@ -72,7 +72,7 @@ Zdjęcia ekranów (numery w nawiasach) leżą w `plan/ux/reczne/`.
 | 21 | „Rozmiar napisów —” bez wartości | Pokazuje „Małe / Średnie / Duże” | ✔ |
 | 30 | „Kraj kanałów” bez wartości (u Ciebie jest „Niemcy”) | Wartość widać przy pozycji. Samego ustawienia nie zmieniałem | ✔ |
 | 40 | „Pomoc i dziennik błędów” otwierało ekran „Narzędzia” (pomocy ani dziennika nie ma) | Pozycja nazywa się „Narzędzia” i ma opis tego, co jest w środku | ✔ (25.11: opis „Szukaj w telewizji, Odkrywaj, przykłady poleceń głosowych”) |
-| 41 | Wyłączony przełącznik znikał na zaznaczonym (białym) wierszu | Ciemny tor, przełącznik widać | R14, ? w `uxr8` |
+| 41 | Wyłączony przełącznik znikał na zaznaczonym (białym) wierszu | Ciemny tor, przełącznik widać | ✔ (25.11, zdjęcie 188: „Kalendarz w menu”) |
 | 42 | „Na co masz ochotę?” — pusty ekran, dopóki nie naciśniesz OK | Od razu pokazuje pierwszy nastrój („Lekkie na dziś”) | R14, ? w `uxr8` |
 
 ## R15 (25.11, po Twoich uwagach „wdrażaj dalej wszystkie zmiany”) — wersja `uxr8` jest na projektorze (md5 zgodne)
@@ -100,6 +100,7 @@ Zdjęcia ekranów (numery w nawiasach) leżą w `plan/ux/reczne/`.
 |---|---|---|---|
 | 16 / 44 | Wstecz z karty tytułu wracało na 1. plakat rzędu, a ◄ potem nie otwierało menu | Karta znika dopiero, gdy zaznaczony jest oglądany plakat; plakat ma własny „uchwyt” zaznaczenia (R17) | ? `uxr10` |
 | 49 | Zatrzymany film: żeby wyjść, trzeba było 3× Wstecz — pierwsze tylko zamieniało ekran pauzy na panel, wyglądało jak „nic się nie stało” | Wstecz na ekranie pauzy od razu go chowa; wyjście 2× Wstecz (R18) | ? `uxr10` |
+| 50 | Biblioteka: ▲ z plakatu zaraz po wejściu szło na zakładkę „Historia” (najbliższą), a nie na wybraną „Wszystko” | ▲ idzie na wybraną zakładkę (R18) | ? następna wersja |
 | 48 | Serial otwarty z „Oglądaj dalej” („Następny: S7 E6”) pokazuje S1 E1 i „▶ 84m” (wznowienie starego, niedokończonego S1 E1) (zdjęcie 183) | Nie zmieniałem — odcinek wybiera główna aplikacja, nie skórka. Do Twojej decyzji: czy na stronie serialu ma być zawsze odcinek z „Oglądaj dalej” | — |
 
 ## Zauważone, ale świadomie niezmienione
