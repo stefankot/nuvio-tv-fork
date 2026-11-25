@@ -662,8 +662,16 @@ private fun GuideRow(
     var sel by remember { mutableIntStateOf(-1) }
     val logo = forgeChannelLogo(ch)
 
-    fun pick(t: Long): Int = schedule.indexOfFirst { t >= it.startEpochMs && t < it.stopEpochMs }.takeIf { it >= 0 }
-        ?: schedule.indexOfFirst { it.startEpochMs >= t }.takeIf { it >= 0 } ?: (schedule.size - 1)
+    fun pick(t: Long): Int {
+        val i = schedule.indexOfFirst { t >= it.startEpochMs && t < it.stopEpochMs }
+        // UX JMGO 25.11 (#52): programy w EPG nachodzą na siebie („Teraz one” do 21:35, „Kuchenne rewolucje” od 21:30) — przy
+        // kursorze „teraz” (21:30) wybrany był program już zakończony, a OK kończyło się „nie ma w archiwum”. Teraz: ten, który leci.
+        if (i >= 0 && schedule[i].stopEpochMs <= now && t + HALF_MS > now) {
+            val j = schedule.indexOfFirst { now >= it.startEpochMs && now < it.stopEpochMs }
+            if (j >= 0) return j
+        }
+        return i.takeIf { it >= 0 } ?: schedule.indexOfFirst { it.startEpochMs >= t }.takeIf { it >= 0 } ?: (schedule.size - 1)
+    }
 
     fun show(i: Int) {
         val p = schedule[i]
