@@ -49,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
@@ -591,7 +592,11 @@ private fun Guide(
         if (channels.isEmpty()) {
             Text(stringResource(R.string.niunia_live_empty), style = NiuniaText.Body, color = NiuniaColors.Text50, modifier = Modifier.padding(start = NiuniaDims.Gutter, top = 12.dp))
         }
-        Box(Modifier.fillMaxWidth().weight(1f).onFocusChanged { gridFocused = it.hasFocus }) { com.nuvio.tv.skin.niunia.components.NiuniaVerticalScroll(pivot = ROW_H) {
+        // UX JMGO 25.11 (#61): ▲ z pierwszego kanału trafiał w ostatnio zaznaczoną pigułkę („Oglądaj dalej”), a lista była
+        // z „Ulubione” — teraz ▲ wraca na wybrany filtr (jak Wstecz z przewodnika).
+        Box(Modifier.fillMaxWidth().weight(1f).onFocusChanged { gridFocused = it.hasFocus }.focusProperties {
+            exit = { d -> if (d == androidx.compose.ui.focus.FocusDirection.Up) { Log.i(TAG, "live tv: ▲ z przewodnika → wybrany filtr"); if (filter == NiuniaLiveFilter.All) allFocus else selectedChip } else FocusRequester.Default }
+        }) { com.nuvio.tv.skin.niunia.components.NiuniaVerticalScroll(pivot = ROW_H) {
             LazyColumn(Modifier.fillMaxSize(), state = channelsState, contentPadding = PaddingValues(bottom = 56.dp)) {
                 items(channels, key = { "${it.sourceId}_${it.id}" }) { ch ->
                     GuideRow(

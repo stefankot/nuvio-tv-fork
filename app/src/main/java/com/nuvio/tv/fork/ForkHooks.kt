@@ -29,6 +29,7 @@ object ForkHooks {
     fun onGlobalKey(activity: Activity, event: KeyEvent): Boolean {
         com.nuvio.tv.fork.family.FamilyUsage.key(event) // statystyki używania (panel Rodzina)
         com.nuvio.tv.fork.perf.ForkFocusTrace.onKey(event) // 24.11 UX JMGO: pomiar fokusu (wyłączony = nic)
+        com.nuvio.tv.skin.niunia.live.NiuniaLiveNav.noteKey(event) // 25.11 UX IPTV (#63): którym klawiszem otwarto nakładkę
         // 23.11 (właściciel): Wstecz, póki widać dymek „tłumaczę napisy AI”, anuluje tłumaczenie (nie zamyka odtwarzacza).
         if (com.nuvio.tv.fork.ai.subtitles.AiAuto.onKey(event)) return true
         // P7 (18.11): przycisk Szukaj/Asystent na pilocie = nasłuch poleceń forka (moduł głosu) PRZED skórką Kicia,

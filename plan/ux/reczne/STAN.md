@@ -158,3 +158,17 @@ Uwaga dla właściciela: w danych są pozycje testowe `autoplayqa-subtitles` / `
 - Do sprawdzenia na `uxr11`: wszystkie powyższe + #50 (Biblioteka ▲ → wybrana zakładka) + ◄ → menu z rzędu katalogu.
 - Build `uxr11` start 14:55, `/tmp/uxr11.log`, zakładka c3.
 - `uxr11`: BUILD SUCCESSFUL 15:02, `.stage/apk/uxr11-v7a.apk` md5 `028622e9b8ff3f77049d15976bb49b4d`, zainstalowany 15:05 (md5 zgodny), compile speed. Do sprawdzenia na ekranie: #44c, #50–#55.
+
+## Pętla 9 (25.11 15:55–16:25, nowy wątek; na JMGO `uxr11`, build `uxr12`)
+- Na `uxr11` ✔: #44c ◄ z 1. plakatu rzędu katalogu → menu (log „menu ← główna ◄ z pierwszego plakatu”); #50 ▲ z plakatu → wybrana zakładka („Seriale (40)”, wybrana była Seriale — 40 pozycji); #52 OK na kanale = na żywo („odtwarzam PL: Polsat 2 HD na żywo”); #53 ramka na 22:00 → OK włącza 22:00 z archiwum (startMs zgodny); #54 kafelki „Nowa TV · pon 22:00 / wczoraj 23:00 / 00:30” (199, 200); #55 Wstecz przy pauzie wznawia (197). #51 — nie udało się wywołać karty archiwum (?).
+- Znaleziska i poprawki (commit 1dfa57d64 = `uxr12`):
+  - #56: o 23:00 lista „Ulubione” spadła z 6 do 1 kanału (log `filtr=ulubione, kafelki=1, kanały=1`), fokus uciekł na „Szukaj”. Prawdopodobnie chwilowo pusty zbiór ulubionych kanałów — teraz pusty przyjmowany po 3 s; log z rozmiarem listy i ulubionych.
+  - #57 (196): „Poprzedni: Strong8K · AR: MUHAMMAD KHALIL…” zabierał całą szerokość nakładki — tytuł, godziny, stan znikały. Krótka nazwa kanału, przycisk ≤ 240 dp, przyciski ≤ 420 dp, „…” w pigułkach.
+  - #58: w szczegółach programu ▲ ze szczytu nic nie robiło — wraca do rzędu/przycisków.
+  - #59 (am profile, nowe narzędzie `fork-tools/uitest/dmtrace_top.py`): `TvData.afterChange` 2,3 s co minutę i `TvStore.onWatched → EpisodeAlerts.detect` 1,8 s przy włączaniu kanału — na wątku UI odtwarzacza. Przeniesione do wątku „fork-tv-io” (`TvBridge`).
+  - #60 (am profile): powrót z odtwarzacza do przewodnika „Ulubione” 7–11 s (Skipped 397–416 frames): `favouriteTiles → ShowIdentity.normalizeTitle` dla 59 308 kanałów 5,2 s na wątku UI (też przy OK na kanale) + `ForgeEpgCategories.filter` 1,2 s w LaunchedEffect na Main. Oba w tle. Dla porównania filtr „Oglądaj dalej”: powrót 1,2 s.
+  - #61 (dopisane w trakcie kompilacji `uxr12` — może nie wejść): ▲ z 1. kanału przewodnika → ostatnio zaznaczona pigułka („Oglądaj dalej”) zamiast wybranej („Ulubione”); teraz wybrany filtr.
+- Do następnej paczki (`.stage/patch_uxr13.py`, `.stage/uxr13-plan.md`): #63 ► przy schowanej nakładce → fokus na przełączniku kanałów (reset przy każdym pokazaniu) i ▼ zmienia kanał zamiast zejść do rzędu; #64 gatunek „Comedy” po angielsku (199); #65 rząd odcinków = 12 najstarszych emisji, bez dzisiejszych/następnych (200).
+- #62 nie błąd: w archiwum przy schowanej nakładce ► przewija, ▼ zmienia kanał bez pytania (decyzja właściciela 21.11, LiveNoAsk).
+- #66 (dane przewodnika, nie UX): archiwum Nowa TV „Świat według Kiepskich, wczoraj 21:00” gra inny serial (202) — do sprawdzenia przypisanie przewodnika do „PL: Nowa TV HD” / przesunięcie godzin archiwum.
+- Statystyki dla właściciela (pytanie 25.11): buildy co ~37 min (25.11), 11–16 min każdy, 6–8 poprawek na build; bezczynnie ok. 25 z 147 min buildów.

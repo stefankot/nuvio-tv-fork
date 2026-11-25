@@ -1,7 +1,7 @@
 # Poprawki z testów ręcznych na projektorze JMGO (24–25.11.2026)
 
 Jak czytać: **✔** — sprawdzone na projektorze, działa · **✘** — sprawdzone, nie działa · **?** — jeszcze nie sprawdzone na projektorze.
-Paczki poprawek mają nazwy R1…R14. Na projektorze jest teraz wersja `uxr11` (poprawki IPTV i przewodnika, #50, ◄ → menu) — do sprawdzenia. `uxr7` przerwana (za długo się kompilowała).
+Paczki poprawek mają nazwy R1…R14. Na projektorze była wersja `uxr11` (sprawdzona 25.11 po południu); teraz powstaje `uxr12` (#56–#61: odtwarzacz telewizji i przewodnik szybciej i bez znikających napisów). `uxr7` przerwana (za długo się kompilowała).
 Zdjęcia ekranów (numery w nawiasach) leżą w `plan/ux/reczne/`.
 
 ## Ekran główny
@@ -52,7 +52,7 @@ Zdjęcia ekranów (numery w nawiasach) leżą w `plan/ux/reczne/`.
 | 11 | W opisie przypisy z Wikipedii, np. „Europe.[1]” | Przypisy usuwane | ✔ |
 | 12 | Odcinki z nazwą zastępczą „Episode 2” | Nazwa zastępcza ukryta | ✔ |
 | 24 | W opisie „S1, E1 · Odcinek 1:” | Bez nazwy zastępczej | ? |
-| 27 | „Usuń z »Oglądaj dalej«” bez ikony | Ikona „x” | ? |
+| 27 | „Usuń z »Oglądaj dalej«” bez ikony | Ikona „x” | ✔ (25.11, zdjęcie 168) |
 
 ## Profile
 | # | Co było nie tak | Co zmieniłem | Stan |
@@ -100,18 +100,37 @@ Zdjęcia ekranów (numery w nawiasach) leżą w `plan/ux/reczne/`.
 |---|---|---|---|
 | 16 / 44 | Wstecz z karty tytułu wracało na 1. plakat rzędu, a ◄ potem nie otwierało menu | Karta znika dopiero, gdy zaznaczony jest oglądany plakat; plakat ma własny „uchwyt” zaznaczenia (R17) | ✔ powrót na oglądany plakat (25.11, `uxr10`); ◄ → menu poprawione w `uxr11` |
 | 49 | Zatrzymany film: żeby wyjść, trzeba było 3× Wstecz — pierwsze tylko zamieniało ekran pauzy na panel, wyglądało jak „nic się nie stało” | Wstecz na ekranie pauzy od razu go chowa; wyjście 2× Wstecz (R18) | ✔ (25.11, `uxr10`) |
-| 50 | Biblioteka: ▲ z plakatu zaraz po wejściu szło na zakładkę „Historia” (najbliższą), a nie na wybraną „Wszystko” | ▲ idzie na wybraną zakładkę (R18) | ? następna wersja |
+| 50 | Biblioteka: ▲ z plakatu zaraz po wejściu szło na zakładkę „Historia” (najbliższą), a nie na wybraną „Wszystko” | ▲ idzie na wybraną zakładkę (R18) | ✔ (25.11, `uxr11`) |
 | 48 | Serial otwarty z „Oglądaj dalej” („Następny: S7 E6”) pokazuje S1 E1 i „▶ 84m” (wznowienie starego, niedokończonego S1 E1) (zdjęcie 183) | Nie zmieniałem — odcinek wybiera główna aplikacja, nie skórka. Do Twojej decyzji: czy na stronie serialu ma być zawsze odcinek z „Oglądaj dalej” | — |
 
 ## Odtwarzacz telewizji (IPTV) i przewodnik — 25.11, Twoje polecenie „zoptymalizuj focusy i przejścia” (wersja `uxr11`)
 | # | Co było nie tak | Co zmieniłem | Stan |
 |---|---|---|---|
-| 51 | Karta „Program jest w archiwum — OK” przełączyła „Świat według Kiepskich” na **wczorajszy, inny odcinek** | Archiwum proponowane tylko, gdy to na pewno ten sam odcinek | ? `uxr11` |
-| 52 | OK na kanale w przewodniku: „nie ma w archiwum” zamiast włączyć to, co leci (dwa programy nachodziły na siebie o 21:30) | Włącza się program, który leci teraz | ? `uxr11` |
-| 53 | W przewodniku ramka stała na „Kuchenne rewolucje”, a OK włączał poranny program; ► chodził po porannych | Ramka i OK wskazują zawsze ten sam program | ? `uxr11` |
-| 54 | Pod odtwarzaczem kafelki „Nowa TV · 21:00” dwa razy — nie wiadomo, z którego dnia | Dopisany dzień: „wczoraj 21:00” | ? `uxr11` |
-| 55 | Po pauzie i Wstecz zostawał zamrożony obraz bez znaku pauzy | Wstecz przy pauzie wznawia obraz i chowa opis | ? `uxr11` |
-| 44 | ◄ z pierwszego plakatu rzędu na Głównej nie otwierało menu | ◄ przy lewej krawędzi otwiera menu | ? `uxr11` |
+| 51 | Karta „Program jest w archiwum — OK” przełączyła „Świat według Kiepskich” na **wczorajszy, inny odcinek** | Archiwum proponowane tylko, gdy to na pewno ten sam odcinek | ? (karta nie pojawiła się w czasie testów) |
+| 52 | OK na kanale w przewodniku: „nie ma w archiwum” zamiast włączyć to, co leci (dwa programy nachodziły na siebie o 21:30) | Włącza się program, który leci teraz | ✔ (25.11, Polsat 2) |
+| 53 | W przewodniku ramka stała na „Kuchenne rewolucje”, a OK włączał poranny program; ► chodził po porannych | Ramka i OK wskazują zawsze ten sam program | ✔ (25.11, Nowa TV 22:00) |
+| 54 | Pod odtwarzaczem kafelki „Nowa TV · 21:00” dwa razy — nie wiadomo, z którego dnia | Dopisany dzień: „wczoraj 21:00” | ✔ (25.11, zdjęcia 199, 200: „pon 22:00”, „wczoraj 23:00”) |
+| 55 | Po pauzie i Wstecz zostawał zamrożony obraz bez znaku pauzy | Wstecz przy pauzie wznawia obraz i chowa opis | ✔ (25.11, zdjęcie 197) |
+| 44 | ◄ z pierwszego plakatu rzędu na Głównej nie otwierało menu | ◄ przy lewej krawędzi otwiera menu | ✔ (25.11) |
+
+## Odtwarzacz telewizji i przewodnik — pętla 9 (25.11 po południu, wersja `uxr12`)
+Najważniejsze: **powrót z odtwarzacza do listy „Ulubione” trwał 7–11 sekund** (ekran stał, klawisze nie działały), a włączenie kanału — ok. 5 s. Znalazłem przyczyny pomiarem (próbkowanie programu): aplikacja na bieżąco przeliczała „obserwowane programy” dla wszystkich 59 tysięcy kanałów i zapisywała historię oglądania w chwili, gdy rysował się ekran. Teraz robi to w tle.
+
+| # | Co było nie tak | Co zmieniłem | Stan |
+|---|---|---|---|
+| 56 | O pełnej godzinie lista „Ulubione” sama skurczyła się z 6 kanałów do 1, a zaznaczenie uciekło na „Szukaj” | Lista nie znika przy chwilowym braku danych | ? `uxr12` |
+| 57 | Nakładka odtwarzacza: długi napis „Poprzedni: Strong8K · AR: MUHAMMAD…” zabierał całe miejsce — **znikał tytuł programu i godziny** (zdjęcie 196) | Krótka nazwa kanału, przycisk ograniczony, tytuł zawsze widać | ? `uxr12` |
+| 58 | W szczegółach programu ▲ z góry nic nie robiło — wyjść można było tylko przez Wstecz | ▲ wraca do przycisków | ? `uxr12` |
+| 59 | Co minutę w czasie oglądania obraz i pilot stawały na ok. 2 s; przy włączaniu kanału — na ok. 2 s | Zapis historii oglądania w tle | ? `uxr12` |
+| 60 | Powrót z odtwarzacza do „Ulubione” 7–11 s, wejście w kanał ok. 5 s | Liczenie obserwowanych programów i kategorii w tle | ? `uxr12` |
+| 61 | ▲ z pierwszego kanału przewodnika szło na „Oglądaj dalej”, a wybrany był filtr „Ulubione” | ▲ wraca na wybrany filtr | ? `uxr12` |
+| 63 | ► pokazywał opis, ale zaznaczenie zostawało na przełączniku kanałów — następne ▼ **zmieniało kanał** zamiast zejść do rzędu odcinków | ► od razu zaznacza pierwszy przycisk, ▼ schodzi do odcinków | w następnej wersji |
+| 64 | Gatunek w opisie programu po angielsku („Comedy”) | Po polsku, jak w reszcie aplikacji | w następnej wersji |
+| 65 | Rząd „inne odcinki” pokazywał 12 najstarszych (od poniedziałku), **bez dzisiejszych i następnych** (zdjęcie 200) | Najbliższe minione i do 4 następnych; ▼ zaznacza najbliższy | w następnej wersji |
+
+Do Twojej wiadomości (bez zmian):
+- 62: w archiwum, gdy opis jest schowany, ► przewija, a ▼ zmienia kanał bez pytania — tak ustaliłeś 21.11.
+- 66: archiwum Nowej TV „Świat według Kiepskich, wczoraj 21:00” pokazuje inny serial (zdjęcie 202). To raczej błędnie przypisany program telewizyjny albo przesunięta godzina archiwum, nie fokus — sprawdzę osobno.
 
 ## Zauważone, ale świadomie niezmienione
 - Teksty bazy po angielsku (np. „Finding stream source”) — zasada: bez tłumaczeń.

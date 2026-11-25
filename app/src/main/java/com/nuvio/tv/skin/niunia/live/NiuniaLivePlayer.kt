@@ -147,6 +147,16 @@ internal object NiuniaLiveNav {
     var shownTitle: String? = null
     var appContext: android.content.Context? = null
 
+    /** UX JMGO 25.11 (#63): ostatni klawisz (z ForkHooks.onGlobalKey) — którym klawiszem otwarto nakładkę. */
+    @Volatile var lastKeyCode = 0
+    @Volatile var lastKeyAt = 0L
+    fun noteKey(e: KeyEvent) { if (e.action == KeyEvent.ACTION_DOWN && e.repeatCount == 0) { lastKeyCode = e.keyCode; lastKeyAt = android.os.SystemClock.elapsedRealtime() } }
+    /** Kanał i tryb, dla których stan fokusu był ostatnio zerowany (nakładka znika i wraca — bez zerowania). */
+    var resetFor: String? = null
+    /** #65: rząd to inne odcinki; start oglądanego programu (▼ stawia fokus na najbliższym odcinku). */
+    var rowEpisodes = false
+    var shownStart = 0L
+
     /** Z-4: program z archiwum — bez przełącznika kanałów (▲▼ tylko przenosi fokus, ◀ z pierwszego przycisku zostaje). */
     var archiveMode = false
 
@@ -170,6 +180,8 @@ internal object NiuniaLiveNav {
 
     private fun go(to: Int, why: String) {
         Log.i(TAG, "iptv: poziom $level → $to ($why, rząd=${row.size})")
+        // UX JMGO 25.11 (#65): ▼ do rzędu odcinków — fokus na ostatnim odcinku przed oglądanym (najbliższym), nie na najstarszym.
+        if (to == 1 && level == 0) rowIndex = if (rowEpisodes) row.indexOfLast { it.programme.startEpochMs < shownStart }.coerceAtLeast(0) else 0
         level = to
         if (to == 2) { section = sections.indexOfFirst { it.count > 0 }.coerceAtLeast(0); index = 0 }
     }
@@ -326,7 +338,11 @@ private fun buildRow(channel: LiveTvChannel, shown: LiveTvProgramme, nowMs: Long
             val future = p.startEpochMs > nowMs
             if (!live && !arch && !future) null else NiuniaLiveTile(channel, p, live, arch, future)
         }.filter { it.programme.startEpochMs != shown.startEpochMs }
-        if (tiles.isNotEmpty()) return Triple(tiles.take(12), true, null)
+        // UX JMGO 25.11 (#65, zdjęcie 200): było 12 najstarszych (pon 22:00 … dziś 00:30) — bez dzisiejszych i następnych.
+        // Teraz do 4 następnych i najbliższe minione, po kolei.
+        val next = tiles.filter { it.programme.startEpochMs > shown.startEpochMs }.take(4)
+        val before = tiles.filter { it.programme.startEpochMs < shown.startEpochMs }.takeLast(12 - next.size)
+        if (tiles.isNotEmpty()) return Triple(before + next, true, null)
     }
     val names = ForgeEpgCategories.programmePlaceNames(channel.guideKey, shown) ?: return Triple(emptyList(), false, null)
     val place = ForgeEpgCategories.programmePlace(channel.guideKey, shown) ?: return Triple(emptyList(), false, null)
@@ -379,7 +395,20 @@ internal fun NiuniaLivePlayer(
     val archive = replay != null
     val shiftMs = if (!archive) ForgeMiniGuideNav.shiftMs() else 0L
     val playState = when { archive -> NiuniaPlayState.ARCHIVE; shiftMs > 0L -> NiuniaPlayState.DELAY; else -> NiuniaPlayState.LIVE }
-    LaunchedEffect(channel.streamUrl) { nav.reset(archive); nav.noteChannel(channel.streamUrl); Log.i(TAG, "iptv: nakładka ${channel.name} (stan=$playState, program=${shown != null})") }
+    // UX JMGO 25.11 (#63): nakładka znika i wraca (komponent od nowa) — zerowanie fokusu tylko przy zmianie kanału/archiwum.
+    // Wcześniej ► przy schowanej nakładce pokazywał ją z fokusem na przełączniku kanałów, a następne ▼ zmieniało kanał
+    // zamiast zejść do rzędu odcinków. Teraz ► (pokazanie nakładki) od razu stawia fokus na pierwszym przycisku.
+    LaunchedEffect(channel.streamUrl, archive) {
+        val key = channel.streamUrl + "|" + archive
+        if (nav.resetFor != key) { nav.reset(archive); nav.resetFor = key }
+        val byRight = nav.lastKeyCode == KeyEvent.KEYCODE_DPAD_RIGHT && android.os.SystemClock.elapsedRealtime() - nav.lastKeyAt < 1_500
+        if (!archive && byRight && nav.level == 0 && nav.slot == NiuniaLiveSlot.CHANNEL) {
+            kotlinx.coroutines.delay(50) // przyciski publikuje SideEffect
+            nav.buttons.firstOrNull()?.let { nav.slot = it; Log.i(TAG, "iptv: nakładka otwarta ► — fokus na $it") }
+        }
+        nav.noteChannel(channel.streamUrl)
+        Log.i(TAG, "iptv: nakładka ${channel.name} (stan=$playState, program=${shown != null})")
+    }
     // Z-21 (P-28): kanał gra kilka sekund → znacznik „Niedostępny” zdjęty.
     LaunchedEffect(channel.streamUrl) {
         kotlinx.coroutines.delay(8_000)
@@ -418,7 +447,7 @@ internal fun NiuniaLivePlayer(
         add(NiuniaLiveSlot.FAV)
         if (group) { add(NiuniaLiveSlot.INFO); add(NiuniaLiveSlot.MORE) }
     }
-    SideEffect { nav.buttons = buttons; nav.row = row }
+    SideEffect { nav.buttons = buttons; nav.row = row; nav.rowEpisodes = episodesRow; nav.shownStart = shown?.startEpochMs ?: 0L }
     val level = nav.level
     val focusSlot = if (level == 0) nav.slot else null
 
@@ -535,7 +564,7 @@ internal data class NiuniaLiveData(
                 description = tvdb?.overview ?: tm?.overview ?: p?.description,
                 image = tvdb?.backdropUrl ?: tm?.backdropUrl ?: p?.image?.takeIf { it.isNotBlank() } ?: logo ?: forgeChannelLogo(channel),
                 programmeLogo = null,
-                genre = (tvdb?.genres?.takeIf { it.isNotEmpty() } ?: tm?.genres?.takeIf { it.isNotEmpty() })?.take(2)?.joinToString(", ")
+                genre = (tvdb?.genres?.takeIf { it.isNotEmpty() } ?: tm?.genres?.takeIf { it.isNotEmpty() })?.take(2)?.mapNotNull { com.nuvio.tv.skin.niunia.components.NiuniaGenres.pl(it) }?.distinct()?.joinToString(" · ")?.ifBlank { null }
                     ?: p?.let { ForgeEpgCategories.programmePlaceNames(channel.guideKey, it)?.let { n -> n.second ?: n.first } },
                 cast = (tvdb?.cast?.takeIf { it.isNotEmpty() } ?: tm?.cast.orEmpty()) + (tvdb?.directors?.takeIf { it.isNotEmpty() } ?: tm?.directors.orEmpty()),
                 isTv = tvdb?.isTv ?: tm?.isTv,
