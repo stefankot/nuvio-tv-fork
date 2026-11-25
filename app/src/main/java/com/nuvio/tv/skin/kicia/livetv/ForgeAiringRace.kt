@@ -59,19 +59,44 @@ internal object ForgeAiringRace {
         return false // a daily show with the same title is not the same episode
     }
 
+    /** Same title, episode and subtitle unknown on one side — only the descriptions agree. */
+    private fun descriptionOnly(a: LiveTvProgramme, b: LiveTvProgramme): Boolean {
+        if (!a.episode.isNullOrBlank() && !b.episode.isNullOrBlank()) return false
+        val sa = EpgExtras.get(a.title, a.startEpochMs)?.subTitle
+        val sb = EpgExtras.get(b.title, b.startEpochMs)?.subTitle
+        return sa.isNullOrBlank() || sb.isNullOrBlank()
+    }
+
+    /** The description of [programme] repeats on other airings of its title in [sched] — a series blurb, not an episode's. */
+    private fun genericDescription(sched: List<LiveTvProgramme>, programme: LiveTvProgramme): Boolean {
+        val d = programme.description?.trim()?.take(120) ?: return false
+        return sched.count { forgeSameTitle(it.title, programme.title) && it.description?.trim()?.take(120).equals(d, ignoreCase = true) } >= 2
+    }
+
     /** Playable archived airings of [programme] on every channel with an archive, newest first, [programme] itself left out. */
     private fun otherAirings(programme: LiveTvProgramme, nowMs: Long, before: Long = Long.MAX_VALUE): List<Pair<LiveTvChannel, LiveTvProgramme>> {
         val out = ArrayList<Pair<LiveTvChannel, LiveTvProgramme>>()
         val seen = HashSet<String>()
+        var generic = 0
         LiveTvRepository.uiState.value.channels.forEach { ch ->
             val catchup = ch.catchup ?: return@forEach
-            LiveTvRepository.schedule(ch.guideKey).forEach { p ->
+            val sched = LiveTvRepository.schedule(ch.guideKey)
+            var genericHere: Boolean? = null
+            sched.forEach { p ->
                 if (p.startEpochMs == programme.startEpochMs && forgeSameTitle(p.title, programme.title)) return@forEach
                 if (p.startEpochMs >= before || p.startEpochMs >= nowMs) return@forEach
                 if (!LiveTvCatchupLinks.isPlayable(catchup, p, nowMs) || !sameEpisode(p, programme)) return@forEach
+                // UX JMGO 25.11 (#51): „Świat według Kiepskich” bez numeru odcinka — ten sam opis przy każdej emisji (opis serialu),
+                // więc „wcześniejsza emisja” była innym odcinkiem. Zgodny tylko opis → emisja się liczy, gdy na tym kanale ten opis
+                // nie powtarza się przy innych emisjach tego tytułu.
+                if (descriptionOnly(p, programme)) {
+                    val g = genericHere ?: genericDescription(sched, programme).also { genericHere = it }
+                    if (g) { generic++; return@forEach }
+                }
                 if (seen.add(ch.streamUrl + "|" + p.startEpochMs)) out += ch to p
             }
         }
+        if (generic > 0) android.util.Log.i("ForgeAiringRace", "'" + programme.title + "': pominięte emisje ze wspólnym opisem serialu (" + generic + ") — numer odcinka nieznany")
         // Ended airings first (a whole copy), then the newest.
         return out.sortedWith(compareBy<Pair<LiveTvChannel, LiveTvProgramme>> { it.second.stopEpochMs > nowMs }.thenByDescending { it.second.startEpochMs })
     }
