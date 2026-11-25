@@ -660,6 +660,16 @@ private fun GuideRow(
     LaunchedEffect(gkey, winStart) { if (gkey.isNotEmpty()) com.nuvio.tv.fork.tv.plus.GuideDbBridge.need(needCtx, gch, winStart) }
     var focused by remember { mutableStateOf(false) }
     var sel by remember { mutableIntStateOf(-1) }
+    // UX JMGO 25.11 (#53): `sel` to pozycja na liście, a lista kanału dostaje w tle minione dni z bazy (GuideDbBridge) — pozycja
+    // wskazywała wtedy inny program: ramka „Kuchenne rewolucje”, OK włączało poranny program. Wybór pamiętany też po godzinie startu.
+    val selStart = remember { longArrayOf(-1L) }
+    remember(schedule) {
+        if (selStart[0] >= 0) {
+            val j = schedule.indexOfFirst { it.startEpochMs == selStart[0] }
+            if (j >= 0 && j != sel) { Log.i(TAG, "przewodnik: lista ${ch.name} zmieniona (${schedule.size}) — wybór zostaje na tym samym programie"); sel = j }
+        }
+        0
+    }
     val logo = forgeChannelLogo(ch)
 
     fun pick(t: Long): Int {
@@ -681,6 +691,7 @@ private fun GuideRow(
         if (p.startEpochMs < w && p.stopEpochMs <= w + HALF_MS && w > minStart) w = maxOf(minStart, windowStartFor(p.startEpochMs))
         if (w != winStart) onWindow(w)
         sel = i
+        selStart[0] = p.startEpochMs
         focusTime.longValue = maxOf(p.startEpochMs, w)
         onFocus(p)
     }
@@ -692,7 +703,7 @@ private fun GuideRow(
                 if (st.isFocused != focused) {
                     focused = st.isFocused
                     if (focused) {
-                        if (schedule.isEmpty()) onFocus(null) else { sel = pick(maxOf(focusTime.longValue, winStart)); onFocus(schedule[sel]) }
+                        if (schedule.isEmpty()) onFocus(null) else { sel = pick(maxOf(focusTime.longValue, winStart)); selStart[0] = schedule[sel].startEpochMs; onFocus(schedule[sel]) }
                     }
                 }
             }
