@@ -187,7 +187,12 @@ internal object NiuniaLiveNav {
                 when (level) {
                     2 -> { go(if (row.isNotEmpty()) 1 else 0, "Wstecz"); state.showInfo() }
                     1 -> { go(0, "Wstecz"); state.showInfo() }
-                    else -> state.hideInfo()
+                    else -> {
+                        // UX JMGO 25.11 (#55): Wstecz przy pauzie chował nakładkę, a obraz stał bez żadnego znaku pauzy („zawiesiło się?”).
+                        // Teraz Wstecz przy pauzie wznawia (od miejsca pauzy) i chowa nakładkę; „Na żywo” zostaje przyciskiem.
+                        if (state.isPausedNow()) { Log.i(TAG, "iptv: Wstecz przy pauzie → wznowienie i schowana nakładka"); state.togglePause() }
+                        state.hideInfo()
+                    }
                 }
             }
             return true
@@ -607,7 +612,9 @@ private fun LiveRow(row: List<NiuniaLiveTile>, focused: Int, clockMs: Long, stat
             NiuniaWideTile(
                 image = t.programme.image?.takeIf { it.isNotBlank() }, caption = if (t.programme.image.isNullOrBlank()) null else cap ?: t.programme.title,
                 focused = i == focused, dot = if (t.live) true else if (t.archive) false else null, badge = badge,
-                fallbackTitle = t.programme.title, fallbackSub = com.nuvio.tv.fork.tv.names.ChannelNames.shown(t.channel.name) + " · " + hm(t.programme.startEpochMs),
+                // UX JMGO 25.11 (#54): „Nowa TV · 21:00” dwa razy (wczoraj i dziś) — przy innym dniu niż dziś dopisany dzień.
+                fallbackTitle = t.programme.title, fallbackSub = com.nuvio.tv.fork.tv.names.ChannelNames.shown(t.channel.name) + " · " +
+                    (if (dayStart(t.programme.startEpochMs) == dayStart(clockMs)) "" else dayLabel(ctx, t.programme.startEpochMs, clockMs).lowercase() + " ") + hm(t.programme.startEpochMs),
             )
         }
     }
