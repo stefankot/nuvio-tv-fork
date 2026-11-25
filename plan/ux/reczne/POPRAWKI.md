@@ -1,7 +1,7 @@
 # Poprawki z testów ręcznych na projektorze JMGO (24–25.11.2026)
 
 Jak czytać: **✔** — sprawdzone na projektorze, działa · **✘** — sprawdzone, nie działa · **?** — jeszcze nie sprawdzone na projektorze.
-Paczki poprawek mają nazwy R1…R14. Na projektorze jest teraz wersja `uxr9` (R1–R16 + pierwsza próba R17); w budowie `uxr10` (R17 poprawiona, R18). `uxr7` przerwana (za długo się kompilowała).
+Paczki poprawek mają nazwy R1…R14. Na projektorze jest teraz wersja `uxr10`; w budowie `uxr11` (poprawki IPTV i przewodnika, #50, ◄ → menu). `uxr7` przerwana (za długo się kompilowała).
 Zdjęcia ekranów (numery w nawiasach) leżą w `plan/ux/reczne/`.
 
 ## Ekran główny
@@ -98,10 +98,20 @@ Zdjęcia ekranów (numery w nawiasach) leżą w `plan/ux/reczne/`.
 ## R17–R18 (25.11 po południu) — w wersji `uxr10`
 | # | Co było nie tak | Co zmieniłem | Stan |
 |---|---|---|---|
-| 16 / 44 | Wstecz z karty tytułu wracało na 1. plakat rzędu, a ◄ potem nie otwierało menu | Karta znika dopiero, gdy zaznaczony jest oglądany plakat; plakat ma własny „uchwyt” zaznaczenia (R17) | ? `uxr10` |
-| 49 | Zatrzymany film: żeby wyjść, trzeba było 3× Wstecz — pierwsze tylko zamieniało ekran pauzy na panel, wyglądało jak „nic się nie stało” | Wstecz na ekranie pauzy od razu go chowa; wyjście 2× Wstecz (R18) | ? `uxr10` |
+| 16 / 44 | Wstecz z karty tytułu wracało na 1. plakat rzędu, a ◄ potem nie otwierało menu | Karta znika dopiero, gdy zaznaczony jest oglądany plakat; plakat ma własny „uchwyt” zaznaczenia (R17) | ✔ powrót na oglądany plakat (25.11, `uxr10`); ◄ → menu poprawione w `uxr11` |
+| 49 | Zatrzymany film: żeby wyjść, trzeba było 3× Wstecz — pierwsze tylko zamieniało ekran pauzy na panel, wyglądało jak „nic się nie stało” | Wstecz na ekranie pauzy od razu go chowa; wyjście 2× Wstecz (R18) | ✔ (25.11, `uxr10`) |
 | 50 | Biblioteka: ▲ z plakatu zaraz po wejściu szło na zakładkę „Historia” (najbliższą), a nie na wybraną „Wszystko” | ▲ idzie na wybraną zakładkę (R18) | ? następna wersja |
 | 48 | Serial otwarty z „Oglądaj dalej” („Następny: S7 E6”) pokazuje S1 E1 i „▶ 84m” (wznowienie starego, niedokończonego S1 E1) (zdjęcie 183) | Nie zmieniałem — odcinek wybiera główna aplikacja, nie skórka. Do Twojej decyzji: czy na stronie serialu ma być zawsze odcinek z „Oglądaj dalej” | — |
+
+## Odtwarzacz telewizji (IPTV) i przewodnik — 25.11, Twoje polecenie „zoptymalizuj focusy i przejścia” (wersja `uxr11`)
+| # | Co było nie tak | Co zmieniłem | Stan |
+|---|---|---|---|
+| 51 | Karta „Program jest w archiwum — OK” przełączyła „Świat według Kiepskich” na **wczorajszy, inny odcinek** | Archiwum proponowane tylko, gdy to na pewno ten sam odcinek | ? `uxr11` |
+| 52 | OK na kanale w przewodniku: „nie ma w archiwum” zamiast włączyć to, co leci (dwa programy nachodziły na siebie o 21:30) | Włącza się program, który leci teraz | ? `uxr11` |
+| 53 | W przewodniku ramka stała na „Kuchenne rewolucje”, a OK włączał poranny program; ► chodził po porannych | Ramka i OK wskazują zawsze ten sam program | ? `uxr11` |
+| 54 | Pod odtwarzaczem kafelki „Nowa TV · 21:00” dwa razy — nie wiadomo, z którego dnia | Dopisany dzień: „wczoraj 21:00” | ? `uxr11` |
+| 55 | Po pauzie i Wstecz zostawał zamrożony obraz bez znaku pauzy | Wstecz przy pauzie wznawia obraz i chowa opis | ? `uxr11` |
+| 44 | ◄ z pierwszego plakatu rzędu na Głównej nie otwierało menu | ◄ przy lewej krawędzi otwiera menu | ? `uxr11` |
 
 ## Zauważone, ale świadomie niezmienione
 - Teksty bazy po angielsku (np. „Finding stream source”) — zasada: bez tłumaczeń.

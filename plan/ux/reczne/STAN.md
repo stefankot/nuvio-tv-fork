@@ -143,3 +143,17 @@ Uwaga dla właściciela: w danych są pozycje testowe `autoplayqa-subtitles` / `
 - #49: wyjście z zatrzymanego filmu = 3× Wstecz (ekran pauzy bazy → Wstecz pokazuje panel → Wstecz chowa → Wstecz wychodzi). Poprawka w skórce (commit po e44b34db5): `NiuniaPlayerBack.controller` (słaba referencja) — Wstecz na ekranie pauzy: `cancelPauseOverlay()` + `hideControls()`. ▼ w czasie filmu nic nie pokazuje (OK pokazuje panel i pauzuje) — tak w bazie, bez zmian.
 - Build `uxr10` (#44 poprawka 2 + #49) start 14:21, `/tmp/uxr10.log`, zakładka c2.
 - W czasie builda `uxr10` (na `uxr9`): Biblioteka — fokus na 1. plakacie ✔, ▲ z 3. plakatu → „Historia” zamiast wybranej „Wszystko” (#50, poprawione 79836e210 — NIE w `uxr10`, w następnym buildzie); YouTube otwiera się z fokusem na „Główna” ✔; #41 ✔ (188, „Kalendarz w menu” wyłączony na białym wierszu).
+
+## Pętla 8 (25.11 14:35–15:00) — `uxr10` + odtwarzacz IPTV (polecenie właściciela: „zoptymalizuj focusy / przejścia w playerze iptv”)
+- `uxr10` (#44 poprawka 2 + #49, md5 `0c6a4143…`) zainstalowany ręcznie 14:39 (jmgo_instaluj.sh przerywał przez dźwięk ekranu głównego JMGO — to nie oglądanie), md5 zgodny, compile speed.
+- Na `uxr10` ✔: #44 Wstecz z karty → plakat 3 („klatka 1”); #49 ekran pauzy → Wstecz → zatrzymany film bez panelu → Wstecz → Główna z fokusem na filmie.
+- ✘ → poprawione (6b54cf188): ◄ z 1. plakatu rzędu KATALOGU nie otwierał menu (w „Oglądaj dalej” działał) — rzędy Głównej: nieobsłużone ◄ → moveFocus(Left) || toMenu (jak Biblioteka).
+- IPTV, znaleziska i poprawki (wszystkie w `uxr11`):
+  - #51 (90ee72307): omijanie reklam — karta „jest w archiwum” + OK przełączyło na WCZORAJSZY odcinek „Świata według Kiepskich” (ep=null, opis serialu ten sam przy każdej emisji). Emisja zgodna tylko opisem nie liczy się, gdy opis powtarza się przy innych emisjach tytułu na kanale (`ForgeAiringRace.otherAirings`).
+  - #52 (673147002^): przewodnik — nachodzące programy (do 21:35 / od 21:30): przy kursorze „teraz” wybierany ten, który leci (`GuideRow.pick`).
+  - #53 (673147002): przewodnik — wybór w wierszu był pozycją na liście; lista dociąga minione dni z bazy → ramka „Kuchenne rewolucje”, OK włączał poranny program („nie ma w archiwum”), ► chodził po porankach. Wybór pamiętany po godzinie startu.
+  - #54 (510791831): kafelki „inne odcinki” pod odtwarzaczem i w szczegółach: „Nowa TV · 21:00” dwa razy — dopisany dzień, gdy nie dziś („wczoraj 21:00”).
+  - #55 (510791831): Wstecz przy pauzie chował nakładkę i zostawał zamrożony obraz bez znaku pauzy → teraz wznawia i chowa (DECYZJE 25.11).
+  - Bez zmian: OK na gołym obrazie = pauza + nakładka (spójnie z filmami; „forge fix 14.11 JMGO A1”); nakładka przy pauzie nie chowa się sama (celowo); ▲▼ zmienia kanał, ◄/► pokazuje nakładkę.
+- Do sprawdzenia na `uxr11`: wszystkie powyższe + #50 (Biblioteka ▲ → wybrana zakładka) + ◄ → menu z rzędu katalogu.
+- Build `uxr11` start 14:55, `/tmp/uxr11.log`, zakładka c3.
