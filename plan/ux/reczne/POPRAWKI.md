@@ -1,7 +1,7 @@
 # Poprawki z testów ręcznych na projektorze JMGO (24–25.11.2026)
 
 Jak czytać: **✔** — sprawdzone na projektorze, działa · **✘** — sprawdzone, nie działa · **?** — jeszcze nie sprawdzone na projektorze.
-Paczki poprawek mają nazwy R1…R14. Na projektorze jest teraz wersja `uxr8` (R1–R15); w budowie `uxr9` (R16 + poprawka #16/#44). `uxr7` przerwana (za długo się kompilowała).
+Paczki poprawek mają nazwy R1…R14. Na projektorze jest teraz wersja `uxr9` (R1–R16 + pierwsza próba R17); w budowie `uxr10` (R17 poprawiona, R18). `uxr7` przerwana (za długo się kompilowała).
 Zdjęcia ekranów (numery w nawiasach) leżą w `plan/ux/reczne/`.
 
 ## Ekran główny
@@ -13,7 +13,7 @@ Zdjęcia ekranów (numery w nawiasach) leżą w `plan/ux/reczne/`.
 | 4 | Wygaszacz: zegar zasłaniał logo filmu | Zegar i data w prawym dolnym rogu | ? |
 | 14 | Dwa rzędy „TMDB Popular” nie do odróżnienia | Dopisek „· filmy” / „· seriale” | ✔ |
 | 15 | Karta tytułu pisała „1h47min”, baner „1 godz. 47 min” | **R15 (Twoja uwaga „jak najkrócej”):** wszędzie „1h47” | ? `uxr8` |
-| 16 | Po powrocie z karty tytułu zaznaczenie skakało na pierwszy plakat | Wraca na plakat, który był oglądany (poprawione drugi raz w R8). **R17 (25.11):** znaleziona przyczyna — po zniknięciu karty telewizor sam zaznaczał lewy górny plakat. Teraz karta znika dopiero, gdy zaznaczony jest już oglądany plakat | ? `uxr9` (w `uxr8` ✘, zdjęcie 154) |
+| 16 | Po powrocie z karty tytułu zaznaczenie skakało na pierwszy plakat | Wraca na plakat, który był oglądany (poprawione drugi raz w R8). **R17 (25.11):** znaleziona przyczyna — po zniknięciu karty telewizor sam zaznaczał lewy górny plakat. Teraz karta znika dopiero, gdy zaznaczony jest już oglądany plakat | **✘** w `uxr9`: rząd przewija się już na oglądany tytuł, ale zaznaczenie wciąż na 1. plakacie (plakat nie był jeszcze gotowy na zaznaczenie). Poprawione drugi raz — ? `uxr10` |
 | 28 | Po wyjściu z filmu przycisk „Główna” nachodził na tytuł rzędu | Przycisk chowa się, gdy jesteś w rzędach | ✔ |
 | 29 | Po wyjściu z filmu zaznaczona karta była poza ekranem, ◄ nie działało | Rząd przewija się na początek | ✔ |
 
@@ -80,12 +80,12 @@ Zdjęcia ekranów (numery w nawiasach) leżą w `plan/ux/reczne/`.
 |---|---|---|
 | 1 | Pamięć rzędów Głównej, gdy serwis nie odpowiada (wyżej) | zapis działa ✔ (log), podmiana przy błędzie czeka na błąd serwisu |
 | 15 | Czas „1h47” zamiast „1 godz. 47 min” | ✔ (zdjęcie 170) |
-| — | Dymek „24 kl/s przy 60 Hz” w odtwarzaczu usunięty | ? |
+| — | Dymek „24 kl/s przy 60 Hz” w odtwarzaczu usunięty | ✔ (25.11, zdjęcie 184) |
 | 16 / 44 | Karta tytułu: przy przewijaniu kart zaznaczenie nie spada już na plakat pod kartą | **✘** — przewijanie poprawione, ale po Wstecz nadal pierwszy plakat i ◄ nie otwiera menu (zdjęcie 172); przyczyna głębiej, w następnej paczce |
 | 38 | YouTube z „Oglądaj dalej”: Wstecz wraca na Główną | ✔ (zdjęcie 173) |
 | 43 | YouTube: dubbing AI nie włącza się sam — gra oryginał (np. polski); dubbing zostaje w menu dźwięku do ręcznego wyboru | ✔ (log: „Polish · original”) |
 | 45 | Karta tytułu i baner: gatunki po polsku, jak w rzędach | ✔ (25.11: „Animacja · Familijny”) |
-| 47 | Okno opcji filmu YouTube w „Oglądaj dalej”: bez „Od początku”, „Wybierz źródło”, „Szczegóły” | R16 — w następnej wersji |
+| 47 | Okno opcji filmu YouTube w „Oglądaj dalej”: bez „Od początku”, „Wybierz źródło”, „Szczegóły” | ✔ (25.11: „Wznów od 0:34”, „Oznacz jako obejrzane”, „Usuń”) |
 
 ## Nowe znaleziska 25.11
 | # | Co jest nie tak | Zdjęcie |
@@ -94,6 +94,13 @@ Zdjęcia ekranów (numery w nawiasach) leżą w `plan/ux/reczne/`.
 | 44 | Główna: po zamknięciu karty tytułu ◄ z pierwszego plakatu w rzędzie nie otwiera menu (z dużego baneru działa) | 156, 157 |
 | 45 | Karta tytułu „Shetland”: gatunki i opis po angielsku („Drama · Crime”), a w rzędzie „Dramat” | 152 |
 | 46 | Live TV: kafelki na górze znów pokazują RT i CNBC — to nie błąd: oznaczenie „niedziałający” trwa 24 godziny i wygasło; po pierwszej nieudanej próbie kanał znowu znika | 158 |
+
+## R17–R18 (25.11 po południu) — w wersji `uxr10`
+| # | Co było nie tak | Co zmieniłem | Stan |
+|---|---|---|---|
+| 16 / 44 | Wstecz z karty tytułu wracało na 1. plakat rzędu, a ◄ potem nie otwierało menu | Karta znika dopiero, gdy zaznaczony jest oglądany plakat; plakat ma własny „uchwyt” zaznaczenia (R17) | ? `uxr10` |
+| 49 | Zatrzymany film: żeby wyjść, trzeba było 3× Wstecz — pierwsze tylko zamieniało ekran pauzy na panel, wyglądało jak „nic się nie stało” | Wstecz na ekranie pauzy od razu go chowa; wyjście 2× Wstecz (R18) | ? `uxr10` |
+| 48 | Serial otwarty z „Oglądaj dalej” („Następny: S7 E6”) pokazuje S1 E1 i „▶ 84m” (wznowienie starego, niedokończonego S1 E1) (zdjęcie 183) | Nie zmieniałem — odcinek wybiera główna aplikacja, nie skórka. Do Twojej decyzji: czy na stronie serialu ma być zawsze odcinek z „Oglądaj dalej” | — |
 
 ## Zauważone, ale świadomie niezmienione
 - Teksty bazy po angielsku (np. „Finding stream source”) — zasada: bez tłumaczeń.
