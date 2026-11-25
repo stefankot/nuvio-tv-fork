@@ -117,6 +117,12 @@ Lista dla właściciela. Wykonawca dopisuje tu wszystko, czego nie da się spraw
 - API 31+ (emulator, Z-2): lewa część obrazu hero strony tytułu rozmyta. JMGO (Android 11): bez zmian (płaskie).
 - Live TV (P-32): fokus w przewodniku → po ~1 s u góry po prawej obraz kanału na żywo (bez dźwięku) z „Na żywo · kanał”, po lewej tytuł, godziny i opis programu; ▲ do filtrów → wraca rząd kafelków; OK → pełny ekran bez zacięcia (log `podgląd zwolniony (pełny ekran)` przed startem odtwarzacza); szybkie przewijanie kanałów nie zawiesza przewodnika; HOME w trakcie → `podgląd zwolniony (aplikacja w tle)`.
 
+## UX ręczne R14 (25.11, APK `uxr7`) — niesprawdzone na TV
+- Szukaj i Live TV › Szukaj: klawiatura tylko a–z; „kuchenne”/„lodz” znajduje polskie tytuły.
+- Ustawienia › System: pozycja „Narzędzia” (zamiast „Pomoc i dziennik błędów”).
+- Ustawienia › Wygląd: wyłączony przełącznik widoczny na zaznaczonym wierszu.
+- „Na co masz ochotę?”: od razu lista „Lekkie na dziś”.
+
 ## UX ręczne (24–25.11, APK `uxr6`) — niesprawdzone na TV
 - Live TV: kanał nie działa → „Następny kanał” → Wstecz → fokus na ostatnio oglądanym kanale (nie na pierwszym).
 - Główna: OK na plakacie → karta tytułu → ► na następny tytuł → Wstecz → fokus na tym tytule (rząd przewinięty).

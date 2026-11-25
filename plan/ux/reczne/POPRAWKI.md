@@ -1,0 +1,95 @@
+# Poprawki z testów ręcznych na projektorze JMGO (24–25.11.2026)
+
+Jak czytać: **✔** — sprawdzone na projektorze, działa · **✘** — sprawdzone, nie działa · **?** — jeszcze nie sprawdzone na projektorze.
+Paczki poprawek mają nazwy R1…R14. Na projektorze jest teraz wersja `uxr6` (R1–R13). Wersja `uxr7` (z R14) się buduje.
+Zdjęcia ekranów (numery w nawiasach) leżą w `plan/ux/reczne/`.
+
+## Ekran główny
+| # | Co było nie tak | Co zmieniłem | Stan |
+|---|---|---|---|
+| 1 | Gdy serwer katalogów odmawia („za dużo zapytań”), rzędy były puste, bez słowa | Komunikat, przycisk „Spróbuj ponownie” i 3 ponowienia same (po 20, 40 i 60 s) | ? (trudno wywołać) |
+| 2 | Bez dużego baneru tytuł „Oglądaj dalej” wchodził pod przycisk „Główna” | Większy odstęp | ? |
+| 3 | Bez baneru po starcie i po wygaszaczu nic nie było zaznaczone | Zaznaczenie na pierwszym elemencie | ? |
+| 4 | Wygaszacz: zegar zasłaniał logo filmu | Zegar i data w prawym dolnym rogu | ? |
+| 14 | Dwa rzędy „TMDB Popular” nie do odróżnienia | Dopisek „· filmy” / „· seriale” | ✔ |
+| 15 | Karta tytułu pisała „1h47min”, baner „1 godz. 47 min” | Wszędzie „1 godz. 47 min” | ✔ |
+| 16 | Po powrocie z karty tytułu zaznaczenie skakało na pierwszy plakat | Wraca na plakat, który był oglądany (poprawione drugi raz w R8) | **✘** (25.11, zdjęcie 154): wraca na pierwszy plakat rzędu. Ślad: przy ► z ostatniego przycisku karty zaznaczenie na chwilę ucieka do rzędu pod kartą |
+| 28 | Po wyjściu z filmu przycisk „Główna” nachodził na tytuł rzędu | Przycisk chowa się, gdy jesteś w rzędach | ✔ |
+| 29 | Po wyjściu z filmu zaznaczona karta była poza ekranem, ◄ nie działało | Rząd przewija się na początek | ✔ |
+
+## Szukaj
+| # | Co było nie tak | Co zmieniłem | Stan |
+|---|---|---|---|
+| 5 | „dun” → najpierw „Muriel”, a „Diuna” dalej | Najpierw tytuły, które zaczynają się od wpisanych liter | ✔ |
+| 6 | ◄ z lewej kolumny klawiatury nic nie robiło | ◄ otwiera menu | ✔ |
+| 17 | „Dunkirk” dwa razy | Jeden wpis na tytuł (drugi „Dunkirk” to inny film, z 1958 r.) | ✔ |
+| 36 | Klawiatura bez polskich liter | Dodane ą…ż (R11), potem **usunięte na Twoje polecenie (R14)**. Wpisanie „l” znajduje też „ł”, „a” znajduje „ą” | R11 ✔, R14 w `uxr7` |
+
+## Telewizja (Live TV)
+| # | Co było nie tak | Co zmieniłem | Stan |
+|---|---|---|---|
+| 7 | Okno „kanał nie odpowiada” było przezroczyste, przebijał spod niego ekran | Ciemne tło | ✔ |
+| 8 | Kafelki na górze proponowały kanały, które nie działają | Bez niedziałających kanałów | ✔ |
+| 18 | W „Kraj i język” Polska była za USA | Polska i polski na górze | ✔ |
+| 19 | Przycisk „Kraj i język” nie mówił, co wybrano | Pokazuje nazwę wybranego kraju lub języka | ✔ |
+| 20 | Wstecz z listy dni → zaznaczenie na kanale, OK włączało archiwum | Wraca na „Dziś” | ✔ |
+| 25 | Zaraz po wejściu napis „te kanały nie mają programu TV”, choć program się wczytywał | Napis dopiero po 20 s bez programu | ? |
+| 32 | ◄ z „Szukaj” (górny pasek) skakało na kafelek | ◄ otwiera menu | ✔ (25.11) |
+| 33 | Po „Następny kanał” Wstecz wracało na pierwszy kanał | Wraca na kanał ostatnio oglądany | ? (25.11 nie dało się sprawdzić: kanały 1–5 dostawcy mają tę samą nazwę) |
+| 34 | „Odkrywaj”: 4 razy „Kuchenne rewolucje”, niedziałające kanały w „Dla ciebie” | Jeden kafelek na program i godzinę, bez niedziałających kanałów | ✔ (25.11, zdjęcie 161) |
+| 35 | Wstecz z „Odkrywaj” / „Szukaj” → zaznaczenie na „Wszystkie” | Wraca na przycisk, z którego weszłaś/wszedłeś | ✔ (25.11) |
+
+## Biblioteka
+| # | Co było nie tak | Co zmieniłem | Stan |
+|---|---|---|---|
+| 9, 22 | Przez sekundę ekran „Biblioteka pusta”, potem zaznaczenie na złej zakładce | W czasie wczytywania samo tło, zaznaczenie na pierwszym plakacie | ✔ |
+| 23 | ◄ z pierwszego plakatu nic nie robiło | ◄ otwiera menu | ✔ |
+
+## Strona filmu lub serialu
+| # | Co było nie tak | Co zmieniłem | Stan |
+|---|---|---|---|
+| 10 | „Odtwórz S1, O1” obok „S1, E1” | Wszędzie „S1, E1” | ✔ |
+| 11 | W opisie przypisy z Wikipedii, np. „Europe.[1]” | Przypisy usuwane | ✔ |
+| 12 | Odcinki z nazwą zastępczą „Episode 2” | Nazwa zastępcza ukryta | ✔ |
+| 24 | W opisie „S1, E1 · Odcinek 1:” | Bez nazwy zastępczej | ? |
+| 27 | „Usuń z »Oglądaj dalej«” bez ikony | Ikona „x” | ? |
+
+## Profile
+| # | Co było nie tak | Co zmieniłem | Stan |
+|---|---|---|---|
+| 26, 37 | Dwa profile „Stef+Patryk (K…” ucięte, nie do odróżnienia | Imię w dwóch liniach | ✔ (25.11, zdjęcie 147) |
+
+## YouTube
+| # | Co było nie tak | Co zmieniłem | Stan |
+|---|---|---|---|
+| 13 | ◄ na lewym pasku ikon nic nie robiło | ◄ otwiera menu | ✔ |
+| 38 | Film z „Oglądaj dalej” na Głównej: Wstecz prowadził do zakładki YouTube | Powrót na Główną (R13) | **✘** — nadal zakładka YouTube (25.11, zdjęcie 151) |
+| 43 | **Duży błąd (Twoje zgłoszenie 25.11):** film z polskiego kanału gra z angielskim dubbingiem automatycznym i nie da się przełączyć na polski | Nie poprawiałem (polecenie: na razie bez poprawek). Przyczyna znaleziona: część forka, która porządkuje ścieżki dźwięku YouTube, z dwóch ścieżek zostawia jedną i bierze angielski dubbing, a oryginał po polsku wyrzuca (log: „audio sets 2 -> 1”, wybrany dźwięk „English · auto-dubbed”) | do poprawy |
+
+## Ustawienia
+| # | Co było nie tak | Co zmieniłem | Stan |
+|---|---|---|---|
+| 21 | „Rozmiar napisów —” bez wartości | Pokazuje „Małe / Średnie / Duże” | ✔ |
+| 30 | „Kraj kanałów” bez wartości (u Ciebie jest „Niemcy”) | Wartość widać przy pozycji. Samego ustawienia nie zmieniałem | ✔ |
+| 40 | „Pomoc i dziennik błędów” otwierało ekran „Narzędzia” (pomocy ani dziennika nie ma) | Pozycja nazywa się „Narzędzia” i ma opis tego, co jest w środku | R14 w `uxr7` |
+| 41 | Wyłączony przełącznik znikał na zaznaczonym (białym) wierszu | Ciemny tor, przełącznik widać | R14 w `uxr7` |
+| 42 | „Na co masz ochotę?” — pusty ekran, dopóki nie naciśniesz OK | Od razu pokazuje pierwszy nastrój („Lekkie na dziś”) | R14 w `uxr7` |
+
+## Nowe znaleziska 25.11 (niepoprawione — na razie bez poprawek)
+| # | Co jest nie tak | Zdjęcie |
+|---|---|---|
+| 39 | „Co mogę powiedzieć” — goła czarna lista, inny wygląd niż reszta | 130 |
+| 44 | Główna: po zamknięciu karty tytułu ◄ z pierwszego plakatu w rzędzie nie otwiera menu (z dużego baneru działa) | 156, 157 |
+| 45 | Karta tytułu „Shetland”: gatunki i opis po angielsku („Drama · Crime”), a w rzędzie „Dramat” | 152 |
+| 46 | Live TV: kafelki na górze znów pokazują RT i CNBC (niedziałające) — po ponownym uruchomieniu aplikacji kanały nie są jeszcze oznaczone jako niedziałające | 158 |
+
+## Zauważone, ale świadomie niezmienione
+- Teksty bazy po angielsku (np. „Finding stream source”) — zasada: bez tłumaczeń.
+- Dymek „24 kl/s przy 60 Hz” w odtwarzaczu — jest w Twoim projekcie.
+- Stare ekrany forka (Narzędzia, Co mogę powiedzieć, Rodzina, Na co masz ochotę) mają goły czarny wygląd, nie wygląd Niuni (zdjęcia 130, 132, 138, 141). To większa praca projektowa, nie drobna poprawka.
+- Kraj kanałów „Niemcy” w Twoim profilu i pozycje testowe „autoplayqa-…” w danych — do Twojej decyzji.
+- Strefa czasowa projektora to Chiny (zegar pokazuje 19:xx, gdy w Polsce jest 12:xx). To ustawienie projektora, nie aplikacji.
+
+## Do zrobienia po Twojej zgodzie
+1. YouTube: zostawić oryginalny dźwięk (po polsku) i pozwolić przełączać ścieżki (#43).
+2. YouTube: Wstecz z filmu otwartego z Głównej → Główna (#38).

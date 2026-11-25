@@ -99,3 +99,24 @@ Uwaga dla właściciela: w danych są pozycje testowe `autoplayqa-subtitles` / `
 - Niesprawdzone na TV (są w `uxr5/uxr6`, nie było ich w zainstalowanych APK): R7 powrót na ostatnio oglądany kanał, R8 Wstecz z karty tytułu na oglądany tytuł + ◄ z „Szukaj” w Live TV, R9 Odkrywaj bez powtórek/niedostępnych, R10 Wstecz z Odkrywaj/Szukaj na przycisk trybu, R11 polskie litery w Szukaj, R12 imiona profili w 2 liniach, R13 YouTube z „Oglądaj dalej” → Wstecz na Główną. Lista też w `plan/DO_SPRAWDZENIA_NA_TV.md` („UX ręczne”).
 - Nie ruszone (DECYZJE 24.11 „UX ręczne”): teksty bazy po angielsku, dymek kl/s, nakładka „Odświeżanie”, „Gotowe” na zwiastunie (najpewniej napis z materiału), kraj IPTV „Niemcy”, pozycje testowe `autoplayqa-*` w danych.
 - 25.11 12:32: `uxr6` w trakcie builda (start 12:27, `/tmp/uxr6.log`), niezainstalowany. JMGO wolny (właściciel 12:31). Przekazanie do nowego wątku na polecenie właściciela (kontekst zużyty).
+
+## Pętla 6 (25.11, nowy wątek; `uxr6` na JMGO, build `uxr7`)
+- `uxr6` (R1–R13): BUILD SUCCESSFUL 14 min 20 s, `.stage/apk/uxr6-v7a.apk` md5 `278f2ccb43736eb5356e08ef55671ffd`, zainstalowany 12:44 (md5 z urządzenia zgodny), `compile -m speed` OK.
+- Testy na `uxr4` w czasie builda (Główna, menu, Ustawienia: Oglądanie, Napisy, Wygląd, Konta, Pilot, System) i na `uxr6`.
+- Sprawdzone na `uxr6`: R11 polskie litery ✔ (144–145; potem usunięte na polecenie właściciela), R12 profile w 2 liniach ✔ (147), R8 Live TV ◄ z „Szukaj” → menu ✔ (log), R9 Odkrywaj ✔ (161), R10 Wstecz z Odkrywaj → „Odkrywaj” ✔ (log). ✘: R8 Wstecz z karty tytułu → wraca na 1. plakat (154; przy ► z ostatniego przycisku karty fokus na chwilę ucieka do rzędu pod kartą), R13 YouTube z „Oglądaj dalej” → Wstecz = zakładka YouTube (151). R7 nierozstrzygnięte (kanały 1–5 dostawcy o tej samej nazwie).
+- Przy testach przypadkiem przestawione i od razu przywrócone: „Rozmiar napisów” (OK zmienia wartość w kółko) → „Małe”; „YouTube na ekranie głównym” → włączone.
+
+| # | Znalezisko (zrzut) | Stan |
+|---|---|---|
+| 39 | „Co mogę powiedzieć” — goła czarna lista, bez wyglądu Niuni (130) | bez zmian (DECYZJE 25.11) |
+| 40 | „Pomoc i dziennik błędów” otwiera ekran „Narzędzia” (132) | R14: pozycja „Narzędzia” z opisem |
+| 41 | Wyłączony przełącznik niewidoczny na zaznaczonym białym wierszu (136) | R14: ciemny tor (`NiuniaSwitch(onLight)`) |
+| 42 | „Na co masz ochotę?” pusty do pierwszego OK (138–139) | R14: od razu 1. nastrój |
+| 43 | YouTube: polski kanał gra z angielskim dubbingiem automatycznym, bez przełączenia (zgłoszenie właściciela) | NIEPOPRAWIONE (polecenie właściciela: na razie bez poprawek). Przyczyna: `fork/yt/YouTubeAudioSlim.prepare` grupuje zestawy audio po `lang` (log `ForkYtAudio: audio sets 2 -> 1`) i zostawia pierwszy AAC = „English · auto-dubbed”; oryginał PL usunięty z manifestu |
+| 44 | Główna: po zamknięciu karty tytułu ◄ z 1. plakatu rzędu nie otwiera menu (156–157) | niepoprawione |
+| 45 | Karta tytułu „Shetland”: gatunki/opis po angielsku, w rzędzie „Dramat” (152) | niepoprawione |
+| 46 | Live TV: kafelki na górze znów z RT/CNBC po restarcie aplikacji (158) | niepoprawione |
+| — | Właściciel 25.11: „usuń polskie litery diakrytyczne, to anty-UX” | R14: klawiatury Szukaj i Live TV › Szukaj tylko a–z |
+
+- R14: commit c5343fd36. Właściciel 25.11 ~12:50: „rozpisz dokument ze wszystkimi poprawkami, na razie nie poprawiaj więcej, ale możesz testować i zrobić builda” → `plan/ux/reczne/POPRAWKI.md` (wysłany). Build `uxr7` (R1–R14) start ~12:49 (`/tmp/uxr7.log`); przed buildem zwolnione miejsce: wpisy `~/.gradle/caches/build-cache-1` starsze niż 2 h (6,9 → 14 GB wolne).
+- `check.sh`: 2 błędy w plikach Reshaped/ASR (SherpaSpeechToText, AudioSyncSettingsItems) z wcześniejszych commitów innego wątku — nie moje, nie ruszane.
