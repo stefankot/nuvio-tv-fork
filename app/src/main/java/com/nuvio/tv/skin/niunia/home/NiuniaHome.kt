@@ -2,6 +2,9 @@ package com.nuvio.tv.skin.niunia.home
 
 import com.nuvio.tv.skin.niunia.components.niuniaPortrait
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
 import kotlinx.coroutines.launch
 import android.util.Log
 import androidx.compose.foundation.background
@@ -210,7 +213,13 @@ fun NiuniaHome(
     val rows: @Composable () -> Unit = {
         com.nuvio.tv.skin.niunia.components.NiuniaVerticalScroll {
             val colState = androidx.compose.foundation.lazy.rememberLazyListState(initialFirstVisibleItemIndex = if (memory.down) memory.row.coerceAtLeast(0) else 0)
-            LazyColumn(state = colState, modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 48.dp)) {
+            // UX JMGO 25.11 (#44, uxr10): ◄ z pierwszego plakatu rzędu katalogu nie otwierał menu (szukanie fokusu nie trafia w pasek) —
+            // jak w Bibliotece: nieobsłużone ◄ najpierw próbuje przenieść fokus, a przy lewej krawędzi otwiera menu.
+            val edgeFm = androidx.compose.ui.platform.LocalFocusManager.current
+            LazyColumn(state = colState, contentPadding = PaddingValues(bottom = 48.dp), modifier = Modifier.fillMaxSize().onKeyEvent { e ->
+                if (pager != null || e.type != androidx.compose.ui.input.key.KeyEventType.KeyDown || e.key != androidx.compose.ui.input.key.Key.DirectionLeft) false
+                else edgeFm.moveFocus(androidx.compose.ui.focus.FocusDirection.Left) || com.nuvio.tv.skin.niunia.nav.NiuniaNavActions.toMenu("główna ◄ z pierwszego plakatu")
+            }) {
                 var firstBelow = true // pierwszy rząd 40 dp od góry
                 if (uiState.continueWatchingItems.isNotEmpty()) {
                     val top = firstBelow; firstBelow = false
