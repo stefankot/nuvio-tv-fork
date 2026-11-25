@@ -260,9 +260,11 @@ fun NiuniaHome(
                                     st.scrollToItem((r.second - 1).coerceAtLeast(0))
                                     androidx.compose.runtime.withFrameNanos { }
                                     restoreFocus.requestFocus()
-                                    Log.i(TAG, "karta tytułu: Wstecz → plakat ${r.second + 1} w rzędzie")
+                                    Log.i(TAG, "karta tytułu: Wstecz → plakat ${r.second + 1} w rzędzie (pierwszy widoczny ${st.firstVisibleItemIndex + 1})")
                                 } catch (e: kotlinx.coroutines.CancellationException) { throw e }
                                 catch (e: IllegalStateException) { Log.w(TAG, "karta tytułu: powrót na oglądany plakat: ${e.javaClass.simpleName}: ${e.message}") }
+                                // #44: karta znika dopiero teraz — fokus jest już na plakacie, więc Compose nie szuka nowego.
+                                pager = null
                                 cardReturn = null
                             }
                             LazyRow(state = st, contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
@@ -359,14 +361,24 @@ fun NiuniaHome(
                 onDetails = { m -> Log.i(TAG, "karta tytułu: (i) → strona tytułu ${m.id}"); pager = null; onNavigateToDetail(m.id, m.rawType, row.addonBaseUrl) },
                 onLibrary = { m -> Log.i(TAG, "karta tytułu: biblioteka ${m.id}"); onToggleLibrary(m, row.addonBaseUrl) },
                 onClose = { page ->
-                    pager = null
                     val item = row.items.getOrNull(page)
                     if (page != start && item != null) {
+                        // UX JMGO 25.11 (#44): po zamknięciu karty Compose sam dawał fokus lewemu górnemu plakatowi (40 ms po Wstecz),
+                        // co nadpisywało pamięć fokusu. Teraz karta zostaje, aż rząd (LaunchedEffect(cardReturn)) da fokus oglądanemu plakatowi.
                         val rowKey = "r:${row.addonId}_${row.catalogId}_${row.rawType}:"
-                        val col = uiState.catalogRows.indexOf(row) + if (uiState.continueWatchingItems.isNotEmpty()) 1 else 0
-                        rememberFocus(rowKey + item.id, col, page)
-                        cardReturn = rowKey to page
-                    } else try { restoreFocus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "karta tytułu: powrót fokusu: ${e.javaClass.simpleName}: ${e.message}") }
+                        val k = rowKey + item.id
+                        memory.key = k; memory.target = k; memory.index = page; memory.down = true; memDown = true
+                        memory.row = uiState.catalogRows.indexOf(row) + if (uiState.continueWatchingItems.isNotEmpty()) 1 else 0
+                        val ret = rowKey to page
+                        cardReturn = ret
+                        focusScope.launch {
+                            kotlinx.coroutines.delay(800)
+                            if (cardReturn == ret && pager != null) { Log.w(TAG, "karta tytułu: rząd nie przejął fokusu w 0,8 s — zamykam kartę"); pager = null; cardReturn = null }
+                        }
+                    } else {
+                        pager = null
+                        try { restoreFocus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "karta tytułu: powrót fokusu: ${e.javaClass.simpleName}: ${e.message}") }
+                    }
                 },
             )
         }
