@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Skrót: ikona „Better Nuvio” dla ekranu głównego JMGO (com.jmgo.arwen pokazuje tylko kategorię LAUNCHER,
+     a Better Nuvio ma wyłącznie LEANBACK_LAUNCHER). Nic nie zmienia w samej aplikacji Better Nuvio. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.nuviofork.skrot.betternuvio"
+    android:versionCode="1"
+    android:versionName="1.0">
+    <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="34"/>
+    <uses-feature android:name="android.software.leanback" android:required="false"/>
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false"/>
+    <queries>
+        <package android:name="com.betternuvio.tv"/>
+    </queries>
+    <application
+        android:label="Better Nuvio"
+        android:icon="@mipmap/ic_launcher"
+        android:banner="@drawable/skrot_banner"
+        android:allowBackup="false">
+        <activity
+            android:name=".Otworz"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.NoDisplay">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
