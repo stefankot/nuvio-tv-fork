@@ -361,6 +361,8 @@ fun NiuniaPlayerChrome(
         // Wstecz krok po kroku przez wpięcie w PlayerScreen.handleBackPress (makieta Player: panel → odtwarzacz; ▼▼ → ▼ → pasek).
         val hasRowNow by androidx.compose.runtime.rememberUpdatedState(hasRow)
         DisposableEffect(Unit) {
+            // #49: zostaje po schowaniu nakładki (ekran pauzy bazy rysuje się bez niej); słaba referencja.
+            NiuniaPlayerBack.controller = java.lang.ref.WeakReference(viewModel.controller)
             NiuniaPlayerBack.handler = {
                 when {
                     extras.state.value.trailer != null -> { Log.i(TAG, "Wstecz → odtwarzacz (zwiastun zamknięty)"); extras.closeTrailer(); true }
