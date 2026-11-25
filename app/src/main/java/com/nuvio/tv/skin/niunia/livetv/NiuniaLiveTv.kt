@@ -276,10 +276,11 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
         favUrls = next
     }
     // UX JMGO 25.11 (#60): obserwowane programy, które lecą teraz — liczone w tle (5,2 s na wątku UI przy 59 tys. kanałów).
-    var favShowLive by remember { mutableStateOf<List<NiuniaLiveTile>>(emptyList()) }
+    var favShowLive by remember { mutableStateOf(NiuniaFavShowsCache.last) }
     val favFilter = filter == NiuniaLiveFilter.Favourites
     LaunchedEffect(favFilter, base, state.currentProgrammes, now / (5 * MIN_MS), favShows) {
-        if (!favFilter || favShows.isEmpty()) { favShowLive = emptyList(); return@LaunchedEffect }
+        if (!favFilter) return@LaunchedEffect
+        if (favShows.isEmpty()) { favShowLive = emptyList(); NiuniaFavShowsCache.last = emptyList(); return@LaunchedEffect }
         val b = base; val cur = state.currentProgrammes; val t = now; val shows = favShows
         val t0 = android.os.SystemClock.elapsedRealtime()
         favShowLive = try {
@@ -289,6 +290,7 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
         } catch (e: Exception) {
             Log.w(TAG, "live tv: obserwowane programy: ${e.javaClass.simpleName}: ${e.message}"); emptyList()
         }
+        NiuniaFavShowsCache.last = favShowLive
         Log.i(TAG, "live tv: obserwowane programy na żywo: ${favShowLive.size} z ${b.size} kanałów w tle (${android.os.SystemClock.elapsedRealtime() - t0} ms)")
     }
     val filtered = remember(base, filter, favUrls, favShows, alerts) {
@@ -309,9 +311,16 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
         }
         if (filter is NiuniaLiveFilter.All || filter is NiuniaLiveFilter.Category) all.filterNot { NiuniaLiveStatus.unavailable(context, it.channel.streamUrl) } else all
     }
+    // UX JMGO 25.11 (#56): kanały, na których leciał obserwowany program, znikały z „Ulubione” o pełnej godzinie (koniec
+    // programu) razem z fokusem — zostają na liście do zmiany filtra albo wyjścia z Live TV.
+    val favSticky = remember(filter.id) { LinkedHashSet<String>() }
     val guideChannels = remember(filter, filtered, base, tiles, favUrls) {
         when (filter) {
-            NiuniaLiveFilter.Favourites -> favouriteChannels(base, favUrls, tiles)
+            NiuniaLiveFilter.Favourites -> {
+                val list = favouriteChannels(base, favUrls, tiles)
+                list.forEach { if (it.streamUrl !in favUrls) favSticky += it.streamUrl }
+                if (favSticky.isEmpty()) list else base.filter { it.streamUrl in favUrls || it.streamUrl in favSticky }
+            }
             NiuniaLiveFilter.Continue -> tiles.map { it.channel }.distinctBy { it.streamUrl }.ifEmpty { base }
             else -> filtered
         }

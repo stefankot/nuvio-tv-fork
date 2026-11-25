@@ -182,9 +182,22 @@ internal fun liveFavouriteShows(channels: List<LiveTvChannel>, current: Map<Stri
     val out = ArrayList<NiuniaLiveTile>()
     channels.distinctBy { it.guideKey }.forEach { ch ->
         val p = current[ch.guideKey]?.takeIf { isLive(it, now) } ?: return@forEach
-        if (ShowIdentity.normalizeTitle(p.title) in favShows) out += tileFor(ch, p, now)
+        if (NiuniaFavShowsCache.key(p.title) in favShows) out += tileFor(ch, p, now)
     }
     return out
+}
+
+/**
+ * UX JMGO 25.11 (#56/#60): ostatni wynik [liveFavouriteShows] (powrót z odtwarzacza od razu z tymi samymi kanałami — fokus
+ * wraca na kanał, zamiast spaść na pigułkę) i pamięć znormalizowanych tytułów (przeliczenie po zmianie programu bez 5 s).
+ */
+internal object NiuniaFavShowsCache {
+    @Volatile var last: List<NiuniaLiveTile> = emptyList()
+    private val norm = java.util.concurrent.ConcurrentHashMap<String, String>()
+    fun key(title: String): String = norm[title] ?: ShowIdentity.normalizeTitle(title).also {
+        if (norm.size > 200_000) norm.clear()
+        norm[title] = it
+    }
 }
 
 /** Kanały przewodnika dla „Ulubione”: ulubione kanały i kanały, na których są obserwowane programy. */
