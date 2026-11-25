@@ -133,6 +133,6 @@ Uwaga dla właściciela: w danych są pozycje testowe `autoplayqa-subtitles` / `
 
 ## Pętla 7 (25.11 13:40, nowy wątek) — #44 i R16
 - #44 przyczyna (logi `ForkFocus` na `uxr8`): Wstecz 15.711 → 15.751 fokus na 1. plakat (Compose po usunięciu nakładki z fokusem sam daje fokus lewemu górnemu elementowi) → `rememberFocus` nadpisuje cel → efekt `cardReturn` (15.817) daje fokus znów 1. plakatowi. Poprawka (commit 3d83b7835): przy powrocie na inny plakat karta zostaje, rząd przewija się i daje fokus, dopiero potem `pager = null`; zabezpieczenie 0,8 s.
-- Build `uxr9` (R16 + #44) start 13:44, `/tmp/uxr9.log`, zakładka terminala c1.
+- Build `uxr9` (R16 + #44, commit 3d83b7835): BUILD SUCCESSFUL 14:01 (17 min, testy Niuni OK), `.stage/apk/uxr9-v7a.apk` md5 `2165bdf9b2cd220e277ad6bca9bd5397`. Instalacja czeka na wolny JMGO.
 - Na `uxr8` w czasie builda: gatunki po polsku na banerze i w karcie (#45) ✔; Szukaj: klawiatura a–z bez polskich liter (#36/R14) ✔; „Narzędzia” w System › Pomoc z opisem „Szukaj w telewizji, Odkrywaj, przykłady poleceń głosowych” (#40) ✔; przełącznik „Pamiętaj rzędy” w Wygląd › Ekran główny ✔ (182). #41 (wyłączony przełącznik na białym wierszu) — nie znalazłem wyłączonego (180, 181 włączone), ?.
 - 13:50 właściciel przejął JMGO („napiszę gdy będzie wolne”) — testy wstrzymane.
