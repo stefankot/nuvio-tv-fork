@@ -205,8 +205,7 @@ fun NiuniaSearch(viewModel: SearchViewModel, onNavigateToDetail: (String, String
                         onDelete = { type(shownQuery.dropLast(1)) },
                         onClear = { Log.i(TAG, "wyszukiwarka: wyczyść"); type(""); tab = NiuniaSearchTab.All },
                     )
-                    // Klawiatura z polskimi literami ma o rząd więcej — dwie frazy mieszczą się w całości na ekranie.
-                    val phrases = (if (searching) niuniaSearchSuggestions(state.query, state.suggestions, results.map { it.first.name }) else state.recentSearches).take(2)
+                    val phrases = if (searching) niuniaSearchSuggestions(state.query, state.suggestions, results.map { it.first.name }) else state.recentSearches.take(3)
                     if (phrases.isNotEmpty()) Column(verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space4)) {
                         NiuniaText(stringResource(if (searching) R.string.niunia_ds_search_suggestions else R.string.niunia_search_recent),
                             Modifier.padding(horizontal = NiuniaSpacing.Space8), variant = NiuniaTextVariant.CaptionRegular, tone = NiuniaTone.Tertiary)
@@ -269,8 +268,8 @@ private fun SearchField(query: String, placeholder: String) {
 /** NCollection search-keyboard: przełącznik abc/123 (segmenty), klawisze 36×36 po 6 w rzędzie (odstęp 4), SPACJA · ⌫ · WYCZYŚĆ. */
 @Composable
 internal fun Keyboard(digits: Boolean, firstKey: FocusRequester, onMode: (Boolean) -> Unit, onKey: (String) -> Unit, onSpace: () -> Unit, onDelete: () -> Unit, onClear: () -> Unit) {
-    // UX JMGO (ręczne testy 24.11): klawiatura Szukaj nie miała polskich liter (Live TV › Szukaj ma) — dopisane ą…ż.
-    val keys = (if (digits) "1234567890" else "abcdefghijklmnopqrstuvwxyząćęłńóśźż").map { it.toString() }
+    // Właściciel 25.11: bez polskich liter na klawiaturze („anty-UX”) — wyszukiwanie i tak zamienia ą→a, ł→l.
+    val keys = (if (digits) "1234567890" else "abcdefghijklmnopqrstuvwxyz").map { it.toString() }
     Column(Modifier.niuniaTrapArrows("klawiatura", setOf(androidx.compose.ui.focus.FocusDirection.Left, androidx.compose.ui.focus.FocusDirection.Right)),
         verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
         Row(with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.width(NiuniaSize.SplitCol).forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Chip, CircleShape, fallback = NiuniaColor.Fill12) }.padding(NiuniaSpacing.Space4)) {

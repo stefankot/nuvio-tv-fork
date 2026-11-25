@@ -137,8 +137,8 @@ fun NiuniaListRow(
         when (trailing) {
             NiuniaTrailing.Chevron -> NiuniaIcon("chevron-right", size = NiuniaSize.Icon16, tint = if (focused) NiuniaColor.OnFocus70 else NiuniaColor.Text50)
             NiuniaTrailing.Check -> NiuniaIcon("check", size = NiuniaSize.Icon16, tint = fg)
-            NiuniaTrailing.SwitchOn -> NiuniaSwitch(true)
-            NiuniaTrailing.SwitchOff -> NiuniaSwitch(false)
+            NiuniaTrailing.SwitchOn -> NiuniaSwitch(true, onLight = focused)
+            NiuniaTrailing.SwitchOff -> NiuniaSwitch(false, onLight = focused)
             NiuniaTrailing.None -> Unit
         }
     }

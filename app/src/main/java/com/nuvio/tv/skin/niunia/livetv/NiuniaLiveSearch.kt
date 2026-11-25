@@ -60,7 +60,8 @@ import com.nuvio.tv.skin.niunia.tokens.NiuniaText
 import kotlinx.coroutines.delay
 
 private const val TAG = "ForkNiunia"
-private val LETTERS = ('a'..'z').map { it.toString() } + listOf("ą", "ć", "ę", "ł", "ń", "ó", "ś", "ź", "ż")
+// Właściciel 25.11: bez polskich liter („anty-UX”) — TvTextIndex.norm i tak zamienia ą→a, ł→l.
+private val LETTERS = ('a'..'z').map { it.toString() }
 private val DIGITS = ('1'..'9').map { it.toString() } + "0"
 private const val FAV_KEY = "\u0000niunia:ulubione"
 

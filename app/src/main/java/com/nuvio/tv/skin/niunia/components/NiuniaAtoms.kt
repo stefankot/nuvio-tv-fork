@@ -445,10 +445,12 @@ fun BoxScope.NiuniaShimmer() {
 
 /** Przełącznik 44×24, gałka 20; włączony = zielony. */
 @Composable
-fun NiuniaSwitch(on: Boolean, modifier: Modifier = Modifier) {
+fun NiuniaSwitch(on: Boolean, modifier: Modifier = Modifier, onLight: Boolean = false) {
     val x by animateFloatAsState(if (on) 1f else 0f, tween(NiuniaMotion.DurFocus.toInt(), easing = NiuniaMotion.Ease), label = "niuniaSwitch")
     Canvas(modifier.size(NiuniaSize.SwitchW, NiuniaSize.SwitchH)) {
-        drawRoundRect(if (on) NiuniaColor.SwitchOn else NiuniaColor.Fill24, cornerRadius = CornerRadius(size.height / 2))
+        // UX 25.11: wyłączony na zaznaczonym (białym) wierszu był niewidoczny (biała gałka na białym) — ciemny tor.
+        val off = if (onLight) NiuniaColor.OnFocus.copy(alpha = 0.28f) else NiuniaColor.Fill24
+        drawRoundRect(if (on) NiuniaColor.SwitchOn else off, cornerRadius = CornerRadius(size.height / 2))
         val k = NiuniaSize.SwitchKnob.toPx(); val pad = 2.dp.toPx()
         drawCircle(NiuniaColor.White, radius = k / 2, center = Offset(pad + k / 2 + x * k, size.height / 2))
     }

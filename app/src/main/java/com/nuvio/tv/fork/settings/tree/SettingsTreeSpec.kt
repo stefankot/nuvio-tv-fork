@@ -290,7 +290,7 @@ object SettingsTreeSpec {
                 s("start_permission", "Zgoda na start po włączeniu", "Ustawienia systemu: „Wyświetlanie nad innymi aplikacjami”", W, sp("start_permission"), "autostart zgoda"),
             ),
             g("pomoc", "Pomoc",
-                s("help", "Pomoc i dziennik błędów", "Zgłoś problem i zobacz, co się działo", N, route("fork_tools"), "pomoc blad dziennik log"),
+                s("help", "Narzędzia", "Szukaj w telewizji, Odkrywaj, przykłady poleceń głosowych", N, route("fork_tools"), "pomoc narzedzia blad dziennik log"), // UX 25.11: ekran to „Narzędzia”, nie dziennik błędów
                 m("a:Test łącza (ostatni film)", M, "Test łącza"),
                 m(com.nuvio.tv.fork.net.KeAutoTest.KEY, M),
                 s("device_test", "Test telewizora i łącza", "Sprawdź internet i sprzęt", W, parts(ItemsGroup.DEVICE_TEST), "test sprzet"),

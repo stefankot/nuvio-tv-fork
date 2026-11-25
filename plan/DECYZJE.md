@@ -146,3 +146,6 @@ Wykonawca nie pyta właściciela. Korzysta z tej listy. Właściciel może zmien
 - 24.11 (UX ręczne) Dymek „24 kl/s przy 60 Hz” w odtwarzaczu zostaje (makieta Z-22 właściciela); chwilowa nakładka bazy „Odświeżanie/Rozdzielczość” nad zegarem — bez zmian (kod bazy, kilka sekund).
 - 24.11 (UX ręczne) Kafle „Przeglądaj” w Szukaj bez obrazków zostają (makieta: karty-etykiety). Wstecz z odtwarzacza filmu w 3 krokach (rząd → pasek → ukrycie → wyjście) — zamierzone.
 - 24.11 (UX ręczne) Wstecz z filmu YouTube otwartego z „Oglądaj dalej” wraca na Główną tylko, gdy odtwarzacz YouTube naprawdę się pokazał (`ForgeYouTubeLaunch.playerShown`) — żeby nieudane otwarcie nie przerzucało później z zakładki YouTube na Główną.
+- 25.11 (UX ręczne, właściciel: „usuń te polskie litery diakrytyczne, to anty-UX”): klawiatury Szukaj i Live TV › Szukaj tylko a–z (R11 cofnięte); wyszukiwanie zamienia ą→a, ł→l, więc polskie tytuły nadal się znajdują.
+- 25.11 (UX ręczne): „Pomoc i dziennik błędów” prowadziła do ekranu „Narzędzia” (ekranu pomocy/dziennika nie ma) — pozycja nazwana „Narzędzia” z opisem zawartości, bez nowego ekranu.
+- 25.11 (UX ręczne): stare ekrany forka (Narzędzia, Co mogę powiedzieć, Rodzina, Na co masz ochotę) mają goły czarny wygląd, nie Niuni — odnotowane, bez przerabiania (większa praca projektowa, nie poprawka UX).

@@ -134,7 +134,13 @@ object PicksModule : ForkModule {
                 status = if (results.isEmpty()) (if (BuildConfig.TMDB_API_KEY.isBlank()) "Brak klucza TMDB" else "Nic nie znaleziono") else ""
             }
         }
-        LaunchedEffect(Unit) { pendingMood?.let { id -> pendingMood = null; moods.firstOrNull { it.id == id }?.let(::choose) } }
+        // UX 25.11: bez pustego ekranu — od razu pierwszy nastrój (albo ten z polecenia głosowego).
+        LaunchedEffect(Unit) {
+            val id = pendingMood; pendingMood = null
+            val m = moods.firstOrNull { it.id == id } ?: moods.firstOrNull()
+            android.util.Log.i("ForkPicks", "start: nastrój=${m?.id} (głos=${id != null})")
+            m?.let(::choose)
+        }
         fun open(t: PickTitle) {
             scope.launch {
                 val imdb = withContext(Dispatchers.IO) {

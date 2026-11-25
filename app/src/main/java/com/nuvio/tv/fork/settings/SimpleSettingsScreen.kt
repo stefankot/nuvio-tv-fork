@@ -120,7 +120,7 @@ private fun SimpleSettingsScreen(navigate: (String) -> Unit, onLevelChanged: () 
                 },
                 com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Header("Ogólne"),
                 com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Row("modules", "Wszystkie moduły") { navigate(MODULES_ROUTE) },
-                com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Row("help", "Pomoc i dziennik błędów") { navigate(TOOLS_ROUTE) },
+                com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Row("help", "Narzędzia") { navigate(TOOLS_ROUTE) },
             ) + actions.map { (_, a) -> com.nuvio.tv.skin.niunia.settings.NiuniaSettingsItem.Row("akcja:" + a.title, a.title) { com.nuvio.tv.fork.family.FamilyUsage.feature("akcja:" + a.title); a.run(c) } },
             footer = {
                 androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
