@@ -29,7 +29,7 @@ fun rememberNiuniaPosterOptions(onNavigateToDetail: (String, String, String) -> 
         NiuniaActionsDialog(
             eyebrow = ctx.getString(if (series) com.nuvio.tv.R.string.niunia_ke_series else com.nuvio.tv.R.string.niunia_ke_movie),
             title = target.name,
-            state = listOfNotNull(target.releaseInfo?.takeIf { it.isNotBlank() }, target.genres.take(2).joinToString(" · ").ifBlank { null }).joinToString(" · ").ifBlank { null },
+            state = listOfNotNull(target.releaseInfo?.takeIf { it.isNotBlank() }, target.genres.take(2).mapNotNull { NiuniaGenres.pl(it) }.joinToString(" · ").ifBlank { null }).joinToString(" · ").ifBlank { null },
             onDismiss = { vm.controller.dismiss() },
             actions = listOf(
                 NiuniaDialogAction(ctx.getString(if (series) com.nuvio.tv.R.string.niunia_ke_details_series else com.nuvio.tv.R.string.niunia_ke_details_movie), icon = "info", chevron = true) {

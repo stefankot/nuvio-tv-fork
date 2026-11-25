@@ -2,7 +2,7 @@
 <!-- Niunia: odtwarzacz YouTube, odtwarzacz IPTV, „Podobne”/biblioteka/zwiastun w odtwarzaczu filmu (20.11). -->
 <resources>
     <string name="niunia_minutes">%1$d min</string>
-    <string name="niunia_hours_minutes">%1$d godz. %2$d min</string>
+    <string name="niunia_hours_minutes">%1$dh%2$02d</string>
 
     <string name="niunia_yt_label">YOUTUBE</string>
     <string name="niunia_yt_subscribe">Subskrybuj</string>

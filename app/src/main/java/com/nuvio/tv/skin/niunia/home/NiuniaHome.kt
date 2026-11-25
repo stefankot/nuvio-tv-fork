@@ -96,6 +96,9 @@ fun NiuniaHome(
     cwActions: NiuniaCwActions? = null,
     onRetry: () -> Unit = {},
 ) {
+    // Właściciel 25.11 („dodaj cache”): brakujące rzędy z dodatków → ostatnia zapisana kopia (NiuniaRowsCache).
+    val rawState = uiState
+    @Suppress("NAME_SHADOWING") val uiState = NiuniaRowsCache.withCache(rawState)
     val context = LocalContext.current
     // Z-16 (P-2): długie OK na plakacie = okno akcji Niuni (TitleActions), nigdy akcja od razu; wybór list Trakt zostaje oknem bazy.
     val posterOptions = com.nuvio.tv.skin.niunia.components.rememberNiuniaPosterOptions { id, type, url -> onNavigateToDetail(id, type, url) }
@@ -130,7 +133,7 @@ fun NiuniaHome(
     val firstFocus = remember { FocusRequester() }
     com.nuvio.tv.skin.niunia.nav.NiuniaRegisterContentFocus(if (memDown) restoreFocus else if (heroes.isNotEmpty()) heroFocus else if (uiState.continueWatchingItems.isNotEmpty() || uiState.catalogRows.any { it.items.isNotEmpty() }) firstFocus else null)
     remember { memory.restorePending = memDown; 0 }
-    fun rememberFocus(key: String, row: Int, index: Int) { memory.key = key; memory.target = key; memory.row = row; memory.index = index; memory.down = true; memDown = true }
+    fun rememberFocus(key: String, row: Int, index: Int) { if (pager != null) return /* UX 25.11: fokus uciekł spod karty tytułu */; memory.key = key; memory.target = key; memory.row = row; memory.index = index; memory.down = true; memDown = true }
     // UX JMGO 24.11 (F5/F6): powrót po kluczu — „Oglądaj dalej” po obejrzeniu zmienia kolejność, usunięty plakat → sąsiad (NiuniaFocusKeys).
     val rowKeys = remember(uiState.continueWatchingItems, uiState.catalogRows) {
         buildList {
@@ -192,7 +195,7 @@ fun NiuniaHome(
         else -> r.catalogName
     }
     androidx.compose.runtime.DisposableEffect(Unit) { onDispose { com.nuvio.tv.skin.niunia.nav.NiuniaNavChrome.homeRows.value = false } }
-    val rowsFailed = !uiState.isLoading && uiState.continueWatchingItems.isNotEmpty() && uiState.catalogRows.all { it.items.isEmpty() }
+    val rowsFailed = !rawState.isLoading && rawState.continueWatchingItems.isNotEmpty() && rawState.catalogRows.all { it.items.isEmpty() }
     LaunchedEffect(rowsFailed) {
         if (!rowsFailed) return@LaunchedEffect
         Log.w(TAG, "ekran główny: rzędy z dodatków puste (błąd: ${uiState.error ?: "brak"}) — komunikat, ponowna próba za 20 s")
@@ -236,7 +239,7 @@ fun NiuniaHome(
                 }
                 // UX JMGO (ręczne testy 24.11): dodatek odpowiadał 429 („za dużo zapytań”) — były tylko „Oglądaj dalej” i pusty ekran
                 // bez słowa. Teraz pod „Oglądaj dalej” komunikat z przyciskiem, a ponowna próba idzie sama (LaunchedEffect niżej).
-                if (rowsFailed) {
+                if (rowsFailed && uiState.catalogRows.all { it.items.isEmpty() }) {
                     item(key = "niunia_rows_failed") { RowsFailed(onRetry) }
                 }
                 uiState.catalogRows.forEachIndexed { rowIndex, row ->
@@ -482,7 +485,7 @@ private fun Hero(
             NiuniaContentBlock(NiuniaBlockKind.Info) {
                 NiuniaLogo(item.logo, item.name, NiuniaLogoSize.Hero)
                 val type = if (item.rawType == "series") ctx.getString(R.string.niunia_player_series) else ctx.getString(R.string.niunia_player_movie)
-                val meta = listOfNotNull(type, item.genres.take(2).joinToString(" · ").ifBlank { null }, item.releaseInfo?.takeIf { it.isNotBlank() }, niuniaRuntime(item.runtime)?.let { (h, m) -> if (h > 0) ctx.getString(R.string.niunia_hours_minutes, h, m) else ctx.getString(R.string.niunia_minutes, m) } ?: item.runtime?.takeIf { it.isNotBlank() })
+                val meta = listOfNotNull(type, item.genres.take(2).mapNotNull { com.nuvio.tv.skin.niunia.components.NiuniaGenres.pl(it) }.joinToString(" · ").ifBlank { null }, item.releaseInfo?.takeIf { it.isNotBlank() }, niuniaRuntime(item.runtime)?.let { (h, m) -> if (h > 0) ctx.getString(R.string.niunia_hours_minutes, h, m) else ctx.getString(R.string.niunia_minutes, m) } ?: item.runtime?.takeIf { it.isNotBlank() })
                     .joinToString(" · ")
                 NiuniaMetaLine(meta, tone = NiuniaTone.Primary) {
                     // Z-10: na Głównej tylko średnia ocen (zastępuje „16” i „IMDb/TMDB”).

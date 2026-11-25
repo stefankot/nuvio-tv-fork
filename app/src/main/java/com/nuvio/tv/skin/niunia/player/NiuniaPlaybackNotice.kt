@@ -41,6 +41,8 @@ private const val TAG = "ForkNiunia"
 /** Z-22 (P-35): tryb odtwarzania inny niż plik + przyczyna prostymi słowami. */
 internal data class NiuniaNotice(val mode: String, val cause: String)
 
+private const val FPS_NOTICE = false
+
 /**
  * Z-22 (P-35): przyczyny tylko z danych, które odtwarzacz zna: Dolby Vision bez obsługi DV w ekranie (Display HDR caps)
  * i klatki pliku niedopasowane do częstotliwości ekranu. Dźwięk (E-AC3 → PCM) pominięty: baza nie podaje, czy dekoder go odrzucił.
@@ -54,9 +56,10 @@ internal fun niuniaPlaybackNotices(ui: PlayerUiState, display: Display?): List<N
         val types = display.hdrCapabilities?.supportedHdrTypes ?: IntArray(0)
         if (Display.HdrCapabilities.HDR_TYPE_DOLBY_VISION !in types) out += NiuniaNotice("Dolby Vision jako HDR10", "ten projektor nie obsługuje Dolby Vision")
     }
+    // Właściciel 25.11: dymek „24 kl/s przy 60 Hz” usunięty (było Z-22 / P-35).
     val fps = ui.detectedFrameRate.takeIf { it > 1f } ?: ui.streamInfoData?.videoFrameRate?.takeIf { it > 1f }
     val hz = display?.refreshRate?.takeIf { it > 1f }
-    if (fps != null && hz != null) {
+    if (FPS_NOTICE && fps != null && hz != null) {
         val ratio = hz / fps
         val mismatch = kotlin.math.abs(ratio - kotlin.math.round(ratio)) > 0.04f
         if (mismatch) {

@@ -57,7 +57,7 @@ object YouTubeMpdServer {
         if (visitorCookie.isNullOrBlank()) captionCookies.remove(videoId) else captionCookies[videoId] = visitorCookie
         manifests[videoId] = rewriteTranslatedCaptions(
             videoId,
-            YouTubeAudioTracks.tidy(com.nuvio.tv.fork.yt.YouTubeAudioSlim.prepare(mpd)), // Fork hook: jeden wiersz dźwięku na język
+            com.nuvio.tv.fork.yt.YouTubeAudioSlim.afterTidy(YouTubeAudioTracks.tidy(com.nuvio.tv.fork.yt.YouTubeAudioSlim.prepare(mpd))), // Fork hook: jeden wiersz dźwięku na język, dubbing AI nie gra sam
             keepCaptionLanguages
         )
         return "http://127.0.0.1:${ensureStarted().localPort}/yt/$videoId.mpd"

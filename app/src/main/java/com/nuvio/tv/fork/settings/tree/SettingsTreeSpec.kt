@@ -231,6 +231,7 @@ object SettingsTreeSpec {
                 m(com.nuvio.tv.fork.images.NativeBlur.KEY, W),
                 m("discover_show_*", W, kw = "odkrywaj rzad"),
                 s("calendar", "Kalendarz w menu", "Pozycja Kalendarz w menu aplikacji", W, TreeTarget.Toggle("fork_calendar", true), "kalendarz premiery"),
+                s("rows_cache", "Pamiętaj rzędy", "Gdy serwis z filmami nie odpowiada, pokaż ostatnio wczytane", M, TreeTarget.Toggle(com.nuvio.tv.skin.niunia.home.NiuniaRowsCache.KEY, true), "pamiec cache rzedy blad 429"),
             ),
             g("noc", "Tryb nocny",
                 s("night_mode", "Tryb nocny", "Wyłączony, według godzin albo zawsze", N, sp("night_mode"), "noc nocny wieczor cieply", module = "night"),

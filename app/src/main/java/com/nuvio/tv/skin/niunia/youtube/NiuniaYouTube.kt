@@ -120,7 +120,9 @@ fun NiuniaYouTube(onPlay: (YtPlayable) -> Unit, viewModel: YouTubeViewModel = fo
         Log.i(TAG, "youtube: film z „Oglądaj dalej” zamknięty — Wstecz wraca na $to")
         if (!com.nuvio.tv.skin.niunia.nav.NiuniaNavActions.open(to)) Log.w(TAG, "youtube: powrót na $to — brak przejścia")
     }
-    LaunchedEffect(pending) { ForgeYouTubeLaunch.take()?.let { item -> Log.i(TAG, "youtube: film z innego ekranu → odtwarzacz"); viewModel.activate(item, listOf(item), onPlay) } }
+    // UX 25.11 (test uxr6): film z „Oglądaj dalej” gra w odtwarzaczu bazy, nie w NiuniaYouTubePlayer — znacznik „odtwarzacz
+    // się pokazał” ustawiany w chwili uruchomienia, inaczej Wstecz zostawał w zakładce YouTube.
+    LaunchedEffect(pending) { ForgeYouTubeLaunch.take()?.let { item -> Log.i(TAG, "youtube: film z innego ekranu → odtwarzacz"); viewModel.activate(item, listOf(item)) { p -> if (ForgeYouTubeLaunch.returnRoute != null) ForgeYouTubeLaunch.playerShown = true; onPlay(p) } } }
     val pendingQuery by ForgeYouTubeLaunch.query.collectAsState()
     LaunchedEffect(pendingQuery) { ForgeYouTubeLaunch.takeSearch()?.let { q -> Log.i(TAG, "youtube: szukaj z ekranu Szukaj"); viewModel.search(q) } }
     // Doczytywanie 2 rzędy przed końcem.

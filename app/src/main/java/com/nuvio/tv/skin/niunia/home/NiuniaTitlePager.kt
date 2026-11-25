@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
@@ -36,6 +37,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
 import com.nuvio.tv.R
@@ -85,10 +87,14 @@ internal fun NiuniaTitlePager(
     val pager = rememberPagerState(initialPage = start.coerceIn(0, (items.size - 1).coerceAtLeast(0))) { items.size }
     val scope = rememberCoroutineScope()
     val plays = remember(items.size) { List(items.size) { FocusRequester() } }
+    // UX 25.11 (test uxr6): w czasie przewijania przyciski starej karty się wyłączały i fokus spadał na plakat Głównej pod
+    // kartą — po Wstecz zaznaczenie wracało na złą kartę. Na czas przewijania fokus trzyma niewidoczny punkt w karcie.
+    val holder = remember { FocusRequester() }
     BackHandler { Log.i(TAG, "karta tytułu: Wstecz → rząd (karta ${pager.currentPage + 1})"); onClose(pager.currentPage) }
     fun go(to: Int) {
         if (to !in items.indices) { Log.i(TAG, "karta tytułu: krawędź karuzeli (${pager.currentPage + 1}/${items.size})"); return }
         val from = pager.currentPage
+        try { holder.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "karta tytułu: fokus w czasie przewijania: ${e.javaClass.simpleName}: ${e.message}") }
         scope.launch {
             pager.animateScrollToPage(to)
             Log.i(TAG, "[Nuvio:NCollection] pager: card ${from + 1} -> ${to + 1} / ${items.size} (${items[to].name})")
@@ -102,6 +108,7 @@ internal fun NiuniaTitlePager(
     }
     // ▲▼ nic nie robią (fokus nie wychodzi pod kartę na Główną).
     Box(Modifier.fillMaxSize().zIndex(6f).background(NiuniaColor.Bg).onPreviewKeyEvent { e -> e.type == KeyEventType.KeyDown && (e.key == Key.DirectionUp || e.key == Key.DirectionDown) }) {
+        Box(Modifier.size(1.dp).focusRequester(holder).focusable())
         HorizontalPager(
             state = pager, pageSize = PageSize.Fixed(NiuniaSize.PagerCardW), pageSpacing = NiuniaSpacing.Space20,
             contentPadding = PaddingValues(horizontal = 60.dp), userScrollEnabled = false, beyondViewportPageCount = 1,
@@ -133,7 +140,7 @@ private fun Card(
             NiuniaContentBlock(NiuniaBlockKind.Info) {
                 if (ranking) NiuniaTag(stringResource(R.string.niunia_tv2_pager_rank, index + 1, rowName), NiuniaTagKind.Chip)
                 NiuniaLogo(item.logo, item.name, NiuniaLogoSize.Hero)
-                NiuniaMetaLine(item.genres.take(3).joinToString(" · ").ifBlank { null }) {
+                NiuniaMetaLine(item.genres.take(3).mapNotNull { com.nuvio.tv.skin.niunia.components.NiuniaGenres.pl(it) }.distinct().joinToString(" · ").ifBlank { null }) {
                     com.nuvio.tv.skin.niunia.components.NiuniaRatingAverage(com.nuvio.tv.skin.niunia.components.niuniaScores(item.imdbRating, null))
                 }
                 item.description?.takeIf { it.isNotBlank() }?.let { NiuniaText(it, variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 3) }
