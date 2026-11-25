@@ -5,7 +5,7 @@ Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcj
 
 ## NAJPIERW (25.11 — UX testy ręczne na JMGO: 13 paczek poprawek R1–R13, koniec dnia)
 - Polecenie właściciela 24.11: ręczne testy (≥ 10 min) → poprawki → build → instalacja na JMGO → znowu testy. Zrzuty 960 px: `fork-tools/test/r.sh NAZWA [klawisze…]` → `plan/ux/reczne/`. Cały przebieg, 38 znalezisk i stan każdej poprawki: `plan/ux/reczne/STAN.md`.
-- Na JMGO ostatnio zainstalowany `uxr4` (R1–R6, md5 963eb767…). `uxr6` = R1–R13 (HEAD ca18bbfed): wynik builda i instalacji — ostatni punkt `plan/ux/reczne/STAN.md` (25.11 JMGO był nieosiągalny: „No route to host”).
+- Na JMGO zainstalowany `uxr4` (R1–R6, md5 963eb767…). `uxr6` = R1–R13 (kod z ca18bbfed): build ruszył 25.11 12:27 w zakładce terminala (`/tmp/uxr6.log`), o 12:32 jeszcze się kompilował — NIEZAINSTALOWANY. Właściciel 12:31: „jmgo wolne”. Gdy `adb connect` daje „No route to host”, a `nc -z 192.168.31.252 5555` działa: `adb kill-server; adb start-server` i połącz ponownie.
 - „kontynuuj”: jeśli `uxr6` nie jest na JMGO — zainstaluj `.stage/apk/uxr6-v7a.apk` (md5, `compile -m speed`), potem sprawdź listę „UX ręczne” z `plan/DO_SPRAWDZENIA_NA_TV.md` (R7–R13 niesprawdzone na TV) i kontynuuj pętlę testów ręcznych tymi samymi zasadami.
 - Decyzje do właściciela (bez zmian z mojej strony): kraj IPTV „Niemcy” (Ustawienia › Telewizja › „Kraj kanałów”); pozycje testowe `autoplayqa-*` w danych. Pozostałe świadome pominięcia: `plan/DECYZJE.md` (24.11 „UX ręczne”).
 
