@@ -317,6 +317,8 @@ fun NiuniaHome(
         val ctx = LocalContext.current
         val (cwTitle, cwState, series) = niuniaCwDialogText(ctx, menuItem)
         val resumeMs = (menuItem as? ContinueWatchingItem.InProgress)?.progress?.position?.takeIf { it > 0L }
+        // UX 25.11 (#47): film YouTube — „Od początku”, „Wybierz źródło” i „Szczegóły” prowadziły ścieżką filmów z dodatków.
+        val yt = niuniaCwContentId(menuItem).startsWith("youtube:")
         com.nuvio.tv.skin.niunia.components.NiuniaActionsDialog(
             eyebrow = ctx.getString(R.string.niunia_ke_cw_eyebrow),
             title = cwTitle,
@@ -326,9 +328,9 @@ fun NiuniaHome(
                 com.nuvio.tv.skin.niunia.components.NiuniaDialogAction(
                     if (resumeMs != null) ctx.getString(R.string.niunia_ke_resume_at, niuniaClock(resumeMs)) else ctx.getString(R.string.niunia_ke_play), icon = "play",
                 ) { close("wznów", playCw) },
-                if (resumeMs != null) com.nuvio.tv.skin.niunia.components.NiuniaDialogAction(ctx.getString(R.string.niunia_ke_from_start), icon = "restart") { close("od początku", cwActions.fromStart) } else null,
-                if (cwActions.showManual) com.nuvio.tv.skin.niunia.components.NiuniaDialogAction(ctx.getString(R.string.niunia_ke_choose_source), icon = "playlist-add", chevron = true) { close("wybierz źródło", cwActions.playManually) } else null,
-                com.nuvio.tv.skin.niunia.components.NiuniaDialogAction(ctx.getString(if (series) R.string.niunia_ke_details_series else R.string.niunia_ke_details_movie), icon = "info", chevron = true) {
+                if (resumeMs != null && !yt) com.nuvio.tv.skin.niunia.components.NiuniaDialogAction(ctx.getString(R.string.niunia_ke_from_start), icon = "restart") { close("od początku", cwActions.fromStart) } else null,
+                if (cwActions.showManual && !yt) com.nuvio.tv.skin.niunia.components.NiuniaDialogAction(ctx.getString(R.string.niunia_ke_choose_source), icon = "playlist-add", chevron = true) { close("wybierz źródło", cwActions.playManually) } else null,
+                if (yt) null else com.nuvio.tv.skin.niunia.components.NiuniaDialogAction(ctx.getString(if (series) R.string.niunia_ke_details_series else R.string.niunia_ke_details_movie), icon = "info", chevron = true) {
                     close("szczegóły") { cw -> onNavigateToDetail(niuniaCwContentId(cw), niuniaCwContentType(cw), "") }
                 },
                 com.nuvio.tv.skin.niunia.components.NiuniaDialogAction(ctx.getString(R.string.niunia_ke_mark_watched), icon = "check") { close("obejrzane", cwActions.markWatched) },
