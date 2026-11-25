@@ -490,14 +490,14 @@ internal fun NiuniaLivePlayer(
                         }
                                         }
                         // UX JMGO 25.11 (#57, zdjęcie 196): długi „Poprzedni: Strong8K · AR: …” zabierał całą szerokość — tytuł, godziny
-                        // i stan znikały. Przyciski najwyżej 420 dp, „Poprzedni” najwyżej 240 dp z krótką nazwą kanału.
-                        Row(Modifier.widthIn(max = 420.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        // i stan znikały. Przyciski najwyżej 520 dp, „Poprzedni” najwyżej 180 dp z krótką nazwą kanału (520/180: 5 przycisków mieszczą się, zdjęcie 204).
+                        Row(Modifier.widthIn(max = 520.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                             val left = buttons.filter { it == NiuniaLiveSlot.PREV || it == NiuniaLiveSlot.RESTART || it == NiuniaLiveSlot.PAUSE || it == NiuniaLiveSlot.LIVE }
                             val right = buttons.filter { it == NiuniaLiveSlot.FAV || it == NiuniaLiveSlot.INFO || it == NiuniaLiveSlot.MORE }
                             left.forEach { s ->
                                 when (s) {
                                     NiuniaLiveSlot.PREV -> NiuniaPill(stringResource(R.string.niunia_ke2_prev_channel, com.nuvio.tv.fork.tv.names.ChannelNames.shown(prev?.name.orEmpty())), focusSlot == s,
-                                        icon = Icons.Outlined.History, height = 36.dp, modifier = Modifier.widthIn(max = 240.dp))
+                                        icon = Icons.Outlined.History, height = 36.dp, modifier = Modifier.widthIn(max = 180.dp))
                                     NiuniaLiveSlot.RESTART -> NiuniaIconCircle(Icons.Outlined.Replay, stringResource(R.string.niunia_live_restart), focusSlot == s)
                                     NiuniaLiveSlot.PAUSE -> NiuniaIconCircle(if (paused) Icons.Outlined.PlayArrow else Icons.Outlined.Pause,
                                         stringResource(if (paused) R.string.niunia_live_play else R.string.niunia_live_pause), focusSlot == s)
