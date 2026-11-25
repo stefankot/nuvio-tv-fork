@@ -252,15 +252,24 @@ fun NiuniaHome(
                             val rowKey = "r:${row.addonId}_${row.catalogId}_${row.rawType}:"
                             val st = androidx.compose.foundation.lazy.rememberLazyListState(initialFirstVisibleItemIndex = initialIndex(rowKey))
                             val colIndex = rowIndex + if (uiState.continueWatchingItems.isNotEmpty()) 1 else 0
+                            // #44 (uxr9): restoreFocus nie był jeszcze przypięty do oglądanego plakatu (Compose 1.11 tylko wypisuje
+                            // „FocusRequester is not initialized”) — plakat z karty dostaje własny requester, fokus ponawiany co klatkę.
+                            val returnFocus = remember { FocusRequester() }
                             LaunchedEffect(cardReturn) {
                                 val r = cardReturn ?: return@LaunchedEffect
                                 if (r.first != rowKey) return@LaunchedEffect
                                 // Stan zerowany dopiero na końcu: zmiana klucza efektu w trakcie anulowała przewijanie (test uxr3).
                                 try {
                                     st.scrollToItem((r.second - 1).coerceAtLeast(0))
-                                    androidx.compose.runtime.withFrameNanos { }
-                                    restoreFocus.requestFocus()
-                                    Log.i(TAG, "karta tytułu: Wstecz → plakat ${r.second + 1} w rzędzie (pierwszy widoczny ${st.firstVisibleItemIndex + 1})")
+                                    var n = 0
+                                    var ok = false
+                                    while (!ok && n < 10) {
+                                        androidx.compose.runtime.withFrameNanos { }
+                                        n++
+                                        ok = returnFocus.requestFocus(androidx.compose.ui.focus.FocusDirection.Enter)
+                                    }
+                                    if (ok) Log.i(TAG, "karta tytułu: Wstecz → plakat ${r.second + 1} w rzędzie (klatka $n, pierwszy widoczny ${st.firstVisibleItemIndex + 1})")
+                                    else Log.w(TAG, "karta tytułu: plakat ${r.second + 1} nie przyjął fokusu przez 10 klatek (cel ${memory.target}, down ${memory.down})")
                                 } catch (e: kotlinx.coroutines.CancellationException) { throw e }
                                 catch (e: IllegalStateException) { Log.w(TAG, "karta tytułu: powrót na oglądany plakat: ${e.javaClass.simpleName}: ${e.message}") }
                                 // #44: karta znika dopiero teraz — fokus jest już na plakacie, więc Compose nie szuka nowego.
@@ -280,7 +289,8 @@ fun NiuniaHome(
                                         label = NiuniaLabels.label(context, item, i, ranking),
                                         // Plakaty z dodatków zwykle mają tytuł w grafice → wariant „baked” (decyzja: plan/DECYZJE.md, Niunia).
                                         baked = art != null,
-                                        modifier = restoreModifier(k, restoreFocus).then(firstModifier(k)),
+                                        modifier = restoreModifier(k, restoreFocus).then(firstModifier(k))
+                                            .then(if (cardReturn?.let { it.first == rowKey && it.second == i } == true) Modifier.focusRequester(returnFocus) else Modifier),
                                         award = com.nuvio.tv.skin.niunia.components.niuniaPosterAward(item.id), // Z-13
                                         onFocus = { if (it) { focusedRow = rowIndex; itemFocusLater(item); rememberFocus(k, colIndex, i) } },
                                         onOk = {
