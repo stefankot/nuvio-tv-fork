@@ -122,7 +122,11 @@ internal fun NiuniaLibraryContent(
     val chipReq = remember { mutableMapOf<String, FocusRequester>().also { it["sort"] = sortChip } }
     var lastChip by remember { mutableStateOf<String?>(null) }
     val upToChip = Modifier.focusProperties {
-        exit = { d -> if (d == FocusDirection.Up) lastChip?.let { chipReq[it] } ?: FocusRequester.Default else FocusRequester.Default }
+        // UX JMGO 25.11 (#50): zaraz po wejściu żaden chip nie miał jeszcze fokusu → ▲ szedł do najbliższego („Historia”) — teraz do wybranego.
+        exit = { d ->
+            if (d != FocusDirection.Up) FocusRequester.Default
+            else chipReq[lastChip ?: if (historyTab) "history" else "t:" + (state.selectedTypeTab?.key ?: LibraryTypeTab.ALL_KEY)] ?: FocusRequester.Default
+        }
     }.focusGroup()
     var panelWasOpen by remember { mutableStateOf(false) }
     LaunchedEffect(panel) {
