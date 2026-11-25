@@ -1,7 +1,7 @@
 # Poprawki z testów ręcznych na projektorze JMGO (24–25.11.2026)
 
 Jak czytać: **✔** — sprawdzone na projektorze, działa · **✘** — sprawdzone, nie działa · **?** — jeszcze nie sprawdzone na projektorze.
-Paczki poprawek mają nazwy R1…R14. Na projektorze jest teraz wersja `uxr10`; w budowie `uxr11` (poprawki IPTV i przewodnika, #50, ◄ → menu). `uxr7` przerwana (za długo się kompilowała).
+Paczki poprawek mają nazwy R1…R14. Na projektorze jest teraz wersja `uxr11` (poprawki IPTV i przewodnika, #50, ◄ → menu) — do sprawdzenia. `uxr7` przerwana (za długo się kompilowała).
 Zdjęcia ekranów (numery w nawiasach) leżą w `plan/ux/reczne/`.
 
 ## Ekran główny

@@ -157,3 +157,4 @@ Uwaga dla właściciela: w danych są pozycje testowe `autoplayqa-subtitles` / `
   - Bez zmian: OK na gołym obrazie = pauza + nakładka (spójnie z filmami; „forge fix 14.11 JMGO A1”); nakładka przy pauzie nie chowa się sama (celowo); ▲▼ zmienia kanał, ◄/► pokazuje nakładkę.
 - Do sprawdzenia na `uxr11`: wszystkie powyższe + #50 (Biblioteka ▲ → wybrana zakładka) + ◄ → menu z rzędu katalogu.
 - Build `uxr11` start 14:55, `/tmp/uxr11.log`, zakładka c3.
+- `uxr11`: BUILD SUCCESSFUL 15:02, `.stage/apk/uxr11-v7a.apk` md5 `028622e9b8ff3f77049d15976bb49b4d`, zainstalowany 15:05 (md5 zgodny), compile speed. Do sprawdzenia na ekranie: #44c, #50–#55.
