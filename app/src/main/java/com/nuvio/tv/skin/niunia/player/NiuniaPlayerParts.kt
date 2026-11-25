@@ -170,7 +170,8 @@ internal fun NiuniaPill(text: String, focused: Boolean, icon: ImageVector? = nul
     ) {
         if (dot != null) Box(Modifier.size(DsSize.Dot).background(dot, CircleShape))
         if (icon != null) Icon(icon, contentDescription = null, tint = if (focused) DsColor.OnFocus else DsColor.White, modifier = Modifier.size(DsSize.Icon20))
-        Text(text, style = DsType.LabelSmall, color = if (focused) DsColor.OnFocus else DsColor.White, maxLines = 1)
+        Text(text, style = DsType.LabelSmall, color = if (focused) DsColor.OnFocus else DsColor.White, maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
     }
 }
 

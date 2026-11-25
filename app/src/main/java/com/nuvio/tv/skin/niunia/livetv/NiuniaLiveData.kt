@@ -153,7 +153,8 @@ internal fun recentTiles(channels: List<LiveTvChannel>, current: Map<String, Liv
 }
 
 /** „Ulubione”: programy obserwowane (+), nowy odcinek → znacznik „Nowy odcinek”; potem ulubione kanały (co leci). */
-internal fun favouriteTiles(channels: List<LiveTvChannel>, favUrls: Set<String>, current: Map<String, LiveTvProgramme>, now: Long): List<NiuniaLiveTile> {
+internal fun favouriteTiles(channels: List<LiveTvChannel>, favUrls: Set<String>, current: Map<String, LiveTvProgramme>, now: Long,
+                            showTiles: List<NiuniaLiveTile>? = null): List<NiuniaLiveTile> {
     val guides = byGuide(channels)
     val favShows = TvStore.favoriteShows.value
     val out = ArrayList<NiuniaLiveTile>()
@@ -162,10 +163,7 @@ internal fun favouriteTiles(channels: List<LiveTvChannel>, favUrls: Set<String>,
         val p = LiveTvRepository.schedule(ch.guideKey).firstOrNull { it.startEpochMs == a.airing.startMs } ?: return@forEach
         out += tileFor(ch, p, now).copy(mark = NiuniaTileMark.NEW, progress = null, extra = p.episode)
     }
-    if (favShows.isNotEmpty()) channels.distinctBy { it.guideKey }.forEach { ch ->
-        val p = current[ch.guideKey]?.takeIf { isLive(it, now) } ?: return@forEach
-        if (ShowIdentity.normalizeTitle(p.title) in favShows) out += tileFor(ch, p, now)
-    }
+    out += showTiles ?: liveFavouriteShows(channels, current, now, favShows)
     // 23.11 (właściciel: „ulubione ładują się powoli i w większości nie pokazują miniaturek”): każdy ulubiony kanał ma kafelek
     // od razu — z obrazkiem programu, gdy przewodnik go ma (te najpierw), inaczej logo i nazwa (program dojdzie z przewodnikiem).
     val favs = channels.filter { it.streamUrl in favUrls }.distinctBy { it.streamUrl }
@@ -173,6 +171,20 @@ internal fun favouriteTiles(channels: List<LiveTvChannel>, favUrls: Set<String>,
         .sortedByDescending { t -> when { !t.programme?.image.isNullOrBlank() -> 2; t.programme != null -> 1; else -> 0 } }
     out += favs
     return out.distinctBy { it.key }.take(20)
+}
+
+/**
+ * Obserwowane programy, które lecą teraz (po jednym kafelku na kanał). UX JMGO 25.11 (#60, am profile): przy 59 tys. kanałów
+ * `normalizeTitle` dla każdego programu trwało 5,2 s na wątku UI (powrót z odtwarzacza do przewodnika) — ekran Live TV liczy to w tle.
+ */
+internal fun liveFavouriteShows(channels: List<LiveTvChannel>, current: Map<String, LiveTvProgramme>, now: Long, favShows: Set<String>): List<NiuniaLiveTile> {
+    if (favShows.isEmpty()) return emptyList()
+    val out = ArrayList<NiuniaLiveTile>()
+    channels.distinctBy { it.guideKey }.forEach { ch ->
+        val p = current[ch.guideKey]?.takeIf { isLive(it, now) } ?: return@forEach
+        if (ShowIdentity.normalizeTitle(p.title) in favShows) out += tileFor(ch, p, now)
+    }
+    return out
 }
 
 /** Kanały przewodnika dla „Ulubione”: ulubione kanały i kanały, na których są obserwowane programy. */

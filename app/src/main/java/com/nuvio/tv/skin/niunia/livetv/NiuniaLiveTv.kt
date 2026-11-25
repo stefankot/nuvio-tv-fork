@@ -241,12 +241,19 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
     LaunchedEffect(prepared, snapshot == null, state.currentProgrammes.isNotEmpty()) {
         if (snapshot != null || !prepared.sorted || state.currentProgrammes.isEmpty() || prepared.shown.isEmpty()) return@LaunchedEffect
         // Etap 1b: pierwsza strona + po 10 kanałów każdej kategorii (przełączenie kategorii od razu, zanim wczyta się lista).
+        // UX JMGO 25.11 (#60, am profile): filtr kategorii po całej liście trwał 1,2 s na wątku UI — w tle.
+        val prep = prepared
+        val hiddenKeys = state.hiddenChannelKeys
         val perCategory = try {
-            prepared.categories.flatMap { cat -> ForgeEpgCategories.filter(prepared.shown, cat.key, state.hiddenChannelKeys, "")?.take(com.nuvio.tv.fork.tv.ram.TvSnapshot.PER_CATEGORY).orEmpty() }
+            withContext(Dispatchers.Default) {
+                prep.categories.flatMap { cat -> ForgeEpgCategories.filter(prep.shown, cat.key, hiddenKeys, "")?.take(com.nuvio.tv.fork.tv.ram.TvSnapshot.PER_CATEGORY).orEmpty() }
+            }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.w(TAG, "live tv: próbka kategorii: ${e.javaClass.simpleName}: ${e.message}"); emptyList()
         }
-        val first = (prepared.shown.take(com.nuvio.tv.fork.tv.ram.TvSnapshot.FIRST_PAGE) + perCategory).distinctBy { it.streamUrl }
+        val first = (prep.shown.take(com.nuvio.tv.fork.tv.ram.TvSnapshot.FIRST_PAGE) + perCategory).distinctBy { it.streamUrl }
         val all = repoState.channels
         val fav = repoState.favoriteUrls
         val alertKeys = alerts.map { it.airing.guideKey }
@@ -258,7 +265,32 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
             com.nuvio.tv.fork.tv.ram.TvSnapshot.save(first, all, fav, extra) { LiveTvRepository.schedule(it) }
         }
     }
-    val filtered = remember(base, filter, state.favoriteUrls, favShows, alerts) {
+    // UX JMGO 25.11 (#56): o pełnej godzinie lista „Ulubione” na chwilę spadła z 6 do 1 kanału (fokus uciekł na „Szukaj”) —
+    // chwilowo pusta lista ulubionych kanałów jest przyjmowana dopiero, gdy zostaje pusta 3 s (np. usunięty ostatni ulubiony).
+    var favUrls by remember { mutableStateOf(state.favoriteUrls) }
+    LaunchedEffect(state.favoriteUrls) {
+        val next = state.favoriteUrls
+        if (next.isEmpty() && favUrls.isNotEmpty()) { delay(3_000); Log.i(TAG, "live tv: ulubione kanały puste od 3 s (było ${favUrls.size}) — przyjmuję") }
+        else if (next.size != favUrls.size) Log.i(TAG, "live tv: ulubione kanały ${favUrls.size} → ${next.size}")
+        favUrls = next
+    }
+    // UX JMGO 25.11 (#60): obserwowane programy, które lecą teraz — liczone w tle (5,2 s na wątku UI przy 59 tys. kanałów).
+    var favShowLive by remember { mutableStateOf<List<NiuniaLiveTile>>(emptyList()) }
+    val favFilter = filter == NiuniaLiveFilter.Favourites
+    LaunchedEffect(favFilter, base, state.currentProgrammes, now / (5 * MIN_MS), favShows) {
+        if (!favFilter || favShows.isEmpty()) { favShowLive = emptyList(); return@LaunchedEffect }
+        val b = base; val cur = state.currentProgrammes; val t = now; val shows = favShows
+        val t0 = android.os.SystemClock.elapsedRealtime()
+        favShowLive = try {
+            withContext(Dispatchers.Default) { liveFavouriteShows(b, cur, t, shows) }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.w(TAG, "live tv: obserwowane programy: ${e.javaClass.simpleName}: ${e.message}"); emptyList()
+        }
+        Log.i(TAG, "live tv: obserwowane programy na żywo: ${favShowLive.size} z ${b.size} kanałów w tle (${android.os.SystemClock.elapsedRealtime() - t0} ms)")
+    }
+    val filtered = remember(base, filter, favUrls, favShows, alerts) {
         when (val f = filter) {
             is NiuniaLiveFilter.Category -> ForgeEpgCategories.filter(base, f.key, state.hiddenChannelKeys, "") ?: base
             else -> base
@@ -267,18 +299,18 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
     // UX JMGO (ręczne testy 24.11): kanał, który właśnie „nie odpowiadał” (RT, CNBC), stał w kafelkach na górze jako
     // propozycja — teraz kafelki Wszystkie i kategorii pomijają kanały oznaczone „Niedostępny” (24 h).
     val statusV = NiuniaLiveStatus.version.intValue
-    val tiles = remember(filter, filtered, base, state.currentProgrammes, now / (5 * MIN_MS), recent, resume, favShows, alerts, statusV) {
+    val tiles = remember(filter, filtered, base, state.currentProgrammes, now / (5 * MIN_MS), recent, resume, favShows, alerts, statusV, favUrls, favShowLive) {
         val all = when (filter) {
             NiuniaLiveFilter.All -> recentTiles(base, state.currentProgrammes, now)
-            NiuniaLiveFilter.Favourites -> favouriteTiles(base, state.favoriteUrls, state.currentProgrammes, now)
+            NiuniaLiveFilter.Favourites -> favouriteTiles(base, favUrls, state.currentProgrammes, now, favShowLive)
             NiuniaLiveFilter.Continue -> continueTiles(base, now)
             is NiuniaLiveFilter.Category -> categoryTiles(filtered, state.currentProgrammes, now)
         }
         if (filter is NiuniaLiveFilter.All || filter is NiuniaLiveFilter.Category) all.filterNot { NiuniaLiveStatus.unavailable(context, it.channel.streamUrl) } else all
     }
-    val guideChannels = remember(filter, filtered, base, tiles, state.favoriteUrls) {
+    val guideChannels = remember(filter, filtered, base, tiles, favUrls) {
         when (filter) {
-            NiuniaLiveFilter.Favourites -> favouriteChannels(base, state.favoriteUrls, tiles)
+            NiuniaLiveFilter.Favourites -> favouriteChannels(base, favUrls, tiles)
             NiuniaLiveFilter.Continue -> tiles.map { it.channel }.distinctBy { it.streamUrl }.ifEmpty { base }
             else -> filtered
         }
@@ -286,7 +318,7 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
     val numbers = prepared.numbers
     val newKeys = remember(alerts) { alerts.filter { it.kind == AlertKind.NEW_EPISODE }.mapTo(HashSet()) { it.airing.guideKey + "|" + it.airing.startMs } }
     LaunchedEffect(filter.id, tiles.size, guideChannels.size) {
-        Log.i(TAG, "live tv: filtr=${filterName(filter)}, kafelki=${tiles.size}, kanały=${guideChannels.size}")
+        Log.i(TAG, "live tv: filtr=${filterName(filter)}, kafelki=${tiles.size}, kanały=${guideChannels.size} (lista ${base.size}, ulubione kanały ${favUrls.size})")
     }
 
     fun play(channel: LiveTvChannel, programme: LiveTvProgramme?, list: List<LiveTvChannel>) {

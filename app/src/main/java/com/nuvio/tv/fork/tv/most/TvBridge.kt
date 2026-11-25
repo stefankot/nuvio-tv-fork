@@ -93,16 +93,35 @@ object TvBridge {
     fun onPlay(channel: LiveTvChannel, programme: LiveTvProgramme?) {
         lastChannelPlayAtMs = android.os.SystemClock.elapsedRealtime()
         if (!enabled) return
-        TvStore.onWatched(channel, programme)
-        data?.onPlay(channel.guideKey, programme?.toGuide(), System.currentTimeMillis())
+        // UX JMGO 25.11 (#59, am profile): TvStore.onWatched → EpisodeAlerts.detect trwało 1,8 s na wątku UI przy włączaniu
+        // kanału (obraz czarny, klawisze stały). Teraz w wątku „fork-tv-io” (ta sama kolejka co zapis pozycji).
+        val now = System.currentTimeMillis()
+        io.execute {
+            try {
+                TvStore.onWatched(channel, programme, now)
+                data?.onPlay(channel.guideKey, programme?.toGuide(), now)
+            } catch (e: Exception) {
+                android.util.Log.w("ForkTv", "zapis włączenia kanału: ${e.javaClass.simpleName}: ${e.message}")
+            }
+        }
     }
 
     /** Co ~10 s z odtwarzacza: kanał (adres listy), czy z archiwum, i miejsce w czasie kanału. */
     fun onPosition(listUrl: String?, catchup: Boolean, playheadEpochMs: Long) {
         if (!enabled || listUrl == null) return
-        val guideKey = com.nuvio.tv.reshaped.livetv.LiveTvRepository.uiState.value.channels.firstOrNull { it.streamUrl == listUrl }?.guideKey ?: return
-        data?.onPosition(guideKey, playheadEpochMs, System.currentTimeMillis()) { key, ms ->
-            lastKept[key]?.firstOrNull { it.startEpochMs <= ms && ms < it.stopEpochMs }?.toGuide()
+        // UX JMGO 25.11 (#59, próbkowanie am profile): zapis historii (TvData.afterChange: zapis list + klasyfikacja serii)
+        // trwał 2,3 s na wątku UI odtwarzacza co minutę → obraz i klawisze stały. Teraz w wątku „fork-tv-io”.
+        val channels = com.nuvio.tv.reshaped.livetv.LiveTvRepository.uiState.value.channels
+        val now = System.currentTimeMillis()
+        io.execute {
+            try {
+                val guideKey = channels.firstOrNull { it.streamUrl == listUrl }?.guideKey ?: return@execute
+                data?.onPosition(guideKey, playheadEpochMs, now) { key, ms ->
+                    lastKept[key]?.firstOrNull { it.startEpochMs <= ms && ms < it.stopEpochMs }?.toGuide()
+                }
+            } catch (e: Exception) {
+                android.util.Log.w("ForkTv", "pozycja w historii: ${e.javaClass.simpleName}: ${e.message}")
+            }
         }
     }
 }

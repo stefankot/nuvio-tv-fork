@@ -213,7 +213,9 @@ internal object NiuniaLiveNav {
             else -> {
                 val focusable = sections.indices.filter { sections[it].count > 0 }
                 when {
+                    // UX JMGO 25.11 (#58): ▲ z najwyższej części szczegółów nic nie robiło (wyjście tylko Wstecz) — teraz wraca tam, skąd ▼ weszło.
                     code == KeyEvent.KEYCODE_DPAD_UP -> focusable.lastOrNull { it < section }?.let { section = it; index = index.coerceAtMost(sections[it].count - 1) }
+                        ?: go(if (row.isNotEmpty()) 1 else 0, "▲ ze szczytu szczegółów")
                     code == KeyEvent.KEYCODE_DPAD_DOWN -> focusable.firstOrNull { it > section }?.let { section = it; index = index.coerceAtMost(sections[it].count - 1) }
                     code == KeyEvent.KEYCODE_DPAD_LEFT -> index = (index - 1).coerceAtLeast(0)
                     code == KeyEvent.KEYCODE_DPAD_RIGHT -> index = (index + 1).coerceAtMost(((sections.getOrNull(section)?.count ?: 1) - 1).coerceAtLeast(0))
@@ -444,7 +446,7 @@ internal fun NiuniaLivePlayer(
                             val day = if (archive && shown != null && dayStart(shown.startEpochMs) != dayStart(clockMs)) dayLabel(context, shown.startEpochMs, clockMs).lowercase().replaceFirstChar { it.uppercase() } + " " else ""
                             val line = listOfNotNull(
                                 shown?.let { day + hm(it.startEpochMs) + " – " + hm(it.stopEpochMs) },
-                                channel.name,
+                                com.nuvio.tv.fork.tv.names.ChannelNames.shown(channel.name),
                                 if (playState == NiuniaPlayState.DELAY) stringResource(R.string.niunia_live_still_live) else null,
                             ).joinToString(" · ")
                             Text(line, style = NiuniaText.Button.copy(fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.sp), color = NiuniaColors.Text, maxLines = 1)
@@ -458,12 +460,15 @@ internal fun NiuniaLivePlayer(
                             Text(data.title, style = NiuniaText.Logo.copy(fontSize = 32.sp, lineHeight = 38.sp), maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 6.dp))
                         }
                                         }
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        // UX JMGO 25.11 (#57, zdjęcie 196): długi „Poprzedni: Strong8K · AR: …” zabierał całą szerokość — tytuł, godziny
+                        // i stan znikały. Przyciski najwyżej 420 dp, „Poprzedni” najwyżej 240 dp z krótką nazwą kanału.
+                        Row(Modifier.widthIn(max = 420.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                             val left = buttons.filter { it == NiuniaLiveSlot.PREV || it == NiuniaLiveSlot.RESTART || it == NiuniaLiveSlot.PAUSE || it == NiuniaLiveSlot.LIVE }
                             val right = buttons.filter { it == NiuniaLiveSlot.FAV || it == NiuniaLiveSlot.INFO || it == NiuniaLiveSlot.MORE }
                             left.forEach { s ->
                                 when (s) {
-                                    NiuniaLiveSlot.PREV -> NiuniaPill(stringResource(R.string.niunia_ke2_prev_channel, prev?.name.orEmpty()), focusSlot == s, icon = Icons.Outlined.History, height = 36.dp)
+                                    NiuniaLiveSlot.PREV -> NiuniaPill(stringResource(R.string.niunia_ke2_prev_channel, com.nuvio.tv.fork.tv.names.ChannelNames.shown(prev?.name.orEmpty())), focusSlot == s,
+                                        icon = Icons.Outlined.History, height = 36.dp, modifier = Modifier.widthIn(max = 240.dp))
                                     NiuniaLiveSlot.RESTART -> NiuniaIconCircle(Icons.Outlined.Replay, stringResource(R.string.niunia_live_restart), focusSlot == s)
                                     NiuniaLiveSlot.PAUSE -> NiuniaIconCircle(if (paused) Icons.Outlined.PlayArrow else Icons.Outlined.Pause,
                                         stringResource(if (paused) R.string.niunia_live_play else R.string.niunia_live_pause), focusSlot == s)
