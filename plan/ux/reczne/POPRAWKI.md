@@ -1,7 +1,7 @@
 # Poprawki z testów ręcznych na projektorze JMGO (24–25.11.2026)
 
 Jak czytać: **✔** — sprawdzone na projektorze, działa · **✘** — sprawdzone, nie działa · **?** — jeszcze nie sprawdzone na projektorze.
-Paczki poprawek mają nazwy R1…R14. Na projektorze jest teraz wersja `uxr6` (R1–R13). Wersja `uxr7` (R14) przerwana — za długo się kompilowała; buduje się `uxr8` (R14 + R15).
+Paczki poprawek mają nazwy R1…R14. Na projektorze jest teraz wersja `uxr8` (R1–R15). `uxr7` przerwana (za długo się kompilowała).
 Zdjęcia ekranów (numery w nawiasach) leżą w `plan/ux/reczne/`.
 
 ## Ekran główny
@@ -23,7 +23,7 @@ Zdjęcia ekranów (numery w nawiasach) leżą w `plan/ux/reczne/`.
 | 5 | „dun” → najpierw „Muriel”, a „Diuna” dalej | Najpierw tytuły, które zaczynają się od wpisanych liter | ✔ |
 | 6 | ◄ z lewej kolumny klawiatury nic nie robiło | ◄ otwiera menu | ✔ |
 | 17 | „Dunkirk” dwa razy | Ukryty jest tylko **ten sam film podany przez dwa dodatki** (ta sama nazwa, ten sam rok, ten sam rodzaj). Dwa różne filmy o tej samej nazwie są widoczne oba: „Dunkirk” z 2017 i „Dunkirk” z 1958 r. (zdjęcie 93) | ✔ |
-| 36 | Klawiatura bez polskich liter | Dodane ą…ż (R11), potem **usunięte na Twoje polecenie (R14)**. Wpisanie „l” znajduje też „ł”, „a” znajduje „ą” | R11 ✔, R14 w `uxr8` |
+| 36 | Klawiatura bez polskich liter | Dodane ą…ż (R11), potem **usunięte na Twoje polecenie (R14)**. Wpisanie „l” znajduje też „ł”, „a” znajduje „ą” | R11 ✔, R14, ? w `uxr8` |
 
 ## Telewizja (Live TV)
 | # | Co było nie tak | Co zmieniłem | Stan |
@@ -71,20 +71,21 @@ Zdjęcia ekranów (numery w nawiasach) leżą w `plan/ux/reczne/`.
 |---|---|---|---|
 | 21 | „Rozmiar napisów —” bez wartości | Pokazuje „Małe / Średnie / Duże” | ✔ |
 | 30 | „Kraj kanałów” bez wartości (u Ciebie jest „Niemcy”) | Wartość widać przy pozycji. Samego ustawienia nie zmieniałem | ✔ |
-| 40 | „Pomoc i dziennik błędów” otwierało ekran „Narzędzia” (pomocy ani dziennika nie ma) | Pozycja nazywa się „Narzędzia” i ma opis tego, co jest w środku | R14 w `uxr8` |
-| 41 | Wyłączony przełącznik znikał na zaznaczonym (białym) wierszu | Ciemny tor, przełącznik widać | R14 w `uxr8` |
-| 42 | „Na co masz ochotę?” — pusty ekran, dopóki nie naciśniesz OK | Od razu pokazuje pierwszy nastrój („Lekkie na dziś”) | R14 w `uxr8` |
+| 40 | „Pomoc i dziennik błędów” otwierało ekran „Narzędzia” (pomocy ani dziennika nie ma) | Pozycja nazywa się „Narzędzia” i ma opis tego, co jest w środku | R14, ? w `uxr8` |
+| 41 | Wyłączony przełącznik znikał na zaznaczonym (białym) wierszu | Ciemny tor, przełącznik widać | R14, ? w `uxr8` |
+| 42 | „Na co masz ochotę?” — pusty ekran, dopóki nie naciśniesz OK | Od razu pokazuje pierwszy nastrój („Lekkie na dziś”) | R14, ? w `uxr8` |
 
-## R15 (25.11, po Twoich uwagach „wdrażaj dalej wszystkie zmiany”) — w wersji `uxr8`
-| # | Co poprawione |
-|---|---|
-| 1 | Pamięć rzędów Głównej, gdy serwis nie odpowiada (wyżej) |
-| 15 | Czas „1h47” zamiast „1 godz. 47 min” |
-| — | Dymek „24 kl/s przy 60 Hz” w odtwarzaczu usunięty |
-| 16 / 44 | Karta tytułu: przy przewijaniu kart zaznaczenie nie spada już na plakat pod kartą, więc Wstecz wraca na oglądany tytuł (i ◄ z plakatu ma znowu otwierać menu) |
-| 38 | YouTube z „Oglądaj dalej”: Wstecz wraca na Główną (film gra w zwykłym odtwarzaczu, wcześniej to nie było brane pod uwagę) |
-| 43 | YouTube: dubbing AI nie włącza się sam — gra oryginał (np. polski); dubbing zostaje w menu dźwięku do ręcznego wyboru |
-| 45 | Karta tytułu i baner: gatunki po polsku, jak w rzędach |
+## R15 (25.11, po Twoich uwagach „wdrażaj dalej wszystkie zmiany”) — wersja `uxr8` jest na projektorze (md5 zgodne)
+| # | Co poprawione | Stan |
+|---|---|---|
+| 1 | Pamięć rzędów Głównej, gdy serwis nie odpowiada (wyżej) | zapis działa ✔ (log), podmiana przy błędzie czeka na błąd serwisu |
+| 15 | Czas „1h47” zamiast „1 godz. 47 min” | ✔ (zdjęcie 170) |
+| — | Dymek „24 kl/s przy 60 Hz” w odtwarzaczu usunięty | ? |
+| 16 / 44 | Karta tytułu: przy przewijaniu kart zaznaczenie nie spada już na plakat pod kartą | **✘** — przewijanie poprawione, ale po Wstecz nadal pierwszy plakat i ◄ nie otwiera menu (zdjęcie 172); przyczyna głębiej, w następnej paczce |
+| 38 | YouTube z „Oglądaj dalej”: Wstecz wraca na Główną | ✔ (zdjęcie 173) |
+| 43 | YouTube: dubbing AI nie włącza się sam — gra oryginał (np. polski); dubbing zostaje w menu dźwięku do ręcznego wyboru | ✔ (log: „Polish · original”) |
+| 45 | Karta tytułu i baner: gatunki po polsku, jak w rzędach | ? |
+| 47 | Okno opcji filmu YouTube w „Oglądaj dalej”: bez „Od początku”, „Wybierz źródło”, „Szczegóły” | R16 — w następnej wersji |
 
 ## Nowe znaleziska 25.11
 | # | Co jest nie tak | Zdjęcie |
