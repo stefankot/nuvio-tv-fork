@@ -120,3 +120,8 @@ Uwaga dla właściciela: w danych są pozycje testowe `autoplayqa-subtitles` / `
 
 - R14: commit c5343fd36. Właściciel 25.11 ~12:50: „rozpisz dokument ze wszystkimi poprawkami, na razie nie poprawiaj więcej, ale możesz testować i zrobić builda” → `plan/ux/reczne/POPRAWKI.md` (wysłany). Build `uxr7` (R1–R14) start ~12:49 (`/tmp/uxr7.log`); przed buildem zwolnione miejsce: wpisy `~/.gradle/caches/build-cache-1` starsze niż 2 h (6,9 → 14 GB wolne).
 - `check.sh`: 2 błędy w plikach Reshaped/ASR (SherpaSpeechToText, AudioSyncSettingsItems) z wcześniejszych commitów innego wątku — nie moje, nie ruszane.
+
+## Pętla 6b (25.11 ~13:00) — uwagi właściciela do POPRAWKI.md, R15
+- Właściciel: „1. dodaj cache; 15. jak najkrócej wszędzie, 1h47; 17. nie rozumiem — są dwa filmy, a nie widać jednego?; dymek kl/s — usuń; wdrażaj dalej wszystkie zmiany”.
+- R15 (commit 41d971398): pamięć rzędów Głównej `NiuniaRowsCache` (#1), „1h47” (#15), dymek kl/s wyłączony, karta tytułu z punktem fokusu w czasie przewijania + `rememberFocus` ignorowany pod kartą (R8 ✘, #44), YouTube: `playerShown` przy uruchomieniu odtwarzacza bazy (R13 ✘), dubbing AI bez `lang` po tidy (#43), gatunki po polsku w karcie/banerze (#45). #17: dedup tylko nazwa+rok+rodzaj (Dunkirk 1958 widoczny) — wyjaśnione w POPRAWKI.md. #46 to nie błąd (oznaczenie 24 h).
+- Build `uxr7` przerwany po 19 min (13:08, swap 5,8 GB). Build `uxr8` (R14+R15) start ~13:20, `/tmp/uxr8.log`.

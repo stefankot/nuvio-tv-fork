@@ -1,18 +1,18 @@
 # Poprawki z testów ręcznych na projektorze JMGO (24–25.11.2026)
 
 Jak czytać: **✔** — sprawdzone na projektorze, działa · **✘** — sprawdzone, nie działa · **?** — jeszcze nie sprawdzone na projektorze.
-Paczki poprawek mają nazwy R1…R14. Na projektorze jest teraz wersja `uxr6` (R1–R13). Wersja `uxr7` (z R14) się buduje.
+Paczki poprawek mają nazwy R1…R14. Na projektorze jest teraz wersja `uxr6` (R1–R13). Wersja `uxr7` (R14) przerwana — za długo się kompilowała; buduje się `uxr8` (R14 + R15).
 Zdjęcia ekranów (numery w nawiasach) leżą w `plan/ux/reczne/`.
 
 ## Ekran główny
 | # | Co było nie tak | Co zmieniłem | Stan |
 |---|---|---|---|
-| 1 | Gdy serwer katalogów odmawia („za dużo zapytań”), rzędy były puste, bez słowa | Komunikat, przycisk „Spróbuj ponownie” i 3 ponowienia same (po 20, 40 i 60 s) | ? (trudno wywołać) |
+| 1 | Gdy serwer katalogów odmawia („za dużo zapytań”), rzędy były puste, bez słowa | Komunikat, przycisk „Spróbuj ponownie” i 3 ponowienia same (po 20, 40 i 60 s). **R15 (Twoja uwaga „dodaj cache”):** rzędy zapisują się na dysku; gdy serwis nie odpowie, pokazują się ostatnio wczytane (przełącznik „Pamiętaj rzędy” w Wygląd › Ekran główny, domyślnie włączony) | ? `uxr8` |
 | 2 | Bez dużego baneru tytuł „Oglądaj dalej” wchodził pod przycisk „Główna” | Większy odstęp | ? |
 | 3 | Bez baneru po starcie i po wygaszaczu nic nie było zaznaczone | Zaznaczenie na pierwszym elemencie | ? |
 | 4 | Wygaszacz: zegar zasłaniał logo filmu | Zegar i data w prawym dolnym rogu | ? |
 | 14 | Dwa rzędy „TMDB Popular” nie do odróżnienia | Dopisek „· filmy” / „· seriale” | ✔ |
-| 15 | Karta tytułu pisała „1h47min”, baner „1 godz. 47 min” | Wszędzie „1 godz. 47 min” | ✔ |
+| 15 | Karta tytułu pisała „1h47min”, baner „1 godz. 47 min” | **R15 (Twoja uwaga „jak najkrócej”):** wszędzie „1h47” | ? `uxr8` |
 | 16 | Po powrocie z karty tytułu zaznaczenie skakało na pierwszy plakat | Wraca na plakat, który był oglądany (poprawione drugi raz w R8) | **✘** (25.11, zdjęcie 154): wraca na pierwszy plakat rzędu. Ślad: przy ► z ostatniego przycisku karty zaznaczenie na chwilę ucieka do rzędu pod kartą |
 | 28 | Po wyjściu z filmu przycisk „Główna” nachodził na tytuł rzędu | Przycisk chowa się, gdy jesteś w rzędach | ✔ |
 | 29 | Po wyjściu z filmu zaznaczona karta była poza ekranem, ◄ nie działało | Rząd przewija się na początek | ✔ |
@@ -22,8 +22,8 @@ Zdjęcia ekranów (numery w nawiasach) leżą w `plan/ux/reczne/`.
 |---|---|---|---|
 | 5 | „dun” → najpierw „Muriel”, a „Diuna” dalej | Najpierw tytuły, które zaczynają się od wpisanych liter | ✔ |
 | 6 | ◄ z lewej kolumny klawiatury nic nie robiło | ◄ otwiera menu | ✔ |
-| 17 | „Dunkirk” dwa razy | Jeden wpis na tytuł (drugi „Dunkirk” to inny film, z 1958 r.) | ✔ |
-| 36 | Klawiatura bez polskich liter | Dodane ą…ż (R11), potem **usunięte na Twoje polecenie (R14)**. Wpisanie „l” znajduje też „ł”, „a” znajduje „ą” | R11 ✔, R14 w `uxr7` |
+| 17 | „Dunkirk” dwa razy | Ukryty jest tylko **ten sam film podany przez dwa dodatki** (ta sama nazwa, ten sam rok, ten sam rodzaj). Dwa różne filmy o tej samej nazwie są widoczne oba: „Dunkirk” z 2017 i „Dunkirk” z 1958 r. (zdjęcie 93) | ✔ |
+| 36 | Klawiatura bez polskich liter | Dodane ą…ż (R11), potem **usunięte na Twoje polecenie (R14)**. Wpisanie „l” znajduje też „ł”, „a” znajduje „ą” | R11 ✔, R14 w `uxr8` |
 
 ## Telewizja (Live TV)
 | # | Co było nie tak | Co zmieniłem | Stan |
@@ -71,25 +71,32 @@ Zdjęcia ekranów (numery w nawiasach) leżą w `plan/ux/reczne/`.
 |---|---|---|---|
 | 21 | „Rozmiar napisów —” bez wartości | Pokazuje „Małe / Średnie / Duże” | ✔ |
 | 30 | „Kraj kanałów” bez wartości (u Ciebie jest „Niemcy”) | Wartość widać przy pozycji. Samego ustawienia nie zmieniałem | ✔ |
-| 40 | „Pomoc i dziennik błędów” otwierało ekran „Narzędzia” (pomocy ani dziennika nie ma) | Pozycja nazywa się „Narzędzia” i ma opis tego, co jest w środku | R14 w `uxr7` |
-| 41 | Wyłączony przełącznik znikał na zaznaczonym (białym) wierszu | Ciemny tor, przełącznik widać | R14 w `uxr7` |
-| 42 | „Na co masz ochotę?” — pusty ekran, dopóki nie naciśniesz OK | Od razu pokazuje pierwszy nastrój („Lekkie na dziś”) | R14 w `uxr7` |
+| 40 | „Pomoc i dziennik błędów” otwierało ekran „Narzędzia” (pomocy ani dziennika nie ma) | Pozycja nazywa się „Narzędzia” i ma opis tego, co jest w środku | R14 w `uxr8` |
+| 41 | Wyłączony przełącznik znikał na zaznaczonym (białym) wierszu | Ciemny tor, przełącznik widać | R14 w `uxr8` |
+| 42 | „Na co masz ochotę?” — pusty ekran, dopóki nie naciśniesz OK | Od razu pokazuje pierwszy nastrój („Lekkie na dziś”) | R14 w `uxr8` |
 
-## Nowe znaleziska 25.11 (niepoprawione — na razie bez poprawek)
+## R15 (25.11, po Twoich uwagach „wdrażaj dalej wszystkie zmiany”) — w wersji `uxr8`
+| # | Co poprawione |
+|---|---|
+| 1 | Pamięć rzędów Głównej, gdy serwis nie odpowiada (wyżej) |
+| 15 | Czas „1h47” zamiast „1 godz. 47 min” |
+| — | Dymek „24 kl/s przy 60 Hz” w odtwarzaczu usunięty |
+| 16 / 44 | Karta tytułu: przy przewijaniu kart zaznaczenie nie spada już na plakat pod kartą, więc Wstecz wraca na oglądany tytuł (i ◄ z plakatu ma znowu otwierać menu) |
+| 38 | YouTube z „Oglądaj dalej”: Wstecz wraca na Główną (film gra w zwykłym odtwarzaczu, wcześniej to nie było brane pod uwagę) |
+| 43 | YouTube: dubbing AI nie włącza się sam — gra oryginał (np. polski); dubbing zostaje w menu dźwięku do ręcznego wyboru |
+| 45 | Karta tytułu i baner: gatunki po polsku, jak w rzędach |
+
+## Nowe znaleziska 25.11
 | # | Co jest nie tak | Zdjęcie |
 |---|---|---|
 | 39 | „Co mogę powiedzieć” — goła czarna lista, inny wygląd niż reszta | 130 |
 | 44 | Główna: po zamknięciu karty tytułu ◄ z pierwszego plakatu w rzędzie nie otwiera menu (z dużego baneru działa) | 156, 157 |
 | 45 | Karta tytułu „Shetland”: gatunki i opis po angielsku („Drama · Crime”), a w rzędzie „Dramat” | 152 |
-| 46 | Live TV: kafelki na górze znów pokazują RT i CNBC (niedziałające) — po ponownym uruchomieniu aplikacji kanały nie są jeszcze oznaczone jako niedziałające | 158 |
+| 46 | Live TV: kafelki na górze znów pokazują RT i CNBC — to nie błąd: oznaczenie „niedziałający” trwa 24 godziny i wygasło; po pierwszej nieudanej próbie kanał znowu znika | 158 |
 
 ## Zauważone, ale świadomie niezmienione
 - Teksty bazy po angielsku (np. „Finding stream source”) — zasada: bez tłumaczeń.
-- Dymek „24 kl/s przy 60 Hz” w odtwarzaczu — jest w Twoim projekcie.
 - Stare ekrany forka (Narzędzia, Co mogę powiedzieć, Rodzina, Na co masz ochotę) mają goły czarny wygląd, nie wygląd Niuni (zdjęcia 130, 132, 138, 141). To większa praca projektowa, nie drobna poprawka.
 - Kraj kanałów „Niemcy” w Twoim profilu i pozycje testowe „autoplayqa-…” w danych — do Twojej decyzji.
 - Strefa czasowa projektora to Chiny (zegar pokazuje 19:xx, gdy w Polsce jest 12:xx). To ustawienie projektora, nie aplikacji.
 
-## Do zrobienia po Twojej zgodzie
-1. YouTube: zostawić oryginalny dźwięk (po polsku) i pozwolić przełączać ścieżki (#43).
-2. YouTube: Wstecz z filmu otwartego z Głównej → Główna (#38).
