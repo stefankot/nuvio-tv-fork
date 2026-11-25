@@ -116,3 +116,12 @@ Lista dla właściciela. Wykonawca dopisuje tu wszystko, czego nie da się spraw
 - Live TV (P-28): kanał, który nie ruszył → w przewodniku „Niedostępny” pod logo przez 24 h; po udanym włączeniu znika.
 - API 31+ (emulator, Z-2): lewa część obrazu hero strony tytułu rozmyta. JMGO (Android 11): bez zmian (płaskie).
 - Live TV (P-32): fokus w przewodniku → po ~1 s u góry po prawej obraz kanału na żywo (bez dźwięku) z „Na żywo · kanał”, po lewej tytuł, godziny i opis programu; ▲ do filtrów → wraca rząd kafelków; OK → pełny ekran bez zacięcia (log `podgląd zwolniony (pełny ekran)` przed startem odtwarzacza); szybkie przewijanie kanałów nie zawiesza przewodnika; HOME w trakcie → `podgląd zwolniony (aplikacja w tle)`.
+
+## UX ręczne (24–25.11, APK `uxr6`) — niesprawdzone na TV
+- Live TV: kanał nie działa → „Następny kanał” → Wstecz → fokus na ostatnio oglądanym kanale (nie na pierwszym).
+- Główna: OK na plakacie → karta tytułu → ► na następny tytuł → Wstecz → fokus na tym tytule (rząd przewinięty).
+- Live TV: ◄ z „Szukaj” (górny pasek) otwiera menu; Wstecz z Odkrywaj/Szukaj → fokus na tym przycisku.
+- Live TV › Odkrywaj: bez powtórzonych „Kuchennych rewolucji”, bez CNBC/RT („Niedostępny”).
+- Szukaj: klawiatura z ą ć ę ł ń ó ś ź ż; dwie podpowiedzi mieszczą się na ekranie.
+- Zmień profil: „Stef+Patryk (Kaptain)” i „… Copy” w dwóch liniach, do odróżnienia.
+- Główna › „Oglądaj dalej” › film YouTube → Wstecz z odtwarzacza → Główna (nie zakładka YouTube).

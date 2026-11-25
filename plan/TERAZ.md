@@ -3,6 +3,12 @@
 Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–13: `plan/archiwum/TERAZ-historia-watki-1-13.md` (tylko `grep`, nie czytaj całości). Sekcje z 22.11 (build163–169c, scalenie, aktualizacja bazy): `plan/archiwum/TERAZ-historia-22.11.md`.
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
+## NAJPIERW (25.11 — UX testy ręczne na JMGO: 13 paczek poprawek R1–R13, koniec dnia)
+- Polecenie właściciela 24.11: ręczne testy (≥ 10 min) → poprawki → build → instalacja na JMGO → znowu testy. Zrzuty 960 px: `fork-tools/test/r.sh NAZWA [klawisze…]` → `plan/ux/reczne/`. Cały przebieg, 38 znalezisk i stan każdej poprawki: `plan/ux/reczne/STAN.md`.
+- Na JMGO ostatnio zainstalowany `uxr4` (R1–R6, md5 963eb767…). `uxr6` = R1–R13 (HEAD ca18bbfed): wynik builda i instalacji — ostatni punkt `plan/ux/reczne/STAN.md` (25.11 JMGO był nieosiągalny: „No route to host”).
+- „kontynuuj”: jeśli `uxr6` nie jest na JMGO — zainstaluj `.stage/apk/uxr6-v7a.apk` (md5, `compile -m speed`), potem sprawdź listę „UX ręczne” z `plan/DO_SPRAWDZENIA_NA_TV.md` (R7–R13 niesprawdzone na TV) i kontynuuj pętlę testów ręcznych tymi samymi zasadami.
+- Decyzje do właściciela (bez zmian z mojej strony): kraj IPTV „Niemcy” (Ustawienia › Telewizja › „Kraj kanałów”); pozycje testowe `autoplayqa-*` w danych. Pozostałe świadome pominięcia: `plan/DECYZJE.md` (24.11 „UX ręczne”).
+
 ## NAJPIERW (24.11 wieczór — UX JMGO po E4: podsumowanie napisane, pętli 2 nie było; właściciel zakazał kolejnych przebiegów)
 - Na JMGO jest `uxj3` (md5 6deb562d…); pełny wiarygodny przebieg pętli 1 NIE powstał (tester czytał fokus za wcześnie), realnych poprawek aplikacji jest mało. Wszystko ustalone: `plan/ux/jmgo/PRZEKAZANIE.md` (problemy aplikacji z dowodami, pułapki narzędzi, propozycja zadania).
 - Nowe narzędzie: stały czytnik ekranu `fork-tools/uitest/fastdump/` (odczyt 2,1 s → 0,05–0,6 s, 50 ścieżek ~12 min). Zasady dyscypliny: `ZASADY.md` §9.

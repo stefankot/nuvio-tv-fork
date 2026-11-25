@@ -91,3 +91,10 @@ Sprawdzone na `uxr4` ✔: Biblioteka — bez ekranu „pusta” w czasie wczytyw
 | 38 | Film YouTube z „Oglądaj dalej” na Głównej: Wstecz z odtwarzacza ląduje w zakładce YouTube (111) | R13: powrót na Główną (`ForgeYouTubeLaunch.returnRoute`, tylko gdy odtwarzacz się pokazał) |
 
 Uwaga dla właściciela: w danych są pozycje testowe `autoplayqa-subtitles` / `autoplayqa-finalsubtitles` (log MetaRepository) — ślad testów innego wątku.
+
+## Koniec dnia (25.11 12:30) — polecenie właściciela: zapisać stan, naprawić zebrane, build, instalacja, koniec
+- Po ostatnim teście: podstrona Ustawień („Skórka”, „Menu i styl…”) — log fokusu pokazywał „Szukaj”, ale ▼ przesuwa podświetlenie po pozycjach podstrony (118): fokus jest, tylko pozycje bazy mają inny (szary) wygląd fokusu. Bez zmian.
+- `uxr5` (R7–R11): BUILD SUCCESSFUL 12 min 49 s — niezainstalowany (zastąpiony przez `uxr6`).
+- `uxr6` = wszystko R1–R13 (HEAD ca18bbfed): build 25.11 ~12:27.
+- Niesprawdzone na TV (są w `uxr5/uxr6`, nie było ich w zainstalowanych APK): R7 powrót na ostatnio oglądany kanał, R8 Wstecz z karty tytułu na oglądany tytuł + ◄ z „Szukaj” w Live TV, R9 Odkrywaj bez powtórek/niedostępnych, R10 Wstecz z Odkrywaj/Szukaj na przycisk trybu, R11 polskie litery w Szukaj, R12 imiona profili w 2 liniach, R13 YouTube z „Oglądaj dalej” → Wstecz na Główną. Lista też w `plan/DO_SPRAWDZENIA_NA_TV.md` („UX ręczne”).
+- Nie ruszone (DECYZJE 24.11 „UX ręczne”): teksty bazy po angielsku, dymek kl/s, nakładka „Odświeżanie”, „Gotowe” na zwiastunie (najpewniej napis z materiału), kraj IPTV „Niemcy”, pozycje testowe `autoplayqa-*` w danych.
