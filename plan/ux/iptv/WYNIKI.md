@@ -1,5 +1,15 @@
 # Zakładka IPTV (Live TV) — wyniki wątku IPTV, 26.11
 
+**Pętla 3 (26.11, 22:15–22:28, `uxr18` na projektorze, md5 a2d6801b…): sprawdzone na projektorze 3 poprawki — #81 ✔, #82b ✔, #84 częściowo; #85 nie sprawdzone. Nowych poprawek aplikacji: 0.**
+
+## Pętla 3 (`uxr18`)
+- #81 ✔ Kraj i język: Polska 1151, Stany Zjednoczone 11 121, Argentyna 3472, Wielka Brytania 2704, Niemcy 2264 kanałów (było: Polska 334, USA 245). Po wyborze USA przewodnik pełny: nazwy („US: TENNIS CHANNEL”) i program („2026 Davis Cup Tennis…”). Przywrócone „Wszystkie kraje”.
+  - Uwagi (bez poprawki): nad przewodnikiem nadal napis „Nic tu jeszcze nie ma.” — to pusty rząd kafli „Dla ciebie” dla USA, nie lista; nazwy mają przedrostek „Strong8K · US:”; wydarzenia PPV „Strong8K · NEXT | …” bez programu.
+- #82b ✔ Szukaj „gry ma” → „Gry małżeńskie” → strona serialu: 9 emisji z archiwum, 10 przyszłych, numer odcinka w wierszu, fokus na 1. emisji. OK na „Wczoraj 07:00 · Z archiwum · Polo TV” włączył Polo TV (log „archiwum »Gry małżeńskie«”); czy obraz był z archiwum, a nie na żywo — do sprawdzenia (nakładka zgłosiła stan LIVE).
+- #84 częściowo: pierwsze wejście po instalacji 9 s „Wczytuję programy…” (pliku na dysku jeszcze nie było — zapisał się wtedy). Do sprawdzenia: po restarcie aplikacji od razu (log „odkrywaj z dysku”).
+- #85 (fokus po OK na kanale) — nie sprawdzone.
+
+
 **Stan: 7 poprawek aplikacji (#73, #81, #82, #82b, #83, #84, #85), 3 sprawdzone na projektorze (`uxr17`: #73 ✔, #82 ✔ częściowo, #83 ✔)** — #81, #82b, #84, #85 czekają na wspólny build `uxr18` z wątkiem VOD. Przyczyna #81 potwierdzona na projektorze (`uxr16`).
 
 Zadanie właściciela (26.11 ~20:30): „sprawdź zakładkę IPTV: nie działają kraje i języki — po wyborze pusta lista; szukanie odsyła do programu, którego jeszcze nie emitowano, zamiast do strony szczegółów programu, gdzie można go obejrzeć; program „Gry małżeńskie” dodany przez długie naciśnięcie na wyszukany element zgłasza komunikat, że dodano, a dodano inny program — „Nasz nowy dom”; sprawdź inne błędy”.
