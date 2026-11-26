@@ -175,3 +175,19 @@ Uwaga dla właściciela: w danych są pozycje testowe `autoplayqa-subtitles` / `
 - `uxr12` (1dfa57d64, #56–#60): BUILD SUCCESSFUL 14 min 30 s, md5 `db15fc45…`, zainstalowany ~16:30. ✔ #57 (204), #58, #59 (83 s bez zatrzymań), #60 (powrót 0,9 s, wejście 2,5 s). ✘ #56: przyczyna to kanały z obserwowanym programem w „Ulubione” (ulubionych kanałów tylko 3) — poprawione drugi raz. Efekt uboczny #60: po powrocie fokus na pigułce zamiast na kanale (lista obserwowanych liczyła się 5 s) — ostatnia lista w pamięci.
 - `uxr13` (#56 (2), #57 (2) 520/180 dp, #61, #63–#65): BUILD SUCCESSFUL 13 min 46 s, `.stage/apk/uxr13-v7a.apk` md5 `3928ea55860ce4fdda8b3b77e6cbf8a6`, zainstalowany 25.11 ~16:56 (md5 zgodny). Nie sprawdzony na ekranie — kroki w TERAZ (NAJPIERW). Następna paczka: `plan/ux/reczne/nastepna-paczka.md` (#67–#69).
 - Właściciel 16:55: „zainstaluj, zapisz zmiany, napisz prompt handoff, zakończ” — przekazanie do nowego wątku.
+
+## Pętla 10 (26.11 15:15–, nowy wątek; na JMGO `uxr13`, build `uxr14`)
+- JMGO wolny (ekran główny, pilot nieużywany 2,5 h); adb „offline” → `adb kill-server; adb start-server` pomogło.
+- Na `uxr13` ✔: #56 (powrót z kanału w „Ulubione” → fokus na tym kanale w 0,5 s; znikania o pełnej godzinie nie da się sprawdzić — nie leci obserwowany program), #57 (213: „Poprzedni: MUH…”, ↻, „Na żywo”, +, tytuł w 2 liniach), #61 (log „▲ z przewodnika → wybrany filtr”, fokus „Ulubione”), #63 (208–209: ► → „fokus na PREV”, ▼ → „poziom 0 → 1”, bez zmiany kanału), #64 („Komediowe”), #65 (▼ zaznacza najbliższą emisję). „Na żywo” przy opóźnieniu działa (214). Przełączenie kanału: nakładka po 60–130 ms, obraz po ~1,5 s. Archiwum Bundych „wczoraj 23:30” gra właściwy serial (211) — #66 nie powtórzyło się na tym programie.
+- „Oglądaj dalej” puste (wpis Nowej TV z 24.11 wygasł); filtr pokazuje wtedy „Nic tu jeszcze nie ma.” nad pełną listą 59 tys. kanałów — zostawione (decyzja z 22.11).
+- Znaleziska i poprawki (commit 354bcaeca = `uxr14`):
+  - #67 (z pomiaru pętli 9): poprzedni kanał trzymany jako obiekt (bez `zapList()` 59 tys. przy każdym rysowaniu nakładki); klucze tytułów w `recentTiles`/`bestAiring` z `NiuniaFavShowsCache.key`.
+  - #68: podgląd w przewodniku z obrazem ≥ 3 s → `NiuniaLiveStatus.ok` (znacznik „Niedostępny” zdjęty).
+  - #69: wybór dnia → fokus na 1. kanale przewodnika (log „dzień wybrany → fokus na 1. kanale”); przed poprawką ✘ potwierdzone: fokus na kafelku „360° Świat bez granic”.
+  - #70 (209–210): rząd odcinków Nowej TV miał 1 kafelek — tytuły „Świat według Bundych 3: Can't dance…” (serial + odcinek); teraz klucz serialu = tekst przed „:” bez numeru sezonu.
+  - #71 (207–212): „Can&#39;t dance, don&#39;t ask me” w tytule — przewodnik podwójnie zakodowany; `fork/tv/plus/GuideText.clean` w `GuideDbBridge` (konwersja z bazy; `XmltvParser` to kopia 1:1 — bez zmian).
+  - #72 (212): archiwum miało tylko ↻ ▶ + — dodany „Na żywo”.
+  - Linia „22:00 – 22:30 · Nowa TV · na” ucięta w pół słowa przy opóźnieniu (213) → wielokropek.
+- Build `uxr14` start 15:31 (zakładka c1, `/tmp/uxr14.log`).
+- Następna paczka (`.stage/patch_uxr15.py`): #70b „360° Świat bez granic (3)” — numer w nawiasie też rozbija serial (215: szczegóły bez odcinków); #74 każdy klawisz w nakładce szuka kanału na liście 59 tys. (2×) — najpierw kanał nakładki; #75 ze szczegółów do schowania nakładki 3 × Wstecz — Wstecz z rzędu chowa od razu.
+- Do decyzji/później: #73 powrót z kanału włączonego z wyszukiwarki Live TV → przewodnik z fokusem na „Wszystkie” zamiast wyników wyszukiwania.

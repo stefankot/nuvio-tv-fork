@@ -1,7 +1,7 @@
 # Poprawki z testów ręcznych na projektorze JMGO (24–25.11.2026)
 
 Jak czytać: **✔** — sprawdzone na projektorze, działa · **✘** — sprawdzone, nie działa · **?** — jeszcze nie sprawdzone na projektorze.
-Paczki poprawek mają nazwy R1…R14. Na projektorze była wersja `uxr11` (sprawdzona 25.11 po południu); teraz jest `uxr12` (sprawdzona 25.11 ok. 16:35), a powstaje `uxr13` (#56 drugi raz, #61, #63–#65). `uxr7` przerwana (za długo się kompilowała).
+Paczki poprawek mają nazwy R1…R14. Na projektorze była `uxr13` (sprawdzona 26.11 po południu); powstaje `uxr14` (#67–#72). `uxr7` przerwana (za długo się kompilowała).
 Zdjęcia ekranów (numery w nawiasach) leżą w `plan/ux/reczne/`.
 
 ## Ekran główny
@@ -118,15 +118,31 @@ Najważniejsze: **powrót z odtwarzacza do listy „Ulubione” trwał 7–11 se
 
 | # | Co było nie tak | Co zmieniłem | Stan |
 |---|---|---|---|
-| 56 | O pełnej godzinie lista „Ulubione” sama skurczyła się z 6 kanałów do 1, a zaznaczenie uciekło na „Szukaj” | Pierwsza poprawka trafiła obok: w „Ulubione” są też kanały, na których leci obserwowany program („Kiepscy”) — o pełnej godzinie program się kończy i kanał znikał. Teraz takie kanały zostają na liście, dopóki jesteś w tym filtrze | ✘ w `uxr12` → poprawione drugi raz, `uxr13` |
-| 57 | Nakładka odtwarzacza: długi napis „Poprzedni: Strong8K · AR: MUHAMMAD…” zabierał całe miejsce — **znikał tytuł programu i godziny** (zdjęcie 196) | Krótka nazwa kanału, przycisk ograniczony, tytuł zawsze widać | ✔ (zdjęcie 204: „Squawk on the Street”, „Poprzedni: FOOD NETWO…”); przy 5 przyciskach „Na żywo” było ucięte — poprawione w `uxr13` |
+| 56 | O pełnej godzinie lista „Ulubione” sama skurczyła się z 6 kanałów do 1, a zaznaczenie uciekło na „Szukaj” | Pierwsza poprawka trafiła obok: w „Ulubione” są też kanały, na których leci obserwowany program („Kiepscy”) — o pełnej godzinie program się kończy i kanał znikał. Teraz takie kanały zostają na liście, dopóki jesteś w tym filtrze | ✘ w `uxr12` → poprawione drugi raz; w `uxr13` ✔ powrót z kanału na ten sam kanał w 0,5 s (26.11). Znikanie o pełnej godzinie nie do sprawdzenia, dopóki nie leci obserwowany program |
+| 57 | Nakładka odtwarzacza: długi napis „Poprzedni: Strong8K · AR: MUHAMMAD…” zabierał całe miejsce — **znikał tytuł programu i godziny** (zdjęcie 196) | Krótka nazwa kanału, przycisk ograniczony, tytuł zawsze widać | ✔ (zdjęcie 204: „Squawk on the Street”, „Poprzedni: FOOD NETWO…”); przy 5 przyciskach „Na żywo” było ucięte — poprawione w `uxr13`, ✔ 26.11 (zdjęcie 213: „Poprzedni: MUH…”, ↻, „Na żywo”, + i tytuł w dwóch liniach) |
 | 58 | W szczegółach programu ▲ z góry nic nie robiło — wyjść można było tylko przez Wstecz | ▲ wraca do przycisków | ✔ (25.11, `uxr12`) |
 | 59 | Co minutę w czasie oglądania obraz i pilot stawały na ok. 2 s; przy włączaniu kanału — na ok. 2 s | Zapis historii oglądania w tle | ✔ (25.11: 83 s oglądania bez zatrzymania) |
 | 60 | Powrót z odtwarzacza do „Ulubione” 7–11 s, wejście w kanał ok. 5 s | Liczenie obserwowanych programów i kategorii w tle | ✔ powrót 0,9 s, wejście w kanał 2,5 s. Przy powrocie zaznaczenie wracało na „Ulubione” zamiast na kanał — poprawione w `uxr13` |
-| 61 | ▲ z pierwszego kanału przewodnika szło na „Oglądaj dalej”, a wybrany był filtr „Ulubione” | ▲ wraca na wybrany filtr | w `uxr13` (nie zdążyło do `uxr12`) |
-| 63 | ► pokazywał opis, ale zaznaczenie zostawało na przełączniku kanałów — następne ▼ **zmieniało kanał** zamiast zejść do rzędu odcinków | ► od razu zaznacza pierwszy przycisk, ▼ schodzi do odcinków | `uxr13` |
-| 64 | Gatunek w opisie programu po angielsku („Comedy”) | Po polsku, jak w reszcie aplikacji | `uxr13` |
-| 65 | Rząd „inne odcinki” pokazywał 12 najstarszych (od poniedziałku), **bez dzisiejszych i następnych** (zdjęcie 200) | Najbliższe minione i do 4 następnych; ▼ zaznacza najbliższy | `uxr13` |
+| 61 | ▲ z pierwszego kanału przewodnika szło na „Oglądaj dalej”, a wybrany był filtr „Ulubione” | ▲ wraca na wybrany filtr | ✔ `uxr13` (26.11, „Ulubione”) |
+| 63 | ► pokazywał opis, ale zaznaczenie zostawało na przełączniku kanałów — następne ▼ **zmieniało kanał** zamiast zejść do rzędu odcinków | ► od razu zaznacza pierwszy przycisk, ▼ schodzi do odcinków | ✔ `uxr13` (26.11, zdjęcia 208–209) |
+| 64 | Gatunek w opisie programu po angielsku („Comedy”) | Po polsku, jak w reszcie aplikacji | ✔ `uxr13` („Komediowe”, zdjęcie 208) |
+| 65 | Rząd „inne odcinki” pokazywał 12 najstarszych (od poniedziałku), **bez dzisiejszych i następnych** (zdjęcie 200) | Najbliższe minione i do 4 następnych; ▼ zaznacza najbliższy | ✔ ▼ zaznacza najbliższy (26.11). Ale przy „Świecie według Bundych” rząd miał tylko 1 kafelek — patrz #70 |
+
+## Odtwarzacz telewizji i przewodnik — pętla 10 (26.11, wersja `uxr14`)
+Najpierw sprawdziłem `uxr13`: wszystkie poprawki z pętli 9 działają (#56, #57, #61, #63, #64, #65 ✔). Przełączenie kanału ▲▼: opis pojawia się po 0,1 s, obraz po ok. 1,5 s.
+
+| # | Co było nie tak | Co zmieniłem | Stan |
+|---|---|---|---|
+| 67 | Wejście w kanał: ok. 0,6 s pracy ekranu na szukanie „poprzedniego kanału” na liście 59 tys. kanałów przy każdym odświeżeniu opisu i na porównywanie tytułów | Poprzedni kanał i porównania tytułów z pamięci | ? `uxr14` |
+| 68 | Kanał oznaczony „Niedostępny” grał w podglądzie przewodnika, a znacznik zostawał (zdjęcie 205) | Gdy podgląd pokazuje obraz 3 s, znacznik znika | ? `uxr14` |
+| 69 | Po wyborze dnia („Wczoraj”) zaznaczenie spadało na kafelek u góry — OK włączał kanał na żywo zamiast wybranego dnia (zdjęcie 206, potwierdzone 26.11) | Zaznaczenie na 1. kanale przewodnika, na godzinie wybranego dnia | ? `uxr14` |
+| 70 | Pod „Światem według Bundych” rząd „inne odcinki” miał 1 kafelek — przewodnik pisze „Świat według Bundych 3: Can't dance…” (serial + nazwa odcinka) i szukane były tylko emisje tego samego odcinka (zdjęcia 209–210) | Odcinki rozpoznawane po nazwie serialu (bez nazwy odcinka i numeru sezonu) | ? `uxr14` |
+| 71 | W tytułach dziwne znaki: „Can&#39;t dance, don&#39;t ask me” (zdjęcia 207–212) | Zamieniane na litery: „Can't dance, don't ask me” | ? `uxr14` |
+| 72 | W programie z archiwum były tylko ↻ ▶ + — **nie było jak wrócić do transmisji na żywo** (zdjęcie 212) | Przycisk „Na żywo” także w archiwum | ? `uxr14` |
+| — | Przy opóźnieniu linia u góry kończyła się w pół słowa: „· Nowa TV · na” (zdjęcie 213) | Wielokropek zamiast uciętego słowa | ? `uxr14` |
+
+Następne (zapisane, wejdą w kolejną wersję): #70b „360° Świat bez granic (3)” — numer w nawiasie też rozbija serial (zdjęcie 215); #74 każdy klawisz w opisie odtwarzacza przeszukuje 59 tys. kanałów; #75 ze szczegółów programu do schowania opisu trzeba 3 × Wstecz — Wstecz z rzędu ma chować od razu.
+Do Twojej decyzji / później: #73 kanał włączony z wyszukiwarki Live TV — po Wstecz wraca przewodnik (pigułka „Wszystkie”), a nie wyniki wyszukiwania.
 
 Do Twojej wiadomości (bez zmian):
 - 62: w archiwum, gdy opis jest schowany, ► przewija, a ▼ zmienia kanał bez pytania — tak ustaliłeś 21.11.
