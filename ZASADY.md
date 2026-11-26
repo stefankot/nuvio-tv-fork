@@ -34,6 +34,7 @@ Stare wersje: `plan/archiwum/zasady/` i historia gita.
 ## 4. Buildy
 - Gradle WYŁĄCZNIE `bash fork-tools/build.sh <nazwa-logu> <zadania...>` w `NuvioFork`, w zakładce terminala aplikacji (skrypt daje `--console=rich` i `/tmp/<nazwa>.log`). Bezpośrednie `./gradlew` zakazane.
 - Najwyżej 1 build naraz, 1 w kolejce; nowe zlecenie anuluje czekające (kod 75 = anulowany, nie błąd).
+- Równoległe wątki (26.11, właściciel: „commituj i buildy rób razem z drugim wątkiem”): jeden wspólny build z zacommitowanymi poprawkami wszystkich wątków. Przed buildem napisz do pozostałych wątków (SendMessage), poczekaj, aż zacommitują swoje gotowe poprawki, potem buduj z HEAD; po buildzie podaj im nazwę APK i md5. Każdy commituje swoje pliki od razu po poprawce.
 - Nigdy `./gradlew --stop`, `pkill` demona ani zatrzymywanie cudzego buildu.
 - Build tylko z DUŻEJ paczki poprawek, nigdy dla jednej. Drobne poprawki: commit bez buildu, lista paczki w `plan/TERAZ.md`; testy w tym czasie na ostatnim APK.
 - Jedna architektura: JMGO/Xiaomi `-PforkAbi=armeabi-v7a`, emulator `-PforkAbi=arm64-v8a`.
