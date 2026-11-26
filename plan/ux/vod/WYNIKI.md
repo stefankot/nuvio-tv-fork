@@ -1,5 +1,21 @@
 # Odtwarzacz filmów i seriali (TorBox) — wyniki sprawdzenia
 
+**Pętla 3 (26.11, 21:24–21:31, wersja `uxr17` na projektorze; przerwana — zapis stanu): 1 nowa poprawka aplikacji (V2c), sprawdzonych na projektorze: 0 (wejdzie do `uxr18`). Z poprawek `uxr17` działają V6 i migracja reguł v5; V2b sama nie wystarczyła; V7 i V8 jeszcze nie sprawdzone do końca.**
+
+## Pętla 3 (`uxr17`)
+
+| Co | Wynik |
+| --- | --- |
+| Reguły v5 po instalacji | ✔ „reguły autoplay v5: profil 1, zestaw original_subs: 6 → 6 reguł (stare w kopii)”. |
+| V6: okno Dźwięk | ✔ Wiersze: „Original • Angielski” (2 ścieżki w pliku) i „**Polski — 16 sources**”, bez japońskiego i koreańskiego. Zdjęcie 15. |
+| Zmiana dźwięku na polski w trakcie filmu | ✔ „F1”: wybór „Polski” w 2–3 s przełączył na inny plik 4K (WEB-DL DV 25,6 Mb/s) ze ścieżką „Lektor PL”, w tym samym miejscu filmu. Zdjęcie 16. Przy lektorze zostają też włączone polskie napisy. |
+| V2b: okno Jakość | ✘ Nadal bez zaznaczenia. Prawdziwa przyczyna: panel „Więcej” w czasie animacji zamykania blokuje wyjście zaznaczenia i odrzuca jedyną prośbę okna Jakość. Poprawka **V2c** (w `uxr18`). |
+| Okno Dźwięk z panelu | ✘ Raz z zaznaczeniem, raz bez (ta sama przyczyna w panelu „Audio, lektor i napisy”) — też V2c. |
+| V7: ekran źródeł | Częściowo: jedno świeże „Odtwórz” („Doktor Strange”) bez awarii; trzeba jeszcze 2–3 startów. |
+| V8: „Taskmaster” S18 O3 w 1080p | Nie sprawdzone (przerwane). |
+
+**Moja pomyłka na Twoim profilu:** gdy okno Dźwięk było bez zaznaczenia, kolejne klawisze wysłane bez sprawdzenia, gdzie jest zaznaczenie, trafiły w rząd „Podobne” i włączyły „Doktor Strange” (ok. 1 min). Wyłączyłem go od razu, ale może być w „Oglądaj dalej”. „F1” przy następnym „Wznów” włączy plik z polskim lektorem (ostatnio grany).
+
 **Pętla 2 (26.11, 20:15–20:55, wersja `uxr16` na projektorze): 4 nowe poprawki aplikacji (V2b, V6, V7, V8), sprawdzonych na projektorze: 0 — wejdą do wersji `uxr17`. Z 5 poprawek wersji `uxr16` na projektorze działają 4 (V2 w oknie Dźwięk, V3, V5, migracja reguł), 1 nie zadziałała (V2 w oknie Jakość → V2b); V1 i V4 nie miały okazji się pokazać.**
 
 ## Pętla 2 — najważniejsze

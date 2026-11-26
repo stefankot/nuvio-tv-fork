@@ -143,8 +143,9 @@ Lista dla właściciela. Wykonawca dopisuje tu wszystko, czego nie da się spraw
 
 ## Odtwarzacz VOD, wersja uxr17 (26.11 wieczorem; wyniki: `plan/ux/vod/WYNIKI.md`)
 
-- [ ] Po instalacji w logu `ForkSettings: reguły autoplay v5: profil 1, zestaw original_subs: 6 → 6 reguł (stare w kopii)`.
-- [ ] V2b: Więcej → Jakość — zaznaczenie na bieżącej jakości, ▼ przechodzi na 1080p (także po schowaniu się przycisków), OK przełącza plik w tym samym miejscu; po zamknięciu okna fokus na przyciskach.
-- [ ] V6: Dźwięk → Ścieżka dźwiękowa — wiersze: Oryginał, Polski (z liczbą źródeł), Angielski; bez japońskiego i koreańskiego.
+- [x] Po instalacji w logu `ForkSettings: reguły autoplay v5: profil 1, zestaw original_subs: 6 → 6 reguł (stare w kopii)`.
+- [ ] V2b+V2c (uxr18): Więcej → Jakość — zaznaczenie na bieżącej jakości, ▼ przechodzi na 1080p (także po schowaniu się przycisków), OK przełącza plik w tym samym miejscu; po zamknięciu okna fokus na przyciskach.
+- [x] V6: Dźwięk → Ścieżka dźwiękowa — wiersze: Oryginał, Polski (z liczbą źródeł), Angielski; bez japońskiego i koreańskiego.
 - [ ] V7: „F1” (tt16311594) → Odtwórz kilka razy — ekran źródeł bez awarii.
 - [ ] V8: „Taskmaster” S18 O3 (tt4934214:18:3, bez postępu — Wznów używa zapisanego pliku) — wybiera 1080p WEB-DL z TorBox, nie „Dream 4K VOD” (360p).
+- [ ] V2c (uxr18): okno Ścieżka dźwiękowa i Napisy z panelu Niuni — zaznaczenie w oknie za każdym razem (3 próby).
