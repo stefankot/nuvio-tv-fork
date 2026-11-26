@@ -51,11 +51,38 @@ object TvCountry {
     private val fromName get() = com.nuvio.tv.fork.tv.index.TvIndexStore.country
 
     fun countryInName(name: String, providers: Collection<String>): String = fromName[name]
-        ?: (ChannelDupes.country(ChannelDupes.plain(ChannelDupes.withoutProvider(name, providers))) ?: "").also { fromName.put(name, it) }
+        ?: computeCountry(name, providers).also { fromName.put(name, it) }
 
-    /** Kraj kanału: z nazwy, inaczej kraj jego listy ([listCountry] po sourceId); null = nieznany. */
+    /**
+     * IPTV #81 (właściciel 26.11: „nie działają kraje i języki — po wyborze pusta lista”): „Strong8K · PL: TVN …” miało kraj
+     * tylko wtedy, gdy przedrostek był DOKŁADNIE nazwą źródła — na JMGO nie był, więc z 59 tys. kanałów kraj miało ok. 1,5 tys.
+     * (głównie wydarzenia PPV „NEXT | … (US)” bez programu): „Stany Zjednoczone” dawały listę pustych wierszy. Teraz przedrostek
+     * dostawcy przed znacznikiem kraju („Strong8K · ”, „Strong8K: ”, „Strong8K ”, jak w [com.nuvio.tv.fork.tv.names.ChannelNames])
+     * jest zdejmowany zawsze, a „|PL| …” też daje kraj.
+     */
+    internal fun computeCountry(name: String, providers: Collection<String>): String {
+        ChannelDupes.country(ChannelDupes.plain(ChannelDupes.withoutProvider(name, providers)))?.let { return it }
+        fun head(t: String): String? = TAGGED.find(t)?.groupValues?.get(1)?.lowercase() ?: ChannelDupes.country(ChannelDupes.plain(t))
+        head(name.trimStart().trimStart('|', ' '))?.let { return it }
+        val m = PROVIDER_HEAD.find(name) ?: return ""
+        return head(name.substring(m.range.last + 1).trimStart('|', ' ')) ?: ""
+    }
+
+    // „PL VIP: CANAL+ SPORT 2”, „UK RAW | …” — kraj, dopisek jakości/pakietu, potem dwukropek albo kreska.
+    private const val TAGS = "VIP|RAW|4K|8K|UHD|FHD|HD|HEVC|SD|PPV|HDR|50FPS"
+    private val TAGGED = Regex("""^([A-Z]{2})\s+(?:$TAGS)\s*[:|]""")
+    private val PROVIDER_HEAD = Regex("""^\s*[\p{L}\p{N}+._-]{2,24}\s*[:|·•]?\s+(?=[A-Z]{2,3}\s*[:|\]\-–]|[A-Z]{2}\s+(?:$TAGS)\s*[:|])""")
+
+    /** Kraj kanału: z nazwy, inaczej z grupy listy („PL | NEWS”), inaczej kraj jego listy ([listCountry] po sourceId); null = nieznany. */
     fun countryOf(ch: LiveTvChannel, providers: Collection<String>, listCountry: (String) -> String?): String? =
-        countryInName(ch.name, providers).ifEmpty { null } ?: listCountry(ch.sourceId)?.lowercase()
+        countryInName(ch.name, providers).ifEmpty { null } ?: groupCountry(ch.group) ?: listCountry(ch.sourceId)?.lowercase()
+
+    /** IPTV #81: kraj z nazwy grupy (kilkaset grup na listę — pamięć w procesie). */
+    private val byGroup = java.util.concurrent.ConcurrentHashMap<String, String>()
+    internal fun groupCountry(group: String): String? {
+        if (group.isBlank()) return null
+        return (byGroup[group] ?: computeCountry(group, emptyList()).also { byGroup[group] = it }).ifEmpty { null }
+    }
 
     /**
      * Lista wg ustawień: [Mode.only] — tylko kanały kraju (gdy żaden nie pasuje, cała lista zostaje i [onNoneMatch] —

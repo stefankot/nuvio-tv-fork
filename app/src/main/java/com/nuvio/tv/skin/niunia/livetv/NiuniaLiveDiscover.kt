@@ -50,7 +50,13 @@ internal fun NiuniaLiveDiscover(
             "soon" to context.getString(R.string.niunia_tv_row_soon), "archive" to context.getString(R.string.niunia_tv_row_archive),
         )
     }
-    val rows = rememberComputed(channels, favUrls, now / (5 * MIN_MS), empty = NiuniaDiscoverCache.last, what = "odkrywaj") {
+    // IPTV #84: pierwsze wejście po starcie — ostatnie rzędy z dysku, zanim policzą się nowe.
+    var disk by remember { mutableStateOf<List<NiuniaDiscoverRow>?>(null) }
+    LaunchedEffect(Unit) {
+        if (NiuniaDiscoverCache.last != null) return@LaunchedEffect
+        disk = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { NiuniaDiscoverDisk.load(context, channels, now) }
+    }
+    val computed = rememberComputed(channels, favUrls, now / (5 * MIN_MS), empty = NiuniaDiscoverCache.last, what = "odkrywaj") {
         val t0 = android.os.SystemClock.elapsedRealtime()
         // UX JMGO (ręczne testy 24.11): w „Ulubione” 4× „Kuchenne rewolucje” (kopie kanału z kilku list), a „Dla ciebie”
         // i „Teraz na żywo” proponowały kanały „Niedostępne” (RT, CNBC). Jeden kafel na program i godzinę, bez niedostępnych.
@@ -60,8 +66,10 @@ internal fun NiuniaLiveDiscover(
         }.filter { it.tiles.isNotEmpty() }.also {
             NiuniaDiscoverCache.last = it
             Log.i(TAG, "live tv: odkrywaj policzone w tle w ${android.os.SystemClock.elapsedRealtime() - t0} ms")
+            NiuniaDiscoverDisk.save(context, it)
         }
     }
+    val rows = computed ?: disk
     val first = remember { FocusRequester() }
     var focused by remember { mutableStateOf(false) }
     LaunchedEffect(rows) {

@@ -48,6 +48,23 @@ class TvCountryTest {
         assertEquals(list, TvCountry.arrange(list, Mode(prefer = false, only = false, country = "pl"), providers, { lists[it] }))
     }
 
+    /** IPTV #81 (JMGO 26.11): nazwa źródła inna niż przedrostek („Strong8K” ≠ nazwa źródła) — kraj i tak z nazwy; grupa listy. */
+    @Test fun `kraj za przedrostkiem dostawcy innym niz nazwa zrodla`() {
+        val none = emptyList<String>()
+        assertEquals("pl", TvCountry.computeCountry("Strong8K · PL: TVN CZAS NA ŚLUB ᴴᴰ ◉", none))
+        assertEquals("pl", TvCountry.computeCountry("Strong8K: PL| TVN 7 FHD", none))
+        assertEquals("de", TvCountry.computeCountry("Strong8K · DE: Das Erste HD", none))
+        assertEquals("pl", TvCountry.computeCountry("|PL| TVP 1", none))
+        assertEquals("pl", TvCountry.computeCountry("PL: Polsat Cafe HD", none))
+        assertEquals("pl", TvCountry.computeCountry("Strong8K · PL VIP: CANAL+ SPORT 2 ᴿᴬᵂ", none))
+        assertEquals("pl", TvCountry.computeCountry("PL VIP: TVN 24", none))
+        assertEquals("", TvCountry.computeCountry("Strong8K · 24/7: RUNNING WILD WITH BEAR GRYLLS", none))
+        assertEquals("", TvCountry.computeCountry("Strong8K · DSTV: TVN AFRICA", none))
+        assertEquals("", TvCountry.computeCountry("Kanał bez kraju", none))
+        assertEquals("uk", TvCountry.countryOf(LiveTvChannel(id = "a", name = "BBC One", streamUrl = "http://x/a", group = "UK | ENTERTAINMENT"), none) { null })
+        assertNull(TvCountry.countryOf(LiveTvChannel(id = "b", name = "BBC Two", streamUrl = "http://x/b", group = "Rozrywka"), none) { null })
+    }
+
     @Test fun `domyslnie Polska - nazwa i lista krajow`() {
         assertEquals("Polska", TvCountry.nameOf("pl"))
         assertEquals("pl", TvCountry.CHOICES.first().first)

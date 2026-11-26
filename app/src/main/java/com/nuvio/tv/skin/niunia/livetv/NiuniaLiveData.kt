@@ -386,7 +386,8 @@ internal object NiuniaLiveOrder {
     // z dysku (TvIndexStore, ~5–7 s) i liczyła kraj/kategorie od nowa. ZASADY §2: po restarcie tylko odczyt. Tu: ostatni wynik
     // (adresy kanałów w kolejności + kategorie) w pliku; ta sama lista → gotowe od razu; zmieniona → ostatnia kolejność
     // (nowe kanały na końcu) od razu, pełne liczenie w tle jak dotąd.
-    private const val DISK_VERSION = 1
+    // 2 (IPTV #81, 26.11): kraj kanału za przedrostkiem dostawcy — zapisana kolejność „kraju IPTV” liczona starym sposobem.
+    private const val DISK_VERSION = 2
 
     private fun fingerprint(input: List<LiveTvChannel>): Long {
         var h = input.size.toLong()

@@ -19,8 +19,8 @@ object TvIndexStore {
     val titleKeys = DiskMemo("titlekeys", "1")
     /** klucz przewodnika → skrót listy programów (porównanie po restarcie) */
     val fingerprints = DiskMemo("fingerprints", "1")
-    /** nazwa kanału → kraj z nazwy ("" = brak) */
-    val country = DiskMemo("country", "1", poolValues = true)
+    /** nazwa kanału → kraj z nazwy ("" = brak); v2 (IPTV #81, 26.11): kraj za przedrostkiem dostawcy — jedno przeliczenie */
+    val country = DiskMemo("country", "2", poolValues = true)
     /** nazwa kanału → kategorie (Kicia ForgeEpgCategories.channelPlaces); wersja = skrót reguł, ustawiana przez [placesMemo] */
     @Volatile private var places: DiskMemo? = null
 
