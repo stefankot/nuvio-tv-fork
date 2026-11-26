@@ -98,8 +98,11 @@ internal object EmbeddedSourceSubtitles {
                 .filter { it.lang2 == "pl" && !it.forced && it.cues.size <= MAX_CUES }
                 .sortedWith(compareBy({ it.hearingImpaired }, { -it.cues.size }))
                 .firstOrNull() ?: return@withTimeoutOrNull false
-            val cues = track.cues.indices.chunked(4).flatMap { batch ->
-                coroutineScope {
+            // Test VOD JMGO 26.11: serwer odpowiadał HTTP 416 na każdą kwestię, a pętla pytała dalej (1003 nieudane zapytania
+            // w 78 s, w czasie startu filmu). Niepełna ścieżka i tak odpada, więc pierwsza nieudana paczka kończy pobieranie.
+            val cues = ArrayList<DocCue?>(track.cues.size)
+            for (batch in track.cues.indices.chunked(4)) {
+                val got = coroutineScope {
                     batch.map { i ->
                         async {
                             mkv.fetchCue(track, track.cues[i], track.cues.getOrNull(i + 1)?.timeMs)
@@ -107,9 +110,14 @@ internal object EmbeddedSourceSubtitles {
                         }
                     }.awaitAll()
                 }
+                cues += got
+                if (got.any { it == null }) {
+                    Log.i(TAG, "cue fetch failed at ${cues.size}/${track.cues.size}: stop (incomplete track is not cached)")
+                    break
+                }
             }
             // Incomplete tracks stay out of automatic selection.
-            if (cues.any { it == null }) return@withTimeoutOrNull false
+            if (cues.size < track.cues.size || cues.any { it == null }) return@withTimeoutOrNull false
             writeCache(context, "$key--$duration--$cut--$donor.srt", cues.filterNotNull())
             Log.i(TAG, "cached Polish text cues=${cues.size} durationMs=$duration")
             true

@@ -133,6 +133,10 @@ fun NiuniaPlayerChrome(
     val moreButton = remember { FocusRequester() }
     val lektorOn = remember { com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(context, "module_lektor") }
     // Po zamknięciu panelu fokus wraca na „Dźwięk” (element, z którego wszedł) — bez tego fokus spadał na korzeń i nakładka znikała.
+    // Test VOD JMGO 26.11 (uxr15): „Jakość” z panelu Więcej otwierała okno jakości, ale efekty niżej oddawały fokus przyciskowi
+    // Więcej / Dźwięk pod spodem — pilot nie mógł nic wybrać. Gdy z panelu (Więcej, Dźwięk i napisy) otwarto inne okno odtwarzacza, fokus zostaje w nim.
+    val otherWindow by androidx.compose.runtime.rememberUpdatedState(uiState.showQualityOverlay || uiState.showSourcesPanel ||
+        uiState.showSpeedDialog || uiState.showEpisodesPanel || uiState.showAudioOverlay || uiState.showSubtitleOverlay)
     var panelWasOpen by remember { mutableStateOf(false) }
     LaunchedEffect(panelOpen) {
         if (panelOpen) { panelWasOpen = true; return@LaunchedEffect }
@@ -140,10 +144,11 @@ fun NiuniaPlayerChrome(
         kotlinx.coroutines.delay(60)
         // Test JMGO build155: „Więcej opcji” zamyka panel i otwiera „Więcej” — fokus zostaje w nowym panelu (był zabierany na „Napisy”).
         if (moreOpen) { panelWasOpen = false; Log.i(TAG, "odtwarzacz: panel → Więcej, fokus w panelu Więcej"); return@LaunchedEffect }
+        if (otherWindow) { panelWasOpen = false; Log.i(TAG, "odtwarzacz: panel zamknięty, otwarte inne okno — fokus zostaje w nim"); return@LaunchedEffect }
         try { (when (panelTab) { 2 -> audioButton; 1 -> if (lektorOn) lektorButton else firstButton; else -> firstButton }).requestFocus(); Log.i(TAG, "odtwarzacz: panel zamknięty, fokus → ${when (panelTab) { 2 -> "Napisy"; 1 -> "Lektor"; else -> "Dźwięk" }}") } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus po panelu: ${e.javaClass.simpleName}: ${e.message}") }
         // Test JMGO ke2: pierwsza prośba ginie, bo panel (exit = Cancel) jeszcze znika — druga po animacji wyjścia.
         kotlinx.coroutines.delay(450)
-        if (!panelOpen && !moreOpen) try { (when (panelTab) { 2 -> audioButton; 1 -> if (lektorOn) lektorButton else firstButton; else -> firstButton }).requestFocus(); Log.i(TAG, "odtwarzacz: fokus po zamknięciu panelu (ponowienie)") } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus po panelu (ponowienie): ${e.javaClass.simpleName}: ${e.message}") }
+        if (!panelOpen && !moreOpen && !otherWindow) try { (when (panelTab) { 2 -> audioButton; 1 -> if (lektorOn) lektorButton else firstButton; else -> firstButton }).requestFocus(); Log.i(TAG, "odtwarzacz: fokus po zamknięciu panelu (ponowienie)") } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus po panelu (ponowienie): ${e.javaClass.simpleName}: ${e.message}") }
     }
     // Z-14 (PlayerMore): po zamknięciu panelu Więcej fokus wraca na przycisk Więcej.
     var moreWasOpen by remember { mutableStateOf(false) }
@@ -152,9 +157,10 @@ fun NiuniaPlayerChrome(
         if (!moreWasOpen || panelOpen) return@LaunchedEffect
         moreWasOpen = false
         kotlinx.coroutines.delay(60)
+        if (otherWindow) { Log.i(TAG, "odtwarzacz: Więcej zamknięte, otwarte inne okno — fokus zostaje w nim"); return@LaunchedEffect }
         try { moreButton.requestFocus(); Log.i(TAG, "odtwarzacz: Więcej zamknięte, fokus → Więcej") } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus po Więcej: ${e.javaClass.simpleName}: ${e.message}") }
         kotlinx.coroutines.delay(450)
-        if (!moreOpen && !panelOpen) try { moreButton.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus po Więcej (ponowienie): ${e.javaClass.simpleName}: ${e.message}") }
+        if (!moreOpen && !panelOpen && !otherWindow) try { moreButton.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus po Więcej (ponowienie): ${e.javaClass.simpleName}: ${e.message}") }
     }
     var okDownAt by remember { mutableStateOf(0L) }
     var okLong by remember { mutableStateOf(false) }

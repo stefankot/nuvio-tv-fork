@@ -4,6 +4,9 @@ Kawałki wzorców jak w e9a032fbd (tekst źródła StreamRegexRanking.searchable
 adres, infoHash): (?s), sprawdzanie tylko do adresu linku, flagi 🔊/🗣 = dźwięk, 💬 = napisy, bez „(PL, 720p)”.
 Nowe 22.11: polskie napisy wbudowane jako szczebel, zestaw „jakość ważniejsza”, źródła do ściągania (🌐 torrent,
 ⬇️/⏳ TorrentClaw) za gotowymi, 720p bez gołego „hd” (łapało „DTS-HD”). Poprzednie reguły: source_presets_v2.json.
+Nowe 26.11 (test VOD na JMGO, poprzednie reguły: source_presets_v3.json): w obrębie 4K najpierw pliki bez REMUX
+(4K Remux 72–77 Mb/s doczytywał się 10× na minutę, 4K BluRay 35 Mb/s grał płynnie), a wpisy „Click to verify & play”
+(Flix-Streams SmartPlay: napis „4K”, a gra 1080p) idą na koniec razem z plikami niegotowymi.
 Użycie: python3 -I fork-tools/sources/presets.py   Sprawdzenie: python3 -I fork-tools/sources/native_sim.py …"""
 import json, os, re
 
@@ -33,22 +36,25 @@ PLS = ("(?=" + U + r"(?:\x{1F4AC}[^\n\x{1F1E6}-\x{1F1FF}]*" + PL_FLAG +
        r"|\b(?:pl[ ._-]?sub(?:s|titles?)?|sub(?:s|titles?)?[ ._-]?pl|napisy(?:[ ._-]?pl)?|plsub)\b))")
 NOT_PLA = "(?!" + PLA[3:]                          # „(?=X)” → „(?!X)”
 # Do ściągania: torrent bez debrid (tekst kończy się infoHash), TorrentClaw ⬇️ Download / ⏳ caches on play.
-SLOW_BODY = r".*?(?:\x{2B07}|\x{23F3}|\bcaches on play\b|\b[0-9a-f]{40}\s*$)"
+SLOW_BODY = r".*?(?:\x{2B07}|\x{23F3}|\bcaches on play\b|\bclick to verify\b|\b[0-9a-f]{40}\s*$)"
 FAST, SLOW = "(?!" + SLOW_BODY + ")", "(?=" + SLOW_BODY + ")"
 
 def rule(*parts): return "(?s)^" + "".join(parts) + NOCAM
+NOREMUX = "(?!" + U + r"remux)"                   # „Remux”, „BDRemux”, „〈Remux〉”
+def k4(*parts): return [rule(FAST, R4K, NOREMUX, *parts), rule(FAST, R4K, *parts)]  # 4K: lżejszy plik przed REMUX
 
 pl_always = [
-    rule(FAST, R4K, PLA), rule(FAST, R1080, PLA), rule(FAST, R720, PLA), rule(FAST, NO_RES, PLA),
-    rule(FAST, R4K, PLS), rule(FAST, R1080, PLS), rule(FAST, PLS),
-    rule(FAST, R4K), rule(FAST, R1080), rule(FAST, R720), rule(FAST),
+    *k4(PLA), rule(FAST, R1080, PLA), rule(FAST, R720, PLA), rule(FAST, NO_RES, PLA),
+    *k4(PLS), rule(FAST, R1080, PLS), rule(FAST, PLS),
+    *k4(), rule(FAST, R1080), rule(FAST, R720), rule(FAST),
     rule(SLOW, PLA), rule(SLOW, PLS), rule(SLOW),
 ]
 quality = []
-for R in (R4K, R1080, R720, NO_RES):
+quality += [*k4(PLA), *k4(PLS), *k4()]
+for R in (R1080, R720, NO_RES):
     quality += [rule(FAST, R, PLA), rule(FAST, R, PLS), rule(FAST, R)]
 quality += [rule(SLOW, PLA), rule(SLOW)]
-original = [rule(FAST, R4K), rule(FAST, R1080), rule(FAST, R720), rule(FAST), rule(SLOW)]
+original = [*k4(), rule(FAST, R1080), rule(FAST, R720), rule(FAST), rule(SLOW)]
 
 def main():
     presets = [

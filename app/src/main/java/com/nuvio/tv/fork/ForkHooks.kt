@@ -143,11 +143,14 @@ object ForkHooks {
     @Composable
     fun playerBridge(uiState: PlayerUiState, timeline: kotlinx.coroutines.flow.StateFlow<com.nuvio.tv.ui.screens.player.PlaybackTimelineState>, onEvent: (PlayerEvent) -> Unit) {
         val ctx = androidx.compose.ui.platform.LocalContext.current
-        androidx.compose.runtime.SideEffect { com.nuvio.tv.fork.sources.PlayerBridge.appContext = ctx.applicationContext; com.nuvio.tv.fork.sources.PlayerBridge.set(uiState, onEvent) }
+        // Test VOD 26.11: ten sam PlayerViewModel co PlayerScreen (domyślny hiltViewModel() tego samego wpisu nawigacji) — czuwanie startu (StartGrace).
+        val playerVm: com.nuvio.tv.ui.screens.player.PlayerViewModel = androidx.hilt.navigation.compose.hiltViewModel()
+        val stateNow = androidx.compose.runtime.rememberUpdatedState(uiState)
+        androidx.compose.runtime.SideEffect { com.nuvio.tv.fork.sources.PlayerBridge.appContext = ctx.applicationContext; com.nuvio.tv.fork.sources.PlayerBridge.set(uiState, onEvent); com.nuvio.tv.fork.sources.StartGrace.onState(ctx, playerVm.controller, uiState) }
         androidx.compose.runtime.LaunchedEffect(uiState.audioTracks.size, uiState.isPlaying) { com.nuvio.tv.fork.sources.PlayerBridge.maybeAutoLektor(ctx) }
         // Fork 19.11: bieżące isPlaying (wcześniej zapamiętane z pierwszego składania — lektor liczył pozycję ze starego stanu).
         val playingNow = androidx.compose.runtime.rememberUpdatedState(uiState.isPlaying)
-        androidx.compose.runtime.LaunchedEffect(timeline) { timeline.collect { com.nuvio.tv.fork.sources.PlayerBridge.position(it.currentPosition, playingNow.value) } }
+        androidx.compose.runtime.LaunchedEffect(timeline) { timeline.collect { com.nuvio.tv.fork.sources.PlayerBridge.position(it.currentPosition, playingNow.value); com.nuvio.tv.fork.sources.StartGrace.onState(ctx, playerVm.controller, stateNow.value) } }
         androidx.compose.runtime.DisposableEffect(Unit) { com.nuvio.tv.fork.net.KeAutoTest.onPlayerOpened(); onDispose { com.nuvio.tv.fork.sources.PlayerBridge.clear(); com.nuvio.tv.fork.lektor.LektorController.stop(); com.nuvio.tv.fork.net.KeAutoTest.onPlayerClosed(ctx) } }
     }
 
