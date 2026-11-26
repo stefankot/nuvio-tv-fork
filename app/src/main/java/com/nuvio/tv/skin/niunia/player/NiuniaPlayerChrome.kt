@@ -551,6 +551,10 @@ internal fun niuniaQualityGlyph(videoHeight: Int?, streamName: String?): String?
 @Composable
 internal fun NiuniaMorePanel(series: Boolean, speed: Float, close: () -> Unit, onEvent: (PlayerEvent) -> Unit, toast: (String) -> Unit) {
     val ctx = LocalContext.current
+    // Test VOD JMGO 26.11 (uxr17): „Jakość” zamykała panel i otwierała okno jakości, ale panel w animacji wyjścia (exit = Cancel)
+    // odrzucał jedyną prośbę okna o fokus (po 120 ms) — pilot nic nie wybierał. Po wyborze pozycji panel wypuszcza fokus.
+    var leaving by remember { mutableStateOf(false) }
+    @Suppress("NAME_SHADOWING") val close: () -> Unit = { leaving = true; Log.i(TAG, "odtwarzacz: panel Więcej zamknięty wyborem — fokus może wyjść"); close() }
     val first = remember { FocusRequester() }
     // Test JMGO build157: otwarty z panelu audio („Więcej opcji”) tracił fokus, gdy znikał panel audio (koniec animacji) —
     // prośba o fokus od razu i ponownie po animacji, aż się uda.
@@ -570,7 +574,7 @@ internal fun NiuniaMorePanel(series: Boolean, speed: Float, close: () -> Unit, o
             .then(with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Panel, shape, fallback = Color(0xE61E1E22), fallbackBorder = NiuniaColors.Line) })
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
-            .focusProperties { exit = { FocusRequester.Cancel } } // ▼▲ na krańcach nie wychodzą pod panel (test JMGO build155)
+            .focusProperties { exit = { if (leaving) FocusRequester.Default else FocusRequester.Cancel } } // ▼▲ na krańcach nie wychodzą pod panel (test JMGO build155); po wyborze pozycji fokus wychodzi do nowego okna
             .focusGroup(),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
