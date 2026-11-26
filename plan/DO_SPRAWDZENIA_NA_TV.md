@@ -131,3 +131,12 @@ Lista dla właściciela. Wykonawca dopisuje tu wszystko, czego nie da się spraw
 - Szukaj: klawiatura z ą ć ę ł ń ó ś ź ż; dwie podpowiedzi mieszczą się na ekranie.
 - Zmień profil: „Stef+Patryk (Kaptain)” i „… Copy” w dwóch liniach, do odróżnienia.
 - Główna › „Oglądaj dalej” › film YouTube → Wstecz z odtwarzacza → Główna (nie zakładka YouTube).
+
+## Odtwarzacz VOD, wersja uxr16 (26.11; wyniki: `plan/ux/vod/WYNIKI.md`)
+
+- [ ] Film 4K (np. „Oppenheimer”): automat wybiera 4K bez REMUX (ok. 17–35 Mb/s) i film nie zatrzymuje się na doczytywanie.
+- [ ] Gdy film ruszy tuż przed upływem 15 s, nie przełącza się sam na inny plik (log `ForkSources: start: film już gra`).
+- [ ] Więcej → Jakość: strzałki ▲▼ chodzą po liście jakości, OK na „1080p” przełącza plik i zostaje w tym samym miejscu filmu.
+- [ ] Dźwięk → Ścieżka dźwiękowa: strzałki chodzą po liście ścieżek.
+- [ ] Serial bez polskich napisów: po kilku sekundach w lewym górnym rogu „Brak polskich napisów — tłumaczę je na polski (AI)…”, Wstecz w ciągu 12 s anuluje i film gra dalej.
+- [ ] Koniec odcinka: następny włącza się sam, z tego samego wydania.
