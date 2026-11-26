@@ -163,13 +163,20 @@ internal object NiuniaLiveNav {
     /** Z-21 (P-31): poprzedni kanał (adres na liście) — przycisk „Poprzedni: TVP1” zamiast długiego Wstecz; OK przełącza tam i z powrotem. */
     var lastUrl: String? = null
     var prevUrl by mutableStateOf<String?>(null)
-    fun noteChannel(url: String) {
-        if (lastUrl != null && lastUrl != url) { prevUrl = lastUrl; Log.i(TAG, "iptv: poprzedni kanał zapamiętany") }
-        lastUrl = url
+    // UX JMGO 26.11 (#67): poprzedni kanał trzymany jako obiekt — szukanie go na liście 59 tys. kanałów (state.zapList())
+    // przy każdym rysowaniu nakładki zabierało 331 ms wątku UI przy wejściu w kanał.
+    private var lastChannel: LiveTvChannel? = null
+    private var prevCh: LiveTvChannel? = null
+    fun noteChannel(ch: LiveTvChannel) {
+        val url = ch.streamUrl
+        if (lastUrl != null && lastUrl != url) { prevUrl = lastUrl; prevCh = lastChannel; Log.i(TAG, "iptv: poprzedni kanał zapamiętany") }
+        lastUrl = url; lastChannel = ch
     }
     fun prevChannel(state: LiveTvPlayerState): LiveTvChannel? {
         val u = prevUrl ?: return null
-        return state.zapList().firstOrNull { it.streamUrl == u } ?: LiveTvRepository.uiState.value.channels.firstOrNull { it.streamUrl == u }
+        prevCh?.takeIf { it.streamUrl == u }?.let { return it }
+        Log.i(TAG, "iptv: poprzedni kanał — szukam na liście")
+        return (state.zapList().firstOrNull { it.streamUrl == u } ?: LiveTvRepository.uiState.value.channels.firstOrNull { it.streamUrl == u })?.also { prevCh = it }
     }
 
     fun reset(archive: Boolean) {
@@ -279,7 +286,7 @@ internal object NiuniaLiveNav {
             NiuniaLiveSlot.PREV -> prevChannel(state)?.let { p -> ForgeMiniGuideNav.paused = false; Log.i(TAG, "iptv: Poprzedni → ${p.name}"); state.switchTo(p) }
                 ?: Log.w(TAG, "iptv: Poprzedni — kanału nie ma już na liście")
             NiuniaLiveSlot.PAUSE -> state.togglePause()
-            NiuniaLiveSlot.LIVE -> { ForgeMiniGuideNav.paused = false; state.switchTo(channel, force = true) }
+            NiuniaLiveSlot.LIVE -> { ForgeMiniGuideNav.paused = false; Log.i(TAG, "iptv: Na żywo → ${channel.name}"); state.switchTo(channel, force = true) }
             NiuniaLiveSlot.FAV -> shownTitle?.let { t -> val on = TvStore.toggleFavoriteShow(t); Log.i(TAG, "iptv: ulubione programy → $on") }
             NiuniaLiveSlot.INFO -> go(2, "Informacje")
             NiuniaLiveSlot.MORE -> { state.hideInfo(); state.player.onEvent(PlayerEvent.OnShowAudioOverlay) }
@@ -322,6 +329,17 @@ private fun episodeText(raw: String?): String? {
 
 private fun sameTitle(a: LiveTvProgramme, b: LiveTvProgramme) = a.title.trim().equals(b.title.trim(), ignoreCase = true)
 
+private val SEASON_TAIL = Regex("""\s\d{1,2}$""")
+/**
+ * UX JMGO 26.11 (#70, zdjęcia 209–210): przewodnik Nowej TV podaje „Świat według Bundych 3: Can't dance…” (serial, sezon:
+ * odcinek) — rząd szukał tylko tego samego pełnego tytułu i miał 1 kafelek (powtórka tego samego odcinka). Klucz serialu:
+ * tekst przed „:”, bez numeru sezonu na końcu; null, gdy tytuł nie ma takiej części.
+ */
+private fun seriesKey(title: String): String? {
+    val head = title.substringBefore(':', "").trim().takeIf { it.length >= 3 } ?: return null
+    return com.nuvio.tv.fork.tv.ShowIdentity.normalizeTitle(head).replace(SEASON_TAIL, "").trim().takeIf { it.length >= 3 }
+}
+
 /**
  * Rząd pod odtwarzaczem (SKIN.md „Player IPTV”): program powtarzalny → inne odcinki z przewodnika kanału (wyemitowane w archiwum
  * = zielona kropka, przyszłe = „Wkrótce”); jednorazowy → programy z innych kanałów z najwęższej kategorii (liść) drzewa EPG, potem gałąź;
@@ -330,7 +348,12 @@ private fun sameTitle(a: LiveTvProgramme, b: LiveTvProgramme) = a.title.trim().e
 private fun buildRow(channel: LiveTvChannel, shown: LiveTvProgramme, nowMs: Long): Triple<List<NiuniaLiveTile>, Boolean, String?> {
     val schedule = LiveTvRepository.schedule(channel.guideKey)
     val window = 7L * 86_400_000
-    val same = schedule.filter { sameTitle(it, shown) && it.stopEpochMs > nowMs - window && it.startEpochMs < nowMs + window }
+    val series = seriesKey(shown.title)
+    val same = schedule.filter { p ->
+        p.stopEpochMs > nowMs - window && p.startEpochMs < nowMs + window &&
+            (sameTitle(p, shown) || series != null && com.nuvio.tv.fork.tv.ShowIdentity.normalizeTitle(p.title.substringBefore(':')).replace(SEASON_TAIL, "").trim() == series)
+    }
+    if (series != null) Log.i(TAG, "iptv: rząd — serial „$series”: ${same.size} emisji")
     if (same.size >= 2) {
         val tiles = same.sortedBy { it.startEpochMs }.mapNotNull { p ->
             val live = p.startEpochMs <= nowMs && nowMs < p.stopEpochMs
@@ -406,7 +429,7 @@ internal fun NiuniaLivePlayer(
             kotlinx.coroutines.delay(50) // przyciski publikuje SideEffect
             nav.buttons.firstOrNull()?.let { nav.slot = it; Log.i(TAG, "iptv: nakładka otwarta ► — fokus na $it") }
         }
-        nav.noteChannel(channel.streamUrl)
+        nav.noteChannel(channel)
         Log.i(TAG, "iptv: nakładka ${channel.name} (stan=$playState, program=${shown != null})")
     }
     // Z-21 (P-28): kanał gra kilka sekund → znacznik „Niedostępny” zdjęty.
@@ -443,7 +466,8 @@ internal fun NiuniaLivePlayer(
         if (prev != null) add(NiuniaLiveSlot.PREV) // Z-21 (P-31): pierwszy nad paskiem, dopiero po zmianie kanału, nie w archiwum
         if (startOver || archive) add(NiuniaLiveSlot.RESTART)
         if (archive || group || paused) add(NiuniaLiveSlot.PAUSE)
-        if (playState == NiuniaPlayState.DELAY) add(NiuniaLiveSlot.LIVE)
+        // UX JMGO 26.11 (#72, zdjęcie 212): w archiwum nie było jak wrócić do transmisji (tylko ↻ ▶ +) — „Na żywo” jak przy opóźnieniu.
+        if (playState == NiuniaPlayState.DELAY || archive) add(NiuniaLiveSlot.LIVE)
         add(NiuniaLiveSlot.FAV)
         if (group) { add(NiuniaLiveSlot.INFO); add(NiuniaLiveSlot.MORE) }
     }
@@ -478,7 +502,8 @@ internal fun NiuniaLivePlayer(
                                 com.nuvio.tv.fork.tv.names.ChannelNames.shown(channel.name),
                                 if (playState == NiuniaPlayState.DELAY) stringResource(R.string.niunia_live_still_live) else null,
                             ).joinToString(" · ")
-                            Text(line, style = NiuniaText.Button.copy(fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.sp), color = NiuniaColors.Text, maxLines = 1)
+                            // UX JMGO 26.11 (zdjęcie 213): przy 4 przyciskach linia była ucięta w pół słowa („· na”) — wielokropek.
+                            Text(line, style = NiuniaText.Button.copy(fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.sp), color = NiuniaColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                         val meta = listOfNotNull(episodeText(shown?.episode), data.genre).joinToString(" · ")
                         if (meta.isNotEmpty()) Text(meta, style = NiuniaText.Body.copy(fontSize = 15.sp, lineHeight = 20.sp), color = NiuniaColors.Text70, maxLines = 1, modifier = Modifier.padding(top = 8.dp))

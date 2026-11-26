@@ -155,6 +155,7 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
     var dayOffset by remember { mutableIntStateOf(NiuniaLiveReturn.restoredDay()) }
     val returnTo = remember { NiuniaLiveReturn.consume() }
     var dayPicker by remember { mutableStateOf(false) }
+    var dayPicked by remember { mutableIntStateOf(0) } // #69: każdy wybór dnia → fokus na 1. kanale przewodnika
     // UX JMGO (ręczne testy 24.11): Wstecz z listy dni stawiał fokus na pierwszym kafelku (kolejne OK włączało kanał) —
     // teraz wraca na przycisk dnia.
     val dayFocus = remember { FocusRequester() }
@@ -413,6 +414,7 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
                     filter = f
                 },
                 onPlay = { ch, p -> play(ch, p, guideChannels) },
+                focusGuideTick = dayPicked,
             )
             LiveMode.DISCOVER -> NiuniaLiveDiscover(shown, state.favoriteUrls, state.currentProgrammes, now) { ch, p -> NiuniaLiveReturn.fromOther(); play(ch, p, shown) }
             LiveMode.SEARCH -> NiuniaLiveSearch(shown, state.currentProgrammes, now) { ch, p -> NiuniaLiveReturn.fromOther(); play(ch, p, shown) }
@@ -425,7 +427,7 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
         )
         if (dayPicker) DayPicker(dayOffset, now) { d ->
             Log.i(TAG, "live tv: dzień ${dayLabel(d, now)}")
-            dayOffset = d; dayPicker = false; mode = LiveMode.GUIDE
+            dayOffset = d; dayPicker = false; mode = LiveMode.GUIDE; dayPicked++
         }
         if (regionPanel && mode == LiveMode.GUIDE) NiuniaLiveRegionPanel(region.index) { regionPanel = false; refocus(regionChip, "chip Kraj i język") }
         val opt = optionsFor
@@ -479,6 +481,7 @@ private fun Guide(
     onOptions: (LiveTvChannel, String) -> Unit,
     onFilter: (NiuniaLiveFilter) -> Unit,
     onPlay: (LiveTvChannel, LiveTvProgramme?) -> Unit,
+    focusGuideTick: Int = 0,
 ) {
     val minStart = remember(now) { windowStartFor(now) - PAST_DAYS * DAY_MS }
     val backToGuide = returnTo as? NiuniaLiveReturn.Entry.Guide
@@ -535,6 +538,19 @@ private fun Guide(
             catch (e: IllegalStateException) { Log.w(TAG, "live tv: fokus na przycisk trybu: ${e.javaClass.simpleName}: ${e.message}") }
         }
         try { allFocus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "live tv: fokus „Wszystkie”: ${e.javaClass.simpleName}: ${e.message}") }
+    }
+    // UX JMGO 26.11 (#69, zdjęcie 206): po wyborze dnia fokus spadał na 1. kafelek u góry (OK = kanał na żywo, nie wybrany
+    // dzień) — teraz 1. kanał przewodnika na godzinie wybranego dnia.
+    val firstChannelFocus = remember { FocusRequester() }
+    LaunchedEffect(focusGuideTick) {
+        if (focusGuideTick == 0) return@LaunchedEffect
+        try { channelsState.scrollToItem(0) } catch (e: IllegalStateException) { Log.w(TAG, "live tv: dzień — przewiń na 1. kanał: ${e.javaClass.simpleName}: ${e.message}") }
+        delay(150)
+        try { firstChannelFocus.requestFocus(); Log.i(TAG, "live tv: dzień wybrany → fokus na 1. kanale") }
+        catch (e: IllegalStateException) {
+            Log.w(TAG, "live tv: dzień — fokus na 1. kanale: ${e.javaClass.simpleName}: ${e.message}")
+            try { restoreFocus.requestFocus() } catch (e2: IllegalStateException) { Log.w(TAG, "live tv: dzień — fokus zastępczy: ${e2.javaClass.simpleName}: ${e2.message}") }
+        }
     }
     // Z-21 (P-32, makieta LiveTVRow): fokus w przewodniku = podgląd kanału na żywo u góry po prawej i opis programu po lewej
     // zamiast rzędu kafelków (jeden odtwarzacz, bez dźwięku; przełącznik niunia_live_preview).
@@ -614,7 +630,8 @@ private fun Guide(
                         onFocus = { p -> info = ch to p },
                         onOk = { p -> NiuniaLiveReturn.fromGuide(ch.streamUrl, p?.startEpochMs); onPlay(ch, p) },
                         onLong = { onOptions(ch, "ch:" + ch.streamUrl) },
-                        requester = if (ch.streamUrl == restoreChannel) restoreFocus else if (optionsFrom == "ch:" + ch.streamUrl) optionsReturn else null,
+                        requester = if (ch.streamUrl == restoreChannel) restoreFocus else if (optionsFrom == "ch:" + ch.streamUrl) optionsReturn
+                            else if (ch.streamUrl == channels.firstOrNull()?.streamUrl) firstChannelFocus else null,
                     )
                 }
             }

@@ -121,9 +121,11 @@ internal object NiuniaListMaps {
         ?: list.associateBy { it.streamUrl }.also { url = Memo(list, it) }
 }
 
-/** Najlepsza emisja tytułu na kanale: trwająca, potem ostatnia z archiwum, potem najbliższa. */
+/** Najlepsza emisja tytułu na kanale: trwająca, potem ostatnia z archiwum, potem najbliższa.
+ *  UX JMGO 26.11 (#67): klucze tytułów z pamięci [NiuniaFavShowsCache] — `normalizeTitle` całego programu kanału przy
+ *  każdym przeliczeniu kafelków „Wszystkie” zabierało 328 ms wątku UI przy wejściu w kanał. */
 internal fun bestAiring(ch: LiveTvChannel, titleKey: String, now: Long): LiveTvProgramme? {
-    val all = LiveTvRepository.schedule(ch.guideKey).filter { ShowIdentity.normalizeTitle(it.title) == titleKey }
+    val all = LiveTvRepository.schedule(ch.guideKey).filter { NiuniaFavShowsCache.key(it.title) == titleKey }
     return all.firstOrNull { isLive(it, now) }
         ?: all.filter { it.stopEpochMs <= now && LiveTvCatchupLinks.isPlayable(ch.catchup, it, now) }.maxByOrNull { it.startEpochMs }
         ?: all.filter { it.startEpochMs > now }.minByOrNull { it.startEpochMs }
@@ -136,9 +138,9 @@ internal fun recentTiles(channels: List<LiveTvChannel>, current: Map<String, Liv
     val out = ArrayList<NiuniaLiveTile>()
     TvStore.recent.value.sortedByDescending { it.lastViewedMs }.forEach { s ->
         val ch = byUrl[s.channelUrl] ?: guides[s.guideKey] ?: return@forEach
-        val onNow = current[ch.guideKey]?.takeIf { isLive(it, now) && ShowIdentity.normalizeTitle(it.title) == s.key }
+        val onNow = current[ch.guideKey]?.takeIf { isLive(it, now) && NiuniaFavShowsCache.key(it.title) == s.key }
         val tile = if (onNow != null) tileFor(ch, onNow, now) else {
-            val resume = TvStore.resume.value.filter { ShowIdentity.normalizeTitle(it.title) == s.key && it.channelUrl == ch.streamUrl }.maxByOrNull { it.updatedMs }
+            val resume = TvStore.resume.value.filter { NiuniaFavShowsCache.key(it.title) == s.key && it.channelUrl == ch.streamUrl }.maxByOrNull { it.updatedMs }
             val p = resume?.let { r -> LiveTvRepository.schedule(ch.guideKey).firstOrNull { it.startEpochMs == r.startMs } } ?: bestAiring(ch, s.key, now)
             p?.let { tileFor(ch, it, now) }
         }
@@ -272,11 +274,11 @@ internal fun discoverRows(channels: List<LiveTvChannel>, favUrls: Set<String>, c
 
     // Dla ciebie: kolejka ForYouQueue (w trakcie, nowe odcinki obserwowanych, na żywo na ulubionych, na żywo z oglądanych kanałów).
     val favShows = TvStore.favoriteShows.value
-    fun item(ch: LiveTvChannel, p: LiveTvProgramme, b: Badge) = QueueItem(ShowIdentity.normalizeTitle(p.title), p.title, ch.guideKey, p.startEpochMs, b)
+    fun item(ch: LiveTvChannel, p: LiveTvProgramme, b: Badge) = QueueItem(NiuniaFavShowsCache.key(p.title), p.title, ch.guideKey, p.startEpochMs, b)
     val inProgress = TvStore.resume.value.filter { it.started }.sortedByDescending { it.updatedMs }.mapNotNull { r ->
-        byUrl[r.channelUrl]?.let { QueueItem(ShowIdentity.normalizeTitle(r.title), r.title, it.guideKey, r.startMs, Badge.RESUME) } }
+        byUrl[r.channelUrl]?.let { QueueItem(NiuniaFavShowsCache.key(r.title), r.title, it.guideKey, r.startMs, Badge.RESUME) } }
     val newEp = TvStore.alerts.value.filter { it.kind == AlertKind.NEW_EPISODE }.map { QueueItem(it.showKey, it.showTitle, it.airing.guideKey, it.airing.startMs, Badge.NEW_EPISODE) }
-    val liveFav = channels.mapNotNull { ch -> current[ch.guideKey]?.takeIf { isLive(it, now) && (ch.streamUrl in favUrls || ShowIdentity.normalizeTitle(it.title) in favShows) }?.let { item(ch, it, Badge.LIVE) } }
+    val liveFav = channels.mapNotNull { ch -> current[ch.guideKey]?.takeIf { isLive(it, now) && (ch.streamUrl in favUrls || NiuniaFavShowsCache.key(it.title) in favShows) }?.let { item(ch, it, Badge.LIVE) } }
     val liveUsual = TvStore.recentChannels.value.mapNotNull { r -> byUrl[r.streamUrl]?.let { ch -> current[ch.guideKey]?.takeIf { isLive(it, now) }?.let { item(ch, it, Badge.LIVE) } } }
     val anyLive = channels.take(40).mapNotNull { ch -> current[ch.guideKey]?.takeIf { isLive(it, now) }?.let { item(ch, it, Badge.LIVE) } }
     val forYou = ForYouQueue.build(QueueInput(inProgress, newEp, liveFav, liveUsual, anyLive)).mapNotNull { q ->

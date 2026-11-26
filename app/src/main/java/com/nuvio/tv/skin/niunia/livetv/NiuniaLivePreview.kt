@@ -71,7 +71,14 @@ internal fun NiuniaLivePreviewBox(channel: LiveTvChannel, programme: LiveTvProgr
         preview.play(channel)
     }
     val showing = preview.showingVideo
-    LaunchedEffect(showing) { if (showing) Log.i(TAG, "live tv: podgląd — obraz ${channel.name}") }
+    // UX JMGO 26.11 (#68, zdjęcie 205): kanał z „Niedostępny” grał w podglądzie, a znacznik zostawał — obraz przez 3 s zdejmuje go.
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    LaunchedEffect(showing, channel.streamUrl) {
+        if (!showing) return@LaunchedEffect
+        Log.i(TAG, "live tv: podgląd — obraz ${channel.name}")
+        kotlinx.coroutines.delay(3_000)
+        if (preview.showingVideo) NiuniaLiveStatus.ok(ctx, channel.streamUrl, channel.name)
+    }
     Box(modifier.size(520.dp, 288.dp)) {
         val still = programme?.image?.takeIf { it.isNotBlank() } ?: com.nuvio.tv.skin.kicia.livetv.forgeChannelLogo(channel)
         if (!showing && still != null) AsyncImage(model = still, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())

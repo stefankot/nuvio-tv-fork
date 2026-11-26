@@ -252,7 +252,7 @@ object GuideDbBridge {
             if (db.fingerprint() == null) return null
             val list = db.channelRange(guideKey, fromMs, LiveTvClock.nowEpochMs() + HOUR)
             Log.i(TAG, "archiwum kanału z bazy: ${list.size} programów")
-            list.map { p -> LiveTvProgramme(p.title, p.startMs, p.stopMs, p.description, p.icon, p.episode) }
+            list.map { p -> LiveTvProgramme(GuideText.clean(p.title)!!, p.startMs, p.stopMs, GuideText.clean(p.description), p.icon, GuideText.clean(p.episode)) } // #71
         } catch (e: Exception) {
             Log.w(TAG, "archiwum kanału z bazy: ${e.javaClass.simpleName}: ${e.message}")
             null
@@ -525,12 +525,13 @@ object GuideDbBridge {
     internal fun convert(m: Map<String, List<EpgProgram>>): Map<String, List<LiveTvProgramme>> {
         val pool = HashMap<String, String>()
         fun shared(s: String?): String? = s?.let { pool.getOrPut(it) { it } }
+        fun text(s: String?): String? = s?.let { pool.getOrPut(it) { GuideText.clean(it)!! } } // #71: encje HTML raz na tytuł
         val sameList = java.util.IdentityHashMap<List<EpgProgram>, List<LiveTvProgramme>>()
         val out = HashMap<String, List<LiveTvProgramme>>(m.size * 2)
         m.forEach { (key, list) ->
             // Kanały z jednym kanałem przewodnika (duplikaty) dostają tę samą listę.
             out[key] = sameList.getOrPut(list) {
-                list.map { p -> LiveTvProgramme(shared(p.title)!!, p.startMs, p.stopMs, p.description, shared(p.icon), shared(p.episode)) }
+                list.map { p -> LiveTvProgramme(text(p.title)!!, p.startMs, p.stopMs, GuideText.clean(p.description), shared(p.icon), text(p.episode)) }
             }
         }
         return out
