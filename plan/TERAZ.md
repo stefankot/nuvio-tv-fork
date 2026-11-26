@@ -3,6 +3,12 @@
 Zasady: `ZASADY.md`. Mapa dokumentów: `plan/README.md`. Historia wątków 1–13: `plan/archiwum/TERAZ-historia-watki-1-13.md` (tylko `grep`, nie czytaj całości). Sekcje z 22.11 (build163–169c, scalenie, aktualizacja bazy): `plan/archiwum/TERAZ-historia-22.11.md`.
 Utrzymanie pliku: nowy wątek dopisuje sekcję „NAJPIERW” na górze, a sekcje nieaktualne przenosi na koniec pliku historii w archiwum. Cel: ten plik ma mieć poniżej ok. 20 KB.
 
+## NAJPIERW (26.11 ~16:05 — przekazanie: nowy wątek sprawdza odtwarzacz VOD/TorBox i napisy AI; pętla IPTV wstrzymana)
+- Polecenie właściciela 26.11 ~16:05: „kontynuuj w nowym wątku: sprawdź napisy tłumaczone przez AI, automatyczny wybór źródła, wybór źródła i jakości w trakcie odtwarzania, wszystkie funkcje odtwarzacza VOD (TorBox); dla kilku materiałów sprawdź, czy wybrany plik jest najlepszy wg wymagań z ustawień”.
+- Na JMGO: `uxr14` (md5 `e14da29c3d3f1cdfacbb504d974c7ce6`). Build `uxr15` (commit 552b8988f, IPTV #70b, #74–#79) ruszył 15:58 w zakładce c2 (`/tmp/uxr15.log`); APK po buildzie: `app/build/outputs/apk/full/debug/app-full-armeabi-v7a-debug.apk` → skopiuj do `.stage/apk/uxr15-v7a.apk` (build.sh go nie kopiuje), instaluj, md5, compile speed.
+- Czeka (NIE w uxr15): `python3 .stage/patch_uxr16.py` — #80 (OK = pauza w odtwarzaczu IPTV → zaznaczenie na ▶, nie na ostatnim przycisku „Na żywo”). Do sprawdzenia na `uxr15`: lista „? uxr15” w `plan/ux/reczne/POPRAWKI.md`.
+- Lekcja 26.11: po starcie aplikacji Główna wczytuje się kilka sekund — ◄/▼/OK na ślepo włączyło 2 × „Blade Runner 2099” z „Oglądaj dalej”. Przed każdym OK sprawdź fokus (`fx2.sh`/log ForkFocus).
+
 ## NAJPIERW (26.11 — UX ręczne na JMGO, pętla 10: `uxr14` budowany/instalowany, następna paczka w `.stage/patch_uxr15.py`)
 - Polecenie właściciela (26.11): pętle ręcznych testów UX na JMGO, odtwarzacz IPTV „intuicyjny i szybki”; po każdej pętli STAN.md + POPRAWKI.md (wysłać `SendUserFile`) + commit; na build czekać tylko w tle.
 - `uxr13` sprawdzony 26.11: #56, #57, #61, #63, #64, #65 ✔ (szczegóły: `plan/ux/reczne/STAN.md`, „Pętla 10”).
