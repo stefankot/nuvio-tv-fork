@@ -58,7 +58,6 @@ import com.nuvio.tv.skin.niunia.tokens.NiuniaColors
 import com.nuvio.tv.skin.niunia.tokens.NiuniaDims
 import com.nuvio.tv.skin.niunia.tokens.NiuniaText
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 private const val TAG = "ForkNiunia"
 // Właściciel 25.11: bez polskich liter („anty-UX”) — TvTextIndex.norm i tak zamienia ą→a, ł→l.
@@ -80,10 +79,13 @@ internal fun NiuniaLiveSearch(
     channels: List<LiveTvChannel>,
     current: Map<String, LiveTvProgramme>,
     now: Long,
+    /** IPTV #82: OK na programie — strona programu (rysuje ją [NiuniaLiveTv] nad górnym paskiem). */
+    onProgramme: (LiveTvChannel, LiveTvProgramme) -> Unit,
+    /** Rośnie po zamknięciu strony programu — fokus wraca na wynik. */
+    programmeClosed: Int,
     onPlay: (LiveTvChannel, LiveTvProgramme?) -> Unit,
 ) {
     val context = LocalContext.current
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
     var query by remember { mutableStateOf(ForgeTvSearchMemory.lastQuery) }
     var digits by remember { mutableStateOf(false) }
     var category by remember { mutableStateOf(ForgeEpgCategories.PROG_ALL) }
@@ -151,14 +153,19 @@ internal fun NiuniaLiveSearch(
     }
     // IPTV #82 (właściciel 26.11): OK na programie prowadziło do emisji, której jeszcze nie nadano („Ten program zacznie się…”) —
     // teraz strona programu ze wszystkimi emisjami (na żywo, archiwum 7 dni, przyszłe). OK na kanale nadal włącza kanał.
-    var page by remember { mutableStateOf<Pair<LiveTvChannel, LiveTvProgramme>?>(null) }
     var backKey by remember { mutableStateOf<String?>(null) }
     val backFocus = remember { FocusRequester() }
     fun openProgramme(t: NiuniaLiveTile) {
         val p = t.programme ?: return open(t.channel, null)
         if (query.isNotBlank()) ForgeTvSearchMemory.add(query.trim())
         Log.i(TAG, "szukaj tv: OK → strona programu „${p.title}”")
-        backKey = "p:" + t.key; page = t.channel to p
+        backKey = "p:" + t.key; onProgramme(t.channel, p)
+    }
+    LaunchedEffect(programmeClosed) {
+        if (programmeClosed == 0) return@LaunchedEffect
+        delay(80)
+        try { backFocus.requestFocus(); Log.i(TAG, "szukaj tv: fokus wraca na wynik") }
+        catch (e: IllegalStateException) { Log.w(TAG, "szukaj tv: fokus na wynik: ${e.javaClass.simpleName}: ${e.message}") }
     }
     fun openChannel(t: NiuniaLiveTile) { backKey = "c:" + t.key; open(t.channel, t.programme) }
     fun req(prefix: String, t: NiuniaLiveTile) = if (backKey == prefix + t.key) backFocus else null
@@ -246,16 +253,6 @@ internal fun NiuniaLiveSearch(
                     }
                 }
             }
-        }
-        page?.let { (ch, p) ->
-            NiuniaLiveProgrammePanel(ch, p, channels, now, onPlay = { c, pr -> onPlay(c, pr) }, onClose = {
-                page = null
-                scope.launch {
-                    delay(80)
-                    try { backFocus.requestFocus(); Log.i(TAG, "szukaj tv: fokus wraca na wynik") }
-                    catch (e: IllegalStateException) { Log.w(TAG, "szukaj tv: fokus na wynik: ${e.javaClass.simpleName}: ${e.message}") }
-                }
-            })
         }
     }
 }

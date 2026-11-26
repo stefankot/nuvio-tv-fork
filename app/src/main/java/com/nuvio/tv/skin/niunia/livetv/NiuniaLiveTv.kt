@@ -230,6 +230,8 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
     val base = region.shown
     var regionPanel by remember { mutableStateOf(false) }
     var optionsFor by remember { mutableStateOf<LiveTvChannel?>(null) }
+    var programmePage by remember { mutableStateOf<Pair<LiveTvChannel, LiveTvProgramme>?>(null) }
+    var programmeClosed by remember { mutableIntStateOf(0) }
     var optionsFrom by remember { mutableStateOf<String?>(null) }
     val regionChip = remember { FocusRequester() }
     val optionsReturn = remember { FocusRequester() }
@@ -422,7 +424,9 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
                 onBackToNow = { if (dayOffset != 0) { Log.i(TAG, "live tv: Wstecz z przewodnika → dzień Dziś"); returnTo = null; dayOffset = 0 } },
             )
             LiveMode.DISCOVER -> NiuniaLiveDiscover(shown, state.favoriteUrls, state.currentProgrammes, now) { ch, p -> NiuniaLiveReturn.fromOther(); play(ch, p, shown) }
-            LiveMode.SEARCH -> NiuniaLiveSearch(shown, state.currentProgrammes, now) { ch, p -> NiuniaLiveReturn.fromSearch(); play(ch, p, shown) }
+            LiveMode.SEARCH -> NiuniaLiveSearch(shown, state.currentProgrammes, now, onProgramme = { ch, p -> programmePage = ch to p }, programmeClosed = programmeClosed) { ch, p ->
+                NiuniaLiveReturn.fromSearch(); play(ch, p, shown)
+            }
         }
         TopBar(
             mode = mode, dayLabel = dayLabel(dayOffset, now),
@@ -435,6 +439,11 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
             returnTo = null; dayOffset = d; dayPicker = false; mode = LiveMode.GUIDE; dayPicked++
         }
         if (regionPanel && mode == LiveMode.GUIDE) NiuniaLiveRegionPanel(region.index) { regionPanel = false; refocus(regionChip, "chip Kraj i język") }
+        // IPTV #82: strona programu z wyszukiwarki — nad górnym paskiem, jak panele przewodnika.
+        programmePage?.takeIf { mode == LiveMode.SEARCH }?.let { (ch, p) ->
+            NiuniaLiveProgrammePanel(ch, p, shown, now, onPlay = { c, pr -> NiuniaLiveReturn.fromSearch(); play(c, pr, shown) },
+                onClose = { programmePage = null; programmeClosed++ })
+        }
         val opt = optionsFor
         if (opt != null && mode == LiveMode.GUIDE) NiuniaLiveOptionsPanel(opt, state.channels, now,
             onPlay = { c, p -> play(c, p, guideChannels) },
