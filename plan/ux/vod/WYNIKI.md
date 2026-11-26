@@ -1,10 +1,70 @@
 # Odtwarzacz filmów i seriali (TorBox) — wyniki sprawdzenia
 
-**Pętla 1 (26.11, 16:20–16:40): 5 poprawek aplikacji, sprawdzonych na projektorze: 0** — testy przerwane na Twoje polecenie (projektor zajęty). Poprawki są w wersji `uxr16` (zbudowana 16:58, test reguł zaliczony, jeszcze nie zainstalowana); sprawdzę je, gdy projektor będzie wolny.
+**Pętla 2 (26.11, 20:15–20:55, wersja `uxr16` na projektorze): 4 nowe poprawki aplikacji (V2b, V6, V7, V8), sprawdzonych na projektorze: 0 — wejdą do wersji `uxr17`. Z 5 poprawek wersji `uxr16` na projektorze działają 4 (V2 w oknie Dźwięk, V3, V5, migracja reguł), 1 nie zadziałała (V2 w oknie Jakość → V2b); V1 i V4 nie miały okazji się pokazać.**
+
+## Pętla 2 — najważniejsze
+
+- **Aplikacja padła** przy pierwszym „Odtwórz” w filmie „F1” (ekran źródeł). Za drugim razem film ruszył. Poprawione (V7).
+- **„Taskmaster” sezon 18 grał w 360p**, bo wpis „Dream 4K VOD” (nazwa serwisu w dodatku Flix-Streams) udawał 4K. Poprawione (V8): wygra plik 1080p z TorBox.
+- **Napisy AI działają**: komunikat w lewym górnym rogu, po ok. 30 s polskie napisy na ekranie, Wstecz w czasie komunikatu anuluje i film gra dalej.
+- **Następny odcinek** włączył się sam, z tego samego wydania.
+- Okno **Jakość** nadal nie daje się obsłużyć pilotem (V2b), okno **Dźwięk** pokazywało japoński i koreański zamiast polskiego (V6).
+
+## Czy wybrany plik był najlepszy? (pętla 2)
+
+| Materiał | Co wybrała aplikacja | Ocena |
+| --- | --- | --- |
+| „F1” (2025), pierwsze włączenie | 4K BluRay, Dolby Vision, 26 GB, **22 Mb/s**, gotowy w TorBox, dźwięk angielski Atmos, polskie napisy w pliku | ✔ Dokładnie plik nr 1 wyliczony z Twoich ustawień. Start w 20 s, grał płynnie (0 doczytywań). Zdjęcie 10. |
+| „Oppenheimer” (Wznów) | ten sam plik 4K 35 Mb/s co ostatnio | ✔ Wznów używa pliku, który grał poprzednio; start w 10 s, angielski dźwięk, polskie napisy z pliku. |
+| „Taskmaster” S18 O1 i O2 | „**Dream 4K VOD** • S18E01 • MP4” z Flix-Streams — naprawdę **640×360** | ✘ Najgorszy obraz z dostępnych, start 20–24 s. Po poprawce V8 (wyliczone na tej samej liście): 1080p WEB-DL, 1,8 GB, gotowy w TorBox. |
+
+Na liście źródeł „F1” dodatek SELection podsuwa też plik innego filmu („Apex (2026)”). Nie wygrał, bo był niżej — nie poprawiałem (to błąd dodatku).
+
+## Napisy AI (pętla 2, „Taskmaster” S18 O1 — polskich napisów nie ma nigdzie)
+
+| Co | Wynik |
+| --- | --- |
+| Włączenie samo, gdy brak polskich | ✔ 13 s po starcie: „Brak polskich napisów — tłumaczę je na polski (AI). Naciśnij Wstecz, aby anulować” w lewym górnym rogu, bez okna na środku. Zdjęcie 14. |
+| Polskie napisy na ekranie | ✔ Po ok. 30 s: „A obok mnie siedzi człowiek, który w sekrecie wyznał mi,”. Zdjęcie 12. |
+| Wstecz w czasie komunikatu | ✔ Tłumaczenie anulowane, wróciły napisy angielskie, film grał dalej; automat wyłączony dla tego odcinka. |
+| Wstecz później (po ok. 80 s) | Zamyka film, jak zwykły Wstecz — tak ma być. |
+| Następny odcinek | Napisy AI włączyły się same i dla O2; anulowałem Wsteczem (koszt). |
+| Koszt | Przetłumaczone ok. 3 z 12 części jednego odcinka — kilka centów (dokładna kwota: Ustawienia › Napisy AI, „dziś wydano”). |
+
+Uwagi (bez poprawki): komunikat o postępie („AI: tłumaczenie — całość za 3–4 min”) w prawym górnym rogu zasłania zegar (zdjęcia 11, 12); po anulowaniu zapytania wysłane już do AI kończą się jeszcze ok. 40 s w tle (ich koszt i tak jest naliczony).
+
+## Odtwarzacz (pętla 2, `uxr16`)
+
+| Funkcja | Wynik |
+| --- | --- |
+| Następny odcinek | ✔ Koniec S18 O1 → karta Niuni → O2 gra po 13 s, ten sam serwis/wydanie. |
+| Więcej → Jakość | ✘ Okno się otwiera, ale zaznaczenie nie chodzi (fokus na całym ekranie). Przyczyna: po 3 s przyciski odtwarzacza się chowają, a wtedy odtwarzacz zabiera fokus oknu. Poprawka V2b. |
+| Dźwięk → Ścieżka dźwiękowa | ✔ Okno trzyma zaznaczenie (V2 działa). ✘ Pokazywało japoński i koreański „No sources” zamiast polskiego — poprawka V6. |
+| Ekran źródeł przy „Odtwórz” | ✘ Aplikacja padła raz („F1”); poprawka V7. |
+| Mniej zapytań o napisy z innego wydania (V5) | ✔ 29 prób w całej sesji zamiast ok. 1000 w 78 s. |
+| Reguły v4 na projektorze | ✔ Przeszły same po instalacji (kopia starych zachowana). |
+| Przewijanie ◄ ►, wyjście, Wznów | ✔ |
+
+## Nowe poprawki (wejdą do `uxr17`)
+
+| # | Problem | Poprawka |
+| --- | --- | --- |
+| V2b | Okno „Jakość” bez zaznaczenia — pilot nic nie wybiera. | Odtwarzacz nie zabiera fokusu, gdy okno jakości jest otwarte; po jego zamknięciu fokus wraca na przyciski. |
+| V6 | Okno „Dźwięk”: japoński i koreański „No sources”, brak polskiego. | Lista języków: oryginał, polski, angielski (polski lektor/dubbing z innych plików widoczny z liczbą źródeł). |
+| V7 | Aplikacja padła przy wejściu na ekran źródeł. | Wpięcie ekranu źródeł Niuni ma własną grupę w pamięci ekranu — przy przerysowaniu nie myli przycisków. |
+| V8 | „Dream 4K VOD” (360p) wygrywał jako 4K. | Reguły v5: „Dream 4K” i „4K VOD” to nie rozdzielczość. Twoje reguły przejdą na v5 same, raz; poprzednie zostają w kopii. Sprawdzone na zapisanych listach 5 materiałów: zmienia się tylko ten jeden wybór. |
+
+## Zmiany na Twoim profilu w pętli 2
+
+„F1” był włączony ok. 40 s i „Taskmaster” S18 O1 przewinięty do końca (O2 grał ok. 30 s) — mogą być w „Oglądaj dalej”. „Oppenheimer” wrócił do 2:28 (było ok. 2:15).
+
+## Pętla 1 (26.11, 16:20–16:40, wersja `uxr15`)
+
+**Pętla 1 (26.11, 16:20–16:40, wersja `uxr15`): 5 poprawek aplikacji, sprawdzonych na projektorze: 0** — testy przerwane na Twoje polecenie (projektor zajęty). Poprawki są w wersji `uxr16` (zbudowana 16:58, test reguł zaliczony, jeszcze nie zainstalowana); sprawdzę je, gdy projektor będzie wolny.
 
 Sprawdzone na projektorze JMGO, wersja `uxr15`, na 2 materiałach: film „Oppenheimer” (2023) i serial „Taskmaster” S1 O1.
 
-## Twoje ustawienia, według których aplikacja wybiera plik
+### Twoje ustawienia, według których aplikacja wybiera plik
 
 Odczytane z projektora 26.11 (profil 1).
 
@@ -24,7 +84,7 @@ Odczytane z projektora 26.11 (profil 1).
 
 Projektor ma sprzętowe dekodery Dolby Vision, HEVC (H.265) i AV1, więc pliki z Dolby Vision i HDR nie są wykluczane.
 
-## Czy wybrany plik był najlepszy?
+### Czy wybrany plik był najlepszy?
 
 | Materiał | Co wybrała aplikacja | Ocena |
 | --- | --- | --- |
@@ -33,7 +93,7 @@ Projektor ma sprzętowe dekodery Dolby Vision, HEVC (H.265) i AV1, więc pliki z
 | „Taskmaster” S1 O1 | „SmartPlay — Auto Verified” z Flix-Streams, opisany jako **4K**, a naprawdę **1080p** | ✘ Wpis „kliknij, aby sprawdzić” udawał 4K i wygrał z prawdziwymi plikami. Gra płynnie, ale bez nazwy pliku i bez napisów w pliku. |
 | „Taskmaster” po poprawce (wyliczone) | 1080p WEB-DL, 1,7 GB, gotowy w TorBox | ✔ Prawdziwy najlepszy plik (4K tego serialu nie ma). |
 
-## Odtwarzacz — co działa
+### Odtwarzacz — co działa
 
 | Funkcja | Wynik |
 | --- | --- |
@@ -46,7 +106,7 @@ Projektor ma sprzętowe dekodery Dolby Vision, HEVC (H.265) i AV1, więc pliki z
 | Przewijanie (◄ ►) | ✔ Działa; raz przy cofaniu plik REMUX dał błąd odczytu, odtwarzacz sam spróbował ponownie i po ok. 3 s grał dalej od właściwego miejsca. |
 | Wyjście (Wstecz) i „Wznów” | ✔ Pierwszy Wstecz chowa przyciski, drugi zamyka film. „Wznów” włączył ten sam plik od zapisanego miejsca w ok. 3 s. |
 
-## Co nie działało i co poprawiłem (w `uxr16`)
+### Co nie działało i co poprawiłem (w `uxr16`)
 
 | # | Problem | Poprawka |
 | --- | --- | --- |
@@ -56,14 +116,14 @@ Projektor ma sprzętowe dekodery Dolby Vision, HEVC (H.265) i AV1, więc pliki z
 | V4 | Wpis „SmartPlay… Click to verify & play” (Flix-Streams) udawał 4K i wygrywał. | Takie wpisy idą na koniec, razem z plikami niegotowymi. |
 | V5 | Przy otwieraniu filmu aplikacja ok. 1000 razy w 78 s pytała serwer o polskie napisy z innego wydania, choć serwer każdorazowo odmawiał — w czasie startu filmu. | Po pierwszej odmowie przestaje pytać. |
 
-## Zauważone, niepoprawione
+### Zauważone, niepoprawione
 
 - Okna „Jakość” i „Dźwięk” mają napisy po angielsku („Quality”, „sources”, „Hold OK on a language…”, „No sources”, „Volume boost”). Zasada: bez tłumaczeń — zostawione.
 - Okno „Dźwięk” pokazuje japoński i koreański z dopiskiem „No sources”, a nie pokazuje polskiego lektora, który jest w innych plikach. Do zbadania w następnej pętli.
 - Gdy przyciski na pauzie same znikną, pierwsze OK tylko je pokazuje, dopiero drugie wznawia film.
 - Błąd odczytu przy cofaniu w pliku REMUX (patrz Przewijanie) — to kod odtwarzacza, nie forka; odtwarzacz sam się z niego podnosi.
 
-## Nie sprawdzone (przerwane — projektor zajęty)
+### Nie sprawdzone w pętli 1 (sprawdzone w pętli 2 — wyżej)
 
 - Napisy AI, gdy polskich napisów nie ma: komunikat w rogu i anulowanie klawiszem Wstecz.
 - Automatyczne włączenie następnego odcinka.

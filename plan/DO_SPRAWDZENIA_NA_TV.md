@@ -134,9 +134,17 @@ Lista dla właściciela. Wykonawca dopisuje tu wszystko, czego nie da się spraw
 
 ## Odtwarzacz VOD, wersja uxr16 (26.11; wyniki: `plan/ux/vod/WYNIKI.md`)
 
-- [ ] Film 4K (np. „Oppenheimer”): automat wybiera 4K bez REMUX (ok. 17–35 Mb/s) i film nie zatrzymuje się na doczytywanie.
-- [ ] Gdy film ruszy tuż przed upływem 15 s, nie przełącza się sam na inny plik (log `ForkSources: start: film już gra`).
-- [ ] Więcej → Jakość: strzałki ▲▼ chodzą po liście jakości, OK na „1080p” przełącza plik i zostaje w tym samym miejscu filmu.
-- [ ] Dźwięk → Ścieżka dźwiękowa: strzałki chodzą po liście ścieżek.
-- [ ] Serial bez polskich napisów: po kilku sekundach w lewym górnym rogu „Brak polskich napisów — tłumaczę je na polski (AI)…”, Wstecz w ciągu 12 s anuluje i film gra dalej.
-- [ ] Koniec odcinka: następny włącza się sam, z tego samego wydania.
+- [x] Film 4K: automat wybiera 4K bez REMUX — „F1”: 4K BluRay 22 Mb/s, płynnie (26.11 pętla 2).
+- [ ] Gdy film ruszy tuż przed upływem 15 s, nie przełącza się sam na inny plik (log `ForkSources: start: film już gra`) — w pętli 2 nie wystąpiło.
+- [ ] Więcej → Jakość: strzałki ▲▼ chodzą po liście jakości, OK na „1080p” przełącza plik i zostaje w tym samym miejscu filmu — ✘ w uxr16 (fokus na całym ekranie), poprawka V2b w uxr17.
+- [x] Dźwięk → Ścieżka dźwiękowa: okno trzyma zaznaczenie (uxr16).
+- [x] Serial bez polskich napisów: komunikat w lewym górnym rogu, Wstecz anuluje, film gra dalej („Taskmaster” S18 O1, uxr16).
+- [x] Koniec odcinka: następny włącza się sam, z tego samego wydania (S18 O1 → O2, uxr16).
+
+## Odtwarzacz VOD, wersja uxr17 (26.11 wieczorem; wyniki: `plan/ux/vod/WYNIKI.md`)
+
+- [ ] Po instalacji w logu `ForkSettings: reguły autoplay v5: profil 1, zestaw original_subs: 6 → 6 reguł (stare w kopii)`.
+- [ ] V2b: Więcej → Jakość — zaznaczenie na bieżącej jakości, ▼ przechodzi na 1080p (także po schowaniu się przycisków), OK przełącza plik w tym samym miejscu; po zamknięciu okna fokus na przyciskach.
+- [ ] V6: Dźwięk → Ścieżka dźwiękowa — wiersze: Oryginał, Polski (z liczbą źródeł), Angielski; bez japońskiego i koreańskiego.
+- [ ] V7: „F1” (tt16311594) → Odtwórz kilka razy — ekran źródeł bez awarii.
+- [ ] V8: „Taskmaster” S18 O3 (tt4934214:18:3, bez postępu — Wznów używa zapisanego pliku) — wybiera 1080p WEB-DL z TorBox, nie „Dream 4K VOD” (360p).
