@@ -92,7 +92,7 @@ internal fun PlayerRuntimeController.updateAvailableTracks(tracks: Tracks) {
                                 )
                             }
                         }
-                    }
+                    } else { com.nuvio.tv.ui.reshaped.livetv.measureLiveTvFrameRate() } // Nuvio RS hook: TS channels carry no frame rate
                     // Extract video codec, resolution, and bitrate for stream info
                     currentVideoCodec = CustomDefaultTrackNameProvider.resolveCodecName(format.sampleMimeType, format.codecs)
                     currentVideoWidth = format.width.takeIf { it > 0 }
@@ -305,6 +305,16 @@ internal fun PlayerRuntimeController.updateAvailableTracks(tracks: Tracks) {
         )
     }
     updateAudioControlAvailability(audioTracks, selectedAudioIndex)
+    // Fork hook: sources. TrackScout and ranking prefer Polish in automatic sessions.
+    // Once a source is playable, a missing preferred language does not make it fail.
+    if (!com.nuvio.tv.fork.echo.isSourceSwitching(this) && !hasRenderedFirstFrame &&
+        !com.nuvio.tv.fork.dublagem.PolishDubbing.supportsCurrentSource(this) && // Fork hook: Dublagem audio po starcie
+        com.nuvio.tv.fork.ForkHooks.wantsNextSourceForAudio(
+            context, audioTracks.map { it.language }, sourceFallbackAttempts, streamAutoPlayFallbackMaxSources
+        )
+    ) {
+        tryFallbackToNextSourceAfterError("No Polish audio track")
+    }
     logSwitchTrace(
         stage = "exo-tracks-update-end",
         message = "audioCount=${audioTracks.size} subtitleCount=${subtitleTracks.size} " +
@@ -318,6 +328,7 @@ internal fun PlayerRuntimeController.updateAvailableTracks(tracks: Tracks) {
         audioTracks = audioTracks,
         subtitleTracks = subtitleTracks
     )
+    applyPendingAudioLanguage(audioTracks) // fork hook: echo A5
     if (currentStreamHasVideoTrack) {
         maybeScheduleFirstFrameWatchdog()
     } else {
@@ -1692,7 +1703,7 @@ private fun audioMatchesSubtitleTargetForForced(audioTrack: TrackInfo, target: S
 }
 
 internal fun PlayerRuntimeController.tryAutoSelectPreferredSubtitleFromAvailableTracks() {
-    if (isUserExplicitSubtitleSelection) {
+    if (isUserExplicitSubtitleSelection || subtitleDisabledByPersistedPreference) {
         Log.d(PlayerRuntimeController.TAG, "AUTO_SUB stop: user explicitly selected current subtitle")
         return
     }
@@ -1704,19 +1715,6 @@ internal fun PlayerRuntimeController.tryAutoSelectPreferredSubtitleFromAvailable
     val preferredTargets = subtitleLanguageTargets()
     val primaryTarget = preferredTargets.firstOrNull()
 
-    if (autoSubtitleSelected) {
-        val currentSelectedLang = when {
-            state.selectedAddonSubtitle != null -> state.selectedAddonSubtitle?.lang
-            state.selectedSubtitleTrackIndex >= 0 -> state.subtitleTracks.getOrNull(state.selectedSubtitleTrackIndex)?.language
-            else -> null
-        }
-        val isPrimarySatisfied = primaryTarget != null && currentSelectedLang != null &&
-            PlayerSubtitleUtils.matchesLanguageCode(currentSelectedLang, primaryTarget)
-        val hasBetterAddonMatch = !isPrimarySatisfied && primaryTarget != null &&
-            state.addonSubtitles.any { PlayerSubtitleUtils.matchesLanguageCode(it.lang, primaryTarget) }
-
-        if (!hasBetterAddonMatch) return
-    }
     val selectedAudioTrack = selectedAudioTrackForSubtitleMatching(state)
     val useForcedSubtitles = state.subtitleStyle.useForcedSubtitles
     val forcedTarget = when {
@@ -1761,46 +1759,8 @@ internal fun PlayerRuntimeController.tryAutoSelectPreferredSubtitleFromAvailable
         normalOnly = !forcedOnly,
         selectedAudioTrack = selectedAudioTrack
     )
+    if (!forcedOnly && com.nuvio.tv.fork.sources.EmbeddedSourceSubtitles.select(this, primaryTarget, internalIndex)) return // Fork hook: cached embedded subtitles
     if (internalIndex >= 0 && hasScannedTextTracksOnce) {
-        // Determine which target position this internal match satisfies,
-        // taking regional variant into account so that e.g. a PT-BR track
-        // is not treated as a primary match when the user wants PT.
-        val matchedTrack = state.subtitleTracks[internalIndex]
-        val trackVariant = PlayerSubtitleUtils.detectTrackLanguageVariant(
-            language = matchedTrack.language,
-            name = matchedTrack.name,
-            trackId = matchedTrack.trackId
-        )
-        val matchedTargetPosition = targets.indexOfFirst { target ->
-            val normalizedTarget = PlayerSubtitleUtils.normalizeLanguageCode(target)
-            trackVariant == normalizedTarget ||
-                    PlayerSubtitleUtils.matchesLanguageCode(trackVariant, target)
-        }
-        val addonSubtitlesLoaded = !state.isLoadingAddonSubtitles
-        if (matchedTargetPosition > 0 && !addonSubtitlesLoaded) {
-            Log.d(
-                PlayerRuntimeController.TAG,
-                "AUTO_SUB defer: internal match is secondary target pos=$matchedTargetPosition, addons still loading"
-            )
-            return
-        }
-        // If internal match is secondary and a primary addon match exists, prefer the addon.
-        if (matchedTargetPosition > 0 && addonSubtitlesLoaded) {
-            val primaryTarget = targets.first()
-            val primaryAddonMatch = state.addonSubtitles.firstOrNull { subtitle ->
-                PlayerSubtitleUtils.matchesLanguageCode(subtitle.lang, primaryTarget)
-            }
-            if (primaryAddonMatch != null) {
-                autoSubtitleSelected = true
-                Log.d(
-                    PlayerRuntimeController.TAG,
-                    "AUTO_SUB pick addon (primary) over internal (secondary): addon lang=${primaryAddonMatch.lang} vs internal variant=$trackVariant"
-                )
-                selectAddonSubtitle(primaryAddonMatch)
-                maybeRunAutomaticSubtitleSync(primaryAddonMatch) // AutoSync hook
-                return
-            }
-        }
         autoSubtitleSelected = true
         val currentInternal = state.selectedSubtitleTrackIndex
         val currentAddon = state.selectedAddonSubtitle
@@ -1814,6 +1774,19 @@ internal fun PlayerRuntimeController.tryAutoSelectPreferredSubtitleFromAvailable
         return
     }
 
+    if (autoSubtitleSelected) {
+        val currentSelectedLang = when {
+            state.selectedAddonSubtitle != null -> state.selectedAddonSubtitle?.lang
+            state.selectedSubtitleTrackIndex >= 0 -> state.subtitleTracks.getOrNull(state.selectedSubtitleTrackIndex)?.language
+            else -> null
+        }
+        val isPrimarySatisfied = primaryTarget != null && currentSelectedLang != null &&
+            PlayerSubtitleUtils.matchesLanguageCode(currentSelectedLang, primaryTarget)
+        val hasBetterAddonMatch = !isPrimarySatisfied && primaryTarget != null &&
+            state.addonSubtitles.any { PlayerSubtitleUtils.matchesLanguageCode(it.lang, primaryTarget) }
+
+        if (!hasBetterAddonMatch) return
+    }
     if (forcedOnly) {
         val requiredForcedTarget = forcedTarget ?: return
         if (!hasScannedTextTracksOnce) {

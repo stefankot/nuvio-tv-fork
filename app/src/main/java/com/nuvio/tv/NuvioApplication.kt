@@ -99,6 +99,7 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
         registerActivityLifecycleCallbacks(com.nuvio.tv.core.usenet.UsenetAppLifecycle())
         SentryInitializer.start(this, sentrySettingsDataStore)
         PluginRuntimeHooks.onApplicationCreate(this)
+        com.nuvio.tv.reshaped.sync.ReshapedSync.onAppStart(this) // Nuvio RS hook: sync through the viewer's Google account (Live TV)
         androidTvChannelSyncService.start()
         serverUserStateProjection.start()
         // Load locale synchronously so it's available before Activity.attachBaseContext.
@@ -145,6 +146,7 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
             .components {
                 add(HardwareBitmapSettingInterceptor { imagePerformancePreferences.hardwareBitmapsEnabled })
                 add(CustomPosterFallbackInterceptor())
+                add(com.nuvio.tv.fork.images.ForkImageQuality { com.nuvio.tv.fork.images.ForkImageQuality.isEnabled(this@NuvioApplication) }) // Fork hook: images
                 if (Build.VERSION.SDK_INT >= 28) {
                     add(AnimatedImageDecoder.Factory())
                 } else {
@@ -193,7 +195,7 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
             .diskCache {
                 DiskCache.Builder()
                     .directory(cacheDir.resolve("image_cache").toOkioPath())
-                    .maxSizeBytes(200L * 1024 * 1024)
+                    .maxSizeBytes(com.nuvio.tv.fork.images.ForkImageQuality.diskCacheBytes(this, 200L * 1024 * 1024)) // Fork hook: images (disk)
                     .build()
             }
             .crossfade(false)

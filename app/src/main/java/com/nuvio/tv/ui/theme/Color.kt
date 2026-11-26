@@ -107,16 +107,16 @@ class NuvioColorScheme(
     private val pureBlack = NuvioPrimitives.black
     private val pureBlackSurfaces = amoledMode && amoledSurfacesMode
 
-    val Background = if (amoledMode) pureBlack else palette.background
-    val BackgroundElevated = if (pureBlackSurfaces) pureBlack else palette.backgroundElevated
-    val BackgroundCard = if (pureBlackSurfaces) pureBlack else palette.backgroundCard
-    val Surface = if (pureBlackSurfaces) pureBlack else palette.surface
-    val SurfaceVariant = if (pureBlackSurfaces) pureBlack else palette.surfaceVariant
-    val Panel = if (pureBlackSurfaces) pureBlack else palette.panel
+    val Background = if (com.nuvio.tv.skin.kicia.ForgeUi.ON) com.nuvio.tv.skin.kicia.tokens.ForgeColors.Bg else if (amoledMode) pureBlack else palette.background // forge hook v7.4 (tylko skórka Kicia)
+    val BackgroundElevated = if (com.nuvio.tv.skin.kicia.ForgeUi.ON) com.nuvio.tv.skin.kicia.tokens.ForgeColors.Surface2 else if (pureBlackSurfaces) pureBlack else palette.backgroundElevated // forge hook v7.4
+    val BackgroundCard = if (com.nuvio.tv.skin.kicia.ForgeUi.ON) com.nuvio.tv.skin.kicia.tokens.ForgeColors.Surface2 else if (pureBlackSurfaces) pureBlack else palette.backgroundCard // forge hook v7.4
+    val Surface = if (com.nuvio.tv.skin.kicia.ForgeUi.ON) com.nuvio.tv.skin.kicia.tokens.ForgeColors.Surface2 else if (pureBlackSurfaces) pureBlack else palette.surface // forge hook v7.4
+    val SurfaceVariant = if (com.nuvio.tv.skin.kicia.ForgeUi.ON) Color(0xFF48484A) else if (pureBlackSurfaces) pureBlack else palette.surfaceVariant // forge hook v7.4: surface + 12%
+    val Panel = if (com.nuvio.tv.skin.kicia.ForgeUi.ON) com.nuvio.tv.skin.kicia.tokens.ForgeColors.Sheet else if (pureBlackSurfaces) pureBlack else palette.panel // forge hook v7.4: panel 96%
     val Overlay = palette.overlay
     val Field = if (pureBlackSurfaces) pureBlack else palette.field
-    val Menu = if (pureBlackSurfaces) pureBlack else palette.menu
-    val Modal = if (pureBlackSurfaces) pureBlack else palette.modal
+    val Menu = if (com.nuvio.tv.skin.kicia.ForgeUi.ON) com.nuvio.tv.skin.kicia.tokens.ForgeColors.Sheet else if (pureBlackSurfaces) pureBlack else palette.menu // forge hook v7.4
+    val Modal = if (com.nuvio.tv.skin.kicia.ForgeUi.ON) com.nuvio.tv.skin.kicia.tokens.ForgeColors.Sheet else if (pureBlackSurfaces) pureBlack else palette.modal // forge hook v7.4
     val PlayerOverlay = palette.playerOverlay
     val Divider = NuvioPrimitives.neutral750
 

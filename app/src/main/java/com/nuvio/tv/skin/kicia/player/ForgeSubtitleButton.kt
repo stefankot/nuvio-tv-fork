@@ -40,9 +40,8 @@ import com.nuvio.tv.skin.kicia.components.ForgeFocusBox
 import com.nuvio.tv.skin.kicia.tokens.ForgeColors
 import com.nuvio.tv.skin.kicia.tokens.ForgeDims
 import com.nuvio.tv.skin.kicia.tokens.ForgeText
-import com.nuvio.tv.ui.screens.player.autosync.bubble.AutoSyncBubbleKind
-import com.nuvio.tv.ui.screens.player.autosync.bubble.AutoSyncBubbleMessage
-import com.nuvio.tv.ui.screens.player.autosync.bubble.AutoSyncBubbleToasts
+import com.nuvio.tv.ui.screens.player.autosync.AutoSyncState
+import com.nuvio.tv.ui.screens.player.autosync.AutoSyncSyncedSubtitle
 import kotlinx.coroutines.delay
 
 /**
@@ -51,11 +50,26 @@ import kotlinx.coroutines.delay
  * caption above. It reads Nuvio's own AutoSync message stream, so no AutoSync logic is duplicated. The old bubble
  * is not drawn in the Forge player (see AutoSyncBubbleToastHost), this button replaces it.
  */
+/** Fork 26.11: dymki AutoSync z Reshaped usunięte (baza 1.2.0-beta.4) — stan bierze się z oficjalnego [AutoSyncSyncedSubtitle]. */
+private enum class AutoSyncBubbleKind { Working, Success, Failure }
+
+private data class AutoSyncBubbleMessage(val id: Long, val kind: AutoSyncBubbleKind, val headline: String = "")
+
+private fun AutoSyncSyncedSubtitle.Status.toMessage(): AutoSyncBubbleMessage = AutoSyncBubbleMessage(
+    id = System.identityHashCode(this).toLong(),
+    kind = when (state) {
+        AutoSyncState.IN_PROGRESS -> AutoSyncBubbleKind.Working
+        AutoSyncState.SYNCED, AutoSyncState.NOT_NEEDED -> AutoSyncBubbleKind.Success
+        AutoSyncState.NO_FIT, AutoSyncState.NO_REFERENCE, AutoSyncState.FAILED -> AutoSyncBubbleKind.Failure
+    },
+)
+
 @Composable
 fun ForgeSubtitleButton(modifier: Modifier = Modifier, onOk: () -> Unit) {
-    val message by AutoSyncBubbleToasts.current.collectAsState()
+    val status by AutoSyncSyncedSubtitle.status.collectAsState()
+    val message = status?.toMessage()
     var shown by remember { mutableStateOf<AutoSyncBubbleMessage?>(null) }
-    LaunchedEffect(message) {
+    LaunchedEffect(status) {
         val m = message
         shown = m
         if (m != null) {

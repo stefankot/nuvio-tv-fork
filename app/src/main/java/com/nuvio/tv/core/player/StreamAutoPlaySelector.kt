@@ -157,6 +157,7 @@ object StreamAutoPlaySelector {
             StreamAutoPlayMode.MANUAL -> null
             StreamAutoPlayMode.FIRST_STREAM -> candidateStreams.firstOrNull { isPlayable(it) }
             StreamAutoPlayMode.REGEX_MATCH -> {
+                if (com.nuvio.tv.fork.sources.RankedRegex.active() && !bingeGroupOnly) return com.nuvio.tv.fork.sources.RankedRegex.pick(candidateStreams.filter { isPlayable(it) }) // Fork hook: ranking reguł Regex (Reshaped, kreator źródeł)
                 val pattern = regexPattern.trim()
 
                 // Try to compile the user regex

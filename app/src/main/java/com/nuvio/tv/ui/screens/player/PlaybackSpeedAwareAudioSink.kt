@@ -122,6 +122,7 @@ internal class PlaybackSpeedAwareAudioSink(
         if (bluetoothForcePcm || forcePcmForCurrentSession) {
             return true
         }
+        if (com.nuvio.tv.fork.lektor.LektorEngine.enabled) return true // Fork hook: lektor = Dolby dekodowane do PCM (mikser)
         // Non-1x speed cannot be applied to bitstream passthrough tracks.
         return playbackSpeed != 1f
     }

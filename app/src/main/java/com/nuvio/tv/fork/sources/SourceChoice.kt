@@ -49,7 +49,7 @@ object SourceChoice {
      */
     suspend fun useRules(c: Context, preset: SourcePreset) {
         val store = EntryPointAccessors.fromApplication(c.applicationContext, Deps::class.java).player()
-        store.setStreamAutoPlayRankedRegex(preset.rules)
+        RankedRegex.set(c, preset.rules) // 26.11: lista reguł poza PlayerSettings (baza 1:1), oficjalne pole „Regex” dostaje sumę
         store.setStreamAutoPlayMode(StreamAutoPlayMode.REGEX_MATCH)
         ForkFeatures.setStr(c, stateKey(), preset.id)
         android.util.Log.i("ForkSources", "autoplay: natywny Regex, zestaw ${preset.id} (${preset.rules.size} reguł)")
@@ -76,7 +76,7 @@ object SourceChoice {
     /** Porównuje zapisane reguły z zestawami: ręczna zmiana w Advanced daje „Własne”. */
     suspend fun refresh(c: Context): String {
         val store = EntryPointAccessors.fromApplication(c.applicationContext, Deps::class.java).player()
-        val stored = store.playerSettings.first().streamAutoPlayRankedRegex
+        val stored = RankedRegex.get(c)
         val match = SourcePresets.matching(stored, presets(c))
         if (match != null && answer(c).isNotEmpty()) ForkFeatures.setStr(c, stateKey(), match)
         return match.orEmpty()

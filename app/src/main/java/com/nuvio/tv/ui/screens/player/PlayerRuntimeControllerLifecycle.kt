@@ -16,6 +16,8 @@ internal fun PlayerRuntimeController.releasePlayer(
 ) {
     if (flushPlaybackState) cancelStreamFallback()
     logScrobbleDiagnostic("release_player", "flushPlaybackState=$flushPlaybackState")
+    cancelAutoQualityHotSwap("player released") // Fork hook: echo
+    if (flushPlaybackState) { cancelSourceSwitch(); cancelAutoQualityChange(byViewer = false) } // Fork hook: echo
 
     // Preserve current subtitle selection across any rebuild. When the user explicitly
     // selected a track, persistedTrackPreference was nulled and the choice lives only
@@ -49,6 +51,7 @@ internal fun PlayerRuntimeController.releasePlayer(
     }
 
     isReleasingPlayer = true
+    com.nuvio.tv.fork.dublagem.PolishDubbing.release(this) // Fork hook: Dublagem zwolnienie drugiego źródła
     com.nuvio.tv.core.recommendations.TvRecommendationManager.isPlaybackActive.value = false
     if (flushPlaybackState) {
         if (!keepTorrentStream) stopTorrentStream()

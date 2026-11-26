@@ -9,4 +9,8 @@
     <files-path
         name="updates"
         path="updates/" />
+    <!-- Read-only, grant-per-URI access to the same-signer ARM32 worker -->
+    <files-path
+        name="zonos_gguf"
+        path="zonos3-mini/v1/" />
 </paths>

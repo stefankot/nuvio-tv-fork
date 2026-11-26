@@ -37,9 +37,7 @@ object SkinPreferences {
         val previous = _skin.value
         _skin.value = id
         prefs(context).edit().putString(KEY, id.key).apply()
-        // NETFLIX = istniejący przełącznik Reshaped.
-        if (id == SkinId.NETFLIX) com.nuvio.tv.ui.reshaped.netflix.NetflixUiPreferences.setEnabled(context, true)
-        else if (previous == SkinId.NETFLIX) com.nuvio.tv.ui.reshaped.netflix.NetflixUiPreferences.setEnabled(context, false)
+        // Fork 26.11: wygląd Netflix z Reshaped usunięty razem z bazą 1.2.0-beta.4 (pliki bazy 1:1)
         // KICIA = górny pasek Reshaped (pill nav) z poprawkami Kicii.
         if (id == SkinId.KICIA || id == SkinId.NIUNIA) com.nuvio.tv.ui.reshaped.pillnav.PillNavPreferences.setEnabled(context, true) // NIUNIA: jej menu rysuje się w miejscu paska
     }

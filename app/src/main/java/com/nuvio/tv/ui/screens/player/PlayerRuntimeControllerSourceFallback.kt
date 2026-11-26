@@ -76,6 +76,7 @@ internal fun PlayerRuntimeController.showErrorUnlessSourceFallback(errorMessage:
  * Returns `true` when a fallback was started and the error must not be shown yet.
  */
 internal fun PlayerRuntimeController.tryFallbackToNextSourceAfterError(errorMessage: String): Boolean {
+    if (handleSourceSwitchFailure(errorMessage)) return true // Fork hook: echo
     if (sourceFallbackJob?.isActive == true) return true
     if (!streamAutoPlayFallbackActive || autoSwitchInternalPlayerOnErrorEnabled) return false
     if (hasRenderedFirstFrame && !tunneledFirstFrameAssumed) return false

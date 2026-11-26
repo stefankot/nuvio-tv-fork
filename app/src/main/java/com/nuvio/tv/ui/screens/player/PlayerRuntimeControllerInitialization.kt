@@ -197,6 +197,7 @@ internal fun PlayerRuntimeController.initializePlayer(
         _uiState.update { it.copy(error = context.getString(R.string.player_error_no_stream_url), showLoadingOverlay = false) }
         return
     }
+
     mpvMediaLoadPrepared = false
     styledSubtitles.clear()
     val afrPreflightToken = afrPreflightGate.token()
@@ -280,6 +281,7 @@ internal fun PlayerRuntimeController.initializePlayer(
             } else if (overrideInternalPlayerEngine != null) {
                 resolvedAutoPlayerEngine = null
             }
+            if (overrideInternalPlayerEngine == null && com.nuvio.tv.fork.sources.MpvContainers.needsMpv(url, currentFilename)) effectiveInternalPlayerEngine = InternalPlayerEngine.MVP_PLAYER // Fork hook: kicia-mpv (AVI/WMV/ASF w mpv)
             currentInternalPlayerEngine = effectiveInternalPlayerEngine
             playbackAnalyticsDiagnostics.setTraceContext(
                 host = url.safeHost(),
@@ -529,6 +531,7 @@ internal fun PlayerRuntimeController.initializePlayer(
                     .build()
             }
             val bandwidthMeter = SafeBandwidthMeter(rawBandwidthMeter, isHls)
+            playerBandwidthMeter = bandwidthMeter // Fork hook: echo
 
             val resolvedStreamMime = currentStreamMimeType ?: PlayerMediaSourceFactory.inferMimeType(
                 url = url,
@@ -597,7 +600,7 @@ internal fun PlayerRuntimeController.initializePlayer(
                 BitrateAwareLoadControl(
                     minBufferMs = bufferSettings.minBufferMs,
                     maxBufferMs = bufferSettings.maxBufferMs,
-                    bufferForPlaybackMs = bufferSettings.bufferForPlaybackMs,
+                    bufferForPlaybackMs = com.nuvio.tv.fork.echo.FastStart.startBufferMs(context, bufferSettings.bufferForPlaybackMs), // Fork hook: echo-fast-start
                     bufferForPlaybackAfterRebufferMs = bufferSettings.bufferForPlaybackAfterRebufferMs,
                     // Allow buffering past the byte budget until the minimum time threshold is
                     // met. Without this, high-bitrate remux files (e.g. 100+ Mbps UHD MKV with
@@ -861,7 +864,7 @@ internal fun PlayerRuntimeController.initializePlayer(
 
             // ── Extractors & DV Hook ──
             val extractorsFactory = DefaultExtractorsFactory()
-                .setTsExtractorFlags(DefaultTsPayloadReaderFactory.FLAG_ENABLE_HDMV_DTS_AUDIO_STREAMS)
+                .setTsExtractorFlags(DefaultTsPayloadReaderFactory.FLAG_ENABLE_HDMV_DTS_AUDIO_STREAMS or com.nuvio.tv.reshaped.livetv.LiveTvTsFlags.extraFor(url)) // Nuvio RS hook: Live TV starts on any I-frame
                 .setTsExtractorTimestampSearchBytes(1500 * TsExtractor.TS_PACKET_SIZE)
 
             // Manual Convert-to-DV8.1 uses mode 2; if a prior attempt at this stream
@@ -926,7 +929,7 @@ internal fun PlayerRuntimeController.initializePlayer(
             } else {
                 playerSettings.audioOutputChannels
             }
-            nightModeAudioProcessor.setMode(playerSettings.nightMode)
+            nightModeAudioProcessor.setMode(com.nuvio.tv.fork.ForkHooks.effectiveNight(playerSettings.nightMode)) // Fork hook: night
             if (isBluetoothAudioOutput) {
                 Log.i(
                     PlayerRuntimeController.TAG,
@@ -1196,6 +1199,7 @@ internal fun PlayerRuntimeController.initializePlayer(
                         reason: Int
                     ) {
                         if (isReleasingPlayer || reason != Player.DISCONTINUITY_REASON_SEEK) return
+                        ignoreLocalBuffering("seek", graceMs = 4_000L) // Fork hook: seek is not a network stall
                         // Holding the seek button emits a discontinuity per step, and reading the
                         // span set on each one is real work on a cache holding thousands of spans.
                         val seekedToMs = newPosition.positionMs
@@ -1224,6 +1228,7 @@ internal fun PlayerRuntimeController.initializePlayer(
                         )
                         if (playbackState == Player.STATE_READY) {
                             mediaSourceFactory.unlockStartupPrefetch()
+                            com.nuvio.tv.fork.dublagem.PolishDubbing.onReady(this@initializePlayer) // Fork hook: Dublagem ochrona przy braku ścieżki
                         }
                         val playerDuration = duration
                         if (playerDuration > lastKnownDuration) { lastKnownDuration = playerDuration }
@@ -1288,7 +1293,7 @@ internal fun PlayerRuntimeController.initializePlayer(
                                         message = context.getString(R.string.player_loading_buffering),
                                         detail = "overlay_reopened"
                                     )
-                                    state.copy(showLoadingOverlay = true, showControls = false, loadingMessage = context.getString(R.string.player_loading_buffering))
+                                    state.copy(showLoadingOverlay = true, showControls = state.showControls && isSourceSwitching() /* Fork hook: echo */, loadingMessage = context.getString(R.string.player_loading_buffering))
                                 } else {
                                     recordLoadingDiagnosticEvent(
                                         phase = "buffering_before_first_frame",
@@ -1390,8 +1395,11 @@ internal fun PlayerRuntimeController.initializePlayer(
                                 PlayerStartupPlaybackPolicy.ReadyAction.None -> Unit
                             }
                             tryApplyPendingResumeProgress(this@apply)
-                            _uiState.value.pendingSeekPosition?.let { position ->
+                            if (!rejectUnseekableSwitchPick(isCurrentMediaItemSeekable)) _uiState.value.pendingSeekPosition?.let { position -> // Fork hook: echo
+                                val tolerant = isSourceSwitching() // Fork hook: echo
+                                if (tolerant) setSeekParameters(SOURCE_SWITCH_SEEK_PARAMETERS) // Fork hook: echo
                                 seekTo(position)
+                                if (tolerant) setSeekParameters(androidx.media3.exoplayer.SeekParameters.DEFAULT) // Fork hook: echo
                                 if (NuvioExoPlayerPerformanceHelper.enabled) {
                                     seekBufferingUiDeferred = true
                                     seekBufferingUiJob?.cancel()
@@ -1443,6 +1451,7 @@ internal fun PlayerRuntimeController.initializePlayer(
                     }
 
                     override fun onIsPlayingChanged(isPlaying: Boolean) {
+                        if (isPlaying) com.nuvio.tv.fork.dublagem.PolishDubbing.onPlaying(this@initializePlayer) // Fork hook: Dublagem dobór audio po starcie
                         logScrobbleDiagnostic(
                             "exo_is_playing_changed",
                             "isPlaying=$isPlaying playbackState=$playbackState playWhenReady=$playWhenReady " +
@@ -1479,6 +1488,7 @@ internal fun PlayerRuntimeController.initializePlayer(
 
                     override fun onTracksChanged(tracks: Tracks) {
                         updateAvailableTracks(tracks)
+                        com.nuvio.tv.fork.dublagem.PolishDubbing.onTracks(this@initializePlayer, tracks) // Fork hook: Dublagem wybór konkretnej ścieżki
                     }
 
                     override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
@@ -1529,8 +1539,11 @@ internal fun PlayerRuntimeController.initializePlayer(
                         if (streamFallbackSession != null &&
                             (_exoPlayer !== this@apply || streamFallbackJob?.isActive == true)) return
                         if (isReleasingPlayer && error.errorCode == PlaybackException.ERROR_CODE_TIMEOUT) return
+                        if (!isReleasingPlayer && com.nuvio.tv.fork.dublagem.PolishDubbing.recover(this@initializePlayer, "player_error")) return // Fork hook: Dublagem powrót po błędzie audio
+                        if (!isInBackground && com.nuvio.tv.reshaped.livetv.LiveEdgeRecovery.tryRejoin(error, _exoPlayer)) return // Nuvio RS hook: rejoin the live edge
                         cancelFirstFrameWatchdog()
                         val detailedError = error.toDisplayMessage(context)
+                        if (handleSourceSwitchFailure(detailedError)) return // Fork hook: echo
                         if (returnToFeatureAfterExtraFailure(detailedError)) return
                         val usenetResponse = error.findInvalidResponseCodeException()
                         val permanentUsenetFailure = com.nuvio.tv.core.player.isPermanentUsenetHttpFailure(
@@ -1935,6 +1948,7 @@ internal fun PlayerRuntimeController.initializePlayer(
                         totalBytesLoaded: Long,
                         bitrateEstimate: Long
                     ) {
+                        if (bitrateEstimate > 0L) lastBandwidthEstimateBps = bitrateEstimate // Fork hook: echo
                         playbackAnalyticsDiagnostics.onBandwidthEstimate(
                             eventTime = eventTime,
                             totalLoadTimeMs = totalLoadTimeMs,
@@ -2341,7 +2355,7 @@ private class SubtitleOffsetRenderersFactory(
         }
             .setEnableFloatOutput(enableFloatOutput)
             .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
-            .setAudioProcessors(arrayOf(gainAudioProcessor, nightModeAudioProcessor))
+            .setAudioProcessors(arrayOf(gainAudioProcessor, nightModeAudioProcessor, com.nuvio.tv.fork.lektor.LektorAudioProcessor())) // Fork hook: lektor
         val baseAudioSink = builder.build()
         // Audio sync hook: tap the base sink so the returned sink stays a PlaybackSpeedAwareAudioSink
         // and buildAudioRenderers keeps installing PlaybackSpeedAwareAudioRenderer.
@@ -2853,6 +2867,7 @@ private fun PlayerRuntimeController.recordFirstFrameDiagnostics(
             "audioUnderruns=${playbackSnapshot.audioUnderrunCount} rebufferCount=$rebufferCount " +
             "host=${currentStreamUrl.safeHost()} engine=$currentInternalPlayerEngine"
     )
+    verifyAudioSwitchDuration(player.duration.takeIf { it > 0L } ?: -1L) // fork hook: echo A5
 
     val dvConversionOccurred = conversionSucceeded > 0 ||
         signalingRewrites > 0 ||

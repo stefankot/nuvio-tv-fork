@@ -2,6 +2,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Lets the in-app updater install its own updates without a confirmation screen on Android 12+. -->
+    <queries>
+        <!-- fork launcher: ekran Aplikacje widzi aplikacje TV -->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+        </intent>
+        <!-- fork głos: sprawdzenie, czy TV ma ekran ułatwień dostępu (JMGO nie ma) -->
+        <intent>
+            <action android:name="android.settings.ACCESSIBILITY_SETTINGS" />
+        </intent>
+    </queries>
+
     <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
 
     <application>
@@ -21,5 +33,69 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+    
+        <!-- Fork: start z telewizorem (domyślnie wyłączony w ustawieniach modułu) -->
+        <receiver android:name="com.nuvio.tv.fork.launcher.ForkBootReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Fork: Nuvio jako ekran główny; alias WYŁĄCZONY domyślnie, włącza go ustawienie (po istnieniu ekranu Aplikacje) -->
+        <activity-alias
+            android:name="com.nuvio.tv.launcher.ForkHomeAlias"
+            android:enabled="false"
+            android:exported="true"
+            android:targetActivity="com.nuvio.tv.launcher.AppIconDefault">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- Fork: sterowanie głosem. Asystent systemowy (przycisk asystenta otwiera nasłuch poleceń) -->
+        <service
+            android:name="com.nuvio.tv.fork.voice.ForkVoiceInteractionService"
+            android:enabled="@bool/fork_assist_voice_service"
+            android:exported="true"
+            android:label="Nuvio"
+            android:permission="android.permission.BIND_VOICE_INTERACTION">
+            <meta-data android:name="android.voice_interaction" android:resource="@xml/fork_voice_interaction" />
+            <intent-filter>
+                <action android:name="android.service.voice.VoiceInteractionService" />
+            </intent-filter>
+        </service>
+        <service
+            android:name="com.nuvio.tv.fork.voice.ForkVoiceSessionService"
+            android:exported="true"
+            android:permission="android.permission.BIND_VOICE_INTERACTION" />
+        <activity
+            android:name="com.nuvio.tv.fork.voice.ForkAssistActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="android.intent.action.ASSIST" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VOICE_ASSIST" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <!-- Fork: usługa ułatwień dostępu tylko do jednego klawisza (włączana przez użytkownika na ekranie systemowym) -->
+        <service
+            android:name="com.nuvio.tv.fork.voice.ForkKeyService"
+            android:exported="true"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data android:name="android.accessibilityservice" android:resource="@xml/fork_key_service" />
+        </service>
     </application>
+
 </manifest>

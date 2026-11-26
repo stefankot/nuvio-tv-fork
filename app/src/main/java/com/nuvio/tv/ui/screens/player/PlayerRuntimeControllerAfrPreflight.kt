@@ -51,6 +51,7 @@ internal suspend fun PlayerRuntimeController.runAfrPreflightIfEnabled(
         return
     }
 
+    if (com.nuvio.tv.ui.reshaped.livetv.skipAfrPreflightForLiveTv(url)) return // Nuvio RS hook: Live TV matches from the playing track
     val activity = currentHostActivity()
     if (activity == null) {
         Log.w(PlayerRuntimeController.TAG, "AFR preflight skipped: host activity unavailable")

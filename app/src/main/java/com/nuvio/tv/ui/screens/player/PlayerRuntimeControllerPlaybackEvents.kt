@@ -257,7 +257,7 @@ internal fun PlayerRuntimeController.applyNightMode(mode: NightMode) {
     _uiState.update { it.copy(nightMode = mode) }
     if (isUsingMpvEngine()) return
     val wasActive = nightModeAudioProcessor.isNightModeEnabled()
-    nightModeAudioProcessor.setMode(mode)
+    nightModeAudioProcessor.setMode(com.nuvio.tv.fork.ForkHooks.effectiveNight(mode)) // Fork hook: night
 
     if (wasActive != nightModeAudioProcessor.isNightModeEnabled()) {
         playbackSpeedAwareAudioSink?.notifyAudioProcessingRequirementChanged()
@@ -400,6 +400,7 @@ internal fun PlayerRuntimeController.startProgressUpdates() {
                                         "host=${currentStreamUrl.safePlaybackEventsHost()}"
                                 )
                                 finishLoadingDiagnostics("mpv_first_frame_ready")
+                                verifyAudioSwitchDuration(playerDuration) // fork hook: echo A5
                                 if (_uiState.value.postPlayDismissedForCurrentEpisode) {
                                     _uiState.update { it.copy(postPlayDismissedForCurrentEpisode = false) }
                                 }
@@ -1801,6 +1802,7 @@ fun PlayerRuntimeController.onEvent(
             seekToChapter(chapter.startMs)
         }
         is PlayerEvent.OnSelectAudioTrack -> {
+            com.nuvio.tv.fork.dublagem.PolishDubbing.onManualSelection(this) // Fork hook: Dublagem ręczny wybór audio
             logSwitchTrace(
                 stage = "event-select-audio",
                 message = "index=${event.index}"
@@ -1809,6 +1811,7 @@ fun PlayerRuntimeController.onEvent(
                 selectServerAudio(event.index)
             } else {
                 rememberAudioSelection(event.index)
+                rememberListeningLanguage(event.index) // fork hook: echo A5
                 selectAudioTrack(event.index)
             }
             _uiState.update {
@@ -1989,6 +1992,7 @@ fun PlayerRuntimeController.onEvent(
                     showControls = true
                 )
             }
+            if (isAudioLanguageMenuEnabled()) startAudioLanguageMenu() // fork hook: echo A5
         }
         PlayerEvent.OnShowSubtitleOverlay -> {
             _uiState.update {
@@ -2126,6 +2130,12 @@ fun PlayerRuntimeController.onEvent(
         is PlayerEvent.OnEpisodeStreamSelected -> {
             switchToEpisodeStream(event.stream)
         }
+        PlayerEvent.OnShowQualityOverlay -> { showQualityOverlay() } // Fork hook: echo
+        is PlayerEvent.OnQualitySelected -> { selectStreamQuality(event.quality) } // Fork hook: echo
+        PlayerEvent.OnAutoQualitySelected -> { selectAutoQuality() } // Fork hook: echo
+        PlayerEvent.OnCancelAutoQualityChange -> { cancelAutoQualityChange(byViewer = true) } // Fork hook: echo
+        is PlayerEvent.OnAudioMenuLanguageSelected -> { switchSourceForAudio(event.option) } // Fork hook: echo
+        is PlayerEvent.OnAudioMenuSourcesRequested -> { showSourcesForAudio(event.option) } // Fork hook: echo
         PlayerEvent.OnShowSourcesPanel -> {
             showSourcesPanel()
         }
@@ -2145,10 +2155,12 @@ fun PlayerRuntimeController.onEvent(
             filterSourceStreamsByAddon(event.addonName)
         }
         is PlayerEvent.OnSourceStreamSelected -> {
+            if (isSourceSwitching()) cancelSourceSwitch() // Fork hook: echo
             beginStreamFallbackSession(event.stream, _uiState.value.sourceFilteredStreams.ifEmpty { _uiState.value.sourceAllStreams })
             switchToSourceStream(event.stream)
         }
         PlayerEvent.OnDismissTransientOverlay -> {
+            if (_uiState.value.showQualityOverlay) dismissQualityOverlay() // Fork hook: echo
             _uiState.update {
                 it.copy(
                     showAudioOverlay = false,

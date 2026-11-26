@@ -217,6 +217,8 @@ fun PlayerScreen(
     onOpenPartyMedia: (PartyMedia) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    com.nuvio.tv.fork.ForkHooks.playerBridge(uiState, viewModel.playbackTimeline) { viewModel.onEvent(it) } // Fork hook: player bridge
+    val arcRemote = androidx.compose.runtime.remember { com.nuvio.tv.ui.screens.player.RemotePlayerHook(android.view.ViewConfiguration.getLongPressTimeout().toLong()) } // Arc hook
     val playerBadges = rememberPlayerBadges(viewModel, uiState)
     val partyState by viewModel.party.state.collectAsState()
     val partyPlayback by viewModel.party.playback.collectAsState()
@@ -237,6 +239,8 @@ fun PlayerScreen(
     val context = LocalContext.current
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val containerFocusRequester = remember { FocusRequester() }
+    val liveTvPlayer = com.nuvio.tv.ui.reshaped.livetv.rememberLiveTvPlayer(viewModel.controller, containerFocusRequester) // Nuvio RS hook: Live TV
+    val forgeYouTube = com.nuvio.tv.skin.kicia.youtube.rememberForgeYouTubePanel() // Fork hook: panel 1Tube (Kicia)
     val playPauseFocusRequester = remember { FocusRequester() }
     val progressBarFocusRequester = remember { FocusRequester() }
     val episodesFocusRequester = remember { FocusRequester() }
@@ -282,6 +286,7 @@ fun PlayerScreen(
             completed
         )
     }
+    liveTvPlayer.exit = exitPlayer // Fork hook: livetv (Wstecz w pytaniu archiwum wychodzi z odtwarzacza; jak Kicia 14.11)
     val exitPlayerFromError: () -> Unit = exitPlayerFromError@{
         if (exitDispatched) return@exitPlayerFromError
         exitDispatched = true
@@ -356,6 +361,7 @@ fun PlayerScreen(
 
     val handleBackPress = handleBackPress@{
         if (externalHandoffInProgress) return@handleBackPress
+        if (com.nuvio.tv.skin.niunia.player.NiuniaPlayerBack.consume()) return@handleBackPress // Fork hook: skin (Wstecz krok po kroku w nakładce skórki)
         if (postPlayRecommendationState.canReturnToPlayer && !uiState.playbackEnded) {
             returnToPlayerFromPostPlay()
             viewModel.hideControls()
@@ -365,7 +371,7 @@ fun PlayerScreen(
             returnToDetailsFromEndPrompt()
         } else if (uiState.error != null) {
             exitPlayerFromError()
-        } else if (uiState.showAudioOverlay || uiState.showSubtitleOverlay) {
+        } else if (uiState.showAudioOverlay || uiState.showSubtitleOverlay || uiState.showQualityOverlay) { // Fork hook: echo
             viewModel.onEvent(PlayerEvent.OnDismissTransientOverlay)
         } else if (uiState.showStreamInfoOverlay) {
             dismissStreamInfoOverlay()
@@ -583,7 +589,9 @@ fun PlayerScreen(
         (uiState.showSpeedDialog || uiState.showDiscTitlesDialog),
         shouldConfirmNextEpisodeOnEnd,
         postPlayRecommendationState.isVisible,
+        uiState.showQualityOverlay, // Fork hook: echo (okno jakości: po zamknięciu fokus wraca na przyciski)
     ) {
+        if (uiState.showQualityOverlay) return@LaunchedEffect // Fork hook: echo (okno jakości trzyma fokus — test VOD JMGO 26.11: chowanie przycisków dawało fokus korzeniowi)
         if (shouldConfirmNextEpisodeOnEnd || postPlayRecommendationState.isVisible) return@LaunchedEffect
         if (uiState.error != null) return@LaunchedEffect
         if (uiState.showPartyPanel) return@LaunchedEffect
@@ -615,6 +623,7 @@ fun PlayerScreen(
         }
     }
 
+    com.nuvio.tv.fork.ForkHooks.introOnPlayerOpen() // fork hook
     // Initial focus on container - the LaunchedEffect above will handle focusing controls
     LaunchedEffect(Unit) {
         if (uiState.error == null) {
@@ -670,6 +679,23 @@ fun PlayerScreen(
             .focusRequester(containerFocusRequester)
             .focusable(enabled = uiState.error == null)
             .onPreviewKeyEvent { keyEvent ->
+                if (liveTvPlayer.onPreviewKey(keyEvent.nativeKeyEvent, uiState)) return@onPreviewKeyEvent true // Nuvio RS hook: Live TV
+                if (forgeYouTube.onPreviewKey(keyEvent.nativeKeyEvent, uiState.showControls)) return@onPreviewKeyEvent true // Fork hook: panel 1Tube (Kicia)
+                if (forgeYouTube.open) return@onPreviewKeyEvent false // Fork hook: panel 1Tube — klawisze bierze panel
+                if (com.nuvio.tv.fork.ForkHooks.modulePlayerKey(context, keyEvent.nativeKeyEvent)) return@onPreviewKeyEvent true // Fork hook: registry
+                run { // Arc hook: remote buttons (player and Live TV)
+                    com.nuvio.tv.data.local.RemoteButtonStore.ensureLoaded(context)
+                    if (arcRemote.onKey(
+                            keyEvent.nativeKeyEvent,
+                            com.nuvio.tv.data.local.RemoteButtonStore.map.value,
+                            controlsHidden = !uiState.showControls,
+                            ready = uiState.error == null &&
+                                !uiState.showEpisodesPanel && !uiState.showSourcesPanel &&
+                                !uiState.showAudioOverlay && !uiState.showSubtitleOverlay && !uiState.showSpeedDialog,
+                            send = viewModel::onEvent
+                        )
+                    ) return@onPreviewKeyEvent true
+                }
                 // Consume the confirm KEY_UP that opened the subtitle timing dialog before
                 // the newly focused "Sync" button can treat it as a second click. Preview
                 // is required: after open, focus moves into the dialog so onKeyEvent on
@@ -856,15 +882,17 @@ fun PlayerScreen(
                 // When a side panel or dialog is open, let it handle all keys
                 val panelOrDialogOpen = uiState.showEpisodesPanel || uiState.showSourcesPanel || uiState.showPartyPanel ||
                         uiState.showChaptersPanel ||
-                        uiState.showAudioOverlay || uiState.showSubtitleOverlay ||
+                        uiState.showAudioOverlay || uiState.showSubtitleOverlay || uiState.showQualityOverlay || // Fork hook: echo
                         uiState.showSubtitleStylePanel || (uiState.showSpeedDialog || uiState.showDiscTitlesDialog) ||
                         uiState.showSubtitleDelayOverlay || uiState.showSubtitleTimingDialog ||
                         uiState.showMoreDialog ||
                         shouldConfirmNextEpisodeOnEnd ||
                         uiState.postPlayMode is PostPlayMode.StillWatching ||
                         postPlayRecommendationState.isVisible ||
-                        uiState.error != null
+                        uiState.error != null || liveTvPlayer.panelOpen // Nuvio RS hook: Live TV channel list
                 if (panelOrDialogOpen) return@onKeyEvent false
+                if (forgeYouTube.open) return@onKeyEvent false // Fork hook: panel 1Tube
+                if (com.nuvio.tv.skin.kicia.player.ForgeSheetOpen.open) return@onKeyEvent false // fork hook: okno „Więcej” skórki Kicia (▲ działało jak na pasku)
 
                 if (keyEvent.nativeKeyEvent.action == KeyEvent.ACTION_UP) {
                     when (keyEvent.nativeKeyEvent.keyCode) {
@@ -1369,6 +1397,7 @@ fun PlayerScreen(
             )
         }
 
+        if (com.nuvio.tv.fork.ForkHooks.skinPlayerOverlay("loading", uiState, mapOf("visible" to ((uiState.showLoadingOverlay || uiState.showEpisodeAutoPlayLoadingOverlay) && uiState.error == null && !postPlayRecommendationState.isVisible), "onEvent" to { e: PlayerEvent -> viewModel.onEvent(e) }, "exit" to exitPlayer))) Unit else // Fork hook: skin (Z-14 PlayerLoading)
         LoadingOverlay(
             visible = (uiState.showLoadingOverlay || uiState.showEpisodeAutoPlayLoadingOverlay) &&
                 uiState.error == null && !postPlayRecommendationState.isVisible,
@@ -1479,6 +1508,7 @@ fun PlayerScreen(
         )
 
         // Error state
+        if (com.nuvio.tv.fork.ForkHooks.skinPlayerOverlay("error", uiState, mapOf("onEvent" to { e: PlayerEvent -> viewModel.onEvent(e) }, "exit" to exitPlayerFromError))) Unit else // Fork hook: skin (Z-14 PlayerError)
         if (uiState.error != null) {
             ErrorOverlay(
                 message = uiState.error!!,
@@ -1559,6 +1589,7 @@ fun PlayerScreen(
                 .then(playerControlsDim)
                 .reportSubtitleClearance(subtitleClearanceGapPx) { skipClearancePx = it }
         )
+        if (com.nuvio.tv.fork.ForkHooks.skinPlayerOverlay("next", uiState, mapOf("onEvent" to { e: PlayerEvent -> viewModel.onEvent(e) }, "mode" to postPlayOverlayMode, "focus" to nextEpisodeFocusRequester))) Unit else // Fork hook: skin (Z-14 PlayerNext)
         PostPlayOverlay(
             mode = postPlayOverlayMode,
             controlsVisible = uiState.showControls,
@@ -1617,7 +1648,7 @@ fun PlayerScreen(
             !uiState.showDisplayModeInfo &&
             !postPlayRecommendationState.isVisible
 
-        AnimatedVisibility(
+        if (com.nuvio.tv.fork.ForkHooks.skinPlayerClock(uiState)) { /* Fork hook: skin (zegar skórki) */ } else AnimatedVisibility(
             visible = showClockOverlay,
             enter = fadeIn(animationSpec = tween(150)),
             exit = fadeOut(animationSpec = tween(150)),
@@ -1641,7 +1672,7 @@ fun PlayerScreen(
             modifier = playerControlsDim
         ) {
             val context = LocalContext.current
-            PlayerControlsOverlay(
+            if (com.nuvio.tv.fork.ForkHooks.skinPlayerChrome(uiState, mapOf("viewModel" to viewModel, "playPause" to playPauseFocusRequester, "progressBar" to progressBarFocusRequester, "clearance" to { px: Float -> if (latestPlayerControlsVisible) subtitleControlsClearancePx = px })) { viewModel.onEvent(it) }) { /* Fork hook: skin */ } else PlayerControlsOverlay(
                 uiState = uiState,
                 playerBadges = playerBadges,
                 viewModel = viewModel,
@@ -1971,6 +2002,7 @@ fun PlayerScreen(
             modifier = playerControlsDim
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
+                if (com.nuvio.tv.fork.ForkHooks.skinPlayerOverlay("sources", uiState, mapOf("onEvent" to { e: PlayerEvent -> viewModel.onEvent(e) }, "focus" to sourceStreamsFocusRequester, "filename" to viewModel.playerStreamFilename(), "exit" to exitPlayer))) Unit else // Fork hook: skin (Z-14 PlayerSources)
                 StreamSourcesSidePanel(
                     uiState = uiState,
                     currentFilename = viewModel.playerStreamFilename(),
@@ -2129,10 +2161,28 @@ fun PlayerScreen(
             },
             onNightModeChange = { viewModel.onEvent(PlayerEvent.OnSetNightMode(it)) },
             onDismiss = { viewModel.onEvent(PlayerEvent.OnDismissTransientOverlay) },
+            languageOptions = if (com.nuvio.tv.core.player.BetaFeatures.settings(LocalContext.current).audioLanguageMenu) uiState.audioMenuOptions.orEmpty() else null, // fork hook: echo A5
+            isLoadingSources = uiState.isLoadingSourceStreams,
+            onLanguageSelected = { viewModel.onEvent(PlayerEvent.OnAudioMenuLanguageSelected(it)) },
+            onLanguageSourcesRequested = { viewModel.onEvent(PlayerEvent.OnAudioMenuSourcesRequested(it)) },
             modifier = Modifier
                 .fillMaxSize()
                 .zIndex(2.6f)
                 .then(playerControlsDim)
+        )
+
+        QualitySelectionOverlay( // Fork hook: echo (quality menu)
+            visible = uiState.showQualityOverlay,
+            streams = uiState.sourceAllStreams,
+            currentQuality = uiState.currentStreamQuality,
+            isLoading = uiState.isLoadingSourceStreams,
+            onQualitySelected = { viewModel.onEvent(PlayerEvent.OnQualitySelected(it)) },
+            onDismiss = { viewModel.onEvent(PlayerEvent.OnDismissTransientOverlay) },
+            modifier = Modifier.fillMaxSize().zIndex(2.6f),
+            languageNotes = uiState.qualityLanguageNotes,
+            autoShown = uiState.autoQualityEnabled,
+            autoActive = uiState.autoQualityActive,
+            onAutoSelected = { viewModel.onEvent(PlayerEvent.OnAutoQualitySelected) }
         )
 
         SubtitleSelectionOverlay(
@@ -2210,6 +2260,8 @@ fun PlayerScreen(
                 onDismiss = { viewModel.onEvent(PlayerEvent.OnDismissTransientOverlay) }
             )
         }
+        com.nuvio.tv.ui.reshaped.livetv.LiveTvPlayerOverlay(liveTvPlayer, uiState) // Nuvio RS hook: Live TV
+        com.nuvio.tv.skin.kicia.youtube.ForgeYouTubePanelHost(forgeYouTube) { viewModel.onEvent(PlayerEvent.OnSeekTo(it)) } // Fork hook: panel 1Tube (Kicia)
 
         if (uiState.showSpeedDialog) {
             SpeedSelectionDialog(

@@ -202,6 +202,16 @@ data class PlayerUiState(
     val playbackIssueReportId: String? = null,
     val playbackIssueReportError: String? = null,
     val pendingSeekPosition: Long? = null, // For resuming from saved progress
+    // Fork hook: echo (quality menu, source switch, auto quality, audio menu)
+    val showQualityOverlay: Boolean = false,
+    val currentStreamQuality: com.nuvio.tv.core.streams.StreamQuality? = null,
+    val audioMenuOptions: List<com.nuvio.tv.core.streams.AudioMenuOption>? = null,
+    val sourceAudioFilter: SourceAudioFilter? = null,
+    val sourceSwitch: SourceSwitchUi? = null,
+    val autoQualityEnabled: Boolean = false,
+    val autoQualityActive: Boolean = false,
+    val qualityLanguageNotes: Map<com.nuvio.tv.core.streams.StreamQuality, String> = emptyMap(),
+    val autoQualityPending: AutoQualityPendingUi? = null,
     // Parental guide overlay
     val parentalWarnings: List<ParentalWarning> = emptyList(),
     val showParentalGuide: Boolean = false,
@@ -403,6 +413,13 @@ sealed class PlayerEvent {
     data object OnReloadEpisodeStreams : PlayerEvent()
     data class OnEpisodeAddonFilterSelected(val addonName: String?) : PlayerEvent()
     data class OnEpisodeStreamSelected(val stream: Stream) : PlayerEvent()
+    // Fork hook: echo events
+    data class OnAudioMenuLanguageSelected(val option: com.nuvio.tv.core.streams.AudioMenuOption) : PlayerEvent()
+    data class OnAudioMenuSourcesRequested(val option: com.nuvio.tv.core.streams.AudioMenuOption) : PlayerEvent()
+    data object OnShowQualityOverlay : PlayerEvent()
+    data class OnQualitySelected(val quality: com.nuvio.tv.core.streams.StreamQuality) : PlayerEvent()
+    data object OnAutoQualitySelected : PlayerEvent()
+    data object OnCancelAutoQualityChange : PlayerEvent()
     data object OnShowSourcesPanel : PlayerEvent()
     data object OnDismissSourcesPanel : PlayerEvent()
     data object OnShowPartyPanel : PlayerEvent()
@@ -506,4 +523,9 @@ data class DiscTitle(
     val isFeature: Boolean,
     val audioLanguages: List<String> = emptyList(),
     val subtitleLanguages: List<String> = emptyList()
+// Fork hook: echo
+data class SourceAudioFilter(
+    /** Null: sources whose audio couldn't be read. */
+    val language: com.nuvio.tv.core.streams.AudioLanguage?,
+    val isOriginal: Boolean
 )

@@ -94,6 +94,7 @@ fun HomeScreen(
     onNavigateToFolderDetail: (String, String) -> Unit = { _, _ -> }
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    @Suppress("UNUSED_VARIABLE") val forkModuleRows = com.nuvio.tv.fork.ForkHooks.moduleHomeRows() // Fork hook: registry
 
     // Home was the only major screen without a lifecycle observer, so nothing ever told it to
     // look at its catalogs again.
@@ -378,7 +379,7 @@ fun HomeScreen(
                                 )
                         }
                     ) {
-                        when (uiState.homeLayout) {
+                        if (com.nuvio.tv.fork.ForkHooks.skinScreen("home", mapOf("viewModel" to viewModel, "uiState" to uiState, "onNavigateToDetail" to onNavigateToDetailStable, "onContinueWatchingClick" to onContinueWatchingClickStable, "onCatalogItemLongPress" to onCatalogItemLongPress, "onContinueWatchingStartFromBeginning" to onContinueWatchingStartFromBeginningStable, "onContinueWatchingPlayManually" to onContinueWatchingPlayManuallyStable, "showContinueWatchingManualPlay" to effectiveAutoplayEnabled))) { /* Fork hook: skin */ } else when (uiState.homeLayout) {
                             HomeLayout.CLASSIC -> ClassicHomeRoute(
                                 viewModel = viewModel,
                                 uiState = uiState,

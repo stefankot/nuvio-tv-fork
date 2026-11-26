@@ -152,6 +152,7 @@ class StreamScreenViewModel @Inject constructor(
     private val genres: String? = savedStateHandle.getOptionalString("genres")
     private val year: String? = savedStateHandle.getOptionalString("year")
     private val contentId: String? = savedStateHandle.getOptionalString("contentId")
+    init { com.nuvio.tv.skin.kicia.detail.ForgeFileBadges.title = Triple(contentId, season, episode) } // forge (N15): bitrate from the title's length
     private val contentName: String? = savedStateHandle.getOptionalString("contentName")
     private val contentLanguage: String? = savedStateHandle.getOptionalString("contentLanguage")
     private val playbackProfileId: Int = savedStateHandle.get<String>("profileId")?.toIntOrNull()
@@ -415,6 +416,7 @@ class StreamScreenViewModel @Inject constructor(
         playerPreference: PlayerPreference,
         streamAutoPlayMode: StreamAutoPlayMode
     ): Boolean {
+        if (com.nuvio.tv.BuildConfig.IS_DEBUG_BUILD && com.nuvio.tv.skin.kicia.nav.ForgeNavState.debugManualSources) return false // forge hook v7.4: pomiar 05 (lista źródeł)
         return streamAutoPlayMode != StreamAutoPlayMode.MANUAL
     }
 
@@ -717,6 +719,7 @@ class StreamScreenViewModel @Inject constructor(
                 if (selectedAutoPlayStream != null) {
                     resolvedAutoPlayTarget = true
                 }
+                com.nuvio.tv.fork.net.KeAutoTest.onSources(context, allStreams, ready = isAllLoaded, autoPlay = resolvedAutoPlayTarget || autoPlayHandledForSession) // Fork hook: test łącza w tle (ekran źródeł)
 
                 val currentFilter = _uiState.value.selectedAddonFilter
                 val fullFiltered = groupStreamsByProvider(if (currentFilter == null) {

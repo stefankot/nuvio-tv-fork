@@ -3,7 +3,7 @@ package com.nuvio.tv.fork.sources.kicia
 
 import android.content.Context
 import android.util.Log
-import com.nuvio.tv.core.player.recovery.recoverySourceKey
+import com.nuvio.tv.fork.sources.recoverySourceKey
 import com.nuvio.tv.domain.model.Stream
 import java.io.File
 import java.security.MessageDigest

@@ -280,13 +280,12 @@ fun NiuniaPlayerChrome(
             }
             Spacer(Modifier.height(NiuniaSpace.PlayerGap))
             val duration = scrub.state.durationMs.coerceAtLeast(1L)
-            // Paczka „oczywiste” pkt 4: miniatury przy przewijaniu (moduł Reshaped seekpreview) — pozycja znacznika jak w pasku bazy.
+            // Fork 26.11: miniatury przy przewijaniu (Reshaped seekpreview) usunięte z bazą 1.2.0-beta.4 — oficjalne Nuvio ich nie ma.
             val marker = scrub.state.markerMs
             LaunchedEffect(marker) {
                 if (archiveLength == null) viewModel.controller.pendingPreviewSeekPosition = marker
                 if (marker != null) Log.d(TAG, "odtwarzacz: miniatura przy ${marker / 1000} s")
             }
-            if (marker != null && archiveLength == null) com.nuvio.tv.ui.screens.player.seekpreview.SeekPreviewAboveProgressBar(viewModel)
             NiuniaSeekBar(
                 // 22.11: granice rozdziałów na pasku (Exo: rozdziały MKV, mpv: lista), gdy ustawienie „Rozdziały” jest włączone.
                 state = NiuniaSeekState.of(scrub.state.positionMs, duration).copy(

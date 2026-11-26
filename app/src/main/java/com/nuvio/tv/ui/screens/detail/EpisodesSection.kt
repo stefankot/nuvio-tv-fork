@@ -265,8 +265,8 @@ fun SeasonTabs(
                 }
                 .focusGroup(),
             state = lazyListState,
-            contentPadding = PaddingValues(horizontal = NuvioTheme.spacing.xxxl, vertical = NuvioTheme.spacing.xl),
-            horizontalArrangement = Arrangement.spacedBy(if (posterStyle != null) NuvioTheme.spacing.lg else NuvioTheme.spacing.md)
+            contentPadding = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) PaddingValues(start = 40.dp, end = 40.dp, top = 12.dp, bottom = 12.dp) else PaddingValues(horizontal = NuvioTheme.spacing.xxxl, vertical = NuvioTheme.spacing.xl), // forge
+            horizontalArrangement = Arrangement.spacedBy(if (posterStyle != null) NuvioTheme.spacing.lg else if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) 12.dp else NuvioTheme.spacing.md)
         ) {
             items(sortedSeasons, key = { it }) { season ->
                 val isSelected = season == selectedSeason
@@ -315,9 +315,9 @@ private fun SeasonTab(
     onFocused: (Int, Boolean) -> Unit
 ) {
     val tabShape = remember(isPosterMode) {
-        RoundedCornerShape(if (isPosterMode) SEASON_TAB_POSTER_CORNER_RADIUS else 20.dp)
+        RoundedCornerShape(if (isPosterMode) SEASON_TAB_POSTER_CORNER_RADIUS else if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) 18.dp else 20.dp) // forge: pill 36 (S03)
     }
-    val tabBorder = CardDefaults.border(
+    val tabBorder = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL && !isPosterMode) CardDefaults.border() else CardDefaults.border(
         focusedBorder = Border(
             border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
             shape = tabShape
@@ -372,6 +372,7 @@ private fun SeasonTab(
                 }
                 .onPreviewKeyEvent { event ->
                     val native = event.nativeKeyEvent
+                    if (com.nuvio.tv.skin.kicia.detail.ForgeSeasonDown.onSeasonTabKey(native, isSelected, downFocusRequester)) return@onPreviewKeyEvent true // forge hook: ▼ into an episode that is on screen
                     if (native.action == AndroidKeyEvent.ACTION_DOWN) {
                         if (native.keyCode == AndroidKeyEvent.KEYCODE_MENU) {
                             longPressTriggered = true
@@ -403,7 +404,10 @@ private fun SeasonTab(
                     selected = isSelected
                 },
             shape = CardDefaults.shape(shape = tabShape),
-            colors = CardDefaults.colors(
+            colors = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) CardDefaults.colors( // forge: glass pills, white when focused (S03)
+                containerColor = if (isSelected) com.nuvio.tv.skin.kicia.tokens.ForgeColors.Surface3 else com.nuvio.tv.skin.kicia.tokens.ForgeColors.Surface,
+                focusedContainerColor = com.nuvio.tv.skin.kicia.tokens.ForgeColors.Focus
+            ) else CardDefaults.colors(
                 containerColor = if (isSelected) NuvioTheme.colors.SurfaceVariant else NuvioTheme.colors.BackgroundCard,
                 focusedContainerColor = NuvioTheme.colors.Secondary
             ),
@@ -415,13 +419,15 @@ private fun SeasonTab(
             } else {
                 Text(
                     text = label,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) com.nuvio.tv.skin.kicia.tokens.ForgeText.label else MaterialTheme.typography.titleMedium,
                     color = when {
+                        isFocused && com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL -> com.nuvio.tv.skin.kicia.tokens.ForgeColors.OnFocus
+                        com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL -> com.nuvio.tv.skin.kicia.tokens.ForgeColors.Text
                         isFocused -> NuvioTheme.colors.OnSecondary
                         isSelected -> NuvioTheme.colors.TextPrimary
                         else -> textSecondary
                     },
-                    modifier = Modifier.padding(vertical = 10.dp, horizontal = 20.dp)
+                    modifier = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) Modifier.padding(vertical = 9.dp, horizontal = 16.dp) else Modifier.padding(vertical = 10.dp, horizontal = 20.dp)
                 )
             }
         }
@@ -529,7 +535,7 @@ fun EpisodesRow(
     val dedupedEpisodes = remember(episodes) { episodes.distinctBy { it.id } }
     var optionsEpisode by remember { mutableStateOf<Video?>(null) }
     val isOverlayOpen = optionsEpisode != null
-    val cardMetrics = rememberEpisodeCardMetrics(posterCardCornerRadiusDp)
+    val cardMetrics = rememberEpisodeCardMetrics(posterCardCornerRadiusDp).let { if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) it.copy(rowHorizontalPadding = 40.dp, itemSpacing = 20.dp, cardWidth = 205.dp, cardHeight = 115.dp) else it } // forge: 190×106 cards from x 58 (S03)
     val density = LocalDensity.current
     val rowPrefetchStrategy = remember { LazyListPrefetchStrategy(nestedPrefetchItemCount = 2) }
     val initialEpisodeIndex = remember(dedupedEpisodes, restoreEpisodeId, scrollToEpisodeId, anchorEpisodeId) {
@@ -546,6 +552,7 @@ fun EpisodesRow(
         prefetchStrategy = rowPrefetchStrategy
     )
     val episodeWindowIds = remember(dedupedEpisodes) { dedupedEpisodes.map { it.id } }
+    androidx.compose.runtime.DisposableEffect(lazyListState, dedupedEpisodes, episodeFocusRequesters) { val off = com.nuvio.tv.skin.kicia.detail.ForgeSeasonDown.register(lazyListState, { dedupedEpisodes.getOrNull(it)?.id }, episodeFocusRequesters); onDispose { off() } } // forge hook: season ▼ fallback
     lazyListState.keepDetailRowWindow(
         itemIds = episodeWindowIds,
         lazyKeyAt = { index -> dedupedEpisodes.getOrNull(index)?.id },
@@ -786,6 +793,7 @@ private fun EpisodeCard(
     onFocused: (() -> Unit)? = null,
     onFocusRestored: (() -> Unit)? = null
 ) {
+    if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) { com.nuvio.tv.skin.kicia.detail.ForgeEpisodeCard(episode, watchProgress?.progressPercentage ?: 0f, watchProgress?.isCompleted() == true || isMarkedWatched, onClick, onLongPress, upFocusRequester, downFocusRequester, focusRequester, isFocusEnabled, { onFocused?.invoke(); onFocusRestored?.invoke() }, imdbRating); return } // forge hook: episode card (S03); fork 19.11: ocena IMDb odcinka
     val context = LocalContext.current
     val density = LocalDensity.current
     val configuration = LocalConfiguration.current

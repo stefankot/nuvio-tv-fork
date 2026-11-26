@@ -89,7 +89,7 @@ internal fun PillNavScaffold(
     // Settings and Live TV keep the pill in their header band; every other root screen scrolls under it, so it tucks away.
     // In the Netflix look the pill stays put on Home (whose page starts below its band) and on Search
     // (Nuvio's own screen, moved down below the band here).
-    val netflixUi = com.nuvio.tv.ui.reshaped.netflix.rememberNetflixUiEnabled()
+    val netflixUi = false // Fork 26.11: wygląd Netflix z Reshaped usunięty razem z bazą 1.2.0-beta.4 (pliki bazy 1:1)
     // forge: with the mockup's top bar, Search sits below the bar like in the Netflix look (field at y 84 dp)
     val netflixSearch = (currentRoute == Screen.Search.route && (netflixUi || com.nuvio.tv.skin.kicia.ForgeUi.NEW_NAV)) ||
         (com.nuvio.tv.skin.kicia.ForgeUi.NEW_NAV && com.nuvio.tv.skin.kicia.nav.forgeBelowBar(currentRoute)) // forge hook: screens with their own header sit below the bar

@@ -45,5 +45,5 @@ internal fun rememberPillNavEnabled(): Boolean {
     PillNavPreferences.ensureLoaded(LocalContext.current)
     val enabled by PillNavPreferences.enabled.collectAsState()
     // The Netflix-style Home is designed around the top menu, so it always brings it along.
-    return enabled || com.nuvio.tv.ui.reshaped.netflix.rememberNetflixUiEnabled()
+    return enabled // Fork 26.11: wygląd Netflix z Reshaped usunięty razem z bazą 1.2.0-beta.4 (pliki bazy 1:1)
 }

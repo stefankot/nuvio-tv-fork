@@ -186,16 +186,8 @@ private fun LeafDetail(leaf: NavLeaf, modifier: Modifier) {
 internal fun LazyListScope.itemsGroup(g: ItemsGroup, ps: PlayerSettings) {
     val internal = ps.playerPreference != PlayerPreference.EXTERNAL
     when (g) {
-        ItemsGroup.AUTOSYNC -> autoSyncSettingsItems(enabled = internal)
-        ItemsGroup.AUTOSYNC_BUBBLE -> autoSyncBubbleSettingsItems(enabled = internal)
-        ItemsGroup.SOURCE_RECOVERY -> autoSourceRecoverySettingsItems(ps)
-        ItemsGroup.FORMATS -> reshapedFormatsSettingsItems(ps)
-        ItemsGroup.SEEKR -> seekrKeySettingsItems()
-        ItemsGroup.SEEK_PREVIEW -> seekPreviewSettingsItems()
-        ItemsGroup.SUBTITLE_FONT -> subtitleFontSettingsItems()
-        ItemsGroup.CONNECTION_SPEED -> connectionSpeedSettingsItems()
+        ItemsGroup.AUTOSYNC -> item(key = "autosync") { androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(12.dp)) { autoSyncSettingsItems(enabled = internal); audioSyncSettingsItems(enabled = internal) } }
         ItemsGroup.PILL_NAV -> pillNavSettingsItems()
-        ItemsGroup.NETFLIX_UI -> netflixUiSettingsItems()
         ItemsGroup.LIVE_TV -> liveTvSettingsItems()
         ItemsGroup.RESHAPED_SYNC -> reshapedSyncSettingsItems()
         ItemsGroup.KE_CATALOG -> keCatalogSettingsItems()
@@ -205,7 +197,6 @@ internal fun LazyListScope.itemsGroup(g: ItemsGroup, ps: PlayerSettings) {
         ItemsGroup.ECHO -> echoPlaybackSettingsItems()
         ItemsGroup.YOUTUBE -> youtubeSettingsItems()
         ItemsGroup.REMOTE_BUTTONS -> remoteButtonsSettingsItems()
-        ItemsGroup.ASR -> asrModelSettingsItems()
     }
 }
 

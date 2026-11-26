@@ -1,8 +1,0 @@
-app/src/main/java/com/nuvio/tv/ui/screens/player/audiosync/AudioSpotSampler.kt	codex-sync/AudioSpotSampler
-app/src/main/java/com/nuvio/tv/ui/screens/player/audiosync/AudioSubtitleSyncController.kt	codex-sync/AudioSubtitleSyncController
-app/src/main/java/com/nuvio/tv/ui/screens/player/audiosync/AudioSyncFallback.kt	codex-sync/AudioSyncFallback
-app/src/main/java/com/nuvio/tv/ui/screens/player/audiosync/AudioSyncSettings.kt	codex-sync/AudioSyncSettings
-app/src/main/java/com/nuvio/tv/ui/screens/player/audiosync/ReferenceFetcher.kt	codex-sync/ReferenceFetcher
-app/src/main/java/com/nuvio/tv/ui/screens/player/audiosync/asr/AsrModel.kt	whisper/AsrModel
-app/src/main/java/com/nuvio/tv/ui/screens/player/audiosync/asr/SherpaSpeechToText.kt	whisper/SherpaSpeechToText
-app/src/main/java/com/nuvio/tv/ui/screens/settings/AudioSyncSettingsItems.kt	codex-sync/AudioSyncSettingsItems

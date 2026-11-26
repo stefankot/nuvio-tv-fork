@@ -756,6 +756,7 @@ open class MainActivity : ComponentActivity() {
                     // Wrap everything in a Box. This prevents any black flash between
                     // profile selection and the home content
                     Box(modifier = Modifier.fillMaxSize()) {
+                    com.nuvio.tv.fork.ForkHooks.moduleOverlays() // Fork hook: registry
 
                     var startupDestination = StartupDestination.Loading
                     val surfaceContentReady = hasSeenAuthQrOnFirstLaunch != null &&
@@ -1110,8 +1111,14 @@ open class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    val rootRoutes = remember(discoverLocation) {
+                    val liveTvMenuItem = com.nuvio.tv.ui.reshaped.livetv.rememberLiveTvMenuItem(currentRoute, navController) // Nuvio RS hook: Live TV menu entry
+                    val calendarMenuItem = com.nuvio.tv.fork.echo.rememberCalendarMenuItem() // Fork hook: echo-calendar
+                    val toolsMenuItem = com.nuvio.tv.fork.settings.rememberToolsMenuItem() // Fork hook: tools menu
+                    val rootRoutes = remember(discoverLocation, liveTvMenuItem, calendarMenuItem) {
                         buildSet {
+                            liveTvMenuItem?.let { add(it.route) } // Nuvio RS hook: Live TV menu entry
+                            calendarMenuItem?.let { add(it.route) } // Fork hook: echo-calendar
+                            toolsMenuItem?.let { add(it.route) } // Fork hook: tools menu
                             add(Screen.Home.route)
                             add(Screen.Search.route)
                             add(Screen.Library.route)
@@ -1119,6 +1126,7 @@ open class MainActivity : ComponentActivity() {
                             if (discoverLocation == DiscoverLocation.IN_SIDEBAR) {
                                 add(Screen.Discover.route)
                             }
+                            if (com.nuvio.tv.fork.ForkHooks.youTubeInMenu(this@MainActivity)) add(Screen.YouTube.route) // Fork hook: menu
                         }
                     }
 
@@ -1133,7 +1141,9 @@ open class MainActivity : ComponentActivity() {
                         strNavSearch,
                         strNavLibrary,
                         strNavSettings,
-                        discoverLocation
+                        discoverLocation,
+                        liveTvMenuItem,
+                        calendarMenuItem
                     ) {
                         buildList {
                             add(
@@ -1166,6 +1176,9 @@ open class MainActivity : ComponentActivity() {
                                     iconRes = R.raw.sidebar_library
                                 )
                             )
+                            liveTvMenuItem?.let(::add) // Nuvio RS hook: Live TV menu entry
+                            calendarMenuItem?.let(::add) // Fork hook: echo-calendar
+                            toolsMenuItem?.let(::add) // Fork hook: tools menu
                             add(
                                 DrawerItem(
                                     route = Screen.Settings.route,
@@ -1174,6 +1187,7 @@ open class MainActivity : ComponentActivity() {
                                 )
                             )
                         }
+                            .let { com.nuvio.tv.fork.ForkHooks.drawerOrder(this@MainActivity, it) } // Fork hook: menu (YouTube, kolejność Kicii)
                     }
                     val selectedDrawerRoute = drawerItems.firstOrNull { item ->
                         currentRoute == item.route || currentRoute?.startsWith("${item.route}/") == true
@@ -1229,7 +1243,7 @@ open class MainActivity : ComponentActivity() {
                         }
                         Box(modifier = Modifier.fillMaxSize()) {
                             CompositionLocalProvider(LocalNavViewModelStoreOwner provides navViewModelStoreOwner) {
-                                if (modernSidebarEnabled) {
+                                if (com.nuvio.tv.ui.reshaped.pillnav.rememberPillNavEnabled()) { com.nuvio.tv.ui.reshaped.pillnav.PillNavScaffold(longPressBackHeld = longPressBackHeld, navController = navController, startDestination = startDestination, currentRoute = currentRoute, rootRoutes = rootRoutes, drawerItems = drawerItems, selectedDrawerRoute = selectedDrawerRoute, blurEnabled = modernSidebarBlurEnabled, activeProfileName = activeProfile?.name ?: "", activeProfileColorHex = activeProfile?.avatarColorHex ?: "#1E88E5", activeProfileAvatarImageUrl = activeProfileAvatarImageUrl, showProfileSelector = profiles.size > 1, onSwitchProfile = handleSwitchProfile, onNavigate = { optimisticRoute = it }, onExitApp = handleExitApp, topBannerVisible = updateBannerState.showBanner && updateBannerState.update != null) } else if (modernSidebarEnabled) { // Nuvio RS hook: optional top pill menu replaces the sidebar (Niunia)
                                     ModernSidebarScaffold(
                                         longPressBackHeld = longPressBackHeld,
                                         navController = navController,
@@ -1353,6 +1367,7 @@ open class MainActivity : ComponentActivity() {
         }
 
         jankStats = JankStats.createAndTrack(window) { frameData ->
+            if (!com.nuvio.tv.fork.ForkLog.jankWorthLogging(frameData.isJank, frameData.frameDurationUiNanos)) return@createAndTrack // fork: optymalizacja logów
             if (frameData.isJank) {
                 Log.w(
                     "JankStats",
@@ -1387,6 +1402,7 @@ open class MainActivity : ComponentActivity() {
         setIntent(intent)
         captureDeepLinkIntent(intent)
         captureLaunchIntent(intent)
+        com.nuvio.tv.fork.ForkHooks.onDebugIntent(this, intent) // Fork hook: debug open route
     }
 
     private fun captureDeepLinkIntent(intent: Intent?) {
@@ -1423,6 +1439,7 @@ open class MainActivity : ComponentActivity() {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (com.nuvio.tv.fork.ForkHooks.onGlobalKey(this, event)) return true // Fork hook: arc-remote
         if (ambientIdleController.consumeKeyEvent(event)) return true
         if (event.keyCode == KeyEvent.KEYCODE_BACK) {
             if (longPressBackHeld.value) {

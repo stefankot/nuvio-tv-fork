@@ -633,7 +633,7 @@ internal fun streamFilenameFromUrl(url: String): String? =
     url.substringBefore('?').substringAfterLast('/', "")
         .takeIf { it.isNotBlank() && it.contains('.') }
 
-private fun PlayerRuntimeController.applySelectedStreamState(
+internal fun PlayerRuntimeController.applySelectedStreamState( // Fork hook: echo (was private)
     stream: Stream,
     url: String,
     headers: Map<String, String>
@@ -763,7 +763,7 @@ internal fun PlayerRuntimeController.handleStreamRedirect(requestedUrl: String, 
     }
 }
 
-private fun PlayerRuntimeController.persistSelectedStreamForReuse(
+internal fun PlayerRuntimeController.persistSelectedStreamForReuse( // Fork hook: echo (was private)
     stream: Stream,
     url: String,
     headers: Map<String, String>
@@ -991,7 +991,8 @@ internal fun PlayerRuntimeController.switchToSourceStream(
     nextEpisodeAutoPlayJob?.cancel()
     nextEpisodeAutoPlayJob = null
 
-    val resumePositionMs = currentPlaybackPositionMs()?.coerceAtLeast(0L) ?: 0L
+    val isLiveTvSwitch = com.nuvio.tv.reshaped.livetv.LiveTvPlaybackRegistry.isLiveTv(currentStreamUrl) || com.nuvio.tv.reshaped.livetv.LiveTvPlaybackRegistry.isLiveTv(url) // Nuvio RS hook: a channel or catch-up starts a different timeline
+    val resumePositionMs = if (isLiveTvSwitch) 0L else currentPlaybackPositionMs()?.coerceAtLeast(0L) ?: 0L // Nuvio RS hook: Live TV
     flushPlaybackSnapshotForSwitchOrExit()
 
     val newHeaders = PlayerMediaSourceFactory.sanitizeHeaders(
@@ -999,7 +1000,7 @@ internal fun PlayerRuntimeController.switchToSourceStream(
     )
 
     resetLoadingOverlayForNewStream()
-    releasePlayer(flushPlaybackState = false)
+    if (!com.nuvio.tv.ui.reshaped.livetv.keepPlayerForLiveTvZap(url)) releasePlayer(flushPlaybackState = false) // Nuvio RS hook: Live TV zaps keep the player
 
     applySelectedStreamState(
         stream = stream,
@@ -1045,13 +1046,13 @@ internal fun PlayerRuntimeController.switchToSourceStream(
             isTorrentStream = false
         )
     }
-    if (resumePositionMs > 0L) {
+    if (isLiveTvSwitch) { pendingResumeProgress = null; _uiState.update { it.copy(pendingSeekPosition = null) } } else if (resumePositionMs > 0L) { // Nuvio RS hook: Live TV
         pendingResumeProgress = null
         _uiState.update { it.copy(pendingSeekPosition = resumePositionMs) }
     }
     clearChapterSkipState()
     recomputeMergedSkipIntervals()
-    showStreamSourceIndicator(stream)
+    if (!isSourceSwitching()) showStreamSourceIndicator(stream) // Fork hook: echo
     resetPostPlayOverlayState(clearEpisode = false)
 
     _exoPlayer?.let { player ->
@@ -1104,7 +1105,7 @@ internal fun PlayerRuntimeController.switchToSourceStream(
         }
     }
 
-    if (streamFallbackResumePosition == null) loadSavedProgressFor(currentSeason, currentEpisode)
+    if (streamFallbackResumePosition == null && !isLiveTvSwitch) loadSavedProgressFor(currentSeason, currentEpisode) // Nuvio RS hook: Live TV
 }
 
 internal fun PlayerRuntimeController.dismissEpisodesPanel() {
@@ -1606,6 +1607,7 @@ internal fun PlayerRuntimeController.switchToEpisodeStream(
     fallbackStreams: List<Stream>? = null,
     autoSelection: SourceFallbackHandoff.TriedSources? = null
 ) {
+    if (isSourceSwitching()) cancelSourceSwitch() // Fork hook: echo
     if (!continuingSelection) {
         beginStreamFallbackSession(stream, fallbackStreams ?: _uiState.value.episodeFilteredStreams.ifEmpty { _uiState.value.episodeAllStreams })
     }

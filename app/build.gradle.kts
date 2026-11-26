@@ -155,6 +155,10 @@ android {
         buildConfigField("String", "SIMKL_APP_NAME", buildConfigString(resolveProperty(devProperties, localProperties, "SIMKL_APP_NAME", "nuvio")))
         buildConfigField("String", "MDBLIST_CLIENT_ID", buildConfigString(resolveProperty(devProperties, localProperties, "MDBLIST_CLIENT_ID")))
         buildConfigField("String", "TMDB_API_KEY", "\"${localProperties.getProperty("TMDB_API_KEY", "")}\"")
+        buildConfigField("String", "TVDB_API_KEY", "\"${localProperties.getProperty("TVDB_API_KEY", "")}\"") // Fork hook: W8 TVDB
+        buildConfigField("String", "GEMINI_API_KEY", "\"${localProperties.getProperty("GEMINI_API_KEY", "")}\"") // Fork hook: ai-subtitles klucz
+        buildConfigField("String", "GOOGLE_TTS_API_KEY", "\"${localProperties.getProperty("GOOGLE_TTS_API_KEY", "")}\"") // Fork hook: lektor Chirp 3 HD (Cloud TTS)
+        buildConfigField("String", "GOOGLE_VERTEX_API_KEY", "\"${localProperties.getProperty("GOOGLE_VERTEX_API_KEY", "")}\"") // Fork hook: lektor Gemini przez Vertex AI
         buildConfigField("String", "TV_LOGIN_WEB_BASE_URL", "\"${localProperties.getProperty("TV_LOGIN_WEB_BASE_URL", "https://nuvio.tv/tv-login")}\"")
         buildConfigField("String", "DEVICE_LOGIN_WEB_BASE_URL", "\"${localProperties.getProperty("DEVICE_LOGIN_WEB_BASE_URL", "https://nuvio.tv/link")}\"")
         buildConfigField("boolean", "DOVI_NATIVE_ENABLED", enableDoviNative.toString())
@@ -227,7 +231,7 @@ android {
 
     buildTypes {
         debug {
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.getByName("debug") // Fork hook: podpis debug (zainstalowany fork na TV ma podpis debug)
             isDebuggable = parseBooleanProperty(providers.gradleProperty("debuggable").orNull)
             isMinifyEnabled = false
 
@@ -309,8 +313,10 @@ android {
         abi {
             isEnable = !buildingAppBundle
             reset()
-            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
-            isUniversalApk = true
+            // Fork: -PforkAbi=armeabi-v7a albo arm64-v8a = tylko jedna wersja APK (szybciej; właściciel 18.11).
+            val forkAbi = (project.findProperty("forkAbi") as String?)?.takeIf { it.isNotBlank() }
+            if (forkAbi != null) include(forkAbi) else include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+            isUniversalApk = forkAbi == null
         }
     }
 
@@ -368,6 +374,7 @@ android {
 
     testOptions {
         unitTests.isReturnDefaultValues = true
+        unitTests.all { t -> rootProject.file("fork-tools/test/wykluczone-testy-bazy.txt").takeIf { it.isFile }?.readLines()?.map { it.substringBefore('\t').trim() }?.filter { it.isNotEmpty() && !it.startsWith("#") }?.forEach { t.filter.excludeTestsMatching(it) } } // Fork hook: testy (wykluczone testy bazy)
     }
 }
 
@@ -480,6 +487,10 @@ val downloadAudioSyncRuntime by tasks.registering {
 
 dependencies {
     implementation(files(sherpaOnnxAar).builtBy(downloadAudioSyncRuntime))
+    implementation(project(":mediaservicecore:youtubeapi")) // Nuvio One hook
+    implementation(project(":mediaservicecore:sharedutils"))
+    // Isolated ranked-regex matcher: preserves lookarounds while enforcing a read budget on Android.
+    implementation("com.github.florianingerl.util:regex:1.1.11")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     val composeBom = platform("androidx.compose:compose-bom:2026.05.01")
 
@@ -589,6 +600,7 @@ dependencies {
     // Local nextlib-mediainfo fork (static FFmpeg; no libav*.so in final AAR)
     implementation(files("libs/nextlib-mediainfo-local.aar"))
     implementation("io.github.abdallahmehiz:mpv-android-lib:0.2.1")
+    implementation("com.github.BuildItCode:LiquidGlass:0.8.2") // Fork hook: glass (szkło, API 33+)
     implementation("dev.chrisbanes.haze:haze-android:1.7.2") {
         exclude(group = "org.jetbrains.compose.ui")
         exclude(group = "org.jetbrains.compose.foundation")
@@ -616,6 +628,7 @@ dependencies {
     add("fullImplementation", libs.crypto.js)
     // QR code + local server for addon management
     implementation(libs.nanohttpd)
+    implementation("edu.emory.mathcs:JTransforms:2.4") // Fork hook: Dublagem vendor FFT
     implementation(libs.zxing.core)
 
 
@@ -643,7 +656,9 @@ dependencies {
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.espresso.core)
     testImplementation("junit:junit:4.13.2")
+    testImplementation("net.sf.kxml:kxml2:2.3.0")
     testImplementation(kotlin("test"))
+    testImplementation(kotlin("test-junit")) // Fork hook: testy (kotlin.test z Reshaped na JUnit 4)
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
     testImplementation("io.mockk:mockk:1.13.12")
     testImplementation("com.squareup.okhttp3:mockwebserver:5.3.2")
@@ -654,3 +669,5 @@ dependencies {
 extra["usenetSdkDirectory"] = android.sdkDirectory.absolutePath
 extra["usenetNdkVersion"] = android.ndkVersion
 apply(from = rootProject.file("native/usenet/android.gradle.kts"))
+
+apply(from = "reshaped.gradle") // Nuvio RS hook: fork build settings

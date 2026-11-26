@@ -5,6 +5,6 @@ enum class SkinId(val key: String) {
     NUVIO("nuvio"), NETFLIX("netflix"), KIT("kit"), KICIA("kicia"), NIUNIA("niunia");
 
     companion object {
-        fun fromKey(key: String?): SkinId = entries.firstOrNull { it.key == key } ?: NUVIO
+        fun fromKey(key: String?): SkinId = entries.firstOrNull { it.key == key }?.takeUnless { it == NETFLIX } ?: NUVIO // Fork 26.11: wygląd Netflix z Reshaped usunięty razem z bazą 1.2.0-beta.4 (pliki bazy 1:1)
     }
 }
