@@ -432,6 +432,12 @@ internal fun NiuniaLivePlayer(
             kotlinx.coroutines.delay(50) // przyciski publikuje SideEffect
             nav.buttons.firstOrNull()?.let { nav.slot = it; Log.i(TAG, "iptv: nakładka otwarta ► — fokus na $it") }
         }
+        val byOk = (nav.lastKeyCode == KeyEvent.KEYCODE_DPAD_CENTER || nav.lastKeyCode == KeyEvent.KEYCODE_ENTER) &&
+            android.os.SystemClock.elapsedRealtime() - nav.lastKeyAt < 1_500
+        if (byOk && nav.level == 0 && nav.slot != NiuniaLiveSlot.PAUSE) {
+            kotlinx.coroutines.delay(50) // przyciski publikuje SideEffect
+            if (state?.isPausedNow() == true && NiuniaLiveSlot.PAUSE in nav.buttons) { nav.slot = NiuniaLiveSlot.PAUSE; Log.i(TAG, "iptv: nakładka otwarta OK (pauza) — fokus na ▶") }
+        }
         nav.noteChannel(channel)
         Log.i(TAG, "iptv: nakładka ${channel.name} (stan=$playState, program=${shown != null})")
     }
