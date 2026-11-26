@@ -198,14 +198,17 @@ internal object NiuniaLiveNav {
         val code = event.keyCode
         val ok = code == KeyEvent.KEYCODE_DPAD_CENTER || code == KeyEvent.KEYCODE_ENTER || code == KeyEvent.KEYCODE_NUMPAD_ENTER
         val back = code == KeyEvent.KEYCODE_BACK || code == KeyEvent.KEYCODE_ESCAPE
-        val channel = state.zapList().firstOrNull { it.streamUrl == state.currentListUrl }
+        // UX JMGO 26.11 (#74): każdy klawisz przeszukiwał listę 59 tys. kanałów (dwa razy) — najpierw kanał rysowanej nakładki.
+        val channel = lastChannel?.takeIf { it.streamUrl == state.currentListUrl }
+            ?: state.zapList().firstOrNull { it.streamUrl == state.currentListUrl }
             ?: LiveTvRepository.uiState.value.channels.firstOrNull { it.streamUrl == state.currentListUrl }
             ?: return false
         if (!down) {
             if (back) {
                 when (level) {
                     2 -> { go(if (row.isNotEmpty()) 1 else 0, "Wstecz"); state.showInfo() }
-                    1 -> { go(0, "Wstecz"); state.showInfo() }
+                    // UX JMGO 26.11 (#75): ze szczegółów do ukrycia nakładki trzeba było 3 × Wstecz — z rzędu Wstecz chowa ją od razu.
+                    1 -> { go(0, "Wstecz z rzędu → schowana"); if (state.isPausedNow()) state.togglePause(); state.hideInfo() }
                     else -> {
                         // UX JMGO 25.11 (#55): Wstecz przy pauzie chował nakładkę, a obraz stał bez żadnego znaku pauzy („zawiesiło się?”).
                         // Teraz Wstecz przy pauzie wznawia (od miejsca pauzy) i chowa nakładkę; „Na żywo” zostaje przyciskiem.
@@ -335,10 +338,10 @@ private val SEASON_TAIL = Regex("""\s\d{1,2}$""")
  * odcinek) — rząd szukał tylko tego samego pełnego tytułu i miał 1 kafelek (powtórka tego samego odcinka). Klucz serialu:
  * tekst przed „:”, bez numeru sezonu na końcu; null, gdy tytuł nie ma takiej części.
  */
-private fun seriesKey(title: String): String? {
-    val head = title.substringBefore(':', "").trim().takeIf { it.length >= 3 } ?: return null
-    return com.nuvio.tv.fork.tv.ShowIdentity.normalizeTitle(head).replace(SEASON_TAIL, "").trim().takeIf { it.length >= 3 }
-}
+// #70b (26.11, zdjęcie 215): „360° Świat bez granic (3)” — numer w nawiasie („odc. 5”, S01E02) też rozbijał serial; klucz
+// zawsze ze znormalizowanego tytułu (bez numerów odcinka i sezonu), tekst przed „:” gdy jest.
+private fun seriesKey(title: String): String? =
+    com.nuvio.tv.fork.tv.ShowIdentity.normalizeTitle(title.substringBefore(':')).replace(SEASON_TAIL, "").trim().takeIf { it.length >= 3 }
 
 /**
  * Rząd pod odtwarzaczem (SKIN.md „Player IPTV”): program powtarzalny → inne odcinki z przewodnika kanału (wyemitowane w archiwum
@@ -351,9 +354,9 @@ private fun buildRow(channel: LiveTvChannel, shown: LiveTvProgramme, nowMs: Long
     val series = seriesKey(shown.title)
     val same = schedule.filter { p ->
         p.stopEpochMs > nowMs - window && p.startEpochMs < nowMs + window &&
-            (sameTitle(p, shown) || series != null && com.nuvio.tv.fork.tv.ShowIdentity.normalizeTitle(p.title.substringBefore(':')).replace(SEASON_TAIL, "").trim() == series)
+            (sameTitle(p, shown) || series != null && seriesKey(p.title) == series)
     }
-    if (series != null) Log.i(TAG, "iptv: rząd — serial „$series”: ${same.size} emisji")
+    if (series != null && same.size > 1) Log.i(TAG, "iptv: rząd — serial „$series”: ${same.size} emisji")
     if (same.size >= 2) {
         val tiles = same.sortedBy { it.startEpochMs }.mapNotNull { p ->
             val live = p.startEpochMs <= nowMs && nowMs < p.stopEpochMs

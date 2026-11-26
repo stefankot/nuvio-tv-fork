@@ -44,9 +44,15 @@ internal object ForgeArchiveOffer {
     private const val SHOW_MS = 15_000L
 
     /** Hook in Reshaped's live key handler (bare picture, MiniGuide closed): OK takes the offer, Back drops it. */
+    private var downKey = 0
     fun onKey(state: LiveTvPlayerState, event: KeyEvent): Boolean {
         val o = offer ?: return false
         if (state.currentListUrl != o.listUrl || state.isCatchup()) { offer = null; return false }
+        if (event.action == KeyEvent.ACTION_DOWN) downKey = event.keyCode
+        else if (downKey != event.keyCode) {
+            if (event.keyCode == KeyEvent.KEYCODE_DPAD_CENTER || event.keyCode == KeyEvent.KEYCODE_ENTER) android.util.Log.i("ForkAdSkip", "omijanie reklam: puszczony klawisz bez wciśnięcia przy karcie — pomijam")
+            return false
+        } else downKey = 0
         return when (event.keyCode) {
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> {
                 if (event.action == KeyEvent.ACTION_UP) {

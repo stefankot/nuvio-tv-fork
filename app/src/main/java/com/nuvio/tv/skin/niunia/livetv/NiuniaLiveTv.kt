@@ -153,7 +153,7 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
     // Paczka „oczywiste” pkt 2: po powrocie z odtwarzacza ten sam filtr i dzień (lista kanałów jak przed wyjściem).
     var filter by remember { mutableStateOf<NiuniaLiveFilter>(NiuniaLiveReturn.restoredFilter() ?: NiuniaLiveFilter.All) }
     var dayOffset by remember { mutableIntStateOf(NiuniaLiveReturn.restoredDay()) }
-    val returnTo = remember { NiuniaLiveReturn.consume() }
+    var returnTo by remember { mutableStateOf(NiuniaLiveReturn.consume()) }
     var dayPicker by remember { mutableStateOf(false) }
     var dayPicked by remember { mutableIntStateOf(0) } // #69: każdy wybór dnia → fokus na 1. kanale przewodnika
     // UX JMGO (ręczne testy 24.11): Wstecz z listy dni stawiał fokus na pierwszym kafelku (kolejne OK włączało kanał) —
@@ -415,19 +415,20 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
                 },
                 onPlay = { ch, p -> play(ch, p, guideChannels) },
                 focusGuideTick = dayPicked,
+                onBackToNow = { if (dayOffset != 0) { Log.i(TAG, "live tv: Wstecz z przewodnika → dzień Dziś"); returnTo = null; dayOffset = 0 } },
             )
             LiveMode.DISCOVER -> NiuniaLiveDiscover(shown, state.favoriteUrls, state.currentProgrammes, now) { ch, p -> NiuniaLiveReturn.fromOther(); play(ch, p, shown) }
             LiveMode.SEARCH -> NiuniaLiveSearch(shown, state.currentProgrammes, now) { ch, p -> NiuniaLiveReturn.fromOther(); play(ch, p, shown) }
         }
         TopBar(
             mode = mode, dayLabel = dayLabel(dayOffset, now),
-            onSearch = { Log.i(TAG, "live tv: Szukaj"); mode = LiveMode.SEARCH },
+            onSearch = { Log.i(TAG, "live tv: Szukaj"); returnTo = null; mode = LiveMode.SEARCH },
             onDay = { dayPicker = true }, dayFocus = dayFocus, searchFocus = searchBtn, discoverFocus = discoverBtn,
-            onDiscover = { Log.i(TAG, "live tv: Odkrywaj"); mode = LiveMode.DISCOVER },
+            onDiscover = { Log.i(TAG, "live tv: Odkrywaj"); returnTo = null; mode = LiveMode.DISCOVER },
         )
         if (dayPicker) DayPicker(dayOffset, now) { d ->
             Log.i(TAG, "live tv: dzień ${dayLabel(d, now)}")
-            dayOffset = d; dayPicker = false; mode = LiveMode.GUIDE; dayPicked++
+            returnTo = null; dayOffset = d; dayPicker = false; mode = LiveMode.GUIDE; dayPicked++
         }
         if (regionPanel && mode == LiveMode.GUIDE) NiuniaLiveRegionPanel(region.index) { regionPanel = false; refocus(regionChip, "chip Kraj i język") }
         val opt = optionsFor
@@ -482,6 +483,7 @@ private fun Guide(
     onFilter: (NiuniaLiveFilter) -> Unit,
     onPlay: (LiveTvChannel, LiveTvProgramme?) -> Unit,
     focusGuideTick: Int = 0,
+    onBackToNow: () -> Unit = {},
 ) {
     val minStart = remember(now) { windowStartFor(now) - PAST_DAYS * DAY_MS }
     val backToGuide = returnTo as? NiuniaLiveReturn.Entry.Guide
@@ -504,6 +506,7 @@ private fun Guide(
         Log.i(TAG, "live tv: Wstecz z przewodnika → chip ${filter.javaClass.simpleName}, „teraz”, 1. kanał")
         winStart = windowStartFor(now)
         focusTime.longValue = now
+        onBackToNow() // #76 (26.11): przycisk dnia mówił dalej „Wczoraj”, a przewodnik był już na „teraz”
         guideScope.launch {
             try { channelsState.scrollToItem(0) } catch (e: IllegalStateException) { Log.w(TAG, "live tv: przewiń na 1. kanał: ${e.javaClass.simpleName}: ${e.message}") }
             try { (if (filter == NiuniaLiveFilter.All) allFocus else selectedChip).requestFocus() }
