@@ -1,6 +1,6 @@
 # Zakładka IPTV (Live TV) — wyniki wątku IPTV, 26.11
 
-**Stan: 5 poprawek aplikacji (#73, #81, #82, #83, #84), 0 sprawdzonych na projektorze po poprawce** — #73/#82/#83 są w `uxr17` (build wątku VOD), #81/#84 czekają na następny build. Przyczyna #81 potwierdzona na projektorze (`uxr16`).
+**Stan: 7 poprawek aplikacji (#73, #81, #82, #82b, #83, #84, #85), 3 sprawdzone na projektorze (`uxr17`: #73 ✔, #82 ✔ częściowo, #83 ✔)** — #81, #82b, #84, #85 czekają na wspólny build `uxr18` z wątkiem VOD. Przyczyna #81 potwierdzona na projektorze (`uxr16`).
 
 Zadanie właściciela (26.11 ~20:30): „sprawdź zakładkę IPTV: nie działają kraje i języki — po wyborze pusta lista; szukanie odsyła do programu, którego jeszcze nie emitowano, zamiast do strony szczegółów programu, gdzie można go obejrzeć; program „Gry małżeńskie” dodany przez długie naciśnięcie na wyszukany element zgłasza komunikat, że dodano, a dodano inny program — „Nasz nowy dom”; sprawdź inne błędy”.
 
@@ -23,10 +23,18 @@ Zadanie właściciela (26.11 ~20:30): „sprawdź zakładkę IPTV: nie działaj�
 - #84 (łatka `.stage/iptv/patch84.py`, następny build): „Odkrywaj” przy pierwszym wejściu po starcie aplikacji — 6,8 s „Wczytuję…” (log „odkrywaj policzone w tle w 6767 ms”). Ostatnie rzędy zapisywane na dysku i pokazywane od razu; nowe liczą się w tle.
 - Do obejrzenia (bez zmian): „Ulubione” pokazuje 2 kanały, choć ulubionych jest 4 (log „ulubione kanały 4, kanały=2”) — dwa zapisane kanały nie istnieją już na liście (dostawca zmienił adresy?); kanały-wydarzenia PPV mają wszystkie numer „43”.
 
+## Pętla 2 — `uxr17` na projektorze (26.11 21:17–21:24)
+- #82 ✔ (06): Szukaj „gry m” → „Gry małżeńskie (196) · Dziś 06:00” → OK → strona programu z tytułem, „Usuń z ulubionych programów” i emisją „Dziś 06:00 – 07:00 · Jeszcze nie leci · Polsat Cafe”; fokus na emisji; Wstecz → fokus wraca na wynik. Baza zwróciła 17 emisji na 6 kanałach w 2,3 s.
+- ✘ → #82b: strona pokazała tylko 1 emisję z 17, bo tytuł z numerem odcinka („(196)”) pasował tylko do siebie. Poprawka: strona serialu „Gry małżeńskie” ze wszystkimi odcinkami (także z archiwum), numer odcinka w wierszu emisji.
+- #83 ✔ (07): długie OK na wyniku → „Usunięto z ulubionych programów: Gry małżeńskie (196)” (był już obserwowany), licznik „Ulubione” 3 → 2; drugie długie OK → dodany z powrotem.
+- #73 ✔: „tvn” → kanał TVN 24 z wyników → OK → gra → Wstecz → Live TV › Szukaj z „tvn” i wynikami (log „powrót do wyników wyszukiwania”).
+- Nowe #85: po OK na kanale z listy nakładka odtwarzacza stawiała fokus na ▶ (log „nakładka otwarta OK (pauza) — fokus na ▶”) — to samo OK i obraz jeszcze w buforze brane za pauzę; ▲▼ nie zmieniały wtedy kanału. Poprawione: ▶ tylko po OK na tym samym kanale.
+- Projektor zwolniony 21:24 dla wątku VOD (na JMGO zostaje `uxr17`).
+
 ## Do sprawdzenia na projektorze
-- [ ] `uxr17`: Szukaj „gry” → „Gry małżeńskie” → OK → strona programu: archiwum na górze, OK włącza archiwum; Wstecz z odtwarzacza → wyniki.
-- [ ] `uxr17`: długie OK na „Gry małżeńskie” → komunikat z tytułem; Szukaj › drzewo „Ulubione” ma ten tytuł.
+- [ ] `uxr18`: strona „Gry małżeńskie” — odcinki z archiwum na górze (jeśli Polsat Cafe ma archiwum), OK włącza archiwum.
+- [ ] `uxr18`: OK na kanale z listy → nakładka z fokusem na przełączniku kanałów, ▲▼ zmienia kanał (#85).
 - [ ] następny build: „Kraj i język” — Polska/Niemcy/Wielka Brytania z tysiącami kanałów z nazwami i programem; język „angielski”.
 - [ ] następny build: „Odkrywaj” po restarcie aplikacji — rzędy od razu (log „odkrywaj z dysku”).
 
-Zdjęcia: 01 panel krajów, 02 „Polska”, 03 „Stany Zjednoczone” (pusta lista), 04 zakładka „Język”, 05 wyniki „gry”.
+Zdjęcia: 01 panel krajów, 02 „Polska”, 03 „Stany Zjednoczone” (pusta lista), 04 zakładka „Język”, 05 wyniki „gry”, 06 strona programu (`uxr17`), 07 komunikat długiego OK.
