@@ -408,6 +408,10 @@ fun NiuniaPlayerChrome(
 @Composable
 internal fun NiuniaAudioPanel(uiState: PlayerUiState, initialTab: Int = -1, close: () -> Unit, onEvent: (PlayerEvent) -> Unit, openMore: () -> Unit, toast: (String) -> Unit) {
     val ctx = LocalContext.current
+    // Test VOD JMGO 26.11 (uxr17): jak w panelu Więcej — okno Ścieżka dźwiękowa / Napisy otwarte z panelu raz dostawało fokus,
+    // raz nie (panel w animacji wyjścia z exit = Cancel odrzucał prośbę okna). Po wyborze pozycji panel wypuszcza fokus.
+    var leaving by remember { mutableStateOf(false) }
+    @Suppress("NAME_SHADOWING") val close: () -> Unit = { leaving = true; Log.i(TAG, "odtwarzacz: panel audio zamknięty wyborem — fokus może wyjść"); close() }
     val lektorOn = com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctx, "module_lektor")
     var tab by remember { mutableIntStateOf(if (initialTab >= 0) initialTab else if (lektorOn) 1 else 0) }
     val first = remember { FocusRequester() }
@@ -418,7 +422,7 @@ internal fun NiuniaAudioPanel(uiState: PlayerUiState, initialTab: Int = -1, clos
     NiuniaPanelOverlay(stringResource(R.string.niunia_ds_panel_title), Modifier.niuniaTrapArrows("odtwarzacz: panel", setOf(
         androidx.compose.ui.focus.FocusDirection.Left, androidx.compose.ui.focus.FocusDirection.Right, androidx.compose.ui.focus.FocusDirection.Up, androidx.compose.ui.focus.FocusDirection.Down))
         // Test JMGO build155: ▼ z ostatniego wiersza („Wybierz napisy”) przenosiło fokus na przycisk „Napisy” pod panelem.
-        .focusProperties { exit = { androidx.compose.ui.focus.FocusRequester.Cancel } }.focusGroup()) {
+        .focusProperties { exit = { if (leaving) androidx.compose.ui.focus.FocusRequester.Default else androidx.compose.ui.focus.FocusRequester.Cancel } }.focusGroup()) {
         NiuniaCollection(NiuniaCollectionKind.Chips, Modifier.padding(bottom = NiuniaSpacing.Space8)) {
             NiuniaButton(onClick = { tab = 0 }, label = stringResource(R.string.niunia_ds_tab_audio), kind = NiuniaButtonKind.Chip, selected = tab == 0)
             if (lektorOn) NiuniaButton(onClick = { tab = 1 }, label = stringResource(R.string.niunia_ds_tab_lektor), kind = NiuniaButtonKind.Chip, selected = tab == 1)
