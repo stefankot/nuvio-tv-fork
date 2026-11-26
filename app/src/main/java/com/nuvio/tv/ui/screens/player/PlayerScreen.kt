@@ -5,8 +5,6 @@
 
 package com.nuvio.tv.ui.screens.player
 
-import com.nuvio.tv.ui.screens.player.audiosync.SubtitleSyncStatusPanel
-import com.nuvio.tv.ui.screens.player.autosync.bubble.AutoSyncBubbleToastHost
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.layout.boundsInWindow
 import android.graphics.RectF
@@ -41,7 +39,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -53,6 +50,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -66,6 +64,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.AspectRatio
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Check
@@ -76,7 +75,6 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -146,6 +144,7 @@ import androidx.tv.material3.IconButton
 import androidx.tv.material3.IconButtonDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.nuvio.tv.R
 import com.nuvio.tv.BuildConfig
@@ -167,12 +166,6 @@ import com.nuvio.tv.domain.model.StreamBadge
 import com.nuvio.tv.domain.model.Subtitle
 import com.nuvio.tv.domain.model.WatchProgress
 import com.nuvio.tv.ui.components.LoadingIndicator
-import com.nuvio.tv.ui.screens.player.seekpreview.SeekPreviewAboveProgressBar
-import com.nuvio.tv.ui.screens.player.seekpreview.SeekPreviewCueTicks
-import com.nuvio.tv.ui.screens.player.seekpreview.SeekPreviewSyncLayer
-import com.nuvio.tv.ui.screens.player.seekpreview.SeekPreviewThumbnailHost
-import com.nuvio.tv.ui.screens.player.seekpreview.handleBack
-import com.nuvio.tv.ui.screens.player.seekpreview.seekPreviewSyncAction
 import android.text.format.DateFormat
 import com.nuvio.tv.ui.util.rememberRawSvgPainter
 import java.util.Date
@@ -224,8 +217,6 @@ fun PlayerScreen(
     onOpenPartyMedia: (PartyMedia) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    com.nuvio.tv.fork.ForkHooks.playerBridge(uiState, viewModel.playbackTimeline) { viewModel.onEvent(it) } // Fork hook: player bridge
-    val arcRemote = androidx.compose.runtime.remember { com.nuvio.tv.ui.screens.player.RemotePlayerHook(android.view.ViewConfiguration.getLongPressTimeout().toLong()) } // Arc hook
     val playerBadges = rememberPlayerBadges(viewModel, uiState)
     val partyState by viewModel.party.state.collectAsState()
     val partyPlayback by viewModel.party.playback.collectAsState()
@@ -246,8 +237,6 @@ fun PlayerScreen(
     val context = LocalContext.current
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val containerFocusRequester = remember { FocusRequester() }
-    val liveTvPlayer = com.nuvio.tv.ui.reshaped.livetv.rememberLiveTvPlayer(viewModel.controller, containerFocusRequester) // Nuvio RS hook: Live TV
-    val forgeYouTube = com.nuvio.tv.skin.kicia.youtube.rememberForgeYouTubePanel() // Fork hook: panel 1Tube (Kicia)
     val playPauseFocusRequester = remember { FocusRequester() }
     val progressBarFocusRequester = remember { FocusRequester() }
     val episodesFocusRequester = remember { FocusRequester() }
@@ -293,7 +282,6 @@ fun PlayerScreen(
             completed
         )
     }
-    liveTvPlayer.exit = exitPlayer // Fork hook: livetv (Wstecz w pytaniu archiwum wychodzi z odtwarzacza; jak Kicia 14.11)
     val exitPlayerFromError: () -> Unit = exitPlayerFromError@{
         if (exitDispatched) return@exitPlayerFromError
         exitDispatched = true
@@ -368,8 +356,6 @@ fun PlayerScreen(
 
     val handleBackPress = handleBackPress@{
         if (externalHandoffInProgress) return@handleBackPress
-        if (viewModel.seekPreview.handleBack(uiState)) return@handleBackPress
-        if (com.nuvio.tv.skin.niunia.player.NiuniaPlayerBack.consume()) return@handleBackPress // Fork hook: skin (Wstecz krok po kroku w nakładce skórki)
         if (postPlayRecommendationState.canReturnToPlayer && !uiState.playbackEnded) {
             returnToPlayerFromPostPlay()
             viewModel.hideControls()
@@ -379,7 +365,7 @@ fun PlayerScreen(
             returnToDetailsFromEndPrompt()
         } else if (uiState.error != null) {
             exitPlayerFromError()
-        } else if (uiState.showAudioOverlay || uiState.showSubtitleOverlay || uiState.showQualityOverlay) { // Fork hook: echo
+        } else if (uiState.showAudioOverlay || uiState.showSubtitleOverlay) {
             viewModel.onEvent(PlayerEvent.OnDismissTransientOverlay)
         } else if (uiState.showStreamInfoOverlay) {
             dismissStreamInfoOverlay()
@@ -594,21 +580,18 @@ fun PlayerScreen(
         uiState.showSubtitleTimingDialog,
         uiState.showAudioOverlay,
         uiState.showSubtitleOverlay,
-        uiState.showSpeedDialog,
+        (uiState.showSpeedDialog || uiState.showDiscTitlesDialog),
         shouldConfirmNextEpisodeOnEnd,
         postPlayRecommendationState.isVisible,
-        uiState.showQualityOverlay, // Fork hook: echo (okno jakości: po zamknięciu fokus wraca na przyciski)
     ) {
-        if (uiState.showQualityOverlay) return@LaunchedEffect // Fork hook: echo (okno jakości trzyma fokus — test VOD JMGO 26.11: chowanie przycisków dawało fokus korzeniowi)
         if (shouldConfirmNextEpisodeOnEnd || postPlayRecommendationState.isVisible) return@LaunchedEffect
         if (uiState.error != null) return@LaunchedEffect
-        if (viewModel.seekPreview.isSyncOverlayOpen) return@LaunchedEffect
         if (uiState.showPartyPanel) return@LaunchedEffect
         if (uiState.showControls && !uiState.showEpisodesPanel && !uiState.showSourcesPanel && !uiState.showChaptersPanel &&
             !uiState.showAudioOverlay && !uiState.showSubtitleOverlay &&
             !uiState.showSubtitleStylePanel && !uiState.showSubtitleDelayOverlay &&
             !uiState.showSubtitleTimingDialog &&
-            !uiState.showSpeedDialog
+            !(uiState.showSpeedDialog || uiState.showDiscTitlesDialog)
         ) {
             // Wait for AnimatedVisibility animation to complete before focusing play/pause button
             kotlinx.coroutines.delay(250)
@@ -632,7 +615,6 @@ fun PlayerScreen(
         }
     }
 
-    com.nuvio.tv.fork.ForkHooks.introOnPlayerOpen() // fork hook
     // Initial focus on container - the LaunchedEffect above will handle focusing controls
     LaunchedEffect(Unit) {
         if (uiState.error == null) {
@@ -688,23 +670,6 @@ fun PlayerScreen(
             .focusRequester(containerFocusRequester)
             .focusable(enabled = uiState.error == null)
             .onPreviewKeyEvent { keyEvent ->
-                if (liveTvPlayer.onPreviewKey(keyEvent.nativeKeyEvent, uiState)) return@onPreviewKeyEvent true // Nuvio RS hook: Live TV
-                if (forgeYouTube.onPreviewKey(keyEvent.nativeKeyEvent, uiState.showControls)) return@onPreviewKeyEvent true // Fork hook: panel 1Tube (Kicia)
-                if (forgeYouTube.open) return@onPreviewKeyEvent false // Fork hook: panel 1Tube — klawisze bierze panel
-                if (com.nuvio.tv.fork.ForkHooks.modulePlayerKey(context, keyEvent.nativeKeyEvent)) return@onPreviewKeyEvent true // Fork hook: registry
-                run { // Arc hook: remote buttons (player and Live TV)
-                    com.nuvio.tv.data.local.RemoteButtonStore.ensureLoaded(context)
-                    if (arcRemote.onKey(
-                            keyEvent.nativeKeyEvent,
-                            com.nuvio.tv.data.local.RemoteButtonStore.map.value,
-                            controlsHidden = !uiState.showControls,
-                            ready = uiState.error == null &&
-                                !uiState.showEpisodesPanel && !uiState.showSourcesPanel &&
-                                !uiState.showAudioOverlay && !uiState.showSubtitleOverlay && !uiState.showSpeedDialog,
-                            send = viewModel::onEvent
-                        )
-                    ) return@onPreviewKeyEvent true
-                }
                 // Consume the confirm KEY_UP that opened the subtitle timing dialog before
                 // the newly focused "Sync" button can treat it as a second click. Preview
                 // is required: after open, focus moves into the dialog so onKeyEvent on
@@ -735,11 +700,29 @@ fun PlayerScreen(
                     }
                 }
 
-                if (keyEvent.nativeKeyEvent.keyCode != KeyEvent.KEYCODE_CAPTIONS) {
+                val keyCode = keyEvent.nativeKeyEvent.keyCode
+                if (keyCode != KeyEvent.KEYCODE_CAPTIONS && keyCode != KeyEvent.KEYCODE_MEDIA_AUDIO_TRACK) {
                     return@onPreviewKeyEvent false
                 }
 
                 if (keyEvent.nativeKeyEvent.action != KeyEvent.ACTION_UP) {
+                    return@onPreviewKeyEvent true
+                }
+
+                if (keyCode == KeyEvent.KEYCODE_MEDIA_AUDIO_TRACK) {
+                    if (
+                        !uiState.showSubtitleDelayOverlay &&
+                        !uiState.showEpisodesPanel &&
+                        !uiState.showSourcesPanel && !uiState.showChaptersPanel &&
+                        !uiState.showPartyPanel &&
+                        !uiState.showAudioOverlay &&
+                        !uiState.showSubtitleOverlay &&
+                        !uiState.showSubtitleStylePanel &&
+                        !uiState.showSubtitleTimingDialog &&
+                        !(uiState.showSpeedDialog || uiState.showDiscTitlesDialog)
+                    ) {
+                        viewModel.onEvent(PlayerEvent.OnShowAudioOverlay)
+                    }
                     return@onPreviewKeyEvent true
                 }
 
@@ -753,7 +736,7 @@ fun PlayerScreen(
                     !uiState.showSubtitleOverlay &&
                     !uiState.showSubtitleStylePanel &&
                     !uiState.showSubtitleTimingDialog &&
-                    !uiState.showSpeedDialog
+                    !(uiState.showSpeedDialog || uiState.showDiscTitlesDialog)
                 ) {
                     viewModel.onEvent(PlayerEvent.OnShowSubtitleOverlay)
                 }
@@ -873,18 +856,15 @@ fun PlayerScreen(
                 // When a side panel or dialog is open, let it handle all keys
                 val panelOrDialogOpen = uiState.showEpisodesPanel || uiState.showSourcesPanel || uiState.showPartyPanel ||
                         uiState.showChaptersPanel ||
-                        uiState.showAudioOverlay || uiState.showSubtitleOverlay || uiState.showQualityOverlay || // Fork hook: echo
-                        uiState.showSubtitleStylePanel || uiState.showSpeedDialog ||
+                        uiState.showAudioOverlay || uiState.showSubtitleOverlay ||
+                        uiState.showSubtitleStylePanel || (uiState.showSpeedDialog || uiState.showDiscTitlesDialog) ||
                         uiState.showSubtitleDelayOverlay || uiState.showSubtitleTimingDialog ||
                         uiState.showMoreDialog ||
                         shouldConfirmNextEpisodeOnEnd ||
                         uiState.postPlayMode is PostPlayMode.StillWatching ||
                         postPlayRecommendationState.isVisible ||
-                        uiState.error != null ||
-                        liveTvPlayer.panelOpen // Nuvio RS hook: Live TV channel list
+                        uiState.error != null
                 if (panelOrDialogOpen) return@onKeyEvent false
-                if (forgeYouTube.open) return@onKeyEvent false // Fork hook: panel 1Tube
-                if (com.nuvio.tv.skin.kicia.player.ForgeSheetOpen.open) return@onKeyEvent false // fork hook: okno „Więcej” skórki Kicia (▲ działało jak na pasku)
 
                 if (keyEvent.nativeKeyEvent.action == KeyEvent.ACTION_UP) {
                     when (keyEvent.nativeKeyEvent.keyCode) {
@@ -1105,7 +1085,7 @@ fun PlayerScreen(
                 !uiState.showSubtitleStylePanel &&
                 !uiState.showSubtitleDelayOverlay &&
                 !uiState.showSubtitleTimingDialog &&
-                !uiState.showSpeedDialog &&
+                !(uiState.showSpeedDialog || uiState.showDiscTitlesDialog) &&
                 !uiState.showMoreDialog
         }
         val seekOverlayVisible = uiState.showSeekOverlay && !uiState.showControls && uiState.error == null &&
@@ -1123,7 +1103,7 @@ fun PlayerScreen(
             !uiState.showPartyPanel &&
             !uiState.showAudioOverlay &&
             !uiState.showSubtitleOverlay &&
-            !uiState.showSpeedDialog &&
+            !(uiState.showSpeedDialog || uiState.showDiscTitlesDialog) &&
             !postPlayRecommendationState.isVisible &&
             uiState.postPlayMode !is PostPlayMode.StillWatching
         val latestPlayerControlsVisible by rememberUpdatedState(playerControlsVisible)
@@ -1287,6 +1267,7 @@ fun PlayerScreen(
                         isBuffering = uiState.isBuffering,
                         aspectMode = uiState.aspectMode,
                         subtitleStyle = uiState.effectiveSubtitleStyle,
+                        assSubtitleStyle = uiState.effectiveAssSubtitleStyle,
                         subtitleLiftPx = subtitleLiftPx,
                         subtitleTrackKey = subtitleWidthKey.take(2),
                         onSubtitleTextMetricsChanged = { subtitleTextMetrics = it },
@@ -1306,6 +1287,7 @@ fun PlayerScreen(
                             libassRenderMode = uiState.libassRenderMode,
                             letterboxMaskEnabled = !(transparentLetterbox && playerSurfaceIsFullscreen),
                             subtitleStyle = uiState.effectiveSubtitleStyle,
+                            assSubtitleStyle = uiState.effectiveAssSubtitleStyle,
                             subtitleLiftPx = subtitleLiftPx,
                             onBindSubtitleView = viewModel::bindExoSubtitleView,
                             onSubtitleTextMetricsChanged = { subtitleTextMetrics = it },
@@ -1387,7 +1369,6 @@ fun PlayerScreen(
             )
         }
 
-        if (com.nuvio.tv.fork.ForkHooks.skinPlayerOverlay("loading", uiState, mapOf("visible" to ((uiState.showLoadingOverlay || uiState.showEpisodeAutoPlayLoadingOverlay) && uiState.error == null && !postPlayRecommendationState.isVisible), "onEvent" to { e: PlayerEvent -> viewModel.onEvent(e) }, "exit" to exitPlayer))) Unit else // Fork hook: skin (Z-14 PlayerLoading)
         LoadingOverlay(
             visible = (uiState.showLoadingOverlay || uiState.showEpisodeAutoPlayLoadingOverlay) &&
                 uiState.error == null && !postPlayRecommendationState.isVisible,
@@ -1469,9 +1450,6 @@ fun PlayerScreen(
             )
         }
 
-        SubtitleSyncStatusPanel(NuvioTheme.spacing.xl) // AutoSync hook: audio sync fallback status
-        AutoSyncBubbleToastHost(controlsVisible = uiState.showControls) // Nuvio RS hook: AutoSync bubble
-
         // Torrent stats overlay (top-right corner)
         TorrentOverlay(
             visible = uiState.isTorrentStream && uiState.showTorrentStats &&
@@ -1501,7 +1479,6 @@ fun PlayerScreen(
         )
 
         // Error state
-        if (com.nuvio.tv.fork.ForkHooks.skinPlayerOverlay("error", uiState, mapOf("onEvent" to { e: PlayerEvent -> viewModel.onEvent(e) }, "exit" to exitPlayerFromError))) Unit else // Fork hook: skin (Z-14 PlayerError)
         if (uiState.error != null) {
             ErrorOverlay(
                 message = uiState.error!!,
@@ -1582,7 +1559,6 @@ fun PlayerScreen(
                 .then(playerControlsDim)
                 .reportSubtitleClearance(subtitleClearanceGapPx) { skipClearancePx = it }
         )
-        if (com.nuvio.tv.fork.ForkHooks.skinPlayerOverlay("next", uiState, mapOf("onEvent" to { e: PlayerEvent -> viewModel.onEvent(e) }, "mode" to postPlayOverlayMode, "focus" to nextEpisodeFocusRequester))) Unit else // Fork hook: skin (Z-14 PlayerNext)
         PostPlayOverlay(
             mode = postPlayOverlayMode,
             controlsVisible = uiState.showControls,
@@ -1636,12 +1612,12 @@ fun PlayerScreen(
             !uiState.showAudioOverlay &&
             !uiState.showSubtitleOverlay &&
             !uiState.showSubtitleStylePanel &&
-            !uiState.showSpeedDialog &&
+            !(uiState.showSpeedDialog || uiState.showDiscTitlesDialog) &&
             !uiState.showMoreDialog &&
             !uiState.showDisplayModeInfo &&
             !postPlayRecommendationState.isVisible
 
-        if (com.nuvio.tv.fork.ForkHooks.skinPlayerClock(uiState)) { /* Fork hook: skin (zegar skórki) */ } else AnimatedVisibility(
+        AnimatedVisibility(
             visible = showClockOverlay,
             enter = fadeIn(animationSpec = tween(150)),
             exit = fadeOut(animationSpec = tween(150)),
@@ -1665,7 +1641,7 @@ fun PlayerScreen(
             modifier = playerControlsDim
         ) {
             val context = LocalContext.current
-            if (com.nuvio.tv.fork.ForkHooks.skinPlayerChrome(uiState, mapOf("viewModel" to viewModel, "playPause" to playPauseFocusRequester, "progressBar" to progressBarFocusRequester, "clearance" to { px: Float -> if (latestPlayerControlsVisible) subtitleControlsClearancePx = px })) { viewModel.onEvent(it) }) { /* Fork hook: skin */ } else PlayerControlsOverlay(
+            PlayerControlsOverlay(
                 uiState = uiState,
                 playerBadges = playerBadges,
                 viewModel = viewModel,
@@ -1705,6 +1681,7 @@ fun PlayerScreen(
                 onShowAudioDialog = { viewModel.onEvent(PlayerEvent.OnShowAudioOverlay) },
                 onShowSubtitleDialog = { viewModel.onEvent(PlayerEvent.OnShowSubtitleOverlay) },
                 onShowSpeedDialog = { viewModel.onEvent(PlayerEvent.OnShowSpeedDialog) },
+                onShowDiscTitles = { viewModel.onEvent(PlayerEvent.OnShowDiscTitles) },
                 onToggleAspectRatio = {
                     Log.d("PlayerScreen", "onToggleAspectRatio called - dispatching event")
                     viewModel.onEvent(PlayerEvent.OnToggleAspectRatio)
@@ -1839,7 +1816,7 @@ fun PlayerScreen(
                 !uiState.showAudioOverlay &&
                 !uiState.showSubtitleOverlay &&
                 !uiState.showSubtitleTimingDialog &&
-                !uiState.showSpeedDialog,
+                !(uiState.showSpeedDialog || uiState.showDiscTitlesDialog),
             enter = fadeIn(animationSpec = tween(120)),
             exit = fadeOut(animationSpec = tween(120)),
             modifier = Modifier
@@ -1869,8 +1846,6 @@ fun PlayerScreen(
                 }
             )
         }
-
-        SeekPreviewSyncLayer(viewModel, uiState, onDismissed = { runCatching { containerFocusRequester.requestFocus() } })
 
         AnimatedVisibility(
             visible = seekOverlayVisible,
@@ -1996,7 +1971,6 @@ fun PlayerScreen(
             modifier = playerControlsDim
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
-                if (com.nuvio.tv.fork.ForkHooks.skinPlayerOverlay("sources", uiState, mapOf("onEvent" to { e: PlayerEvent -> viewModel.onEvent(e) }, "focus" to sourceStreamsFocusRequester, "filename" to viewModel.playerStreamFilename(), "exit" to exitPlayer))) Unit else // Fork hook: skin (Z-14 PlayerSources)
                 StreamSourcesSidePanel(
                     uiState = uiState,
                     currentFilename = viewModel.playerStreamFilename(),
@@ -2109,27 +2083,22 @@ fun PlayerScreen(
             Box(
                 modifier = Modifier.fillMaxSize()
             ) {
-                val isCurrentSubtitleAss = run {
-                    val addon = uiState.selectedAddonSubtitle
-                    if (addon != null) {
-                        val url = addon.url.lowercase(java.util.Locale.US)
-                        return@run url.contains(".ass") || url.contains(".ssa")
-                    }
-                    val track = uiState.subtitleTracks.getOrNull(uiState.selectedSubtitleTrackIndex)
-                    if (track != null) {
-                        val codec = track.codec?.lowercase(java.util.Locale.US).orEmpty()
-                        return@run codec.contains("ass") || codec.contains("ssa") || track.name.contains("ASS", ignoreCase = true)
-                    }
-                    false
-                }
                 val isUsingMpv = uiState.internalPlayerEngine == InternalPlayerEngine.MVP_PLAYER
-                val isAssDisabled = isCurrentSubtitleAss && (isUsingMpv || uiState.useLibass)
+                val supportsAssStyleCustomization = uiState.isAssSubtitleSelected && isUsingMpv
+                val isAssStyleRestricted = uiState.isAssSubtitleStyleActive &&
+                    !(supportsAssStyleCustomization && uiState.editableSubtitleStyle.customizeAss)
 
                 SubtitleStyleSidePanel(
                     subtitleStyle = uiState.editableSubtitleStyle,
                     isEditingHdrStyle = uiState.isEditingHdrSubtitleStyle,
-                    onEvent = { if (!isAssDisabled) viewModel.onEvent(it) },
-                    isStyleDisabledByLibass = isAssDisabled,
+                    onEvent = { event ->
+                        val allowed = !isAssStyleRestricted ||
+                            event is PlayerEvent.OnSetSubtitleSize ||
+                            (supportsAssStyleCustomization && event is PlayerEvent.OnSetSubtitleCustomizeAss)
+                        if (allowed) viewModel.onEvent(event)
+                    },
+                    isStyleDisabledByLibass = isAssStyleRestricted,
+                    supportsAssStyleCustomization = supportsAssStyleCustomization,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                 )
@@ -2160,28 +2129,10 @@ fun PlayerScreen(
             },
             onNightModeChange = { viewModel.onEvent(PlayerEvent.OnSetNightMode(it)) },
             onDismiss = { viewModel.onEvent(PlayerEvent.OnDismissTransientOverlay) },
-            languageOptions = if (com.nuvio.tv.core.player.BetaFeatures.settings(LocalContext.current).audioLanguageMenu) uiState.audioMenuOptions.orEmpty() else null, // fork hook: echo A5
-            isLoadingSources = uiState.isLoadingSourceStreams,
-            onLanguageSelected = { viewModel.onEvent(PlayerEvent.OnAudioMenuLanguageSelected(it)) },
-            onLanguageSourcesRequested = { viewModel.onEvent(PlayerEvent.OnAudioMenuSourcesRequested(it)) },
             modifier = Modifier
                 .fillMaxSize()
                 .zIndex(2.6f)
                 .then(playerControlsDim)
-        )
-
-        QualitySelectionOverlay( // Fork hook: echo (quality menu)
-            visible = uiState.showQualityOverlay,
-            streams = uiState.sourceAllStreams,
-            currentQuality = uiState.currentStreamQuality,
-            isLoading = uiState.isLoadingSourceStreams,
-            onQualitySelected = { viewModel.onEvent(PlayerEvent.OnQualitySelected(it)) },
-            onDismiss = { viewModel.onEvent(PlayerEvent.OnDismissTransientOverlay) },
-            modifier = Modifier.fillMaxSize().zIndex(2.6f),
-            languageNotes = uiState.qualityLanguageNotes,
-            autoShown = uiState.autoQualityEnabled,
-            autoActive = uiState.autoQualityActive,
-            onAutoSelected = { viewModel.onEvent(PlayerEvent.OnAutoQualitySelected) }
         )
 
         SubtitleSelectionOverlay(
@@ -2224,7 +2175,7 @@ fun PlayerScreen(
                 !uiState.showSubtitleOverlay &&
                 !uiState.showSubtitleStylePanel &&
                 !uiState.showSubtitleDelayOverlay &&
-                !uiState.showSpeedDialog &&
+                !(uiState.showSpeedDialog || uiState.showDiscTitlesDialog) &&
                 !uiState.showMoreDialog,
             onDismiss = { viewModel.onEvent(PlayerEvent.OnDismissSubtitleTimingDialog) },
             modifier = Modifier
@@ -2251,8 +2202,14 @@ fun PlayerScreen(
             )
         }
 
-        com.nuvio.tv.ui.reshaped.livetv.LiveTvPlayerOverlay(liveTvPlayer, uiState) // Nuvio RS hook: Live TV
-        com.nuvio.tv.skin.kicia.youtube.ForgeYouTubePanelHost(forgeYouTube) { viewModel.onEvent(PlayerEvent.OnSeekTo(it)) } // Fork hook: panel 1Tube (Kicia)
+        if (uiState.showDiscTitlesDialog) {
+            DiscTitlesDialog(
+                titles = uiState.discTitles,
+                currentTitle = uiState.currentDiscTitle,
+                onTitleSelected = { viewModel.onEvent(PlayerEvent.OnSelectDiscTitle(it)) },
+                onDismiss = { viewModel.onEvent(PlayerEvent.OnDismissTransientOverlay) }
+            )
+        }
 
         if (uiState.showSpeedDialog) {
             SpeedSelectionDialog(
@@ -2272,6 +2229,7 @@ private fun MpvPlayerSurface(
     isBuffering: Boolean,
     aspectMode: AspectMode,
     subtitleStyle: SubtitleStyleSettings,
+    assSubtitleStyle: SubtitleStyleSettings,
     subtitleLiftPx: Float,
     subtitleTrackKey: Any?,
     onSubtitleTextMetricsChanged: (SubtitleTextMetrics?) -> Unit,
@@ -2322,14 +2280,14 @@ private fun MpvPlayerSurface(
         mpvView.applyAspectMode(aspectMode)
     }
 
-    LaunchedEffect(mpvView, subtitleStyle, subtitleLiftPx) {
+    LaunchedEffect(mpvView, subtitleStyle, assSubtitleStyle, subtitleLiftPx) {
         val height = mpvView.height
         mpvView.subtitleLiftFraction = if (subtitleLiftPx > 0f && height > 0) {
             (subtitleLiftPx / height).toDouble()
         } else {
             0.0
         }
-        mpvView.applySubtitleStyle(subtitleStyle)
+        mpvView.applySubtitleStyle(subtitleStyle, assSubtitleStyle)
     }
 
     LaunchedEffect(mpvView, subtitleStyle, subtitleTrackKey) {
@@ -2350,6 +2308,7 @@ private fun ExoPlayerSurface(
     libassRenderMode: LibassRenderMode,
     letterboxMaskEnabled: Boolean,
     subtitleStyle: SubtitleStyleSettings,
+    assSubtitleStyle: SubtitleStyleSettings,
     subtitleLiftPx: Float,
     onBindSubtitleView: (androidx.media3.ui.SubtitleView?) -> Unit = {},
     onSubtitleTextMetricsChanged: (SubtitleTextMetrics?) -> Unit = {},
@@ -2361,6 +2320,7 @@ private fun ExoPlayerSurface(
     val latestTunneledSurfaceFill by rememberUpdatedState(tunneledSurfaceFill)
     val latestBindSubtitleView by rememberUpdatedState(onBindSubtitleView)
     val latestSubtitleStyle by rememberUpdatedState(subtitleStyle)
+    val latestAssSubtitleStyle by rememberUpdatedState(assSubtitleStyle)
     val latestSubtitleLiftPx by rememberUpdatedState(subtitleLiftPx)
     val latestMetricsCallback by rememberUpdatedState(onSubtitleTextMetricsChanged)
     val playerView = remember(context, player) {
@@ -2446,7 +2406,12 @@ private fun ExoPlayerSurface(
                 // Re-apply subtitle style when tracks change so style is applied
                 // even when subtitles are enabled after initial player setup.
                 playerView.post {
-                    playerView.applySubtitleStyleIfNeeded(latestSubtitleStyle, latestSubtitleLiftPx, force = true)
+                    playerView.applySubtitleStyleIfNeeded(
+                        latestSubtitleStyle,
+                        latestAssSubtitleStyle,
+                        latestSubtitleLiftPx,
+                        force = true
+                    )
                 }
             }
         }
@@ -2510,11 +2475,9 @@ private fun ExoPlayerSurface(
         }
     }
 
-    LaunchedEffect(playerView, subtitleStyle, subtitleLiftPx) {
-        playerView.applySubtitleStyleIfNeeded(subtitleStyle, subtitleLiftPx)
+    LaunchedEffect(playerView, subtitleStyle, assSubtitleStyle, subtitleLiftPx) {
+        playerView.applySubtitleStyleIfNeeded(subtitleStyle, assSubtitleStyle, subtitleLiftPx)
     }
-    // Nuvio RS hook: custom subtitle font, re-applied when it finishes loading or changes
-    LaunchedEffect(playerView) { com.nuvio.tv.reshaped.subtitlefont.SubtitleFontStore.font.collect { playerView.applySubtitleStyleIfNeeded(latestSubtitleStyle, latestSubtitleLiftPx, force = true) } }
 }
 
 private fun PlayerView.enableComposeSurfaceSyncWorkaroundIfAvailable() {
@@ -2611,6 +2574,7 @@ private fun describeRect(rect: RectF?): String =
 
 private data class SubtitleAppliedConfig(
     val style: SubtitleStyleSettings,
+    val assSize: Int,
     val isAss: Boolean,
     val liftPx: Float
 )
@@ -2644,14 +2608,21 @@ private fun PlayerView.isAssOrSsaSubtitleSelected(): Boolean =
 
 private fun PlayerView.applySubtitleStyleIfNeeded(
     subtitleStyle: SubtitleStyleSettings,
+    assSubtitleStyle: SubtitleStyleSettings,
     liftPx: Float,
     force: Boolean = false
 ) {
     val isAss = isAssOrSsaSubtitleSelected()
-    val config = SubtitleAppliedConfig(subtitleStyle, isAss, liftPx)
+    val config = SubtitleAppliedConfig(subtitleStyle, assSubtitleStyle.size, isAss, liftPx)
     if (!force && getTag(R.id.player_view_subtitle_style_tag) == config) {
         return
     }
+    (player as? ExoPlayer)?.getAssHandlerCompat()?.applyAssFontScaleCompat(
+        (assSubtitleStyle.size / 100f).coerceIn(0.5f, 3.0f)
+    )
+    findViewById<android.widget.FrameLayout>(R.id.libass_overlay_container_gl)
+        ?.findAssOverlayChild()
+        ?.invalidateSubtitles()
     val subView = subtitleView
     if (subView == null) {
         // SubtitleView not yet available (no track selected yet). Don't set the
@@ -2664,9 +2635,7 @@ private fun PlayerView.applySubtitleStyleIfNeeded(
         setFixedTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, scaledFontSize)
         setApplyEmbeddedFontSizes(false)
 
-        // Nuvio RS hook: custom subtitle font (null = default system font)
-        val typeface = com.nuvio.tv.reshaped.subtitlefont.SubtitleFontStore.exoTypeface(context, subtitleStyle.bold)
-            ?: if (subtitleStyle.bold) {
+        val typeface = if (subtitleStyle.bold) {
             android.graphics.Typeface.DEFAULT_BOLD
         } else {
             android.graphics.Typeface.DEFAULT
@@ -2859,6 +2828,7 @@ private fun PlayerControlsOverlay(
     onShowAudioDialog: () -> Unit,
     onShowSubtitleDialog: () -> Unit,
     onShowSpeedDialog: () -> Unit,
+    onShowDiscTitles: () -> Unit,
     onToggleAspectRatio: () -> Unit,
     onSwitchPlayerEngine: () -> Unit,
     onReportPlaybackIssue: () -> Unit,
@@ -3039,7 +3009,6 @@ private fun PlayerControlsOverlay(
                                 }
                             }
                     ) {
-                        SeekPreviewAboveProgressBar(viewModel)
                         PlayerControlsProgressBarHost(
                             viewModel = viewModel,
                             chapters = uiState.chapters,
@@ -3145,6 +3114,18 @@ private fun PlayerControlsOverlay(
                         onFocused = onResetHideTimer
                     )
 
+                    // In the main row: a disc's extras are easy to miss behind the more-actions button.
+                    if (uiState.discTitles.size > 1 && uiState.internalPlayerEngine != InternalPlayerEngine.MVP_PLAYER) {
+                        ControlButton(
+                            icon = Icons.Default.Album,
+                            contentDescription = stringResource(R.string.player_disc_titles),
+                            onClick = onShowDiscTitles,
+                            upFocusRequester = progressUpTarget,
+                            onDownKey = onHideControls,
+                            onFocused = onResetHideTimer
+                        )
+                    }
+
                     if (hasEpisodeContext) {
                         ControlButton(
                             icon = Icons.AutoMirrored.Filled.List,
@@ -3234,16 +3215,6 @@ private fun PlayerControlsOverlay(
                                 onDownKey = onHideControls,
                                 onFocused = onResetHideTimer
                             )
-                            seekPreviewSyncAction(viewModel)?.let { openSync ->
-                                ControlButton(
-                                    icon = Icons.Default.Tune,
-                                    contentDescription = stringResource(R.string.cd_seek_preview_sync),
-                                    onClick = openSync,
-                                    upFocusRequester = progressUpTarget,
-                                    onDownKey = onHideControls,
-                                    onFocused = onResetHideTimer
-                                )
-                            }
                             if (uiState.playbackIssueReportsEnabled) {
                                 ReportControlButton(
                                     reportId = uiState.playbackIssueReportId,
@@ -3332,8 +3303,7 @@ private fun PlayerControlsProgressBarHost(
         onUpKey = onUpKey,
         onFocused = onFocused,
         onClick = onClick,
-        bufferedPosition = playbackTimeline.bufferedPosition,
-        overlay = { SeekPreviewCueTicks(viewModel, playbackTimeline.duration, Modifier.matchParentSize()) }
+        bufferedPosition = playbackTimeline.bufferedPosition
     )
 }
 
@@ -3488,8 +3458,6 @@ private fun ProgressBar(
     onClick: (() -> Unit)? = null,
     /** Position (ms) up to which content is buffered. Pass 0 to skip the overlay. */
     bufferedPosition: Long = 0L,
-    /** Drawn over the track, e.g. seek-preview cue ticks. */
-    overlay: @Composable BoxScope.() -> Unit = {},
     /** Each chapter after the first gets a mark where it starts. */
     chapters: List<PlayerChapter> = emptyList()
 ) {
@@ -3655,7 +3623,6 @@ private fun ProgressBar(
                     }
                 }
         )
-        overlay()
     }
 }
 
@@ -3679,8 +3646,6 @@ private fun SeekOverlay(
     currentPosition: Long,
     duration: Long,
     bufferedPosition: Long = 0L,
-    preview: @Composable () -> Unit = {},
-    progressOverlay: @Composable BoxScope.() -> Unit = {},
     chapters: List<PlayerChapter> = emptyList(),
     showChapterTitle: Boolean = true
 ) {
@@ -3690,7 +3655,6 @@ private fun SeekOverlay(
             .padding(horizontal = NuvioTheme.spacing.xxl, vertical = NuvioTheme.spacing.xl)
     ) {
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-            preview()
             if (showChapterTitle) {
                 ChapterTitle(chapters = chapters, positionMs = currentPosition)
             }
@@ -3700,7 +3664,6 @@ private fun SeekOverlay(
                 onSeekPreview = {},
                 onSeekCommit = {},
                 bufferedPosition = bufferedPosition,
-                overlay = progressOverlay,
                 chapters = chapters
             )
 
@@ -3733,8 +3696,6 @@ private fun SeekOverlayHost(
         currentPosition = playbackTimeline.currentPosition,
         duration = playbackTimeline.duration,
         bufferedPosition = playbackTimeline.bufferedPosition,
-        preview = { SeekPreviewThumbnailHost(viewModel = viewModel) },
-        progressOverlay = { SeekPreviewCueTicks(viewModel, playbackTimeline.duration, Modifier.matchParentSize()) },
         chapters = chapters,
         showChapterTitle = showChapterTitle
     )
@@ -4428,6 +4389,126 @@ private fun SpeedSelectionDialog(
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DiscTitlesDialog(
+    titles: List<DiscTitle>,
+    currentTitle: String?,
+    onTitleSelected: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val selectedIndex = remember(titles, currentTitle) {
+        titles.indexOfFirst { it.name == currentTitle }.coerceAtLeast(0)
+    }
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = selectedIndex)
+    val focusRequesters = remember(titles.size) { titles.map { FocusRequester() } }
+
+    LaunchedEffect(selectedIndex) {
+        runCatching { focusRequesters[selectedIndex].requestFocus() }
+    }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Box(
+            modifier = Modifier
+                .width(460.dp)
+                .clip(RoundedCornerShape(NuvioTheme.radii.xl))
+                .background(NuvioTheme.colors.BackgroundElevated)
+        ) {
+            Column(
+                modifier = Modifier.padding(NuvioTheme.spacing.xl)
+            ) {
+                Text(
+                    text = stringResource(R.string.player_disc_titles),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = NuvioTheme.colors.TextPrimary,
+                    modifier = Modifier.padding(bottom = NuvioTheme.spacing.lg)
+                )
+
+                LazyColumn(
+                    // A disc can carry many titles: the list scrolls within the screen.
+                    modifier = Modifier.heightIn(max = 380.dp),
+                    state = listState,
+                    verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.sm),
+                    // Room for the focused card's border at either end of the list.
+                    contentPadding = PaddingValues(vertical = NuvioTheme.spacing.sm)
+                ) {
+                    itemsIndexed(titles) { index, title ->
+                        DiscTitleItem(
+                            modifier = Modifier.focusRequester(focusRequesters[index]),
+                            title = title,
+                            isSelected = title.name == currentTitle,
+                            onClick = { onTitleSelected(title.name) }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DiscTitleItem(
+    modifier: Modifier = Modifier,
+    title: DiscTitle,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.colors(
+            containerColor = if (isSelected) NuvioTheme.colors.Secondary.copy(alpha = 0.2f) else NuvioTheme.colors.BackgroundCard,
+            focusedContainerColor = NuvioTheme.colors.FocusBackground
+        ),
+        shape = CardDefaults.shape(shape = RoundedCornerShape(NuvioTheme.radii.sm))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(NuvioTheme.spacing.lg),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                val minutes = (title.durationMs / 60_000L).toInt()
+                Text(
+                    text = if (title.isFeature) {
+                        stringResource(R.string.player_disc_title_feature, minutes)
+                    } else {
+                        stringResource(R.string.player_disc_title_extra, minutes)
+                    },
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = NuvioTheme.colors.TextPrimary
+                )
+                val details = buildList {
+                    add(title.name.substringBeforeLast('.'))
+                    add(pluralStringResource(R.plurals.player_disc_title_clips, title.clipCount, title.clipCount))
+                    if (title.audioLanguages.isNotEmpty()) {
+                        add(title.audioLanguages.joinToString(", ") { it.uppercase(Locale.ROOT) })
+                    }
+                    if (title.subtitleLanguages.isNotEmpty()) {
+                        add(stringResource(R.string.player_disc_title_subtitles, title.subtitleLanguages.joinToString(", ") { it.uppercase(Locale.ROOT) }))
+                    }
+                }
+                Text(
+                    text = details.joinToString(" · "),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = NuvioTheme.colors.TextSecondary,
+                    maxLines = 2
+                )
+            }
+
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = NuvioTheme.colors.Primary,
+                    modifier = Modifier.size(20.dp)
+                )
             }
         }
     }

@@ -76,6 +76,7 @@ private const val MdbListUrl = "https://mdblist.com"
 private const val IntroDbUrl = "https://introdb.app/"
 private const val ImdbDatasetsUrl = "https://developer.imdb.com/non-commercial-datasets/"
 private const val ApacheLicenseUrl = "https://www.apache.org/licenses/LICENSE-2.0"
+private const val SherpaOnnxUrl = "https://github.com/k2-fsa/sherpa-onnx"
 private const val HazeLicenseUrl = "https://github.com/chrisbanes/haze/blob/1.7.2/LICENSE"
 private const val LibMpvAndroidUrl = "https://github.com/jarnedemeulemeester/libmpv-android"
 
@@ -410,11 +411,6 @@ private fun dataAttributionItems() = listOf(
 @Composable
 private fun playbackLicenseItems() = listOf(
     LicenseAttributionItem(
-        title = stringResource(R.string.ranked_regex_license_title),
-        body = stringResource(R.string.ranked_regex_license_body),
-        url = "https://github.com/florianingerl/com.florianingerl.util.regex"
-    ),
-    LicenseAttributionItem(
         title = stringResource(R.string.licenses_attributions_exoplayer_title),
         body = stringResource(R.string.licenses_attributions_exoplayer_body),
         url = ApacheLicenseUrl
@@ -423,5 +419,10 @@ private fun playbackLicenseItems() = listOf(
         title = stringResource(R.string.licenses_attributions_libmpv_title),
         body = stringResource(R.string.licenses_attributions_libmpv_body),
         url = LibMpvAndroidUrl
+    ),
+    LicenseAttributionItem(
+        title = stringResource(R.string.licenses_attributions_audio_sync_title),
+        body = stringResource(R.string.licenses_attributions_audio_sync_body),
+        url = SherpaOnnxUrl
     )
 )

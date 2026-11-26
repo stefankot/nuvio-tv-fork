@@ -312,14 +312,6 @@ fun SearchScreen(
         }
     }
 
-    // forge hook: the remote's voice button opens Search and starts listening
-    LaunchedEffect(Unit) {
-        if (com.nuvio.tv.skin.kicia.input.ForgeRemoteHook.consumeVoiceWanted()) launchVoiceSearch()
-    }
-    LaunchedEffect(Unit) {
-        com.nuvio.tv.skin.kicia.input.ForgeRemoteHook.voiceRequests.collect { launchVoiceSearch() }
-    }
-
     val posterCardStyle = remember(uiState.posterCardCornerRadiusDp) {
         PosterCardStyle(
             cornerRadius = uiState.posterCardCornerRadiusDp.dp,
@@ -1349,7 +1341,6 @@ private fun SearchInputField(
                 .onFocusChanged { focusState ->
                     onSearchFieldFocusChanged(focusState.isFocused)
                 }
-                .then(com.nuvio.tv.skin.kicia.search.forgeSearchFieldKeys()) // forge hook: Up leaves the field for the bar
                 .onPreviewKeyEvent { keyEvent ->
                     when (keyEvent.nativeKeyEvent.keyCode) {
                         KeyEvent.KEYCODE_ENTER,

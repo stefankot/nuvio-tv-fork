@@ -69,7 +69,6 @@ fun LayoutSelectionScreen(
     LaunchedEffect(Unit) {
         continueFocusRequester.requestFocus()
     }
-    if (com.nuvio.tv.fork.ForkHooks.skinScreen("wizard_layout", mapOf("focus" to continueFocusRequester, "selected" to selectedLayout, "onSelect" to { l: HomeLayout -> selectedLayout = l }, "onContinue" to { viewModel.onEvent(LayoutSettingsEvent.SelectLayout(selectedLayout)); onContinue() }))) return // Fork hook: skin
 
     Box(
         modifier = Modifier

@@ -5,36 +5,23 @@ import com.k2fsa.sherpa.onnx.OfflineModelConfig
 import com.k2fsa.sherpa.onnx.OfflineRecognizer
 import com.k2fsa.sherpa.onnx.OfflineRecognizerConfig
 import com.k2fsa.sherpa.onnx.OfflineTransducerModelConfig
-import com.k2fsa.sherpa.onnx.OfflineWhisperModelConfig
 import java.io.File
 
 /**
  * English speech recognition with sherpa-onnx (Apache-2.0) and an int8 Zipformer transducer
  * trained on GigaSpeech (podcasts and YouTube, close to film dialogue). Runs fully on-device.
  */
-internal class SherpaSpeechToText(modelDir: File, threads: Int) : SpeechToText, AutoCloseable {
-    /** Whisper (multilingual) when its files are in [modelDir], else Reshaped's English zipformer. */
-    private val whisperSize: String? =
-        listOf("tiny", "base", "small").firstOrNull { File(modelDir, "$it-encoder.int8.onnx").isFile } // fork adapter
-    val modelFormat = if (whisperSize != null) AsrModelFiles.Format.ONNX else AsrModelFiles.format(modelDir)
+internal class SherpaSpeechToText(
+    modelDir: File,
+    threads: Int,
+    /** Trades some speed for a smaller footprint (see [AsrModelFiles.provider]). */
+    lowMemory: Boolean = false,
+) : SpeechToText, AutoCloseable {
+    val modelFormat = AsrModelFiles.format(modelDir)
     private val recognizer = OfflineRecognizer(
         config = OfflineRecognizerConfig(
             featConfig = FeatureConfig(sampleRate = SAMPLE_RATE, featureDim = 80),
-            modelConfig = if (whisperSize != null) {
-                OfflineModelConfig(
-                    whisper = OfflineWhisperModelConfig(
-                        encoder = File(modelDir, "$whisperSize-encoder.int8.onnx").absolutePath,
-                        decoder = File(modelDir, "$whisperSize-decoder.int8.onnx").absolutePath,
-                        language = "", // empty: detected from the audio
-                        task = "transcribe",
-                        enableTokenTimestamps = true,
-                    ),
-                    tokens = File(modelDir, "$whisperSize-tokens.txt").absolutePath,
-                    numThreads = threads,
-                    modelType = "whisper",
-                    provider = "cpu",
-                )
-            } else OfflineModelConfig(
+            modelConfig = OfflineModelConfig(
                 transducer = OfflineTransducerModelConfig(
                     encoder = File(modelDir, "encoder.int8.${modelFormat.extension}").absolutePath,
                     decoder = File(modelDir, "decoder.int8.${modelFormat.extension}").absolutePath,
@@ -43,7 +30,7 @@ internal class SherpaSpeechToText(modelDir: File, threads: Int) : SpeechToText, 
                 tokens = File(modelDir, AsrModel.TOKENS).absolutePath,
                 numThreads = threads,
                 modelType = "transducer",
-                provider = AsrModelFiles.provider(modelDir, modelFormat),
+                provider = AsrModelFiles.provider(modelDir, modelFormat, lowMemory),
             ),
             decodingMethod = "greedy_search",
         ),

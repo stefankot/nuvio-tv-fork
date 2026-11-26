@@ -75,14 +75,11 @@ fun AmbientModeHost(
         enter = fadeIn(tween(900)),
         exit = fadeOut(tween(400))
     ) {
-        androidx.compose.foundation.layout.Box(Modifier.fillMaxSize()) {
-            AmbientSlideshow(
-                slides = slides,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .pointerInput(Unit) { detectTapGestures { controller.dismiss() } }
-            )
-            com.nuvio.tv.skin.kicia.ambient.ForgeAmbientClock() // forge hook: clock + date on the photo
-        }
+        AmbientSlideshow(
+            slides = slides,
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) { detectTapGestures { controller.dismiss() } }
+        )
     }
 }

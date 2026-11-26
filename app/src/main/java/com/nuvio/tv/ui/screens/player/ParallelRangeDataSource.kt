@@ -164,8 +164,6 @@ internal class ParallelRangeDataSource(
         ) {
             @Volatile var resolvedUri: Uri? = null
             @Volatile var totalLength: Long = -1L
-            @Volatile var representation: HttpRangeVersion? = null
-            val invalidated = AtomicBoolean(false)
             val futures = ConcurrentHashMap<Long, CompletableFuture<DownloadedChunk>>()
             val lastTouch = ConcurrentHashMap<Long, Long>()
             val abandoned = AtomicBoolean(false)
@@ -272,15 +270,11 @@ internal class ParallelRangeDataSource(
         }
 
         private fun recycleBuffer(buffer: PooledBuffer, chunkSz: Long, poolCap: Int) {
-            // Clearing the pool must not detach a deque after a worker chooses it but
-            // before that worker returns its buffer, or the allocation becomes unreachable.
-            synchronized(globalBufferPool) {
-                if (poolCap > 0) {
-                    val pool = globalBufferPool.computeIfAbsent(chunkSz) { ConcurrentLinkedDeque() }
-                    if (pool.size < poolCap) {
-                        pool.offerLast(buffer)
-                        return
-                    }
+            if (poolCap > 0) {
+                val pool = globalBufferPool.computeIfAbsent(chunkSz) { ConcurrentLinkedDeque() }
+                if (pool.size < poolCap) {
+                    pool.offerLast(buffer)
+                    return
                 }
             }
             freeBuffer(buffer)
@@ -336,7 +330,7 @@ internal class ParallelRangeDataSource(
                 val existing = currentChunkSession
                 if (existing != null) {
                     val fresh = SystemClock.uptimeMillis() - existing.lastUsedAtMs <= RETAINED_SESSION_TTL_MS
-                    if (fresh && !existing.abandoned.get() && !existing.invalidated.get() &&
+                    if (fresh && !existing.abandoned.get() &&
                         existing.requestUri == requestUri && existing.chunkSize == chunkSz &&
                         existing.requestHeaders == requestHeaders
                     ) {
@@ -351,8 +345,8 @@ internal class ParallelRangeDataSource(
                 if (pending != null) {
                     val pendingFresh = SystemClock.uptimeMillis() - pending.lastUsedAtMs <= RETAINED_SESSION_TTL_MS
 
-                    val pendingMatches = pendingFresh && !pending.abandoned.get() && !pending.invalidated.get() &&
-                        pending.requestUri == requestUri && pending.chunkSize == chunkSz && pending.requestHeaders == requestHeaders
+                    val pendingMatches = pendingFresh && !pending.abandoned.get() &&
+                        pending.requestUri == requestUri && pending.chunkSize == chunkSz
                     pendingChunkSession = null
                     if (pendingMatches) {
                         Log.i(
@@ -361,6 +355,7 @@ internal class ParallelRangeDataSource(
                                 "headerRekey=${pending.requestHeaders.keys.sorted()}->${requestHeaders.keys.sorted()}"
                         )
 
+                        pending.requestHeaders = requestHeaders
                         pending.lastUsedAtMs = SystemClock.uptimeMillis()
                         currentChunkSession = pending
                         return pending
@@ -475,14 +470,12 @@ internal class ParallelRangeDataSource(
         }
 
         private fun clearGlobalPool() {
-            synchronized(globalBufferPool) {
-                globalBufferPool.values.forEach { pool ->
-                    while (true) {
-                        freeBuffer(pool.pollFirst() ?: break)
-                    }
+            globalBufferPool.values.forEach { pool ->
+                while (true) {
+                    freeBuffer(pool.pollFirst() ?: break)
                 }
-                globalBufferPool.clear()
             }
+            globalBufferPool.clear()
             Log.d(TAG, "Cleared global buffer pool as all ParallelRangeDataSource instances are closed")
         }
     }
@@ -542,9 +535,7 @@ internal class ParallelRangeDataSource(
         val totalFileLength: Long,
         val bootstrapData: ByteArray,
         val bootstrapSize: Int,
-        val createdAtUptimeMs: Long,
-        val requestHeaders: Map<String, String> = emptyMap(),
-        val representation: HttpRangeVersion? = null,
+        val createdAtUptimeMs: Long
     )
 
     private var resolvedUri: Uri? = null
@@ -616,10 +607,8 @@ internal class ParallelRangeDataSource(
         val wasClosed = closed.get()
         val isReopen = !wasClosed &&
                        fallbackSource == null &&
-                       session?.invalidated?.get() != true &&
                        originalDataSpec != null &&
                        originalDataSpec?.uri == dataSpec.uri &&
-                       originalDataSpec?.httpRequestHeaders == dataSpec.httpRequestHeaders &&
                        position == dataSpec.position &&
                        totalFileLength != C.LENGTH_UNSET.toLong()
 
@@ -666,7 +655,7 @@ internal class ParallelRangeDataSource(
             }
             bootstrapPrefetchDeferred = true
 
-            val cachedTail = PrefetchWindowStore.peekTail(dataSpec.uri, position, dataSpec.httpRequestHeaders)
+            val cachedTail = PrefetchWindowStore.peekTail(dataSpec.uri, position)
             if (cachedTail != null) {
                 bootstrapChunk = DownloadedChunk(
                     PooledBuffer(null, ByteBuffer.wrap(cachedTail.bootstrapData)),
@@ -698,7 +687,6 @@ internal class ParallelRangeDataSource(
 
             attachedSession.resolvedUri = resolvedUri
             attachedSession.totalLength = totalFileLength
-            attachedSession.representation = cached.representation
             Log.d(
                 TAG,
                 "Reusing bootstrap window for immediate reopen at ${cached.startPosition}, " +
@@ -725,9 +713,8 @@ internal class ParallelRangeDataSource(
             diagProbeOpenMs = SystemClock.uptimeMillis() - diagOpenStartMs
             resolvedUri = probeSource.uri
             onResolvedUri(resolvedUri)
-            val range = HttpRangeRepresentation.parse(probeSource.responseHeaders.firstHeader("Content-Range"))
-            val probeTotal = range?.takeIf { it.start == dataSpec.position }?.total
-            if (probeTotal != null) {
+            val probeTotal = parseContentRangeTotal(probeSource.responseHeaders)
+            if (probeTotal != C.LENGTH_UNSET.toLong()) {
                 val remaining = (probeTotal - dataSpec.position).coerceAtLeast(0L)
                 openLength = if (dataSpec.length != C.LENGTH_UNSET.toLong()) {
                     minOf(dataSpec.length, remaining)
@@ -748,14 +735,9 @@ internal class ParallelRangeDataSource(
 
         val responseHeaders = probeSource.responseHeaders
         val acceptRangesHeader = responseHeaders.entries.firstOrNull { it.key.equals("Accept-Ranges", ignoreCase = true) }?.value
-        val contentRangeHeader = responseHeaders.firstHeader("Content-Range")
-        val responseRange = HttpRangeRepresentation.parse(contentRangeHeader)
-        if (contentRangeHeader != null && responseRange?.start != dataSpec.position) {
-            probeSource.close()
-            throw IOException("Unexpected Content-Range for media request")
-        }
+        val contentRangeHeader = responseHeaders.entries.firstOrNull { it.key.equals("Content-Range", ignoreCase = true) }?.value
         val acceptsRanges = acceptRangesHeader?.any { it.contains("bytes") } == true ||
-                responseRange != null
+                contentRangeHeader?.isNotEmpty() == true
 
         if (openLength == C.LENGTH_UNSET.toLong() || !acceptsRanges) {
 
@@ -776,7 +758,6 @@ internal class ParallelRangeDataSource(
 
         attachedSession.resolvedUri = resolvedUri
         attachedSession.totalLength = totalFileLength
-        attachedSession.representation = HttpRangeVersion.from(responseHeaders)
 
         Log.d(TAG, "Parallel mode: ${parallelConnections} connections, ${chunkSize / 1024 / 1024}MB chunks, " +
                 "file=${totalFileLength / 1024 / 1024}MB, resolved=${resolvedUri?.host}")
@@ -801,9 +782,7 @@ internal class ParallelRangeDataSource(
                         totalFileLength = totalFileLength,
                         bootstrapData = chunk.buffer.byteBuffer.array(),
                         bootstrapSize = chunk.size,
-                        createdAtUptimeMs = SystemClock.uptimeMillis(),
-                        requestHeaders = dataSpec.httpRequestHeaders.toMap(),
-                        representation = attachedSession.representation,
+                        createdAtUptimeMs = SystemClock.uptimeMillis()
                     )
                 )
             }
@@ -831,7 +810,6 @@ internal class ParallelRangeDataSource(
     }
 
     override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
-        if (session?.invalidated?.get() == true) throw IOException("Media range no longer matches the open file")
 
         fallbackSource?.let { source ->
             val read = source.read(buffer, offset, length)
@@ -984,16 +962,13 @@ internal class ParallelRangeDataSource(
         try {
             source.open(
                 DataSpec.Builder()
-                    .setUri(activeSession.requestUriForRange())
-                    .setHttpRequestHeaders(activeSession.requestHeaders)
+                    .setUri(activeSession.resolvedUri ?: activeSession.requestUri)
                     .setPosition(position)
                     .setLength(length)
                     .build()
             )
-            verifyRangeResponse(activeSession, source.responseHeaders, position, end)
         } catch (e: Exception) {
             try { source.close() } catch (_: Exception) {}
-            if (activeSession.invalidated.get()) throw e
             Log.w(TAG, "Continuation open failed at $position; using chunk path: ${e.message}")
             return
         }
@@ -1164,40 +1139,34 @@ internal class ParallelRangeDataSource(
     private fun ensureChunkScheduled(chunkIndex: Long) {
         val activeSession = session ?: return
 
-        // Publish futures under the same lock that snapshots and tears down a session.
-        // Otherwise teardown can clear the map before computeIfAbsent publishes a
-        // completed download, losing the only owner that can release its buffer.
-        synchronized(sessionLock) {
-            if (activeSession.abandoned.get()) return
-            enforceSessionCap(activeSession, protectIndex = chunkIndex, poolCap = maxPoolSize)
-            activeSession.futures.computeIfAbsent(chunkIndex) {
-                val future = CompletableFuture<DownloadedChunk>()
-                activeSession.touch(chunkIndex)
-                Log.d(TAG, "Scheduling chunk $chunkIndex")
-                sharedExecutor.execute {
-                    try {
-                        if (!future.isCancelled && !activeSession.abandoned.get()) {
-                            val result = downloadChunk(activeSession, chunkIndex, future)
-                            if (!future.complete(result)) {
-                                releaseBuffer(result.buffer)
-                            }
-                        } else if (future.isCancelled) {
-
-                        } else {
-                            future.completeExceptionally(IOException("Session abandoned"))
+        enforceSessionCap(activeSession, protectIndex = chunkIndex, poolCap = maxPoolSize)
+        activeSession.futures.computeIfAbsent(chunkIndex) {
+            val future = CompletableFuture<DownloadedChunk>()
+            activeSession.touch(chunkIndex)
+            Log.d(TAG, "Scheduling chunk $chunkIndex")
+            sharedExecutor.execute {
+                try {
+                    if (!future.isCancelled && !activeSession.abandoned.get()) {
+                        val result = downloadChunk(activeSession, chunkIndex, future)
+                        if (!future.complete(result)) {
+                            releaseBuffer(result.buffer)
                         }
-                    } catch (e: Exception) {
-                        future.completeExceptionally(e)
-                    } catch (e: OutOfMemoryError) {
+                    } else if (future.isCancelled) {
 
-                        drainIdleBuffers(activeSession.chunkSize)
-                        future.completeExceptionally(
-                            IOException("Native chunk buffer allocation failed (out of memory)", e)
-                        )
+                    } else {
+                        future.completeExceptionally(IOException("Session abandoned"))
                     }
+                } catch (e: Exception) {
+                    future.completeExceptionally(e)
+                } catch (e: OutOfMemoryError) {
+
+                    drainIdleBuffers(activeSession.chunkSize)
+                    future.completeExceptionally(
+                        IOException("Native chunk buffer allocation failed (out of memory)", e)
+                    )
                 }
-                future
             }
+            future
         }
     }
 
@@ -1205,15 +1174,12 @@ internal class ParallelRangeDataSource(
         var lastException: Exception? = null
         for (attempt in 0..1) {
 
-            if (future.isDone || future.isCancelled || activeSession.abandoned.get() || activeSession.invalidated.get()) {
-                throw IOException("Range session is unavailable")
-            }
+            if (future.isDone || future.isCancelled || activeSession.abandoned.get()) throw IOException("Cancelled")
             try {
                 return downloadChunkOnce(activeSession, chunkIndex, future)
             } catch (e: Exception) {
 
                 if (activeSession.abandoned.get() || future.isCancelled) throw IOException("Session abandoned or cancelled")
-                if (activeSession.invalidated.get()) throw e
                 lastException = e
 
                 if (e is StalledChunkException) {
@@ -1252,9 +1218,9 @@ internal class ParallelRangeDataSource(
         transferListeners.forEach { ds.addTransferListener(it) }
         activeSession.activeSources.add(ds)
         try {
+            val uri = activeSession.resolvedUri ?: activeSession.requestUri
             val spec = DataSpec.Builder()
-                .setUri(activeSession.requestUriForRange())
-                .setHttpRequestHeaders(activeSession.requestHeaders)
+                .setUri(uri)
                 .setPosition(start)
                 .setLength(end - start)
                 .build()
@@ -1262,7 +1228,6 @@ internal class ParallelRangeDataSource(
             if (future.isCancelled || activeSession.abandoned.get()) throw IOException("Cancelled")
             Log.d(TAG, "Starting chunk download: idx=$chunkIndex, range=$start-$end")
             ds.open(spec)
-            verifyRangeResponse(activeSession, ds.responseHeaders, start, end)
 
             val expectedBytes = if (sessionLength > 0L) end - start else -1L
             val chunk = readIntoChunk(activeSession, chunkIndex, ds, future, expectedBytes, allowStallRestart)
@@ -1513,20 +1478,14 @@ internal class ParallelRangeDataSource(
         return DownloadedChunk(buffer, totalRead)
     }
 
-    private fun ChunkSession.requestUriForRange(): Uri =
-        if (requestHeaders.isEmpty()) resolvedUri ?: requestUri else requestUri
-
-    private fun verifyRangeResponse(session: ChunkSession, headers: Map<String, List<String>>, start: Long, end: Long) {
-        val rawRange = headers.firstHeader("Content-Range")
-        val range = HttpRangeRepresentation.parse(rawRange)
-        val validRange = rawRange == null || range != null && range.start == start &&
-            (range.endInclusive == end - 1 || (session.totalLength < 0 && range.total == range.endInclusive + 1))
-        val sameVersion = session.representation?.accepts(HttpRangeVersion.from(headers)) != false
-        if (validRange && sameVersion && !session.invalidated.get()) return
-        session.invalidated.set(true)
-        updateBootstrapCache(null)
-        PrefetchWindowStore.invalidate(session.requestUri)
-        throw IOException("Media range no longer matches the open file")
+    private fun parseContentRangeTotal(headers: Map<String, List<String>>): Long {
+        val value = headers.entries
+            .firstOrNull { it.key.equals("Content-Range", ignoreCase = true) }
+            ?.value?.firstOrNull()
+            ?: return C.LENGTH_UNSET.toLong()
+        val totalPart = value.substringAfterLast('/', missingDelimiterValue = "").trim()
+        if (totalPart.isEmpty() || totalPart == "*") return C.LENGTH_UNSET.toLong()
+        return totalPart.toLongOrNull() ?: C.LENGTH_UNSET.toLong()
     }
 
     private fun readBootstrapChunk(ds: DataSource, maxBytes: Int): DownloadedChunk {
@@ -1613,7 +1572,6 @@ internal class ParallelRangeDataSource(
     override fun supportsByteBufferRead(): Boolean = true
 
     override fun read(buffer: ByteBuffer, length: Int): Int {
-        if (session?.invalidated?.get() == true) throw IOException("Media range no longer matches the open file")
         fallbackSource?.let { source ->
             val temp = readBufferLocal.get()!!
             val read = source.read(temp, 0, minOf(length, READ_BUFFER_SIZE))
@@ -1807,9 +1765,7 @@ internal class ParallelRangeDataSource(
                     }
                     if (cached.startPosition != 0L || dataSpec.position != 0L) return@ParallelRangeDataSource null
                     if (dataSpec.position != cached.startPosition) return@ParallelRangeDataSource null
-                    if (dataSpec.uri != cached.requestUri || dataSpec.httpRequestHeaders != cached.requestHeaders) {
-                        return@ParallelRangeDataSource null
-                    }
+                    if (dataSpec.uri != cached.requestUri) return@ParallelRangeDataSource null
                     cached
                 },
                 updateBootstrapCache = { entry ->
@@ -1867,7 +1823,6 @@ internal object PrefetchWindowStore {
                 return null
             }
             if (entry.startPosition != 0L) return null
-            if (entry.requestHeaders != dataSpec.httpRequestHeaders) return null
 
             headEntries.remove(dataSpec.uri)
             entry
@@ -1876,7 +1831,7 @@ internal object PrefetchWindowStore {
         return cached
     }
 
-    fun peekTail(uri: Uri, position: Long, headers: Map<String, String>): ParallelRangeDataSource.BootstrapCacheEntry? {
+    fun peekTail(uri: Uri, position: Long): ParallelRangeDataSource.BootstrapCacheEntry? {
         val cached = synchronized(tailEntries) {
             val entry = tailEntries[uri] ?: return null
             if (SystemClock.uptimeMillis() - entry.createdAtUptimeMs > TTL_MS) {
@@ -1884,17 +1839,11 @@ internal object PrefetchWindowStore {
                 return null
             }
             if (position < entry.startPosition || position >= entry.startPosition + entry.bootstrapSize) return null
-            if (entry.requestHeaders != headers) return null
 
             entry
         }
         Log.i(TAG, "PREFETCH_WINDOW tail hit pos=$position start=${cached.startPosition}")
         return cached
-    }
-
-    fun invalidate(uri: Uri) {
-        synchronized(headEntries) { headEntries.remove(uri) }
-        synchronized(tailEntries) { tailEntries.remove(uri) }
     }
 
     fun hasFreshTail(uri: Uri): Boolean {

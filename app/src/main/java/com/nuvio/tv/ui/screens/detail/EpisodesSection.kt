@@ -107,6 +107,7 @@ import com.nuvio.tv.ui.components.ImdbRatingSourceLabel
 import com.nuvio.tv.ui.components.LightweightCard
 import com.nuvio.tv.ui.components.MonochromePosterPlaceholder
 import com.nuvio.tv.ui.components.NuvioDialog
+import com.nuvio.tv.ui.components.RewatchMarker
 import com.nuvio.tv.ui.components.WatchedMarker
 import com.nuvio.tv.ui.theme.NuvioTheme
 import com.nuvio.tv.domain.model.CardDepthSurface
@@ -264,8 +265,8 @@ fun SeasonTabs(
                 }
                 .focusGroup(),
             state = lazyListState,
-            contentPadding = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) PaddingValues(start = 40.dp, end = 40.dp, top = 12.dp, bottom = 12.dp) else PaddingValues(horizontal = NuvioTheme.spacing.xxxl, vertical = NuvioTheme.spacing.xl), // forge
-            horizontalArrangement = Arrangement.spacedBy(if (posterStyle != null) NuvioTheme.spacing.lg else if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) 12.dp else NuvioTheme.spacing.md)
+            contentPadding = PaddingValues(horizontal = NuvioTheme.spacing.xxxl, vertical = NuvioTheme.spacing.xl),
+            horizontalArrangement = Arrangement.spacedBy(if (posterStyle != null) NuvioTheme.spacing.lg else NuvioTheme.spacing.md)
         ) {
             items(sortedSeasons, key = { it }) { season ->
                 val isSelected = season == selectedSeason
@@ -314,9 +315,9 @@ private fun SeasonTab(
     onFocused: (Int, Boolean) -> Unit
 ) {
     val tabShape = remember(isPosterMode) {
-        RoundedCornerShape(if (isPosterMode) SEASON_TAB_POSTER_CORNER_RADIUS else if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) 18.dp else 20.dp) // forge: pill 36 (S03)
+        RoundedCornerShape(if (isPosterMode) SEASON_TAB_POSTER_CORNER_RADIUS else 20.dp)
     }
-    val tabBorder = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL && !isPosterMode) CardDefaults.border() else CardDefaults.border(
+    val tabBorder = CardDefaults.border(
         focusedBorder = Border(
             border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
             shape = tabShape
@@ -371,7 +372,6 @@ private fun SeasonTab(
                 }
                 .onPreviewKeyEvent { event ->
                     val native = event.nativeKeyEvent
-                    if (com.nuvio.tv.skin.kicia.detail.ForgeSeasonDown.onSeasonTabKey(native, isSelected, downFocusRequester)) return@onPreviewKeyEvent true // forge hook: ▼ into an episode that is on screen
                     if (native.action == AndroidKeyEvent.ACTION_DOWN) {
                         if (native.keyCode == AndroidKeyEvent.KEYCODE_MENU) {
                             longPressTriggered = true
@@ -403,10 +403,7 @@ private fun SeasonTab(
                     selected = isSelected
                 },
             shape = CardDefaults.shape(shape = tabShape),
-            colors = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) CardDefaults.colors( // forge: glass pills, white when focused (S03)
-                containerColor = if (isSelected) com.nuvio.tv.skin.kicia.tokens.ForgeColors.Surface3 else com.nuvio.tv.skin.kicia.tokens.ForgeColors.Surface,
-                focusedContainerColor = com.nuvio.tv.skin.kicia.tokens.ForgeColors.Focus
-            ) else CardDefaults.colors(
+            colors = CardDefaults.colors(
                 containerColor = if (isSelected) NuvioTheme.colors.SurfaceVariant else NuvioTheme.colors.BackgroundCard,
                 focusedContainerColor = NuvioTheme.colors.Secondary
             ),
@@ -418,15 +415,13 @@ private fun SeasonTab(
             } else {
                 Text(
                     text = label,
-                    style = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) com.nuvio.tv.skin.kicia.tokens.ForgeText.label else MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleMedium,
                     color = when {
-                        isFocused && com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL -> com.nuvio.tv.skin.kicia.tokens.ForgeColors.OnFocus
-                        com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL -> com.nuvio.tv.skin.kicia.tokens.ForgeColors.Text
                         isFocused -> NuvioTheme.colors.OnSecondary
                         isSelected -> NuvioTheme.colors.TextPrimary
                         else -> textSecondary
                     },
-                    modifier = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) Modifier.padding(vertical = 9.dp, horizontal = 16.dp) else Modifier.padding(vertical = 10.dp, horizontal = 20.dp)
+                    modifier = Modifier.padding(vertical = 10.dp, horizontal = 20.dp)
                 )
             }
         }
@@ -498,6 +493,7 @@ fun EpisodesRow(
     episodeProgressMap: Map<Pair<Int, Int>, com.nuvio.tv.domain.model.WatchProgress> = emptyMap(),
     episodeRatings: Map<Pair<Int, Int>, Double> = emptyMap(),
     watchedEpisodes: Set<Pair<Int, Int>> = emptySet(),
+    rewatchedEpisodes: Set<Pair<Int, Int>> = emptySet(),
     episodeWatchedPendingKeys: Set<String> = emptySet(),
     blurUnwatchedEpisodes: Boolean = false,
     episodeOptionsOverlayStyle: EpisodeOptionsOverlayStyle = EpisodeOptionsOverlayStyle.ARTWORK,
@@ -507,6 +503,8 @@ fun EpisodesRow(
     onEpisodeManualPlayClick: (Video) -> Unit = onEpisodeClick,
     onEpisodeStartFromBeginningClick: (Video) -> Unit = onEpisodeClick,
     onToggleEpisodeWatched: (Video) -> Unit,
+    onMarkEpisodeRewatched: (Video) -> Unit = {},
+    onUnmarkEpisodeRewatched: (Video) -> Unit = {},
     showManualPlayOption: Boolean = false,
     onMarkSeasonWatched: (Int) -> Unit = {},
     onMarkSeasonUnwatched: (Int) -> Unit = {},
@@ -531,7 +529,7 @@ fun EpisodesRow(
     val dedupedEpisodes = remember(episodes) { episodes.distinctBy { it.id } }
     var optionsEpisode by remember { mutableStateOf<Video?>(null) }
     val isOverlayOpen = optionsEpisode != null
-    val cardMetrics = rememberEpisodeCardMetrics(posterCardCornerRadiusDp).let { if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) it.copy(rowHorizontalPadding = 40.dp, itemSpacing = 20.dp, cardWidth = 205.dp, cardHeight = 115.dp) else it } // forge: 190×106 cards from x 58 (S03)
+    val cardMetrics = rememberEpisodeCardMetrics(posterCardCornerRadiusDp)
     val density = LocalDensity.current
     val rowPrefetchStrategy = remember { LazyListPrefetchStrategy(nestedPrefetchItemCount = 2) }
     val initialEpisodeIndex = remember(dedupedEpisodes, restoreEpisodeId, scrollToEpisodeId, anchorEpisodeId) {
@@ -548,7 +546,6 @@ fun EpisodesRow(
         prefetchStrategy = rowPrefetchStrategy
     )
     val episodeWindowIds = remember(dedupedEpisodes) { dedupedEpisodes.map { it.id } }
-    androidx.compose.runtime.DisposableEffect(lazyListState, dedupedEpisodes, episodeFocusRequesters) { val off = com.nuvio.tv.skin.kicia.detail.ForgeSeasonDown.register(lazyListState, { dedupedEpisodes.getOrNull(it)?.id }, episodeFocusRequesters); onDispose { off() } } // forge hook: season ▼ fallback
     lazyListState.keepDetailRowWindow(
         itemIds = episodeWindowIds,
         lazyKeyAt = { index -> dedupedEpisodes.getOrNull(index)?.id },
@@ -652,6 +649,7 @@ fun EpisodesRow(
             val progress = remember(seasonEp, episodeProgressMap) { seasonEp?.let { episodeProgressMap[it] } }
             val imdbRating = remember(seasonEp, episodeRatings) { seasonEp?.let { episodeRatings[it] } }
             val isMarkedWatched = remember(seasonEp, watchedEpisodes) { seasonEp?.let { watchedEpisodes.contains(it) } ?: false }
+            val isMarkedRewatched = remember(seasonEp, rewatchedEpisodes) { seasonEp?.let { rewatchedEpisodes.contains(it) } ?: false }
             val episodeFocusRequester = remember(episode.id) { episodeFocusRequesters.getOrPut(episode.id) { FocusRequester() } }
             val episodeOnClick = remember(episode, onEpisodeClick) { { onEpisodeClick(episode) } }
             val episodeOnLongPress = remember(episode.id) { { optionsEpisode = episode } }
@@ -665,6 +663,7 @@ fun EpisodesRow(
                 watchProgress = progress,
                 imdbRating = imdbRating,
                 isMarkedWatched = isMarkedWatched,
+                isMarkedRewatched = isMarkedRewatched,
                 blurUnwatched = blurUnwatchedEpisodes,
                 suppressMarquee = isOverlayOpen,
                 cardMetrics = cardMetrics,
@@ -699,6 +698,10 @@ fun EpisodesRow(
                 selectedEpisode.episode?.let { episode -> episodeRatings[season to episode] }
             },
             isWatched = selectedWatched,
+            isRewatched = selectedEpisode.season?.let { season ->
+                selectedEpisode.episode?.let { episode -> rewatchedEpisodes.contains(season to episode) }
+            } ?: false,
+            hasActiveRewatch = rewatchedEpisodes.isNotEmpty(),
             blurUnwatchedEpisodes = blurUnwatchedEpisodes,
             style = episodeOptionsOverlayStyle,
             isPending = isPending,
@@ -738,6 +741,14 @@ fun EpisodesRow(
                 onToggleEpisodeWatched(selectedEpisode)
                 optionsEpisode = null
             },
+            onMarkRewatched = {
+                onMarkEpisodeRewatched(selectedEpisode)
+                optionsEpisode = null
+            },
+            onUnmarkRewatched = {
+                onUnmarkEpisodeRewatched(selectedEpisode)
+                optionsEpisode = null
+            },
             onMarkSeasonWatched = {
                 onMarkSeasonWatched(selectedSeason)
                 optionsEpisode = null
@@ -762,6 +773,7 @@ private fun EpisodeCard(
     watchProgress: com.nuvio.tv.domain.model.WatchProgress? = null,
     imdbRating: Double? = null,
     isMarkedWatched: Boolean = false,
+    isMarkedRewatched: Boolean = false,
     blurUnwatched: Boolean = false,
     suppressMarquee: Boolean = false,
     cardMetrics: EpisodeCardMetrics,
@@ -774,7 +786,6 @@ private fun EpisodeCard(
     onFocused: (() -> Unit)? = null,
     onFocusRestored: (() -> Unit)? = null
 ) {
-    if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) { com.nuvio.tv.skin.kicia.detail.ForgeEpisodeCard(episode, watchProgress?.progressPercentage ?: 0f, watchProgress?.isCompleted() == true || isMarkedWatched, onClick, onLongPress, upFocusRequester, downFocusRequester, focusRequester, isFocusEnabled, { onFocused?.invoke(); onFocusRestored?.invoke() }, imdbRating); return } // forge hook: episode card (S03); fork 19.11: ocena IMDb odcinka
     val context = LocalContext.current
     val density = LocalDensity.current
     val configuration = LocalConfiguration.current
@@ -793,6 +804,9 @@ private fun EpisodeCard(
     val progressPercent = remember(watchProgress) { watchProgress?.progressPercentage ?: 0f }
     val showProgress = remember(watchProgress) { watchProgress?.isInProgress() == true }
     val showCompletedBadge = isWatched
+    // The check marks any watched episode. The R beside it is the rewatch marker and only appears
+    // when the running session has covered this exact episode.
+    val showRewatchBadge = showCompletedBadge && isMarkedRewatched
     val showNotStartedBadge = !showCompletedBadge && !showProgress
     val isUnavailable = remember(episode.available) { episode.available == false }
     val cardBgColor = NuvioTheme.colors.BackgroundCard
@@ -1193,16 +1207,27 @@ private fun EpisodeCard(
             }
 
             if (showCompletedBadge) {
-                WatchedMarker(
+                Row(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(
                             end = cardMetrics.statusBadgeInset,
                             top = cardMetrics.statusBadgeInset
                         ),
-                    size = cardMetrics.statusBadgeSize,
-                    iconSize = cardMetrics.statusIconSize
-                )
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (showRewatchBadge) {
+                        RewatchMarker(
+                            size = cardMetrics.statusBadgeSize,
+                            iconSize = cardMetrics.statusRewatchIconSize
+                        )
+                    }
+                    WatchedMarker(
+                        size = cardMetrics.statusBadgeSize,
+                        iconSize = cardMetrics.statusIconSize
+                    )
+                }
             }
 
             if (isUnavailable) {
@@ -1325,6 +1350,7 @@ private data class EpisodeCardMetrics(
     val progressBarHeight: Dp,
     val statusBadgeSize: Dp,
     val statusIconSize: Dp,
+    val statusRewatchIconSize: Dp,
     val statusBadgeInset: Dp
 )
 
@@ -1355,7 +1381,8 @@ private fun rememberEpisodeCardMetrics(posterCardCornerRadiusDp: Int = 12): Epis
                 imdbLogoHeight = 14.dp,
                 progressBarHeight = NuvioTheme.spacing.xs,
                 statusBadgeSize = NuvioTheme.spacing.xxl,
-                statusIconSize = 20.dp,
+                statusIconSize = 23.dp,
+                statusRewatchIconSize = 26.dp,
                 statusBadgeInset = NuvioTheme.spacing.lg
             )
 
@@ -1380,7 +1407,8 @@ private fun rememberEpisodeCardMetrics(posterCardCornerRadiusDp: Int = 12): Epis
                 imdbLogoHeight = 13.dp,
                 progressBarHeight = NuvioTheme.spacing.xs,
                 statusBadgeSize = 28.dp,
-                statusIconSize = 18.dp,
+                statusIconSize = 20.dp,
+                statusRewatchIconSize = 23.dp,
                 statusBadgeInset = 14.dp
             )
 
@@ -1405,7 +1433,8 @@ private fun rememberEpisodeCardMetrics(posterCardCornerRadiusDp: Int = 12): Epis
                 imdbLogoHeight = NuvioTheme.spacing.md,
                 progressBarHeight = NuvioTheme.spacing.xs,
                 statusBadgeSize = NuvioTheme.spacing.xl,
-                statusIconSize = NuvioTheme.spacing.lg,
+                statusIconSize = 17.dp,
+                statusRewatchIconSize = 19.dp,
                 statusBadgeInset = NuvioTheme.spacing.md
             )
 
@@ -1430,7 +1459,8 @@ private fun rememberEpisodeCardMetrics(posterCardCornerRadiusDp: Int = 12): Epis
                 imdbLogoHeight = 11.dp,
                 progressBarHeight = NuvioTheme.spacing.xs,
                 statusBadgeSize = 22.dp,
-                statusIconSize = 14.dp,
+                statusIconSize = 16.dp,
+                statusRewatchIconSize = 18.dp,
                 statusBadgeInset = 10.dp
             )
         }

@@ -2,7 +2,6 @@
 
 package com.nuvio.tv.ui.screens.player
 
-import com.nuvio.tv.core.streams.AudioMenuOption
 import com.nuvio.tv.ui.theme.NuvioTheme
 
 import androidx.compose.foundation.BorderStroke
@@ -65,8 +64,6 @@ import com.nuvio.tv.R
 import com.nuvio.tv.data.local.NightMode
 import com.nuvio.tv.ui.screens.detail.requestFocusAfterFrames
 import com.nuvio.tv.ui.util.languageCodeToName
-import com.nuvio.tv.ui.reshaped.volumeboost.VolumeBoostBar
-import com.nuvio.tv.ui.reshaped.volumeboost.volumeBoostPercent
 import java.util.Locale
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -90,10 +87,6 @@ internal fun AudioSelectionOverlay(
     onCenterMixLevelChange: (Int) -> Unit,
     onNightModeChange: (NightMode) -> Unit,
     onPersistAmplificationChange: (Boolean) -> Unit,
-    languageOptions: List<AudioMenuOption>? = null, // fork hook: echo A5
-    isLoadingSources: Boolean = false,
-    onLanguageSelected: (AudioMenuOption) -> Unit = {},
-    onLanguageSourcesRequested: (AudioMenuOption) -> Unit = {},
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -201,17 +194,6 @@ internal fun AudioSelectionOverlay(
                 modifier = Modifier.padding(bottom = NuvioTheme.spacing.sm)
             ) {
                 Column(modifier = Modifier.width(444.dp)) {
-                    if (languageOptions != null) AudioLanguageList( // fork hook: echo A5
-                        options = languageOptions,
-                        isLoadingSources = isLoadingSources,
-                        listState = listState,
-                        initialFocusRequester = tracksFocusRequester,
-                        rightFocusRequester = FocusRequester.Cancel,
-                        onTrackSelected = onTrackSelected,
-                        onLanguageSelected = onLanguageSelected,
-                        onSourcesRequested = onLanguageSourcesRequested
-                    ) // fork hook: echo A5
-                    else
                     AudioTracksContent(
                         tracks = tracks,
                         selectedIndex = selectedIndex,
@@ -575,12 +557,8 @@ private fun AudioControlsContent(
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             AdjustmentSection(
-                title = stringResource(R.string.volume_boost_label), // Nuvio RS: volume boost
-                valueText = stringResource(
-                    R.string.volume_boost_value,
-                    volumeBoostPercent(currentDb, AUDIO_AMPLIFICATION_MAX_DB),
-                    currentDb
-                ),
+                title = stringResource(R.string.audio_mix_label),
+                valueText = stringResource(R.string.audio_mix_value_db, currentDb),
                 helperText = amplificationHelperText,
                 canDecrease = canDecreaseAmp,
                 canIncrease = canIncreaseAmp,
@@ -614,11 +592,6 @@ private fun AudioControlsContent(
                         runCatching { ampMinusFocusRequester.requestFocus() }
                     }
                 }
-            )
-            VolumeBoostBar( // Nuvio RS: volume boost
-                gainDb = currentDb,
-                maxDb = AUDIO_AMPLIFICATION_MAX_DB,
-                enabled = isAmplificationAvailable
             )
 
             AdjustmentSection(

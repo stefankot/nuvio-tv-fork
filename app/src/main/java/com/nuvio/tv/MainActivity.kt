@@ -161,6 +161,7 @@ import com.nuvio.tv.data.local.StartupAuthNotice
 import com.nuvio.tv.data.local.ThemeDataStore
 import com.nuvio.tv.data.repository.MemberAccessRepository
 import com.nuvio.tv.data.remote.supabase.AvatarRepository
+import com.nuvio.tv.data.simkl.SimklRewatchConsentRepository
 import com.nuvio.tv.domain.model.AppFont
 import com.nuvio.tv.domain.model.AppTheme
 import com.nuvio.tv.domain.model.CustomThemeColors
@@ -183,6 +184,7 @@ import com.nuvio.tv.ui.components.LocalCardDepthStyle
 import com.nuvio.tv.ui.components.LocalLandscapePosterMode
 import com.nuvio.tv.ui.components.LocalAlwaysBackdropWithLogo
 import com.nuvio.tv.ui.components.ProfileAvatarCircle
+import com.nuvio.tv.ui.components.RewatchPromptOverlay
 import com.nuvio.tv.ui.navigation.LocalNavViewModelStoreOwner
 import com.nuvio.tv.ui.navigation.NuvioNavHost
 import com.nuvio.tv.ui.navigation.Screen
@@ -295,9 +297,6 @@ open class MainActivity : ComponentActivity() {
     lateinit var startupSyncService: StartupSyncService
 
     @Inject
-    lateinit var androidTvChannelSyncService: com.nuvio.tv.core.sync.androidtv.AndroidTvChannelSyncService
-
-    @Inject
     lateinit var profileSyncService: ProfileSyncService
 
     @Inject
@@ -325,6 +324,9 @@ open class MainActivity : ComponentActivity() {
     lateinit var trailerPlayerPool: com.nuvio.tv.core.player.TrailerPlayerPool
 
     @Inject
+    lateinit var backgroundTrailerController: com.nuvio.tv.core.player.BackgroundTrailerController
+
+    @Inject
     lateinit var externalPlaybackTracker: com.nuvio.tv.core.player.ExternalPlaybackTracker
 
     @Inject
@@ -335,6 +337,14 @@ open class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var partyRepository: PartyRepository
+
+    /*
+     * Held in the activity, not in the player screen: the rewatch question has to survive navigation,
+     * the way mobile holds it in `MainAppContent.kt`. `SimklRewatchConsentRepository` is a `@Singleton`
+     * and not a `@HiltViewModel`, so it is injected into the activity, not taken from `hiltViewModel`.
+     */
+    @Inject
+    lateinit var rewatchConsentRepository: SimklRewatchConsentRepository
 
     private val pendingDeepLinkUrl = MutableStateFlow<String?>(null)
     private val pendingLaunchIntent = MutableStateFlow<Intent?>(null)
@@ -725,6 +735,7 @@ open class MainActivity : ComponentActivity() {
                     LocalMemberAccess provides mainUiPrefs.memberAccess,
                     LocalAmbientIdleController provides ambientIdleController,
                     com.nuvio.tv.core.player.LocalTrailerPlayerPool provides trailerPlayerPool,
+                    com.nuvio.tv.core.player.LocalBackgroundTrailerController provides backgroundTrailerController,
                     LocalSplashBackground provides splashBackground,
                     LocalStartupLoadingState provides startupLoadingState,
                     LocalStartupSplashEnabled provides startupSplashEnabled
@@ -745,7 +756,6 @@ open class MainActivity : ComponentActivity() {
                     // Wrap everything in a Box. This prevents any black flash between
                     // profile selection and the home content
                     Box(modifier = Modifier.fillMaxSize()) {
-                    com.nuvio.tv.fork.ForkHooks.moduleOverlays() // Fork hook: registry
 
                     var startupDestination = StartupDestination.Loading
                     val surfaceContentReady = hasSeenAuthQrOnFirstLaunch != null &&
@@ -1100,14 +1110,8 @@ open class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    val liveTvMenuItem = com.nuvio.tv.ui.reshaped.livetv.rememberLiveTvMenuItem(currentRoute, navController) // Nuvio RS hook: Live TV menu entry
-                    val calendarMenuItem = com.nuvio.tv.fork.echo.rememberCalendarMenuItem() // Fork hook: echo-calendar
-                    val toolsMenuItem = com.nuvio.tv.fork.settings.rememberToolsMenuItem() // Fork hook: tools menu
-                    val rootRoutes = remember(discoverLocation, liveTvMenuItem, calendarMenuItem) {
+                    val rootRoutes = remember(discoverLocation) {
                         buildSet {
-                            liveTvMenuItem?.let { add(it.route) } // Nuvio RS hook: Live TV menu entry
-                            calendarMenuItem?.let { add(it.route) } // Fork hook: echo-calendar
-                            toolsMenuItem?.let { add(it.route) } // Fork hook: tools menu
                             add(Screen.Home.route)
                             add(Screen.Search.route)
                             add(Screen.Library.route)
@@ -1115,7 +1119,6 @@ open class MainActivity : ComponentActivity() {
                             if (discoverLocation == DiscoverLocation.IN_SIDEBAR) {
                                 add(Screen.Discover.route)
                             }
-                            if (com.nuvio.tv.fork.ForkHooks.youTubeInMenu(this@MainActivity)) add(Screen.YouTube.route) // Fork hook: menu
                         }
                     }
 
@@ -1130,9 +1133,7 @@ open class MainActivity : ComponentActivity() {
                         strNavSearch,
                         strNavLibrary,
                         strNavSettings,
-                        discoverLocation,
-                        liveTvMenuItem,
-                        calendarMenuItem
+                        discoverLocation
                     ) {
                         buildList {
                             add(
@@ -1165,9 +1166,6 @@ open class MainActivity : ComponentActivity() {
                                     iconRes = R.raw.sidebar_library
                                 )
                             )
-                            liveTvMenuItem?.let(::add) // Nuvio RS hook: Live TV menu entry
-                            calendarMenuItem?.let(::add) // Fork hook: echo-calendar
-                            toolsMenuItem?.let(::add) // Fork hook: tools menu
                             add(
                                 DrawerItem(
                                     route = Screen.Settings.route,
@@ -1176,7 +1174,6 @@ open class MainActivity : ComponentActivity() {
                                 )
                             )
                         }
-                            .let { com.nuvio.tv.fork.ForkHooks.drawerOrder(this@MainActivity, it) } // Fork hook: menu (YouTube, kolejność Kicii)
                     }
                     val selectedDrawerRoute = drawerItems.firstOrNull { item ->
                         currentRoute == item.route || currentRoute?.startsWith("${item.route}/") == true
@@ -1232,17 +1229,7 @@ open class MainActivity : ComponentActivity() {
                         }
                         Box(modifier = Modifier.fillMaxSize()) {
                             CompositionLocalProvider(LocalNavViewModelStoreOwner provides navViewModelStoreOwner) {
-                                // Nuvio RS hook: optional top pill menu replaces the sidebar
-                                if (com.nuvio.tv.ui.reshaped.pillnav.rememberPillNavEnabled()) {
-                                    com.nuvio.tv.ui.reshaped.pillnav.PillNavScaffold(
-                                        longPressBackHeld = longPressBackHeld, navController = navController, startDestination = startDestination,
-                                        currentRoute = currentRoute, rootRoutes = rootRoutes, drawerItems = drawerItems, selectedDrawerRoute = selectedDrawerRoute,
-                                        blurEnabled = modernSidebarBlurEnabled, activeProfileName = activeProfile?.name ?: "",
-                                        activeProfileColorHex = activeProfile?.avatarColorHex ?: "#1E88E5", activeProfileAvatarImageUrl = activeProfileAvatarImageUrl,
-                                        showProfileSelector = profiles.size > 1, onSwitchProfile = handleSwitchProfile, onNavigate = { optimisticRoute = it }, onExitApp = handleExitApp,
-                                        topBannerVisible = updateBannerState.showBanner && updateBannerState.update != null
-                                    )
-                                } else if (modernSidebarEnabled) {
+                                if (modernSidebarEnabled) {
                                     ModernSidebarScaffold(
                                         longPressBackHeld = longPressBackHeld,
                                         navController = navController,
@@ -1298,10 +1285,19 @@ open class MainActivity : ComponentActivity() {
                                 )
                             }
 
+
                             val isTrailerPlaying by trailerPlayerPool.isTrailerPlaying.collectAsState()
                             LaunchedEffect(isTrailerPlaying) {
                                 if (!isTrailerPlaying) ambientIdleController.onInteraction()
                             }
+                            /*
+                             * The rewatch question belongs at the same layer as `NuvioNavHost`, above
+                             * the screens and next to the other app wide overlays. Hanging it in
+                             * `PlayerScreen` alone would drop it when moving to another screen, even
+                             * though the answer is still being written. Mobile has it in
+                             * `MainAppContent.kt` at the same level.
+                             */
+                            RewatchPromptOverlay(repository = rewatchConsentRepository)
                             AmbientModeHost(
                                 controller = ambientIdleController,
                                 allowed = currentRoute?.startsWith("player/") != true &&
@@ -1357,7 +1353,6 @@ open class MainActivity : ComponentActivity() {
         }
 
         jankStats = JankStats.createAndTrack(window) { frameData ->
-            if (!com.nuvio.tv.fork.ForkLog.jankWorthLogging(frameData.isJank, frameData.frameDurationUiNanos)) return@createAndTrack // fork: optymalizacja logów
             if (frameData.isJank) {
                 Log.w(
                     "JankStats",
@@ -1392,7 +1387,6 @@ open class MainActivity : ComponentActivity() {
         setIntent(intent)
         captureDeepLinkIntent(intent)
         captureLaunchIntent(intent)
-        com.nuvio.tv.fork.ForkHooks.onDebugIntent(this, intent) // Fork hook: debug open route
     }
 
     private fun captureDeepLinkIntent(intent: Intent?) {
@@ -1429,7 +1423,6 @@ open class MainActivity : ComponentActivity() {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (com.nuvio.tv.fork.ForkHooks.onGlobalKey(this, event)) return true // Fork hook: arc-remote
         if (ambientIdleController.consumeKeyEvent(event)) return true
         if (event.keyCode == KeyEvent.KEYCODE_BACK) {
             if (longPressBackHeld.value) {
@@ -1457,16 +1450,12 @@ open class MainActivity : ComponentActivity() {
         externalPlaybackTracker.raiseAutoNextOverlayOnReturn()
         super.onStart()
         startupSyncService.startPeriodicSurfacePulls()
-        androidTvChannelSyncService.onForegroundChanged(true)
     }
 
     override fun onStop() {
         externalPlaybackTracker.onExternalPlayerCoveredApp()
         super.onStop()
         startupSyncService.stopPeriodicSurfacePulls()
-        // App going to background (e.g. user returning to the launcher): reconcile the
-        // Continue Watching channel once so Projectivy repaints it with fresh progress.
-        androidTvChannelSyncService.onForegroundChanged(false)
     }
 
     override fun onDestroy() {

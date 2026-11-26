@@ -1,9 +1,5 @@
 package com.nuvio.tv.ui.screens.detail
 
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.foundation.layout.widthIn
-import com.nuvio.tv.skin.kicia.nav.forgeTag
 import com.nuvio.tv.ui.theme.NuvioMotion
 
 import android.view.KeyEvent as AndroidKeyEvent
@@ -83,7 +79,6 @@ import com.nuvio.tv.ui.components.MDBListRatingsRow
 import com.nuvio.tv.ui.components.SynopsisDescription
 import com.nuvio.tv.ui.theme.NuvioTheme
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.Stop
@@ -156,8 +151,7 @@ fun HeroContentSection(
     val shouldShowLogo =
         !meta.logo.isNullOrBlank() &&
             !logoLoadFailed &&
-            !(isTrailerPlaying && hideLogoDuringTrailer) &&
-            !com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL // forge: the mockup writes the title (S03)
+            !(isTrailerPlaying && hideLogoDuringTrailer)
     val libraryAddPainter = rememberRawSvgPainter(rawIconRes = com.nuvio.tv.R.raw.library_add_plus)
     val trailerPainter = rememberRawSvgPainter(rawIconRes = com.nuvio.tv.R.raw.trailer_play_button)
     val strCreator = stringResource(R.string.hero_creator)
@@ -167,7 +161,6 @@ fun HeroContentSection(
         val directorLine = meta.director.takeIf { it.isNotEmpty() }?.joinToString(", ")
         val writerLine = meta.writer.takeIf { it.isNotEmpty() }?.joinToString(", ")
         when {
-            !directorLine.isNullOrBlank() && com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL && !isSeriesApi -> "Reżyseria: $directorLine" // forge: mockup wording (S03)
             !directorLine.isNullOrBlank() -> {
                 if (isSeriesApi) strCreator.format(directorLine) else strDirector.format(directorLine)
             }
@@ -178,12 +171,12 @@ fun HeroContentSection(
 
     // Animate logo properties for trailer mode
     val logoHeight by animateDpAsState(
-        targetValue = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) 38.dp else if (isTrailerPlaying) 60.dp else 100.dp, // forge hook v7.4 (04): logo tytułu wys. 38
+        targetValue = if (isTrailerPlaying) 60.dp else 100.dp,
         animationSpec = tween(600),
         label = "logoHeight"
     )
     val logoBottomPadding by animateDpAsState(
-        targetValue = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) 8.dp else if (isTrailerPlaying) NuvioTheme.spacing.xl else NuvioTheme.spacing.lg, // forge hook v7.4 (04): meta 8 pod logo
+        targetValue = if (isTrailerPlaying) NuvioTheme.spacing.xl else NuvioTheme.spacing.lg,
         animationSpec = tween(600),
         label = "logoPadding"
     )
@@ -206,14 +199,13 @@ fun HeroContentSection(
             .height(heroHeight),
         verticalArrangement = Arrangement.Bottom
     ) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) { // forge: "Występują" on the right (mockup S03)
         Column(
             modifier = Modifier
-                .weight(1f)
+                .fillMaxWidth()
                 .animateContentSize(
                     animationSpec = tween(600)
                 )
-                .padding(start = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) 40.dp else NuvioTheme.spacing.xxxl, end = NuvioTheme.spacing.xxxl, bottom = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) NuvioTheme.spacing.lg + 23.dp else NuvioTheme.spacing.lg), // forge: content edge x 58; v7.4 (04): rząd przycisków y 440
+                .padding(start = NuvioTheme.spacing.xxxl, end = NuvioTheme.spacing.xxxl, bottom = NuvioTheme.spacing.lg),
             verticalArrangement = Arrangement.Bottom
         ) {
             // Logo/Title — always visible during trailer, animates size
@@ -225,8 +217,7 @@ fun HeroContentSection(
                     modifier = Modifier
                         .height(logoHeight)
                         .fillMaxWidth(logoMaxWidth)
-                        .padding(bottom = logoBottomPadding)
-                        .forgeTag("szcz-logo"), // forge hook v7.4: nazwa z makiety
+                        .padding(bottom = logoBottomPadding),
                     contentScale = ContentScale.Fit,
                     alignment = Alignment.CenterStart
                 )
@@ -239,10 +230,9 @@ fun HeroContentSection(
                 ) {
                     Text(
                         text = meta.name,
-                        style = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) com.nuvio.tv.skin.kicia.tokens.ForgeText.display else MaterialTheme.typography.displayMedium, // forge: 40/44
+                        style = MaterialTheme.typography.displayMedium,
                         color = NuvioTheme.colors.TextPrimary,
-                        maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(bottom = NuvioTheme.spacing.sm).then(if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) Modifier.height(44.dp) else Modifier).forgeTag("szcz-logo") // forge hook v7.4: brak logo = tytuł 40/44
+                        modifier = Modifier.padding(bottom = NuvioTheme.spacing.sm)
                     )
                 }
             }
@@ -268,31 +258,11 @@ fun HeroContentSection(
                 exit = fadeOut(tween(NuvioMotion.tokens.durations.overlay))
             ) {
                 Column {
-                    val forgeLayout = com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL
-                    if (forgeLayout) {
-                        // forge (mockup v6 S03): type line, description, meta line, then buttons and "Gotowe"
-                        com.nuvio.tv.skin.kicia.detail.ForgeDetailTypeLine(meta)
-                        meta.description?.let { description ->
-                            SynopsisDescription(
-                                description = description,
-                                maxLines = 4, // v7.4 (04): 4 lines
-                                onShowFullDescription = onShowFullDescription,
-                                upFocusRequester = null,
-                                onFocused = onHeroActionFocused,
-                                onTruncationChanged = onTruncationChanged,
-                                modifier = (if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) Modifier.width(300.dp) else Modifier.fillMaxWidth(0.6f)).padding(bottom = NuvioTheme.spacing.md).forgeTag("szcz-opis") // forge hook v7.4 (04): opis szer. 300
-                            )
-                        }
-                        com.nuvio.tv.skin.kicia.detail.ForgeDetailDataLine(meta, nextToWatch) // forge hook v7.4: year, time, badges, Gotowe
-                    }
-                    var forgePlayFocused by remember { mutableStateOf(false) } // forge hook v7.4 (04)
-                    var forgePlayWidth by remember { mutableStateOf(0) }
-                    val forgeSpread by androidx.compose.animation.core.animateFloatAsState(if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL && forgePlayFocused) forgePlayWidth * (com.nuvio.tv.skin.kicia.tokens.ForgeDims.FocusScale - 1f) / 2f else 0f, com.nuvio.tv.skin.kicia.tokens.ForgeMotion.focusSpec(), label = "forgeHeroSpread")
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(Modifier.forgeTag("przycisk-glowny").onFocusChanged { forgePlayFocused = it.hasFocus }.onSizeChanged { forgePlayWidth = it.width }) { PlayButton( // forge hook v7.4: nazwa z makiety
+                        PlayButton(
                             text = if (isPlayEnabled) nextToWatch?.displayText else stringResource(R.string.playback_unavailable),
                             enabled = isPlayEnabled,
                             onClick = onPlayClick,
@@ -303,23 +273,9 @@ fun HeroContentSection(
                                 onHeroActionFocused()
                                 onPlayFocusRestored()
                             }
-                        ) }
+                        )
 
-                        Row(Modifier.graphicsLayer { translationX = forgeSpread }, horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md), verticalAlignment = Alignment.CenterVertically) { // forge hook v7.4 (04): sąsiedzi odsuwają się przy fokusie „Odtwórz” (--rozsun)
-                        if (trailerAvailable) { // forge hook v7.4 (04): "Zwiastun" is a labelled secondary button right after Odtwórz
-                            if (forgeLayout) com.nuvio.tv.skin.kicia.components.ForgeTagged("przycisk-dodatkowy") { com.nuvio.tv.skin.kicia.components.ForgeButton(
-                                text = "Zwiastun", icon = androidx.compose.material.icons.Icons.Outlined.Movie,
-                                modifier = Modifier.onFocusChanged { if (it.isFocused) onHeroActionFocused() },
-                                onOk = onTrailerClick,
-                            ) } else ActionIconButtonPainter(
-                                painter = trailerPainter,
-                                contentDescription = stringResource(R.string.hero_play_trailer),
-                                onClick = onTrailerClick,
-                                onFocused = onHeroActionFocused
-                            )
-                        }
-
-                        Box(Modifier.forgeTag("przycisk-okragly.0")) { ActionIconButton( // forge hook v7.4
+                        ActionIconButton(
                             icon = if (isInLibrary) Icons.Default.Check else null,
                             painter = if (!isInLibrary) {
                                 libraryAddPainter
@@ -330,9 +286,9 @@ fun HeroContentSection(
                             onClick = onToggleLibrary,
                             onLongPress = onLibraryLongPress,
                             onFocused = onHeroActionFocused
-                        ) }
+                        )
 
-                        if (meta.isWatchedAsOneItem()) Box(Modifier.forgeTag("przycisk-okragly.1")) { // forge hook v7.4
+                        if (meta.isWatchedAsOneItem()) {
                             ActionIconButton(
                                 icon = if (isMovieWatched) {
                                     Icons.Default.Visibility
@@ -362,6 +318,15 @@ fun HeroContentSection(
                             )
                         }
 
+                        if (trailerAvailable) {
+                            ActionIconButtonPainter(
+                                painter = trailerPainter,
+                                contentDescription = stringResource(R.string.hero_play_trailer),
+                                onClick = onTrailerClick,
+                                onFocused = onHeroActionFocused
+                            )
+                        }
+
                         if (showRandomEpisodeButton) {
                             ActionIconButton(
                                 icon = if (episodeShuffle.enabled) Icons.Default.Stop else Icons.Default.Shuffle,
@@ -373,13 +338,9 @@ fun HeroContentSection(
                                 onFocused = onHeroActionFocused
                             )
                         }
-                        } // forge hook v7.4 (04): koniec grupy odsuwanej
                     }
 
-                    // forge hook: "Gotowe" + best source right under the buttons (mockup S03)
-                    if (!forgeLayout) com.nuvio.tv.skin.kicia.detail.ForgeReadyLine(meta = meta, nextToWatch = nextToWatch) // v7.4: in forge layout it is in the data line
                     Spacer(modifier = Modifier.height(NuvioTheme.spacing.lg))
-                    if (!forgeLayout) {
 
                     // Director/Writer line above description
                     if (!creditLine.isNullOrBlank()) {
@@ -396,7 +357,7 @@ fun HeroContentSection(
                         Spacer(modifier = Modifier.height(NuvioTheme.spacing.md))
                     }
 
-                    if (mdbListRatings?.isEmpty() == false) { // forge (owner 10.11): the other ratings (MDBList) are back under the cast line
+                    if (mdbListRatings?.isEmpty() == false) {
                         MDBListRatingsRow(ratings = mdbListRatings, order = mdbListRatingOrder)
                         Spacer(modifier = Modifier.height(14.dp))
                     }
@@ -404,7 +365,6 @@ fun HeroContentSection(
                     meta.description?.let { description ->
                         SynopsisDescription(
                             description = description,
-                            maxLines = 3, // forge: 3 lines, OK shows the full text (mockup S03)
                             onShowFullDescription = onShowFullDescription,
                             upFocusRequester = playButtonFocusRequester,
                             onFocused = onHeroActionFocused,
@@ -415,25 +375,14 @@ fun HeroContentSection(
                         )
                     }
 
-                    if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) com.nuvio.tv.skin.kicia.detail.ForgeDetailMetaLine(meta, tmdbRating) else // forge hook: one meta line (S03)
                     MetaInfoRow(
                         meta = meta,
                         hideImdbRating = hideMetaInfoImdb,
                         showFullReleaseDate = showFullReleaseDate,
                         tmdbRating = tmdbRating
                     )
-                    }
                 }
             }
-        }
-        if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL && !isTrailerPlaying && meta.cast.isNotEmpty()) {
-            // v7.4 (04): one text "Występują: ..." 12/16 at 70%, width 300, right edge x 920, up to 3 lines, level with the buttons
-            Text(
-                "Występują: " + meta.cast.take(4).joinToString(", ") + if (meta.cast.size > 4) " i inni" else "",
-                style = com.nuvio.tv.skin.kicia.tokens.ForgeText.caption, maxLines = 3, overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.width(340.dp).padding(end = 40.dp, bottom = 56.dp).forgeTag("szcz-prawa"), // forge hook v7.4: dół na wysokości przycisków (y 484)
-            )
-        }
         }
     }
 }
@@ -510,7 +459,6 @@ internal fun PlayButton(
                 false
             }
             .focusProperties { up = FocusRequester.Cancel }
-            .then(if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) Modifier.widthIn(min = 160.dp) else Modifier) // forge hook v7.4 (04): --przycisk-min-szer 160
             .then(
                 if (text == null) {
                     Modifier.semantics { this.contentDescription = playFallbackLabel }
@@ -527,14 +475,13 @@ internal fun PlayButton(
         shape = ButtonDefaults.shape(
             shape = RoundedCornerShape(NuvioTheme.spacing.xxl)
         ),
-        border = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) ButtonDefaults.border(focusedBorder = Border.None) else ButtonDefaults.border( // forge hook v7.4 (04): fokus = skala 1,125, bez obwódki
+        border = ButtonDefaults.border(
             focusedBorder = Border(
                 border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
                 shape = RoundedCornerShape(NuvioTheme.spacing.xxl)
             )
         ),
-        scale = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) ButtonDefaults.scale(focusedScale = com.nuvio.tv.skin.kicia.tokens.ForgeDims.FocusScale) else ButtonDefaults.scale(),
-        contentPadding = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) PaddingValues(horizontal = 20.dp, vertical = 12.dp) else PaddingValues(horizontal = NuvioTheme.spacing.xl, vertical = 14.dp) // forge: 44 dp (S03)
+        contentPadding = PaddingValues(horizontal = NuvioTheme.spacing.xl, vertical = 14.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -558,7 +505,7 @@ internal fun PlayButton(
             ) {
                 Text(
                     text = text ?: "",
-                    style = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) com.nuvio.tv.skin.kicia.tokens.ForgeText.button.copy(color = androidx.compose.ui.graphics.Color.Black) else MaterialTheme.typography.labelLarge // forge: 15 bold
+                    style = MaterialTheme.typography.labelLarge
                 )
             }
         }
@@ -578,17 +525,12 @@ private fun ActionIconButtonPainter(
         onClick = onClick,
         enabled = enabled,
         modifier = Modifier
-            .size(if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) 44.dp else NuvioTheme.spacing.xxxl) // forge: 44
+            .size(NuvioTheme.spacing.xxxl)
             .onFocusChanged { state ->
                 if (state.isFocused) onFocused()
             }
             .focusProperties { up = FocusRequester.Cancel },
-        colors = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) IconButtonDefaults.colors( // forge: round glass buttons, white when focused (S03)
-            containerColor = com.nuvio.tv.skin.kicia.tokens.ForgeColors.Surface,
-            focusedContainerColor = com.nuvio.tv.skin.kicia.tokens.ForgeColors.Focus,
-            contentColor = com.nuvio.tv.skin.kicia.tokens.ForgeColors.Text,
-            focusedContentColor = com.nuvio.tv.skin.kicia.tokens.ForgeColors.OnFocus
-        ) else IconButtonDefaults.colors(
+        colors = IconButtonDefaults.colors(
             containerColor = NuvioTheme.colors.BackgroundCard,
             focusedContainerColor = NuvioTheme.colors.Secondary,
             contentColor = NuvioTheme.colors.TextPrimary,
@@ -644,7 +586,7 @@ private fun ActionIconButton(
         enabled = enabled,
         modifier = Modifier
             .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
-            .size(if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) 44.dp else NuvioTheme.spacing.xxxl) // forge: 44
+            .size(NuvioTheme.spacing.xxxl)
             .onFocusChanged { state ->
                 if (state.isFocused) onFocused()
             }
@@ -687,12 +629,7 @@ private fun ActionIconButton(
                     toggleableState = if (selected) ToggleableState.On else ToggleableState.Off
                 }
             },
-        colors = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) IconButtonDefaults.colors( // forge: round glass buttons; on = green icon (S03)
-            containerColor = com.nuvio.tv.skin.kicia.tokens.ForgeColors.Surface,
-            focusedContainerColor = com.nuvio.tv.skin.kicia.tokens.ForgeColors.Focus,
-            contentColor = if (selected || icon == Icons.Default.Check) com.nuvio.tv.skin.kicia.tokens.ForgeColors.Ok else com.nuvio.tv.skin.kicia.tokens.ForgeColors.Text,
-            focusedContentColor = com.nuvio.tv.skin.kicia.tokens.ForgeColors.OnFocus
-        ) else IconButtonDefaults.colors(
+        colors = IconButtonDefaults.colors(
             containerColor = if (selected) selectedContainerColor else NuvioTheme.colors.BackgroundCard,
             focusedContainerColor = NuvioTheme.colors.Secondary,
             contentColor = if (selected) selectedContentColor else NuvioTheme.colors.TextPrimary,

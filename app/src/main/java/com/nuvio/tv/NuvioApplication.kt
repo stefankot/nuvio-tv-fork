@@ -7,7 +7,11 @@ import android.os.Build
 import android.os.StrictMode
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
+import coil3.network.NetworkFetcher
+import coil3.network.okhttp.asNetworkClient
+import com.nuvio.tv.core.image.CollectionCoverNetworkClient
 import com.nuvio.tv.core.image.CustomPosterFallbackInterceptor
+import com.nuvio.tv.core.image.HardwareBitmapSettingInterceptor
 import coil3.disk.DiskCache
 import coil3.memory.MemoryCache
 import coil3.gif.GifDecoder
@@ -26,7 +30,7 @@ import com.nuvio.tv.core.sync.StartupSyncService
 import com.nuvio.tv.core.sync.androidtv.AndroidTvChannelSyncService
 import com.nuvio.tv.core.network.IPv4FirstDns
 import com.nuvio.tv.core.network.NoDelaySocketFactory
-import com.nuvio.tv.core.network.imageNetworkFetcherFactory
+import com.nuvio.tv.core.network.imageConnectivityChecker
 import com.nuvio.tv.data.local.ImagePerformancePreferences
 import com.nuvio.tv.data.local.SentrySettingsDataStore
 import com.nuvio.tv.data.mediaserver.ServerUserStateProjection
@@ -35,7 +39,6 @@ import com.nuvio.tv.data.mediaserver.plex.PlexArtworkSigner
 import com.nuvio.tv.data.mediaserver.silo.SiloArtworkInterceptor
 import com.nuvio.tv.data.mediaserver.silo.SiloArtworkRefresher
 import com.nuvio.tv.data.simkl.SimklAnimeIdPreferenceHolder
-import com.nuvio.tv.reshaped.ReshapedMigration
 import com.nuvio.tv.ui.screens.settings.MemoryBudget
 import dagger.hilt.android.HiltAndroidApp
 import okhttp3.Cookie
@@ -88,20 +91,14 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
         }
     }
 
-    override fun attachBaseContext(base: Context) {
-        super.attachBaseContext(base)
-        ReshapedMigration.importIfNeeded(base) // Nuvio RS hook: runs before providers read storage
-    }
-
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     override fun onCreate() {
         // Before super.onCreate(): Hilt creates injected services there, and the budget is read once.
         MemoryBudget.init(this)
         super.onCreate()
+        registerActivityLifecycleCallbacks(com.nuvio.tv.core.usenet.UsenetAppLifecycle())
         SentryInitializer.start(this, sentrySettingsDataStore)
         PluginRuntimeHooks.onApplicationCreate(this)
-        com.nuvio.tv.reshaped.subtitlefont.SubtitleFontStore.warmUp(this) // Nuvio RS hook: custom subtitle font, loaded off the main thread
-        com.nuvio.tv.reshaped.sync.ReshapedSync.onAppStart(this) // Nuvio RS hook: sync through the viewer's Google account
         androidTvChannelSyncService.start()
         serverUserStateProjection.start()
         // Load locale synchronously so it's available before Activity.attachBaseContext.
@@ -146,8 +143,8 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
 
         return ImageLoader.Builder(this)
             .components {
+                add(HardwareBitmapSettingInterceptor { imagePerformancePreferences.hardwareBitmapsEnabled })
                 add(CustomPosterFallbackInterceptor())
-                add(com.nuvio.tv.fork.images.ForkImageQuality { com.nuvio.tv.fork.images.ForkImageQuality.isEnabled(this@NuvioApplication) }) // Fork hook: images
                 if (Build.VERSION.SDK_INT >= 28) {
                     add(AnimatedImageDecoder.Factory())
                 } else {
@@ -155,14 +152,15 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
                 }
                 add(SvgDecoder.Factory())
                 add(
-                    imageNetworkFetcherFactory(
-                        callFactory = { imageOkHttpClient },
+                    NetworkFetcher.Factory(
+                        networkClient = { CollectionCoverNetworkClient(imageOkHttpClient.asNetworkClient()) },
                         cacheStrategy = {
                             StaleWhileRevalidateCacheStrategy(
                                 revalidationClient = { imageOkHttpClient },
                                 imageLoaderProvider = imageLoaderRef,
                             )
                         },
+                        connectivityChecker = ::imageConnectivityChecker,
                     )
                 )
             }
@@ -175,7 +173,6 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
                 // from rapid bitmap eviction during scrolling.
                 // Mid-range devices (≤3GB): use 0.20 for decent image caching.
                 // Normal devices (>3GB): use 0.25 for snappy image loading.
-                // - allowHardware(false) keeps bitmaps on heap instead of GPU memory
                 val cachePercent = when {
                     totalRamMb <= 2048 -> 0.15
                     totalRamMb <= 3072 -> 0.20
@@ -196,7 +193,7 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
             .diskCache {
                 DiskCache.Builder()
                     .directory(cacheDir.resolve("image_cache").toOkioPath())
-                    .maxSizeBytes(com.nuvio.tv.fork.images.ForkImageQuality.diskCacheBytes(this, 200L * 1024 * 1024)) // Fork hook: images (disk)
+                    .maxSizeBytes(200L * 1024 * 1024)
                     .build()
             }
             .crossfade(false)

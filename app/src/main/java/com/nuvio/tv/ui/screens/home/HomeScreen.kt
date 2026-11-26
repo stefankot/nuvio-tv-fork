@@ -94,7 +94,6 @@ fun HomeScreen(
     onNavigateToFolderDetail: (String, String) -> Unit = { _, _ -> }
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    @Suppress("UNUSED_VARIABLE") val forkModuleRows = com.nuvio.tv.fork.ForkHooks.moduleHomeRows() // Fork hook: registry
 
     // Home was the only major screen without a lifecycle observer, so nothing ever told it to
     // look at its catalogs again.
@@ -157,7 +156,12 @@ fun HomeScreen(
         }
     }
 
-    val onNavigateToDetailStable = remember(onNavigateToDetail) { onNavigateToDetail }
+    val onNavigateToDetailStable = remember(onNavigateToDetail, viewModel) {
+        { itemId: String, itemType: String, addonBaseUrl: String ->
+            viewModel.beginTrailerHandoff(itemId)
+            onNavigateToDetail(itemId, itemType, addonBaseUrl)
+        }
+    }
     val latestContinueWatchingClickAction = androidx.compose.runtime.rememberUpdatedState(uiState.continueWatchingClickAction)
     val onContinueWatchingClickStable = remember(onContinueWatchingClick, onNavigateToDetail) {
         { item: ContinueWatchingItem ->
@@ -374,23 +378,7 @@ fun HomeScreen(
                                 )
                         }
                     ) {
-                        // Nuvio RS hook: Netflix-style Home (purely visual, off by default)
-                        if (com.nuvio.tv.fork.ForkHooks.skinScreen("home", mapOf("viewModel" to viewModel, "uiState" to uiState, "onNavigateToDetail" to onNavigateToDetailStable, "onContinueWatchingClick" to onContinueWatchingClickStable, "onCatalogItemLongPress" to onCatalogItemLongPress, "onContinueWatchingStartFromBeginning" to onContinueWatchingStartFromBeginningStable, "onContinueWatchingPlayManually" to onContinueWatchingPlayManuallyStable, "showContinueWatchingManualPlay" to effectiveAutoplayEnabled))) { /* Fork hook: skin */ } else if (com.nuvio.tv.ui.reshaped.netflix.rememberNetflixUiEnabled()) {
-                            com.nuvio.tv.ui.reshaped.netflix.NetflixHomeRoute(
-                                viewModel = viewModel,
-                                uiState = uiState,
-                                posterCardStyle = posterCardStyle,
-                                onNavigateToDetail = onNavigateToDetailStable,
-                                onContinueWatchingClick = onContinueWatchingClickStable,
-                                onContinueWatchingStartFromBeginning = onContinueWatchingStartFromBeginningStable,
-                                onContinueWatchingPlayManually = onContinueWatchingPlayManuallyStable,
-                                showContinueWatchingManualPlayOption = effectiveAutoplayEnabled,
-                                onNavigateToCatalogSeeAll = onNavigateToCatalogSeeAllStable,
-                                onNavigateToFolderDetail = onNavigateToFolderDetailStable,
-                                isCatalogItemWatched = isCatalogItemWatched,
-                                onCatalogItemLongPress = onCatalogItemLongPress
-                            )
-                        } else when (uiState.homeLayout) {
+                        when (uiState.homeLayout) {
                             HomeLayout.CLASSIC -> ClassicHomeRoute(
                                 viewModel = viewModel,
                                 uiState = uiState,

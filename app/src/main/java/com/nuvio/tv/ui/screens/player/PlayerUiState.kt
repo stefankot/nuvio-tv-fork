@@ -1,6 +1,7 @@
 package com.nuvio.tv.ui.screens.player
 
 import androidx.media3.common.C
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.TrackGroup
 import androidx.media3.ui.AspectRatioFrameLayout
 import com.nuvio.tv.core.streams.CompiledStreamBadgeFilter
@@ -20,6 +21,7 @@ import com.nuvio.tv.domain.model.Subtitle
 import com.nuvio.tv.domain.model.Video
 import com.nuvio.tv.domain.model.WatchProgress
 import com.nuvio.tv.ui.components.SourceChipItem
+import java.util.Locale
 
 enum class PlayerExitReason {
     StillWatchingPrompt
@@ -133,9 +135,14 @@ data class PlayerUiState(
     val subtitleAutoSyncLoading: Boolean = false,
     val subtitleAutoSyncLoadedTrackKey: String? = null,
     val showSpeedDialog: Boolean = false,
+    val showDiscTitlesDialog: Boolean = false,
+    /** A Blu-ray's titles, when the stream is one clip of a disc with more than one. */
+    val discTitles: List<DiscTitle> = emptyList(),
+    val currentDiscTitle: String? = null,
     val showMoreDialog: Boolean = false,
     // Subtitle style settings
     val subtitleStyle: SubtitleStyleSettings = SubtitleStyleSettings(),
+    val assSubtitleStyle: SubtitleStyleSettings = SubtitleStyleSettings(size = SubtitleStyleSettings.ASS_SIZE_DEFAULT),
     // Current video is HDR10/HDR10+/HLG/Dolby Vision; selects the HDR subtitle style when enabled
     val isHdrVideo: Boolean = false,
     // Addon subtitles
@@ -195,16 +202,6 @@ data class PlayerUiState(
     val playbackIssueReportId: String? = null,
     val playbackIssueReportError: String? = null,
     val pendingSeekPosition: Long? = null, // For resuming from saved progress
-    // Fork hook: echo (quality menu, source switch, auto quality, audio menu)
-    val showQualityOverlay: Boolean = false,
-    val currentStreamQuality: com.nuvio.tv.core.streams.StreamQuality? = null,
-    val audioMenuOptions: List<com.nuvio.tv.core.streams.AudioMenuOption>? = null,
-    val sourceAudioFilter: SourceAudioFilter? = null,
-    val sourceSwitch: SourceSwitchUi? = null,
-    val autoQualityEnabled: Boolean = false,
-    val autoQualityActive: Boolean = false,
-    val qualityLanguageNotes: Map<com.nuvio.tv.core.streams.StreamQuality, String> = emptyMap(),
-    val autoQualityPending: AutoQualityPendingUi? = null,
     // Parental guide overlay
     val parentalWarnings: List<ParentalWarning> = emptyList(),
     val showParentalGuide: Boolean = false,
@@ -273,8 +270,21 @@ data class PlayerUiState(
     val isEditingHdrSubtitleStyle: Boolean
         get() = isHdrVideo && subtitleStyle.hdrStyleEnabled
 
+    val effectiveAssSubtitleStyle: SubtitleStyleSettings
+        get() = assSubtitleStyle.forVideo(isHdrVideo)
+
+    val isAssSubtitleSelected: Boolean
+        get() {
+            selectedAddonSubtitle?.let { return PlayerSubtitleUtils.mimeTypeFromUrl(it.url) == MimeTypes.TEXT_SSA }
+            val codec = subtitleTracks.getOrNull(selectedSubtitleTrackIndex)?.codec?.lowercase(Locale.US) ?: return false
+            return codec.contains("ass") || codec.contains("ssa")
+        }
+
+    val isAssSubtitleStyleActive: Boolean
+        get() = isAssSubtitleSelected && (internalPlayerEngine == InternalPlayerEngine.MVP_PLAYER || useLibass)
+
     val editableSubtitleStyle: SubtitleStyleSettings
-        get() = subtitleStyle.editableForVideo(isHdrVideo)
+        get() = (if (isAssSubtitleStyleActive) assSubtitleStyle else subtitleStyle).editableForVideo(isHdrVideo)
 
     /** Brightness factor for the player controls and menus drawn over the video (1 = undimmed). */
     val playerControlsBrightness: Float
@@ -381,6 +391,8 @@ sealed class PlayerEvent {
     data class OnAdjustSubtitleDelay(val deltaMs: Int, val showOverlay: Boolean = true) : PlayerEvent()
     data class OnResetSubtitleDelay(val showOverlay: Boolean = true) : PlayerEvent()
     data object OnShowSpeedDialog : PlayerEvent()
+    data object OnShowDiscTitles : PlayerEvent()
+    data class OnSelectDiscTitle(val name: String) : PlayerEvent()
     data object OnShowMoreDialog : PlayerEvent()
     data object OnDismissMoreDialog : PlayerEvent()
     data object OnShowEpisodesPanel : PlayerEvent()
@@ -391,13 +403,6 @@ sealed class PlayerEvent {
     data object OnReloadEpisodeStreams : PlayerEvent()
     data class OnEpisodeAddonFilterSelected(val addonName: String?) : PlayerEvent()
     data class OnEpisodeStreamSelected(val stream: Stream) : PlayerEvent()
-    // Fork hook: echo events
-    data class OnAudioMenuLanguageSelected(val option: com.nuvio.tv.core.streams.AudioMenuOption) : PlayerEvent()
-    data class OnAudioMenuSourcesRequested(val option: com.nuvio.tv.core.streams.AudioMenuOption) : PlayerEvent()
-    data object OnShowQualityOverlay : PlayerEvent()
-    data class OnQualitySelected(val quality: com.nuvio.tv.core.streams.StreamQuality) : PlayerEvent()
-    data object OnAutoQualitySelected : PlayerEvent()
-    data object OnCancelAutoQualityChange : PlayerEvent()
     data object OnShowSourcesPanel : PlayerEvent()
     data object OnDismissSourcesPanel : PlayerEvent()
     data object OnShowPartyPanel : PlayerEvent()
@@ -433,6 +438,7 @@ sealed class PlayerEvent {
     data class OnSetSubtitleShadowEnabled(val enabled: Boolean) : PlayerEvent()
     data class OnSetSubtitleShadowOpacity(val opacity: Int) : PlayerEvent()
     data class OnSetSubtitleShadowSize(val size: Int) : PlayerEvent()
+    data class OnSetSubtitleCustomizeAss(val enabled: Boolean) : PlayerEvent()
     data object OnResetSubtitleDefaults : PlayerEvent()
     data object OnToggleAspectRatio : PlayerEvent()
     data object OnSwitchInternalPlayerEngine : PlayerEvent()
@@ -492,9 +498,12 @@ data class StreamInfoData(
     val serverPlayback: String? = null
 )
 
-// Fork hook: echo
-data class SourceAudioFilter(
-    /** Null: sources whose audio couldn't be read. */
-    val language: com.nuvio.tv.core.streams.AudioLanguage?,
-    val isOriginal: Boolean
+/** A title of a Blu-ray disc: one of its playlists. */
+data class DiscTitle(
+    val name: String,
+    val durationMs: Long,
+    val clipCount: Int,
+    val isFeature: Boolean,
+    val audioLanguages: List<String> = emptyList(),
+    val subtitleLanguages: List<String> = emptyList()
 )

@@ -228,7 +228,6 @@ internal suspend fun PlayerRuntimeController.downloadSubtitleBody(
     headers: Map<String, String>? = null
 ): String =
     withContext(Dispatchers.IO) {
-        com.nuvio.tv.fork.sources.EmbeddedSourceSubtitles.read(context, url)?.let { return@withContext it } // Fork hook: cached embedded subtitles
         var lastError: Exception? = null
         repeat(SUBTITLE_DOWNLOAD_MAX_ATTEMPTS) { attempt ->
             try {

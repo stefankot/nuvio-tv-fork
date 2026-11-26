@@ -9,6 +9,10 @@ import androidx.compose.ui.platform.LocalContext
 import com.nuvio.tv.R
 import com.nuvio.tv.LocalRootContentInset
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import com.nuvio.tv.core.player.LocalBackgroundTrailerController
+import com.nuvio.tv.ui.screens.home.HOME_HERO_TRAILER_OWNER
+import com.nuvio.tv.ui.components.BackgroundTrailerLayer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -69,19 +73,6 @@ import com.nuvio.tv.ui.screens.profile.ProfileSelectionScreen
 import com.nuvio.tv.ui.screens.tmdb.TmdbEntityBrowseScreen
 import com.nuvio.tv.ui.screens.home.HeroBackdropState
 
-/** Nuvio One hook: player route for a YouTube video (official player). */
-private fun youtubePlayerRoute(v: com.nuvio.tv.youtube.YtPlayable): String =
-    Screen.Player.createRoute(
-        streamUrl = v.url,
-        title = v.title,
-        headers = v.headers.takeIf { it.isNotEmpty() },
-        contentId = com.nuvio.tv.youtube.YouTubeProgress.ID_PREFIX + v.videoId,
-        contentType = "youtube",
-        contentName = v.title,
-        poster = v.poster,
-        addonName = "OneTube"
-    )
-
 @Composable
 fun NuvioNavHost(
     navController: NavHostController,
@@ -89,16 +80,18 @@ fun NuvioNavHost(
     hideBuiltInHeaders: Boolean = false,
     discoverIsRoot: Boolean = false
 ) {
-    androidx.compose.runtime.SideEffect { com.nuvio.tv.ui.screens.settings.ForkFeatures.bind(navController) } // fork hook
     PlaybackAvailabilityProvider {
         // The NavController keeps its back stack ViewModels in the store of the owner it is
         // composed under, so use the session store when MainActivity provides one.
         val navViewModelStoreOwner = LocalNavViewModelStoreOwner.current
             ?: checkNotNull(LocalViewModelStoreOwner.current)
         CompositionLocalProvider(LocalViewModelStoreOwner provides navViewModelStoreOwner) {
-            com.nuvio.tv.fork.ForkHooks.screensWrap { // Fork hook: glass (warstwa szkła na treści ekranów)
-            PlaybackNavHost(navController, startDestination, hideBuiltInHeaders, discoverIsRoot)
-            } // Fork hook: glass (koniec warstwy)
+            Box(modifier = Modifier.fillMaxSize()) {
+                LocalBackgroundTrailerController.current?.let { controller ->
+                    BackgroundTrailerLayer(controller = controller)
+                }
+                PlaybackNavHost(navController, startDestination, hideBuiltInHeaders, discoverIsRoot)
+            }
         }
     }
 }
@@ -127,6 +120,14 @@ private fun PlaybackNavHost(
 ) {
     val playbackAvailability = LocalPlaybackAvailability.current
     val context = LocalContext.current
+    val backgroundTrailerController = LocalBackgroundTrailerController.current
+    fun isLeavingFramedHeroTrailer(): Boolean {
+        val controller = backgroundTrailerController ?: return false
+        return controller.activeRequest?.bounds != null &&
+            controller.isRenderingFor(HOME_HERO_TRAILER_OWNER) &&
+            !controller.isPinned(HOME_HERO_TRAILER_OWNER)
+    }
+
     fun isStreamToPlayer(from: String, to: String): Boolean {
         return from.startsWith("stream/") && to.startsWith("player/")
     }
@@ -178,6 +179,8 @@ private fun PlaybackNavHost(
                 ?.toBooleanStrictOrNull() == true
             if (isStreamToPlayer(from, to) && isAutoPlayNav) {
                 ExitTransition.None
+            } else if (isLeavingFramedHeroTrailer()) {
+                fadeOut(animationSpec = tween(NuvioMotion.tokens.durations.medium), targetAlpha = 1f)
             } else {
                 fadeOut(animationSpec = tween(NuvioMotion.tokens.durations.medium))
             }
@@ -207,7 +210,6 @@ private fun PlaybackNavHost(
             }
         }
     ) {
-        composable("forge_history") { com.nuvio.tv.skin.kicia.library.ForgeHistoryScreen(onNavigateToDetail = { id, type, url -> navController.navigate(Screen.Detail.createRoute(id, type, url)) }) } // Fork hook: Historia z menu (trasa Kicii brakowała)
         composable(Screen.ExperienceModeSelection.route) {
             ExperienceModeSelectionScreen(
                 onContinue = { mode ->
@@ -689,7 +691,6 @@ private fun PlaybackNavHost(
                                 fileIdx = playbackInfo.fileIdx,
                                 sources = playbackInfo.sources,
                                 contentLanguage = playbackInfo.contentLanguage,
-                                autoSourceRecoveryToken = playbackInfo.autoSourceRecoveryToken,
                                 profileId = playbackInfo.profileId,
                                 audioDelayMs = playbackInfo.audioDelayMs,
                                 audioDelayLanguage = playbackInfo.audioDelayLanguage
@@ -733,7 +734,6 @@ private fun PlaybackNavHost(
                                 fileIdx = playbackInfo.fileIdx,
                                 sources = playbackInfo.sources,
                                 contentLanguage = playbackInfo.contentLanguage,
-                                autoSourceRecoveryToken = playbackInfo.autoSourceRecoveryToken,
                                 profileId = playbackInfo.profileId,
                                 audioDelayMs = playbackInfo.audioDelayMs,
                                 audioDelayLanguage = playbackInfo.audioDelayLanguage,
@@ -890,11 +890,6 @@ private fun PlaybackNavHost(
                     nullable = true
                     defaultValue = null
                 },
-                navArgument("autoSourceRecoveryToken") {
-                    type = NavType.StringType
-                    nullable = true
-                    defaultValue = null
-                },
                 navArgument("launchStartedAtMs") {
                     type = NavType.StringType
                     nullable = true
@@ -960,7 +955,6 @@ private fun PlaybackNavHost(
                 }
             }
 
-            com.nuvio.tv.skin.kicia.youtube.ForgeYouTubeHost.Bind(backStackEntry.arguments?.getString("contentId"), navController) // Fork hook: panel 1Tube (sesja YouTube)
             PlayerScreen(
                 onBackPress = { currentVideoId, currentSeason, currentEpisode, autoPlayEnabled, playbackCompleted ->
                     val args = backStackEntry.arguments
@@ -1244,35 +1238,9 @@ private fun PlaybackNavHost(
             )
         }
 
-        com.nuvio.tv.fork.ForkHooks.moduleRoutes(this, context) // Fork hook: registry
-        composable(Screen.Calendar.route) { com.nuvio.tv.skin.kicia.nav.ForgeTabScreenToBar { // Fork hook: echo-calendar; 19.11: Wstecz i ▲ na pasek Kicii
-            com.nuvio.tv.ui.screens.calendar.CalendarScreen(
-                onOpenShow = { showId, addonBaseUrl, season, episode ->
-                    navController.navigate(
-                        Screen.Detail.createRoute(
-                            itemId = showId,
-                            itemType = "series",
-                            addonBaseUrl = addonBaseUrl,
-                            returnFocusSeason = season,
-                            returnFocusEpisode = episode
-                        )
-                    )
-                }
-            )
-        } }
-
-        composable(Screen.YouTube.route) { // Nuvio One hook: YouTube
-            if (com.nuvio.tv.fork.ForkHooks.skinScreen("youtube", mapOf("onPlay" to { v: com.nuvio.tv.youtube.YtPlayable -> navController.navigate(youtubePlayerRoute(v)) }))) return@composable // Fork hook: skin
-            com.nuvio.tv.youtube.YouTubeScreen(
-                onOpenSettings = { navController.navigate(Screen.Settings.route) { launchSingleTop = true } },
-                onPlay = { v -> navController.navigate(youtubePlayerRoute(v)) }
-            )
-        }
-
         rootComposable(Screen.Search.route) { backStackEntry ->
             val searchViewModel: com.nuvio.tv.ui.screens.search.SearchViewModel =
                 androidx.hilt.navigation.compose.hiltViewModel(backStackEntry)
-            if (com.nuvio.tv.fork.ForkHooks.skinScreen("search", mapOf("viewModel" to searchViewModel, "onNavigateToDetail" to { id: String, type: String, url: String -> navController.navigate(Screen.Detail.createRoute(itemId = id, itemType = type, addonBaseUrl = url, heroBackdropUrl = HeroBackdropState.consumeAndClear())) }))) return@rootComposable // Fork hook: skin
             SearchScreen(
                 viewModel = searchViewModel,
                 onNavigateToDetail = { itemId, itemType, addonBaseUrl ->
@@ -1296,7 +1264,6 @@ private fun PlaybackNavHost(
         }
 
         rootComposable(Screen.Discover.route, withInset = discoverIsRoot) {
-            if (com.nuvio.tv.fork.ForkHooks.skinScreen("discover", mapOf<String, Any?>("onNavigateToDetail" to { id: String, t: String, url: String -> navController.navigate(Screen.Detail.createRoute(itemId = id, itemType = t, addonBaseUrl = url, heroBackdropUrl = HeroBackdropState.consumeAndClear())) }))) return@rootComposable // Fork hook: skin (Z-14 Discover)
             DiscoverScreen(
                 showBuiltInHeader = !hideBuiltInHeaders,
                 onNavigateToDetail = { itemId, itemType, addonBaseUrl ->
@@ -1314,7 +1281,6 @@ private fun PlaybackNavHost(
         }
 
         rootComposable(Screen.Library.route) {
-            if (com.nuvio.tv.fork.ForkHooks.skinScreen("library", mapOf("onNavigateToDetail" to { id: String, type: String, url: String? -> navController.navigate(Screen.Detail.createRoute(id, type, url)) }))) return@rootComposable // Fork hook: skin
             LibraryScreen(
                 showBuiltInHeader = !hideBuiltInHeaders,
                 onNavigateToDetail = { itemId, itemType, addonBaseUrl ->
@@ -1347,14 +1313,8 @@ private fun PlaybackNavHost(
             )
         }
 
-        rootComposable(com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE) { // Nuvio RS hook: Live TV
-            com.nuvio.tv.skin.kicia.nav.ForgeTabBackToBar() // Fork hook: skin (Kicia: Wstecz z Live TV → pasek; poza paskiem Kicii nic nie robi)
-            if (com.nuvio.tv.fork.ForkHooks.skinScreen("livetv", mapOf("onPlay" to { route: String -> navController.navigate(route) }))) return@rootComposable // Fork hook: skin (Live TV skórki)
-            com.nuvio.tv.ui.reshaped.livetv.LiveTvScreen(onPlay = { navController.navigate(it) }, showBuiltInHeader = !hideBuiltInHeaders)
-        }
-
         rootComposable(Screen.Settings.route) {
-            if (!com.nuvio.tv.fork.ForkHooks.simpleSettings { navController.navigate(it) }) SettingsScreen( // Fork hook: settings
+            SettingsScreen(
                 showBuiltInHeader = !hideBuiltInHeaders,
                 onNavigateToAddons = { navController.navigate(Screen.AddonManager.route) },
                 onNavigateToPlugins = { navController.navigate(Screen.Plugins.route) },
@@ -1573,7 +1533,6 @@ private fun PlaybackNavHost(
                     androidx.hilt.navigation.compose.hiltViewModel(backStackEntry)
                 }
 
-            if (!fromSearch && com.nuvio.tv.fork.ForkHooks.skinScreen("catalog_see_all", mapOf<String, Any?>("catalogId" to catalogId, "addonId" to addonId, "type" to type, "viewModel" to homeViewModel, "onNavigateToDetail" to fun(id: String, t: String, url: String) { navController.navigate(Screen.Detail.createRoute(id, t, url)) }, "onBack" to fun() { navController.popBackStack() }))) return@composable // Fork hook: skin (Z-14 CatalogAll)
             CatalogSeeAllScreen(
                 catalogId = catalogId,
                 addonId = addonId,
@@ -1618,7 +1577,6 @@ private fun PlaybackNavHost(
                 }
             )
         ) {
-            if (com.nuvio.tv.fork.ForkHooks.skinScreen("tmdb_entity_browse", mapOf<String, Any?>("onNavigateToDetail" to fun(id: String, t: String, url: String?) { navController.navigate(Screen.Detail.createRoute(id, t, url)) }, "onBack" to fun() { navController.popBackStack() }))) return@composable // Fork hook: skin (Z-14 Studio)
             TmdbEntityBrowseScreen(
                 onBackPress = { navController.popBackStack() },
                 onNavigateToDetail = { itemId, itemType, addonBaseUrl ->

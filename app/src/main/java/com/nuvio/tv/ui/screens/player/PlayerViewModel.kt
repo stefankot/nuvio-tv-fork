@@ -42,7 +42,6 @@ import com.nuvio.tv.data.repository.TraktRelatedService
 import com.nuvio.tv.data.trailer.TrailerService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import com.nuvio.tv.ui.screens.player.seekpreview.SeekPreviewState
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -103,6 +102,7 @@ class PlayerViewModel @Inject constructor(
     private val tvRecommendationManager: com.nuvio.tv.core.recommendations.TvRecommendationManager,
     private val serverPlayback: com.nuvio.tv.data.mediaserver.ServerPlayback,
     private val serverStreams: com.nuvio.tv.data.mediaserver.ServerStreams,
+    private val usenetSourceSettings: com.nuvio.tv.core.usenet.UsenetSourceSettings,
     partyRepository: com.nuvio.tv.core.party.PartyRepository,
     profileManager: com.nuvio.tv.core.profile.ProfileManager,
     savedStateHandle: SavedStateHandle
@@ -153,6 +153,7 @@ class PlayerViewModel @Inject constructor(
         tvRecommendationManager = tvRecommendationManager,
         serverPlayback = serverPlayback,
         serverStreams = serverStreams,
+        usenetSourceSettings = usenetSourceSettings,
         party = partyRepository,
         profileId = savedStateHandle.get<String>("profileId")?.toIntOrNull()
             ?: profileManager.activeProfileId.value,
@@ -162,7 +163,6 @@ class PlayerViewModel @Inject constructor(
 
     init {
         controller.bindParty()
-        com.nuvio.tv.fork.sources.EmbeddedSourceSubtitles.observe(controller) // Fork hook: cached embedded subtitles
     }
 
     val party: com.nuvio.tv.core.party.PartyRepository
@@ -208,9 +208,6 @@ class PlayerViewModel @Inject constructor(
         scope = viewModelScope
     )
 
-    /** Seek-preview thumbnails (Seekr); see the seekpreview package. */
-    val seekPreview = SeekPreviewState(viewModelScope, controller)
-
     val uiState: StateFlow<PlayerUiState>
         get() = controller.uiState
 
@@ -230,6 +227,9 @@ class PlayerViewModel @Inject constructor(
     fun getCurrentStreamUrl(): String = controller.getCurrentStreamUrl()
 
     fun getCurrentHeaders(): Map<String, String> = controller.getCurrentHeaders()
+
+    internal fun getStreamTypeLabel(): String =
+        streamTypeLabel(controller.currentStreamType(), uiState.value.currentStreamAddonName)
 
     fun getCurrentFileSizeBytes(): Long? = controller.currentVideoSize
 
@@ -301,7 +301,7 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun onEvent(event: PlayerEvent) {
-        controller.onEvent(seekPreview.intercept(event))
+        controller.onEvent(event)
     }
 
     fun playerMediaInfo(): PlayerMediaInfo = controller.playerMediaInfo()
@@ -310,7 +310,6 @@ class PlayerViewModel @Inject constructor(
 
     fun bindExoSubtitleView(subtitleView: androidx.media3.ui.SubtitleView?) {
         controller.bindExoSubtitleView(subtitleView)
-        if (subtitleView != null) com.nuvio.tv.fork.ai.subtitles.AiSubtitles.bind(controller) // Fork hook: ai-subtitles
     }
 
     fun consumePendingExitReason() {
@@ -319,7 +318,6 @@ class PlayerViewModel @Inject constructor(
 
     override fun onCleared() {
         postPlayRecommendationController.stop()
-        com.nuvio.tv.fork.ai.subtitles.AiSubtitles.unbind(controller) // Fork hook: ai-subtitles
         controller.onCleared()
         // Allow the trailer player to be re-created when returning to home screen.
         trailerPlayerPool.reclaim()

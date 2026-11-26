@@ -257,7 +257,7 @@ fun CastSection(
                 }
                 .focusGroup(),
             state = listState,
-            contentPadding = PaddingValues(horizontal = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) 40.dp else NuvioTheme.spacing.xxxl, vertical = 6.dp), // forge: x 58
+            contentPadding = PaddingValues(horizontal = NuvioTheme.spacing.xxxl, vertical = 6.dp),
             horizontalArrangement = Arrangement.Start
         ) {
             val standardGap = NuvioTheme.spacing.sm
@@ -465,7 +465,7 @@ private fun CastMemberItem(
 
     Column(
         modifier = Modifier.width(itemWidth),
-        horizontalAlignment = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) Alignment.CenterHorizontally else Alignment.Start // forge: names centred under the circle
+        horizontalAlignment = Alignment.Start
     ) {
         // The visible name/character live in the sibling Column below and the portrait carries the
         // photo's description, so the focusable card replaces all of them with one stable name:
@@ -479,7 +479,7 @@ private fun CastMemberItem(
             onClick = onClick,
             modifier = modifier
                 .size(cardSize)
-                .align(if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) Alignment.CenterHorizontally else Alignment.Start)
+                .align(Alignment.Start)
                 .onFocusChanged { state ->
                     isFocused = state.isFocused
                     if (state.isFocused) onFocused()
@@ -495,7 +495,7 @@ private fun CastMemberItem(
                 containerColor = androidx.compose.ui.graphics.Color.Transparent,
                 focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent
             ),
-            border = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) CardDefaults.border(focusedBorder = Border.None) else CardDefaults.border( // forge hook v7.4: focus is never an outline
+            border = CardDefaults.border(
                 focusedBorder = Border(
                     border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
                     shape = CircleShape
@@ -528,10 +528,9 @@ private fun CastMemberItem(
                     )
                 } else {
                     androidx.compose.foundation.layout.Box(
-                        modifier = Modifier.fillMaxSize().then(if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) Modifier.background(com.nuvio.tv.skin.kicia.detail.forgeCastBrush(member.name)) else Modifier.background(currentBgColor)), // forge: initials on a gradient (S03)
+                        modifier = Modifier.fillMaxSize().background(currentBgColor),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) Text(text = com.nuvio.tv.skin.kicia.detail.forgeInitials(member.name), style = com.nuvio.tv.skin.kicia.tokens.ForgeText.title) else // forge
                         Text(
                             text = member.name.firstOrNull()?.uppercase() ?: "?",
                             style = initialsStyle,
@@ -547,13 +546,12 @@ private fun CastMemberItem(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(labelAreaHeight),
-            horizontalAlignment = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) Alignment.CenterHorizontally else Alignment.Start
+                .height(labelAreaHeight)
         ) {
             Text(
                 text = member.name,
-                style = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) com.nuvio.tv.skin.kicia.tokens.ForgeText.label.copy(fontSize = androidx.compose.ui.unit.TextUnit(15f, androidx.compose.ui.unit.TextUnitType.Sp)) else nameStyle,
-                color = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) com.nuvio.tv.skin.kicia.tokens.ForgeColors.Text else NuvioTheme.colors.TextSecondary,
+                style = nameStyle,
+                color = NuvioTheme.colors.TextSecondary,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )

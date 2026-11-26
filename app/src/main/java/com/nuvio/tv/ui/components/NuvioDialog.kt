@@ -78,7 +78,6 @@ fun NuvioDialog(
                 .heightIn(max = maxDialogHeight)
                 .clip(containerShape)
                 .then(backgroundModifier)
-                .then(com.nuvio.tv.fork.glass.ForkGlass.dialogSurface(containerShape)) // Fork hook: glass
                 .border(
                     containerBorderWidth,
                     containerBorderColor ?: NuvioTheme.colors.Border,

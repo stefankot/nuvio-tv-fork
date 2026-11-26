@@ -144,7 +144,6 @@ fun CastDetailScreen(
                     )
                 }
                 is CastDetailUiState.Success -> {
-                    if (com.nuvio.tv.fork.ForkHooks.skinScreen("person", mapOf("person" to state.personDetail, "bioExpanded" to isBiographyExpanded, "onBioExpanded" to { v: Boolean -> isBiographyExpanded = v }, "onNavigateToDetail" to onNavigateToDetail))) return@Crossfade // Fork hook: skin (strona osoby skórki)
                     CastDetailContent(
                         person = state.personDetail,
                         isBiographyExpanded = isBiographyExpanded,

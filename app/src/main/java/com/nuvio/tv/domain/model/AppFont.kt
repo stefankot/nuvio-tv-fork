@@ -3,6 +3,5 @@ package com.nuvio.tv.domain.model
 enum class AppFont(val displayName: String) {
     INTER("Inter"),
     DM_SANS("DM Sans"),
-    OPEN_SANS("Open Sans"),
-    SATOSHI("Satoshi") // forge: the font of the TV mockup (skórka Kicia)
+    OPEN_SANS("Open Sans")
 }

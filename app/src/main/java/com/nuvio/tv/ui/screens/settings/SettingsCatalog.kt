@@ -13,13 +13,9 @@ internal enum class SettingsCategory(val group: SettingsRailGroup) {
     PROFILES(SettingsRailGroup.YOU),
     WATCH_PARTY(SettingsRailGroup.YOU),
     APPEARANCE(SettingsRailGroup.LOOK),
-    NIGHT_MODE(SettingsRailGroup.LOOK), // forge hook: v7.4 Tryb nocny
     LAYOUT(SettingsRailGroup.LOOK),
     CONTENT_DISCOVERY(SettingsRailGroup.WATCH),
     PLAYBACK(SettingsRailGroup.WATCH),
-    NUVIO_RESHAPED(SettingsRailGroup.WATCH), // Nuvio RS hook
-    YOUTUBE(SettingsRailGroup.WATCH), // forge hook: 1Tube
-    FORGE(SettingsRailGroup.WATCH), // forge hook: settings of this fork
     INTEGRATION(SettingsRailGroup.SERVICES),
     TRACKING(SettingsRailGroup.SERVICES),
     ADVANCED(SettingsRailGroup.SYSTEM),

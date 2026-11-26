@@ -6,7 +6,6 @@ import android.util.Log
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import `is`.xyz.mpv.MPV
-import java.io.File
 
 abstract class NuvioBaseMpvView(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs),
     SurfaceHolder.Callback {
@@ -14,9 +13,7 @@ abstract class NuvioBaseMpvView(context: Context, attrs: AttributeSet?) : Surfac
     private var mpvInstance: MPV? = null
 
     val mpv: MPV
-        get() = mpvInstance ?: createMpv().also { mpvInstance = it }
-
-    protected open fun createMpv(): MPV = MPV(context)
+        get() = mpvInstance ?: MPV(context).also { mpvInstance = it }
 
     private var filePath: String? = null
 
@@ -26,9 +23,6 @@ abstract class NuvioBaseMpvView(context: Context, attrs: AttributeSet?) : Surfac
         mpv.setConfigDir(configDir)
         mpv.setCacheDir(cacheDir)
         initOptions()
-        // MPV 0.2 initializes in its constructor. Keep existing config files and
-        // their precedence over normal options, before the hardcoded options.
-        restoreLegacyMpvConfiguration(configDir) { command, path -> mpv.command(command, path) }
         postInitOptions()
         mpv.setOptionString("force-window", "no")
         mpv.setOptionString("idle", "once")
@@ -83,9 +77,4 @@ abstract class NuvioBaseMpvView(context: Context, attrs: AttributeSet?) : Surfac
     companion object {
         private const val TAG = "mpv"
     }
-}
-
-internal fun restoreLegacyMpvConfiguration(configDir: String, command: (String, String) -> Unit) {
-    File(configDir, "mpv.conf").takeIf { it.isFile }?.let { command("load-config-file", it.path) }
-    File(configDir, "input.conf").takeIf { it.isFile }?.let { command("load-input-conf", it.path) }
 }

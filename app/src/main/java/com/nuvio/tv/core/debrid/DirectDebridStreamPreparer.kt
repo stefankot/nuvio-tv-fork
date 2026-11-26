@@ -1,6 +1,5 @@
 package com.nuvio.tv.core.debrid
 
-import com.nuvio.tv.core.streams.ranking.StreamRegexRanking
 import android.util.Log
 import com.nuvio.tv.core.player.StreamAutoPlaySelector
 import com.nuvio.tv.data.local.DebridSettingsDataStore
@@ -39,18 +38,12 @@ class DirectDebridStreamPreparer @Inject constructor(
         val limit = settings.instantPlaybackPreparationLimit
         if (!settings.canResolvePlayableLinks || limit <= 0) return
 
-        val candidates = com.nuvio.tv.core.streams.ranking.RankedRegexWork.run(
-            enabled = playerSettings.streamAutoPlayMode == StreamAutoPlayMode.REGEX_MATCH &&
-                playerSettings.streamAutoPlayRankedRegex.isNotEmpty()
-        ) { checkpoint ->
-            prioritizeCandidates(
-                streams = streams,
-                limit = limit,
-                playerSettings = playerSettings,
-                installedAddonNames = installedAddonNames,
-                checkCancelled = checkpoint
-            )
-        }
+        val candidates = prioritizeCandidates(
+            streams = streams,
+            limit = limit,
+            playerSettings = playerSettings,
+            installedAddonNames = installedAddonNames
+        )
         for (stream in candidates) {
             if (!resolver.shouldResolveToPlayableStream(stream)) continue
             resolver.cachedPlayableStream(stream, season, episode)?.let { cached ->
@@ -84,8 +77,7 @@ class DirectDebridStreamPreparer @Inject constructor(
         streams: List<Stream>,
         limit: Int,
         playerSettings: PlayerSettings,
-        installedAddonNames: Set<String>,
-        checkCancelled: () -> Unit = {}
+        installedAddonNames: Set<String>
     ): List<Stream> {
         if (limit <= 0) return emptyList()
         val candidates = streams
@@ -98,8 +90,6 @@ class DirectDebridStreamPreparer @Inject constructor(
             streams = streams,
             mode = playerSettings.streamAutoPlayMode,
             regexPattern = playerSettings.streamAutoPlayRegex,
-            rankedRegexPatterns = playerSettings.streamAutoPlayRankedRegex,
-            rankedRegexCheckCancelled = checkCancelled,
             source = playerSettings.streamAutoPlaySource,
             installedAddonNames = installedAddonNames,
             selectedAddons = playerSettings.streamAutoPlaySelectedAddons,
@@ -110,15 +100,7 @@ class DirectDebridStreamPreparer @Inject constructor(
                 ?.let(prioritized::add)
         }
 
-        if (playerSettings.streamAutoPlayMode == StreamAutoPlayMode.REGEX_MATCH &&
-            playerSettings.streamAutoPlayRankedRegex.isNotEmpty()
-        ) {
-            StreamRegexRanking.rank(
-                candidates, playerSettings.streamAutoPlayRankedRegex, checkCancelled
-            ).orEmpty().filter { candidate ->
-                prioritized.none { it.preparationKey() == candidate.preparationKey() }
-            }.forEach(prioritized::add)
-        } else if (playerSettings.streamAutoPlayMode == StreamAutoPlayMode.REGEX_MATCH) {
+        if (playerSettings.streamAutoPlayMode == StreamAutoPlayMode.REGEX_MATCH) {
             val regex = runCatching {
                 Regex(playerSettings.streamAutoPlayRegex.trim(), RegexOption.IGNORE_CASE)
             }.getOrNull()

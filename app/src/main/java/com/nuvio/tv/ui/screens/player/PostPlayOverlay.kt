@@ -45,7 +45,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.FocusRequester.Companion.Cancel
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -107,19 +106,19 @@ fun PostPlayOverlay(
         }
         Card(
             onClick = onCardClick,
-            shape = CardDefaults.shape(shape = RoundedCornerShape(if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_PLAYER) 22.dp else 14.dp)), // forge: PlayerCard like "Pomiń intro" (S04)
+            shape = CardDefaults.shape(shape = RoundedCornerShape(14.dp)),
             colors = CardDefaults.colors(
-                containerColor = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_PLAYER) com.nuvio.tv.skin.kicia.tokens.ForgeColors.Sheet else Color(0xE3191919), // forge
-                focusedContainerColor = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_PLAYER) com.nuvio.tv.skin.kicia.tokens.ForgeColors.Sheet else Color(0xE3191919), // forge
+                containerColor = Color(0xE3191919),
+                focusedContainerColor = Color(0xE3191919),
             ),
             border = CardDefaults.border(
                 border = Border(
                     border = BorderStroke(NuvioTheme.spacing.hairline, Color.White.copy(alpha = 0.16f)),
-                    shape = RoundedCornerShape(if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_PLAYER) 22.dp else 14.dp), // forge
+                    shape = RoundedCornerShape(14.dp),
                 ),
                 focusedBorder = Border(
                     border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
-                    shape = RoundedCornerShape(if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_PLAYER) 22.dp else 14.dp), // forge
+                    shape = RoundedCornerShape(14.dp),
                 ),
             ),
             scale = CardDefaults.scale(focusedScale = 1f),
@@ -191,7 +190,7 @@ private fun AutoPlayBody(
             Text(
                 text = stringResource(R.string.next_episode_label),
                 color = Color.White.copy(alpha = 0.8f),
-                fontSize = 12.sp,
+                fontSize = 11.sp,
                 fontWeight = FontWeight.Medium,
             )
             Spacer(modifier = Modifier.height(NuvioTheme.spacing.xxs))
@@ -278,7 +277,7 @@ private fun StillWatchingBody(
             Text(
                 text = stringResource(R.string.still_watching_title),
                 color = Color.White.copy(alpha = 0.8f),
-                fontSize = 12.sp,
+                fontSize = 11.sp,
                 fontWeight = FontWeight.Medium,
             )
             Spacer(modifier = Modifier.height(NuvioTheme.spacing.xxs))
@@ -348,14 +347,12 @@ private fun PostPlayPillButton(
     focusRequester: FocusRequester,
     modifier: Modifier = Modifier,
 ) {
-    var forgeFocused by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) } // forge
-    val forgeOn = com.nuvio.tv.skin.kicia.ForgeUi.NEW_PLAYER && forgeFocused // forge: white pill, dark text when focused (S04)
     Card(
         onClick = onClick,
         shape = CardDefaults.shape(shape = CircleShape),
         colors = CardDefaults.colors(
             containerColor = Color.Transparent,
-            focusedContainerColor = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_PLAYER) com.nuvio.tv.skin.kicia.tokens.ForgeColors.Focus else Color.White.copy(alpha = 0.15f), // forge
+            focusedContainerColor = Color.White.copy(alpha = 0.15f),
         ),
         border = CardDefaults.border(
             border = Border(
@@ -368,8 +365,7 @@ private fun PostPlayPillButton(
             ),
         ),
         scale = CardDefaults.scale(focusedScale = 1f),
-        modifier = modifier.focusRequester(focusRequester)
-            .onFocusChanged { forgeFocused = it.isFocused }, // forge
+        modifier = modifier.focusRequester(focusRequester),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
@@ -378,12 +374,12 @@ private fun PostPlayPillButton(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = if (forgeOn) com.nuvio.tv.skin.kicia.tokens.ForgeColors.OnFocus else iconTint, // forge
+                tint = iconTint,
                 modifier = Modifier.size(14.dp),
             )
             Text(
                 text = label,
-                color = if (forgeOn) com.nuvio.tv.skin.kicia.tokens.ForgeColors.OnFocus else textColor, // forge
+                color = textColor,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(start = 3.dp),
             )
@@ -436,7 +432,7 @@ private fun NextEpisodeStatusLine(text: String, modifier: Modifier = Modifier) {
     Text(
         text = text,
         color = Color.White.copy(alpha = 0.78f),
-        fontSize = 12.sp,
+        fontSize = 11.sp,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         modifier = modifier,

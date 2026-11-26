@@ -105,6 +105,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListPrefetchStrategy
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.layout.LazyLayoutCacheWindow
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.ui.draw.clip
 import androidx.tv.material3.Border
@@ -166,6 +167,7 @@ private class DetailTapScroll {
 }
 
 private const val RAPID_DOWN_TAP_MS = 280L
+private const val LEFT_GRADIENT_FADE_FRACTION = 0.78f
 
 private enum class PeopleSectionTab {
     CAST,
@@ -467,7 +469,6 @@ fun MetaDetailsScreen(
 ) {
     val playbackAvailability = LocalPlaybackAvailability.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    com.nuvio.tv.fork.echo.EchoSourcePreload.Run(uiState.meta, uiState.nextToWatch) // fork hook
     val posterCardCornerRadiusDp by viewModel.posterCardCornerRadiusDp.collectAsStateWithLifecycle()
     val effectiveAutoplayEnabled by viewModel.effectiveAutoplayEnabled.collectAsStateWithLifecycle(
         initialValue = false
@@ -908,11 +909,11 @@ fun MetaDetailsScreen(
                 if (playOnLoad && !playOnLoadReturnContentRevealed) {
                     PlaybackHandoffBackdrop(backdropUrl = heroBackdropUrl ?: meta.backdropUrl)
                 }
-                if (com.nuvio.tv.fork.ForkHooks.skinScreen("detail", mapOf("meta" to meta, "uiState" to uiState, "viewModel" to viewModel, "heroVideo" to playOnLoadVideo, "playEpisode" to playEpisode, "playTitle" to playTitle, "onNavigateToDetail" to onNavigateToDetail, "onNavigateToCastDetail" to onNavigateToCastDetail))) return@Box // Fork hook: skin (strona filmu/serialu skórki)
                 MetaDetailsContent(
                     modifier = Modifier.graphicsLayer {
                         alpha = playOnLoadReturnContentAlpha
                     },
+                    drawBackground = playOnLoad && !playOnLoadReturnContentRevealed,
                     heroBackdropUrl = heroBackdropUrl,
                     meta = meta,
                     detailReturnEpisodeFocusRequest = DetailReturnEpisodeFocusRequest(
@@ -930,6 +931,7 @@ fun MetaDetailsScreen(
                     nextToWatch = uiState.nextToWatch,
                     episodeProgressMap = uiState.episodeProgressMap,
                     watchedEpisodes = uiState.watchedEpisodes,
+                    rewatchEpisodes = uiState.rewatchEpisodes,
                     episodeWatchedPendingKeys = uiState.episodeWatchedPendingKeys,
                     blurUnwatchedEpisodes = uiState.blurUnwatchedEpisodes,
                     seasonPostersEnabled = uiState.seasonPostersEnabled,
@@ -1022,6 +1024,12 @@ fun MetaDetailsScreen(
                     onToggleMovieWatched = { viewModel.onEvent(MetaDetailsEvent.OnToggleMovieWatched) },
                     onToggleEpisodeWatched = { video ->
                         viewModel.onEvent(MetaDetailsEvent.OnToggleEpisodeWatched(video))
+                    },
+                    onMarkEpisodeRewatched = { video ->
+                        viewModel.onEvent(MetaDetailsEvent.OnMarkEpisodeRewatched(video))
+                    },
+                    onUnmarkEpisodeRewatched = { video ->
+                        viewModel.onEvent(MetaDetailsEvent.OnUnmarkEpisodeRewatched(video))
                     },
                     onMarkSeasonWatched = { season ->
                         viewModel.onEvent(MetaDetailsEvent.OnMarkSeasonWatched(season))
@@ -1260,6 +1268,7 @@ fun MetaDetailsScreen(
 @Composable
 private fun MetaDetailsContent(
     modifier: Modifier = Modifier,
+    drawBackground: Boolean = false,
     heroBackdropUrl: String? = null,
     meta: Meta,
     detailReturnEpisodeFocusRequest: DetailReturnEpisodeFocusRequest? = null,
@@ -1274,6 +1283,7 @@ private fun MetaDetailsContent(
     nextToWatch: NextToWatch?,
     episodeProgressMap: Map<Pair<Int, Int>, WatchProgress>,
     watchedEpisodes: Set<Pair<Int, Int>>,
+    rewatchEpisodes: Set<Pair<Int, Int>> = emptySet(),
     episodeWatchedPendingKeys: Set<String>,
     blurUnwatchedEpisodes: Boolean,
     seasonPostersEnabled: Boolean,
@@ -1323,6 +1333,8 @@ private fun MetaDetailsContent(
     onLibraryLongPress: () -> Unit,
     onToggleMovieWatched: () -> Unit,
     onToggleEpisodeWatched: (Video) -> Unit,
+    onMarkEpisodeRewatched: (Video) -> Unit = {},
+    onUnmarkEpisodeRewatched: (Video) -> Unit = {},
     onMarkSeasonWatched: (Int) -> Unit,
     onMarkSeasonUnwatched: (Int) -> Unit,
     onMarkPreviousEpisodesWatched: (Video) -> Unit,
@@ -1394,7 +1406,8 @@ private fun MetaDetailsContent(
         { video: Video -> playbackAvailability.canStream(meta.apiType, video.id, meta.id, video) }
     }
     val nestedPrefetchStrategy = remember { LazyListPrefetchStrategy(nestedPrefetchItemCount = 2) }
-    val listState = rememberLazyListState(prefetchStrategy = nestedPrefetchStrategy)
+    val detailCacheWindow = remember { LazyLayoutCacheWindow(aheadFraction = 1f, behindFraction = 1f) }
+    val listState = rememberLazyListState(cacheWindow = detailCacheWindow)
     val castRowListState = rememberLazyListState(prefetchStrategy = nestedPrefetchStrategy)
     val moreLikeThisListState = rememberLazyListState(prefetchStrategy = nestedPrefetchStrategy)
     val trailerListState = rememberLazyListState(prefetchStrategy = nestedPrefetchStrategy)
@@ -1961,7 +1974,7 @@ private fun MetaDetailsContent(
     val visibleMdbListRatings = mdbListRatings.takeIf { isMdbListRatingsActive }
     val hasRatingsSection = isTvShow && showEpisodeImdbRatings
     val strTabCast = stringResource(R.string.detail_tab_cast)
-    val strTabRatings = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) "Oceny odcinków" else stringResource(R.string.detail_tab_ratings) // forge (owner 10.11): the episode ratings are back
+    val strTabRatings = stringResource(R.string.detail_tab_ratings)
     val strTabMoreLikeThis = stringResource(R.string.detail_tab_more_like_this)
     val strTabTrailer = stringResource(R.string.detail_tab_trailer)
     val strTabCollection = stringResource(R.string.tmdb_collections_title)
@@ -1989,12 +2002,12 @@ private fun MetaDetailsContent(
                 add(
                     PeopleTabItem(
                         tab = PeopleSectionTab.CAST,
-                        label = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) "Obsada" else strTabCast, // forge: mockup wording
+                        label = strTabCast,
                         focusRequester = castTabFocusRequester
                     )
                 )
             }
-            if (hasRatingsSection) { // forge (owner 10.11): episode ratings are shown again, as a section of the stack
+            if (hasRatingsSection) {
                 add(
                     PeopleTabItem(
                         tab = PeopleSectionTab.RATINGS,
@@ -2007,7 +2020,7 @@ private fun MetaDetailsContent(
                 add(
                     PeopleTabItem(
                         tab = PeopleSectionTab.MORE_LIKE_THIS,
-                        label = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) "Podobne" else strTabMoreLikeThis,
+                        label = strTabMoreLikeThis,
                         focusRequester = moreLikeTabFocusRequester
                     )
                 )
@@ -2016,7 +2029,7 @@ private fun MetaDetailsContent(
                 add(
                     PeopleTabItem(
                         tab = PeopleSectionTab.TRAILER,
-                        label = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) "Zwiastuny" else strTabTrailer,
+                        label = strTabTrailer,
                         focusRequester = trailerTabFocusRequester
                     )
                 )
@@ -2036,16 +2049,12 @@ private fun MetaDetailsContent(
     val shouldSplitCollection = peopleTabItems.size > 3 && peopleTabItems.any { it.tab == PeopleSectionTab.COLLECTION }
     val visiblePeopleTabItems = if (shouldSplitCollection) peopleTabItems.filterNot { it.tab == PeopleSectionTab.COLLECTION } else peopleTabItems
     val hasVisiblePeopleSection = visiblePeopleTabItems.isNotEmpty()
-    // forge (mockup v6 S03): the people sections stand one under the other instead of behind tabs
-    val forgeStack = com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL_STACK && visiblePeopleTabItems.size > 1
-    val hasVisiblePeopleTabs = visiblePeopleTabItems.size > 1 && !forgeStack
+    val hasVisiblePeopleTabs = visiblePeopleTabItems.size > 1
     val commentsItemIndex = remember(
         isSeries,
         seasons,
         hasVisiblePeopleSection,
-        hasVisiblePeopleTabs,
-        forgeStack,
-        visiblePeopleTabItems.size
+        hasVisiblePeopleTabs
     ) {
         var index = 1
         if (isSeries && seasons.isNotEmpty()) {
@@ -2053,7 +2062,7 @@ private fun MetaDetailsContent(
         }
         if (hasVisiblePeopleSection) {
             if (hasVisiblePeopleTabs) index += 1
-            index += if (forgeStack) visiblePeopleTabItems.size else 1
+            index += 1
         }
         index
     }
@@ -2305,7 +2314,7 @@ private fun MetaDetailsContent(
         val transparent = backgroundColor.copy(alpha = 0f).toArgb()
         val bmp = android.graphics.Bitmap.createBitmap(w, 2, android.graphics.Bitmap.Config.ARGB_8888)
         val canvas = android.graphics.Canvas(bmp)
-        val fadeWidth = w * 0.78f
+        val fadeWidth = w * LEFT_GRADIENT_FADE_FRACTION
         val shader = if (isRtl) {
             android.graphics.LinearGradient(
                 w.toFloat(), 0f, w - fadeWidth, 0f,
@@ -2384,6 +2393,7 @@ private fun MetaDetailsContent(
         modifier = modifier
             .fillMaxSize()
             .drawBehind {
+                if (!drawBackground) return@drawBehind
                 val ownTrailerRendering = (isTrailerPlaying || isBackgroundTrailerPlaying) &&
                     contentBackgroundTrailerController?.isRendering(trailerUrl) == true
                 if (!ownTrailerRendering) drawRect(backgroundColor)
@@ -2568,9 +2578,8 @@ private fun MetaDetailsContent(
                         nextToWatch = nextToWatch,
                         onPlayClick = { if (shufflePoolEmpty) showRandomEpisodeOverlay = true else heroPlayClick() },
                         isPlayEnabled = shufflePoolEmpty || isPlayEnabled,
-                        // forge hook v7.4 (makieta 04: długie OK na Przycisku głównym = Lista źródeł, bez okna opcji)
-                        onPlayLongPress = if (!shufflePoolEmpty && isPlayEnabled) {
-                            { heroPlayManualClick() }
+                        onPlayLongPress = if (!shufflePoolEmpty && isPlayEnabled && (showManualPlayOption || nextToWatch?.isResume == true)) {
+                            { showHeroPlayOptionsDialog = true }
                         } else {
                             null
                         },
@@ -2639,8 +2648,7 @@ private fun MetaDetailsContent(
             val showEpisodesRow = isSeries && seasons.isNotEmpty()
             if (showSeasonTabs) {
                 item(key = "season_tabs", contentType = "season_tabs") {
-                    Column(modifier = Modifier.bringIntoViewResponder(detailRowBringIntoViewResponder)) { // forge: Column for the heading
-                        if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) androidx.tv.material3.Text("Sezony i odcinki", style = com.nuvio.tv.skin.kicia.tokens.ForgeText.head, modifier = Modifier.padding(start = 40.dp, top = 24.dp)) // forge hook: heading (S03)
+                    Box(modifier = Modifier.bringIntoViewResponder(detailRowBringIntoViewResponder)) {
                         SeasonTabs(
                             seasons = seasons,
                             selectedSeason = selectedSeason,
@@ -2672,6 +2680,7 @@ private fun MetaDetailsContent(
                             episodeProgressMap = episodeProgressMap,
                             episodeRatings = visibleEpisodeImdbRatings,
                             watchedEpisodes = watchedEpisodes,
+                            rewatchedEpisodes = rewatchEpisodes,
                             episodeWatchedPendingKeys = episodeWatchedPendingKeys,
                             blurUnwatchedEpisodes = blurUnwatchedEpisodes,
                             episodeOptionsOverlayStyle = episodeOptionsOverlayStyle,
@@ -2685,6 +2694,8 @@ private fun MetaDetailsContent(
                             },
                             showManualPlayOption = showManualPlayOption,
                             onToggleEpisodeWatched = onToggleEpisodeWatched,
+                            onMarkEpisodeRewatched = onMarkEpisodeRewatched,
+                            onUnmarkEpisodeRewatched = onUnmarkEpisodeRewatched,
                             onMarkSeasonWatched = onMarkSeasonWatched,
                             onMarkSeasonUnwatched = onMarkSeasonUnwatched,
                             isSeasonFullyWatched = isSeasonFullyWatched(selectedSeason),
@@ -2778,10 +2789,9 @@ private fun MetaDetailsContent(
                     }
                 }
 
-                (if (forgeStack) visiblePeopleTabItems.map { it.tab } else listOf<PeopleSectionTab?>(null)).forEach { stackTab ->
-                item(key = if (stackTab == null) "cast_or_more_like" else "people_$stackTab", contentType = "horizontal_row") {
+                item(key = "cast_or_more_like", contentType = "horizontal_row") {
                     val visiblePeopleTabsList = visiblePeopleTabItems.map { it.tab }
-                    val visiblePeopleSection = stackTab ?: if (hasVisiblePeopleTabs) {
+                    val visiblePeopleSection = if (hasVisiblePeopleTabs) {
                         activePeopleTab
                     } else {
                         visiblePeopleTabsList.first()
@@ -2802,7 +2812,7 @@ private fun MetaDetailsContent(
                                     listState = castRowListState,
                                     title = if (hasVisiblePeopleTabs) "" else strTabCast,
                                     leadingCast = directorWriterMembers,
-                                    upFocusRequester = if (hasVisiblePeopleTabs) castTabFocusRequester else (if (forgeStack) null else seasonDownFocusRequester ?: heroPlayFocusRequester),
+                                    upFocusRequester = if (hasVisiblePeopleTabs) castTabFocusRequester else seasonDownFocusRequester ?: heroPlayFocusRequester,
                                     downFocusRequester = if (shouldShowCommentsSection && canToggleEpisodeComments) commentsSelectedModeFocusRequester else null,
                                     sectionFocusRequester = castSectionFocusRequester,
                                     restorePersonId = if (!childOverlayVisible && pendingRestoreType == RestoreTarget.CAST_MEMBER) pendingRestoreCastPersonId else null,
@@ -2836,7 +2846,7 @@ private fun MetaDetailsContent(
                                     listState = moreLikeThisListState,
                                     sourceLabel = moreLikeThisSourceLabel,
                                     posterCardCornerRadius = posterCardCornerRadiusDp.dp,
-                                    upFocusRequester = if (hasVisiblePeopleTabs) moreLikeTabFocusRequester else (if (forgeStack) null else seasonDownFocusRequester ?: heroPlayFocusRequester),
+                                    upFocusRequester = if (hasVisiblePeopleTabs) moreLikeTabFocusRequester else seasonDownFocusRequester ?: heroPlayFocusRequester,
                                     downFocusRequester = if (shouldShowCommentsSection && canToggleEpisodeComments) commentsSelectedModeFocusRequester else null,
                                     sectionFocusRequester = moreLikeSectionFocusRequester,
                                     restoreItemId = if (!childOverlayVisible && pendingRestoreType == RestoreTarget.MORE_LIKE_THIS) pendingRestoreMoreLikeItemId else null,
@@ -2867,7 +2877,7 @@ private fun MetaDetailsContent(
                                     trailers = meta.trailers,
                                     listState = trailerListState,
                                     posterCardCornerRadius = posterCardCornerRadiusDp.dp,
-                                    upFocusRequester = if (hasVisiblePeopleTabs) trailerTabFocusRequester else (if (forgeStack) null else seasonDownFocusRequester ?: heroPlayFocusRequester),
+                                    upFocusRequester = if (hasVisiblePeopleTabs) trailerTabFocusRequester else seasonDownFocusRequester ?: heroPlayFocusRequester,
                                     downFocusRequester = when {
                                         shouldSplitCollection && collection.isNotEmpty() -> collectionSectionFocusRequester
                                         shouldShowCommentsSection && canToggleEpisodeComments -> commentsSelectedModeFocusRequester
@@ -2891,7 +2901,7 @@ private fun MetaDetailsContent(
                                     items = collection,
                                     listState = collectionListState,
                                     posterCardCornerRadius = posterCardCornerRadiusDp.dp,
-                                    upFocusRequester = if (hasVisiblePeopleTabs) collectionTabFocusRequester else (if (forgeStack) null else seasonDownFocusRequester ?: heroPlayFocusRequester),
+                                    upFocusRequester = if (hasVisiblePeopleTabs) collectionTabFocusRequester else seasonDownFocusRequester ?: heroPlayFocusRequester,
                                     downFocusRequester = if (shouldShowCommentsSection && canToggleEpisodeComments) commentsSelectedModeFocusRequester else null,
                                     sectionFocusRequester = collectionSectionFocusRequester,
                                     restoreItemId = if (!childOverlayVisible && pendingRestoreType == RestoreTarget.COLLECTION) pendingRestoreCollectionItemId else null,
@@ -2927,7 +2937,7 @@ private fun MetaDetailsContent(
                                     upFocusRequester = if (hasVisiblePeopleTabs) {
                                         ratingsTabFocusRequester
                                     } else {
-                                        (if (forgeStack) null else seasonDownFocusRequester ?: heroPlayFocusRequester)
+                                        seasonDownFocusRequester ?: heroPlayFocusRequester
                                     },
                                     downFocusRequester = if (shouldShowCommentsSection && canToggleEpisodeComments) commentsSelectedModeFocusRequester else null,
                                     firstItemFocusRequester = ratingsContentFocusRequester,
@@ -2937,7 +2947,6 @@ private fun MetaDetailsContent(
                             }
                         }
                     }
-                }
                 }
             }
             
@@ -2949,7 +2958,7 @@ private fun MetaDetailsContent(
                         listState = collectionListState,
                         title = collectionName ?: strTabCollection,
                         posterCardCornerRadius = posterCardCornerRadiusDp.dp,
-                        upFocusRequester = if (forgeStack) null else if (hasVisiblePeopleSection) { // forge hook 19.11 (Baahubali): w stosie Kicii ▲ szukał karty niewidocznej zakładki
+                        upFocusRequester = if (hasVisiblePeopleSection) {
                             when (activePeopleTab) {
                                 PeopleSectionTab.CAST -> castSectionFocusRequester
                                 PeopleSectionTab.MORE_LIKE_THIS -> moreLikeSectionFocusRequester
@@ -2982,13 +2991,6 @@ private fun MetaDetailsContent(
                             onPosterLongPress(item)
                         }
                     )
-                }
-            }
-
-            // forge (owner 10.11): every field the title has, as a table at the bottom of the page.
-            if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) {
-                item(key = "forge_all_metadata", contentType = "forge_all_metadata") {
-                    com.nuvio.tv.skin.kicia.detail.ForgeAllMetadata(meta = meta, tmdbRating = tmdbRating)
                 }
             }
 
@@ -3493,9 +3495,22 @@ private fun BackdropLayer(
                 .drawWithCache {
                     onDrawBehind {
                         if (gradientAlphaState.value > 0f) {
+                            val srcWidth = kotlin.math.ceil(leftGradient.width * LEFT_GRADIENT_FADE_FRACTION).toInt()
+                                .coerceIn(1, leftGradient.width)
+                            val dstWidth = kotlin.math.ceil(size.width * srcWidth / leftGradient.width).toInt()
+                            val rtl = layoutDirection == LayoutDirection.Rtl
                             drawImage(
                                 leftGradient,
-                                dstSize = androidx.compose.ui.unit.IntSize(size.width.toInt(), size.height.toInt()),
+                                srcOffset = androidx.compose.ui.unit.IntOffset(
+                                    if (rtl) leftGradient.width - srcWidth else 0,
+                                    0
+                                ),
+                                srcSize = androidx.compose.ui.unit.IntSize(srcWidth, leftGradient.height),
+                                dstOffset = androidx.compose.ui.unit.IntOffset(
+                                    if (rtl) size.width.toInt() - dstWidth else 0,
+                                    0
+                                ),
+                                dstSize = androidx.compose.ui.unit.IntSize(dstWidth, size.height.toInt()),
                                 alpha = gradientAlphaState.value,
                                 filterQuality = androidx.compose.ui.graphics.FilterQuality.Low
                             )
@@ -3522,14 +3537,13 @@ private fun PeopleSectionTabs(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 20.dp, start = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) 40.dp else NuvioTheme.spacing.xxxl, end = NuvioTheme.spacing.xxxl), // forge
+            .padding(top = 20.dp, start = NuvioTheme.spacing.xxxl, end = NuvioTheme.spacing.xxxl),
         verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.sm)
     ) {
         @Composable
         fun androidx.compose.foundation.layout.RowScope.renderTabs(items: List<PeopleTabItem>) {
             items.forEachIndexed { index, item ->
-                if (index > 0 && com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) Spacer(Modifier.width(12.dp)) // forge: pills, no divider
-                else if (index > 0) {
+                if (index > 0) {
                     Spacer(
                         modifier = Modifier
                             .padding(horizontal = 10.dp)
@@ -3604,23 +3618,18 @@ private fun PeopleSectionTabButton(
                 role = Role.Tab
                 this.selected = selected
             },
-        colors = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) CardDefaults.colors( // forge: glass pills, white when focused (S03)
-            containerColor = if (selected) com.nuvio.tv.skin.kicia.tokens.ForgeColors.Surface3 else com.nuvio.tv.skin.kicia.tokens.ForgeColors.Surface,
-            focusedContainerColor = com.nuvio.tv.skin.kicia.tokens.ForgeColors.Focus
-        ) else CardDefaults.colors(
+        colors = CardDefaults.colors(
             containerColor = Color.Transparent,
             focusedContainerColor = Color.Transparent
         ),
-        shape = CardDefaults.shape(RoundedCornerShape(if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) 18.dp else NuvioTheme.radii.xl)),
         border = CardDefaults.border(
             focusedBorder = Border(
                 border = BorderStroke(NuvioTheme.spacing.none, Color.Transparent),
                 shape = RoundedCornerShape(NuvioTheme.radii.xl)
             )
         ),
-        scale = CardDefaults.scale(focusedScale = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) 1f else 1.03f)
+        scale = CardDefaults.scale(focusedScale = 1.03f)
     ) {
-        if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) Text(text = label, style = com.nuvio.tv.skin.kicia.tokens.ForgeText.label.copy(color = if (isFocused) com.nuvio.tv.skin.kicia.tokens.ForgeColors.OnFocus else com.nuvio.tv.skin.kicia.tokens.ForgeColors.Text), modifier = Modifier.padding(horizontal = 16.dp, vertical = 9.dp)) else // forge
         Text(
             text = label,
             style = MaterialTheme.typography.titleLarge,

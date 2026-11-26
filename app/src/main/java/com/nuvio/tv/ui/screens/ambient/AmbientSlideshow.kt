@@ -178,7 +178,7 @@ fun AmbientSlideshow(
                     )
                 )
         )
-        if (!com.nuvio.tv.skin.kicia.ForgeUi.SAVER_MOCKUP) Column( // forge hook: the mockup's screensaver has no slide title (S14)
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .padding(start = 72.dp, end = 72.dp, bottom = 64.dp)

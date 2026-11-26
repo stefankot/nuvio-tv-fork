@@ -2,9 +2,6 @@
 
 package com.nuvio.tv.ui.screens.stream
 
-import androidx.compose.ui.platform.testTag
-import com.nuvio.tv.core.player.recovery.AutoSourceRecoveryHandoff
-
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -100,6 +97,7 @@ import com.nuvio.tv.domain.model.Stream
 import com.nuvio.tv.ui.components.SourceChipItem
 import com.nuvio.tv.ui.components.SourceChipStatus
 import com.nuvio.tv.ui.components.P2pConsentDialog
+import com.nuvio.tv.ui.components.RewatchPromptOverlay
 import com.nuvio.tv.ui.components.StreamBadgeChips
 import com.nuvio.tv.ui.components.StreamsSkeletonList
 import com.nuvio.tv.ui.screens.player.LoadingOverlay
@@ -167,6 +165,23 @@ fun StreamScreen(
         initialValue = StreamBadgeSettings()
     )
     val scope = rememberCoroutineScope()
+
+    /*
+     * Host the question in this screen, beside the P2P consent dialog, instead of the activity
+     * level overlay. The local host is what makes the dialog appear over the source list before the
+     * player is navigated to; the activity host remains only as a fallback for questions raised
+     * after this screen is gone.
+     */
+    DisposableEffect(viewModel.rewatchConsentRepository) {
+        viewModel.rewatchConsentRepository.setLocalHostActive(true)
+        onDispose {
+            viewModel.rewatchConsentRepository.setLocalHostActive(false)
+            if (viewModel.rewatchConsentRepository.question.value != null) {
+                viewModel.rewatchConsentRepository.dismiss()
+            }
+        }
+    }
+
     val streamHazeState = remember {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) HazeState() else null
     }
@@ -208,8 +223,10 @@ fun StreamScreen(
     }
 
     fun launchInternalPlayer(playbackInfo: StreamPlaybackInfo) {
-        viewModel.onInternalPlayerLaunching()
-        onStreamSelected(playbackInfo)
+        scope.coroutineLaunch {
+            viewModel.onInternalPlayerLaunching(playbackInfo)
+            onStreamSelected(playbackInfo)
+        }
     }
 
     fun routePlayback(playbackInfo: StreamPlaybackInfo) {
@@ -224,7 +241,7 @@ fun StreamScreen(
         }
         when (preference) {
             PlayerPreference.INTERNAL -> {
-                launchInternalPlayer(playbackInfo)
+                launchInternalPlayer(playbackInfo = playbackInfo)
             }
             PlayerPreference.EXTERNAL -> {
                 if (playbackInfo.url != null || playbackInfo.isTorrent) {
@@ -277,8 +294,10 @@ fun StreamScreen(
                     viewModel.onEvent(StreamScreenEvent.OnAutoPlayConsumed)
                 }
                 else -> {
-                    viewModel.onInternalPlayerLaunching()
-                    onAutoPlayResolved(playbackInfo)
+                    scope.coroutineLaunch {
+                        viewModel.onInternalPlayerLaunching(playbackInfo)
+                        onAutoPlayResolved(playbackInfo)
+                    }
                 }
             }
             return
@@ -301,7 +320,10 @@ fun StreamScreen(
             viewModel.onEvent(StreamScreenEvent.OnAutoPlayConsumed)
             return@LaunchedEffect
         }
-        val playbackInfo = viewModel.resolveAutoPlayForPlayback(stream)
+        val playbackInfo = viewModel.resolveAutoPlayStreamForPlayback(
+            stream = stream,
+            progressPercent = (resumePercent?.toDouble() ?: 0.0) * 100.0
+        )
         if (playbackInfo == null) {
             viewModel.onEvent(StreamScreenEvent.OnAutoPlayConsumed)
             return@LaunchedEffect
@@ -310,7 +332,7 @@ fun StreamScreen(
         // builds a torrent:// sentinel URL downstream.
         if (playbackInfo.url != null || (playbackInfo.isTorrent && playbackInfo.infoHash != null)) {
             viewModel.awaitStreamLinkCacheSave()
-            routeAutoPlay(viewModel.attachAutoSourceRecovery(playbackInfo))
+            routeAutoPlay(playbackInfo)
         }
     }
 
@@ -332,7 +354,7 @@ fun StreamScreen(
     }
 
     LaunchedEffect(uiState.autoPlayPlaybackInfo) {
-        val playbackInfo = uiState.autoPlayPlaybackInfo?.let { viewModel.attachAutoSourceRecovery(it) } ?: return@LaunchedEffect
+        val playbackInfo = uiState.autoPlayPlaybackInfo ?: return@LaunchedEffect
         // User aborted the auto-next chain that navigated here — don't auto-launch; show the list.
         if (viewModel.isAutoNextContinuationAborted()) {
             viewModel.consumeAbortedAutoNextContinuation()
@@ -346,6 +368,11 @@ fun StreamScreen(
                 showP2pConsentDialog = true
                 return@LaunchedEffect
             }
+            // Cached last links do not pass through resolveStreamForPlayback, so ask here too.
+            viewModel.preparePlayback(
+                playbackInfo,
+                (resumePercent?.toDouble() ?: 0.0) * 100.0
+            )
             // Respect player preference for cached links too
             when (playerPreference ?: return@LaunchedEffect) {
                 PlayerPreference.EXTERNAL -> {
@@ -372,7 +399,7 @@ fun StreamScreen(
                     viewModel.onEvent(StreamScreenEvent.OnAutoPlayConsumed)
                 }
                 else -> {
-                    viewModel.onInternalPlayerLaunching()
+                    viewModel.onInternalPlayerLaunching(playbackInfo)
                     onAutoPlayResolved(playbackInfo)
                     viewModel.onEvent(StreamScreenEvent.OnAutoPlayConsumed)
                 }
@@ -400,10 +427,10 @@ fun StreamScreen(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
+            viewModel.abandonPendingUsenetPlayback()
         }
     }
 
-    com.nuvio.tv.fork.ForkHooks.introBeforePlayer(uiState) // fork hook
     val showOverlay = uiState.showDirectAutoPlayOverlay || uiState.externalPlayerOverlayVisible
 
     Box(
@@ -445,7 +472,6 @@ fun StreamScreen(
             )
         } else {
             // Content overlay
-            if (androidx.compose.runtime.key("fork-skin-streams") { com.nuvio.tv.fork.ForkHooks.skinScreen("streams", mapOf("uiState" to uiState, "resumeText" to resumeText, "onFilter" to { f: String? -> viewModel.onEvent(StreamScreenEvent.OnAddonFilterSelected(f)) }, "onRetry" to { viewModel.onEvent(StreamScreenEvent.OnRetry) }, "onPlay" to { stream: com.nuvio.tv.domain.model.Stream -> scope.coroutineLaunch { val info = viewModel.resolveStreamForPlayback(stream); if (info != null) { viewModel.persistBingeGroupForStream(stream); pendingRestoreOnResume = true; routePlayback(info); viewModel.onEvent(StreamScreenEvent.OnAutoPlayConsumed) } } })) }) Unit else // Fork hook: skin (ekran źródeł skórki; key: własna grupa — test VOD JMGO 26.11: przy przerysowaniu lambda filtra trafiała w miejsce onRetry → ClassCastException, aplikacja padała)
             Row(
                 modifier = Modifier.fillMaxSize()
             ) {
@@ -461,13 +487,12 @@ fun StreamScreen(
                     genres = uiState.genres,
                     year = uiState.year,
                     modifier = Modifier
-                        .weight(0.542f) // forge hook v7.4: right panel 440 dp
+                        .weight(0.4f)
                         .fillMaxHeight()
                 )
 
                 // Right side - Streams container
                 RightStreamSection(
-                    forgeTitle = uiState.title, // forge hook v7.4 (05): tytuł panelu 20/700
                     isLoading = uiState.isLoading,
                     resumeText = resumeText,
                     error = uiState.error,
@@ -485,7 +510,11 @@ fun StreamScreen(
                     partySource = partySource,
                     onSharedStreamSelected = { stream ->
                         scope.coroutineLaunch {
-                            val playbackInfo = viewModel.resolveStreamForPlayback(stream, saveLastLink = false)
+                            val playbackInfo = viewModel.resolveStreamForPlayback(
+                                stream = stream,
+                                saveLastLink = false,
+                                progressPercent = (resumePercent?.toDouble() ?: 0.0) * 100.0
+                            )
                             if (playbackInfo != null) {
                                 pendingRestoreOnResume = true
                                 routePlayback(playbackInfo)
@@ -505,7 +534,10 @@ fun StreamScreen(
                             focusedStreamIndex = currentIndex
                         }
                         scope.coroutineLaunch {
-                            val playbackInfo = viewModel.resolveStreamForPlayback(stream)
+                            val playbackInfo = viewModel.resolveStreamForPlayback(
+                                stream = stream,
+                                progressPercent = (resumePercent?.toDouble() ?: 0.0) * 100.0
+                            )
                             if (playbackInfo != null) {
                                 viewModel.persistBingeGroupForStream(stream)
                                 pendingRestoreOnResume = true
@@ -526,11 +558,16 @@ fun StreamScreen(
                     onExpandStreams = { viewModel.expandFilteredStreamsIfNeeded() },
                     hazeState = streamHazeState,
                     modifier = Modifier
-                        .weight(0.458f) // forge hook v7.4
+                        .weight(0.6f)
                         .fillMaxHeight()
                 )
             }
         }
+
+        RewatchPromptOverlay(
+            repository = viewModel.rewatchConsentRepository,
+            isLocalHost = true
+        )
 
         // Player choice dialog for "Ask every time" preference
         if (showPlayerChoiceDialog && pendingPlaybackInfo != null) {
@@ -550,8 +587,8 @@ fun StreamScreen(
                     pendingPlaybackInfo = null
                 },
                 onDismiss = {
+                    viewModel.abandonPendingUsenetPlayback()
                     showPlayerChoiceDialog = false
-                    AutoSourceRecoveryHandoff.discard(pendingPlaybackInfo?.autoSourceRecoveryToken)
                     pendingPlaybackInfo = null
                 }
             )
@@ -766,7 +803,6 @@ private fun LeftContentSection(
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun RightStreamSection(
-    forgeTitle: String = "",
     isLoading: Boolean,
     resumeText: String?,
     error: String?,
@@ -879,11 +915,9 @@ private fun RightStreamSection(
         }
     }
 
-    val forgePanel = com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL // forge hook v7.4 (05): Panel 440 od krawędzi do krawędzi (x 520-960, y 0-540), lewe rogi, margines 24
     Column(
         modifier = modifier
-            .then(if (forgePanel) Modifier else Modifier.padding(top = NuvioTheme.spacing.xxxl, end = NuvioTheme.spacing.xxxl, bottom = NuvioTheme.spacing.xxxl))
-            .testTag("panel-zrodel.0")
+            .padding(top = NuvioTheme.spacing.xxxl, end = NuvioTheme.spacing.xxxl, bottom = NuvioTheme.spacing.xxxl)
     ) {
         androidx.compose.animation.AnimatedVisibility(
             visible = enter,
@@ -898,7 +932,7 @@ private fun RightStreamSection(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(if (forgePanel) RoundedCornerShape(topStart = com.nuvio.tv.skin.kicia.tokens.ForgeDims.RadiusSheet, bottomStart = com.nuvio.tv.skin.kicia.tokens.ForgeDims.RadiusSheet) else RoundedCornerShape(NuvioTheme.radii.xl))
+                    .clip(RoundedCornerShape(NuvioTheme.radii.xl))
                     .then(
                         if (hazeState != null) {
                             Modifier.hazeEffect(state = hazeState) {
@@ -917,16 +951,9 @@ private fun RightStreamSection(
                             NuvioTheme.colors.BackgroundCard.copy(alpha = 0.5f)
                         }
                     )
-                    .padding(if (forgePanel) 24.dp else NuvioTheme.spacing.lg)
+                    .padding(NuvioTheme.spacing.lg)
             ) {
-                // forge hook v7.4 (05): tytuł 20/700 (y 24), pod nim „Wznów od 01:37” 14, 70% (y 58; bez wznowienia: pusty wiersz), filtry y 86
-                if (forgePanel) {
-                    Text(forgeTitle, style = com.nuvio.tv.skin.kicia.tokens.ForgeText.head, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.height(26.dp).testTag("panel-tytul.0"))
-                    Spacer(Modifier.height(8.dp))
-                    Text(resumeText.orEmpty(), style = com.nuvio.tv.skin.kicia.tokens.ForgeText.label5, maxLines = 1, modifier = Modifier.height(20.dp).testTag("t-14.0"))
-                    Spacer(Modifier.height(4.dp)) // v7.4 (05): filtry y 86
-                }
-                if (!forgePanel) resumeText?.let { text ->
+                resumeText?.let { text ->
                     Box(
                         modifier = Modifier
                             .padding(bottom = NuvioTheme.spacing.sm)
@@ -946,7 +973,7 @@ private fun RightStreamSection(
                 }
 
                 // Addon filter chips
-                Box(modifier = Modifier.height(if (forgePanel) 44.dp else NuvioTheme.spacing.huge)) { // forge hook v7.4 (05): filtry y 86 (36 + 8), wiersze od y 130
+                Box(modifier = Modifier.height(NuvioTheme.spacing.huge)) {
                     androidx.compose.animation.AnimatedVisibility(
                         visible = sourceChips.isNotEmpty() || (!isLoading && availableAddons.isNotEmpty()),
                         enter = fadeIn(animationSpec = tween(300)),
@@ -1286,7 +1313,7 @@ private fun StreamsList(
                 }
             },
         verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md),
-        contentPadding = if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) PaddingValues(top = 0.dp, bottom = NuvioTheme.spacing.xxl) /* forge hook v7.4 (05): wiersze na pełną szerokość 392, od y 130 */ else PaddingValues(start = NuvioTheme.spacing.sm, end = NuvioTheme.spacing.sm, top = NuvioTheme.spacing.sm, bottom = NuvioTheme.spacing.xxl)
+        contentPadding = PaddingValues(start = NuvioTheme.spacing.sm, end = NuvioTheme.spacing.sm, top = NuvioTheme.spacing.sm, bottom = NuvioTheme.spacing.xxl)
     ) {
         sharedStream?.let { shared ->
             item(key = "party_shared_stream") {
@@ -1393,7 +1420,6 @@ private fun StreamCard(
     val density = LocalDensity.current
     val unknownStreamLabel = stringResource(R.string.stream_unknown)
     val streamName = remember(stream, unknownStreamLabel) { stream.getDisplayNameOrNull() ?: unknownStreamLabel }
-    if (com.nuvio.tv.skin.kicia.ForgeUi.NEW_DETAIL) { com.nuvio.tv.skin.kicia.detail.ForgeStreamCard(stream, streamName, outlined, onClick, focusRequester, onFocusChanged, onUpKey); return } // forge hook: source row of the mockup (b14)
     val streamDescription = remember(stream) { stream.getDisplayDescription() }
     val hasBadges = stream.badges.isNotEmpty() || (showFileSizeBadges && stream.behaviorHints?.videoSize != null) || reserveBadgeSpace
     val cardShape = RoundedCornerShape(NuvioTheme.radii.md)
