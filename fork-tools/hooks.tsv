@@ -152,3 +152,5 @@ app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	Fork hook: skin
 app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	Fork hook: skin (Z-14 CatalogAll)	CatalogSeeAllScreen(	skin	skin: cały katalog (CatalogAll)	
 app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	Fork hook: skin (Z-14 Studio)	TmdbEntityBrowseScreen(	skin	skin: studio i sieć (Studio)	
 app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	Fork hook: skin (Z-14 Discover)	DiscoverScreen(	skin	skin: Odkrywaj (Discover)	
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	Fork hook: echo (okno jakości: po zamknięciu	uiState.showSpeedDialog,	echo	okno jakości w kluczach efektu fokusu	
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	Fork hook: echo (okno jakości trzyma fokus	Request focus for key events	echo	okno jakości trzyma fokus (chowanie przycisków nie daje fokusu korzeniowi)	

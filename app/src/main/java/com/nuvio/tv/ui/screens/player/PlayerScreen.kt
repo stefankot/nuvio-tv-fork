@@ -597,7 +597,9 @@ fun PlayerScreen(
         uiState.showSpeedDialog,
         shouldConfirmNextEpisodeOnEnd,
         postPlayRecommendationState.isVisible,
+        uiState.showQualityOverlay, // Fork hook: echo (okno jakości: po zamknięciu fokus wraca na przyciski)
     ) {
+        if (uiState.showQualityOverlay) return@LaunchedEffect // Fork hook: echo (okno jakości trzyma fokus — test VOD JMGO 26.11: chowanie przycisków dawało fokus korzeniowi)
         if (shouldConfirmNextEpisodeOnEnd || postPlayRecommendationState.isVisible) return@LaunchedEffect
         if (uiState.error != null) return@LaunchedEffect
         if (viewModel.seekPreview.isSyncOverlayOpen) return@LaunchedEffect

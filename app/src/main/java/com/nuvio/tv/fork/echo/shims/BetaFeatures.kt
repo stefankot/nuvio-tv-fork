@@ -16,5 +16,12 @@ object BetaFeatures {
         autoQualityHotSwap = false,
         playbackIntro = false, // intro wyłączone na stałe (właściciel 19.11)
         audioLanguageMenu = ForkFeatures.enabled(context, "echo_audio_menu"),
+        // Test VOD JMGO 26.11: domyślne języki Echo (oryginał, angielski, japoński, koreański) dawały w oknie Dźwięk
+        // japoński i koreański „No sources”, a polskiego lektora/dubbingu z innych plików nie było. Polski użytkownik: oryginał, polski, angielski.
+        audioMenuLanguages = setOf(
+            com.nuvio.tv.core.streams.AudioLanguage.ORIGINAL_KEY,
+            com.nuvio.tv.core.streams.AudioLanguage.POLISH.code,
+            com.nuvio.tv.core.streams.AudioLanguage.ENGLISH.code,
+        ),
     )
 }
