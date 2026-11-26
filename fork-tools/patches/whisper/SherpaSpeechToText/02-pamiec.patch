@@ -1,0 +1,13 @@
+--- a
++++ b
+@@ -12,7 +12,9 @@
+  * English speech recognition with sherpa-onnx (Apache-2.0) and an int8 Zipformer transducer
+  * trained on GigaSpeech (podcasts and YouTube, close to film dialogue). Runs fully on-device.
+  */
+-internal class SherpaSpeechToText(modelDir: File, threads: Int) : SpeechToText, AutoCloseable {
++internal class SherpaSpeechToText(requestedDir: File, threads: Int) : SpeechToText, AutoCloseable {
++    /** Fork 26.11: model, który zmieści się w pamięci 32-bitowego procesu (JMGO padał przy 4K: Whisper base, bad_alloc). */
++    private val modelDir: File = com.nuvio.tv.fork.asr.AsrMemoryGuard.pick(requestedDir) // fork adapter
+     /** Whisper (multilingual) when its files are in [modelDir], else Reshaped's English zipformer. */
+     private val whisperSize: String? =
+         listOf("tiny", "base", "small").firstOrNull { File(modelDir, "$it-encoder.int8.onnx").isFile } // fork adapter
