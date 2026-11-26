@@ -47,4 +47,12 @@ class NiuniaProgrammeAiringsTest {
     @Test fun keysOutsideListIgnored() {
         assertTrue(NiuniaProgrammeAirings.pick(mapOf("zz" to listOf(p(now))), listOf(ch("A", "k1", true)), now, ::same, playable).isEmpty())
     }
+
+    /** JMGO uxr17: „Gry małżeńskie (196)” — strona pokazuje serial bez numeru, numer odcinka w wierszu emisji. */
+    @Test fun showNameAndEpisode() {
+        assertEquals("Gry małżeńskie", NiuniaProgrammeAirings.showName("Gry małżeńskie (196)"))
+        assertEquals("196", NiuniaProgrammeAirings.episodeOf(LiveTvProgramme("Gry małżeńskie (196)", 0, 1)))
+        assertEquals("Fakty", NiuniaProgrammeAirings.showName("Fakty"))
+        assertEquals("S2E5", NiuniaProgrammeAirings.episodeOf(LiveTvProgramme("Fakty", 0, 1, episode = "S2E5")))
+    }
 }

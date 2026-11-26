@@ -59,16 +59,26 @@ internal object NiuniaProgrammeAirings {
     const val MAX_ARCHIVE = 30
     const val MAX_SOON = 15
 
+    /** „Gry małżeńskie (196)” → „Gry małżeńskie”: tytuł strony bez numeru odcinka w nawiasie. */
+    fun showName(title: String): String = BRACKET_NO.replace(title, "").trim().ifEmpty { title.trim() }
+    /** Numer odcinka z tytułu („(196)”) albo pole odcinka przewodnika. */
+    fun episodeOf(p: LiveTvProgramme): String? = BRACKET_NO.find(p.title)?.groupValues?.get(1) ?: p.episode?.takeIf { it.isNotBlank() }
+    private val BRACKET_NO = Regex("""\s*\((\d{1,5})\)\s*$""")
+
     fun load(c: Context, programme: LiveTvProgramme, from: LiveTvChannel, channels: List<LiveTvChannel>, now: Long): List<NiuniaAiring> {
-        val t = TvTextIndex.titleOf(programme.title)
+        // JMGO uxr17 (26.11): „Gry małżeńskie (196)” pasowało tylko do siebie — 1 emisja z 17 w bazie. Serial = klucz tytułu bez
+        // numeru odcinka (jak ulubione programy, [NiuniaFavShowsCache.key]), więc strona ma wszystkie odcinki, także z archiwum.
+        val show = NiuniaFavShowsCache.key(programme.title)
+        fun same(p: LiveTvProgramme) = NiuniaFavShowsCache.key(p.title) == show
         val found = HashMap<String, MutableMap<Long, LiveTvProgramme>>()
         fun put(key: String, p: LiveTvProgramme) { found.getOrPut(key) { HashMap() }.putIfAbsent(p.startEpochMs, p) }
+        put(from.guideKey, programme)
         // Najpierw pamięć (z obrazkami i odcinkami): kanał wyniku i kanały z indeksu tytułów.
-        val keys = LinkedHashSet<String>().apply { add(from.guideKey); TvTextIndex.titles(t).firstOrNull { it.first == t }?.second?.let { addAll(it) } }
-        for (k in keys) for (p in LiveTvRepository.schedule(k)) if (TvTextIndex.titleOf(p.title) == t) put(k, p)
+        val keys = LinkedHashSet<String>().apply { add(from.guideKey); TvTextIndex.titles(TvTextIndex.norm(showName(programme.title))).forEach { addAll(it.second) } }
+        for (k in keys) for (p in LiveTvRepository.schedule(k)) if (same(p)) put(k, p)
         val inMemory = found.values.sumOf { it.size }
-        val db = com.nuvio.tv.fork.tv.plus.GuideDbBridge.findTitle(c, programme.title, now)
-        db?.forEach { (k, list) -> for (p in list) if (TvTextIndex.titleOf(p.title) == t) put(k, p) }
+        val db = com.nuvio.tv.fork.tv.plus.GuideDbBridge.findTitle(c, showName(programme.title), now)
+        db?.forEach { (k, list) -> for (p in list) if (same(p)) put(k, p) }
         Log.i(TAG, "strona programu: emisje z pamięci $inMemory, razem ${found.values.sumOf { it.size }} (baza ${if (db == null) "niedostępna" else "${db.size} kanałów"})")
         return pick(found.mapValues { it.value.values.toList() }, channels, now,
             sameChannel = { TvTextIndex.sameChannelKey(it.name) },
@@ -122,7 +132,7 @@ internal fun niuniaToggleFollow(context: Context, title: String) {
     }
     val on = TvStore.toggleFavoriteShow(title)
     Log.i(TAG, "live tv: długie OK → ulubione programy ${if (on) "dodany" else "usunięty"}: „$title”")
-    Toast.makeText(context, context.getString(if (on) R.string.niunia_tvprog_followed else R.string.niunia_tvprog_unfollowed, title), Toast.LENGTH_SHORT).show()
+    Toast.makeText(context, context.getString(if (on) R.string.niunia_tvprog_followed else R.string.niunia_tvprog_unfollowed, NiuniaProgrammeAirings.showName(title)), Toast.LENGTH_SHORT).show()
 }
 
 /**
@@ -170,7 +180,7 @@ internal fun NiuniaLiveProgrammePanel(
     }
     val description = programme.description?.takeIf { it.isNotBlank() } ?: airings?.firstNotNullOfOrNull { a -> a.programme.description?.takeIf { it.isNotBlank() } }
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopEnd) {
-        NiuniaPanelOverlay(title, Modifier.padding(top = 40.dp).niuniaPanelTrap("strona programu")) {
+        NiuniaPanelOverlay(NiuniaProgrammeAirings.showName(title), Modifier.padding(top = 40.dp).niuniaPanelTrap("strona programu")) {
             if (description != null) NiuniaText(description, Modifier.padding(start = 12.dp, end = 12.dp, bottom = 8.dp),
                 variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 2)
             NiuniaListRow(stringResource(if (followed) R.string.niunia_tvprog_unfollow else R.string.niunia_tvprog_follow), icon = "heart",
@@ -188,7 +198,7 @@ internal fun NiuniaLiveProgrammePanel(
                                 NiuniaAiringKind.LIVE -> R.string.niunia_tvprog_live
                                 NiuniaAiringKind.ARCHIVE -> R.string.niunia_tvprog_archive
                                 NiuniaAiringKind.SOON -> R.string.niunia_tvprog_soon
-                            }, name),
+                            }, name) + (NiuniaProgrammeAirings.episodeOf(p)?.let { " · " + stringResource(R.string.niunia_tvprog_episode, it) } ?: ""),
                             icon = when (a.kind) { NiuniaAiringKind.LIVE -> "live"; NiuniaAiringKind.ARCHIVE -> "history"; NiuniaAiringKind.SOON -> "calendar" },
                             focusRequester = if (i == 0) firstReq else null,
                             onClick = {

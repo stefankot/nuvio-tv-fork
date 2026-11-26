@@ -11,4 +11,5 @@
     <string name="niunia_tvprog_live">Na żywo · %1$s</string>
     <string name="niunia_tvprog_archive">Z archiwum · %1$s</string>
     <string name="niunia_tvprog_soon">Jeszcze nie leci · %1$s</string>
+    <string name="niunia_tvprog_episode">odcinek %1$s</string>
 </resources>
