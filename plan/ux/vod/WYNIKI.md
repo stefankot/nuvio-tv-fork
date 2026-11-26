@@ -1,6 +1,6 @@
 # Odtwarzacz filmów i seriali (TorBox) — wyniki sprawdzenia
 
-**Pętla 1 (26.11, 16:20–16:40): 5 poprawek aplikacji, sprawdzonych na projektorze: 0** — testy przerwane na Twoje polecenie (projektor zajęty). Poprawki są w wersji `uxr16` (budowana), sprawdzę je, gdy projektor będzie wolny.
+**Pętla 1 (26.11, 16:20–16:40): 5 poprawek aplikacji, sprawdzonych na projektorze: 0** — testy przerwane na Twoje polecenie (projektor zajęty). Poprawki są w wersji `uxr16` (zbudowana 16:58, test reguł zaliczony, jeszcze nie zainstalowana); sprawdzę je, gdy projektor będzie wolny.
 
 Sprawdzone na projektorze JMGO, wersja `uxr15`, na 2 materiałach: film „Oppenheimer” (2023) i serial „Taskmaster” S1 O1.
 
