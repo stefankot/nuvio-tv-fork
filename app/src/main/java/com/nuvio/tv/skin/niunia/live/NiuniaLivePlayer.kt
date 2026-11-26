@@ -426,7 +426,11 @@ internal fun NiuniaLivePlayer(
     // zamiast zejść do rzędu odcinków. Teraz ► (pokazanie nakładki) od razu stawia fokus na pierwszym przycisku.
     LaunchedEffect(channel.streamUrl, archive) {
         val key = channel.streamUrl + "|" + archive
-        if (nav.resetFor != key) { nav.reset(archive); nav.resetFor = key }
+        // IPTV #85 (JMGO uxr17, 26.11): kanał włączony OK z listy — to samo OK (≤ 1,5 s) i obraz jeszcze bez odtwarzania
+        // (bufor = „nie gra”) dawały „nakładka otwarta OK (pauza) — fokus na ▶” zamiast przełącznika kanałów (▲▼ nie zmieniały
+        // kanału). Fokus na ▶ tylko dla OK na tym samym kanale (pauza na gołym obrazie, #80).
+        val fresh = nav.resetFor != key
+        if (fresh) { nav.reset(archive); nav.resetFor = key }
         val byRight = nav.lastKeyCode == KeyEvent.KEYCODE_DPAD_RIGHT && android.os.SystemClock.elapsedRealtime() - nav.lastKeyAt < 1_500
         if (!archive && byRight && nav.level == 0 && nav.slot == NiuniaLiveSlot.CHANNEL) {
             kotlinx.coroutines.delay(50) // przyciski publikuje SideEffect
@@ -434,7 +438,7 @@ internal fun NiuniaLivePlayer(
         }
         val byOk = (nav.lastKeyCode == KeyEvent.KEYCODE_DPAD_CENTER || nav.lastKeyCode == KeyEvent.KEYCODE_ENTER) &&
             android.os.SystemClock.elapsedRealtime() - nav.lastKeyAt < 1_500
-        if (byOk && nav.level == 0 && nav.slot != NiuniaLiveSlot.PAUSE) {
+        if (byOk && !fresh && nav.level == 0 && nav.slot != NiuniaLiveSlot.PAUSE) {
             kotlinx.coroutines.delay(50) // przyciski publikuje SideEffect
             if (state?.isPausedNow() == true && NiuniaLiveSlot.PAUSE in nav.buttons) { nav.slot = NiuniaLiveSlot.PAUSE; Log.i(TAG, "iptv: nakładka otwarta OK (pauza) — fokus na ▶") }
         }
