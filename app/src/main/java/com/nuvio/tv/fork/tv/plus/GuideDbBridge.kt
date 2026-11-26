@@ -260,6 +260,34 @@ object GuideDbBridge {
     }
 
     /**
+     * IPTV #82 (właściciel 26.11: „szukanie odsyła do programu, którego jeszcze nie emitowano, zamiast do strony programu, gdzie
+     * można go obejrzeć”): wszystkie emisje tytułu z bazy — 7 dni wstecz (archiwum) i 8 dni naprzód, po kluczu kanału listy.
+     * W pamięci są tylko −12 h…+36 h, i to tylko dla kanałów z ekranu, więc wczorajsze emisje w archiwum nie trafiały do wyniku.
+     * Szuka po najdłuższym słowie tytułu (SQLite LIKE), dokładne dopasowanie tytułu robi ekran. Wołać w tle; null — baza
+     * wyłączona, pusta albo tytuł bez słowa z 3 liter.
+     */
+    fun findTitle(c: Context, title: String, now: Long, limit: Int = 3_000): Map<String, List<LiveTvProgramme>>? {
+        if (!enabled(c)) return null
+        val word = title.split(' ', ',', ':', ';', '-', '.', '!', '?', '(', ')', '[', ']', '"', '\'', '/', '&', '#')
+            .filter { it.length >= 3 }.maxByOrNull { it.length } ?: return null
+        return try {
+            val db = db(c)
+            if (db.fingerprint() == null) return null
+            val t0 = System.currentTimeMillis()
+            val got = db.findByWords(now - STORE_PAST_MS, now + STORE_AHEAD_MS, now - STORE_PAST_MS, listOf(word), inDescription = false, limit = limit)
+            val out = HashMap<String, MutableList<LiveTvProgramme>>()
+            got.forEach { (ch, p) ->
+                out.getOrPut(ch) { ArrayList() } += LiveTvProgramme(GuideText.clean(p.title)!!, p.startMs, p.stopMs, GuideText.clean(p.description), p.icon, GuideText.clean(p.episode)) // #71
+            }
+            Log.i(TAG, "emisje tytułu z bazy: ${got.size} wierszy na ${out.size} kanałach w ${System.currentTimeMillis() - t0} ms")
+            out
+        } catch (e: Exception) {
+            Log.w(TAG, "emisje tytułu z bazy: ${e.javaClass.simpleName}: ${e.message}")
+            null
+        }
+    }
+
+    /**
      * Ekrany Niuni (wiersz przewodnika cofnięty w czasie, odtwarzacz z rzędem odcinków): kanał z catch-up dostaje minione dni
      * z bazy (`LiveTvRepository.requestHistory` → [history]). W pamięci jest tylko −[PAST_MS]…+[AHEAD_MS], więc bez tego
      * archiwum starsze niż 12 h nie byłoby widać (Reshaped z oknem 7 dni miało je od razu).

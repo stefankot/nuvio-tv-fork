@@ -86,8 +86,10 @@ internal fun NiuniaLiveTileCard(
         Box(
             Modifier.size(NiuniaDims.WideW, NiuniaDims.WideH)
                 // DS v2 (NowCard / ChannelCard): uniesienie, ×1,1, cień i obwódka 3 dp.
+                // IPTV #83 (właściciel 26.11): długie OK na „Gry małżeńskie” mówiło „dodano”, a dodawało KANAŁ (w „Ulubione” był potem
+                // „Nasz nowy dom”, który na nim leciał) — kafelek programu dodaje program do ulubionych programów, kafelek kanału kanał.
                 .niuniaOk(caption(tile), focusRequester, onFocus = { focused = it; onFocus(it) },
-                    onLongClick = onLongOk ?: { niuniaToggleFavourite(ctx, tile.channel) }, onClick = onOk)
+                    onLongClick = onLongOk ?: { if (p != null) niuniaToggleFollow(ctx, p.title) else niuniaToggleFavourite(ctx, tile.channel) }, onClick = onOk)
                 .niuniaFocusLook(com.nuvio.tv.skin.niunia.components.NiuniaFocusStyle.Lift, focused, shape)
                 .clip(shape).background(NiuniaColors.Surface),
         ) {

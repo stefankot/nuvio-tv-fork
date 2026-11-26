@@ -58,6 +58,7 @@ import com.nuvio.tv.skin.niunia.tokens.NiuniaColors
 import com.nuvio.tv.skin.niunia.tokens.NiuniaDims
 import com.nuvio.tv.skin.niunia.tokens.NiuniaText
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private const val TAG = "ForkNiunia"
 // Właściciel 25.11: bez polskich liter („anty-UX”) — TvTextIndex.norm i tak zamienia ą→a, ł→l.
@@ -82,6 +83,7 @@ internal fun NiuniaLiveSearch(
     onPlay: (LiveTvChannel, LiveTvProgramme?) -> Unit,
 ) {
     val context = LocalContext.current
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
     var query by remember { mutableStateOf(ForgeTvSearchMemory.lastQuery) }
     var digits by remember { mutableStateOf(false) }
     var category by remember { mutableStateOf(ForgeEpgCategories.PROG_ALL) }
@@ -147,6 +149,19 @@ internal fun NiuniaLiveSearch(
         if (query.isNotBlank()) ForgeTvSearchMemory.add(query.trim())
         onPlay(ch, p)
     }
+    // IPTV #82 (właściciel 26.11): OK na programie prowadziło do emisji, której jeszcze nie nadano („Ten program zacznie się…”) —
+    // teraz strona programu ze wszystkimi emisjami (na żywo, archiwum 7 dni, przyszłe). OK na kanale nadal włącza kanał.
+    var page by remember { mutableStateOf<Pair<LiveTvChannel, LiveTvProgramme>?>(null) }
+    var backKey by remember { mutableStateOf<String?>(null) }
+    val backFocus = remember { FocusRequester() }
+    fun openProgramme(t: NiuniaLiveTile) {
+        val p = t.programme ?: return open(t.channel, null)
+        if (query.isNotBlank()) ForgeTvSearchMemory.add(query.trim())
+        Log.i(TAG, "szukaj tv: OK → strona programu „${p.title}”")
+        backKey = "p:" + t.key; page = t.channel to p
+    }
+    fun openChannel(t: NiuniaLiveTile) { backKey = "c:" + t.key; open(t.channel, t.programme) }
+    fun req(prefix: String, t: NiuniaLiveTile) = if (backKey == prefix + t.key) backFocus else null
 
     Box(Modifier.fillMaxSize()) {
         // Pole: tekst + liczniki wyników zamiast podpowiedzi.
@@ -217,26 +232,38 @@ internal fun NiuniaLiveSearch(
                 grid -> LazyVerticalGrid(GridCells.Fixed(2), Modifier.fillMaxSize(), contentPadding = PaddingValues(top = 14.dp, bottom = 30.dp, end = 6.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                     items(programmeTiles.size + channelTiles.size) { i ->
-                        val t = if (i < programmeTiles.size) programmeTiles[i] else channelTiles[i - programmeTiles.size]
-                        NiuniaLiveTileCard(t, longBadge = false) { open(t.channel, t.programme) }
+                        if (i < programmeTiles.size) programmeTiles[i].let { t -> NiuniaLiveTileCard(t, longBadge = false, focusRequester = req("p:", t)) { openProgramme(t) } }
+                        else channelTiles[i - programmeTiles.size].let { t ->
+                            NiuniaLiveTileCard(t, longBadge = false, focusRequester = req("c:", t), onLongOk = { niuniaToggleFavourite(context, t.channel) }) { openChannel(t) }
+                        }
                     }
                 }
                 else -> LazyColumn(Modifier.fillMaxSize().padding(top = 8.dp)) {
-                    if (programmeTiles.isNotEmpty()) item { NiuniaLiveShelfPlain(programmeTiles) { ch, p -> open(ch, p) } }
+                    if (programmeTiles.isNotEmpty()) item { NiuniaLiveShelfPlain(programmeTiles, { req("p:", it) }) { openProgramme(it) } }
                     if (channelTiles.isNotEmpty()) item {
                         Text(stringResource(R.string.niunia_tv_channels) + " · ${channelTiles.size}", style = NiuniaText.Row, color = NiuniaColors.Text50, modifier = Modifier.padding(top = 8.dp))
-                        NiuniaLiveShelfPlain(channelTiles) { ch, p -> open(ch, p) }
+                        NiuniaLiveShelfPlain(channelTiles, { req("c:", it) }, onLong = { niuniaToggleFavourite(context, it.channel) }) { openChannel(it) }
                     }
                 }
             }
+        }
+        page?.let { (ch, p) ->
+            NiuniaLiveProgrammePanel(ch, p, channels, now, onPlay = { c, pr -> onPlay(c, pr) }, onClose = {
+                page = null
+                scope.launch {
+                    delay(80)
+                    try { backFocus.requestFocus(); Log.i(TAG, "szukaj tv: fokus wraca na wynik") }
+                    catch (e: IllegalStateException) { Log.w(TAG, "szukaj tv: fokus na wynik: ${e.javaClass.simpleName}: ${e.message}") }
+                }
+            })
         }
     }
 }
 
 @Composable
-private fun NiuniaLiveShelfPlain(tiles: List<NiuniaLiveTile>, onPlay: (LiveTvChannel, LiveTvProgramme?) -> Unit) {
+private fun NiuniaLiveShelfPlain(tiles: List<NiuniaLiveTile>, requester: (NiuniaLiveTile) -> FocusRequester?, onLong: ((NiuniaLiveTile) -> Unit)? = null, onOk: (NiuniaLiveTile) -> Unit) {
     androidx.compose.foundation.lazy.LazyRow(contentPadding = PaddingValues(top = 10.dp, bottom = 14.dp, end = 20.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        items(tiles, key = { it.key }) { t -> NiuniaLiveTileCard(t, longBadge = false) { onPlay(t.channel, t.programme) } }
+        items(tiles, key = { it.key }) { t -> NiuniaLiveTileCard(t, longBadge = false, focusRequester = requester(t), onLongOk = onLong?.let { f -> { f(t) } }) { onOk(t) } }
     }
 }
 

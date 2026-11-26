@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Niunia Live TV (IPTV #82–#83, 26.11): strona programu z wyszukiwarki i ulubione programy na długim OK. -->
+<resources>
+    <string name="niunia_tvprog_follow">Dodaj do ulubionych programów</string>
+    <string name="niunia_tvprog_unfollow">Usuń z ulubionych programów</string>
+    <string name="niunia_tvprog_followed">Dodano do ulubionych programów: %1$s</string>
+    <string name="niunia_tvprog_unfollowed">Usunięto z ulubionych programów: %1$s</string>
+    <string name="niunia_tvprog_follow_failed">Nie udało się dodać do ulubionych: %1$s</string>
+    <string name="niunia_tvprog_searching">Szukam, kiedy leci…</string>
+    <string name="niunia_tvprog_none">Teraz nie leci i nie ma go w archiwum</string>
+    <string name="niunia_tvprog_live">Na żywo · %1$s</string>
+    <string name="niunia_tvprog_archive">Z archiwum · %1$s</string>
+    <string name="niunia_tvprog_soon">Jeszcze nie leci · %1$s</string>
+</resources>

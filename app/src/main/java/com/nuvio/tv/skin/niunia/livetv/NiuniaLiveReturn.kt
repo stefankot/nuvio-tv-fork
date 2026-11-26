@@ -40,20 +40,37 @@ internal object NiuniaLiveReturn {
     /** Kanał włączony z listy — gdy w odtwarzaczu przełączono na inny (CH±, „Następny kanał”), powrót idzie na ten ostatni. */
     private var playedUrl: String? = null
 
+    /** IPTV #73 (26.11): program włączony z wyszukiwarki — Wstecz z odtwarzacza wraca do wyników, nie do przewodnika. */
+    private var pendingSearch = false
+    private var search = false
+
     /** Kafel nad przewodnikiem ([key] = [NiuniaLiveTile.key]). */
-    fun fromTile(key: String) { pending = Entry.Tile(key) }
+    fun fromTile(key: String) { pending = Entry.Tile(key); pendingSearch = false }
 
     /** Komórka programu w przewodniku. */
-    fun fromGuide(streamUrl: String, startMs: Long?) { pending = Entry.Guide(streamUrl, startMs) }
+    fun fromGuide(streamUrl: String, startMs: Long?) { pending = Entry.Guide(streamUrl, startMs); pendingSearch = false }
 
-    /** Szukaj, Odkrywaj: bez powrotu na konkretne miejsce. */
-    fun fromOther() { pending = null }
+    /** Odkrywaj: bez powrotu na konkretne miejsce. */
+    fun fromOther() { pending = null; pendingSearch = false }
+
+    /** Szukaj: powrót do wyników (ostatnie zapytanie pamięta wyszukiwarka). */
+    fun fromSearch() { pending = null; pendingSearch = true }
+
+    /** Czy wrócić do wyszukiwarki (raz). */
+    fun consumeSearch(): Boolean {
+        val s = search && System.currentTimeMillis() - savedAt <= VALID_MS
+        search = false
+        if (s) Log.i(TAG, "live tv: powrót do wyników wyszukiwania")
+        return s
+    }
 
     /** Tuż przed przejściem do odtwarzacza. */
     fun commit(filter: NiuniaLiveFilter, dayOffset: Int, url: String? = null) {
         entry = pending
         playedUrl = url
         pending = null
+        search = pendingSearch
+        pendingSearch = false
         this.filter = filter
         this.dayOffset = dayOffset
         savedAt = System.currentTimeMillis()

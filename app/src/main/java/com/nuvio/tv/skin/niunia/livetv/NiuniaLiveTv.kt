@@ -149,7 +149,11 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
             favoriteUrls = repoState.favoriteUrls.ifEmpty { snap!!.favoriteUrls },
         ).also { Log.i(TAG, "live tv: próbka startowa — ${if (snapshot != null) "${snapshot.channels.size} kanałów, " else ""}program na teraz, dopóki przewodnik się wczytuje") }
     }
-    var mode by remember { mutableStateOf(if (NiuniaLiveStart.consumeSearch()) LiveMode.SEARCH.also { Log.i(TAG, "live tv: start w trybie Szukaj") } else LiveMode.GUIDE) }
+    var mode by remember {
+        val fromMenu = NiuniaLiveStart.consumeSearch()
+        val back = NiuniaLiveReturn.consumeSearch() // IPTV #73: z odtwarzacza do wyników wyszukiwania
+        mutableStateOf(if (fromMenu || back) LiveMode.SEARCH.also { Log.i(TAG, "live tv: start w trybie Szukaj") } else LiveMode.GUIDE)
+    }
     // Paczka „oczywiste” pkt 2: po powrocie z odtwarzacza ten sam filtr i dzień (lista kanałów jak przed wyjściem).
     var filter by remember { mutableStateOf<NiuniaLiveFilter>(NiuniaLiveReturn.restoredFilter() ?: NiuniaLiveFilter.All) }
     var dayOffset by remember { mutableIntStateOf(NiuniaLiveReturn.restoredDay()) }
@@ -418,7 +422,7 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
                 onBackToNow = { if (dayOffset != 0) { Log.i(TAG, "live tv: Wstecz z przewodnika → dzień Dziś"); returnTo = null; dayOffset = 0 } },
             )
             LiveMode.DISCOVER -> NiuniaLiveDiscover(shown, state.favoriteUrls, state.currentProgrammes, now) { ch, p -> NiuniaLiveReturn.fromOther(); play(ch, p, shown) }
-            LiveMode.SEARCH -> NiuniaLiveSearch(shown, state.currentProgrammes, now) { ch, p -> NiuniaLiveReturn.fromOther(); play(ch, p, shown) }
+            LiveMode.SEARCH -> NiuniaLiveSearch(shown, state.currentProgrammes, now) { ch, p -> NiuniaLiveReturn.fromSearch(); play(ch, p, shown) }
         }
         TopBar(
             mode = mode, dayLabel = dayLabel(dayOffset, now),

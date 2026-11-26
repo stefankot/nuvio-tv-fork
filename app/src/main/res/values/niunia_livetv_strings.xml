@@ -12,7 +12,7 @@
     <string name="niunia_settings_tv_sources_sub">Listy M3U / Xtream i program</string>
     <string name="niunia_live_empty">Brak kanałów do pokazania.</string>
     <string name="niunia_live_play_failed">Nie udało się włączyć kanału.</string>
-    <string name="niunia_live_fav_added">Dodano do ulubionych: %1$s</string>
-    <string name="niunia_live_fav_removed">Usunięto z ulubionych: %1$s</string>
+    <string name="niunia_live_fav_added">Dodano kanał do ulubionych: %1$s</string>
+    <string name="niunia_live_fav_removed">Usunięto kanał z ulubionych: %1$s</string>
     <string name="niunia_live_fav_failed">Nie udało się zmienić ulubionych: %1$s</string>
 </resources>

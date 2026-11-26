@@ -1,5 +1,6 @@
 package com.nuvio.tv.skin.niunia
 
+import com.nuvio.tv.skin.niunia.livetv.NiuniaLiveFilter
 import com.nuvio.tv.skin.niunia.livetv.NiuniaLiveReturn
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -32,5 +33,18 @@ class NiuniaLiveReturnTest {
         assertFalse(NiuniaLiveReturn.Entry.Guide(url, 5L).toString().let { "haslo123" in it || "http" in it })
         assertFalse(NiuniaLiveReturn.Entry.Tile("$url|7").toString().let { "haslo123" in it || "http" in it })
         assertTrue(NiuniaLiveReturn.Entry.Guide(url, 5L).toString().contains("startMs=5"))
+    }
+
+    /** IPTV #73 (26.11): kanał włączony z wyszukiwarki — Wstecz z odtwarzacza wraca do wyników (raz), z przewodnika nie. */
+    @Test fun searchReturnsToResultsOnce() {
+        NiuniaLiveReturn.fromSearch()
+        NiuniaLiveReturn.commit(NiuniaLiveFilter.All, 0)
+        assertTrue(NiuniaLiveReturn.consumeSearch())
+        assertFalse("drugi raz nie", NiuniaLiveReturn.consumeSearch())
+        NiuniaLiveReturn.fromSearch()
+        NiuniaLiveReturn.fromGuide(url, null)
+        NiuniaLiveReturn.commit(NiuniaLiveFilter.All, 0)
+        assertFalse("z przewodnika — do przewodnika", NiuniaLiveReturn.consumeSearch())
+        NiuniaLiveReturn.consume()
     }
 }
