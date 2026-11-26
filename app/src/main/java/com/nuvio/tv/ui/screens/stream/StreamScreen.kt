@@ -445,7 +445,7 @@ fun StreamScreen(
             )
         } else {
             // Content overlay
-            if (com.nuvio.tv.fork.ForkHooks.skinScreen("streams", mapOf("uiState" to uiState, "resumeText" to resumeText, "onFilter" to { f: String? -> viewModel.onEvent(StreamScreenEvent.OnAddonFilterSelected(f)) }, "onRetry" to { viewModel.onEvent(StreamScreenEvent.OnRetry) }, "onPlay" to { stream: com.nuvio.tv.domain.model.Stream -> scope.coroutineLaunch { val info = viewModel.resolveStreamForPlayback(stream); if (info != null) { viewModel.persistBingeGroupForStream(stream); pendingRestoreOnResume = true; routePlayback(info); viewModel.onEvent(StreamScreenEvent.OnAutoPlayConsumed) } } }))) Unit else // Fork hook: skin (ekran źródeł skórki)
+            if (androidx.compose.runtime.key("fork-skin-streams") { com.nuvio.tv.fork.ForkHooks.skinScreen("streams", mapOf("uiState" to uiState, "resumeText" to resumeText, "onFilter" to { f: String? -> viewModel.onEvent(StreamScreenEvent.OnAddonFilterSelected(f)) }, "onRetry" to { viewModel.onEvent(StreamScreenEvent.OnRetry) }, "onPlay" to { stream: com.nuvio.tv.domain.model.Stream -> scope.coroutineLaunch { val info = viewModel.resolveStreamForPlayback(stream); if (info != null) { viewModel.persistBingeGroupForStream(stream); pendingRestoreOnResume = true; routePlayback(info); viewModel.onEvent(StreamScreenEvent.OnAutoPlayConsumed) } } })) }) Unit else // Fork hook: skin (ekran źródeł skórki; key: własna grupa — test VOD JMGO 26.11: przy przerysowaniu lambda filtra trafiała w miejsce onRetry → ClassCastException, aplikacja padała)
             Row(
                 modifier = Modifier.fillMaxSize()
             ) {

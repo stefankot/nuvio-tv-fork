@@ -94,20 +94,21 @@ object FirstRunDefaults {
      * (`source_presets_v3.json`), dostają nową wersję tego samego zestawu; reguły zmienione ręcznie zostają.
      * Poprzednie reguły w kopii `fork_autoplay_backup_v3_<profil>`.
      */
-    private suspend fun regexPresetsV4(app: Context, pid: Int) {
-        val flag = "fork_regex_presets_v4_$pid"
+    // 26.11 wieczorem (v5): ta sama migracja dla reguł v4 → v5 („Dream 4K VOD” z Flix-Streams nie jest już 4K).
+    private suspend fun regexPresetsV4(app: Context, pid: Int, ver: Int = 4, oldAsset: String = "fork/source_presets_v3.json") {
+        val flag = "fork_regex_presets_v${ver}_$pid"
         if (ForkFeatures.enabled(app, flag)) return
         val store = EntryPointAccessors.fromApplication(app, com.nuvio.tv.fork.sources.SourceChoice.Deps::class.java).player()
         val stored = store.playerSettings.first().streamAutoPlayRankedRegex
-        val old = com.nuvio.tv.fork.sources.SourcePresets.parse(app.assets.open("fork/source_presets_v3.json").bufferedReader().use { it.readText() })
+        val old = com.nuvio.tv.fork.sources.SourcePresets.parse(app.assets.open(oldAsset).bufferedReader().use { it.readText() })
         val was = old.firstOrNull { it.rules == stored }
         val now = was?.let { w -> com.nuvio.tv.fork.sources.SourceChoice.presets(app).firstOrNull { it.id == w.id } }
         if (now != null && now.rules != stored) {
-            ForkFeatures.setStr(app, "fork_autoplay_backup_v3_$pid", org.json.JSONArray(stored).toString())
+            ForkFeatures.setStr(app, "fork_autoplay_backup_v${ver - 1}_$pid", org.json.JSONArray(stored).toString())
             com.nuvio.tv.fork.sources.SourceChoice.useRules(app, now)
-            android.util.Log.i("ForkSettings", "reguły autoplay v4: profil $pid, zestaw ${now.id}: ${stored.size} → ${now.rules.size} reguł (stare w kopii)")
+            android.util.Log.i("ForkSettings", "reguły autoplay v$ver: profil $pid, zestaw ${now.id}: ${stored.size} → ${now.rules.size} reguł (stare w kopii)")
         } else {
-            android.util.Log.i("ForkSettings", "reguły autoplay v4: profil $pid bez zmian (${when { stored.isEmpty() -> "brak reguł"; was == null -> "reguły własne albo już nowe"; else -> "już nowe" }})")
+            android.util.Log.i("ForkSettings", "reguły autoplay v$ver: profil $pid bez zmian (${when { stored.isEmpty() -> "brak reguł"; was == null -> "reguły własne albo już nowe"; else -> "już nowe" }})")
         }
         ForkFeatures.set(app, flag, true)
     }
@@ -122,6 +123,7 @@ object FirstRunDefaults {
         val pid = d.profiles().activeProfileId.value
         runCatching { regexAutoplay(app, pid) }.logged("ForkSettings", "FirstRunDefaults: autoplay Regex")
         runCatching { regexPresetsV4(app, pid) }.logged("ForkSettings", "FirstRunDefaults: reguły autoplay v4")
+        runCatching { regexPresetsV4(app, pid, 5, "fork/source_presets_v4.json") }.logged("ForkSettings", "FirstRunDefaults: reguły autoplay v5")
         val flag = "first_run_done_$pid"
         if (ForkFeatures.enabled(app, flag)) return
         val en = booleanPreferencesKey("tmdb_enabled"); val lang = stringPreferencesKey("tmdb_language")

@@ -110,4 +110,12 @@ class SourcePresetsTest {
         assertEquals(5, tier("pl_if_good", "Film 2160p REMUX English"))
         assertEquals(16, tier("pl_if_good", "Flix-Streams ⚡ SmartPlay\n4K • Click to verify & play https://x"))
     }
+
+    // 26.11 wieczorem (v5): „Dream 4K VOD” to nazwa serwisu IPTV w Flix-Streams, nie rozdzielczość (Taskmaster S18E01 wygrywał z 1080p WEB-DL).
+    @Test fun `Dream 4K VOD to nie 4K`() {
+        assertEquals(4, tier("original_subs", "Flix-Streams Dream 4K VOD • S18E01 • MP4 IN - Taskmaster (2015) - S18E01 https://x"))
+        assertEquals(2, tier("original_subs", "SELection 1080P 〈Web-dl〉 Taskmaster S18E01 1.83 GB"))
+        assertEquals(0, tier("original_subs", "Flix-Streams Dream 4K VOD • 2160p HEVC https://x"))
+        assertEquals(0, tier("original_subs", "SELection 4K 〈Web-dl〉 Film 2160p"))
+    }
 }

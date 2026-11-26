@@ -7,6 +7,7 @@ Nowe 22.11: polskie napisy wbudowane jako szczebel, zestaw „jakość ważniejs
 Nowe 26.11 (test VOD na JMGO, poprzednie reguły: source_presets_v3.json): w obrębie 4K najpierw pliki bez REMUX
 (4K Remux 72–77 Mb/s doczytywał się 10× na minutę, 4K BluRay 35 Mb/s grał płynnie), a wpisy „Click to verify & play”
 (Flix-Streams SmartPlay: napis „4K”, a gra 1080p) idą na koniec razem z plikami niegotowymi.
+Nowe 26.11 wieczorem (v5, poprzednie: source_presets_v4.json): „Dream 4K VOD” (Flix-Streams) nie jest już 4K.
 Użycie: python3 -I fork-tools/sources/presets.py   Sprawdzenie: python3 -I fork-tools/sources/native_sim.py …"""
 import json, os, re
 
@@ -18,9 +19,11 @@ U = r"(?:(?!https?://).)*?"                       # dowolny tekst, ale nie dalej
 FLAGS = r"[\x{1F1E6}-\x{1F1FF}]"
 PL_FLAG = r"(?:" + FLAGS + r"{2})*\x{1F1F5}\x{1F1F1}"   # 🇵🇱 na granicy par flag
 
-def res(words): return "(?=" + U + r"(?<!, )\b(?:" + words + r")\b)"
+# 26.11 (v5): „Dream 4K VOD” (Flix-Streams, nazwa serwisu IPTV) to nie rozdzielczość — „dream 4k” i „4k vod” się nie liczą.
+RES_TAIL = r"(?<!dream )\b(?:"
+def res(words): return "(?=" + U + r"(?<!, )" + RES_TAIL + words + r")\b(?! vod\b))"
 R4K, R1080, R720 = res("2160p|4k|uhd"), res("1080p|fhd"), res("720p")
-NO_RES = "(?!" + U + r"(?<!, )\b(?:2160p|4k|uhd|1080p|fhd|720p)\b)"
+NO_RES = "(?!" + U + r"(?<!, )" + RES_TAIL + r"2160p|4k|uhd|1080p|fhd|720p)\b(?! vod\b))"
 NOCAM = "(?!" + U + r"\b(?:cam|hdcam|camrip|ts|hdts|telesync|telecine|tc)\b)"
 
 def pla_from_v2():
