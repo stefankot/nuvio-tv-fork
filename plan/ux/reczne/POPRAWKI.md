@@ -1,7 +1,7 @@
 # Poprawki z testów ręcznych na projektorze JMGO (24–25.11.2026)
 
 Jak czytać: **✔** — sprawdzone na projektorze, działa · **✘** — sprawdzone, nie działa · **?** — jeszcze nie sprawdzone na projektorze.
-Paczki poprawek mają nazwy R1…R14. Na projektorze była `uxr13` (sprawdzona 26.11 po południu); powstaje `uxr14` (#67–#72). `uxr7` przerwana (za długo się kompilowała).
+Paczki poprawek mają nazwy R1…R14. Na projektorze jest `uxr14` (sprawdzona 26.11 ok. 15:55); powstaje `uxr15` (#70b, #74–#79). `uxr7` przerwana (za długo się kompilowała).
 Zdjęcia ekranów (numery w nawiasach) leżą w `plan/ux/reczne/`.
 
 ## Ekran główny
@@ -133,15 +133,25 @@ Najpierw sprawdziłem `uxr13`: wszystkie poprawki z pętli 9 działają (#56, #5
 
 | # | Co było nie tak | Co zmieniłem | Stan |
 |---|---|---|---|
-| 67 | Wejście w kanał: ok. 0,6 s pracy ekranu na szukanie „poprzedniego kanału” na liście 59 tys. kanałów przy każdym odświeżeniu opisu i na porównywanie tytułów | Poprzedni kanał i porównania tytułów z pamięci | ? `uxr14` |
+| 67 | Wejście w kanał: ok. 0,6 s pracy ekranu na szukanie „poprzedniego kanału” na liście 59 tys. kanałów przy każdym odświeżeniu opisu i na porównywanie tytułów | Poprzedni kanał i porównania tytułów z pamięci | ✔ `uxr14`: opis po 0,46 s (było 0,69 s), obraz po 1,5 s, powrót 0,54 s |
 | 68 | Kanał oznaczony „Niedostępny” grał w podglądzie przewodnika, a znacznik zostawał (zdjęcie 205) | Gdy podgląd pokazuje obraz 3 s, znacznik znika | ? `uxr14` |
-| 69 | Po wyborze dnia („Wczoraj”) zaznaczenie spadało na kafelek u góry — OK włączał kanał na żywo zamiast wybranego dnia (zdjęcie 206, potwierdzone 26.11) | Zaznaczenie na 1. kanale przewodnika, na godzinie wybranego dnia | ? `uxr14` |
-| 70 | Pod „Światem według Bundych” rząd „inne odcinki” miał 1 kafelek — przewodnik pisze „Świat według Bundych 3: Can't dance…” (serial + nazwa odcinka) i szukane były tylko emisje tego samego odcinka (zdjęcia 209–210) | Odcinki rozpoznawane po nazwie serialu (bez nazwy odcinka i numeru sezonu) | ? `uxr14` |
-| 71 | W tytułach dziwne znaki: „Can&#39;t dance, don&#39;t ask me” (zdjęcia 207–212) | Zamieniane na litery: „Can't dance, don't ask me” | ? `uxr14` |
-| 72 | W programie z archiwum były tylko ↻ ▶ + — **nie było jak wrócić do transmisji na żywo** (zdjęcie 212) | Przycisk „Na żywo” także w archiwum | ? `uxr14` |
+| 69 | Po wyborze dnia („Wczoraj”) zaznaczenie spadało na kafelek u góry — OK włączał kanał na żywo zamiast wybranego dnia (zdjęcie 206, potwierdzone 26.11) | Zaznaczenie na 1. kanale przewodnika, na godzinie wybranego dnia | ✔ `uxr14` |
+| 70 | Pod „Światem według Bundych” rząd „inne odcinki” miał 1 kafelek — przewodnik pisze „Świat według Bundych 3: Can't dance…” (serial + nazwa odcinka) i szukane były tylko emisje tego samego odcinka (zdjęcia 209–210) | Odcinki rozpoznawane po nazwie serialu (bez nazwy odcinka i numeru sezonu) | ✔ `uxr14`: 12 odcinków, od 00:00 do 23:00 (zdjęcie 218) |
+| 71 | W tytułach dziwne znaki: „Can&#39;t dance, don&#39;t ask me” (zdjęcia 207–212) | Zamieniane na litery: „Can't dance, don't ask me” | ✔ `uxr14` (zdjęcia 218–219) |
+| 72 | W programie z archiwum były tylko ↻ ▶ + — **nie było jak wrócić do transmisji na żywo** (zdjęcie 212) | Przycisk „Na żywo” także w archiwum | ✔ `uxr14`: z archiwum do transmisji w 1,2 s (zdjęcia 219–220) |
 | — | Przy opóźnieniu linia u góry kończyła się w pół słowa: „· Nowa TV · na” (zdjęcie 213) | Wielokropek zamiast uciętego słowa | ? `uxr14` |
 
-Następne (zapisane, wejdą w kolejną wersję): #70b „360° Świat bez granic (3)” — numer w nawiasie też rozbija serial (zdjęcie 215); #74 każdy klawisz w opisie odtwarzacza przeszukuje 59 tys. kanałów; #75 ze szczegółów programu do schowania opisu trzeba 3 × Wstecz — Wstecz z rzędu ma chować od razu.
+Paczka `uxr15` (w budowie):
+
+| # | Co było nie tak | Co zmieniłem | Stan |
+|---|---|---|---|
+| 79 | **OK na odcinku w rzędzie włączał inny odcinek** (wybrany 22:00, zagrał 00:00), gdy w rogu była karta „Pomijaj reklamy” — jedno naciśnięcie obsłużyły dwa miejsca (zdjęcia 218–219) | Karta reaguje tylko na naciśnięcie, które sama dostała | ? `uxr15` |
+| 70b | „360° Świat bez granic (3)” — numer odcinka w nawiasie też rozbijał serial, szczegóły bez innych odcinków (zdjęcie 215) | Numer odcinka i sezonu pomijany przy rozpoznawaniu serialu | ? `uxr15` |
+| 74 | Każdy klawisz w opisie odtwarzacza przeszukiwał listę 59 tys. kanałów | Bieżący kanał z pamięci | ? `uxr15` |
+| 75 | Ze szczegółów programu do schowania opisu trzeba było 3 × Wstecz | Wstecz z rzędu chowa opis od razu (ze szczegółów: 2 ×) | ? `uxr15` |
+| 76 | Wstecz w przewodniku wracał na „teraz”, a przycisk dnia dalej mówił „Wczoraj” | Wraca też dzień „Dziś” | ? `uxr15` |
+| 78 | Wstecz z „Odkrywaj” stawiał zaznaczenie na kanale sprzed oglądania (gdzieś w środku listy), nie na „Odkrywaj” | Zaznaczenie wraca na przycisk „Odkrywaj”/„Szukaj” | ? `uxr15` |
+| 77 | „Odkrywaj”: „Wczytuję programy…” 11–17 s przy każdym wejściu | Przy kolejnym wejściu od razu ostatnie rzędy, nowe dochodzą w tle (pierwsze wejście po włączeniu aplikacji nadal trwa) | ? `uxr15` |
 Do Twojej decyzji / później: #73 kanał włączony z wyszukiwarki Live TV — po Wstecz wraca przewodnik (pigułka „Wszystkie”), a nie wyniki wyszukiwania.
 
 Do Twojej wiadomości (bez zmian):
