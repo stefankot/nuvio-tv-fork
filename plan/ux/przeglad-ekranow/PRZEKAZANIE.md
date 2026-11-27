@@ -24,11 +24,11 @@ Katalog `/Users/milajovovich/Desktop/nuvio 2/NuvioFork`, gałąź `skin-niunia`.
 ## Najpierw
 1. Na JMGO prz08 (sprawdzony, `WYNIKI.md` pętla 3). Paczka 9 (pasek podpisu kart na rozmyciu) jest w kodzie — to za mało na build: najpierw dopisz kolejne punkty (niżej), potem build prz09 z całością.
 2. Po instalacji prz09 sprawdź: rząd „Oglądaj dalej” na Głównej i karty odcinków/zwiastunów w Szczegółach — podpis na rozmytym dole obrazu, czytelny, przewijanie płynne (budżety JMGO w `plan/DECYZJE.md`, „Wydajność”).
-3. Wyniki okładek AIOMetadata (33 % trafień, TMDB 52 %) są w `WYNIKI.md` (pętla 2) — jeśli właściciel odpowie, zastosuj jego decyzję (np. TMDB awaryjnie po braku w AIOMetadata: `TvCovers.fetchAio` → `fetch`).
+3. **Właściciel (27.11, ~16:10): „AIOMetadata musi być źle skonfigurowane, sprawdzę to potem”.** Nie zmieniaj źródła okładek ani dopasowania z powodu niskiej liczby trafień (33 %), nie wracaj do TMDB. 22 pkt 2 (puste karty archiwum) czeka na właściciela — NIE do BLOKADY i nie licz tego jako nieudanej próby. Po jego zmianie w konfiguracji wtyczki: wyczyść pamięć okładek na JMGO (`files/fork_tv_covers_aio2.json` — przez ustawienia aplikacji albo odczekaj 3 dni ważności „braków”) i porównaj liczbę trafień w logu `ForkTvCovers`.
 
 ## Dalej (kolejka z NOTATKI)
-- 22 pkt 2: karty „Poprzednie odcinki” IPTV puste, bo AIOMetadata nie zna tytułu (np. „Piotruś Królik”). Kod pyta poprawnie. Ostatnia deska z NOTATKI: kadr z samego nagrania archiwum. Druga nieudana próba = BLOKADY (pierwsza: TMDB w prz05 nietestowane na TV, druga: AIOMetadata prz07).
-- Okładki AIOMetadata: 33 % trafień (TMDB miał 52 %) — wynik zgłoszony właścicielowi w WYNIKI; czekać na jego reakcję, nie wracać samemu do TMDB (decyzja 27.11).
+- 22 pkt 2: karty „Poprzednie odcinki” IPTV puste, bo AIOMetadata nie zna tytułu (np. „Piotruś Królik”) — czeka na sprawdzenie konfiguracji wtyczki przez właściciela (punkt 3 wyżej).
+- Okładki AIOMetadata: 33 % trafień (TMDB miał 52 %) — według właściciela wtyczka jest źle skonfigurowana; sprawdzi sam (punkt 3 wyżej).
 - 23 pkt 2 Mix „Następne”: wymaga zmiany w `youtube/YouTubeViewModel.kt` (kopia z Nuvio One — `queue` prywatne; Mix to playlista „RD…”: po starcie pierwszego filmu w tle `content.getPlaylist(id)` i podmiana `queue`). Zmiana w kopii z forka — sprawdź ZASADY-kod („Kopie z forków”) i zrób przez adapter/osobny plik, jeśli się da.
 - CAŁA APLIKACJA dalej: szare gradienty hero/szczegółów/paneli → rozmycie (lista plików w NOTATCE, sekcja „CAŁA APLIKACJA”).
 - 23 pkt 1b (podgląd filmu YouTube z dźwiękiem w karcie) — duże; sprawdzić pamięć JMGO.
