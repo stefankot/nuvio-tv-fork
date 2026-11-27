@@ -43,9 +43,9 @@ class SettingsTreeSearchTest {
 
     @Test fun `angielskie i techniczne słowa też działają`() {
         finds("hdr", "video")
-        finds("dolby", "formats")
+        finds("dolby", "video") // 27.11: formaty Reshaped usunięte, Dolby Vision w oficjalnym „Obraz”
         finds("trakt", "tracking", top = 1)
-        finds("whisper", "asr")
+        assertTrue("„whisper” → polecenia głosowe", ids("whisper").take(5).any { "whisper" in it }) // 27.11: Whisper tylko w poleceniach głosowych
         finds("m3u", "tv_sources")
         finds("bufor", "buffer")
     }
