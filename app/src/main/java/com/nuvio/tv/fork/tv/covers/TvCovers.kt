@@ -25,6 +25,11 @@ import java.util.concurrent.ConcurrentHashMap
  * 27.11 (właściciel, przegląd): dane z wtyczki AIOMetadata (skonsolidowane z wielu serwisów) — katalog wyszukiwania wtyczki
  * (najpierw seriale, potem filmy), ta sama ścisła zgodność tytułu. Bez zainstalowanej wtyczki — awaryjnie TMDB jak dawniej.
  * Nowa pamięć `files/fork_tv_covers_aio.json`; stary plik TMDB zostaje obok nieruszony.
+ *
+ * 27.11 (właściciel: „zrób to dopytywanie o szczegóły w aplikacji”): po znalezieniu tytułu w wyszukiwaniu wtyczki
+ * aplikacja pyta wtyczkę o szczegóły tytułu (`meta`) — tam obrazy idą według „Art Providers” z panelu wtyczki
+ * (łączenie serwisów), a w wynikach wyszukiwania tylko z jednej wyszukiwarki. Kadr poziomy ze szczegółów, inaczej obraz
+ * z wyszukiwania jak dotąd. Wyłącznik: klucz ForkFeatures [META_KEY]. Nowa pamięć `fork_tv_covers_aio3.json` (aio2 zostaje).
  */
 object TvCovers {
     private const val TAG = "ForkTvCovers"
@@ -44,7 +49,9 @@ object TvCovers {
     @dagger.hilt.EntryPoint @dagger.hilt.InstallIn(dagger.hilt.components.SingletonComponent::class)
     interface Deps { fun addons(): com.nuvio.tv.domain.repository.AddonRepository }
 
-    private const val FILE = "fork_tv_covers_aio2.json" // aio2: nowe dopasowanie nazw (stary plik zostaje)
+    private const val FILE = "fork_tv_covers_aio3.json" // aio3: obraz ze szczegółów wtyczki (aio2 i starsze zostają)
+    /** Wyłącznik dopytywania wtyczki o szczegóły tytułu (wyłączony = obraz z samego wyszukiwania, jak w aio2). */
+    const val META_KEY = "tv_covers_aio_meta"
 
     fun enabled(c: Context): Boolean = com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(c, KEY, true)
 
@@ -117,9 +124,10 @@ object TvCovers {
                 (cat.apiType == "series" || (cat.apiType == "movie" && !tvOnly))
         }.sortedBy { if (it.apiType == "series") 0 else 1 }.distinctBy { it.apiType }
         if (catalogs.isEmpty()) { Log.w(TAG, "AIOMetadata bez katalogu wyszukiwania — okładki awaryjnie z TMDB"); return fetch(q, key, tvOnly) }
+        val details = com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(c, META_KEY, true)
         var failed = false
         for (cat in catalogs) {
-            when (val r = searchAio(aio.baseUrl, cat.apiType, cat.id, q, key)) {
+            when (val r = searchAio(aio.baseUrl, cat.apiType, cat.id, q, key, details)) {
                 null -> failed = true
                 "" -> Unit
                 else -> {
@@ -138,12 +146,11 @@ object TvCovers {
     @Volatile private var aioMissingLogged = false
 
     /** Jedno zapytanie do katalogu: "" = brak zgodnego tytułu, null = błąd. Adres wtyczki nie trafia do logów (konfiguracja w ścieżce). */
-    private fun searchAio(baseUrl: String, type: String, catalogId: String, q: String, key: String): String? {
+    private fun searchAio(baseUrl: String, type: String, catalogId: String, q: String, key: String, details: Boolean): String? {
         val base = baseUrl.trimEnd('/')
         val qs = base.indexOf('?')
         val path = if (qs >= 0) base.substring(0, qs).trimEnd('/') else base
         val query = if (qs >= 0) base.substring(qs) else ""
-        fun enc(v: String) = java.net.URLEncoder.encode(v, "UTF-8").replace("+", "%20")
         val u = java.net.URL("$path/catalog/$type/${enc(catalogId)}/search=${enc(q)}.json$query")
         val conn = u.openConnection() as java.net.HttpURLConnection
         return try {
@@ -153,12 +160,39 @@ object TvCovers {
             for (i in 0 until metas.length()) {
                 val m = metas.optJSONObject(i) ?: continue
                 if (key !in nameKeys(m.optString("name"))) continue
-                val img = listOf("background", "poster").map { m.optString(it) }.firstOrNull { it.startsWith("http") } ?: continue
-                return img
+                val img = listOf("background", "poster").map { m.optString(it) }.firstOrNull { it.startsWith("http") }
+                val id = m.optString("id")
+                val wide = if (details && id.isNotBlank()) detailBackground(path, query, m.optString("type").ifBlank { type }, id, q) else null
+                if (details) Log.i(TAG, "„$q”: " + when {
+                    wide != null -> "kadr ze szczegółów wtyczki (${host(wide)})"
+                    img != null -> "szczegóły bez kadru — obraz z wyszukiwania (${host(img)})"
+                    else -> "brak obrazu w szczegółach i w wyszukiwaniu"
+                })
+                return wide ?: img ?: continue
             }
             ""
         } catch (e: Exception) {
             errors++; Log.w(TAG, "„$q”: AIOMetadata $type: ${e.javaClass.simpleName}"); null
+        } finally { conn.disconnect() }
+    }
+
+    private fun enc(v: String) = java.net.URLEncoder.encode(v, "UTF-8").replace("+", "%20")
+    private fun host(url: String) = url.substringAfter("://").substringBefore('/')
+
+    /**
+     * Szczegóły tytułu z wtyczki (`meta/<typ>/<id>.json`): obrazy według „Art Providers” z panelu wtyczki.
+     * Zwraca poziomy kadr (`background`) albo null (brak kadru albo błąd — wtedy zostaje obraz z wyszukiwania).
+     * Adres wtyczki nie trafia do logów (konfiguracja w ścieżce).
+     */
+    private fun detailBackground(path: String, query: String, type: String, id: String, q: String): String? {
+        val conn = java.net.URL("$path/meta/${enc(type)}/${enc(id)}.json$query").openConnection() as java.net.HttpURLConnection
+        return try {
+            conn.connectTimeout = 5_000; conn.readTimeout = 10_000
+            if (conn.responseCode != 200) { Log.w(TAG, "„$q”: szczegóły AIOMetadata $type HTTP ${conn.responseCode}"); return null }
+            JSONObject(conn.inputStream.bufferedReader().use { it.readText() }).optJSONObject("meta")
+                ?.optString("background")?.takeIf { it.startsWith("http") }
+        } catch (e: Exception) {
+            Log.w(TAG, "„$q”: szczegóły AIOMetadata $type: ${e.javaClass.simpleName}: ${e.message?.replace(path, "<wtyczka>")}"); null
         } finally { conn.disconnect() }
     }
 

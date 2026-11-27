@@ -2,7 +2,14 @@
 
 Poprawek w aplikacji: 0, sprawdzonych na urządzeniu: 0. To raport o ustawieniach wtyczki. Panel wtyczki tylko przeczytałem, niczego w nim nie zmieniłem.
 
-## W skrócie
+## Stan po zmianach (27.11, ok. 17:50)
+
+- **Wyszukiwanie seriali jest już przełączone na TMDB.** W tym samym teście wtyczka znajduje teraz 53 z 87 tytułów (wcześniej 44), m.in. „Zabójcza broń”, „Piotruś Królik”, „Z kamerą u Kardashianów”.
+- **Aplikacja dopytuje teraz wtyczkę o szczegóły znalezionego tytułu** i bierze z nich poziomy kadr. Na szczegółach wtyczka łączy serwisy, a obrazy wybiera według ustawień „Art Providers” w panelu. Gdy szczegóły nie mają kadru, zostaje obraz z wyszukiwania. Zmiana czeka na najbliższy wspólny build. Okładki zostaną pobrane od nowa (nowa pamięć, stara zostaje obok).
+- **Najlepiej oceniany obraz: wtyczka już go wybiera**, nic nie trzeba zmieniać. Fanart.tv — obraz z największą liczbą polubień. TMDB — obraz z najwyższą oceną. Najpierw szuka obrazów po polsku, potem po angielsku, potem bez napisów. Gdy Fanart.tv nie ma obrazu dla tytułu, wtyczka bierze go z innego serwisu.
+- **Jeśli kadry mają być z Fanart.tv** (zwykle najładniejsze, bez napisów): w panelu wybierz sekcję „Art Providers”. W ramce „Art Sources”, w grupach MOVIES i SERIES, w wierszu **Background** wybierz **Fanart.tv** (dziś: „Meta Provider (default)”, czyli TMDB dla filmów i TheTVDB dla seriali). Potem sekcja „Configuration” → **Save Configuration**. To samo zmieni tła na stronach filmów i seriali w całej aplikacji.
+
+## W skrócie (pierwsza wersja raportu, przed zmianami)
 
 - **Przy wyszukiwaniu wtyczka nie łączy danych z wielu serwisów.** W AIOMetadata do każdej rzeczy (wyszukiwanie filmów, wyszukiwanie seriali, opisy, obrazy) wybiera się **jeden** serwis. „Wiele źródeł” oznacza, że dla każdej z tych rzeczy można wybrać inny serwis, a nie że wyniki z kilku serwisów są sumowane.
 - **Wyszukiwanie seriali jest u Ciebie ustawione na TheTVDB** (sekcja „Search”, wiersz „Series Search”). TheTVDB słabo zna polskie tytuły. Nie znajduje m.in. „Zabójcza broń”, „Z kamerą u Kardashianów”, „Piotruś Królik”, „Kot z piekła rodem”, „Sposób na zamek”, „Polowanie na ogród”, „15 na żywo”, „Wakacyjne domy na wynajem”. TMDB zna je wszystkie.

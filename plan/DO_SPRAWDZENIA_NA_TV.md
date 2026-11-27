@@ -159,3 +159,4 @@ Lista dla właściciela. Wykonawca dopisuje tu wszystko, czego nie da się spraw
 - [ ] V7: „F1” (tt16311594) → Odtwórz kilka razy — ekran źródeł bez awarii.
 - [ ] V8: „Taskmaster” S18 O3 (tt4934214:18:3, bez postępu — Wznów używa zapisanego pliku) — wybiera 1080p WEB-DL z TorBox, nie „Dream 4K VOD” (360p).
 - [ ] V2c (uxr18): okno Ścieżka dźwiękowa i Napisy z panelu Niuni — zaznaczenie w oknie za każdym razem (3 próby).
+- [ ] Okładki Live TV ze szczegółów AIOMetadata (TvCovers, wyłącznik `tv_covers_aio_meta`): po instalacji buildu z tą zmianą — Live TV / archiwum IPTV, kilka kanałów; log `ForkTvCovers`: linie „kadr ze szczegółów wtyczki”, trafienia vs dawne 33 %, błędów 0; karty z poziomym kadrem zamiast przyciętego plakatu (np. „Świat według Kiepskich”, „Zabójcza broń”, „Piotruś Królik”).
