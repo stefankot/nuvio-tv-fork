@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import com.nuvio.tv.skin.niunia.components.NiuniaBlurBottom
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -113,6 +114,9 @@ internal fun NiuniaLiveTileCard(
             var imageFailed by remember(image) { mutableStateOf(false) }
             if (image != null && !imageFailed) AsyncImage(model = image, contentDescription = p.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize(),
                 onError = { st -> imageFailed = true; android.util.Log.w("ForkNiunia", "obraz programu „${p.title}”: ${st.result.throwable.javaClass.simpleName}: ${st.result.throwable.message}") })
+            // Przegląd 27.11 (CAŁA APLIKACJA): podpis na rozmytym dole obrazu (liczone raz, pamięć Coil + dysk), nie na szarym gradiencie.
+            val blurBottom = image != null && !imageFailed && com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctx, "niunia_blur_captions", true)
+            if (blurBottom && image != null) NiuniaBlurBottom(image)
             else NiuniaChannelLogo(tile.channel, Modifier.fillMaxSize().padding(start = 36.dp, end = 36.dp, top = 18.dp, bottom = 40.dp),
                 nameStyle = NiuniaText.Logo.copy(fontSize = 22.sp, lineHeight = 26.sp))
             // Z-1: bez kropek statusu i ikony play; stan mówi mini pasek w podpisie (czerwony na żywo, biały obejrzane archiwum).
@@ -137,7 +141,8 @@ internal fun NiuniaLiveTileCard(
             }
             Column(
                 Modifier.align(Alignment.BottomStart).fillMaxWidth()
-                    .background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimCaption.brush())
+                    .background(if (blurBottom) androidx.compose.ui.graphics.Brush.verticalGradient(0f to androidx.compose.ui.graphics.Color.Transparent, 1f to androidx.compose.ui.graphics.Color(0x59000000))
+                        else com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimCaption.brush())
                     .padding(start = 8.dp, end = 8.dp, top = 20.dp, bottom = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
@@ -146,7 +151,8 @@ internal fun NiuniaLiveTileCard(
                 val live = tile.mark == NiuniaTileMark.LIVE
                 val bar = when { live -> tile.progress ?: 0f; (tile.progress ?: 0f) > 0f -> tile.progress; else -> null }
                 if (bar != null) com.nuvio.tv.skin.niunia.components.NiuniaProgress(bar, bar = true, fillColor = if (live) com.nuvio.tv.skin.niunia.tokens.NiuniaColor.Live else null)
-                Text(tileCaption(tile), style = com.nuvio.tv.skin.niunia.tokens.NiuniaType.Caption, color = NiuniaColors.Text, maxLines = 2, overflow = TextOverflow.Ellipsis,
+                Text(tileCaption(tile), style = if (blurBottom) com.nuvio.tv.skin.niunia.tokens.NiuniaType.Caption.copy(shadow = androidx.compose.ui.graphics.Shadow(androidx.compose.ui.graphics.Color(0x99000000), blurRadius = 6f))
+                    else com.nuvio.tv.skin.niunia.tokens.NiuniaType.Caption, color = NiuniaColors.Text, maxLines = 2, overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.semantics { contentDescription = caption(tile) })
             }
             Box(Modifier.matchParentSize().background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.Gloss.brush()))

@@ -125,6 +125,17 @@ fun NiuniaPoster(
 }
 
 /** Druga kopia grafiki rozmyta i widoczna tylko od [from] (przejście do [to]) wysokości. */
+/**
+ * Przegląd 27.11 (CAŁA APLIKACJA): rozmyty dół obrazu (gotowe rozmycie Coil/dysk, maska od [from] do [to]) dla innych kart
+ * niż plakat — np. kafle Live TV: podpis na rozmyciu obrazu zamiast na ciemnym gradiencie. [url] = adres obrazu.
+ */
+@Composable
+internal fun BoxScope.NiuniaBlurBottom(url: String, radius: Float = 14f, from: Float = .45f, to: Float = .75f) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val req = androidx.compose.runtime.remember(url) { coil3.request.ImageRequest.Builder(ctx).data(url).build() }
+    BlurLayer(req, radius, from, to)
+}
+
 @Composable
 private fun BoxScope.BlurLayer(art: Any?, radius: Float, from: Float, to: Float) {
     // 22.11: gotowe rozmycie z pamięci Coil (liczone raz przy wczytaniu) zamiast RenderEffect w każdej klatce.
