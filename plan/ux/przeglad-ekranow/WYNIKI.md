@@ -112,3 +112,36 @@ W tej pętli powstały 4 paczki poprawek aplikacji (9–12: 8 miejsc z szarym pr
 - YouTube: dwa podglądy w kartach na Głównej YouTube (bez otwierania filmów).
 - Ustawienie forka `niunia_blur_scrims` na chwilę wyłączone do pomiaru i włączone z powrotem.
 
+
+## Pętla 5 (27.11, 16:50–17:40, build prz10 = paczki 13–14)
+W tej pętli powstały 3 paczki poprawek aplikacji (13–15: rozmycia tylko pod drobnym tekstem w 9 miejscach, płynniejsze przejścia, pasek postępu na kartach IPTV), a na JMGO sprawdzono 9 miejsc z paczek 13–14 — wszystkie działają; paczka 15 (pasek postępu) jest w buildzie prz11, sprawdzę ją w pętli 6.
+
+Twoje polecenie (16:47): „Rozmycie po lewej na hero na home usuń. Ma być zwykłe zdjęcie hero pod spodem bez żadnych efektów. Rozmycia przykrywają za dużo powierzchni zdjęć wszędzie. Ustaw absolutnie minimalne powierzchnie niezbędne dla czytelności małych napisów.”
+
+### Działa na TV (prz10)
+- **Główna:** hero to zwykłe zdjęcie — bez rozmycia i bez przyciemnienia — `p10-glowna-hero.png`.
+- **Rozmycie tylko „łatą” pod blokiem drobnego tekstu**, reszta zdjęcia ostra:
+  - karta tytułu (OK na plakacie): łata pod gatunkami, opisem i datą — `p10-karta-tytulu.png`;
+  - Szczegóły: bez rozmycia z lewej i od dołu; łata pod gatunkami, opisem i datą oraz pod obsadą po prawej — `p10-szczegoly.png`;
+  - strona odcinka: zwykłe zdjęcie, łata pod gatunkami, opisem, datą i oceną — `p10-strona-odcinka.png`;
+  - ekran wczytywania filmu: ostre zdjęcie, łata tylko pod „Buforuję…” i linijkami o pliku — `p10-wczytywanie.png`.
+- **Podpisy kart:** rozmyty jest tylko wąski pas pod samym tekstem (było: dolne 45–55 % karty) — „Oglądaj dalej” (`p10-cw-zoom.png`), odcinki serialu, kafle Live TV (`p10-livetv-zoom.png`: twarze nad podpisem ostre).
+- **Menu boczne:** rozmyty i przyciemniony jest tylko sam panel (koniec szarego tła panelu); reszta ekranu ostra, bez rozmycia lewej połowy — `p10-menu.png`.
+- **Szczegóły serialu:** pod opisem zaznaczonego odcinka nie ma już szarego pola — `p10-odcinki.png`.
+- Płynność: przełączanie tytułu na hero Głównej p50 22 ms / p95 34 ms (budżet ≤ 34 ms; w prz09 z rozmyciem p95 40 ms).
+
+### Do poprawy / w buildzie prz11
+- **Pasek postępu na kartach IPTV** (Twoja uwaga ~17:20): wraca mały pasek (jak dawniej), z lewej przy linii tekstu, ale nad tekstem, nie obok niego. To samo na kaflach archiwum pod odtwarzaczem IPTV (tam pasek był jeszcze w jednym wierszu z podpisem).
+
+### Do Twojej oceny
+- Na jasnych zdjęciach hero Głównej (np. śnieg w „Guarding Stars”) opis i tytuł rzędu „Oglądaj dalej” są słabo czytelne — tak jak kazałeś, na Głównej nie ma żadnego efektu. Jeśli chcesz, mogę dać tam taką samą małą łatę pod opisem jak w Szczegółach.
+- Świadomie bez zmian: tło strony pod hero (rzędy), ekran źródeł i okna — tam całe tło jest tłem listy lub okna, a nie zdjęciem do oglądania.
+
+### Niesprawdzone / zablokowane
+- Ekran błędu odtwarzacza (łata jak przy wczytywaniu) i plakaty z logo (rozmycie od 76 % zamiast od 66 %) — nie trafiły się w teście.
+- Bez zmian z pętli 4: ekran źródeł, okno Niuni, kafle archiwum pod odtwarzaczem IPTV; 23 pkt 2 w `plan/BLOKADY.md`.
+- AIOMetadata (mało okładek): osobny wątek sprawdza teraz, co jest źle ustawione we wtyczce — raport w `plan/raporty/aiometadata.md`.
+
+### Zmiany na profilu właściciela (JMGO)
+- „Ciało” S1 E1: wejście w odtwarzanie anulowane na ekranie wczytywania po ~2,5 s (pozycja bez zmian: zostało 38 min).
+- Menu boczne otwierane i zamykane kilka razy; na Głównej przełączone 10 wyróżnionych tytułów.
