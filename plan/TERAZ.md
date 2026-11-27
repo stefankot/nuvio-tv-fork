@@ -13,4 +13,4 @@ Baza = NuvioTV 1.2.0-beta.4 (scalone do skin-niunia 7ce368066; pliki bazy 1:1 + 
 6. Zmiany na profilu właściciela 27.11: „Guarding Stars” wznowiony ~1 min, „The Brutalist” ~3 min (wcześniej: „F1”, „Taskmaster” S18, „Doktor Strange”, „Oppenheimer” 2:28; kraj IPTV = Polska).
 
 ## Wątek „przegląd ekranów” (27.11, 13:20)
-Przekazanie: `plan/ux/przeglad-ekranow/PRZEKAZANIE.md` (build prz02 w toku, testy na JMGO do zrobienia).
+Przekazanie: `plan/ux/przeglad-ekranow/PRZEKAZANIE.md` (stan 16:05: na JMGO prz08 sprawdzony; paczka 9 w kodzie, niezbudowana; wyniki pętli 1–3 w `WYNIKI.md`).
