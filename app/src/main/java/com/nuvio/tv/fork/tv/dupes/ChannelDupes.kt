@@ -26,7 +26,7 @@ object ChannelDupes {
 
     private val QUALITY_WORDS = setOf(
         "4k", "8k", "uhd", "2160p", "fhd", "1080p", "1080", "hd", "720p", "sd", "576p", "hevc", "h265", "h264", "hdr",
-        "raw", "vip", "50fps", "60fps", "fps", "backup", "alt", "+1",
+        "raw", "vip", "50fps", "60fps", "fps", "backup", "alt", "+1", "lq",
     )
     private val BRACKET_COUNTRY = Regex("""\(([a-z]{2,3})\)""")
     private val SEPARATORS = charArrayOf(' ', '\t', '_', '-', '|', ':', '.', ',', '/', '(', ')', '[', ']', '•', '·', '★', '*')
@@ -105,6 +105,7 @@ object ChannelDupes {
             words.any { it == "fhd" || it == "1080p" || it == "1080" } -> 30
             words.any { it == "hd" || it == "720p" || it == "720" } -> 20
             words.any { it == "sd" || it == "576p" || it == "480p" } -> 10
+            "lq" in words -> 8
             else -> 15
         }
         if (words.any { it == "hevc" || it == "h265" }) q += 3

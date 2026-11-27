@@ -182,7 +182,14 @@ internal fun rememberNiuniaRegion(input: List<LiveTvChannel>, providers: List<St
                 }
                 val f = idx.filter(choice)
                 if (f != null && f.isEmpty()) Log.w(TAG, "live tv: ${NiuniaLiveRegion.label(choice)} — żaden kanał nie pasuje, pokazuję wszystkie")
-                NiuniaRegionResult(input, f?.ifEmpty { null } ?: input, idx)
+                // Przegląd 27.11 (16 pkt 2): w filtrze ten sam kanał w kilku jakościach / od kilku dostawców = jeden wiersz (najlepsza kopia).
+                val merged = f?.takeIf { it.size > 1 }?.let { list ->
+                    val groups = com.nuvio.tv.fork.tv.dupes.ChannelDupes.groups(list) { ch -> com.nuvio.tv.fork.tv.dupes.ChannelDupes.groupKey(ch.name, providers) }
+                    if (groups.size == list.size) list
+                    else groups.map { g -> g.maxByOrNull { ch -> com.nuvio.tv.fork.tv.dupes.ChannelDupes.quality(ch.name, ch.streamUrl) } ?: g.first() }
+                        .also { Log.i(TAG, "live tv: ${NiuniaLiveRegion.label(choice)} — złączone kopie jakości: ${list.size} → ${it.size} kanałów") }
+                } ?: f
+                NiuniaRegionResult(input, merged?.ifEmpty { null } ?: input, idx)
             }
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e

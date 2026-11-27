@@ -58,9 +58,12 @@ object ChannelNames {
     internal fun normalCase(s: String): String {
         val letters = s.filter { it.isLetter() }
         if (letters.length < 4 || letters.any { it.isLowerCase() }) return s
-        return s.split(' ').joinToString(" ") { w ->
+        // Test JVM prz03: „TVNHD” → „Tvnhd” — jednowyrazowej nazwy nie da się odróżnić od skrótu (zostaje), wyraz bez samogłosek to skrót.
+        val words = s.split(' ')
+        if (words.count { w -> w.any { it.isLetter() } } <= 1) return s
+        return words.joinToString(" ") { w ->
             val l = w.count { it.isLetter() }
-            if (l <= 3 || w.any { it.isDigit() }) w else w.lowercase().replaceFirstChar { it.titlecase() }
+            if (l <= 3 || w.any { it.isDigit() } || w.none { it.lowercaseChar() in "aeiouyąęó" }) w else w.lowercase().replaceFirstChar { it.titlecase() }
         }
     }
 

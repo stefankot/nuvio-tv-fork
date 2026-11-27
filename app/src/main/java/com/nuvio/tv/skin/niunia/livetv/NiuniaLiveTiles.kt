@@ -79,10 +79,16 @@ internal fun NiuniaLiveTileCard(
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val p = tile.programme
     val logo = forgeChannelLogo(tile.channel) ?: LiveTvRepository.uiState.value.logoFor(tile.channel)
-    val image = p?.image?.takeIf { it.isNotBlank() }
+    val epgImage = p?.image?.takeIf { it.isNotBlank() }
+    // Przegląd 27.11 (10 pkt 3): bez obrazka z przewodnika — okładka programu z TMDB (ścisła zgodność tytułu), logo dopiero gdy jej brak.
+    val tmdbCover by androidx.compose.runtime.produceState(if (epgImage == null && p != null) com.nuvio.tv.fork.tv.covers.TvCovers.cached(p.title) else null, p?.title, epgImage) {
+        if (epgImage == null && p != null && value == null) value = com.nuvio.tv.fork.tv.covers.TvCovers.cover(ctx, p.title)
+    }
+    val image = epgImage ?: tmdbCover
     var focused by remember { mutableStateOf(false) }
     val shape = RoundedCornerShape(com.nuvio.tv.skin.niunia.tokens.NiuniaRadius.Radius16) // DS v2: karty 16
-    NiuniaSeriesStack(tile.series, image ?: logo, NiuniaDims.WideW, NiuniaDims.WideH) {
+    // Przegląd 27.11 (10 pkt 1): obrócone warstwy z logo stacji dawały kolorowe strzępy pod kartą — warstwy gładkie (bez obrazka).
+    NiuniaSeriesStack(tile.series, null, NiuniaDims.WideW, NiuniaDims.WideH) {
         Box(
             Modifier.size(NiuniaDims.WideW, NiuniaDims.WideH)
                 // DS v2 (NowCard / ChannelCard): uniesienie, ×1,1, cień i obwódka 3 dp.
@@ -128,16 +134,17 @@ internal fun NiuniaLiveTileCard(
                     if (newOne) com.nuvio.tv.skin.niunia.components.NiuniaTagKind.BadgeStrong else com.nuvio.tv.skin.niunia.components.NiuniaTagKind.Badge,
                     Modifier.padding(start = if (dot != null) 26.dp else 8.dp, top = 8.dp))
             }
-            Row(
+            Column(
                 Modifier.align(Alignment.BottomStart).fillMaxWidth()
                     .background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimCaption.brush())
                     .padding(start = 8.dp, end = 8.dp, top = 20.dp, bottom = 8.dp),
-                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                // Z-1: [mini pasek 24×4] + „Tytuł · Kanał” (tytuł caption 700, „· kanał” caption-regular 500), maks. 2 linie, kanał zawsze widoczny.
+                // Przegląd 27.11 (13): pasek postępu nad podpisem, na całą szerokość — podpis „Tytuł · Kanał” ma pełną szerokość karty
+                // (dawniej Z-1: [mini pasek 24×4] obok tekstu zabierał ~32 dp). Maks. 2 linie, kanał zawsze widoczny.
                 val live = tile.mark == NiuniaTileMark.LIVE
                 val bar = when { live -> tile.progress ?: 0f; (tile.progress ?: 0f) > 0f -> tile.progress; else -> null }
-                if (bar != null) com.nuvio.tv.skin.niunia.components.NiuniaProgress(bar, fillColor = if (live) com.nuvio.tv.skin.niunia.tokens.NiuniaColor.Live else null)
+                if (bar != null) com.nuvio.tv.skin.niunia.components.NiuniaProgress(bar, bar = true, fillColor = if (live) com.nuvio.tv.skin.niunia.tokens.NiuniaColor.Live else null)
                 Text(tileCaption(tile), style = com.nuvio.tv.skin.niunia.tokens.NiuniaType.Caption, color = NiuniaColors.Text, maxLines = 2, overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.semantics { contentDescription = caption(tile) })
             }

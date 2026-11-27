@@ -29,12 +29,13 @@ class TvCountryTest {
 
     @Test fun `preferowany - polskie na poczatek, reszta w kolejnosci listy`() {
         val r = TvCountry.arrange(list, Mode(prefer = true, only = false, country = "pl"), providers, { lists[it] })
-        assertEquals(listOf("TVN", "Strong8K · PL: TVN 24 HD", "[PL] Polsat", "Strong8K · PA: TVN HD", "Strong8K · DSTV: TVN AFRICA", "UK: BBC One", "Kanał bez kraju"), names(r))
+        // Przegląd 27.11 (14): trzy stopnie — kraj z nazwy/grupy, potem kraj tylko z listy („TVN” z listy hls.gd), potem reszta.
+        assertEquals(listOf("Strong8K · PL: TVN 24 HD", "[PL] Polsat", "TVN", "Strong8K · PA: TVN HD", "Strong8K · DSTV: TVN AFRICA", "UK: BBC One", "Kanał bez kraju"), names(r))
     }
 
     @Test fun `konieczny - tylko polskie`() {
         val r = TvCountry.arrange(list, Mode(prefer = true, only = true, country = "pl"), providers, { lists[it] })
-        assertEquals(listOf("TVN", "Strong8K · PL: TVN 24 HD", "[PL] Polsat"), names(r))
+        assertEquals(listOf("Strong8K · PL: TVN 24 HD", "[PL] Polsat", "TVN"), names(r))
     }
 
     @Test fun `konieczny bez trafien - cala lista zamiast pustego ekranu`() {

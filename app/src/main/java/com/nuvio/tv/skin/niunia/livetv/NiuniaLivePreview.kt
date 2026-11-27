@@ -15,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -79,7 +80,8 @@ internal fun NiuniaLivePreviewBox(channel: LiveTvChannel, programme: LiveTvProgr
         kotlinx.coroutines.delay(3_000)
         if (preview.showingVideo) NiuniaLiveStatus.ok(ctx, channel.streamUrl, channel.name)
     }
-    Box(modifier.size(520.dp, 288.dp)) {
+    // Przegląd 27.11 (11): większy podgląd (szerszy, 16:9), przycięty do pola — obraz nie wychodzi poza przyciemnienie.
+    Box(modifier.size(640.dp, 360.dp).clipToBounds()) {
         val still = programme?.image?.takeIf { it.isNotBlank() } ?: com.nuvio.tv.skin.kicia.livetv.forgeChannelLogo(channel)
         if (!showing && still != null) AsyncImage(model = still, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
         AndroidView(
@@ -89,8 +91,9 @@ internal fun NiuniaLivePreviewBox(channel: LiveTvChannel, programme: LiveTvProgr
         )
         // Maska z makiety: od lewej przezroczysto → pełno od 45 %, od dołu pełno do 55 % → przezroczysto (tu: tło skórki na wierzchu).
         Box(Modifier.fillMaxSize().background(Brush.horizontalGradient(0f to NiuniaColor.Bg, 0.45f to Color.Transparent)))
-        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.55f to Color.Transparent, 1f to NiuniaColor.Bg)))
-        Column(Modifier.align(Alignment.BottomEnd).padding(end = 40.dp, bottom = 72.dp)) {
+        // Od 80 % wysokości (dawna dolna krawędź 288 dp) pełne tło — nad osią godzin przewodnika nie widać paska obrazu.
+        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.45f to Color.Transparent, 0.8f to NiuniaColor.Bg, 1f to NiuniaColor.Bg)))
+        Column(Modifier.align(Alignment.BottomEnd).padding(end = 40.dp, bottom = 144.dp)) {
             NiuniaTag(stringResource(R.string.niunia_tv2_preview_badge, com.nuvio.tv.fork.tv.names.ChannelNames.shown(channel.name)), NiuniaTagKind.Live)
         }
     }

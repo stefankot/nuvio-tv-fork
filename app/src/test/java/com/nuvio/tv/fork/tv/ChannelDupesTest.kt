@@ -92,4 +92,12 @@ class ChannelDupesTest {
         assertEquals(60_000, groups.size)
         assertTrue("trwało $ms ms", ms < 8_000)
     }
+
+    @org.junit.Test
+    fun lqCopyIsSameChannelAndWorseQuality() {
+        val a = ChannelDupes.groupKey("AR: EL Fadjer Drama DZ")
+        val b = ChannelDupes.groupKey("AR: EL Fadjer Drama DZ LQ")
+        org.junit.Assert.assertEquals(a, b)
+        org.junit.Assert.assertTrue(ChannelDupes.quality("EL Fadjer Drama DZ") > ChannelDupes.quality("EL Fadjer Drama DZ LQ"))
+    }
 }

@@ -171,6 +171,8 @@ private fun BoxScope.BlurLayer(art: Any?, radius: Float, from: Float, to: Float)
 }
 
 @Volatile private var posterLayerLogged = false
+/** Przegląd 27.11 (plakaty): false = dół plakatu bez ciemnego gradientu do koloru „deep”, tylko przejście w rozmycie. */
+private const val POSTER_DARK_BOTTOM = false
 @Volatile private var blurCutLogged = false
 
 @Composable
@@ -183,7 +185,7 @@ private fun BoxScope.Tint(dom: Color, baked: Boolean) {
             drawRect(Brush.radialGradient(listOf(dom, Color.Transparent), center = Offset(0f, h), radius = cornerR))
             drawRect(Brush.radialGradient(listOf(dom, Color.Transparent), center = Offset(w, h), radius = cornerR))
             if (!baked) drawRect(Brush.radialGradient(listOf(dom.copy(alpha = .35f), Color.Transparent), center = Offset(w / 2, h * .8f), radius = w * .65f))
-            drawRect(Brush.verticalGradient(0f to Color.Transparent, (if (baked) .72f else .60f) to Color.Transparent, 1f to deep))
+            if (POSTER_DARK_BOTTOM) drawRect(Brush.verticalGradient(0f to Color.Transparent, (if (baked) .72f else .60f) to Color.Transparent, 1f to deep))
         }
     )
 }
