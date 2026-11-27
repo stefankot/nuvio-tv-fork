@@ -44,7 +44,7 @@ object TvCovers {
     @dagger.hilt.EntryPoint @dagger.hilt.InstallIn(dagger.hilt.components.SingletonComponent::class)
     interface Deps { fun addons(): com.nuvio.tv.domain.repository.AddonRepository }
 
-    private const val FILE = "fork_tv_covers_aio.json"
+    private const val FILE = "fork_tv_covers_aio2.json" // aio2: nowe dopasowanie nazw (stary plik zostaje)
 
     fun enabled(c: Context): Boolean = com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(c, KEY, true)
 
@@ -152,7 +152,7 @@ object TvCovers {
             val metas = JSONObject(conn.inputStream.bufferedReader().use { it.readText() }).optJSONArray("metas") ?: JSONArray()
             for (i in 0 until metas.length()) {
                 val m = metas.optJSONObject(i) ?: continue
-                if (norm(m.optString("name")) != key) continue
+                if (key !in nameKeys(m.optString("name"))) continue
                 val img = listOf("background", "poster").map { m.optString(it) }.firstOrNull { it.startsWith("http") } ?: continue
                 return img
             }
@@ -161,6 +161,13 @@ object TvCovers {
             errors++; Log.w(TAG, "„$q”: AIOMetadata $type: ${e.javaClass.simpleName}"); null
         } finally { conn.disconnect() }
     }
+
+    /**
+     * Test JMGO prz07: AIOMetadata podaje nazwę po polsku bez oryginalnej („Hell's Kitchen. Piekielna kuchnia”), więc
+     * „Hell's Kitchen” trafiało tylko w film o tej nazwie. Klucze nazwy = cała nazwa i jej części przed/po „.”, „:”, „–”, „-”, „|”.
+     */
+    internal fun nameKeys(name: String): Set<String> =
+        (listOf(name) + name.split(Regex("""\.\s|\s[-–—:|]\s|:\s"""))).map { norm(it) }.filter { it.length >= 3 }.toSet()
 
     /** Awaryjnie (bez AIOMetadata): "" = TMDB nie zna tego tytułu (pamiętane); null = błąd sieci (bez pamiętania, następnym razem znów). */
     private fun fetch(q: String, key: String, tvOnly: Boolean): String? {
