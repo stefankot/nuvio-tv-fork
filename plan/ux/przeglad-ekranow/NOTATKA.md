@@ -3,7 +3,7 @@
 Notatka ekran po ekranie: co nie działa / co poprawić. Zrzuty w tym katalogu (`NN-nazwa.png`).
 Uwagi właściciela zapisane jego słowami (skrót), pod spodem moja obserwacja ze zrzutu/kodu i propozycja poprawki.
 
-## 01 — Karta tytułu (przeglądarka tytułów z rzędu Głównej)
+## 01 — Karta tytułu (przeglądarka tytułów z rzędu Głównej) — ✅ TV prz04 (jeden przycisk „O filmie”, ▶ = następny tytuł, OK = Szczegóły)
 Zrzut: `01-karta-tytulu.png` — „Ruff and Tuff Kanya”, duża karta z obrazem, po bokach brzegi sąsiednich kart, przyciski Odtwórz / + / (szczegóły). Kod: `app/src/main/java/com/nuvio/tv/skin/niunia/home/NiuniaTitlePager.kt`.
 1. **Szary gradient zasłania lewą część obrazu.**
    Właściciel: „plakat zasłonięty szarym gradientem po lewej stronie”.
@@ -32,14 +32,14 @@ Zrzut: `02-szczegoly.png` — „Ruff and Tuff Kanya” (tt49112036): plakietka 
    Właściciel: zaprojektowane rzeczy „nagle zniknęły nie wiadomo dlaczego”.
    Poprawka (zadanie osobne): spis „projekt vs to, co jest na TV” dla każdego ekranu Niuni — co zaprojektowane, co wdrożone, co wyłączone przełącznikiem / ukryte, gdy brak danych. Uzupełniać listą rzeczy, które właściciel wskaże w tym przeglądzie.
 
-## 03 — Odtwarzacz: źle wybrane źródło (serial „Ciało”, #1 w „Popular · seriale”)
+## 03 — Odtwarzacz: źle wybrane źródło (serial „Ciało”, #1 w „Popular · seriale”) — ✅ TV prz04 (log ForkDurationGuard: verdict=OK dla filmu; klip < 3 min nie trafił się)
 Zrzut: `03-zrodlo.png` — zamiast odcinka gra 12-sekundowy klip dodatku TorrentClaw: „Too many requests / Wait a minute and try again”.
 1. **Źle wybrane źródło — ma działać kontrola długości: plik różny o więcej niż ±10% od długości filmu → inne źródło.**
    Właściciel: „musi być mechanizm sprawdzania długości filmu — taki już istniał; gdy > ±10% długości filmu, to inne źródło”.
    Obserwacja: log `ForkDiag: stream title=«Ciało» … addon=TorrentClaw (PL, 720p)`, `PlayerViewModel: … durationMs=12000` — plik ma 12 s. Mechanizm istnieje (`fork/sources/StartupChecks.kt`: film ±10%, odcinek 2×; klip < 3 min → `Placeholders`), ale NIKT go nie wywołuje: 22.11 odłączony razem z autoplayem forka (commit d14b50035, `plan/DECYZJE.md:41` „Automatyczny wybór źródła TYLKO natywny … Odłączone: … kontrola pliku Kicii”). To jest jedna z rzeczy, które „zniknęły”.
    Poprawka: podłączyć kontrolę długości z powrotem do natywnego autoplayu (Regex Nuvio): po wczytaniu pliku porównać jego długość z długością z opisu tytułu; film: różnica > ±10% → od razu następne źródło z listy (zły plik odłożyć, żeby nie wracał); klip krótszy niż 3 min (komunikaty „Too many requests”, „not cached”) → zawsze następne źródło. Dla odcinków ustalić tolerancję (właściciel podał ±10% dla filmu; stara reguła dla odcinków była 2×). Zaktualizować `plan/DECYZJE.md:41`.
 
-## 04 — Odtwarzacz: panel „Audio, lektor i napisy”, zakładka Napisy
+## 04 — Odtwarzacz: panel „Audio, lektor i napisy”, zakładka Napisy — ✅ TV prz04 (polskie na górze, „Inne języki 45”, ▼ do „Wybierz napisy”, ▲ do zakładek)
 Zrzut: `04-lista.png` — „Ciało” S1:01 (Flix-Streams, 4K HEVC HDR, polski dźwięk dołączony z innego wydania); lista: Napisy AI · polski, potem 55 napisów wbudowanych (Brazilian ×4, ar, bg, cs, CC…), dalej pliki z dodatków (70), „Wyłączone”. Kod: `app/src/main/java/com/nuvio/tv/skin/niunia/player/NiuniaPlayerChrome.kt:453-530` (`NiuniaSubtitlesTab`).
 1. **Nie da się zejść na dół listy, a potem panel przestaje reagować.**
    Właściciel: „nie da się przejść na dół listy, a w tym momencie ekran w ogóle przestał reagować”.
@@ -50,7 +50,7 @@ Zrzut: `04-lista.png` — „Ciało” S1:01 (Flix-Streams, 4K HEVC HDR, polski 
    Obserwacja: napisy wbudowane są w kolejności z pliku (pt, ar, bg, cs…; polskie gdzieś w środku/na dole 55 pozycji); pliki z dodatków są wprawdzie „najpierw polskie”, ale stoją dopiero PO wszystkich wbudowanych.
    Poprawka: na górze (pod Napisami AI) wszystkie napisy w języku preferowanym — wbudowane i z dodatków razem; potem pozostałe języki. **Decyzja właściciela (27.11): pozostałe języki zwinięte w jeden wiersz „Inne języki”** (OK rozwija listę pozostałych języków) — lista ma być krótka. Dotyczy napisów wbudowanych i z dodatków.
 
-## 05 — Odtwarzacz: panel „Quality” (jakość)
+## 05 — Odtwarzacz: panel „Quality” (jakość) — ✅ TV prz04 pkt 1–2 (panel Niuni po polsku, długie OK = źródła 1080p); poprawka prz05: bieżąca jakość i ✓; pkt 3 niesprawdzony
 Zrzut: `05-jakosc.png` — 4K ✓, 1080p (56 sources), 720p (13), 480p (7, „Angielski, Hindi +4”), 360p (1).
 Kod: okno z forka Echo (teksty `app/src/main/res/values/echo_player_strings.xml:8` `quality_menu_subtitle`; przełączanie `ui/screens/player/PlayerRuntimeControllerSourceSwitch.kt:270-310`).
 1. **Okno jakości ma wyglądać jak cała skórka (Niunia).**
@@ -66,7 +66,7 @@ Kod: okno z forka Echo (teksty `app/src/main/res/values/echo_player_strings.xml:
    Obserwacja (log 18:03:07-18:04:10): wybór 1080p → 6 prób w ~63 s: Flix-Streams („Easy Vault”) → TorrentClaw → PenguPlay → Flix-Streams → Flix-Streams (HTTP 416) → Flix-Streams „Usenet Vault 1080p” (gra). Próby 1 i 2 już się wczytały (plik otwarty, polski dźwięk wybrany), a mimo to po 16 s „no playback in time” i skok dalej. Ostatnie źródło nie ma polskiego dźwięku („new source has no pl track”). Diagnostyka podaje `quality=4K` dla pliku 1080p.
    Poprawka: dłużej czekać na źródło, które się wczytuje (nie przerywać, gdy dane płyną); w trakcie jeden komunikat „Przełączam na 1080p…”, a nie widoczne skoki; najpierw źródła z polskim dźwiękiem, gdy obecny ma polski; po nieudanych próbach wrócić do poprzedniego źródła w tym samym miejscu i powiedzieć to na ekranie.
 
-## 06 — Odtwarzacz: panel „Dźwięk”
+## 06 — Odtwarzacz: panel „Dźwięk” — ✅ TV prz04 (prosta lista ścieżek, „Polski z innego wydania”, reszta zwinięta); ❌ fokus znikał po dołączeniu ścieżki → poprawka prz05
 Zrzut: `06-dzwiek.png` — lewa kolumna: „Original · Angielski (In this file)”, „Polski ✓”; prawa: opóźnienie dźwięku, wzmocnienie, downmix, tryb nocny, „Zachowaj między sesjami”.
 Kod: okno z forka Echo (teksty `app/src/main/res/values/echo_player_strings.xml:25` `audio_menu_hint` i sąsiednie).
 1. **Ścieżkę dźwiękową wybiera się z prostej listy, reszta ustawień zwinięta.**
@@ -75,7 +75,7 @@ Kod: okno z forka Echo (teksty `app/src/main/res/values/echo_player_strings.xml:
    Poprawka: panel „Dźwięk” = prosta lista ścieżek (język + krótki opis, ✓ przy bieżącej; OK = wybierz); na końcu jeden wiersz „Więcej ustawień dźwięku” — dopiero OK rozwija opóźnienie, wzmocnienie, tryb nocny itd. Styl Niuni, polskie teksty, bez słów technicznych.
 - Moja obserwacja (nie zgłoszona): to też nie styl Niuni, mieszanka języków („Hold OK on a language to pick its source”, „In this file”); techniczne słowa dla użytkownika („PCM”, „Downmix”, „FFmpeg”).
 
-## 07 — Szczegóły serialu (niżej na stronie): Zwiastuny i „Więcej podobnych”
+## 07 — Szczegóły serialu (niżej na stronie): Zwiastuny i „Więcej podobnych” — ✅ TV prz04 (zwiastuny = karty poziome Głównej, bez podpisów)
 Zrzut: `07-zwiastuny.png` — „Ciało”: logo, rząd „Zwiastuny” (4 karty z podpisami pod spodem: „Zwiastun 1”, „Sneak Peek: So You Wanna …”, „The Lions Break Character | …”, „An Inside Look at New Teen …”), pod nim „Więcej podobnych” (plakaty pionowe). Kod: `skin/niunia/detail/NiuniaDetail.kt:281` (rząd zwiastunów), karta `skin/niunia/components/NiuniaCards.kt:41-74` (preset `TrailerCard`), rozmiary `components/NiuniaModels.kt:42-50`, `tokens/NiuniaDesignTokens.kt:206-208`.
 1. **Niepotrzebne opisy pod zwiastunami.**
    Właściciel: „niepotrzebne są opisy do trailerów”.
@@ -86,14 +86,14 @@ Zrzut: `07-zwiastuny.png` — „Ciało”: logo, rząd „Zwiastuny” (4 karty
    Obserwacja: zwiastuny używają presetu `TrailerCard` = rozmiar „Still” (~205×115, 16:9), a karty poziome Głównej („Oglądaj dalej”, `ContinueWatchingCard`/`LandscapeCard`) mają `LandscapeW×LandscapeH` = 160×114. Dwa różne rozmiary kart poziomych w jednej skórce.
    Poprawka: zwiastuny (i inne karty poziome na stronie tytułu) na tym samym presecie co karty poziome Głównej — jeden rozmiar i proporcje kart poziomych w całej skórce.
 
-## 08 — Szczegóły serialu (góra): przycisk „O serialu” (ikona kartki)
+## 08 — Szczegóły serialu (góra): przycisk „O serialu” (ikona kartki) — ✅ TV prz04 („O filmie” przewija do sekcji informacji)
 Zrzut: `08-przycisk.png` — „Ciało”: przyciski Wznów (39m) / ✓ / **(ikona kartki — zaznaczona)** / (zwiastun); po prawej Obsada i Twórcy. Kod: `skin/niunia/detail/NiuniaDetail.kt:180-186` (`focusAbout`), przycisk `:708`.
 1. **Zaznaczony przycisk nic nie robi i nie wiadomo, do czego służy.**
    Właściciel: „przycisk teraz zaznaczony nic nie robi i nie wiem, co miałby robić”.
    Obserwacja: to „O serialu” — ma przenieść niżej na stronę do części „Obsada i opis” (pełny opis, informacje, języki, obsada). Log: OK naciśnięte 3 razy (18:08:51, :52, :56) → „szczegóły: O serialu → Obsada i opis”, ale fokus się nie przenosi (brak zmiany fokusu w `ForkFocus`, brak błędu w logu) — cel leży w liście niżej, jeszcze nienarysowany, więc prośba o fokus przepada po cichu. Przycisk ma tylko ikonę, bez podpisu.
    Poprawka: (a) OK najpierw przewija stronę do „Obsada i opis”, potem stawia tam fokus (a gdy się nie uda — log + komunikat na ekranie, nie cisza); (b) przy zaznaczeniu pokazać podpis przycisku („O serialu” / „O filmie”), tak jak „Odtwórz” ma tekst. Do decyzji właściciela: czy ten przycisk w ogóle potrzebny (to samo daje ▼ na stronie).
 
-## Wszystkie ekrany: napis „Gotowe” w lewym dolnym rogu
+## Wszystkie ekrany: napis „Gotowe” w lewym dolnym rogu — ✅ TV prz04 (na żadnym ekranie ani zrzucie)
 Zrzuty: `03-zrodlo.png`, `04-lista.png`, `05-jakosc.png`, `06-dzwiek.png`, `07-zwiastuny.png` (na plakacie), `08-przycisk.png`; na `09-gotowe.png` (Główna, 18:10) już go nie ma.
 1. **Ciągle widoczny napis „Gotowe” — nie wiadomo, co to i po co.**
    Właściciel: „ciągle na ekranie widnieje napis »Gotowe« w rogu — nie wiem, co to i po co”.
@@ -101,7 +101,7 @@ Zrzuty: `03-zrodlo.png`, `04-lista.png`, `05-jakosc.png`, `06-dzwiek.png`, `07-z
    Uzupełnienie 18:41 (`25-przegladaj.png`, wyszukiwarka): napis znów widoczny. Zrzut drzewa widoku: element tekstowy aplikacji `text="Gotowe"` w granicach [120,987][216,1020] px, w TEJ SAMEJ warstwie co zegar w prawym górnym rogu ([1746,64][1840,104]) — czyli nakładka całej aplikacji (warstwa zegara Niuni, `skin/niunia/NiuniaSkin.kt:~142` `PlayerClock` / `NiuniaClockCorner`), nie ekran. Klawiatura systemowa schowana (`mInputShown=false`) — to nie przycisk klawiatury. Polskie „Gotowe” to tłumaczenie m.in. `forge_ready_ready` (ang. „Ready”, Kicia `skin/kicia/detail/ForgeReadyLine.kt:54,148`), `sync_*_done`, `collections_editor_done` („Done”).
    Poprawka: znaleźć, co go rysuje (zrzut drzewa widoku przy widocznym napisie), i usunąć — żaden stały napis bez znaczenia dla użytkownika; jeśli to stan źródła („gotowe do odtworzenia”), to w stylu Niuni i tylko tam, gdzie ma sens, z pełnym zdaniem.
 
-## 10 — Live TV: górny rząd kart (to, co leci teraz)
+## 10 — Live TV: górny rząd kart (to, co leci teraz) — ✅ TV prz04 pkt 3 (okładki TMDB na kafelkach); poprawka prz05: okładka filmu tylko dla programów ≥ 70 min („Kropka nad i”); pkt 1 (stos) niesprawdzony — brak kafla serialu; pkt 2 (MediaCard) — nie robione
 Zrzut: `10-mediacard.png` — karty: 13 Ulica „Bez śladu 6…”, TVN 24 BiS „Kropka nad i”, Polsat Cafe „Hell's Kitchen…” (fokus), Polsat Cafe „Gry małżeńskie”, Comedy Central Extra „Graczykowie”; w każdej logo stacji zamiast obrazu programu; pod kartami wystają kolorowe, zniekształcone kawałki logo. Kod: `skin/niunia/livetv/NiuniaLiveTiles.kt:76-112`, warstwy pod kartą `skin/niunia/components/NiuniaSeriesStack.kt:25-45`.
 1. **Pod kartami widać zniekształcony fragment logo.**
    Właściciel: „komponenty MediaCard mają błąd — pokazują pod spodem zniekształcony fragment logo”.
@@ -117,7 +117,7 @@ Zrzut: `10-mediacard.png` — karty: 13 Ulica „Bez śladu 6…”, TVN 24 BiS 
    Poprawka: podłączyć okładki TMDB do kart Live TV (tytuł programu → plakat/kadr serialu lub filmu); logo stacji tylko jako mały znaczek w rogu albo w podpisie, gdy okładki nie ma — a nie jako obraz całej karty.
    **Uzupełnienie właściciela (18:18): „wszędzie powinny być okładki programu, nie logo stacji w MediaCards”** — dotyczy WSZYSTKICH kart programów: rzędy Live TV (Wszystkie, Ulubione, Oglądaj dalej, kategorie), Odkrywaj, Szukaj, Dziś, rzędy IPTV na Głównej. Logo stacji jako obraz karty tylko na karcie samego kanału (bez programu).
 
-## 11 — Live TV: podgląd kanału nad przewodnikiem (EPG)
+## 11 — Live TV: podgląd kanału nad przewodnikiem (EPG) — ❌ TV prz04: obraz podglądu rysował się NAD gradientem (przycięcie pola) → poprawka prz05
 Zrzuty: `11-pasek-epg.png` (cały ekran: „Bez śladu 6: Zakręt (14)”, podgląd 13 Ulica w prawym górnym rogu, fokus w przewodniku), `11-pasek-zoom.png` (powiększenie paska). Kod: `skin/niunia/livetv/NiuniaLivePreview.kt:82-93`.
 1. **Nad przewodnikiem pasek bez szarego przyciemnienia.**
    Właściciel: „nad EPG jest pasek bez overlaya (szarego gradientu)”.
@@ -128,7 +128,7 @@ Zrzuty: `11-pasek-epg.png` (cały ekran: „Bez śladu 6: Zakręt (14)”, podgl
    Obserwacja: podgląd ma stałe 520×288 (`NiuniaLivePreview.kt:82`, ok. połowy szerokości ekranu), od góry do paska kategorii; nad nim przyciski Szukaj / Dziś / Odkrywaj.
    Poprawka: większe pole podglądu (np. ~640×360 w proporcji 16:9, od prawej krawędzi i od samej góry ekranu, pod przyciskami i zegarem); gradienty z lewej i od dołu zostają (pełne tło pod tytułem programu i nad paskiem kategorii) — rozmiar gradientu liczony od nowego pola, nie od starych 520×288. Tytuł, „LIVE” i plakietka „Na żywo · kanał” bez zmian położenia względem przewodnika.
 
-## 12 — Live TV: podpis zaznaczonej karty (rząd „Ulubione”)
+## 12 — Live TV: podpis zaznaczonej karty (rząd „Ulubione”) — ✅ TV prz04 (czyste nazwy kanałów w podpisach i przewodniku)
 Zrzut: `12-karta-podpis.png` — zaznaczona „Gry małżeńskie (2… · Polsat Cafe”; obok „Świat według Kiepskich · Strong…” (×2), „MUHAMMAD KHALI…”. Kod: podpis `skin/niunia/livetv/NiuniaLiveTiles.kt:136-142` i `tileCaption` `:150-162` (skracanie tytułu `components/niuniaTileTitle`, nazwa kanału `components/niuniaShortChannel`).
 1. **Nie ucinać nazwy programu — przenosić do drugiej linii (tam, gdzie nazwa kanału).**
    Właściciel: „nie ucinaj nazwy programu, tylko przenoś do drugiej linii, tam gdzie jest nazwa kanału”.
@@ -139,14 +139,14 @@ Zrzut: `12-karta-podpis.png` — zaznaczona „Gry małżeńskie (2… · Polsat
    Obserwacja: nazwy kanałów od dostawcy mają przedrostek paczki i kraju: „Strong8K · PL: POLSAT FILM ᴴᴰ”, „Strong8K · PL VIP: POLSAT FILM ᴿᴬᵂ”, „Strong8K · AR: MUHAMMAD KHALIL …” (log `ForkFocus`). Skrót nazwy (`niuniaShortChannel`) zostawia „Strong8K”, więc w podpisie zostaje „Strong…”.
    Poprawka: w podpisach kart (i wszędzie na ekranie) czysta nazwa kanału: bez nazwy paczki („Strong8K ·”), bez kraju/grupy („PL:”, „PL VIP:”, „AR:”), bez znaczków jakości („ᴴᴰ”, „ᴿᴬᵂ”, „FHD”, „4K”), z normalną wielkością liter → „Polsat Film”. Najlepiej jedna funkcja nazw (`fork/tv/names/ChannelNames.shown`) użyta też przez `niuniaShortChannel`.
 
-## 13 — Live TV: pasek postępu na karcie (rząd „Oglądaj dalej”)
+## 13 — Live TV: pasek postępu na karcie (rząd „Oglądaj dalej”) — ✅ TV prz04 (pasek nad podpisem, na całą szerokość)
 Zrzut: `13-pasek-postepu.png` — karty „Wznów”: „Gry małżeńskie (1… · Polsat Cafe”, „Czarna Żmija · Polsat Comedy Ce…”; mały pasek postępu stoi z lewej, obok podpisu. Kod: `skin/niunia/livetv/NiuniaLiveTiles.kt:131-142` (`Row`: [pasek 24×4] + tekst).
 1. **Pasek postępu nad podpisem, nie z lewej.**
    Właściciel: „przenieś pasek postępu oglądania od razu ponad napisy, a nie z lewej, tak żeby napisy miały więcej miejsca”.
    Obserwacja: podpis i pasek są w jednym wierszu (`Row`, odstęp 8) — pasek 24 szer. + 8 odstępu zabiera ~32 z ~160 szerokości tekstu, stąd szybsze ucinanie tytułu i kanału.
    Poprawka: `Column` zamiast `Row` — pasek na całą szerokość (albo wg makiety) tuż nad pierwszą linią podpisu, tekst na pełną szerokość karty. Ta sama zmiana dla paska „na żywo” (czerwony) na kartach programów — jeden układ podpisu we wszystkich kartach (najlepiej w komponencie MediaCard, zob. ekran 10 pkt 2).
 
-## 14 — Live TV: kategorie nad przewodnikiem (Informacje, Filmy i seriale…)
+## 14 — Live TV: kategorie nad przewodnikiem (Informacje, Filmy i seriale…) — ✅ TV prz04 (filtr od samego przejścia na pigułkę, polskie pierwsze w „Informacje”)
 Zrzut: `14-kategorie.png` — wybrana „Informacje” (szara), fokus na „Filmy i seriale” (biała); kafelki: wPolsce (podpis „Strong8K · PL: WPOLSCE”), CNBC, EuroNews („Ринг”), BBC World News, CNN; przewodnik: CNBC, EuroNews po rosyjsku, BBC, CNN. Kod: `skin/niunia/livetv/NiuniaLiveTv.kt:179-190` (kolejność wg kraju), `skin/niunia/livetv/NiuniaLiveData.kt:238-252` (kategorie).
 1. **Kategorie mają filtrować kafelki.**
    Właściciel: „kategorie nad EPG powinny filtrować kafelki”.
@@ -157,14 +157,14 @@ Zrzut: `14-kategorie.png` — wybrana „Informacje” (szara), fokus na „Film
    Obserwacja: ustawienie działa przy wejściu (`kraj IPTV Mode(prefer=true, country=pl)`), ale log pokazuje je tylko dla pierwszych list (205 i 324 kanały, 18:11:11-12); po dociągnięciu pełnej listy (59 573 kanały, 18:11:20) kolejności wg kraju już nie ma w logu. W kategorii „Informacje” na górze CNBC, EuroNews (rosyjski), BBC, CNN — polskie (TVN24, Polsat News…) nie są pierwsze.
    Poprawka: kolejność „najpierw Polska” stosować do KAŻDEJ wersji listy (także po dociągnięciu kolejnych źródeł) i wewnątrz każdej kategorii: najpierw kanały/programy z Polski, potem reszta; to samo dla kafelków. Sprawdzić: kategoria „Informacje” zaczyna się od polskich kanałów informacyjnych.
 
-## 15 — Live TV: panel „Kraj i język”
+## 15 — Live TV: panel „Kraj i język” — ✅ TV prz04 („Kraje arabskie 3470”, bez fałszywej Argentyny)
 Zrzut: `15-kraj.png` — zakładki Kraj / Język; „Wszystkie kraje ✓”, Polska (1158 kanałów), Stany Zjednoczone (11 103), Argentyna (3470), Wielka Brytania (2680), Szwecja (2247)…; brak Indii. Kod: `skin/niunia/livetv/NiuniaLiveRegion.kt:123-144` (liczenie), kraj z nazwy `fork/tv/country/TvCountry.kt:63-78`, `fork/tv/dupes/ChannelDupes.kt:38-48`.
 1. **Polska (wybrany kraj) pierwsza — dobrze; ale brakuje krajów, np. Indii (~10 000 kanałów).**
    Właściciel: „Polska jako wybrany preferowany kraj powinna być pierwsza, ale potem brakuje krajów, jak Indie, które mają 10 000 kanałów”.
    Obserwacja: Polska jest pierwsza (na sztywno „pl” na górze, potem wg liczby kanałów, maks. 30 pozycji). Kraj czytany jest z przedrostka nazwy kanału lub grupy (2-3 litery przed „:”, „|”, „-”), a potem przepuszczane są TYLKO dwuliterowe kody ISO (`NiuniaLiveRegion.kt:129`). Prawdopodobna przyczyna: kanały indyjskie mają przedrostki trzyliterowe lub słowne („IND:”, „INDIA |”, „HINDI”, „TAMIL”…) — odpadają jako nieznany kraj. Do potwierdzenia na liście kanałów (bez zapisywania adresów).
    Poprawka: rozpoznawać też kody trzyliterowe (IND, USA, GBR, ARG…) i pełne nazwy krajów oraz języków w grupach („INDIA”, „HINDI”, „TAMIL” → Indie); sprawdzić, ile kanałów zostaje „bez kraju” i pokazać największe takie przedrostki w logu; preferowany kraj z ustawień (nie na sztywno „pl”) zawsze pierwszy.
 
-## 16 — Live TV: filtr języka „Hiszpański”
+## 16 — Live TV: filtr języka „Hiszpański” — ✅ TV prz04 („Hiszpański” = ES/ARG/M+, bez AR:; złączone kopie jakości 2379 → 1840)
 Zrzut: `16-hiszpania.png` — chip „Hiszpański” wybrany, kategoria „Filmy i seriale”; kafelki: beIN Drama, Mamlakat al-Fajr, CBC Drama, „Lama Kona Soghayareen” (podpisy „Strong8K · AR: …”); przewodnik: El Fadjer (×2, „Brak programu”), beIN „The American”. Log 18:23: „filtr=Filmy i seriale, kafelki=20, kanały=229 (lista 5706)”, podgląd „Strong8K · AR: EL Fadjer Drama DZ”, „AR: BEIN STAR FILMS”, „AR: AL HAYAT DRAMA”. Kod: `skin/niunia/livetv/NiuniaLiveRegion.kt:129-133` (kraj → język), `fork/tv/country/TvCountry.kt:63-78`.
 1. **Wybrane hiszpańskie kanały, a pokazują się arabskie — w kafelkach i w przewodniku.**
    Właściciel: „wybrane hiszpańskie kanały, a pokazują się arabskie, i na górze, i na dole”.
@@ -172,7 +172,7 @@ Zrzut: `16-hiszpania.png` — chip „Hiszpański” wybrany, kategoria „Filmy
    Poprawka: słownik przedrostków IPTV ważniejszy niż kody ISO: „AR” / „ARAB” / „ARABIC” → region arabski, język arabski (nie Argentyna); podobne pułapki sprawdzić: „EX-YU”, „AF” (Afryka vs Afganistan), „LAT”/„LATAM” (Ameryka Łacińska → hiszpański), „UK”, „IN”/„IND”. Argentyna tylko z wyraźnego „ARG” / „ARGENTINA”. Po poprawce: „Hiszpański” = Hiszpania + Ameryka Łacińska, zero kanałów „AR:”.
 2. **Przy okazji (z tego samego zrzutu):** przewodnik pokazuje kilka razy ten sam kanał z tym samym numerem („40” ×3, El Fadjer w wersjach „DZ” i „DZ LQ”) i wszystkie z „Brak programu” — w filtrach języka duplikaty jakości tego samego kanału powinny być złączone jak na liście głównej.
 
-## 17 — Live TV: Szukaj (klawiatura, Kategorie, wyniki)
+## 17 — Live TV: Szukaj (klawiatura, Kategorie, wyniki) — ✅ TV prz04 (bez „Rzędy”, siatka z obrazami programów, „Ostatnio wyszukiwane”, długie OK = Usuń z historii)
 Zrzut: `17-rzedy.png` — pole „Program, kanał, kategoria” (50 programów · 0 kanałów · 0 kategorii), klawiatura abc/123, lista Kategorie (Filmy → Komedia 78 wybrana), wyniki „Programy · 50” z przełącznikiem **Rzędy** (zaznaczony) / Siatka. Kod: `skin/niunia/livetv/NiuniaLiveSearch.kt:225-232` (przełącznik), teksty `res/values/niunia_tv_strings.xml:36` (`niunia_tv_view_rows`) i sąsiedni `niunia_tv_view_grid`.
 1. **Usunąć opcję „Rzędy”.**
    Właściciel: „usuń opcję zaznaczoną — Rzędy”.
@@ -184,21 +184,21 @@ Zrzut: `17-rzedy.png` — pole „Program, kanał, kategoria” (50 programów �
    Poprawka: pod klawiaturą lista „Ostatnie wyszukiwania” (np. 5 wpisów, najnowsze na górze); OK = wpisz i szukaj; długie OK = małe okno „Usuń z historii” (potwierdzenie OK). Historia Live TV osobna od historii filmów (albo wspólna — do decyzji właściciela); to samo zachowanie (długie OK = usuń) także w wyszukiwarce filmów.
 3. **Przy okazji (z tego samego zrzutu):** karty wyników znowu z logo stacji (Canal+, HBO) zamiast okładek — zob. decyzja z ekranu 10/12 (okładki wszędzie).
 
-## 18 — Odtwarzacz IPTV: rząd na dole nakładki
+## 18 — Odtwarzacz IPTV: rząd na dole nakładki — ✅ TV prz04 (rząd = poprzednie emisje z archiwum)
 Zrzut: `18-na-dole.png` — kanał TLC (TR), „Karayip Evleri” 18:00-18:30, opóźnienie −1:06; na dole 4 karty: „Za 1 min” (18:30), „Za 30 min” (19:00), „Wkrótce” (19:30), „Wkrótce” (20:00) — same PRZYSZŁE emisje. Kod: `skin/niunia/live/NiuniaLivePlayer.kt:346-375` (`buildRow`).
 1. **Na dole mają być poprzednie emisje (z archiwum) programu, który teraz leci; gdy ich nie ma — programy z archiwum z tej samej kategorii (np. Polska, informacyjne).**
    Właściciel: „na dole mają się wyświetlać poprzednie emisje (z archiwum) tego programu, który teraz leci; jeśli nie ma, to programy z archiwum w tej samej kategorii — czyli np. Polska, programy informacyjne”.
    Obserwacja: rząd = inne emisje tego samego programu z przewodnika kanału: minione TYLKO, gdy są w archiwum, plus do 4 następnych („Za 1 min”, „Wkrótce”). TLC nie ma archiwum, więc zostały same przyszłe — nic z nich nie da się obejrzeć. Gdy emisji jest mniej niż 2, rząd bierze programy z innych kanałów z tej samej kategorii przewodnika — ale nie sprawdza archiwum ani kraju.
    Poprawka: (a) najpierw poprzednie emisje tego programu z archiwum (najnowsze pierwsze), bez przyszłych; (b) gdy ich nie ma — programy z archiwum z tej samej kategorii i tego samego kraju co oglądany kanał (np. polskie informacyjne), tylko takie, które da się od razu włączyć; (c) gdy nic z archiwum — rząd ukryty (bez kart „Wkrótce”). Nagłówek rzędu mówi, co to jest („Poprzednie odcinki” / „Z archiwum: informacyjne”).
 
-## 19 — Odtwarzacz IPTV: kafel przełączania kanałów (▲ logo ▼)
+## 19 — Odtwarzacz IPTV: kafel przełączania kanałów (▲ logo ▼) — ✅ TV prz04 (logo na szerokość kafla)
 Zrzut: `19-logo.png` — kafel z lewej (zaznaczony): ▲, małe logo „TLC HD”, ▼; obok „Karayip Evleri”, przyciski „Poprzedni: TLC”, ▶, „Na żywo”, +. Kod: `skin/niunia/live/NiuniaLivePlayer.kt:654-670` (`ChannelSwitch`).
 1. **Logo stacji większe — na całą szerokość kafla.**
    Właściciel: „logo stacji większe — na całą szerokość kafla ze skakaniem po programach”.
    Obserwacja: kafel ma 110 szer., logo ma stałą wysokość 32 (pole 36), wyrównane do lewej; logo prawie kwadratowe (TLC) zajmuje ~1/3 szerokości kafla, reszta pusta.
    Poprawka: logo wypełnia szerokość kafla (110 minus marginesy), wysokość dopasowana do proporcji logo (maks. ~60, żeby kafel nie urósł za bardzo), wyśrodkowane; strzałki ▲▼ wyśrodkowane nad i pod logo. Gdy brak logo — nazwa kanału dużą czcionką na całą szerokość (2 linie).
 
-## 20 — Live TV: kategoria „Oglądaj dalej”
+## 20 — Live TV: kategoria „Oglądaj dalej” — ✅ TV prz04 (Ulubione / Oglądaj dalej bez filtra kraju)
 Zrzut: `20-ogladaj-dalej.png` — „Oglądaj dalej” wybrane, w miejscu kafelków tylko „Nic tu jeszcze nie ma.”; przewodnik: tureckie kanały (Planet, BBC Earth, Discovery…) wszystkie z numerem 39, „No Data”, „Brak programu”. Kod: `skin/niunia/livetv/NiuniaLiveData.kt:214-228` (kafelki „Oglądaj dalej”), filtr kraju/języka `skin/niunia/livetv/NiuniaLiveRegion.kt`, kolejność/przygotowanie listy `skin/niunia/livetv/NiuniaLiveTv.kt:179-190`.
 1. **„Oglądaj dalej” ładuje się bardzo wolno i pokazuje „Nic tu jeszcze nie ma”.**
    Właściciel: „oglądaj dalej ładuje się bardzo wolno, a do tego jest komunikat błędu »Nic tu jeszcze nie ma«”.
@@ -209,14 +209,14 @@ Zrzut: `20-ogladaj-dalej.png` — „Oglądaj dalej” wybrane, w miejscu kafelk
    Obserwacja: przy wejściu do Live TV lista budowana jest na nowo z ~59 573 kanałów (log 18:11:20 „wszystkie: 59573 z 59573 kanałów (4128 ms)”), a kafelki rosną w kilku krokach (8 → 12 → …, „próbka startowa”); każda zmiana filtra kraju/języka to kolejne ~250 ms.
    Poprawka: zapisywać gotowe sekcje (Ulubione, Oglądaj dalej, kafelki każdej kategorii i przewodnik pierwszego ekranu) na dysku i pokazywać je od razu przy wejściu; odświeżać w tle i podmieniać po cichu. Cel na JMGO: kafelki i przewodnik widoczne < 300 ms od wejścia, bez „próbki” i bez przeskakiwania kafelków. Budżety: `plan/DECYZJE.md`, sekcja „Wydajność”.
 
-## 21 — Live TV: numery kanałów w przewodniku
+## 21 — Live TV: numery kanałów w przewodniku — ❌ TV prz04: w filtrze „Hiszpański” wszystkie kanały miały numer 42 → poprawka prz05 (klucz z adresem)
 Zrzuty (przewodnik z numerami): `10-mediacard.png` (12, 13, 14, 15), `12-karta-podpis.png` (Ulubione: 115, 56, 961, 58), `16-hiszpania.png` (40, 40, 40, 43), `20-ogladaj-dalej.png` (39, 39, 39, 39 — różne kanały tureckie). `21-numery.png` — już odtwarzanie (Polsat Cafe), przewodnik zamknięty. Kod: `skin/niunia/livetv/NiuniaLiveData.kt:380-381` (`numbersOf`), użycie `skin/niunia/livetv/NiuniaLiveTv.kt:644`, rysowanie `:806-811`.
 1. **Przewodnik ma złe numery kanałów.**
    Właściciel: „przewodnik ma złe numery kanałów”.
    Obserwacja: numer to NIE numer kanału od dostawcy, tylko pozycja kanału na całej posortowanej liście (~59 tys.), liczona po adresie strumienia (`putIfAbsent(streamUrl, i + 1)`). Skutki: (a) w filtrach i Ulubionych numery „skaczą” (115, 56, 961, 58); (b) różne kanały mają ten sam numer (39 ×4, 40 ×3) — najpewniej mają wspólny klucz adresu (kanały, dla których link tworzy się dopiero przy odtwarzaniu, np. portal Stalker), więc wszystkie dostają numer pierwszego z nich; (c) numer zmienia się po każdej zmianie kolejności (kraj, nowe źródło).
    Poprawka: numer z listy dostawcy (numer kanału z playlisty / portalu), gdy jest; gdy go nie ma — stały numer kolejny w pełnej liście ustalony raz (zapisany), unikalny dla kanału (klucz = identyfikator kanału, nie adres strumienia). Numer nie zmienia się przy filtrach — „TVN 24” ma zawsze ten sam numer, także w Ulubionych. Do decyzji właściciela: czy polskie kanały mają mieć numery „jak w telewizji” (1 TVP1, 2 TVP2, 3 Polsat, 4 TVN…).
 
-## 22 — Odtwarzacz IPTV: program z archiwum
+## 22 — Odtwarzacz IPTV: program z archiwum — ✅ TV prz04 pkt 1, 3 (ARCHIWUM bez kafla kanału i „Na żywo”, ▲ tylko nakładka, ◀▶ przewija); ❌ pkt 2 puste karty odcinków → okładki TMDB w prz05
 Zrzut: `22-archiwum.png` — „ARCHIWUM 07:00-08:05 · Polsat Cafe”, „Gry małżeńskie (197)”, pasek 0:38 / −1:04:21, przyciski ↻ ▶ **● Na żywo** ✓; rząd odcinków (192, 193, 194, 195…) z zieloną kropką, bez obrazków. Kod: `skin/niunia/live/NiuniaLivePlayer.kt:250-300` (klawisze, poziomy), `:482-483` (przycisk „Na żywo” w archiwum), `:253-259` (pasek przewijania), `:616-646` (`LiveBar`).
 1. **W archiwum żadnego przełączania kanałów ani przycisku „Na żywo”.**
    Właściciel: „przy odtwarzaniu programu z archiwum ma nie być przełączania kanałów żadnego ani przycisku na żywo”.
@@ -231,7 +231,7 @@ Zrzut: `22-archiwum.png` — „ARCHIWUM 07:00-08:05 · Polsat Cafe”, „Gry m
    Obserwacja: log 18:35:15-18:35:18 — 13 naciśnięć ◀/▶ trafiło w rząd odcinków (poziom 1), nie w pasek; pasek przewijania jest dostępny tylko przez ▲ z przycisków (`:253-259`, slot BAR, gdy kanał ma archiwum) — tego nie widać i nie da się zgadnąć; w logu brak jakiegokolwiek przewinięcia.
    Poprawka: w archiwum ◀/▶ ZAWSZE przewija (przy schowanej nakładce i na przyciskach: ±10 s, przytrzymanie = coraz szybciej, jak w odtwarzaczu filmów); po zaznaczeniu paska — skoki z podglądem godziny; klawisze przewijania pilota (⏪ ⏩) też. Rząd odcinków dopiero ▼. Sprawdzić na JMGO: ◀ cofa, ▶ przesuwa, czas na pasku się zmienia, obraz rusza od nowego miejsca.
 
-## 23 — YouTube (Niunia): strona główna
+## 23 — YouTube (Niunia): strona główna — ✅ TV prz04 pkt 1a (fokus na 1. filmie); Mix niesprawdzony (brak Mixu na ekranie); pusta playlista — poprawka prz03, niesprawdzona
 Zrzut: `23-ekran.png` — szyna z lewej (Główna zaznaczona), siatka filmów po 3 (Wiedźmin 4, Wonderboom, „Mermaid Chunky — céilí” z plakietką **Mix**…). Kod: `skin/niunia/youtube/NiuniaYouTube.kt:150-156` (fokus startowy).
 1. **Po wejściu fokus na pierwszym filmie, a ten sam się odtwarza z dźwiękiem.**
    Właściciel: „focus po wejściu w ekran ma być na pierwszym filmie i ten ma się odtwarzać sam z dźwiękiem”.
@@ -243,7 +243,7 @@ Zrzut: `23-ekran.png` — szyna z lewej (Główna zaznaczona), siatka filmów po
    Uzupełnienie z logu (18:39:05): drugie OK na Mixie — `YouTubeVM: couldn't load Mermaid Chunky … IllegalStateException: fromNullable result is null` (plik filmu był gotowy po 1374 ms, wywaliło się dopiero składanie listy Mixu).
    Poprawka: OK na Mixie = od razu odtwarzanie pierwszego filmu Mixu, a kolejne filmy z Mixu jako „Następne” w odtwarzaczu (wczytywane przy odtwarzaniu, jak robi YouTube); zwykłe playlisty dalej jako lista. Gdy lista wróci pusta — komunikat na ekranie i fokus zostaje na karcie (nie skok na szynę).
 
-## 24 — YouTube: Szukaj
+## 24 — YouTube: Szukaj — ✅ TV prz04 (własne okno „Szukaj w YouTube”, podpowiedzi i wyniki z YouTube); ❌ fokus po wyszukaniu na szynie → poprawka prz05
 Zrzut: `24-yt-szukaj.png` — po „Szukaj” w YouTube otwiera się OGÓLNA wyszukiwarka („Filmy, seriale, TV, YouTube i osoby”, klawiatura abc/123/Powiedz, „Odkrywaj”, „Przeglądaj”: Filmy / Seriale / Live TV / Akcja — puste szare kafle bez obrazków, „Polecane” z filmami i serialami). Log 18:39:40 i 18:40:04: „youtube: Szukaj → ekran Szukaj (zakładka YouTube)” → „menu: przejście z ekranu → search”.
 1. **Wyszukiwarka YouTube nie działa.**
    Właściciel: „wyszukiwarka YouTube nie działa”.
@@ -251,14 +251,14 @@ Zrzut: `24-yt-szukaj.png` — po „Szukaj” w YouTube otwiera się OGÓLNA wys
    Poprawka: Szukaj w YouTube = wyszukiwarka tylko YouTube (pole „Szukaj w YouTube”, podpowiedzi z YouTube, wyniki jako karty YouTube: filmy, kanały, playlisty/Mixy), Wstecz wraca do YouTube; ostatnie wyszukiwania pod klawiaturą z usuwaniem na długie OK (jak ekran 17). Do potwierdzenia z właścicielem przy teście: co wpisane i co się stało po OK.
 2. **Przy okazji (z tego samego zrzutu):** kafle „Przeglądaj” (Filmy, Seriale, Live TV, Akcja) są puste — bez obrazków.
 
-## 25 — Szukaj (ogólna): kafle „Przeglądaj”
+## 25 — Szukaj (ogólna): kafle „Przeglądaj” — ✅ TV prz04 („Przeglądaj” = pigułki)
 Zrzut: `25-przegladaj.png` — po prawej od klawiatury: „Odkrywaj: gatunek, rok, katalog”, „Przeglądaj” = 4,5 dużych pustych kafli (Filmy, Seriale, Live TV, Akcja, P…) na ~połowę wysokości ekranu, niżej „Polecane” ucięte u dołu. Kod: `skin/niunia/search/NiuniaSearch.kt:301-330` (`Browse`).
 1. **Kafle „Przeglądaj” zajmują większość ekranu — mają być rzędem przycisków.**
    Właściciel: „większość ekranu zajmują kafle »Przeglądaj« — one mają być zredukowane do rzędu przycisków”.
    Obserwacja: kafle w rozmiarze plakatów (bez obrazków, ekran 24 pkt 2) zajmują ~200 z 540 wysokości; przez to „Polecane” (jedyne obrazy) widać tylko w 1/3.
    Poprawka: „Przeglądaj” jako jeden rząd przycisków-pigułek (jak kategorie w Live TV: „Filmy”, „Seriale”, „Live TV”, „YouTube”, „Akcja”, „Komedia”…), przewijany ◀▶; zwolnione miejsce dla „Polecanych” (pełne plakaty) i ostatnich wyszukiwań. „Odkrywaj: gatunek, rok, katalog” może być pierwszym przyciskiem tego rzędu.
 
-## 26 — Odtwarzacz: ekran wczytywania (buforowanie przed filmem)
+## 26 — Odtwarzacz: ekran wczytywania (buforowanie przed filmem) — ✅ TV prz04 (◀▶ Inne źródło ↔ Anuluj; linia „1080p • HEVC • 1,5 GB • polski dźwięk”); OK na „Anuluj” niesprawdzone
 Zrzut: `26-buforowanie.png` — zrobiony już po starcie filmu („The Brutalist” z „Oglądaj dalej”, napisy PL; w rogu znów „Gotowe”). Ekran wczytywania trwał 18:42:16 → 18:42:28 (12 s). Kod: `skin/niunia/player/NiuniaPlayerOverlays.kt:85-112` (`PlayerLoading`: „Buforuję… 42%”, etap, źródło; przyciski „Inne źródło” (fokus) · „Anuluj”).
 1. **Na ekranie buforowania nie działają przyciski.**
    Właściciel: „ekran buforowania przed odtworzeniem filmu: nie działają przyciski”.
@@ -270,7 +270,7 @@ Zrzut: `26-buforowanie.png` — zrobiony już po starcie filmu („The Brutalist
    Poprawka: pod nazwą źródła krótki wiersz parametrów (z opisu źródła zanim plik się otworzy, potem z samego pliku): rozdzielczość (4K / 1080p), HDR / Dolby Vision, kodek obrazu, bitrate (Mb/s), rozmiar pliku, dźwięk (język, kanały 5.1, kodek), napisy PL tak/nie, dodatek; do tego prędkość pobierania na żywo (Mb/s) obok procentu buforowania. Prosto dla użytkownika („4K · HDR · 18 Mb/s · 12,4 GB · Polski 5.1 · napisy PL”).
 
 
-## 27 — Szczegóły filmu (hero): szare przyciemnienie pod tekstem
+## 27 — Szczegóły filmu (hero): szare przyciemnienie pod tekstem — ✅ TV prz04 (hero bez szarego gradientu z lewej)
 Zrzut: `27-gradient.png` — „Daniel” (HBO, dokument): lewa ~45% obrazu pod ciężką szarą mgłą (logo, opis, przyciski), po prawej ostry obraz; w rogu znów „Gotowe”. Kod: `skin/niunia/detail/NiuniaDetail.kt:216-221` i `:663-665` (na Androidzie 11 / JMGO zamiast rozmycia „scrim-detail-flat” = gradient `NiuniaGradient.ScrimDetailFlat`; rozmycie `detailBlur` tylko na API 31+), statyczne rozmycie obrazów: `fork/images` (log „rozmycie gotowe raz (procesor)”, `NativeBlur`, pamięć Coil).
 1. **Szary gradient pod tekstem zbyt agresywny — zastąpić gradientem przechodzącym w rozmycie (obraz z rozmyciem policzonym statycznie).**
    Właściciel: „nakładka szary gradient pod tekstem jest zbyt agresywna; zastąp ją gradientem przechodzącym w blur — masz obraz z nałożonym blurem policzony statycznie”.
@@ -288,7 +288,7 @@ Właściciel (18:52): „wszędzie — w całej aplikacji poza podglądem kanał
 - Do przejścia (tokeny i pliki z szarymi gradientami/tłami w skórce Niuni): `NiuniaGradient.ScrimDetail`, `ScrimDetailFlat`, `ScrimDetailBottom`, `ScrimHero`, `ScrimHeroBottom`, `ScrimSide`, `ScrimPlayer`, `ScrimDim`, `ScrimCaption`, `NiuniaColor.Scrim`, `Scrim30` (`tokens/NiuniaDesignTokens.kt`); pliki: `home/NiuniaTitlePager.kt`, `components/NiuniaHeroPage.kt`, `detail/NiuniaDetail.kt`, `livetv/NiuniaLiveTiles.kt`, `livetv/NiuniaLiveTv.kt`, `components/NiuniaAtoms.kt`, `components/NiuniaDialog.kt`, `components/NiuniaMolecules.kt`, `components/NiuniaOrganisms.kt`, `components/NiuniaPoster.kt`, `nav/NiuniaNav.kt`, `player/NiuniaPlayerParts.kt`, `player/NiuniaPlayerOverlays.kt` (wszystkie w `app/src/main/java/com/nuvio/tv/skin/niunia/`); do tego panele z forka Echo nad odtwarzaczem (jakość, dźwięk — ekrany 05, 06).
 - Wydajność: rozmycie liczone raz na obraz i trzymane w pamięci; budżety JMGO z `plan/DECYZJE.md` („Wydajność”). Sprawdzić płynność przewijania rzędów (podpisy kart z rozmyciem) — gdy za ciężkie na kartach, rozmycie raz na kartę przy wczytaniu obrazu.
 
-## CAŁA APLIKACJA: plakaty — dół plakatu przechodzi w rozmycie, nie w czarny gradient
+## CAŁA APLIKACJA: plakaty — dół plakatu przechodzi w rozmycie, nie w czarny gradient — ✅ TV prz04 pkt a (bez czarnego gradientu); pkt b (rozmycia na dysku) — nie robione
 Zrzut: `29-plakaty.png` — rzędy „Popular · filmy / seriale”: na każdym plakacie od ~60% wysokości ciemny, prawie czarny gradient pod podpisem („Akcja · ★ 7.2”). Kod: `app/src/main/java/com/nuvio/tv/skin/niunia/components/NiuniaPoster.kt:88-95` (obraz + `BlurLayer` + `Tint`), `:129-165` (`BlurLayer`), `:177-189` (`Tint`), rozmycie `app/src/main/java/com/nuvio/tv/fork/images/NativeBlur.kt:20-40`.
 1. **To samo co wyżej dla plakatów: zamiast czarnego gradientu od dołu — gradient wchodzący w rozmycie plakatu; rozmycia liczyć statycznie i zachowywać.**
    Właściciel (18:54): „to samo zrób dla plakatów; miały wyglądać inaczej — jest teraz na każdym czarny gradient od dołu, a ma być gradient wchodzący w rozmycie plakatu. Rozmycia plakatów licz statycznie i zachowuj”.
