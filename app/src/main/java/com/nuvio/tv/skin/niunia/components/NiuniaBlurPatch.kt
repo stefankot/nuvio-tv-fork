@@ -83,7 +83,7 @@ fun Modifier.niuniaBlurPatch(
     val painter = rememberAsyncImagePainter(req)
     var pos by remember { mutableStateOf(Offset.Unspecified) }
     var frameSize by remember { mutableStateOf(IntSize.Zero) }
-    if (!patchLogged) { patchLogged = true; Log.i("ForkNiunia", "łata rozmycia: tylko pod drobnym tekstem (zamiast rozmycia dużej części zdjęcia)") }
+    if (!patchLogged) { patchLogged = true; Log.i("ForkNiunia", "łata rozmycia: tylko pod drobnym tekstem, maska 80 %, miękkie brzegi 35 % (zamiast rozmycia dużej części zdjęcia)") }
     val tintFilter = if (tint.alpha > 0f) ColorFilter.tint(tint, BlendMode.SrcAtop) else null
     return this
         .onGloballyPositioned { c ->
@@ -104,19 +104,37 @@ fun Modifier.niuniaBlurPatch(
                 clipPath(path) { translate(ox, oy) { with(painter) { draw(Size(dw, dh), colorFilter = tintFilter) } } }
                 return@drawBehind
             }
+            // Właściciel 27.11 ~17:50 („rozmycie pod samym tekstem wygląda nieprofesjonalnie — ustaw sporo większy radius i zmniejsz
+            // rozmiar o 20 % maski, która nakłada rozmycie”): maska = dawny prostokąt (blok tekstu + [feather]) pomniejszony do 80 %
+            // wokół środka, z bardzo miękkimi brzegami (wygładzone przejście na 35 % krótszego boku z każdej strony) — miękka plama
+            // zamiast widocznego prostokąta. Iloczyn dwóch przejść daje zaokrąglone rogi.
             val f = feather.toPx()
-            val l = -f; val t = -f; val r = size.width + f; val b = size.height + f
+            val ow = size.width + 2 * f; val oh = size.height + 2 * f
+            val nw = ow * PATCH_SCALE; val nh = oh * PATCH_SCALE
+            val l = (size.width - nw) / 2f; val t = (size.height - nh) / 2f; val r = l + nw; val b = t + nh
+            val soft = PATCH_SOFT * minOf(nw, nh)
             drawContext.canvas.saveLayer(Rect(l, t, r, b), Paint())
             clipRect(l, t, r, b) { translate(ox, oy) { with(painter) { draw(Size(dw, dh), colorFilter = tintFilter) } } }
-            if (f > 0f) {
-                val kx = (f / (r - l)).coerceIn(0f, .5f); val ky = (f / (b - t)).coerceIn(0f, .5f)
-                drawRect(Brush.horizontalGradient(0f to Color.Transparent, kx to Color.Black, 1f - kx to Color.Black, 1f to Color.Transparent, startX = l, endX = r),
-                    topLeft = Offset(l, t), size = Size(r - l, b - t), blendMode = BlendMode.DstIn)
-                drawRect(Brush.verticalGradient(0f to Color.Transparent, ky to Color.Black, 1f - ky to Color.Black, 1f to Color.Transparent, startY = t, endY = b),
-                    topLeft = Offset(l, t), size = Size(r - l, b - t), blendMode = BlendMode.DstIn)
+            if (soft > 0f) {
+                drawRect(Brush.horizontalGradient(*softStops(soft / nw), startX = l, endX = r), topLeft = Offset(l, t), size = Size(nw, nh), blendMode = BlendMode.DstIn)
+                drawRect(Brush.verticalGradient(*softStops(soft / nh), startY = t, endY = b), topLeft = Offset(l, t), size = Size(nw, nh), blendMode = BlendMode.DstIn)
             }
             drawContext.canvas.restore()
         }
 }
 
 @Volatile private var patchLogged = false
+
+/** Maska łaty: 80 % dawnego prostokąta (właściciel 27.11 ~17:50). */
+private const val PATCH_SCALE = 0.8f
+/** Długość miękkiego przejścia z każdej strony jako ułamek krótszego boku maski. */
+private const val PATCH_SOFT = 0.35f
+
+/** Przejście 0 → pełne → 0 o długości [k] (ułamek) z każdej strony, krzywa „smoothstep” (bez widocznej krawędzi). */
+private fun softStops(k: Float): Array<Pair<Float, Color>> {
+    val e = k.coerceIn(0.001f, 0.5f)
+    val curve = listOf(0f to 0f, .2f to .104f, .4f to .352f, .6f to .648f, .8f to .896f, 1f to 1f)
+    val up = curve.map { (x, a) -> x * e to Color.Black.copy(alpha = a) }
+    val down = curve.reversed().map { (x, a) -> 1f - x * e to Color.Black.copy(alpha = a) }
+    return (up + down).sortedBy { it.first }.toTypedArray()
+}
