@@ -32,3 +32,30 @@ W tej pętli powstało 18 poprawek aplikacji (paczki 3–5), a na JMGO sprawdzon
 - Obejrzane fragmenty: „The Social Reckoning” (~8 min, z „Oglądaj dalej”), „Odyseja” (wznowienie ~1 min), kanały Live TV (Adventure, Ale Kino+, Animal Planet — archiwum).
 - Wybór „Kraj i język” na chwilę „Hiszpański”, przywrócony na „Polska”.
 - Historia Szukaj Live TV: dodane i usunięte „kuchnia” (bez zmian netto). Okładki programów zapisują się w `files/fork_tv_covers.json`.
+
+## Pętla 2 (27.11, 15:00–15:40, buildy prz06 i prz07; paczka 8 napisana, niezbudowana)
+W tej pętli powstało 8 poprawek aplikacji (paczka 7: 4, paczka 8: 4), a na JMGO sprawdzono 11 punktów: 9 działa, 2 nie (22 pkt 2, nowy błąd okna „Szukaj w YouTube” — poprawiony w paczce 8).
+
+### Nowe od właściciela (paczka 7, build prz07)
+- **„Odkrywaj” u góry obok zegara** na ekranie Szukaj — ✅ TV: ▲ z „abc” wchodzi na przycisk, OK otwiera Odkrywaj, Wstecz wraca na przycisk.
+- **Napisy wbudowane przed plikami z dodatków** (w każdym języku; gdy wbudowanych polskich brak — nadal polskie z dodatku). Niesprawdzone na TV: „The Brutalist” nie ma wbudowanych polskich.
+- **Okładki Live TV z wtyczki AIOMetadata** (ElfHosted z profilu) zamiast TMDB — działają, ale AIOMetadata zna mniej polskich tytułów: 35 okładek na 106 tytułów (33 %), wcześniej TMDB 66 na 127 (52 %). Np. brak „Piotruś Królik”, „Gry małżeńskie”, „Po sąsiedzku”. „Hell's Kitchen” dostawał okładkę FILMU (wtyczka podaje tylko polską nazwę serialu) — poprawione w paczce 8.
+
+### Działa na TV
+02 nagrody w lewej kolumnie (prz06) · plakaty: rozmycia wczytywane z dysku po restarcie (prz06) · 11 podgląd kanału 520×288 bez paska obrazu nad osią godzin · 21 różne numery kanałów w filtrze „Hiszpański” · 24 fokus na 1. wyniku po wyszukaniu · CAŁA APLIKACJA krok 1: podpisy kafli Live TV na rozmytym dole obrazu · 23 pkt 1a fokus na 1. filmie YouTube.
+
+### Nie działa / niesprawdzone
+- ❌ 22 pkt 2: karty „Poprzednie odcinki” w odtwarzaczu IPTV puste — przyczyną jest brak tytułu w AIOMetadata (kod pyta poprawnie).
+- ❌ nowy: w oknie „Szukaj w YouTube” ▶ z „f” (prawy brzeg klawiatury) przenosił fokus na ekran POD oknem — okno trzyma teraz fokus (paczka 8).
+- 06 (fokus po dołączeniu polskiego dźwięku przy otwartym panelu): niesprawdzone — „The Social Reckoning” raz dołączył dźwięk sam przy schowanym panelu, potem 2× „synchronizacja niepotwierdzona” i przełączenie na inne wydanie.
+- Dalej niesprawdzone: 05 ✓ jakości, 23 Mix, pusta playlista YouTube, OK na „Anuluj”, stos serialu, „Kropka nad i”.
+
+### Paczka 8 (w kodzie, czeka na build)
+10 pkt 2 kafle Live TV przez wspólny komponent `NiuniaMediaCard` (NowCard / ChannelCard) · okładki AIOMetadata: dopasowanie części polskiej nazwy (+ test JVM) · okno „Szukaj w YouTube” trzyma fokus.
+
+### Narzędzia
+- Logi forka znikały z logcat: pełny bufor JMGO (16 MB) przycina najbardziej gadatliwą aplikację. Bufor powiększony do 32 MB; biała lista logd wyłączała logi zamiast je chronić — cofnięta (DECYZJE).
+
+### Zmiany na profilu właściciela (JMGO)
+- Obejrzane fragmenty: „The Social Reckoning” (~7 min w dwóch podejściach, raz z polskim dźwiękiem z innego wydania), „The Brutalist” (~1 min), kanał BBC CBeebies (archiwum, pauza).
+- „Kraj i język” na chwilę „Hiszpański”, przywrócony na „Polska”. Wyszukanie „jazz” z historii YouTube (bez nowych wpisów).
