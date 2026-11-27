@@ -60,28 +60,42 @@ object TvCountry {
      * dostawcy przed znacznikiem kraju („Strong8K · ”, „Strong8K: ”, „Strong8K ”, jak w [com.nuvio.tv.fork.tv.names.ChannelNames])
      * jest zdejmowany zawsze, a „|PL| …” też daje kraj.
      */
-    internal fun computeCountry(name: String, providers: Collection<String>): String {
-        ChannelDupes.country(ChannelDupes.plain(ChannelDupes.withoutProvider(name, providers)))?.let { return it }
+    internal fun computeCountry(name: String, providers: Collection<String>): String =
+        rawCountry(name, providers)?.let { IptvPrefixes.normalize(it) } ?: ""
+
+    /** Przegląd 27.11 (ekrany 15, 16): kod z nazwy przed słownikiem IPTV ([IptvPrefixes]); słowa („INDIA |”) na końcu. */
+    private fun rawCountry(name: String, providers: Collection<String>): String? {
+        val bare = ChannelDupes.withoutProvider(name, providers)
+        ChannelDupes.country(ChannelDupes.plain(bare))?.let { return it }
         fun head(t: String): String? = TAGGED.find(t)?.groupValues?.get(1)?.lowercase() ?: ChannelDupes.country(ChannelDupes.plain(t))
         head(name.trimStart().trimStart('|', ' '))?.let { return it }
-        val m = PROVIDER_HEAD.find(name) ?: return ""
-        return head(name.substring(m.range.last + 1).trimStart('|', ' ')) ?: ""
+        val m = PROVIDER_HEAD.find(name)
+        if (m != null) head(name.substring(m.range.last + 1).trimStart('|', ' '))?.let { return it }
+        val rest = if (m != null) name.substring(m.range.last + 1) else bare
+        return IptvPrefixes.wordCountry(rest) ?: IptvPrefixes.wordCountry(bare)
     }
 
     // „PL VIP: CANAL+ SPORT 2”, „UK RAW | …” — kraj, dopisek jakości/pakietu, potem dwukropek albo kreska.
     private const val TAGS = "VIP|RAW|4K|8K|UHD|FHD|HD|HEVC|SD|PPV|HDR|50FPS"
     private val TAGGED = Regex("""^([A-Z]{2})\s+(?:$TAGS)\s*[:|]""")
-    private val PROVIDER_HEAD = Regex("""^\s*[\p{L}\p{N}+._-]{2,24}\s*[:|·•]?\s+(?=[A-Z]{2,3}\s*[:|\]\-–]|[A-Z]{2}\s+(?:$TAGS)\s*[:|])""")
+    private val PROVIDER_HEAD = Regex("""^\s*[\p{L}\p{N}+._-]{2,24}\s*[:|·•]?\s+(?=[A-Z]{2,3}\s*[:|\]\-–]|[A-Z]{2}\s+(?:$TAGS)\s*[:|]|[A-Z][A-Za-z-]{3,13}\s*[:|])""")
 
     /** Kraj kanału: z nazwy, inaczej z grupy listy („PL | NEWS”), inaczej kraj jego listy ([listCountry] po sourceId); null = nieznany. */
     fun countryOf(ch: LiveTvChannel, providers: Collection<String>, listCountry: (String) -> String?): String? =
         countryInName(ch.name, providers).ifEmpty { null } ?: groupCountry(ch.group) ?: listCountry(ch.sourceId)?.lowercase()
 
+    /** Stopień kanału dla kraju [country]: 0 = z nazwy albo grupy, 1 = tylko z kraju listy, 2 = inny kraj albo nieznany. */
+    fun rank(ch: LiveTvChannel, country: String, providers: Collection<String>, listCountry: (String) -> String?): Int {
+        val own = countryInName(ch.name, providers).ifEmpty { null } ?: groupCountry(ch.group)
+        if (own != null) return if (own == country) 0 else 2
+        return if (listCountry(ch.sourceId)?.lowercase() == country) 1 else 2
+    }
+
     /** IPTV #81: kraj z nazwy grupy (kilkaset grup na listę — pamięć w procesie). */
     private val byGroup = java.util.concurrent.ConcurrentHashMap<String, String>()
     internal fun groupCountry(group: String): String? {
         if (group.isBlank()) return null
-        return (byGroup[group] ?: computeCountry(group, emptyList()).also { byGroup[group] = it }).ifEmpty { null }
+        return (byGroup[group] ?: (computeCountry(group, emptyList()).ifEmpty { IptvPrefixes.groupWord(group) ?: "" }).also { byGroup[group] = it }).ifEmpty { null }
     }
 
     /**
@@ -97,13 +111,16 @@ object TvCountry {
         onNoneMatch: () -> Unit = {},
     ): List<LiveTvChannel> {
         if (!mode.active || channels.isEmpty()) return channels
-        val mine = ArrayList<LiveTvChannel>()
+        // Przegląd 27.11, ekran 14: trzy stopnie — kraj z nazwy/grupy („PL: TVN24”), potem tylko z kraju listy (polska lista
+        // ma też CNBC, BBC bez przedrostka), potem reszta. Wcześniej oba pierwsze razem: CNBC i BBC przed TVN24 w „Informacjach”.
+        val named = ArrayList<LiveTvChannel>()
+        val listed = ArrayList<LiveTvChannel>()
         val rest = ArrayList<LiveTvChannel>()
-        for (ch in channels) if (countryOf(ch, providers, listCountry) == mode.country) mine += ch else rest += ch
+        for (ch in channels) when (rank(ch, mode.country, providers, listCountry)) { 0 -> named += ch; 1 -> listed += ch; else -> rest += ch }
         if (mode.only) {
-            if (mine.isEmpty()) { onNoneMatch(); return channels }
-            return mine
+            if (named.isEmpty() && listed.isEmpty()) { onNoneMatch(); return channels }
+            return named + listed
         }
-        return if (mine.isEmpty() || rest.isEmpty()) channels else mine + rest
+        return if (rest.size == channels.size || named.size == channels.size || listed.size == channels.size) channels else named + listed + rest
     }
 }

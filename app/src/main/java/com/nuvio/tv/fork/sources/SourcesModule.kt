@@ -15,7 +15,10 @@ object SourcesModule : ForkModule {
     override val defaultEnabled = true
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    override fun rootOverlays(): List<@androidx.compose.runtime.Composable () -> Unit> = listOf({ ReadyOverlay() })
+    // Przegląd ekranów 27.11 („Gotowe” w lewym dolnym rogu, właściciel: „nie wiem, co to i po co”): linia „Gotowe · jakość”
+    // z B04-6 była warstwą całej aplikacji — zostawała na odtwarzaczu i innych stronach. Stan źródła pokazują już ekrany
+    // (Kicia: linia pod przyciskami, Niunia: ekran wczytywania), więc warstwa wyłączona. Cofnięcie: listOf({ ReadyOverlay() }).
+    override fun rootOverlays(): List<@androidx.compose.runtime.Composable () -> Unit> = emptyList()
 
     override fun actions(): List<ModuleAction> {
         val answer = com.nuvio.tv.fork.sources.SourceChoiceState.current

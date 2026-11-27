@@ -38,6 +38,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -143,6 +144,8 @@ fun NiuniaSearch(viewModel: SearchViewModel, onNavigateToDetail: (String, String
     // Z-19 (P-19): wynik nigdy pusty — przy 0 wynikach zapytanie poprawiane krok po kroku (NiuniaSearchFix).
     var fix by remember { mutableStateOf<NiuniaFixActive?>(null) }
     var exact by remember { mutableStateOf<String?>(null) }
+    // Przegląd 27.11, ekran 17 pkt 2: długie OK na „Ostatnio wyszukiwane” = „Usuń z historii” (historia bazy Nuvio).
+    var askRemove by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(state.discoverResults, state.recentSearches, state.suggestions, results.size) {
         NiuniaKnownTitles.add(state.discoverResults.map { it.name } + state.recentSearches + state.suggestions + results.map { it.first.name })
     }
@@ -205,13 +208,14 @@ fun NiuniaSearch(viewModel: SearchViewModel, onNavigateToDetail: (String, String
                         onDelete = { type(shownQuery.dropLast(1)) },
                         onClear = { Log.i(TAG, "wyszukiwarka: wyczyść"); type(""); tab = NiuniaSearchTab.All },
                     )
-                    val phrases = if (searching) niuniaSearchSuggestions(state.query, state.suggestions, results.map { it.first.name }) else state.recentSearches.take(3)
+                    val phrases = if (searching) niuniaSearchSuggestions(state.query, state.suggestions, results.map { it.first.name }) else state.recentSearches.take(5)
                     if (phrases.isNotEmpty()) Column(verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space4)) {
                         NiuniaText(stringResource(if (searching) R.string.niunia_ds_search_suggestions else R.string.niunia_search_recent),
                             Modifier.padding(horizontal = NiuniaSpacing.Space8), variant = NiuniaTextVariant.CaptionRegular, tone = NiuniaTone.Tertiary)
                         phrases.forEach { ph ->
                             NiuniaListRow(ph, onClick = { Log.i(TAG, "wyszukiwarka: fraza „$ph”"); type(ph); viewModel.onEvent(SearchEvent.SubmitSearch) },
-                                kind = NiuniaRowKind.Suggestion, icon = if (searching) "search" else "history")
+                                kind = NiuniaRowKind.Suggestion, icon = if (searching) "search" else "history",
+                                onLongClick = if (searching) null else ({ askRemove = ph }))
                         }
                     }
                 }
@@ -238,6 +242,16 @@ fun NiuniaSearch(viewModel: SearchViewModel, onNavigateToDetail: (String, String
             }
         }
     }
+    askRemove?.let { q ->
+        com.nuvio.tv.skin.niunia.components.NiuniaActionsDialog(
+            eyebrow = stringResource(R.string.niunia_search_recent), title = q, state = null,
+            actions = listOf(com.nuvio.tv.skin.niunia.components.NiuniaDialogAction(stringResource(R.string.niunia_tv2_hist_remove)) {
+                Log.i(TAG, "wyszukiwarka: usuń z historii")
+                viewModel.onEvent(SearchEvent.RemoveRecentSearch(q))
+            }),
+            onDismiss = { askRemove = null },
+        )
+    }
 }
 
 /** Z-19: trwające poprawianie — wpisane [original], wysłane [corrected] (krok [step]), wypróbowane zapytania (bez polskich znaków). */
@@ -251,7 +265,7 @@ internal object NiuniaSearchMemory {
 
 /** NInput search: lupa 28, tekst 32/38 (podpowiedź w 50%), kursor 2 dp, linia 1 dp u dołu. */
 @Composable
-private fun SearchField(query: String, placeholder: String) {
+internal fun SearchField(query: String, placeholder: String) {
     Column {
         Row(Modifier.height(NiuniaSize.H44), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
             NiuniaIcon("search", size = NiuniaSize.Icon28, tint = NiuniaColor.Text70)
@@ -320,10 +334,12 @@ private fun Browse(state: com.nuvio.tv.ui.screens.search.SearchUiState, ctx: and
     val shownTiles = tiles.distinctBy { it.label } // klucze LazyRow muszą być unikalne (gatunek „Filmy” itp.)
     Column(verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
         NiuniaCollectionHeader(stringResource(R.string.niunia_search_browse), active = active == 0)
-        LazyRow(Modifier.niuniaTrapArrows("przeglądaj"), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space20), contentPadding = PaddingValues(end = NiuniaSpacing.Space40)) {
+        // Przegląd 27.11, ekran 25 (właściciel): „Przeglądaj” = jeden rząd przycisków-pigułek zamiast pustych kafli wielkości
+        // plakatów — zwolnione miejsce dla „Polecanych”.
+        LazyRow(Modifier.niuniaTrapArrows("przeglądaj"), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space8), contentPadding = PaddingValues(end = NiuniaSpacing.Space40)) {
             items(shownTiles, key = { it.label }) { t ->
-                NiuniaMediaCard(NiuniaCardPreset.PosterCard, image = null, label = t.label, title = t.label,
-                    onFocus = { if (it) active = 0 }, onClick = { Log.i(TAG, "wyszukiwarka: przeglądaj → ${t.label}"); t.action() })
+                NiuniaButton(onClick = { Log.i(TAG, "wyszukiwarka: przeglądaj → ${t.label}"); t.action() }, label = t.label, kind = NiuniaButtonKind.Chip,
+                    modifier = Modifier.onFocusChanged { if (it.isFocused) active = 0 })
             }
         }
     }

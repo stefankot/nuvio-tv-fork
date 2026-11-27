@@ -220,9 +220,9 @@ internal fun continueTiles(channels: List<LiveTvChannel>, now: Long): List<Niuni
 }
 
 /** Kategoria: programy tej kategorii teraz, potem wkrótce (po jednym na kanał). */
-internal fun categoryTiles(channels: List<LiveTvChannel>, current: Map<String, LiveTvProgramme>, now: Long): List<NiuniaLiveTile> {
+internal fun categoryTiles(channels: List<LiveTvChannel>, current: Map<String, LiveTvProgramme>, now: Long, rank: (LiveTvChannel) -> Int = { 0 }): List<NiuniaLiveTile> {
     val live = channels.distinctBy { it.guideKey }.mapNotNull { ch -> current[ch.guideKey]?.takeIf { isLive(it, now) }?.let { tileFor(ch, it, now) } }
-        .sortedByDescending { (if (it.programme?.image.isNullOrBlank()) 0 else 1) }
+        .sortedWith(compareBy<NiuniaLiveTile> { rank(it.channel) }.thenByDescending { (if (it.programme?.image.isNullOrBlank()) 0 else 1) })
     val soon = channels.distinctBy { it.guideKey }.mapNotNull { ch ->
         LiveTvRepository.schedule(ch.guideKey).firstOrNull { it.startEpochMs > now && it.startEpochMs < now + 3 * HOUR_MS }?.let { tileFor(ch, it, now) }
     }.sortedBy { it.programme?.startEpochMs }
@@ -377,8 +377,11 @@ internal object NiuniaLiveOrder {
     fun unsorted(input: List<LiveTvChannel>, hidden: Set<String>, mode: com.nuvio.tv.fork.tv.country.TvCountry.Mode? = null): Prepared =
         Prepared(input, hidden, input, emptyList(), if (input.size <= SYNC_LIMIT) numbersOf(input) else emptyMap(), sorted = false, mode = mode)
 
+    // Przegląd 27.11, ekran 21: numer = miejsce kanału na pełnej liście (najpierw preferowany kraj), klucz = kanał, nie adres
+    // strumienia (kanały portalu ze wspólnym adresem miały ten sam numer: „39” ×4). Filtry i Ulubione numerów nie zmieniają.
+    fun numberKey(ch: LiveTvChannel): String = ch.sourceId + "|" + ch.id
     private fun numbersOf(list: List<LiveTvChannel>): Map<String, Int> =
-        HashMap<String, Int>(list.size * 2).also { m -> list.forEachIndexed { i, ch -> m.putIfAbsent(ch.streamUrl, i + 1) } }
+        HashMap<String, Int>(list.size * 2).also { m -> list.forEachIndexed { i, ch -> m.putIfAbsent(numberKey(ch), i + 1) } }
 
     // ------------------------------------------------------------------ zapis na dysku (23.11 etap 1c)
     //
@@ -387,7 +390,7 @@ internal object NiuniaLiveOrder {
     // (adresy kanałów w kolejności + kategorie) w pliku; ta sama lista → gotowe od razu; zmieniona → ostatnia kolejność
     // (nowe kanały na końcu) od razu, pełne liczenie w tle jak dotąd.
     // 2 (IPTV #81, 26.11): kraj kanału za przedrostkiem dostawcy — zapisana kolejność „kraju IPTV” liczona starym sposobem.
-    private const val DISK_VERSION = 2
+    private const val DISK_VERSION = 3 // 3: przegląd 27.11 — kraj w trzech stopniach (nazwa, lista, reszta), słownik IPTV
 
     private fun fingerprint(input: List<LiveTvChannel>): Long {
         var h = input.size.toLong()

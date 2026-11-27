@@ -33,8 +33,6 @@
     <string name="niunia_tv_categories_match">%1$d z %2$d pasuje</string>
     <string name="niunia_tv_programmes">Programy</string>
     <string name="niunia_tv_channels">Kanały</string>
-    <string name="niunia_tv_view_rows">Rzędy</string>
-    <string name="niunia_tv_view_grid">Siatka</string>
     <string name="niunia_tv_search_start">Wpisz nazwę albo wybierz kategorię.</string>
     <string name="niunia_tv_search_none">Nic nie znaleziono.</string>
 </resources>

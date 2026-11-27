@@ -90,9 +90,10 @@ internal object NiuniaLiveRegion {
             "cn:zh tw:zh hk:zh jp:ja kr:ko vn:vi th:th id:id my:ms ph:tl ge:ka am:hy az:az kz:kk"
         ).split(' ').associate { it.substringBefore(':') to it.substringAfter(':') }
 
-    fun languageOf(country: String?): String? = country?.let { LANGUAGE_OF[it] }
+    fun languageOf(country: String?): String? = country?.let { LANGUAGE_OF[it] ?: com.nuvio.tv.fork.tv.country.IptvPrefixes.PSEUDO_LANGUAGE[it] }
 
     fun countryName(code: String): String {
+        com.nuvio.tv.fork.tv.country.IptvPrefixes.PSEUDO[code]?.let { return it }
         val iso = if (code == "uk") "GB" else code.uppercase()
         return Locale("", iso).getDisplayCountry(PL).takeIf { it.isNotBlank() && it != iso }?.replaceFirstChar { it.titlecase(PL) } ?: code.uppercase()
     }
@@ -120,14 +121,24 @@ internal object NiuniaLiveRegion {
         }
     }
 
-    fun index(input: List<LiveTvChannel>, providers: Collection<String>, listCountry: (String) -> String?): Index {
+    /** Początek nazwy bez kraju („Strong8K · XYZ: …” → „XYZ”), do logu. */
+    private fun unknownHead(name: String): String? {
+        val n = name.substringAfter(" · ")
+        val cut = n.indexOfFirst { it == ':' || it == '|' }
+        return if (cut in 1..14) n.substring(0, cut).trim().uppercase().takeIf { it.isNotEmpty() } else null
+    }
+
+    fun index(input: List<LiveTvChannel>, providers: Collection<String>, preferred: String = "pl", listCountry: (String) -> String?): Index {
         val codes = arrayOfNulls<String>(input.size)
         val byCountry = HashMap<String, Int>()
         val byLanguage = HashMap<String, Int>()
+        val unknown = HashMap<String, Int>()
         input.forEachIndexed { i, ch ->
             // Test JMGO tv2c: z nazw wychodziły też „GMT”, „BK” — tylko kody krajów ISO (i „uk”).
-            val cc = com.nuvio.tv.fork.tv.country.TvCountry.countryOf(ch, providers, listCountry)?.takeIf { it == "uk" || it.uppercase() in ISO }
+            val cc = com.nuvio.tv.fork.tv.country.TvCountry.countryOf(ch, providers, listCountry)
+                ?.takeIf { it == "uk" || it.uppercase() in ISO || it in com.nuvio.tv.fork.tv.country.IptvPrefixes.PSEUDO }
             codes[i] = cc
+            if (cc == null) unknownHead(ch.name)?.let { unknown[it] = (unknown[it] ?: 0) + 1 }
             if (cc != null) {
                 byCountry[cc] = (byCountry[cc] ?: 0) + 1
                 languageOf(cc)?.let { byLanguage[it] = (byLanguage[it] ?: 0) + 1 }
@@ -135,8 +146,13 @@ internal object NiuniaLiveRegion {
         }
         // UX JMGO (ręczne testy 24.11): „Polska” była za „Stany Zjednoczone” — aplikacja jest po polsku, więc Polska i język
         // polski zawsze na górze (projektor ma ustawiony język systemu „en” bez kraju, więc nie z ustawień systemu).
+        // Przegląd 27.11, ekran 15: największe przedrostki bez kraju — do słownika IPTV (bez adresów, tylko początek nazwy).
+        Log.i(TAG, "live tv: kraj i język — bez kraju ${input.size - byCountry.values.sum()} kanałów; przedrostki: " +
+            unknown.entries.sortedByDescending { it.value }.take(12).joinToString { "${it.key}=${it.value}" })
+        // Przegląd 27.11, ekran 15: preferowany kraj z ustawień (nie na sztywno „pl”) i jego język zawsze pierwsze.
+        val prefLang = languageOf(preferred)
         fun top(m: Map<String, Int>, name: (String) -> String) =
-            m.entries.sortedWith(compareByDescending<Map.Entry<String, Int>> { it.key == "pl" }.thenByDescending { it.value })
+            m.entries.sortedWith(compareByDescending<Map.Entry<String, Int>> { it.key == preferred || it.key == prefLang }.thenByDescending { it.value })
                 .take(MAX_OPTIONS).map { Option(it.key, name(it.key), it.value) }
         return Index(input, codes, top(byCountry, ::countryName), top(byLanguage, ::languageName))
     }
@@ -151,6 +167,7 @@ internal class NiuniaRegionResult(val input: List<LiveTvChannel>, val shown: Lis
 @Composable
 internal fun rememberNiuniaRegion(input: List<LiveTvChannel>, providers: List<String>, choice: NiuniaLiveRegion.Choice): NiuniaRegionResult {
     var result by remember { mutableStateOf(NiuniaRegionResult(input, input, null)) }
+    val preferredCountry = com.nuvio.tv.fork.tv.country.TvCountry.countryCode(androidx.compose.ui.platform.LocalContext.current)
     LaunchedEffect(input, choice) {
         // Do czasu wyniku: bez filtra tylko wtedy, gdy nic nie wybrano (wybrany kraj nie miga całą listą przy zmianie listy).
         if (!choice.active && result.input !== input) result = NiuniaRegionResult(input, input, result.index?.takeIf { it.input === input })
@@ -161,7 +178,7 @@ internal fun rememberNiuniaRegion(input: List<LiveTvChannel>, providers: List<St
                 val idx = result.index?.takeIf { it.input === input } ?: run {
                     com.nuvio.tv.fork.tv.index.TvIndexStore.awaitLoaded()
                     val lists = com.nuvio.tv.fork.tv.guide.ExtraGuides.countryBySource
-                    NiuniaLiveRegion.index(input, providers) { lists[it] }
+                    NiuniaLiveRegion.index(input, providers, preferredCountry) { lists[it] }
                 }
                 val f = idx.filter(choice)
                 if (f != null && f.isEmpty()) Log.w(TAG, "live tv: ${NiuniaLiveRegion.label(choice)} — żaden kanał nie pasuje, pokazuję wszystkie")

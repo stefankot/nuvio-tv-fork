@@ -309,24 +309,30 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
     // UX JMGO (ręczne testy 24.11): kanał, który właśnie „nie odpowiadał” (RT, CNBC), stał w kafelkach na górze jako
     // propozycja — teraz kafelki Wszystkie i kategorii pomijają kanały oznaczone „Niedostępny” (24 h).
     val statusV = NiuniaLiveStatus.version.intValue
-    val tiles = remember(filter, filtered, base, state.currentProgrammes, now / (5 * MIN_MS), recent, resume, favShows, alerts, statusV, favUrls, favShowLive) {
+    // Przegląd 27.11, ekran 14: kafelki kategorii — najpierw kanały preferowanego kraju (z nazwy), dopiero potem obrazki.
+    val countryRank: (LiveTvChannel) -> Int = remember(countryMode, providerNames) {
+        val lists = com.nuvio.tv.fork.tv.guide.ExtraGuides.countryBySource
+        if (!countryMode.prefer) { _ -> 0 } else { ch -> com.nuvio.tv.fork.tv.country.TvCountry.rank(ch, countryMode.country, providerNames) { lists[it] } }
+    }
+    val tiles = remember(filter, filtered, base, shown, state.currentProgrammes, now / (5 * MIN_MS), recent, resume, favShows, alerts, statusV, favUrls, favShowLive) {
         val all = when (filter) {
             NiuniaLiveFilter.All -> recentTiles(base, state.currentProgrammes, now)
-            NiuniaLiveFilter.Favourites -> favouriteTiles(base, favUrls, state.currentProgrammes, now, favShowLive)
-            NiuniaLiveFilter.Continue -> continueTiles(base, now)
-            is NiuniaLiveFilter.Category -> categoryTiles(filtered, state.currentProgrammes, now)
+            // Przegląd 27.11, ekran 20: Ulubione i Oglądaj dalej to listy osobiste — bez filtra kraju i języka.
+            NiuniaLiveFilter.Favourites -> favouriteTiles(shown, favUrls, state.currentProgrammes, now, favShowLive)
+            NiuniaLiveFilter.Continue -> continueTiles(shown, now)
+            is NiuniaLiveFilter.Category -> categoryTiles(filtered, state.currentProgrammes, now, countryRank)
         }
         if (filter is NiuniaLiveFilter.All || filter is NiuniaLiveFilter.Category) all.filterNot { NiuniaLiveStatus.unavailable(context, it.channel.streamUrl) } else all
     }
     // UX JMGO 25.11 (#56): kanały, na których leciał obserwowany program, znikały z „Ulubione” o pełnej godzinie (koniec
     // programu) razem z fokusem — zostają na liście do zmiany filtra albo wyjścia z Live TV.
     val favSticky = remember(filter.id) { LinkedHashSet<String>() }
-    val guideChannels = remember(filter, filtered, base, tiles, favUrls) {
+    val guideChannels = remember(filter, filtered, base, shown, tiles, favUrls) {
         when (filter) {
             NiuniaLiveFilter.Favourites -> {
-                val list = favouriteChannels(base, favUrls, tiles)
+                val list = favouriteChannels(shown, favUrls, tiles)
                 list.forEach { if (it.streamUrl !in favUrls) favSticky += it.streamUrl }
-                if (favSticky.isEmpty()) list else base.filter { it.streamUrl in favUrls || it.streamUrl in favSticky }
+                if (favSticky.isEmpty()) list else shown.filter { it.streamUrl in favUrls || it.streamUrl in favSticky }
             }
             NiuniaLiveFilter.Continue -> tiles.map { it.channel }.distinctBy { it.streamUrl }.ifEmpty { base }
             else -> filtered
@@ -419,6 +425,7 @@ fun NiuniaLiveTv(onPlay: (String) -> Unit, viewModel: LiveTvScreenModel = hiltVi
                     if (f is NiuniaLiveFilter.Category) NiuniaLiveFilters.used(context, f.key)
                     filter = f
                 },
+                onFocusFilter = { f -> filter = f },
                 onPlay = { ch, p -> play(ch, p, guideChannels) },
                 focusGuideTick = dayPicked,
                 onBackToNow = { if (dayOffset != 0) { Log.i(TAG, "live tv: Wstecz z przewodnika → dzień Dziś"); returnTo = null; dayOffset = 0 } },
@@ -494,6 +501,7 @@ private fun Guide(
     optionsFrom: String?,
     onOptions: (LiveTvChannel, String) -> Unit,
     onFilter: (NiuniaLiveFilter) -> Unit,
+    onFocusFilter: (NiuniaLiveFilter) -> Unit = onFilter,
     onPlay: (LiveTvChannel, LiveTvProgramme?) -> Unit,
     focusGuideTick: Int = 0,
     onBackToNow: () -> Unit = {},
@@ -596,7 +604,13 @@ private fun Guide(
                 // pojawiało się „Te kanały nie mają programu TV” — podpowiedź dopiero po 20 s bez programu.
                 var guideWaited by remember { mutableStateOf(false) }
                 LaunchedEffect(Unit) { delay(20_000); guideWaited = true }
-                if (!noGuide || guideWaited) Text(stringResource(if (noGuide) R.string.niunia_tv_rail_no_guide else R.string.niunia_tv_rail_empty), style = NiuniaText.Body, color = NiuniaColors.Text50, modifier = Modifier.padding(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 128.dp))
+                // Przegląd 27.11, ekran 20 pkt b: komunikat mówi prawdę (lista osobista jest pusta), nie ogólne „Nic tu jeszcze nie ma”.
+                val emptyText = when (filter) {
+                    NiuniaLiveFilter.Continue -> R.string.niunia_review_live_continue_empty
+                    NiuniaLiveFilter.Favourites -> R.string.niunia_review_live_fav_empty
+                    else -> R.string.niunia_tv_rail_empty
+                }
+                if (!noGuide || guideWaited) Text(stringResource(if (noGuide) R.string.niunia_tv_rail_no_guide else emptyText), style = NiuniaText.Body, color = NiuniaColors.Text50, modifier = Modifier.padding(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 128.dp))
             } else com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
                 LazyRow(Modifier.padding(top = 74.dp).focusRequester(tilesFocus).focusRestorer(), state = tilesState, contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = NiuniaDims.Gutter, top = 6.dp, bottom = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(NiuniaDims.RowGap)) {
@@ -612,16 +626,23 @@ private fun Guide(
             // Test JMGO build151 (B3-3): ▲ z „Wszystkie” otwierał menu zamiast kafli nad pigułkami → wprost na kafle (ostatni z fokusem).
             // UX 22.11 (emulator, ścieżka 29): ▲ z pierwszego kanału trafiał w pigułkę najbliżej środka („Informacje”) zamiast
             // w ostatnio wybraną — teraz ostatnia pigułka z fokusem, na początku „Wszystkie”.
+            // Przegląd 27.11, ekran 14: pigułka z fokusem po 300 ms staje się wybraną (szybkie przewijanie nie liczy każdej).
+            var pillFocus by remember { mutableStateOf<NiuniaLiveFilter?>(null) }
+            LaunchedEffect(pillFocus) {
+                val f = pillFocus ?: return@LaunchedEffect
+                kotlinx.coroutines.delay(300)
+                if (f.id != filter.id) { Log.i(TAG, "live tv: fokus na pigułce → filtr ${f.id}"); onFocusFilter(f) }
+            }
             LazyRow(Modifier.fillMaxWidth().height(56.dp).focusRestorer(allFocus).onPreviewKeyEvent { e ->
                 if (e.type != KeyEventType.KeyDown || e.key != Key.DirectionUp || tiles.isEmpty()) return@onPreviewKeyEvent false
                 try { tilesFocus.requestFocus(); true } catch (ex: IllegalStateException) { Log.w(TAG, "live tv: ▲ na kafle: ${ex.javaClass.simpleName}: ${ex.message}"); false }
             }, contentPadding = PaddingValues(start = NiuniaDims.Gutter, end = 120.dp), horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.Top) {
-                item { FilterPill(stringResource(R.string.niunia_live_all), filter == NiuniaLiveFilter.All, allFocus) { onFilter(NiuniaLiveFilter.All) } }
-                item { FilterPill(stringResource(R.string.niunia_tv_favourites), filter == NiuniaLiveFilter.Favourites, if (filter == NiuniaLiveFilter.Favourites) selectedChip else null) { onFilter(NiuniaLiveFilter.Favourites) } }
-                item { FilterPill(stringResource(R.string.niunia_tv_continue), filter == NiuniaLiveFilter.Continue, if (filter == NiuniaLiveFilter.Continue) selectedChip else null) { onFilter(NiuniaLiveFilter.Continue) } }
+                item { FilterPill(stringResource(R.string.niunia_live_all), filter == NiuniaLiveFilter.All, allFocus, { pillFocus = NiuniaLiveFilter.All }) { onFilter(NiuniaLiveFilter.All) } }
+                item { FilterPill(stringResource(R.string.niunia_tv_favourites), filter == NiuniaLiveFilter.Favourites, if (filter == NiuniaLiveFilter.Favourites) selectedChip else null, { pillFocus = NiuniaLiveFilter.Favourites }) { onFilter(NiuniaLiveFilter.Favourites) } }
+                item { FilterPill(stringResource(R.string.niunia_tv_continue), filter == NiuniaLiveFilter.Continue, if (filter == NiuniaLiveFilter.Continue) selectedChip else null, { pillFocus = NiuniaLiveFilter.Continue }) { onFilter(NiuniaLiveFilter.Continue) } }
                 if (categories.isNotEmpty()) item { Box(Modifier.padding(horizontal = 4.dp, vertical = 7.dp).width(1.dp).height(20.dp).background(NiuniaColors.Line)) }
-                items(categories, key = { it.key }) { c -> val sel = (filter as? NiuniaLiveFilter.Category)?.key == c.key; FilterPill(c.name, sel, if (sel) selectedChip else null) { onFilter(c) } }
+                items(categories, key = { it.key }) { c -> val sel = (filter as? NiuniaLiveFilter.Category)?.key == c.key; FilterPill(c.name, sel, if (sel) selectedChip else null, { pillFocus = c }) { onFilter(c) } }
                 // Z-21 (P-25): „Kraj i język” na końcu filtrów; wybrany, gdy filtr kraju albo języka działa.
                 item(key = "__region") {
                     com.nuvio.tv.skin.niunia.components.NiuniaButton(onClick = onRegion, label = regionLabel ?: stringResource(R.string.niunia_tv1_region), icon = "globe",
@@ -641,7 +662,7 @@ private fun Guide(
             LazyColumn(Modifier.fillMaxSize(), state = channelsState, contentPadding = PaddingValues(bottom = 56.dp)) {
                 items(channels, key = { "${it.sourceId}_${it.id}" }) { ch ->
                     GuideRow(
-                        ch, numbers[ch.streamUrl] ?: 0, winStart, minStart, now, guideVersion, focusTime, newKeys,
+                        ch, numbers[NiuniaLiveOrder.numberKey(ch)] ?: 0, winStart, minStart, now, guideVersion, focusTime, newKeys,
                         onWindow = { winStart = it },
                         onFocus = { p -> info = ch to p },
                         onOk = { p -> NiuniaLiveReturn.fromGuide(ch.streamUrl, p?.startEpochMs); onPlay(ch, p) },
@@ -671,10 +692,11 @@ private fun Guide(
 
 /** Pigułka filtra (canvas `.pill` 34 dp: zwykła = szary napis, wybrana = białe 24 %, fokus = białe tło). */
 @Composable
-private fun FilterPill(text: String, selected: Boolean, requester: FocusRequester? = null, onOk: () -> Unit) {
+private fun FilterPill(text: String, selected: Boolean, requester: FocusRequester? = null, onFocused: () -> Unit = {}, onOk: () -> Unit) {
     // NButton chip (design system v2): 36 dp, wybrany 24 %, fokus biały bez skali.
+    // Przegląd 27.11, ekran 14: fokus na pigułce = wybór (kafelki i przewodnik od razu, bez OK).
     com.nuvio.tv.skin.niunia.components.NiuniaButton(onClick = onOk, label = text, kind = com.nuvio.tv.skin.niunia.components.NiuniaButtonKind.Chip,
-        selected = selected, focusRequester = requester)
+        selected = selected, focusRequester = requester, onFocus = { if (it) onFocused() })
 }
 
 /** Podziałka co 30 min (słabsza kreska) i znacznik „teraz” nad czerwoną linią. */

@@ -2,4 +2,7 @@
     <string name="dublagem_setting_title">Polish audio from another release</string>
     <string name="dublagem_setting_description">Choose the best picture and synchronize a compatible Polish audio track during playback.</string>
     <string name="dublagem_audio_joined">Polish audio from another release</string>
+    <string name="dublagem_menu_searching">Dołączam polski dźwięk z innego wydania — obraz zostaje ten sam</string>
+    <string name="dublagem_menu_joined">Polski dźwięk z innego wydania</string>
+    <string name="dublagem_menu_failed">Nie da się dołączyć polskiego dźwięku do tego obrazu — szukam wydania z polskim dźwiękiem</string>
 </resources>

@@ -2134,7 +2134,7 @@ fun PlayerRuntimeController.onEvent(
         is PlayerEvent.OnQualitySelected -> { selectStreamQuality(event.quality) } // Fork hook: echo
         PlayerEvent.OnAutoQualitySelected -> { selectAutoQuality() } // Fork hook: echo
         PlayerEvent.OnCancelAutoQualityChange -> { cancelAutoQualityChange(byViewer = true) } // Fork hook: echo
-        is PlayerEvent.OnAudioMenuLanguageSelected -> { switchSourceForAudio(event.option) } // Fork hook: echo
+        is PlayerEvent.OnAudioMenuLanguageSelected -> { if (!com.nuvio.tv.fork.dublagem.PolishDubbing.onAudioMenuLanguage(this, event.option)) switchSourceForAudio(event.option) } // Fork hook: echo
         is PlayerEvent.OnAudioMenuSourcesRequested -> { showSourcesForAudio(event.option) } // Fork hook: echo
         PlayerEvent.OnShowSourcesPanel -> {
             showSourcesPanel()

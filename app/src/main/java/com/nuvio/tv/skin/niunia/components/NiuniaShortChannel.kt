@@ -6,7 +6,8 @@ package com.nuvio.tv.skin.niunia.components
  * „PL | TVN 24 HD” → „TVN 24”, „[PL] Polsat FHD” → „Polsat”, „TV Puls” → bez zmian. Pełna nazwa zostaje w opisie dostępności.
  */
 fun niuniaShortChannel(name: String): String {
-    val orig = name.trim()
+    // Przegląd 27.11, ekran 12: najpierw wspólne czyszczenie nazw (bez „Strong8K ·”, „PL VIP:”, „ᴴᴰ”, normalna wielkość liter).
+    val orig = com.nuvio.tv.fork.tv.names.ChannelNames.shown(name).trim()
     var s = orig.replace(Regex("""^(\[[A-Za-z]{2,3}\]|[A-Za-z]{2,3}\s*[:|]|[A-Za-z]{2,3}\s+-)\s*"""), "")
     val q = Regex("""\s+(FHD|UHD|HD|SD|4K|HEVC|H\.?265|RAW|\+1)$""", RegexOption.IGNORE_CASE)
     while (q.containsMatchIn(s)) s = s.replace(q, "")

@@ -152,7 +152,8 @@ internal fun tileCaption(tile: NiuniaLiveTile): androidx.compose.ui.text.Annotat
     val ch = if (tile.withChannel) com.nuvio.tv.skin.niunia.components.niuniaShortChannel(tile.channel.name) else null
     val title = listOfNotNull(p.title, tile.extra?.takeIf { it.isNotBlank() }).joinToString(" · ")
     return androidx.compose.ui.text.buildAnnotatedString {
-        append(com.nuvio.tv.skin.niunia.components.niuniaTileTitle(title, ch))
+        // Przegląd 27.11, ekran 12: tytuł bez skracania (płynie przez 2 linie); gdy całość się nie mieści, ucina się kanał na końcu.
+        append(title)
         if (ch != null) {
             pushStyle(androidx.compose.ui.text.SpanStyle(fontWeight = androidx.compose.ui.text.font.FontWeight.Medium))
             append(" · $ch")

@@ -136,6 +136,8 @@ fun NiuniaYouTube(onPlay: (YtPlayable) -> Unit, viewModel: YouTubeViewModel = fo
 
     // Wstecz z odtwarzacza: fokus na tę samą kartę.
     var lastVideoKey by rememberSaveable { mutableStateOf<String?>(null) }
+    var ytSearchOpen by remember { mutableStateOf(false) }
+    var ytSearchFocus by remember { mutableStateOf(false) }
     val lastVideo = remember { FocusRequester() }
     val firstVideo = remember { FocusRequester() }
     val railFocus = remember { List(ForgeYtRail.size) { FocusRequester() } }
@@ -155,14 +157,30 @@ fun NiuniaYouTube(onPlay: (YtPlayable) -> Unit, viewModel: YouTubeViewModel = fo
         }
         Log.i(TAG, "youtube: fokus startowy → ${if (!ok) "brak (${cards.size} kart)" else if (lastVideoKey != null) "ostatnia karta" else if (cards.isNotEmpty()) "pierwsza karta" else "szyna"}")
     }
+    // Przegląd 27.11, ekran 23 pkt 1a: karty dochodziły ~2 s po wejściu, a fokus zostawał na szynie („Główna”) — gdy widz
+    // jeszcze nic nie nacisnął, fokus przechodzi na pierwszy film, gdy tylko karty się pojawią.
+    var userKeys by remember { mutableStateOf(false) }
+    val startedEmpty = remember { cards.isEmpty() }
+    LaunchedEffect(cards.isNotEmpty()) {
+        if (!startedEmpty || cards.isEmpty() || userKeys || signInShown || lastVideoKey != null) return@LaunchedEffect
+        var ok = false
+        repeat(6) {
+            if (!ok) {
+                kotlinx.coroutines.delay(100)
+                ok = try { firstVideo.requestFocus(); true } catch (e: IllegalStateException) { false }
+            }
+        }
+        Log.i(TAG, "youtube: karty doszły (${cards.size}) → fokus ${if (ok) "na pierwszy film" else "bez zmiany (karta jeszcze nie gotowa)"}")
+    }
 
-    Box(Modifier.fillMaxSize().background(NiuniaColor.Bg)) {
+    Box(Modifier.fillMaxSize().background(NiuniaColor.Bg).onPreviewKeyEvent { userKeys = true; false }) {
         // Pasek akcji (NNavigation top-actions): Szukaj + zegar; ▼ = pierwsza karta (po powrocie: ostatnia oglądana).
         Row(Modifier.fillMaxWidth().padding(top = NiuniaSize.NavTop, end = NiuniaDims.Gutter), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space8, Alignment.End),
             verticalAlignment = Alignment.CenterVertically) {
             NiuniaButton(onClick = {
-                Log.i(TAG, "youtube: Szukaj → ekran Szukaj (zakładka YouTube)")
-                if (!com.nuvio.tv.skin.niunia.nav.NiuniaNavActions.open("search")) com.nuvio.tv.fork.ForkLog.say(ctx, TAG, ctx.getString(R.string.niunia_ke2_retry))
+                // Przegląd 27.11, ekran 24: własna wyszukiwarka YouTube (było: wspólna wyszukiwarka filmów i seriali).
+                Log.i(TAG, "youtube: Szukaj → wyszukiwarka YouTube")
+                ytSearchOpen = true
             }, label = stringResource(R.string.niunia_ke2_yt_search), icon = "search", small = true,
                 modifier = Modifier.focusProperties { down = if (cards.isNotEmpty()) (if (lastVideoKey != null) lastVideo else firstVideo) else railFocus[railActive] })
             NiuniaClock()
@@ -216,7 +234,10 @@ fun NiuniaYouTube(onPlay: (YtPlayable) -> Unit, viewModel: YouTubeViewModel = fo
                                         onLong = { Log.i(TAG, "youtube: długie OK → okno „${item.title.take(40)}”"); menuItem = item },
                                     ) {
                                         Log.i(TAG, "youtube: OK → ${item.kind} ${item.videoId ?: item.channelId}")
-                                        viewModel.activate(item, cards, onPlay)
+                                        val mix = item.kind == YtKind.PLAYLIST && item.videoId != null &&
+                                            (item.source.playlistId?.startsWith("RD") == true || item.badge?.contains("Mix", ignoreCase = true) == true)
+                                        if (mix) Log.i(TAG, "youtube: Mix → odtwarzam pierwszy film (${item.videoId})")
+                                        viewModel.activate(if (mix) item.copy(kind = YtKind.VIDEO) else item, cards, onPlay)
                                     }
                                 }
                             }
@@ -225,6 +246,18 @@ fun NiuniaYouTube(onPlay: (YtPlayable) -> Unit, viewModel: YouTubeViewModel = fo
                 }
             }
         }
+        if (ytSearchOpen) NiuniaYouTubeSearch(viewModel, onSearch = { q ->
+            ytSearchOpen = false; lastVideoKey = null; ytSearchFocus = true
+            viewModel.search(q)
+        }, onClose = { ytSearchOpen = false })
+    }
+    // Po wyszukaniu fokus na pierwszy wynik, gdy tylko wyniki są.
+    LaunchedEffect(ytSearchFocus, cards.isNotEmpty(), state.loading) {
+        if (!ytSearchFocus || cards.isEmpty() || state.loading) return@LaunchedEffect
+        ytSearchFocus = false
+        var ok = false
+        repeat(6) { if (!ok) { kotlinx.coroutines.delay(100); ok = try { firstVideo.requestFocus(); true } catch (e: IllegalStateException) { false } } }
+        Log.i(TAG, "youtube szukaj: wyniki ${cards.size} → fokus ${if (ok) "na pierwszy" else "bez zmiany"}")
     }
     menuItem?.let { item -> CardMenu(item, viewModel) { menuItem = null } }
 }

@@ -210,7 +210,7 @@ internal object NiuniaLiveNav {
     private fun go(to: Int, why: String) {
         Log.i(TAG, "iptv: poziom $level → $to ($why, rząd=${row.size})")
         // UX JMGO 25.11 (#65): ▼ do rzędu odcinków — fokus na ostatnim odcinku przed oglądanym (najbliższym), nie na najstarszym.
-        if (to == 1 && level == 0) rowIndex = if (rowEpisodes) row.indexOfLast { it.programme.startEpochMs < shownStart }.coerceAtLeast(0) else 0
+        if (to == 1 && level == 0) rowIndex = 0 // przegląd 27.11 (ekran 18): poprzednie emisje od najnowszej
         level = to
         if (to == 2) { section = sections.indexOfFirst { it.count > 0 }.coerceAtLeast(0); index = 0 }
     }
@@ -372,47 +372,59 @@ private fun seriesKey(title: String): String? =
     com.nuvio.tv.fork.tv.ShowIdentity.normalizeTitle(title.substringBefore(':')).replace(SEASON_TAIL, "").trim().takeIf { it.length >= 3 }
 
 /**
- * Rząd pod odtwarzaczem (SKIN.md „Player IPTV”): program powtarzalny → inne odcinki z przewodnika kanału (wyemitowane w archiwum
- * = zielona kropka, przyszłe = „Wkrótce”); jednorazowy → programy z innych kanałów z najwęższej kategorii (liść) drzewa EPG, potem gałąź;
- * bez kategorii — brak rzędu. Zwraca (rząd, czy to odcinki, nazwa kategorii).
+ * Rząd pod odtwarzaczem. Przegląd ekranów 27.11, ekran 18 (właściciel): tylko to, co da się od razu obejrzeć z archiwum —
+ *  (a) poprzednie emisje programu, który leci (najnowsze pierwsze; pamięć przewodnika + baza programu, dni archiwum kanału),
+ *  (b) gdy ich nie ma — programy z archiwum z tej samej kategorii, z kanałów tego samego kraju co oglądany,
+ *  (c) nic z archiwum — brak rzędu (bez kart „Wkrótce”, których nie da się włączyć).
+ * Zwraca (rząd, czy to poprzednie emisje, nagłówek kategorii).
  */
-private fun buildRow(channel: LiveTvChannel, shown: LiveTvProgramme, nowMs: Long): Triple<List<NiuniaLiveTile>, Boolean, String?> {
-    val schedule = LiveTvRepository.schedule(channel.guideKey)
-    val window = 7L * 86_400_000
+private fun buildRow(ctx: android.content.Context, channel: LiveTvChannel, shown: LiveTvProgramme, nowMs: Long): Triple<List<NiuniaLiveTile>, Boolean, String?> {
     val series = seriesKey(shown.title)
-    val same = schedule.filter { p ->
-        p.stopEpochMs > nowMs - window && p.startEpochMs < nowMs + window &&
-            (sameTitle(p, shown) || series != null && seriesKey(p.title) == series)
-    }
-    if (series != null && same.size > 1) Log.i(TAG, "iptv: rząd — serial „$series”: ${same.size} emisji")
-    if (same.size >= 2) {
-        val tiles = same.sortedBy { it.startEpochMs }.mapNotNull { p ->
-            val live = p.startEpochMs <= nowMs && nowMs < p.stopEpochMs
-            val arch = !live && p.stopEpochMs <= nowMs && com.nuvio.tv.reshaped.livetv.LiveTvCatchupLinks.isPlayable(channel.catchup, p, nowMs)
-            val future = p.startEpochMs > nowMs
-            if (!live && !arch && !future) null else NiuniaLiveTile(channel, p, live, arch, future)
-        }.filter { it.programme.startEpochMs != shown.startEpochMs }
-        // UX JMGO 25.11 (#65, zdjęcie 200): było 12 najstarszych (pon 22:00 … dziś 00:30) — bez dzisiejszych i następnych.
-        // Teraz do 4 następnych i najbliższe minione, po kolei.
-        val next = tiles.filter { it.programme.startEpochMs > shown.startEpochMs }.take(4)
-        val before = tiles.filter { it.programme.startEpochMs < shown.startEpochMs }.takeLast(12 - next.size)
-        if (tiles.isNotEmpty()) return Triple(before + next, true, null)
-    }
-    val names = ForgeEpgCategories.programmePlaceNames(channel.guideKey, shown) ?: return Triple(emptyList(), false, null)
-    val place = ForgeEpgCategories.programmePlace(channel.guideKey, shown) ?: return Triple(emptyList(), false, null)
+    fun sameShow(p: LiveTvProgramme) = sameTitle(p, shown) || series != null && seriesKey(p.title) == series
+    fun playable(ch: LiveTvChannel, p: LiveTvProgramme) =
+        p.stopEpochMs <= nowMs && com.nuvio.tv.reshaped.livetv.LiveTvCatchupLinks.isPlayable(ch.catchup, p, nowMs)
+    if (channel.catchup != null) {
+        val eps = pastOf(ctx, channel, nowMs, maxDays = 7).filter { sameShow(it) && it.startEpochMs != shown.startEpochMs && playable(channel, it) }
+            .distinctBy { it.startEpochMs }.sortedByDescending { it.startEpochMs }.take(12)
+        Log.i(TAG, "iptv: rząd — poprzednie emisje w archiwum: ${eps.size}")
+        if (eps.isNotEmpty()) return Triple(eps.map { NiuniaLiveTile(channel, it, false, true, false) }, true, null)
+    } else Log.i(TAG, "iptv: rząd — kanał bez archiwum")
+    val names = ForgeEpgCategories.programmePlaceNames(channel.guideKey, shown)
+    val place = ForgeEpgCategories.programmePlace(channel.guideKey, shown)
+    if (names == null || place == null) { Log.i(TAG, "iptv: rząd — program bez kategorii, brak rzędu"); return Triple(emptyList(), false, null) }
     val live = LiveTvRepository.uiState.value
-    val candidates = live.channels.asSequence().filter { it.streamUrl != channel.streamUrl }.take(600).flatMap { ch ->
-        sequenceOf(live.currentProgrammes[ch.guideKey], LiveTvRepository.nextProgramme(ch.guideKey, nowMs)).filterNotNull().map { ch to it }
-    }.toList()
-    fun pick(match: (ForgeEpgCategories.Place) -> Boolean) = candidates.filter { (ch, p) -> ForgeEpgCategories.programmePlace(ch.guideKey, p)?.let(match) == true }
-    var found = if (place.leaf != null) pick { it.branch == place.branch && it.leaf == place.leaf } else emptyList()
-    var title = names.second ?: names.first
-    if (found.isEmpty()) { found = pick { it.branch == place.branch }; title = names.first }
-    val tiles = found.sortedWith(compareBy({ it.second.startEpochMs > nowMs }, { it.second.startEpochMs })).take(10).map { (ch, p) ->
-        val isLive = p.startEpochMs <= nowMs && nowMs < p.stopEpochMs
-        NiuniaLiveTile(ch, p, isLive, false, !isLive)
-    }
-    return Triple(tiles, false, title)
+    val providers = live.sources.map { it.name }.filter { it.isNotBlank() }
+    val lists = com.nuvio.tv.fork.tv.guide.ExtraGuides.countryBySource
+    fun country(ch: LiveTvChannel) = com.nuvio.tv.fork.tv.country.TvCountry.countryOf(ch, providers) { lists[it] }
+    val mine = country(channel)
+    fun inPlace(ch: LiveTvChannel, p: LiveTvProgramme?, leaf: Boolean) = p != null &&
+        ForgeEpgCategories.programmePlace(ch.guideKey, p)?.let { it.branch == place.branch && (!leaf || it.leaf == place.leaf) } == true
+    // Kanały z archiwum, z kraju oglądanego, na których teraz leci coś z tej kategorii (kanał informacyjny itp.); oglądany pierwszy.
+    val pool = (sequenceOf(channel) + live.channels.asSequence().filter { it.catchup != null && it.streamUrl != channel.streamUrl })
+        .filter { it.catchup != null && (mine == null || it === channel || country(it) == mine) }.take(3_000).toList()
+    val leafFirst = place.leaf != null
+    var useLeaf = leafFirst
+    var chans = pool.filter { it === channel || inPlace(it, live.currentProgrammes[it.guideKey], useLeaf) }.take(12)
+    if (chans.size <= 1 && leafFirst) { useLeaf = false; chans = pool.filter { it === channel || inPlace(it, live.currentProgrammes[it.guideKey], false) }.take(12) }
+    val found = chans.flatMap { ch ->
+        pastOf(ctx, ch, nowMs, maxDays = 2).filter { p ->
+            playable(ch, p) && !(ch === channel && p.startEpochMs == shown.startEpochMs) &&
+                (ForgeEpgCategories.programmePlace(ch.guideKey, p)?.let { it.branch == place.branch && (!useLeaf || it.leaf == place.leaf) }
+                    ?: (ch !== channel)) // bez kategorii w przewodniku: kanał tej kategorii (np. informacyjny) — jego programy też
+        }.sortedByDescending { it.startEpochMs }.take(3).map { ch to it }
+    }.sortedByDescending { it.second.startEpochMs }.take(10)
+    val title = if (useLeaf) names.second ?: names.first else names.first
+    Log.i(TAG, "iptv: rząd — z archiwum, kategoria „$title”, kraj=${mine ?: "?"}: kanały=${chans.size}, programy=${found.size}")
+    return Triple(found.map { (ch, p) -> NiuniaLiveTile(ch, p, false, true, false) }, false, title.takeIf { found.isNotEmpty() })
+}
+
+/** Minione programy kanału: przewodnik w pamięci (−12 h) + baza programu (dni archiwum kanału, najwyżej [maxDays]). */
+private fun pastOf(ctx: android.content.Context, ch: LiveTvChannel, nowMs: Long, maxDays: Int): List<LiveTvProgramme> {
+    val mem = LiveTvRepository.schedule(ch.guideKey).filter { it.stopEpochMs <= nowMs }
+    val days = (ch.catchup?.days ?: 0).coerceIn(0, maxDays)
+    if (days == 0) return mem
+    val db = com.nuvio.tv.fork.tv.plus.GuideDbBridge.history(ctx, ch.guideKey, nowMs - days * 86_400_000L).orEmpty().filter { it.stopEpochMs <= nowMs }
+    return (mem + db).distinctBy { it.startEpochMs }
 }
 
 /**
@@ -491,7 +503,7 @@ internal fun NiuniaLivePlayer(
     var rowData by remember { mutableStateOf(Triple(emptyList<NiuniaLiveTile>(), false, null as String?)) }
     LaunchedEffect(channel.guideKey, shown?.startEpochMs) {
         rowData = if (shown == null) Triple(emptyList(), false, null) else withContext(Dispatchers.Default) {
-            try { buildRow(channel, shown, LiveTvClock.nowEpochMs()) } catch (e: Exception) {
+            try { buildRow(context, channel, shown, LiveTvClock.nowEpochMs()) } catch (e: Exception) {
                 Log.w(TAG, "iptv: rząd: ${e.javaClass.simpleName}: ${e.message}"); Triple(emptyList(), false, null)
             }
         }
@@ -590,12 +602,13 @@ internal fun NiuniaLivePlayer(
             // Rząd (.rail y 502; ▼ → 408, w grupie z tytułem kategorii nad nim).
             if (row.isNotEmpty()) {
                 Column(Modifier.offset(y = 472.dp + rowLift)) {
-                    val titleText = if (group && groupTitle != null) groupTitle else null
+                    val titleText = when {
+                        episodesRow -> stringResource(R.string.niunia_review_live_prev_episodes)
+                        groupTitle != null -> stringResource(R.string.niunia_review_live_from_archive, groupTitle)
+                        else -> null
+                    }
                     Row(Modifier.padding(start = NiuniaDims.Gutter).height(30.dp), verticalAlignment = Alignment.Top) {
-                        if (titleText != null && level >= 1) {
-                            NiuniaShelfTitle(titleText, on = true)
-                            Text(" · " + stringResource(R.string.niunia_live_other_channels), style = NiuniaText.Body.copy(fontSize = 13.sp, lineHeight = 22.sp), color = NiuniaColors.Text50)
-                        }
+                        if (titleText != null && level >= 1) NiuniaShelfTitle(titleText, on = true)
                     }
                     LiveRow(row, focused = if (level == 1) nav.rowIndex else -1, clockMs = clockMs)
                 }
@@ -686,12 +699,13 @@ private fun ChannelSwitch(channel: LiveTvChannel, logo: String?, focused: Boolea
     val tint = if (focused) NiuniaColors.Text else NiuniaColors.Text70
     Column(
         modifier.width(110.dp).then(if (focused) Modifier.background(NiuniaColors.Fill24, shape).border(1.dp, NiuniaColors.Line, shape) else Modifier).padding(horizontal = 4.dp),
-        horizontalAlignment = Alignment.Start,
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(Icons.Outlined.KeyboardArrowUp, contentDescription = stringResource(R.string.niunia_live_prev), tint = tint, modifier = Modifier.size(26.dp))
-        val url = forgeChannelLogo(channel) ?: logo
-        Box(Modifier.height(36.dp).widthIn(max = 102.dp), contentAlignment = Alignment.CenterStart) {
-            com.nuvio.tv.skin.niunia.livetv.NiuniaChannelLogo(channel, Modifier.height(32.dp).widthIn(max = 102.dp), NiuniaText.Logo.copy(fontSize = 22.sp, lineHeight = 26.sp), Alignment.CenterStart) // Paczka „oczywiste” pkt 5
+        // Przegląd 27.11 (ekran 19, właściciel): logo na całą szerokość kafla (było 32 wysokości, z lewej), wyśrodkowane;
+        // bez logo — nazwa kanału w 2 liniach.
+        Box(Modifier.fillMaxWidth().height(56.dp), contentAlignment = Alignment.Center) {
+            com.nuvio.tv.skin.niunia.livetv.NiuniaChannelLogo(channel, Modifier.fillMaxWidth().height(56.dp), NiuniaText.Logo.copy(fontSize = 19.sp, lineHeight = 22.sp), Alignment.Center, nameLines = 2) // Paczka „oczywiste” pkt 5
 
         }
         Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = stringResource(R.string.niunia_live_next), tint = tint, modifier = Modifier.size(26.dp))

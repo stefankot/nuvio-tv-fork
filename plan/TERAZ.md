@@ -11,3 +11,6 @@ Baza = NuvioTV 1.2.0-beta.4 (scalone do skin-niunia 7ce368066; pliki bazy 1:1 + 
 4. Dalej (kolejka VOD+IPTV, teraz na `baza1126f` — testuj od razu, bez buildu): V7b („Wybierz źródło” 3× bez awarii), 4K + napisy z dodatku bez awarii („The Last of Us” S1 O1, `tt3581920`), V10 (TLOU → 4K BluRay DV 28 Mb/s; `.stage/vod/zrodla.py series tt3581920:1:1`), VOD V2c (Więcej → Jakość; okna Ścieżka dźwiękowa/Napisy z zaznaczeniem), IPTV #84 (Odkrywaj z dysku po restarcie), #85 (OK na kanale z listy → fokus, ▲▼ zmienia kanał), #82b (OK na emisji z archiwum gra archiwum). Lista nowej bazy: `plan/DO_SPRAWDZENIA_NA_TV.md` (sekcja „Baza NuvioTV 1.2.0-beta.4”).
 5. Usunięte z bazą (do decyzji właściciela, czy przywracać wpięciami): formaty dźwięku Arc (bezstratny TrueHD/DTS-HD), miniatury przy przewijaniu, strona Netflix, dopasowanie źródeł do łącza, pasek głośności 100–200 %.
 6. Zmiany na profilu właściciela 27.11: „Guarding Stars” wznowiony ~1 min, „The Brutalist” ~3 min (wcześniej: „F1”, „Taskmaster” S18, „Doktor Strange”, „Oppenheimer” 2:28; kraj IPTV = Polska).
+
+## Wątek „przegląd ekranów” (27.11, 13:20)
+Przekazanie: `plan/ux/przeglad-ekranow/PRZEKAZANIE.md` (build prz02 w toku, testy na JMGO do zrobienia).

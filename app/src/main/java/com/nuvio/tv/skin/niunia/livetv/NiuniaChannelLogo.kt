@@ -41,13 +41,15 @@ internal fun NiuniaChannelLogo(
     modifier: Modifier = Modifier.fillMaxSize(),
     nameStyle: TextStyle = NiuniaText.Button,
     alignment: Alignment = Alignment.Center,
+    /** Przegląd 27.11 (ekran 19): nazwa zamiast logo w kaflu przełączania kanałów — 2 linie. */
+    nameLines: Int = 1,
 ) {
     val chain = remember(channel.streamUrl, channel.logoUrl) { niuniaLogoChain(channel) }
     var index by remember(chain) { mutableIntStateOf(chain.indexOfFirst { it !in failedLogos }.let { if (it < 0) chain.size else it }) }
     val url = chain.getOrNull(index)
     if (url == null) {
         Box(modifier, contentAlignment = alignment) {
-            androidx.compose.material3.Text(com.nuvio.tv.fork.tv.names.ChannelNames.shown(channel.name), style = nameStyle, color = NiuniaColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
+            androidx.compose.material3.Text(com.nuvio.tv.fork.tv.names.ChannelNames.shown(channel.name), style = nameStyle, color = NiuniaColors.Text, maxLines = nameLines, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
         }
         return
     }

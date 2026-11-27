@@ -37,9 +37,11 @@ object ChannelNames {
     }
 
     // „Strong8K: PL| …”, „Strong8K PL …”, „Strong8K · PL: …” (JMGO iptvdb2) — nazwa dostawcy przed znacznikiem kraju.
-    private val PROVIDER = Regex("""^\s*[\p{L}\p{N}+._-]{2,24}\s*[:|·•]?\s+(?=[A-Z]{2,3}\s*[:|\]\-–])""")
+    // Przegląd 27.11, ekran 12: także „Strong8K · PL VIP: …”, „UK RAW | …” (kraj + dopisek pakietu przed dwukropkiem).
+    private const val PACK = "VIP|RAW|4K|8K|UHD|FHD|HD|HEVC|SD|PPV|HDR|50FPS"
+    private val PROVIDER = Regex("""^\s*[\p{L}\p{N}+._-]{2,24}\s*[:|·•]?\s+(?=[A-Z]{2,3}(?:\s+(?:$PACK))?\s*[:|\]\-–])""")
     // „PL: ”, „PL| ”, „PL - ”, „[PL] ”, „(PL) ”, „|PL| ”, „PL ▎”.
-    private val COUNTRY_HEAD = Regex("""^\s*(?:\|\s*[A-Z]{2,3}\s*\||\[\s*[A-Z]{2,3}\s*]|\(\s*[A-Z]{2,3}\s*\)|[A-Z]{2,3}\s*[:|]|[A-Z]{2,3}\s+[-–]\s)\s*""")
+    private val COUNTRY_HEAD = Regex("""^\s*(?:\|\s*[A-Z]{2,3}\s*\||\[\s*[A-Z]{2,3}\s*]|\(\s*[A-Z]{2,3}\s*\)|[A-Z]{2,3}(?:\s+(?:$PACK))?\s*[:|]|[A-Z]{2,3}\s+[-–]\s)\s*""")
     // Na końcu: jakość, rozdzielczość, klatki, kodek (osobne słowo, także w nawiasie: „HD (1080i)”, „FHD 50fps”).
     private val QUALITY_TAIL = Regex(
         """\s*[\(\[]?\s*(?<![\p{L}\p{N}])(?:F?HD|UHD|SD|HQ|LQ|4K|8K|HDR(?:10)?|HEVC|H\.?26[45]|\d{3,4}\s*[pi](?:\s*\d{2,3}\s*fps)?|\d{2,3}\s*fps|RAW|VIP|BACKUP|ᴴᴰ|ᶠᴴᴰ|ᵁᴴᴰ|ˢᴰ|ᴿᴬᵂ)\s*[\)\]]?\s*$""",
@@ -48,6 +50,19 @@ object ChannelNames {
     // Kraj po nazwie: „TVN (PL)”, „TVN [PL]”, „TVN | PL”.
     private val COUNTRY_TAIL = Regex("""\s*(?:[\(\[]\s*[A-Z]{2,3}\s*[\)\]]|[|:]\s*[A-Z]{2,3})\s*$""")
     private val TRIM_CHARS = charArrayOf(' ', '|', ':', '-', '–', '·', '•', '_', '/', ',', '.')
+
+    /**
+     * Przegląd 27.11, ekran 12: „POLSAT FILM” → „Polsat Film” (nazwa w całości wielkimi literami); skróty do 3 liter
+     * („TVN”, „HBO”, „TVP”) i słowa z cyframi zostają.
+     */
+    internal fun normalCase(s: String): String {
+        val letters = s.filter { it.isLetter() }
+        if (letters.length < 4 || letters.any { it.isLowerCase() }) return s
+        return s.split(' ').joinToString(" ") { w ->
+            val l = w.count { it.isLetter() }
+            if (l <= 3 || w.any { it.isDigit() }) w else w.lowercase().replaceFirstChar { it.titlecase() }
+        }
+    }
 
     /** Czyszczenie (bez pamięci; testy JVM). */
     internal fun clean(name: String): String {
@@ -65,6 +80,7 @@ object ChannelNames {
                 s = cut
             }
             s = s.trim(*TRIM_CHARS).replace(Regex("""\s{2,}"""), " ")
+            s = normalCase(s)
         } catch (e: Exception) {
             Log.w(TAG, "nazwa „${name.take(40)}”: ${e.javaClass.simpleName}: ${e.message}")
             return name

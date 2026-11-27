@@ -42,6 +42,11 @@ import com.nuvio.tv.ui.screens.player.PlayerMediaSourceFactory
 import com.nuvio.tv.ui.screens.player.PlayerRuntimeController
 import com.nuvio.tv.ui.screens.player.ignoreLocalBuffering
 import com.nuvio.tv.ui.screens.player.isUsingMpvEngine
+import com.nuvio.tv.ui.screens.player.isSourceSwitching
+import com.nuvio.tv.ui.screens.player.rejectSourceSwitchAttempt
+import com.nuvio.tv.ui.screens.player.sourceSwitchOrigin
+import com.nuvio.tv.ui.screens.player.switchSourceForAudio
+import kotlinx.coroutines.flow.update
 import com.nuvio.tv.ui.screens.player.subtitleRoutes
 import com.nuvio.tv.ui.screens.settings.ForkFeatures
 import kotlinx.coroutines.CancellationException
@@ -86,6 +91,8 @@ internal object PolishDubbing {
         var job: Job? = null
         var analyzer: DubbingAudioSyncAnalyzer? = null
         var binding: Binding? = null
+        /** Prośba z menu dźwięku (zgłoszenie 27.11): gdy dołączenie się nie uda — wydanie z polskim dźwiękiem (Echo, sprawdzane). */
+        var menuOption: com.nuvio.tv.core.streams.AudioMenuOption? = null
     }
 
     private data class Donor(val stream: Stream, val info: TrackScout.Tracks, val audio: DubbingAudioTrack)
@@ -115,10 +122,77 @@ internal object PolishDubbing {
         if (!supportsCurrentSource(owner)) return
         val exo = owner._exoPlayer ?: return
         if (!exo.isPlaying || !exo.isCurrentMediaItemSeekable) return
+        start(owner, exo, restart = false)
+    }
+
+    /**
+     * Zgłoszenie właściciela 27.11 („The Social Reckoning”): menu dźwięku → „Polski”, którego nie ma w pliku, przełączało
+     * źródło (Echo) — skoki po wydaniach i na końcu 1080p bez polskiego. Teraz: polski dźwięk z innego wydania dołączony
+     * do obecnego obrazu (zsynchronizowany). true = obsłużone (bez przełączania źródła). Inne języki i źródła, których
+     * Dublagem nie obsługuje (mpv, torrent, HLS) — dalej przełączanie źródła, ale tylko na plik, który ma ten język
+     * ([onSwitchTracks]).
+     */
+    fun onAudioMenuLanguage(owner: PlayerRuntimeController, option: com.nuvio.tv.core.streams.AudioMenuOption): Boolean {
+        if (!enabled(owner.context)) return false // wyłączony Dublagem: zachowanie Echo bez zmian
+        val lang = option.language
+        if (option.trackIndex != null) return false
+        wantedLanguage[owner] = lang
+        if (lang?.code != "pl") return false
+        if (!supportsCurrentSource(owner)) { Log.i(TAG, "menu: Polish asked, source not supported here → source switch"); return false }
+        val exo = owner._exoPlayer ?: return false
+        if (!exo.isCurrentMediaItemSeekable) return false
+        owner._uiState.update { it.copy(showAudioOverlay = false) }
+        val session = sessions[owner]
+        val url = owner.currentStreamUrl
+        val c = owner.context
+        when {
+            session != null && session.url == url && session.binding != null -> {
+                val polish = audioTracks(exo.currentTracks).firstOrNull { it.group.mediaTrackGroup.id.startsWith("1:") && it.track.isPolish }
+                Log.i(TAG, "menu: Polish asked, donor already joined → select (found=${polish != null})")
+                session.manualAudio = false
+                polish?.let { chooseTrack(exo, it) }
+                ForkLog.say(c, TAG, c.getString(R.string.dublagem_menu_joined))
+            }
+            session != null && session.url == url && session.job?.isActive == true && !session.manualAudio -> {
+                session.menuOption = option
+                Log.i(TAG, "menu: Polish asked, donor search running → wait")
+                ForkLog.say(c, TAG, c.getString(R.string.dublagem_menu_searching))
+            }
+            else -> {
+                Log.i(TAG, "menu: Polish asked → donor search from the menu")
+                ForkLog.say(c, TAG, c.getString(R.string.dublagem_menu_searching))
+                start(owner, exo, restart = true)
+                sessions[owner]?.menuOption = option
+            }
+        }
+        return true
+    }
+
+    /** Język wybrany w menu dźwięku, gdy szło przełączanie źródła (sprawdzany przy ścieżkach nowego pliku). */
+    private val wantedLanguage = WeakHashMap<PlayerRuntimeController, com.nuvio.tv.core.streams.AudioLanguage?>()
+
+    /**
+     * Zgłoszenie 27.11: przełączanie źródła z menu dźwięku przyjmowało plik BEZ wybranego języka („new source has no pl
+     * track”) i na nim zostawało. Teraz taki plik = nieudana próba → następne źródło (albo powrót do poprzedniego).
+     */
+    private fun onSwitchTracks(owner: PlayerRuntimeController, tracks: Tracks) {
+        val lang = wantedLanguage[owner] ?: return
+        if (!owner.isSourceSwitching()) { if (owner.currentStreamUrl.isNotBlank()) wantedLanguage.remove(owner); return }
+        val (origin, _, _) = owner.sourceSwitchOrigin()
+        if (origin?.getStreamUrl() == owner.currentStreamUrl) return
+        val audio = audioTracks(tracks)
+        if (audio.isEmpty()) return
+        val has = audio.any { com.nuvio.tv.core.streams.StreamAudioParser.trackLanguage(it.track.language, it.track.label) == lang }
+        if (has) return
+        Log.w(TAG, "source switch: new file has no ${lang.code} track (${audio.size} tracks) → next source")
+        owner.rejectSourceSwitchAttempt()
+    }
+
+    private fun start(owner: PlayerRuntimeController, exo: ExoPlayer, restart: Boolean) {
         val type = owner.contentType ?: return
         val videoId = owner.currentVideoId ?: owner.contentId ?: return
         val url = owner.currentStreamUrl
-        if (sessions[owner]?.let { it.videoId == videoId && it.url == url && it.player.get() === exo } == true) return
+        if (!restart && sessions[owner]?.let { it.videoId == videoId && it.url == url && it.player.get() === exo } == true) return
         release(owner)
         val session = Session(type, videoId, url, WeakReference(exo))
         sessions[owner] = session
@@ -139,6 +213,13 @@ internal object PolishDubbing {
                 session.job = null
                 session.analyzer = null
                 session.collecting = false
+                val asked = session.menuOption
+                session.menuOption = null
+                if (asked != null && isCurrent(owner, session) && session.binding == null) {
+                    Log.i(TAG, "menu: Polish could not be joined to this picture → release with Polish audio (checked)")
+                    ForkLog.say(owner.context, TAG, owner.context.getString(R.string.dublagem_menu_failed))
+                    owner.switchSourceForAudio(asked)
+                }
                 if (isCurrent(owner, session) && !session.manualAudio && session.binding == null) {
                     PlayerBridge.maybeAutoLektor(owner.context)
                 }
@@ -179,6 +260,7 @@ internal object PolishDubbing {
         if (internal != null) chooseTrack(exo, internal)
         if (duration < 48_000L) return
         val candidates = findDonors(owner, session, edition, internal?.track)
+        Log.i(TAG, "donors with Polish audio: ${candidates.size} (internal Polish=${internal != null}, durationS=${duration / 1000})")
         if (candidates.isEmpty() || !isCurrent(owner, session)) return
         val primary = PlayerMediaSourceFactory.normalizePlaybackRequest(session.url, owner.currentHeaders)
         val analyzer = DubbingAudioSyncAnalyzer(minimumWindowMs = WINDOW_MS)
@@ -250,14 +332,19 @@ internal object PolishDubbing {
             while (shortlist().any(TrackScout::probing)) delay(200L)
         }
         val decoderSupport = mutableMapOf<DubbingAudioTrack, Boolean>()
+        val why = HashMap<String, Int>()
+        fun skip(r: String) { why[r] = (why[r] ?: 0) + 1 }
         shortlist().flatMap { stream ->
-            val url = stream.getStreamUrl() ?: return@flatMap emptyList()
-            val info = TrackScout.of(stream) ?: return@flatMap emptyList()
+            val url = stream.getStreamUrl() ?: return@flatMap emptyList<Donor>().also { skip("no_url") }
+            val info = TrackScout.of(stream) ?: return@flatMap emptyList<Donor>().also { skip("not_probed") }
             val donorEdition = DubbingEdition(
                 releaseEdition(stream.behaviorHints?.filename, stream.title, stream.name, stream.description),
                 info.durationMs, info.frameRate,
             )
-            if (url == session.url || !info.byteRanges || !edition.matches(donorEdition)) return@flatMap emptyList()
+            if (url == session.url) return@flatMap emptyList<Donor>().also { skip("same_file") }
+            if (!info.byteRanges) return@flatMap emptyList<Donor>().also { skip("no_byte_ranges") }
+            if (!edition.matches(donorEdition)) return@flatMap emptyList<Donor>().also { skip("other_edition_or_length") }
+            if (info.audioDetails.none { it.isPolish }) skip("no_polish_track")
             info.audioDetails.filter { track ->
                 track.isPolish && track.isMainProgram &&
                     (internal == null || DubbingAudioTrack.quality.compare(track, internal) > 0) &&
@@ -265,6 +352,7 @@ internal object PolishDubbing {
             }.map { Donor(stream, info, it) }
         }.sortedWith(compareByDescending<Donor, DubbingAudioTrack>(DubbingAudioTrack.quality) { it.audio }
             .thenBy { it.stream.behaviorHints?.videoSize ?: ReleaseFactsParser.factsFor(it.stream).size ?: Long.MAX_VALUE })
+            .also { Log.i(TAG, "donor shortlist=${shortlist().size} kept=${it.size} skipped=$why") }
     }
 
     private fun sharedComparisonTracks(
@@ -366,6 +454,7 @@ internal object PolishDubbing {
         )
 
     fun onTracks(owner: PlayerRuntimeController, tracks: Tracks) {
+        runCatching { onSwitchTracks(owner, tracks) }.onFailure { Log.w(TAG, "onSwitchTracks: ${it.javaClass.simpleName}: ${it.message}") }
         val session = sessions[owner] ?: return
         val binding = session.binding ?: return
         val exo = owner._exoPlayer ?: return

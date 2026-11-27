@@ -177,11 +177,24 @@ fun NiuniaDetail(
     }
     val extras: com.nuvio.tv.skin.niunia.player.NiuniaPlayerExtrasViewModel = androidx.hilt.navigation.compose.hiltViewModel()
     val extrasState by extras.state.collectAsState()
+    // Przegląd 27.11, ekran 08: OK na „O serialu” nic nie robiło — cel (Obsada) leżał niżej w liście, jeszcze nienarysowany,
+    // i prośba o fokus przepadała po cichu. Teraz: wejście na stronę pod hero, przewijanie krok po kroku aż Obsada dostanie fokus.
     fun focusAbout(why: String) {
         Log.i(TAG, "szczegóły: $why → Obsada i opis (DetailMore)")
-        try { aboutFocus.requestFocus() } catch (e: IllegalStateException) {
-            Log.w(TAG, "szczegóły: $why: ${e.javaClass.simpleName}: ${e.message} — fokus na stronę pod hero")
-            try { belowFocus.requestFocus() } catch (e2: IllegalStateException) { Log.w(TAG, "szczegóły: $why: ${e2.javaClass.simpleName}: ${e2.message}") }
+        scope.launch {
+            try { belowFocus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "szczegóły: $why: strona pod hero: ${e.javaClass.simpleName}: ${e.message}") }
+            for (step in 0 until 12) {
+                kotlinx.coroutines.delay(80)
+                try { aboutFocus.requestFocus() } catch (e: IllegalStateException) { if (step == 0) Log.i(TAG, "szczegóły: $why: Obsada jeszcze nienarysowana — przewijam") }
+                kotlinx.coroutines.delay(40)
+                if (focusedRow == 3) { Log.i(TAG, "szczegóły: $why → fokus na Obsadzie (krok $step)"); return@launch }
+                val total = belowList.layoutInfo.totalItemsCount
+                if (total == 0) continue
+                val next = (belowList.firstVisibleItemIndex + 1).coerceAtMost(total - 1)
+                try { belowList.animateScrollToItem(next) } catch (e: Exception) { Log.w(TAG, "szczegóły: $why: przewijanie: ${e.javaClass.simpleName}: ${e.message}") }
+            }
+            Log.w(TAG, "szczegóły: $why — Obsada niedostępna")
+            com.nuvio.tv.fork.ForkLog.say(context, TAG, context.getString(R.string.niunia_review_about_below))
         }
     }
 
@@ -215,9 +228,9 @@ fun NiuniaDetail(
         },
         detailBlur = true, // Z-2: lewa część obrazu rozmyta na API 31+
         // Z-2: przyciemnienie hero szczegółów — scrim-detail (API 31+) albo scrim-detail-flat (Android 11), dół scrim-detail-bottom; rysuje je tło strony (fork/glass).
+        // Przegląd 27.11, ekran 27 (właściciel): szara nakładka od lewej usunięta całkowicie; czytelność tekstu daje rozmyta
+        // kopia obrazu pod tekstem (NiuniaHeroPage, także Android 11). Zostaje tylko przejście od dołu w stronę pod hero.
         scrim = {
-            val flat = android.os.Build.VERSION.SDK_INT < 31
-            Box(Modifier.fillMaxSize().background((if (flat) com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimDetailFlat else com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimDetail).brush()))
             Box(Modifier.fillMaxSize().background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimDetailBottom.brush()))
         },
         belowFocusRequester = belowFocus,
@@ -662,7 +675,7 @@ private fun Hero(
     Box(Modifier.fillMaxSize()) { // tło rysuje NiuniaHeroPage
         // Z-2: przyciemnienie hero szczegółów — scrim-detail (API 31+) albo scrim-detail-flat (Android 11, JMGO), dół scrim-detail-bottom.
         val flat = android.os.Build.VERSION.SDK_INT < 31
-        LaunchedEffect(flat) { Log.i(TAG, "szczegóły: effects: ${if (flat) "flat" else "blur"} (scrim-detail${if (flat) "-flat" else ""} + scrim-detail-bottom, przyciski haze)") }
+        LaunchedEffect(flat) { Log.i(TAG, "szczegóły: effects: ${if (flat) "flat" else "blur"} (rozmycie z lewej + scrim-detail-bottom, przyciski haze)") }
         Column(
             Modifier.align(Alignment.BottomStart).offset(y = if (stills.isNotEmpty()) NiuniaSize.Peek else -NiuniaSpacing.Space40)
                 .padding(horizontal = NiuniaSpacing.Space40).fillMaxWidth(),
@@ -705,7 +718,8 @@ private fun Hero(
                     )
                     NiuniaButton(onClick = onLibrary, icon = if (uiState.isInLibrary) "check" else "plus", onLongClick = onLibraryLong,
                         description = stringResource(if (uiState.isInLibrary) R.string.niunia_pinfo_in_library else R.string.niunia_ds_add_library), onFocus = { if (it) onFocus() }, haze = true)
-                    NiuniaButton(onClick = onAbout, icon = "about",
+                    // Przegląd 27.11, ekran 08 pkt b: przycisk z podpisem („O serialu” / „O filmie”), nie sama ikona.
+                    NiuniaButton(onClick = onAbout, icon = "about", label = stringResource(if (series) R.string.niunia_ds_about_series else R.string.niunia_ds_about_movie),
                         description = stringResource(if (series) R.string.niunia_ds_about_series else R.string.niunia_ds_about_movie), onFocus = { if (it) onFocus() }, haze = true)
                     // Z-17 (P-15): „Zwiastun” ostatni w rzędzie akcji hero (tylko gdy tytuł ma zwiastun).
                     if (onTrailer != null) NiuniaButton(onClick = onTrailer, icon = "trailer", description = stringResource(R.string.niunia_ke2_trailer), onFocus = { if (it) onFocus() }, haze = true)

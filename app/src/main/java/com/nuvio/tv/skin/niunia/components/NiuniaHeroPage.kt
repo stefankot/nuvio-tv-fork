@@ -126,6 +126,23 @@ fun NiuniaHeroPage(
                     },
             )
         }
+        // Przegląd 27.11, ekran 27: bez rozmycia na żywo (Android 11, JMGO) lewa część hero = statycznie rozmyta kopia obrazu
+        // (ta sama co tło pod hero) widoczna przez maskę od lewej (pełna do 32 %, znika do 64 %) — zamiast szarej nakładki.
+        if (detailBlur && !blurOk && blurred != null) {
+            LaunchedEffect(Unit) { Log.i(TAG, "$what: effects: rozmycie statyczne z lewej (maska do 64 %)") }
+            AsyncImage(
+                model = blurred, contentDescription = null, contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+                    .graphicsLayer { alpha = 1f - t; compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
+                    .drawWithContent {
+                        if (t < 0.999f) {
+                            drawContent()
+                            drawRect(androidx.compose.ui.graphics.Brush.horizontalGradient(0f to Color.Black, 0.32f to Color.Black, 0.64f to Color.Transparent),
+                                blendMode = androidx.compose.ui.graphics.BlendMode.DstIn)
+                        }
+                    },
+            )
+        }
         if (blurred != null) AsyncImage(
             model = blurred, contentDescription = null, contentScale = ContentScale.Crop,
             onState = { blurReady = it is AsyncImagePainter.State.Success },

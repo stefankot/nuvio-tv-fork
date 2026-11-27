@@ -54,6 +54,7 @@ import com.nuvio.tv.skin.kicia.livetv.ForgeEpgCategories
 import com.nuvio.tv.skin.kicia.livetv.ForgeTvSearchMemory
 import com.nuvio.tv.skin.kicia.livetv.forgeTvSearch
 import com.nuvio.tv.skin.niunia.components.niuniaFocusable
+import com.nuvio.tv.skin.niunia.components.niuniaOk
 import com.nuvio.tv.skin.niunia.tokens.NiuniaColors
 import com.nuvio.tv.skin.niunia.tokens.NiuniaDims
 import com.nuvio.tv.skin.niunia.tokens.NiuniaText
@@ -89,7 +90,9 @@ internal fun NiuniaLiveSearch(
     var query by remember { mutableStateOf(ForgeTvSearchMemory.lastQuery) }
     var digits by remember { mutableStateOf(false) }
     var category by remember { mutableStateOf(ForgeEpgCategories.PROG_ALL) }
-    var grid by remember { mutableStateOf(NiuniaLiveFilters.searchGrid(context)) }
+    // Przegląd 27.11, ekran 17: bez przełącznika Rzędy/Siatka — wyniki zawsze siatką; historia szukania zapisana na dysku.
+    remember { NiuniaLiveRecent.load(context) }
+    var askRemove by remember { mutableStateOf<String?>(null) }
     val favShows by TvStore.favoriteShows.collectAsState()
     val firstKey = remember { FocusRequester() }
     LaunchedEffect(Unit) {
@@ -137,8 +140,9 @@ internal fun NiuniaLiveSearch(
         results ?: return@LaunchedEffect
         Log.i(TAG, "szukaj tv: „$query” (${ForgeEpgCategories.nameOf(category)}) → programy=${results.programmes.size}, kanały=${results.channels.size}, kategorie=$matchedCategories")
     }
-    val suggestions = remember(query, results, treeRows) {
-        if (query.isBlank()) ForgeTvSearchMemory.recent.take(3)
+    val recentList = ForgeTvSearchMemory.recent.toList()
+    val suggestions = remember(query, results, treeRows, recentList) {
+        if (query.isBlank()) recentList.take(5)
         else {
             val q = ForgeEpgCategories.norm(query.trim())
             (programmeTiles.mapNotNull { it.programme?.title?.lowercase() } + channelTiles.map { it.channel.name.lowercase() } + treeRows.drop(2).map { it.name.lowercase() })
@@ -148,7 +152,7 @@ internal fun NiuniaLiveSearch(
 
     fun type(q: String) { query = q; ForgeTvSearchMemory.lastQuery = q }
     fun open(ch: LiveTvChannel, p: LiveTvProgramme?) {
-        if (query.isNotBlank()) ForgeTvSearchMemory.add(query.trim())
+        if (query.isNotBlank()) NiuniaLiveRecent.add(context, query.trim())
         onPlay(ch, p)
     }
     // IPTV #82 (właściciel 26.11): OK na programie prowadziło do emisji, której jeszcze nie nadano („Ten program zacznie się…”) —
@@ -157,7 +161,7 @@ internal fun NiuniaLiveSearch(
     val backFocus = remember { FocusRequester() }
     fun openProgramme(t: NiuniaLiveTile) {
         val p = t.programme ?: return open(t.channel, null)
-        if (query.isNotBlank()) ForgeTvSearchMemory.add(query.trim())
+        if (query.isNotBlank()) NiuniaLiveRecent.add(context, query.trim())
         Log.i(TAG, "szukaj tv: OK → strona programu „${p.title}”")
         backKey = "p:" + t.key; onProgramme(t.channel, p)
     }
@@ -202,7 +206,8 @@ internal fun NiuniaLiveSearch(
             if (suggestions.isNotEmpty()) {
                 Text(stringResource(if (query.isBlank()) R.string.niunia_tv_recent_searches else R.string.niunia_tv_suggestions), style = NiuniaText.Caption.copy(fontSize = 12.sp),
                     color = NiuniaColors.Text50, modifier = Modifier.padding(start = 8.dp, top = 14.dp, bottom = 4.dp))
-                suggestions.forEach { s -> Suggestion(s, if (query.isBlank()) Icons.Outlined.History else Icons.Outlined.Search) { type(s) } }
+                suggestions.forEach { s -> Suggestion(s, if (query.isBlank()) Icons.Outlined.History else Icons.Outlined.Search,
+                    onLong = if (query.isBlank()) ({ askRemove = s }) else null) { type(s) } }
             }
         }
         // Drzewo kategorii (x 290).
@@ -226,17 +231,13 @@ internal fun NiuniaLiveSearch(
         Column(Modifier.padding(start = 584.dp, top = 150.dp, end = NiuniaDims.Gutter).fillMaxSize()) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.niunia_tv_programmes) + (results?.let { " · ${it.programmes.size}" } ?: ""), style = NiuniaText.Row, color = NiuniaColors.Text50, modifier = Modifier.weight(1f))
-                Row(Modifier.width(150.dp).height(32.dp).then(with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Chip, RoundedCornerShape(16.dp), fallback = Color(0x0FFFFFFF)) }).padding(3.dp)) {
-                    Seg(stringResource(R.string.niunia_tv_view_rows), !grid, Modifier.weight(1f)) { grid = false; NiuniaLiveFilters.setSearchGrid(context, false); Log.i(TAG, "szukaj tv: widok rzędy") }
-                    Seg(stringResource(R.string.niunia_tv_view_grid), grid, Modifier.weight(1f)) { grid = true; NiuniaLiveFilters.setSearchGrid(context, true); Log.i(TAG, "szukaj tv: widok siatka") }
-                }
             }
             when {
                 results == null -> Unit
                 programmeTiles.isEmpty() && channelTiles.isEmpty() -> Text(
                     stringResource(if (query.isBlank() && category == ForgeEpgCategories.PROG_ALL) R.string.niunia_tv_search_start else R.string.niunia_tv_search_none),
                     style = NiuniaText.Body, color = NiuniaColors.Text50, modifier = Modifier.padding(top = 16.dp))
-                grid -> LazyVerticalGrid(GridCells.Fixed(2), Modifier.fillMaxSize(), contentPadding = PaddingValues(top = 14.dp, bottom = 30.dp, end = 6.dp),
+                else -> LazyVerticalGrid(GridCells.Fixed(2), Modifier.fillMaxSize(), contentPadding = PaddingValues(top = 14.dp, bottom = 30.dp, end = 6.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                     items(programmeTiles.size + channelTiles.size) { i ->
                         if (i < programmeTiles.size) programmeTiles[i].let { t -> NiuniaLiveTileCard(t, longBadge = false, focusRequester = req("p:", t)) { openProgramme(t) } }
@@ -245,24 +246,20 @@ internal fun NiuniaLiveSearch(
                         }
                     }
                 }
-                else -> LazyColumn(Modifier.fillMaxSize().padding(top = 8.dp)) {
-                    if (programmeTiles.isNotEmpty()) item { NiuniaLiveShelfPlain(programmeTiles, { req("p:", it) }) { openProgramme(it) } }
-                    if (channelTiles.isNotEmpty()) item {
-                        Text(stringResource(R.string.niunia_tv_channels) + " · ${channelTiles.size}", style = NiuniaText.Row, color = NiuniaColors.Text50, modifier = Modifier.padding(top = 8.dp))
-                        NiuniaLiveShelfPlain(channelTiles, { req("c:", it) }, onLong = { niuniaToggleFavourite(context, it.channel) }) { openChannel(it) }
-                    }
-                }
             }
         }
     }
-}
-
-@Composable
-private fun NiuniaLiveShelfPlain(tiles: List<NiuniaLiveTile>, requester: (NiuniaLiveTile) -> FocusRequester?, onLong: ((NiuniaLiveTile) -> Unit)? = null, onOk: (NiuniaLiveTile) -> Unit) {
-    androidx.compose.foundation.lazy.LazyRow(contentPadding = PaddingValues(top = 10.dp, bottom = 14.dp, end = 20.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        items(tiles, key = { it.key }) { t -> NiuniaLiveTileCard(t, longBadge = false, focusRequester = requester(t), onLongOk = onLong?.let { f -> { f(t) } }) { onOk(t) } }
+    askRemove?.let { q ->
+        com.nuvio.tv.skin.niunia.components.NiuniaActionsDialog(
+            eyebrow = stringResource(R.string.niunia_tv_recent_searches), title = q, state = null,
+            actions = listOf(com.nuvio.tv.skin.niunia.components.NiuniaDialogAction(stringResource(R.string.niunia_tv2_hist_remove)) {
+                NiuniaLiveRecent.remove(context, q)
+            }),
+            onDismiss = { askRemove = null },
+        )
     }
 }
+
 
 @Composable
 private fun TreeItem(row: TreeRow, query: String, selected: Boolean, onOk: () -> Unit) {
@@ -293,11 +290,11 @@ private fun highlight(name: String, query: String, focused: Boolean) = buildAnno
 }
 
 @Composable
-private fun Suggestion(text: String, icon: ImageVector, onOk: () -> Unit) {
+private fun Suggestion(text: String, icon: ImageVector, onLong: (() -> Unit)? = null, onOk: () -> Unit) {
     var focused by remember { mutableStateOf(false) }
     val shape = RoundedCornerShape(NiuniaDims.RadiusCard)
     Row(
-        Modifier.fillMaxWidth().height(28.dp).niuniaFocusable(shape, scale = 1.02f, lift = false, onFocus = { focused = it }, onOk = onOk)
+        Modifier.fillMaxWidth().height(28.dp).niuniaOk("szukaj tv: podpowiedź", onFocus = { focused = it }, onLongClick = onLong, onClick = onOk)
             .background(if (focused) NiuniaColors.Focus else Color.Transparent, shape).padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {

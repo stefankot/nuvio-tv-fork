@@ -2,4 +2,11 @@
 <!-- Przegląd ekranów z właścicielem 27.11 (plan/ux/przeglad-ekranow/NOTATKA.md): nowe teksty skórki Niunia. -->
 <resources>
     <string name="player_subs_other_languages">Inne języki</string>
+    <string name="niunia_review_live_continue_empty">Nie masz rozpoczętych programów z archiwum. Włącz program z przewodnika — wróci tutaj.</string>
+    <string name="niunia_review_live_fav_empty">Nie masz ulubionych kanałów ani programów. Przytrzymaj OK na kanale, aby go dodać.</string>
+    <string name="niunia_review_about_below">Opis i obsada są niżej na stronie — naciśnij ▼</string>
+    <string name="niunia_review_live_prev_episodes">Poprzednie odcinki</string>
+    <string name="niunia_review_live_from_archive">Z archiwum: %1$s</string>
+    <string name="niunia_review_yt_search_hint">Szukaj w YouTube</string>
+    <string name="niunia_review_yt_search_tip">Wpisz, czego szukasz, i naciśnij „Szukaj” albo wybierz podpowiedź. Wyniki: filmy, kanały i playlisty z YouTube.</string>
 </resources>

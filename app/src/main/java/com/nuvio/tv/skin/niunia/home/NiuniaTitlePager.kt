@@ -131,11 +131,9 @@ private fun Card(
     val shape = RoundedCornerShape(topStart = NiuniaRadius.Radius28, topEnd = NiuniaRadius.Radius28)
     Box(Modifier.size(NiuniaSize.PagerCardW, 520.dp).clip(shape).background(NiuniaColor.Surface).then(if (active) Modifier else Modifier.alpha(NiuniaOpacity.OpacityDisabled))) {
         AsyncImage(model = item.background ?: item.landscapePoster ?: item.poster, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
-        // scrim-detail (od lewej) + scrim-detail-bottom; na Androidzie 11 pełniejsze tło od lewej (scrim-detail-flat).
-        val flat = android.os.Build.VERSION.SDK_INT < 31
-        val left = if (flat) NiuniaColor.Bg else NiuniaColor.Bg.copy(alpha = 0.85f)
-        Box(Modifier.fillMaxSize().background(Brush.horizontalGradient(0f to left, (if (flat) 0.45f else 0.35f) to left.copy(alpha = if (flat) 0.92f else 0.6f), 0.7f to Color.Transparent)))
-        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.55f to Color.Transparent, 1f to NiuniaColor.Bg.copy(alpha = 0.92f))))
+        // Przegląd 27.11 (ekrany 01 i 27, DECYZJE 27.11): bez przyciemnienia od lewej (szara plama na pół karty na Androidzie 11) —
+        // obraz widoczny w całości, tylko przyciemnienie od dołu pod tekstem.
+        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.4f to Color.Transparent, 0.75f to NiuniaColor.Bg.copy(alpha = 0.6f), 1f to NiuniaColor.Bg.copy(alpha = 0.92f))))
         Column(Modifier.align(Alignment.BottomStart).padding(NiuniaSpacing.Space20).padding(bottom = NiuniaSpacing.Space20), verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space16)) {
             NiuniaContentBlock(NiuniaBlockKind.Info) {
                 if (ranking) NiuniaTag(stringResource(R.string.niunia_tv2_pager_rank, index + 1, rowName), NiuniaTagKind.Chip)
@@ -149,19 +147,15 @@ private fun Card(
                     com.nuvio.tv.skin.niunia.detail.niuniaRuntimeLabel(androidx.compose.ui.platform.LocalContext.current, item.runtime)).joinToString(" · ")
                 if (dateLine.isNotBlank()) NiuniaText(dateLine, variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 1)
             }
-            // ◄ z Odtwórz / ► z (i) = sąsiednia karta; przyciski kart nieaktywnych bez fokusu.
-            Row(
-                Modifier.focusGroup(),
-                horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12), verticalAlignment = Alignment.CenterVertically,
-            ) {
-                NiuniaButton(onClick = onPlay, label = stringResource(R.string.niunia_detail_play), icon = "play", focusRequester = play, haze = true, enabled = active,
-                    modifier = Modifier.onPreviewKeyEvent { e -> if (e.type == KeyEventType.KeyDown && e.key == Key.DirectionLeft) { onLeft(); true } else false })
-                NiuniaButton(onClick = onLibrary, icon = if (inLibrary) "check" else "plus", haze = true, enabled = active,
-                    description = stringResource(if (inLibrary) R.string.niunia_pinfo_in_library else R.string.niunia_ds_add_library))
-                NiuniaButton(onClick = onDetails, icon = "about", haze = true, enabled = active,
-                    description = stringResource(if (item.rawType == "series") R.string.niunia_ds_about_series else R.string.niunia_ds_about_movie),
-                    modifier = Modifier.onPreviewKeyEvent { e -> if (e.type == KeyEventType.KeyDown && e.key == Key.DirectionRight) { onRight(); true } else false })
-            }
+            // Przegląd 27.11, ekran 01: karta = jeden cel fokusu; ◄/► zawsze poprzedni/następny tytuł, OK = Szczegóły
+            // (odtwarzanie i „+” są w Szczegółach). Przyciski kart nieaktywnych bez fokusu.
+            NiuniaButton(onClick = { android.util.Log.i("ForkNiunia", "karta tytułu: OK → Szczegóły ${item.name}"); onDetails() },
+                label = stringResource(if (item.rawType == "series") R.string.niunia_ds_about_series else R.string.niunia_ds_about_movie),
+                icon = "about", focusRequester = play, haze = true, enabled = active,
+                modifier = Modifier.onPreviewKeyEvent { e ->
+                    if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                    when (e.key) { Key.DirectionLeft -> { onLeft(); true }; Key.DirectionRight -> { onRight(); true }; else -> false }
+                })
         }
     }
 }

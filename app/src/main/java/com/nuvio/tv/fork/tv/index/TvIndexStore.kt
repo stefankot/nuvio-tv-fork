@@ -20,7 +20,7 @@ object TvIndexStore {
     /** klucz przewodnika → skrót listy programów (porównanie po restarcie) */
     val fingerprints = DiskMemo("fingerprints", "1")
     /** nazwa kanału → kraj z nazwy ("" = brak); v2 (IPTV #81, 26.11): kraj za przedrostkiem dostawcy — jedno przeliczenie */
-    val country = DiskMemo("country", "2", poolValues = true)
+    val country = DiskMemo("country", "3", poolValues = true) // 3: przegląd 27.11 — „AR:” = arabskie, kody 3-literowe, słowa (INDIA)
     /** nazwa kanału → kategorie (Kicia ForgeEpgCategories.channelPlaces); wersja = skrót reguł, ustawiana przez [placesMemo] */
     @Volatile private var places: DiskMemo? = null
 
