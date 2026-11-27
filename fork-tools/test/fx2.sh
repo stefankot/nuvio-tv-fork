@@ -1,6 +1,6 @@
 #!/bin/bash
 # fx2.sh: fokus + teksty ekranu (odporne na „>” w tekstach — ElementTree). Użycie: fx2.sh [ile_znakow]
-adb shell uiautomator dump /sdcard/u.xml >/dev/null 2>&1; adb pull /sdcard/u.xml /tmp/u.xml >/dev/null 2>&1
+adb shell rm -f /sdcard/u.xml; rm -f /tmp/u.xml; adb shell uiautomator dump /sdcard/u.xml >/dev/null 2>&1; adb pull /sdcard/u.xml /tmp/u.xml >/dev/null 2>&1  # 26.11: bez starego zrzutu, gdy nowy się nie uda
 python3 - "${1:-0}" <<'P'
 import sys,xml.etree.ElementTree as E
 r=E.parse('/tmp/u.xml').getroot(); ts=[]; f=None

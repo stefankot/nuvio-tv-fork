@@ -76,8 +76,9 @@ object NiuniaSkin : Skin {
             com.nuvio.tv.skin.niunia.stream.NiuniaStreams(
                 uiState = a["uiState"] as com.nuvio.tv.ui.screens.stream.StreamScreenUiState,
                 resumeText = a["resumeText"] as String?,
-                onAddonFilter = a["onFilter"] as (String?) -> Unit,
-                onRetry = a["onRetry"] as () -> Unit,
+                // V7b (26.11): bez twardego rzutowania — zła lambda w mapie nie zamyka aplikacji.
+                onAddonFilter = (a["onFilter"] as? (String?) -> Unit) ?: { _: String? -> android.util.Log.w("ForkNiunia", "źródła: brak funkcji filtra (${a["onFilter"]?.javaClass?.simpleName})"); Unit },
+                onRetry = (a["onRetry"] as? () -> Unit) ?: { android.util.Log.w("ForkNiunia", "źródła: brak funkcji Ponów (${a["onRetry"]?.javaClass?.simpleName})"); Unit },
                 onPlay = a["onPlay"] as (com.nuvio.tv.domain.model.Stream) -> Unit,
             ); true
         }

@@ -1,5 +1,20 @@
 # Odtwarzacz filmów i seriali (TorBox) — wyniki sprawdzenia
 
+**Pętla 4 (26.11, 21:44–22:20; `uxr17`, potem `uxr18` zainstalowany): 3 nowe poprawki aplikacji (V7b, V9, V10 — w HEAD, niezbudowane, wejdą do wspólnego buildu z aktualizacją bazy), sprawdzona na projektorze 1 (V8 ✔). Znalezione 2 awarie aplikacji.**
+
+## Pętla 4
+
+| Co | Wynik |
+| --- | --- |
+| V8: „Taskmaster” S18 O3 | ✔ Start w 4,9 s, plik SELection 1080p WEB-DL 1,82 GB z TorBox (wydanie RAWR) = plik nr 1 wyliczony z Twoich ustawień, nie 360p. Napisy AI włączyły się same (brak polskich). |
+| „The Last of Us” S1 O1 | ✘ Wybrany 4K BluRay DV **18,8 Mb/s** zamiast 28 Mb/s. Przyczyna: stara reguła „wolny pośrednik 4K” brała cały dodatek SELection za wolny i tasowała pliki 4K. Poprawka **V10** (reguła tylko dla MediaFusion). |
+| ✘ **Awaria w trakcie filmu** („The Last of Us”, 4K) | Po ok. 20 s aplikacja się zamknęła: dopasowanie polskich napisów do mowy wczytywało model Whisper „base”, a w 32-bitowej aplikacji przy 4K zabrakło 200 MB ciągłej pamięci. Poprawka **V9**: przed wczytaniem modelu aplikacja sprawdza wolną pamięć; gdy brak — mniejszy model albo dopasowanie bez rozpoznawania mowy, bez awarii. |
+| ✘ V7: ekran źródeł | **Nadal pada** przy „Wybierz źródło” z „Oglądaj dalej” (ta sama przyczyna co w pętli 2). Prawdziwy powód: pod przyciskiem „Ponów” trafiała funkcja filtra. Poprawka **V7b**. |
+| V2c (okna Jakość, Dźwięk, Napisy z panelu) | Nie sprawdzone — `uxr18` zainstalowany dopiero o 22:15. |
+
+Zmiany na Twoim profilu: „Taskmaster” S18 O3 ~1 min (jest w „Oglądaj dalej”), „The Last of Us” S1 O1 ~20 s (do awarii).
+
+
 **Pętla 3 (26.11, 21:24–21:31, wersja `uxr17` na projektorze; przerwana — zapis stanu): 1 nowa poprawka aplikacji (V2c), sprawdzonych na projektorze: 0 (wejdzie do `uxr18`). Z poprawek `uxr17` działają V6 i migracja reguł v5; V2b sama nie wystarczyła; V7 i V8 jeszcze nie sprawdzone do końca.**
 
 ## Pętla 3 (`uxr17`)

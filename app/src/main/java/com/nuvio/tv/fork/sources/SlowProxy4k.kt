@@ -13,7 +13,10 @@ import com.nuvio.tv.domain.model.Stream
  */
 internal object SlowProxy4k {
     private const val TAG = "ForkSources"
-    private val SLOW_HOSTS = listOf("elfhosted")
+    // 26.11 (test VOD, JMGO uxr17): „elfhosted” łapało też SELection (aiostreams.elfhosted.com) i Comet — cały
+    // główny dodatek właściciela. Jego pliki 4K 22–35 Mb/s grały płynnie (F1, Oppenheimer), a przestawianie tasowało
+    // kolejność 4K w obrębie reguł („The Last of Us” S1 O1: 18,8 Mb/s zamiast 28 Mb/s). Wolny był tylko pośrednik MediaFusion.
+    private val SLOW_HOSTS = listOf("mediafusion")
 
     /** Klucze porównywane po kolei (mniejszy = lepszy): czy [a] nie jest gorszy od [b]. */
     private fun notWorse(a: List<Int>, b: List<Int>): Boolean {
