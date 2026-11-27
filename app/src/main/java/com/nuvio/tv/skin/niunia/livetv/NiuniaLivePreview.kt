@@ -7,6 +7,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
@@ -79,21 +82,21 @@ internal fun NiuniaLivePreviewBox(channel: LiveTvChannel, programme: LiveTvProgr
         kotlinx.coroutines.delay(3_000)
         if (preview.showingVideo) NiuniaLiveStatus.ok(ctx, channel.streamUrl, channel.name)
     }
-    // Przegląd 27.11 (11): większy podgląd. Test JMGO prz04: przycięcie pola (clipToBounds) rysowało obraz TextureView NAD
-    // gradientami — bez przycinania; samo wideo 588×331 (16:9) kończy się w strefie pełnego tła (od 288 dp), więc nie wystaje.
-    Box(modifier.size(640.dp, 360.dp)) {
+    Box(modifier.size(520.dp, 288.dp)) {
         val still = programme?.image?.takeIf { it.isNotBlank() } ?: com.nuvio.tv.skin.kicia.livetv.forgeChannelLogo(channel)
-        if (!showing && still != null) AsyncImage(model = still, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.align(Alignment.TopEnd).size(588.dp, 331.dp))
+        if (!showing && still != null) AsyncImage(model = still, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
         AndroidView(
             factory = { c -> TextureView(c).also { preview.attach(it) } },
             onRelease = { preview.detach(it) },
-            modifier = Modifier.align(Alignment.TopEnd).size(588.dp, 331.dp).alpha(if (showing) 1f else 0f), // do pierwszej klatki widać kadr programu
+            modifier = Modifier.fillMaxSize().alpha(if (showing) 1f else 0f), // do pierwszej klatki widać kadr programu
         )
         // Maska z makiety: od lewej przezroczysto → pełno od 45 %, od dołu pełno do 55 % → przezroczysto (tu: tło skórki na wierzchu).
         Box(Modifier.fillMaxSize().background(Brush.horizontalGradient(0f to NiuniaColor.Bg, 0.45f to Color.Transparent)))
-        // Od 80 % wysokości (dawna dolna krawędź 288 dp) pełne tło — nad osią godzin przewodnika nie widać paska obrazu.
-        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.45f to Color.Transparent, 0.8f to NiuniaColor.Bg, 1f to NiuniaColor.Bg)))
-        Column(Modifier.align(Alignment.BottomEnd).padding(end = 40.dp, bottom = 144.dp)) {
+        // Przegląd 27.11 (11 pkt 1): od 90 % wysokości pełne tło, a na samej krawędzi pasek tła (także 4 dp poniżej pola) —
+        // dolna krawędź wideo (kilka pikseli poza polem) nie wystaje nad osią godzin przewodnika. Powiększenie (pkt 2) — BLOKADY.
+        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.55f to Color.Transparent, 0.9f to NiuniaColor.Bg, 1f to NiuniaColor.Bg)))
+        Box(Modifier.align(Alignment.BottomCenter).offset(y = 4.dp).fillMaxWidth().height(10.dp).background(NiuniaColor.Bg))
+        Column(Modifier.align(Alignment.BottomEnd).padding(end = 40.dp, bottom = 72.dp)) {
             NiuniaTag(stringResource(R.string.niunia_tv2_preview_badge, com.nuvio.tv.fork.tv.names.ChannelNames.shown(channel.name)), NiuniaTagKind.Live)
         }
     }
