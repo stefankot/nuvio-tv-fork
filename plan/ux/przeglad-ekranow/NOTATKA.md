@@ -18,7 +18,7 @@ Zrzut: `01-karta-tytulu.png` — „Ruff and Tuff Kanya”, duża karta z obraze
    Obserwacja: domyślny fokus stoi na „Odtwórz”, więc OK od razu włącza film (`NiuniaTitlePager.kt:157`, `onPlay`).
    Poprawka: OK → Szczegóły filmu (`onDetails`); odtwarzanie dopiero ze Szczegółów.
 
-## 02 — Szczegóły filmu
+## 02 — Szczegóły filmu — ✅ TV prz06 pkt 1 (nagrody w lewej kolumnie: „7 nagród + 3 nominacje · Gale Oscar 3+1 · Kategorie…”, „The Brutalist”)
 Zrzut: `02-szczegoly.png` — „Ruff and Tuff Kanya” (tt49112036): plakietka „Obejrzyj z lektorem”, tytuł, opis, ★ 9.9, przyciski Odtwórz / + / (opis) / (zwiastun); po prawej na dole Obsada / Reżyseria / wytwórnie; niżej rząd zwiastunów. Kod: `app/src/main/java/com/nuvio/tv/skin/niunia/detail/NiuniaDetail.kt`.
 1. **Zamiast aktorów mają być nagrody (zaprojektowane, czekają na wdrożenie).**
    Właściciel: „po lewej stronie miały być nagrody, a nie aktorzy”.
@@ -66,7 +66,7 @@ Kod: okno z forka Echo (teksty `app/src/main/res/values/echo_player_strings.xml:
    Obserwacja (log 18:03:07-18:04:10): wybór 1080p → 6 prób w ~63 s: Flix-Streams („Easy Vault”) → TorrentClaw → PenguPlay → Flix-Streams → Flix-Streams (HTTP 416) → Flix-Streams „Usenet Vault 1080p” (gra). Próby 1 i 2 już się wczytały (plik otwarty, polski dźwięk wybrany), a mimo to po 16 s „no playback in time” i skok dalej. Ostatnie źródło nie ma polskiego dźwięku („new source has no pl track”). Diagnostyka podaje `quality=4K` dla pliku 1080p.
    Poprawka: dłużej czekać na źródło, które się wczytuje (nie przerywać, gdy dane płyną); w trakcie jeden komunikat „Przełączam na 1080p…”, a nie widoczne skoki; najpierw źródła z polskim dźwiękiem, gdy obecny ma polski; po nieudanych próbach wrócić do poprzedniego źródła w tym samym miejscu i powiedzieć to na ekranie.
 
-## 06 — Odtwarzacz: panel „Dźwięk” — ✅ TV prz04 (prosta lista ścieżek, „Polski z innego wydania”, reszta zwinięta); ❌ fokus znikał po dołączeniu ścieżki → poprawka prz05
+## 06 — Odtwarzacz: panel „Dźwięk” — ✅ TV prz04 (prosta lista ścieżek, „Polski z innego wydania”, reszta zwinięta); ❌ fokus znikał po dołączeniu ścieżki → poprawka prz05; prz06: niesprawdzone — dołączenie polskiej ścieżki nie powiodło się 2× (brak synchronizacji dawców), raz dołączyła przy schowanym panelu
 Zrzut: `06-dzwiek.png` — lewa kolumna: „Original · Angielski (In this file)”, „Polski ✓”; prawa: opóźnienie dźwięku, wzmocnienie, downmix, tryb nocny, „Zachowaj między sesjami”.
 Kod: okno z forka Echo (teksty `app/src/main/res/values/echo_player_strings.xml:25` `audio_menu_hint` i sąsiednie).
 1. **Ścieżkę dźwiękową wybiera się z prostej listy, reszta ustawień zwinięta.**
@@ -288,7 +288,7 @@ Właściciel (18:52): „wszędzie — w całej aplikacji poza podglądem kanał
 - Do przejścia (tokeny i pliki z szarymi gradientami/tłami w skórce Niuni): `NiuniaGradient.ScrimDetail`, `ScrimDetailFlat`, `ScrimDetailBottom`, `ScrimHero`, `ScrimHeroBottom`, `ScrimSide`, `ScrimPlayer`, `ScrimDim`, `ScrimCaption`, `NiuniaColor.Scrim`, `Scrim30` (`tokens/NiuniaDesignTokens.kt`); pliki: `home/NiuniaTitlePager.kt`, `components/NiuniaHeroPage.kt`, `detail/NiuniaDetail.kt`, `livetv/NiuniaLiveTiles.kt`, `livetv/NiuniaLiveTv.kt`, `components/NiuniaAtoms.kt`, `components/NiuniaDialog.kt`, `components/NiuniaMolecules.kt`, `components/NiuniaOrganisms.kt`, `components/NiuniaPoster.kt`, `nav/NiuniaNav.kt`, `player/NiuniaPlayerParts.kt`, `player/NiuniaPlayerOverlays.kt` (wszystkie w `app/src/main/java/com/nuvio/tv/skin/niunia/`); do tego panele z forka Echo nad odtwarzaczem (jakość, dźwięk — ekrany 05, 06).
 - Wydajność: rozmycie liczone raz na obraz i trzymane w pamięci; budżety JMGO z `plan/DECYZJE.md` („Wydajność”). Sprawdzić płynność przewijania rzędów (podpisy kart z rozmyciem) — gdy za ciężkie na kartach, rozmycie raz na kartę przy wczytaniu obrazu.
 
-## CAŁA APLIKACJA: plakaty — dół plakatu przechodzi w rozmycie, nie w czarny gradient — ✅ TV prz04 pkt a (bez czarnego gradientu); pkt b (rozmycia na dysku) — nie robione
+## CAŁA APLIKACJA: plakaty — dół plakatu przechodzi w rozmycie, nie w czarny gradient — ✅ TV prz04 pkt a (bez czarnego gradientu); pkt b ✅ TV prz06 (log „ForkImages: rozmycie z dysku” po restarcie aplikacji)
 Zrzut: `29-plakaty.png` — rzędy „Popular · filmy / seriale”: na każdym plakacie od ~60% wysokości ciemny, prawie czarny gradient pod podpisem („Akcja · ★ 7.2”). Kod: `app/src/main/java/com/nuvio/tv/skin/niunia/components/NiuniaPoster.kt:88-95` (obraz + `BlurLayer` + `Tint`), `:129-165` (`BlurLayer`), `:177-189` (`Tint`), rozmycie `app/src/main/java/com/nuvio/tv/fork/images/NativeBlur.kt:20-40`.
 1. **To samo co wyżej dla plakatów: zamiast czarnego gradientu od dołu — gradient wchodzący w rozmycie plakatu; rozmycia liczyć statycznie i zachowywać.**
    Właściciel (18:54): „to samo zrób dla plakatów; miały wyglądać inaczej — jest teraz na każdym czarny gradient od dołu, a ma być gradient wchodzący w rozmycie plakatu. Rozmycia plakatów licz statycznie i zachowuj”.

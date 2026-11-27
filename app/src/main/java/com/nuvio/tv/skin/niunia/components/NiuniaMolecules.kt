@@ -2,7 +2,9 @@ package com.nuvio.tv.skin.niunia.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import android.util.Log
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -177,9 +179,17 @@ fun NiuniaMediaCard(
     focusable: Boolean = true,
     onFocus: (Boolean) -> Unit = {},
     onLongClick: (() -> Unit)? = null,
+    // Przegląd 27.11 (10 pkt 2): elementy kafli Live TV w komponencie (domyślne = karta jak dawniej).
+    captionRich: androidx.compose.ui.text.AnnotatedString? = null, // podpis do 2 linii („Tytuł · Kanał”), pasek postępu nad nim
+    progressBar: Float? = null,
+    progressColor: androidx.compose.ui.graphics.Color? = null,
+    blurCaption: Boolean = false, // podpis na rozmytym dole obrazu (gotowe rozmycie), nie na szarym gradiencie
+    topTag: (@Composable () -> Unit)? = null,
+    fallback: (@Composable BoxScope.() -> Unit)? = null, // gdy obrazu brak albo się nie wczytał (np. logo kanału)
 ) {
     var focused by remember { mutableStateOf(false) }
     val parts = niuniaCardParts(preset, state, title, caption, progress, play, badge, status)
+    var imageFailed by remember(image) { mutableStateOf(false) }
     val shape = RoundedCornerShape(NiuniaRadius.Radius16)
     Box(
         modifier
@@ -200,6 +210,12 @@ fun NiuniaMediaCard(
         when {
             parts.shimmer -> NiuniaShimmer()
             parts.fallbackLabel != null -> NiuniaMedia(null, Modifier.fillMaxSize(), fallbackLabel = parts.fallbackLabel)
+            fallback != null -> {
+                if (image != null && !imageFailed) coil3.compose.AsyncImage(model = image, contentDescription = description, contentScale = androidx.compose.ui.layout.ContentScale.Crop, modifier = Modifier.fillMaxSize(),
+                    onError = { st -> imageFailed = true; Log.w(DS_TAG, "NMediaCard: obraz „${description.orEmpty()}”: ${st.result.throwable.javaClass.simpleName}: ${st.result.throwable.message}") })
+                val blurred = blurCaption && image is String && !imageFailed
+                if (blurred) NiuniaBlurBottom(image as String) else if (image == null || imageFailed) fallback()
+            }
             image != null -> NiuniaMedia(image, Modifier.fillMaxSize(), fallbackLabel = title ?: caption)
         }
         if (preset.kind == NiuniaCardKind.Tile && title != null) {
@@ -212,7 +228,21 @@ fun NiuniaMediaCard(
             parts.statusDot?.let { NiuniaDot(it) }
             parts.badge?.let { NiuniaTag(it, if (badgeStrong) NiuniaTagKind.BadgeStrong else NiuniaTagKind.Badge) }
         }
-        if (label != null) Text(label, style = NiuniaType.Label, color = NiuniaColor.White, maxLines = 2, overflow = TextOverflow.Ellipsis,
+        if (topTag != null) Box(Modifier.padding(start = NiuniaSpacing.Space8, top = NiuniaSpacing.Space8)) { topTag() }
+        if (captionRich != null) {
+            val blurred = blurCaption && image is String && !imageFailed
+            Column(
+                Modifier.align(Alignment.BottomStart).fillMaxWidth()
+                    .background(if (blurred) androidx.compose.ui.graphics.Brush.verticalGradient(0f to androidx.compose.ui.graphics.Color.Transparent, 1f to androidx.compose.ui.graphics.Color(0x59000000))
+                        else NiuniaGradient.ScrimCaption.brush())
+                    .padding(start = NiuniaSpacing.Space8, end = NiuniaSpacing.Space8, top = NiuniaSpacing.Space20, bottom = NiuniaSpacing.Space8),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                if (progressBar != null) NiuniaProgress(progressBar, bar = true, fillColor = progressColor)
+                Text(captionRich, style = if (blurred) NiuniaType.Caption.copy(shadow = androidx.compose.ui.graphics.Shadow(androidx.compose.ui.graphics.Color(0x99000000), blurRadius = 6f)) else NiuniaType.Caption,
+                    color = NiuniaColor.Text, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            }
+        } else if (label != null) Text(label, style = NiuniaType.Label, color = NiuniaColor.White, maxLines = 2, overflow = TextOverflow.Ellipsis,
             modifier = Modifier.align(Alignment.BottomStart).padding(NiuniaSpacing.Space12))
         else if (parts.hasCaptionBand) Row(
             Modifier.align(Alignment.BottomStart).fillMaxWidth().background(NiuniaGradient.ScrimCaption.brush())

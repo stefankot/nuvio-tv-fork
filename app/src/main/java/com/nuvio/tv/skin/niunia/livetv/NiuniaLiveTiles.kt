@@ -87,76 +87,65 @@ internal fun NiuniaLiveTileCard(
         if (epgImage == null && p != null && value == null) value = com.nuvio.tv.fork.tv.covers.TvCovers.cover(ctx, p.title, minutes)
     }
     val image = epgImage ?: tmdbCover
-    var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(com.nuvio.tv.skin.niunia.tokens.NiuniaRadius.Radius16) // DS v2: karty 16
+    // Przegląd 27.11 (10 pkt 2): kafel = komponent kart skórki NiuniaMediaCard (NowCard dla programu, ChannelCard dla kanału);
+    // podpis „Tytuł · Kanał”, pasek postępu, rozmyty dół i logo zamiast brakującego obrazu są w komponencie.
     // Przegląd 27.11 (10 pkt 1): obrócone warstwy z logo stacji dawały kolorowe strzępy pod kartą — warstwy gładkie (bez obrazka).
     NiuniaSeriesStack(tile.series, null, NiuniaDims.WideW, NiuniaDims.WideH) {
-        Box(
-            Modifier.size(NiuniaDims.WideW, NiuniaDims.WideH)
-                // DS v2 (NowCard / ChannelCard): uniesienie, ×1,1, cień i obwódka 3 dp.
-                // IPTV #83 (właściciel 26.11): długie OK na „Gry małżeńskie” mówiło „dodano”, a dodawało KANAŁ (w „Ulubione” był potem
-                // „Nasz nowy dom”, który na nim leciał) — kafelek programu dodaje program do ulubionych programów, kafelek kanału kanał.
-                .niuniaOk(caption(tile), focusRequester, onFocus = { focused = it; onFocus(it) },
-                    onLongClick = onLongOk ?: { if (p != null) niuniaToggleFollow(ctx, p.title) else niuniaToggleFavourite(ctx, tile.channel) }, onClick = onOk)
-                .niuniaFocusLook(com.nuvio.tv.skin.niunia.components.NiuniaFocusStyle.Lift, focused, shape)
-                .clip(shape).background(NiuniaColors.Surface),
-        ) {
-            if (p == null) {
-                Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                    if (logo != null) NiuniaChannelLogo(tile.channel, Modifier.size(64.dp, 44.dp))
-                    Text(com.nuvio.tv.fork.tv.names.ChannelNames.shown(tile.channel.name), style = NiuniaText.Meta.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold), color = NiuniaColors.Text,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp))
-                }
-                // Z-1: bez kropek statusu.
-                return@Box
-            }
-            // Paczka „oczywiste” pkt 5: obraz programu, a gdy go nie ma albo się nie wczyta — logo kanału, a na końcu jego nazwa.
-            var imageFailed by remember(image) { mutableStateOf(false) }
-            if (image != null && !imageFailed) AsyncImage(model = image, contentDescription = p.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize(),
-                onError = { st -> imageFailed = true; android.util.Log.w("ForkNiunia", "obraz programu „${p.title}”: ${st.result.throwable.javaClass.simpleName}: ${st.result.throwable.message}") })
-            // Przegląd 27.11 (CAŁA APLIKACJA): podpis na rozmytym dole obrazu (liczone raz, pamięć Coil + dysk), nie na szarym gradiencie.
-            val blurBottom = image != null && !imageFailed && com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctx, "niunia_blur_captions", true)
-            if (blurBottom && image != null) NiuniaBlurBottom(image)
-            else NiuniaChannelLogo(tile.channel, Modifier.fillMaxSize().padding(start = 36.dp, end = 36.dp, top = 18.dp, bottom = 40.dp),
-                nameStyle = NiuniaText.Logo.copy(fontSize = 22.sp, lineHeight = 26.sp))
-            // Z-1: bez kropek statusu i ikony play; stan mówi mini pasek w podpisie (czerwony na żywo, biały obejrzane archiwum).
-            val dot: Boolean? = null
-            val badge = when (tile.mark) {
-                NiuniaTileMark.NEW -> stringResource(if (longBadge) R.string.niunia_tv_badge_new_episode else R.string.niunia_tv_badge_new)
-                NiuniaTileMark.RESUME -> stringResource(R.string.niunia_tv_badge_resume)
-                NiuniaTileMark.SOON -> stringResource(R.string.niunia_tv_badge_soon)
-                else -> null
-            }
-            val expires = tile.expiresHours?.takeIf { badge == null && tile.mark == NiuniaTileMark.ARCHIVE }
-            if (expires != null) com.nuvio.tv.skin.niunia.components.NiuniaTag(
-                // 22.11: żółta etykieta (jak „opóźnienie”) — program wkrótce zniknie z archiwum dostawcy.
-                androidx.compose.ui.platform.LocalContext.current.resources.getQuantityString(R.plurals.niunia_catchup_left_hours, expires.coerceAtLeast(1), expires.coerceAtLeast(1)),
-                com.nuvio.tv.skin.niunia.components.NiuniaTagKind.Delay,
-                Modifier.padding(start = if (dot != null) 26.dp else 8.dp, top = 8.dp))
-            if (badge != null) {
-                val newOne = tile.mark == NiuniaTileMark.NEW && longBadge
-                com.nuvio.tv.skin.niunia.components.NiuniaTag(badge,
-                    if (newOne) com.nuvio.tv.skin.niunia.components.NiuniaTagKind.BadgeStrong else com.nuvio.tv.skin.niunia.components.NiuniaTagKind.Badge,
-                    Modifier.padding(start = if (dot != null) 26.dp else 8.dp, top = 8.dp))
-            }
-            Column(
-                Modifier.align(Alignment.BottomStart).fillMaxWidth()
-                    .background(if (blurBottom) androidx.compose.ui.graphics.Brush.verticalGradient(0f to androidx.compose.ui.graphics.Color.Transparent, 1f to androidx.compose.ui.graphics.Color(0x59000000))
-                        else com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimCaption.brush())
-                    .padding(start = 8.dp, end = 8.dp, top = 20.dp, bottom = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                // Przegląd 27.11 (13): pasek postępu nad podpisem, na całą szerokość — podpis „Tytuł · Kanał” ma pełną szerokość karty
-                // (dawniej Z-1: [mini pasek 24×4] obok tekstu zabierał ~32 dp). Maks. 2 linie, kanał zawsze widoczny.
-                val live = tile.mark == NiuniaTileMark.LIVE
-                val bar = when { live -> tile.progress ?: 0f; (tile.progress ?: 0f) > 0f -> tile.progress; else -> null }
-                if (bar != null) com.nuvio.tv.skin.niunia.components.NiuniaProgress(bar, bar = true, fillColor = if (live) com.nuvio.tv.skin.niunia.tokens.NiuniaColor.Live else null)
-                Text(tileCaption(tile), style = if (blurBottom) com.nuvio.tv.skin.niunia.tokens.NiuniaType.Caption.copy(shadow = androidx.compose.ui.graphics.Shadow(androidx.compose.ui.graphics.Color(0x99000000), blurRadius = 6f))
-                    else com.nuvio.tv.skin.niunia.tokens.NiuniaType.Caption, color = NiuniaColors.Text, maxLines = 2, overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.semantics { contentDescription = caption(tile) })
-            }
-            Box(Modifier.matchParentSize().background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.Gloss.brush()))
+        // IPTV #83 (właściciel 26.11): kafelek programu dodaje długim OK program do ulubionych programów, kafelek kanału kanał.
+        val longOk: () -> Unit = onLongOk ?: { if (p != null) niuniaToggleFollow(ctx, p.title) else niuniaToggleFavourite(ctx, tile.channel) }
+        if (p == null) {
+            com.nuvio.tv.skin.niunia.components.NiuniaMediaCard(
+                com.nuvio.tv.skin.niunia.components.NiuniaCardPreset.ChannelCard, image = null, onClick = onOk,
+                width = NiuniaDims.WideW, height = NiuniaDims.WideH, description = caption(tile),
+                focusRequester = focusRequester, onFocus = onFocus, onLongClick = longOk,
+                fallback = {
+                    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                        if (logo != null) NiuniaChannelLogo(tile.channel, Modifier.size(64.dp, 44.dp))
+                        Text(com.nuvio.tv.fork.tv.names.ChannelNames.shown(tile.channel.name), style = NiuniaText.Meta.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold), color = NiuniaColors.Text,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp))
+                    }
+                },
+            )
+        } else NowTile(tile, p, image, longBadge, focusRequester, onFocus, longOk, onOk)
+    }
+}
+
+@Composable
+private fun NowTile(tile: NiuniaLiveTile, p: com.nuvio.tv.reshaped.livetv.LiveTvProgramme, image: String?, longBadge: Boolean,
+                    focusRequester: FocusRequester?, onFocus: (Boolean) -> Unit, longOk: () -> Unit, onOk: () -> Unit) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    run {
+        // Z-1: bez kropek statusu i ikony play; stan mówi pasek nad podpisem (czerwony na żywo, biały obejrzane archiwum).
+        val badge = when (tile.mark) {
+            NiuniaTileMark.NEW -> stringResource(if (longBadge) R.string.niunia_tv_badge_new_episode else R.string.niunia_tv_badge_new)
+            NiuniaTileMark.RESUME -> stringResource(R.string.niunia_tv_badge_resume)
+            NiuniaTileMark.SOON -> stringResource(R.string.niunia_tv_badge_soon)
+            else -> null
         }
+        val expires = tile.expiresHours?.takeIf { badge == null && tile.mark == NiuniaTileMark.ARCHIVE }
+        val expiresText = expires?.let { ctx.resources.getQuantityString(R.plurals.niunia_catchup_left_hours, it.coerceAtLeast(1), it.coerceAtLeast(1)) }
+        val live = tile.mark == NiuniaTileMark.LIVE
+        // Przegląd 27.11 (13): pasek postępu nad podpisem, na całą szerokość karty.
+        val bar = when { live -> tile.progress ?: 0f; (tile.progress ?: 0f) > 0f -> tile.progress; else -> null }
+        com.nuvio.tv.skin.niunia.components.NiuniaMediaCard(
+            com.nuvio.tv.skin.niunia.components.NiuniaCardPreset.NowCard, image = image, onClick = onOk,
+            width = NiuniaDims.WideW, height = NiuniaDims.WideH, description = caption(tile),
+            focusRequester = focusRequester, onFocus = onFocus, onLongClick = longOk,
+            captionRich = tileCaption(tile), progressBar = bar,
+            progressColor = if (live) com.nuvio.tv.skin.niunia.tokens.NiuniaColor.Live else null,
+            // Przegląd 27.11 (CAŁA APLIKACJA): podpis na rozmytym dole obrazu (liczone raz, pamięć Coil + dysk).
+            blurCaption = com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctx, "niunia_blur_captions", true),
+            topTag = when {
+                // 22.11: żółta etykieta (jak „opóźnienie”) — program wkrótce zniknie z archiwum dostawcy.
+                expiresText != null -> ({ com.nuvio.tv.skin.niunia.components.NiuniaTag(expiresText, com.nuvio.tv.skin.niunia.components.NiuniaTagKind.Delay) })
+                badge != null -> ({ com.nuvio.tv.skin.niunia.components.NiuniaTag(badge,
+                    if (tile.mark == NiuniaTileMark.NEW && longBadge) com.nuvio.tv.skin.niunia.components.NiuniaTagKind.BadgeStrong else com.nuvio.tv.skin.niunia.components.NiuniaTagKind.Badge) })
+                else -> null
+            },
+            // Paczka „oczywiste” pkt 5: bez obrazu programu (albo gdy się nie wczyta) — logo kanału, a na końcu jego nazwa.
+            fallback = { NiuniaChannelLogo(tile.channel, Modifier.fillMaxSize().padding(start = 36.dp, end = 36.dp, top = 18.dp, bottom = 40.dp),
+                nameStyle = NiuniaText.Logo.copy(fontSize = 22.sp, lineHeight = 26.sp)) },
+        )
     }
 }
 
