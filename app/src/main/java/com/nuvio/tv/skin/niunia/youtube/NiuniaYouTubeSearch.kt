@@ -20,6 +20,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.foundation.focusGroup
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.nuvio.tv.R
@@ -48,6 +50,7 @@ private const val TAG = "ForkNiunia"
  * YouTube (filmy, kanały, playlisty) przez [YouTubeViewModel.search]; Wstecz z wyników wraca do strony YouTube.
  */
 @Composable
+@OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 internal fun NiuniaYouTubeSearch(viewModel: YouTubeViewModel, onSearch: (String) -> Unit, onClose: () -> Unit) {
     val ctx = LocalContext.current
     var query by remember { mutableStateOf("") }
@@ -70,7 +73,11 @@ internal fun NiuniaYouTubeSearch(viewModel: YouTubeViewModel, onSearch: (String)
         onSearch(t)
     }
 
-    Column(Modifier.fillMaxSize().background(NiuniaColor.Bg).padding(start = NiuniaSpacing.Space40, end = NiuniaSpacing.Space40, top = NiuniaSize.NavTop + NiuniaSize.H44)) {
+    // Test JMGO prz07: ▶ z „f” (prawy brzeg klawiatury) przenosił fokus na „Szukaj” ekranu POD oknem — okno trzyma fokus w sobie.
+    Column(Modifier.fillMaxSize().background(NiuniaColor.Bg)
+        .focusProperties { exit = { FocusRequester.Cancel } }
+        .focusGroup()
+        .padding(start = NiuniaSpacing.Space40, end = NiuniaSpacing.Space40, top = NiuniaSize.NavTop + NiuniaSize.H44)) {
         SearchField(query, stringResource(R.string.niunia_review_yt_search_hint))
         Row(Modifier.padding(top = NiuniaSpacing.Space12).fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space40)) {
             Column(Modifier.width(NiuniaSize.SplitCol), verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
