@@ -434,6 +434,8 @@ fun NiuniaHome(
         below = { rows() },
         onDown = { com.nuvio.tv.skin.niunia.nav.NiuniaNavChrome.homeRows.value = it },
         scrim = { NiuniaSurface(NiuniaSurfaceKind.ScrimHero, Modifier.fillMaxSize()) },
+        // Przegląd 27.11 (CAŁA APLIKACJA): zamiast szarego ScrimHero z lewej — rozmyta kopia tła z lewej (lekko przyciemniona pod tekst).
+        scrimBlurLeft = true, scrimBlurTint = androidx.compose.ui.graphics.Color(0x40000000),
     )
     pagerOverlay()
     }

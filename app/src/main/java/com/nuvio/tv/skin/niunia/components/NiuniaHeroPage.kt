@@ -74,6 +74,14 @@ fun NiuniaHeroPage(
     scrim: (@Composable BoxScope.() -> Unit)? = null,
     /** Z-2 (hero szczegółów): na API 31+ lewa część obrazu rozmyta (`blur-detail` 36, maska `mask-detail`: pełne do 32 %, zanika do 64 %). */
     detailBlur: Boolean = false,
+    /**
+     * Przegląd 27.11 (CAŁA APLIKACJA): zamiast szarego [scrim] — gotowa rozmyta kopia tła (ta sama co pod hero) widoczna przez
+     * maskę: z lewej (pełna do 32 %, znika do 64 %) dla [scrimBlurLeft], od dołu od [scrimBlurBottom] (pełna 28 % niżej).
+     * [scrimBlurTint] = lekkie przyciemnienie samej rozmytej kopii (czytelność tekstu). Klucz `niunia_blur_scrims` wyłącza.
+     */
+    scrimBlurLeft: Boolean = false,
+    scrimBlurBottom: Float? = null,
+    scrimBlurTint: Color = Color.Transparent,
     /** UX JMGO (ręczne testy 24.11): strona pod hero na wierzchu (true) / hero (false) — Główna chowa wtedy pigułkę menu. */
     onDown: ((Boolean) -> Unit)? = null,
 ) {
@@ -90,6 +98,9 @@ fun NiuniaHeroPage(
         if (preblur && background != null) coil3.request.ImageRequest.Builder(ctx).data(background)
             .transformations(com.nuvio.tv.fork.images.NativeBlur(blurPx, diskKey = background.toString())).build() else null
     }
+    val blurScrims = remember { com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctx, "niunia_blur_scrims", true) }
+    val scrimBlur = blurScrims && blurred != null && (scrimBlurLeft || scrimBlurBottom != null)
+    LaunchedEffect(scrimBlur) { if (scrimBlur) Log.i(TAG, "$what: przyciemnienie hero = rozmyta kopia tła (${if (scrimBlurLeft) "z lewej" else "od dołu ${((scrimBlurBottom ?: 0f) * 100).toInt()} %"}) zamiast szarego") }
     BackHandler(enabled = down) {
         Log.i(TAG, "$what: Wstecz → hero")
         try { heroFocus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "$what: fokus hero: ${e.javaClass.simpleName}: ${e.message}") }
@@ -153,7 +164,21 @@ fun NiuniaHeroPage(
                 alpha = t; scaleX = 1f + 0.08f * t; scaleY = 1f + 0.08f * t; compositingStrategy = CompositingStrategy.ModulateAlpha
             }.drawWithContent { if (t > 0.001f) drawContent() },
         )
-        if (scrim != null) Box(Modifier.fillMaxSize().graphicsLayer { alpha = 1f - t; translationY = -h * t }, content = scrim)
+        if (scrimBlur) AsyncImage(
+            model = blurred, contentDescription = null, contentScale = ContentScale.Crop,
+            colorFilter = if (scrimBlurTint.alpha > 0f) ColorFilter.tint(scrimBlurTint, BlendMode.SrcAtop) else null,
+            modifier = Modifier.fillMaxSize()
+                .graphicsLayer { alpha = 1f - t; compositingStrategy = CompositingStrategy.Offscreen }
+                .drawWithContent {
+                    if (t < 0.999f) {
+                        drawContent()
+                        val b = scrimBlurBottom
+                        val mask = if (scrimBlurLeft) androidx.compose.ui.graphics.Brush.horizontalGradient(0f to Color.Black, 0.32f to Color.Black, 0.64f to Color.Transparent)
+                            else androidx.compose.ui.graphics.Brush.verticalGradient(0f to Color.Transparent, (b ?: 0f) to Color.Transparent, ((b ?: 0f) + 0.28f).coerceAtMost(1f) to Color.Black, 1f to Color.Black)
+                        drawRect(mask, blendMode = BlendMode.DstIn)
+                    }
+                },
+        ) else if (scrim != null) Box(Modifier.fillMaxSize().graphicsLayer { alpha = 1f - t; translationY = -h * t }, content = scrim)
         val dim = if (blurOk || blurred != null) DIM else Color(0xE62C2C2E)
         Box(Modifier.fillMaxSize().drawBehind { if (t > 0.001f && !folded) drawRect(dim, alpha = t) })
         }

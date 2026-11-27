@@ -33,6 +33,7 @@ import coil3.compose.AsyncImage
 import com.nuvio.tv.R
 import com.nuvio.tv.domain.model.Stream
 import com.nuvio.tv.skin.niunia.components.NiuniaBlockKind
+import com.nuvio.tv.skin.niunia.components.niuniaBlurBackdrop
 import com.nuvio.tv.skin.niunia.components.NiuniaButton
 import com.nuvio.tv.skin.niunia.components.NiuniaButtonKind
 import com.nuvio.tv.skin.niunia.components.NiuniaContentBlock
@@ -129,8 +130,11 @@ private fun NiuniaPlayerLoading(uiState: PlayerUiState, onEvent: (PlayerEvent) -
         try { first.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus wczytywania: ${e.javaClass.simpleName}: ${e.message}") }
     }
     Box(Modifier.fillMaxSize().zIndex(2f).background(NiuniaColor.Bg)) {
+        // Przegląd 27.11 (CAŁA APLIKACJA): tło wczytywania = rozmyty obraz zamiast ostrego pod przyciemnieniem.
+        if (!niuniaBlurBackdrop(uiState.backdrop, "odtwarzacz: wczytywanie")) {
         uiState.backdrop?.let { AsyncImage(model = it, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()) }
         Box(Modifier.fillMaxSize().background(NiuniaColor.Scrim))
+        }
         Column(Modifier.align(Alignment.Center).width(560.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
             if (uiState.logo != null) AsyncImage(model = uiState.logo, contentDescription = uiState.title, contentScale = ContentScale.Fit, modifier = Modifier.width(320.dp).heightIn(max = 110.dp))
             else NiuniaText(uiState.contentName ?: uiState.title, variant = NiuniaTextVariant.TitleScreen, lines = 2)
@@ -173,8 +177,10 @@ private fun NiuniaPlayerError(uiState: PlayerUiState, message: String, onEvent: 
         try { first.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus okna błędu: ${e.javaClass.simpleName}: ${e.message}") }
     }
     Box(Modifier.fillMaxSize().zIndex(3f).background(NiuniaColor.Bg), contentAlignment = Alignment.Center) {
+        if (!niuniaBlurBackdrop(uiState.backdrop, "odtwarzacz: błąd")) {
         uiState.backdrop?.let { AsyncImage(model = it, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()) }
         Box(Modifier.fillMaxSize().background(NiuniaColor.Scrim))
+        }
         NiuniaContentBlock(NiuniaBlockKind.Empty) {
             NiuniaText(stringResource(R.string.niunia_pl1_err_title), variant = NiuniaTextVariant.TitleSection, lines = 2)
             NiuniaText(niuniaErrorReason(ctx, message), variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 3)

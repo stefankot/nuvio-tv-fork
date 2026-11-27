@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
+import com.nuvio.tv.skin.niunia.components.NiuniaBlurBottom
 import com.nuvio.tv.R
 import com.nuvio.tv.domain.model.MetaPreview
 import com.nuvio.tv.skin.niunia.components.NiuniaBlockKind
@@ -133,7 +134,17 @@ private fun Card(
         AsyncImage(model = item.background ?: item.landscapePoster ?: item.poster, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
         // Przegląd 27.11 (ekrany 01 i 27, DECYZJE 27.11): bez przyciemnienia od lewej (szara plama na pół karty na Androidzie 11) —
         // obraz widoczny w całości, tylko przyciemnienie od dołu pod tekstem.
-        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.4f to Color.Transparent, 0.75f to NiuniaColor.Bg.copy(alpha = 0.6f), 1f to NiuniaColor.Bg.copy(alpha = 0.92f))))
+        // Przegląd 27.11 (CAŁA APLIKACJA): dół karty = rozmyta kopia obrazu (gotowe rozmycie Coil/dysk) z lekkim czarnym
+        // przyciemnieniem pod tekst zamiast szarego gradientu do koloru tła. Klucz `niunia_blur_scrims` wraca do gradientu.
+        val ctxCard = androidx.compose.ui.platform.LocalContext.current
+        val art = item.background ?: item.landscapePoster ?: item.poster
+        val blurBottom = art != null && androidx.compose.runtime.remember(ctxCard) {
+            com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctxCard, "niunia_blur_scrims", true) && com.nuvio.tv.fork.images.NativeBlur.enabled(ctxCard)
+        }
+        if (blurBottom) {
+            NiuniaBlurBottom(art!!, radius = 20f, from = .4f, to = .72f)
+            Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.45f to Color.Transparent, 1f to Color(0x8C000000))))
+        } else Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.4f to Color.Transparent, 0.75f to NiuniaColor.Bg.copy(alpha = 0.6f), 1f to NiuniaColor.Bg.copy(alpha = 0.92f))))
         Column(Modifier.align(Alignment.BottomStart).padding(NiuniaSpacing.Space20).padding(bottom = NiuniaSpacing.Space20), verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space16)) {
             NiuniaContentBlock(NiuniaBlockKind.Info) {
                 if (ranking) NiuniaTag(stringResource(R.string.niunia_tv2_pager_rank, index + 1, rowName), NiuniaTagKind.Chip)

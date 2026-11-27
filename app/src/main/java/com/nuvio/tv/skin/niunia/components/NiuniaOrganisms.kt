@@ -32,6 +32,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -127,15 +128,29 @@ enum class NiuniaHeroKind { Immersive, Player, Blurred, Deep, Ambient }
 fun NiuniaHeroBackdrop(kind: NiuniaHeroKind, image: Any?, modifier: Modifier = Modifier, blurAmount: Float = 1f, sidebarScrim: Boolean = false) {
     val blurOk = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val density = LocalDensity.current
+    // Przegląd 27.11 (CAŁA APLIKACJA): gotowa rozmyta kopia tła (liczona raz, pamięć Coil + dysk) zamiast szarych przyciemnień:
+    // Blurred (ekran źródeł) — rozmyty obraz + czarne przyciemnienie jak strona pod hero zamiast szarego ScrimDim;
+    // Immersive (strona odcinka) — rozmycie z lewej (maska do 64 %) zamiast szarego ScrimHero. Klucz `niunia_blur_scrims`.
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val staticReq = androidx.compose.runtime.remember(image, kind) {
+        val on = image is String && (kind == NiuniaHeroKind.Blurred || kind == NiuniaHeroKind.Immersive) &&
+            com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctx, "niunia_blur_scrims", true) && com.nuvio.tv.fork.images.NativeBlur.enabled(ctx)
+        if (!on) null else {
+            android.util.Log.i("ForkNiunia", "tło ${kind.name}: rozmyta kopia obrazu zamiast szarego przyciemnienia")
+            coil3.request.ImageRequest.Builder(ctx).data(image).transformations(com.nuvio.tv.fork.images.NativeBlur(with(density) { 60.dp.toPx() }, diskKey = image.toString())).build()
+        }
+    }
     // Szkło (fork/glass): obraz ze scrimem to warstwa tła dla przycisków i paneli na nim.
     Box(with(com.nuvio.tv.fork.glass.ForkGlass) { modifier.fillMaxSize().forkGlassBackdrop() }.background(if (kind == NiuniaHeroKind.Ambient) Color.Transparent else NiuniaColor.Bg)) {
         if (kind == NiuniaHeroKind.Ambient) Box(Modifier.fillMaxSize().background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.AmbientNews.brush()))
         if (image != null) {
             val spec = when (kind) { NiuniaHeroKind.Blurred -> NiuniaBlur.BlurBackdrop; NiuniaHeroKind.Deep -> NiuniaBlur.BlurDeep; else -> null }
             val radius = with(density) { (spec?.radius ?: 0.dp).toPx() } * blurAmount
+            val staticWhole = staticReq != null && kind == NiuniaHeroKind.Blurred && !blurOk
             AsyncImage(
-                model = image, contentDescription = null, contentScale = ContentScale.Crop,
+                model = if (staticWhole) staticReq else image, contentDescription = null, contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize().graphicsLayer {
+                    if (staticWhole) { scaleX = 1.15f; scaleY = 1.15f }
                     if (spec != null && blurOk && radius > 0.5f) {
                         renderEffect = BlurEffect(radius, radius, TileMode.Clamp)
                         val s = if (kind == NiuniaHeroKind.Deep) 1.2f else 1.15f
@@ -144,7 +159,20 @@ fun NiuniaHeroBackdrop(kind: NiuniaHeroKind, image: Any?, modifier: Modifier = M
                 },
             )
         }
-        when (kind) {
+        when {
+            staticReq != null && kind == NiuniaHeroKind.Immersive -> AsyncImage(
+                model = staticReq, contentDescription = null, contentScale = ContentScale.Crop,
+                colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(Color(0x40000000), androidx.compose.ui.graphics.BlendMode.SrcAtop),
+                modifier = Modifier.fillMaxSize().graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
+                    .drawWithContent {
+                        drawContent()
+                        drawRect(androidx.compose.ui.graphics.Brush.horizontalGradient(0f to Color.Black, 0.32f to Color.Black, 0.64f to Color.Transparent),
+                            blendMode = androidx.compose.ui.graphics.BlendMode.DstIn)
+                    },
+            )
+            staticReq != null && kind == NiuniaHeroKind.Blurred -> Box(Modifier.fillMaxSize().background(Color(0x8C000000)))
+        }
+        if (staticReq == null) when (kind) {
             NiuniaHeroKind.Immersive -> NiuniaSurface(NiuniaSurfaceKind.ScrimHero, Modifier.fillMaxSize())
             NiuniaHeroKind.Player, NiuniaHeroKind.Ambient -> NiuniaSurface(NiuniaSurfaceKind.ScrimPlayer, Modifier.fillMaxSize())
             NiuniaHeroKind.Blurred -> NiuniaSurface(NiuniaSurfaceKind.ScrimDim, Modifier.fillMaxSize())

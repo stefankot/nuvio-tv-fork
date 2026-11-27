@@ -233,6 +233,9 @@ fun NiuniaDetail(
         scrim = {
             Box(Modifier.fillMaxSize().background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimDetailBottom.brush()))
         },
+        // Przegląd 27.11 (CAŁA APLIKACJA): dół hero = rozmyta kopia tła (od 30 %, pełna od 58 %) zamiast szarego ScrimDetailBottom;
+        // lekkie przyciemnienie jak strona pod hero, żeby przejście w nią było płynne.
+        scrimBlurBottom = 0.3f, scrimBlurTint = androidx.compose.ui.graphics.Color(0x59000000),
         belowFocusRequester = belowFocus,
         belowEnter = if (series && uiState.episodesForSeason.isNotEmpty()) firstEpisode else null,
         below = {
