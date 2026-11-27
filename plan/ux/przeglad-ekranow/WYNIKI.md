@@ -80,3 +80,35 @@ CAŁA APLIKACJA krok 2: pasek podpisu zwykłych kart (Oglądaj dalej, odcinki, z
 ### Zmiany na profilu właściciela (JMGO)
 - „The Brutalist”: ~2 min (zmiana jakości 4K → 1080p, źródło przełączone na 1080p), jedno wejście anulowane na ekranie wczytywania.
 - Szukaj Live TV: wpisane „tvn” i wyczyszczone (historia bez zmian).
+
+## Pętla 4 (27.11, 16:05–16:45, build prz09 = paczki 9–12)
+W tej pętli powstały 4 paczki poprawek aplikacji (9–12: 8 miejsc z szarym przyciemnieniem zamienionych na rozmycie + podgląd filmu YouTube z dźwiękiem), a na JMGO sprawdzono 10 z nich — wszystkie działają; jedna uwaga o płynności idzie do następnej paczki.
+
+### Działa na TV (prz09)
+- **Szare przyciemnienia → rozmyta kopia tego samego obrazu** (liczona raz, potem z dysku):
+  - Główna: lewa strona hero rozmyta (tekst czytelny, bez szarej plamy) — zrzut `p9-glowna-hero.png`;
+  - Szczegóły: lewa strona i dół hero na rozmyciu — `p9-szczegoly.png`;
+  - karta tytułu (OK na plakacie w rzędzie): dół karty w rozmyciu — `p9-karta-tytulu.png`;
+  - strona odcinka serialu: lewa strona na rozmyciu — `p9-strona-odcinka.png`;
+  - ekran wczytywania filmu: rozmyty obraz zamiast ostrego pod ciemną warstwą — `p9-wczytywanie.png`;
+  - menu boczne: pod panelem rozmyta kopia tła ekranu — `p9-menu.png`;
+  - podpisy kart „Oglądaj dalej”, odcinków i zwiastunów na rozmytym dole obrazu — `p9-glowna-cw.png`, `p9-odcinki.png`.
+- Przewijanie rzędów Głównej z rozmytymi podpisami: p95 32 ms (budżet ≤ 34 ms; dawny pomiar tej ścieżki p95 93 ms).
+- **YouTube 23 pkt 1b**: zaznaczony film po ~3 s sam gra w swojej karcie z dźwiękiem (także pierwszy po wejściu na ekran); przejście na inną kartę i Wstecz od razu wyciszają; podgląd sam gaśnie po 30 s — `p9-yt-podglad.png`.
+
+### Do poprawy (następna paczka)
+- Przełączanie tytułu na hero Głównej z rozmyciem: p50 12 ms / p95 40 ms, bez rozmycia 10 / 30 ms (porównanie po świeżym starcie). Poprawka: przejście w rozmycie „wpieczone” w mały rozmyty obraz zamiast osobnej warstwy na cały ekran.
+- Szczegóły: rozmycie od dołu zaczyna się wysoko (30 % ekranu) i zmiękcza twarze w środku kadru — przesunę niżej.
+- Zostały szare tła: panel menu bocznego i ramka opisu zaznaczonego odcinka.
+
+### Niesprawdzone / zablokowane
+- Ekran źródeł (pod „Inne źródło” film ruszył szybciej, niż zdążyłem wybrać), okno Niuni (okno akcji z „Więcej podobnych” pochodzi z bazy NuvioTV — tła nie zmieniam), kafle archiwum pod odtwarzaczem IPTV (rząd kanałów nie ma obrazów).
+- **23 pkt 2 „Następne” z Mixu** → `plan/BLOKADY.md`: wymaga zmiany kopii modułu YouTube z Nuvio One i nowej funkcji „następny film” w odtwarzaczu (YouTube w forku po końcu filmu nigdzie nie przechodzi). OK na Mixie odtwarza pierwszy film.
+- Bez zmian: 22 pkt 2 i okładki AIOMetadata czekają na sprawdzenie konfiguracji wtyczki przez właściciela.
+
+### Zmiany na profilu właściciela (JMGO)
+- „Guarding Stars”: wznowione na ~30 s (zostało 94 → 93 min).
+- Live TV: krótko 13 Ulica i Active Family (mogą być w „Oglądaj dalej” Live TV).
+- YouTube: dwa podglądy w kartach na Głównej YouTube (bez otwierania filmów).
+- Ustawienie forka `niunia_blur_scrims` na chwilę wyłączone do pomiaru i włączone z powrotem.
+
