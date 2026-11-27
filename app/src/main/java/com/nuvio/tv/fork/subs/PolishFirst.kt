@@ -15,6 +15,8 @@ import com.nuvio.tv.ui.screens.settings.ForkFeatures
  */
 object PolishFirst {
     const val KEY = "subs_polish_first"
+    /** Poprawka istniejącej funkcji (27.11): wyłącznik tylko kluczem ForkFeatures, bez pozycji w ustawieniach. */
+    const val EMBEDDED_KEY = "subs_embedded_first"
     private const val TAG = "ForkSubs"
     private const val WINDOW_MS = 90_000L
 
@@ -36,8 +38,19 @@ object PolishFirst {
         if (!ForkFeatures.enabled(c, KEY, true)) { done = true; return }
         if (com.nuvio.tv.reshaped.livetv.LiveTvPlaybackRegistry.isLiveTv(u)) { done = true; return }
         if (android.os.SystemClock.elapsedRealtime() - since > WINDOW_MS) { done = true; return }
-        if (!wantsPolish(c, s)) { done = true; Log.i(TAG, "polskie napisy: profil nie chce polskich — bez zmian"); return }
         val addon = s.selectedAddonSubtitle
+        // 27.11 (właściciel, przegląd): domyślnie napisy WBUDOWANE (pewna jakość), nie z plików zewnętrznych — w każdym języku.
+        // Wybrane z dodatku, a plik ma wbudowane w tym samym języku → wbudowane. Napisy AI (ai://) zostają.
+        if (addon != null && !addon.url.startsWith("ai://") && ForkFeatures.enabled(c, EMBEDDED_KEY, true)) {
+            val same = s.subtitleTracks.firstOrNull { !it.isForced && com.nuvio.tv.ui.screens.player.PlayerSubtitleUtils.matchesLanguageCode(it.language, addon.lang) }
+            if (same != null) {
+                Log.i(TAG, "napisy wbudowane: wybrane „${addon.lang}” z dodatku ${addon.addonName} → wbudowane (ścieżka ${same.index} „${same.name}”)")
+                send(PlayerEvent.OnSelectSubtitleTrack(same.index))
+                done = true
+                return
+            }
+        }
+        if (!wantsPolish(c, s)) { done = true; Log.i(TAG, "polskie napisy: profil nie chce polskich — bez zmian"); return }
         val embedded = s.subtitleTracks.firstOrNull { it.index == s.selectedSubtitleTrackIndex } ?: s.subtitleTracks.firstOrNull { it.isSelected }
         val selectedLang = addon?.lang ?: embedded?.language
         if (selectedLang == null) return // napisy wyłączone (jeszcze) — nic nie włączamy na siłę
