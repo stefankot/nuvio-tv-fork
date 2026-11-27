@@ -2,6 +2,7 @@ package com.nuvio.tv.skin.niunia.player
 
 import com.nuvio.tv.skin.niunia.components.NiuniaFocusStyle
 import com.nuvio.tv.skin.niunia.components.NiuniaMedia
+import com.nuvio.tv.skin.niunia.components.NiuniaBlurBottom
 import com.nuvio.tv.skin.niunia.components.NiuniaProgress
 import com.nuvio.tv.skin.niunia.components.NiuniaTag
 import com.nuvio.tv.skin.niunia.components.NiuniaTagKind
@@ -217,8 +218,15 @@ internal fun NiuniaWideTile(
                 fallbackSub?.let { Text(it, style = DsType.CaptionRegular, color = DsColor.Text70, maxLines = 1) }
             }
         }
+        // Przegląd 27.11 (CAŁA APLIKACJA krok 5): pasek podpisu na rozmytym dole obrazu (gotowe rozmycie Coil/dysk), jak karty MediaCard.
+        val ctxTile = androidx.compose.ui.platform.LocalContext.current
+        val tileBlurOn = remember(ctxTile) { com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctxTile, "niunia_blur_captions", true) }
+        val tileBlur = tileBlurOn && image is String && image.isNotBlank() && (caption != null || (progress != null && progress > 0f))
+        if (tileBlur) NiuniaBlurBottom(image as String, from = .55f, to = .8f)
         if (caption != null || (progress != null && progress > 0f)) Row(
-            Modifier.align(Alignment.BottomStart).fillMaxWidth().background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimCaption.brush())
+            Modifier.align(Alignment.BottomStart).fillMaxWidth().background(
+                if (tileBlur) androidx.compose.ui.graphics.Brush.verticalGradient(0f to androidx.compose.ui.graphics.Color.Transparent, 1f to androidx.compose.ui.graphics.Color(0x59000000))
+                else com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimCaption.brush())
                 .padding(start = DsSpacing.Space8, end = DsSpacing.Space8, top = DsSpacing.Space20, bottom = DsSpacing.Space8),
             horizontalArrangement = Arrangement.spacedBy(DsSpacing.Space8), verticalAlignment = Alignment.CenterVertically,
         ) {

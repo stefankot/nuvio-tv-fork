@@ -296,8 +296,8 @@ private fun Modifier.wrapPill(): Modifier = this.zIndex(2f).wrapContentWidth(Ali
 
 /** NMediaCard `YouTubeCard`: obraz 259 × 146 (Shorts: plakat), czas albo „Na żywo”, tytuł 2 linie, „kanał · wyświetlenia”. Fokus: karta z obrazem. */
 @Composable
-private fun YouTubeCard(item: YtItem, shorts: Boolean, resolving: Boolean, focusRequester: FocusRequester?, onFocused: () -> Unit, onLong: () -> Unit, onOk: () -> Unit,
-    preview: YouTubeViewModel? = null) {
+private fun YouTubeCard(item: YtItem, shorts: Boolean, resolving: Boolean, focusRequester: FocusRequester?, onFocused: () -> Unit, onLong: () -> Unit,
+    preview: YouTubeViewModel? = null, onOk: () -> Unit) {
     val w: Dp = if (shorts) NiuniaDims.PosterW else NiuniaSize.YoutubeW
     val h: Dp = if (shorts) NiuniaDims.PosterH else NiuniaSize.YoutubeH
     var focused by remember { mutableStateOf(false) }
