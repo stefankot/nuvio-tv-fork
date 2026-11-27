@@ -275,14 +275,8 @@ internal fun PlayerRuntimeController.handleMpvPlaybackError(
             lastPlaybackDiagnosticsForReport.copy(result = "Error: $detailedError")
 
         // A link that has likely expired is fetched again before anything else is tried on it.
-        if (tryRefreshExpiredLinkAfterError(detailedError) {
-                mpvErrorRecoveryArmed = false
-                handleMpvPlaybackError(source, mpvErrorCode, detailedErrorOverride, allowEngineFailover)
-            }) return
-        if (tryFallbackToNextSourceAfterError(detailedError) {
-                mpvErrorRecoveryArmed = false
-                handleMpvPlaybackError(source, mpvErrorCode, detailedErrorOverride, allowEngineFailover)
-            }) return
+        if (tryRefreshExpiredLinkAfterError(detailedError)) return
+        if (tryFallbackToNextSourceAfterError(detailedError)) return
 
         val startupFailed = !hasRenderedFirstFrame
         if (startupFailed &&
@@ -301,10 +295,10 @@ internal fun PlayerRuntimeController.handleMpvPlaybackError(
         }
         val retryCanHelp = httpCode == null || !isPermanentHttpStatus(httpCode)
         if (retryCanHelp && attemptMpvAutoRetry(detailedError = detailedError, savedPosition = savedPosition)) return
+        if (tryNextStream(detailedError)) return
 
         finishLoadingDiagnostics("mpv_error")
         cancelNextEpisodeAutoPlayOnFatalError()
-        if (autoSourceRecovery?.failDefinitively(detailedError) == true) return
         _uiState.update {
             it.copy(
                 error = detailedError,
@@ -386,6 +380,10 @@ internal fun PlayerRuntimeController.maybeRunMpvStartupWatchdog(view: NuvioMpvSu
                 idleTicks = mpvIdleActiveTicks,
                 stallTicks = mpvStartupStallTicks,
                 absoluteTicks = mpvStartupAbsoluteTicks
+            ),
+            limits = MpvStartupWatchdogPolicy.limitsFor(
+                currentStreamUrl,
+                com.nuvio.tv.core.usenet.UsenetSidecar.isSessionUrl(currentStreamUrl)
             )
         )
     )

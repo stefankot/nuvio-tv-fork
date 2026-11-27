@@ -12,14 +12,9 @@ internal fun PlayerRuntimeController.releasePlayer() {
 // engine's local url, which stops serving once the torrent stream is stopped.
 internal fun PlayerRuntimeController.releasePlayer(
     flushPlaybackState: Boolean,
-    keepTorrentStream: Boolean = false,
-    preserveRecovery: Boolean = false // Nuvio RS hook: Arc formats recovery survives its own rebuild
+    keepTorrentStream: Boolean = false
 ) {
-    if (!preserveRecovery) {
-        playbackRecoveryJob?.cancel()
-        playbackRecoveryJob = null
-        playbackRecoveryGate.cancel(resetIdentity = flushPlaybackState)
-    }
+    if (flushPlaybackState) cancelStreamFallback()
     logScrobbleDiagnostic("release_player", "flushPlaybackState=$flushPlaybackState")
     cancelAutoQualityHotSwap("player released") // Fork hook: echo
     if (flushPlaybackState) { cancelSourceSwitch(); cancelAutoQualityChange(byViewer = false) } // Fork hook: echo
@@ -57,7 +52,6 @@ internal fun PlayerRuntimeController.releasePlayer(
 
     isReleasingPlayer = true
     com.nuvio.tv.fork.dublagem.PolishDubbing.release(this) // Fork hook: Dublagem zwolnienie drugiego źródła
-    com.nuvio.tv.core.connection.PlaybackThroughput.finish()
     com.nuvio.tv.core.recommendations.TvRecommendationManager.isPlaybackActive.value = false
     if (flushPlaybackState) {
         if (!keepTorrentStream) stopTorrentStream()
@@ -88,7 +82,7 @@ internal fun PlayerRuntimeController.releasePlayer(
     hideSubtitleDelayOverlayJob?.cancel()
     subtitleAutoSyncLoadJob?.cancel()
     cancelAutomaticSubtitleSync() // AutoSync hook
-    com.nuvio.tv.ui.screens.player.seekpreview.local.LocalPreviewSources.unregister(this) // Nuvio RS hook: on-device seek previews
+    com.nuvio.tv.ui.screens.player.audiosync.AudioSyncFallback.release(this)
     stopSidecarAddonSubtitle(clearView = true)
     subtitleTimingRefreshJob?.cancel()
     subtitleTimingRefreshJob = null
@@ -127,7 +121,6 @@ internal fun PlayerRuntimeController.releasePlayer(
     currentBitrateAwareLoadControl = null
     currentParallelChunkOverheadMb = 0
     ffmpegAudioRenderer = null
-    isAudioOutputBypassing = false // Nuvio RS hook: no player, no bypass
     updateAudioControlAvailability()
     playbackSpeedAwareAudioSink = null
     resetPlaybackTimeline()

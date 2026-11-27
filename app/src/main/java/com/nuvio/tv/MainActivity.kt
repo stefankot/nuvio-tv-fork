@@ -161,6 +161,7 @@ import com.nuvio.tv.data.local.StartupAuthNotice
 import com.nuvio.tv.data.local.ThemeDataStore
 import com.nuvio.tv.data.repository.MemberAccessRepository
 import com.nuvio.tv.data.remote.supabase.AvatarRepository
+import com.nuvio.tv.data.simkl.SimklRewatchConsentRepository
 import com.nuvio.tv.domain.model.AppFont
 import com.nuvio.tv.domain.model.AppTheme
 import com.nuvio.tv.domain.model.CustomThemeColors
@@ -183,6 +184,7 @@ import com.nuvio.tv.ui.components.LocalCardDepthStyle
 import com.nuvio.tv.ui.components.LocalLandscapePosterMode
 import com.nuvio.tv.ui.components.LocalAlwaysBackdropWithLogo
 import com.nuvio.tv.ui.components.ProfileAvatarCircle
+import com.nuvio.tv.ui.components.RewatchPromptOverlay
 import com.nuvio.tv.ui.navigation.LocalNavViewModelStoreOwner
 import com.nuvio.tv.ui.navigation.NuvioNavHost
 import com.nuvio.tv.ui.navigation.Screen
@@ -295,9 +297,6 @@ open class MainActivity : ComponentActivity() {
     lateinit var startupSyncService: StartupSyncService
 
     @Inject
-    lateinit var androidTvChannelSyncService: com.nuvio.tv.core.sync.androidtv.AndroidTvChannelSyncService
-
-    @Inject
     lateinit var profileSyncService: ProfileSyncService
 
     @Inject
@@ -325,6 +324,9 @@ open class MainActivity : ComponentActivity() {
     lateinit var trailerPlayerPool: com.nuvio.tv.core.player.TrailerPlayerPool
 
     @Inject
+    lateinit var backgroundTrailerController: com.nuvio.tv.core.player.BackgroundTrailerController
+
+    @Inject
     lateinit var externalPlaybackTracker: com.nuvio.tv.core.player.ExternalPlaybackTracker
 
     @Inject
@@ -335,6 +337,14 @@ open class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var partyRepository: PartyRepository
+
+    /*
+     * Held in the activity, not in the player screen: the rewatch question has to survive navigation,
+     * the way mobile holds it in `MainAppContent.kt`. `SimklRewatchConsentRepository` is a `@Singleton`
+     * and not a `@HiltViewModel`, so it is injected into the activity, not taken from `hiltViewModel`.
+     */
+    @Inject
+    lateinit var rewatchConsentRepository: SimklRewatchConsentRepository
 
     private val pendingDeepLinkUrl = MutableStateFlow<String?>(null)
     private val pendingLaunchIntent = MutableStateFlow<Intent?>(null)
@@ -725,6 +735,7 @@ open class MainActivity : ComponentActivity() {
                     LocalMemberAccess provides mainUiPrefs.memberAccess,
                     LocalAmbientIdleController provides ambientIdleController,
                     com.nuvio.tv.core.player.LocalTrailerPlayerPool provides trailerPlayerPool,
+                    com.nuvio.tv.core.player.LocalBackgroundTrailerController provides backgroundTrailerController,
                     LocalSplashBackground provides splashBackground,
                     LocalStartupLoadingState provides startupLoadingState,
                     LocalStartupSplashEnabled provides startupSplashEnabled
@@ -1232,17 +1243,7 @@ open class MainActivity : ComponentActivity() {
                         }
                         Box(modifier = Modifier.fillMaxSize()) {
                             CompositionLocalProvider(LocalNavViewModelStoreOwner provides navViewModelStoreOwner) {
-                                // Nuvio RS hook: optional top pill menu replaces the sidebar
-                                if (com.nuvio.tv.ui.reshaped.pillnav.rememberPillNavEnabled()) {
-                                    com.nuvio.tv.ui.reshaped.pillnav.PillNavScaffold(
-                                        longPressBackHeld = longPressBackHeld, navController = navController, startDestination = startDestination,
-                                        currentRoute = currentRoute, rootRoutes = rootRoutes, drawerItems = drawerItems, selectedDrawerRoute = selectedDrawerRoute,
-                                        blurEnabled = modernSidebarBlurEnabled, activeProfileName = activeProfile?.name ?: "",
-                                        activeProfileColorHex = activeProfile?.avatarColorHex ?: "#1E88E5", activeProfileAvatarImageUrl = activeProfileAvatarImageUrl,
-                                        showProfileSelector = profiles.size > 1, onSwitchProfile = handleSwitchProfile, onNavigate = { optimisticRoute = it }, onExitApp = handleExitApp,
-                                        topBannerVisible = updateBannerState.showBanner && updateBannerState.update != null
-                                    )
-                                } else if (modernSidebarEnabled) {
+                                if (com.nuvio.tv.ui.reshaped.pillnav.rememberPillNavEnabled()) { com.nuvio.tv.ui.reshaped.pillnav.PillNavScaffold(longPressBackHeld = longPressBackHeld, navController = navController, startDestination = startDestination, currentRoute = currentRoute, rootRoutes = rootRoutes, drawerItems = drawerItems, selectedDrawerRoute = selectedDrawerRoute, blurEnabled = modernSidebarBlurEnabled, activeProfileName = activeProfile?.name ?: "", activeProfileColorHex = activeProfile?.avatarColorHex ?: "#1E88E5", activeProfileAvatarImageUrl = activeProfileAvatarImageUrl, showProfileSelector = profiles.size > 1, onSwitchProfile = handleSwitchProfile, onNavigate = { optimisticRoute = it }, onExitApp = handleExitApp, topBannerVisible = updateBannerState.showBanner && updateBannerState.update != null) } else if (modernSidebarEnabled) { // Nuvio RS hook: optional top pill menu replaces the sidebar (Niunia)
                                     ModernSidebarScaffold(
                                         longPressBackHeld = longPressBackHeld,
                                         navController = navController,
@@ -1298,10 +1299,19 @@ open class MainActivity : ComponentActivity() {
                                 )
                             }
 
+
                             val isTrailerPlaying by trailerPlayerPool.isTrailerPlaying.collectAsState()
                             LaunchedEffect(isTrailerPlaying) {
                                 if (!isTrailerPlaying) ambientIdleController.onInteraction()
                             }
+                            /*
+                             * The rewatch question belongs at the same layer as `NuvioNavHost`, above
+                             * the screens and next to the other app wide overlays. Hanging it in
+                             * `PlayerScreen` alone would drop it when moving to another screen, even
+                             * though the answer is still being written. Mobile has it in
+                             * `MainAppContent.kt` at the same level.
+                             */
+                            RewatchPromptOverlay(repository = rewatchConsentRepository)
                             AmbientModeHost(
                                 controller = ambientIdleController,
                                 allowed = currentRoute?.startsWith("player/") != true &&
@@ -1457,16 +1467,12 @@ open class MainActivity : ComponentActivity() {
         externalPlaybackTracker.raiseAutoNextOverlayOnReturn()
         super.onStart()
         startupSyncService.startPeriodicSurfacePulls()
-        androidTvChannelSyncService.onForegroundChanged(true)
     }
 
     override fun onStop() {
         externalPlaybackTracker.onExternalPlayerCoveredApp()
         super.onStop()
         startupSyncService.stopPeriodicSurfacePulls()
-        // App going to background (e.g. user returning to the launcher): reconcile the
-        // Continue Watching channel once so Projectivy repaints it with fresh progress.
-        androidTvChannelSyncService.onForegroundChanged(false)
     }
 
     override fun onDestroy() {

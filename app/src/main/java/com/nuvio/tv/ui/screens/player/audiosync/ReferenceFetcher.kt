@@ -9,12 +9,12 @@ import java.util.concurrent.Executor
  * workers, also when the same file is still queued on [normal]; whichever download finishes first
  * serves everyone waiting. A failure only counts once no other download of that file is running.
  */
-internal class ReferenceFetcher<K : Any, T : Any>(
+internal class ReferenceFetcher<T : Any>(
     private val normal: Executor,
     private val urgent: Executor,
-    private val parsed: ConcurrentHashMap<K, List<T>>,
+    private val parsed: ConcurrentHashMap<String, List<T>>,
     /** Blocking download and parse; returns an empty list on failure. */
-    private val download: (key: K) -> List<T>,
+    private val download: (url: String) -> List<T>,
     private val log: (String) -> Unit = {},
 ) {
     private class Pending<T> {
@@ -23,9 +23,9 @@ internal class ReferenceFetcher<K : Any, T : Any>(
         var running = 0
     }
 
-    private val pending = ConcurrentHashMap<K, Pending<T>>()
+    private val pending = ConcurrentHashMap<String, Pending<T>>()
 
-    fun fetch(url: K, urgent: Boolean = false, onReady: ((List<T>) -> Unit)?) {
+    fun fetch(url: String, urgent: Boolean = false, onReady: ((List<T>) -> Unit)?) {
         var cached: List<T>? = null
         var executor: Executor? = null
         pending.compute(url) { _, existing ->
@@ -45,7 +45,7 @@ internal class ReferenceFetcher<K : Any, T : Any>(
         }
         val ready = cached
         if (ready != null) {
-            if (ready.isNotEmpty() && onReady != null) deliver(ready, onReady)
+            if (ready.isNotEmpty() && onReady != null) deliver(url, ready, onReady)
             return
         }
         val start = executor ?: return
@@ -57,18 +57,18 @@ internal class ReferenceFetcher<K : Any, T : Any>(
         }
     }
 
-    private fun run(url: K) {
+    private fun run(url: String) {
         // Another download of the same file may have finished first.
         val result = parsed[url]?.takeIf { it.isNotEmpty() } ?: try {
             download(url)
         } catch (error: Exception) {
-            log("reference download failed: ${error.javaClass.simpleName}")
+            log("reference download failed for $url: ${error.message}")
             emptyList()
         }
         finish(url, result)
     }
 
-    private fun finish(url: K, result: List<T>) {
+    private fun finish(url: String, result: List<T>) {
         var waiters: List<(List<T>) -> Unit> = emptyList()
         pending.compute(url) { _, entry ->
             if (entry != null) entry.running--
@@ -79,15 +79,15 @@ internal class ReferenceFetcher<K : Any, T : Any>(
             null
         }
         if (result.isEmpty()) return
-        waiters.forEach { deliver(result, it) }
+        waiters.forEach { deliver(url, result, it) }
     }
 
     /** A failing handler must not take down the download worker, and with it the app. */
-    private fun deliver(result: List<T>, onReady: (List<T>) -> Unit) {
+    private fun deliver(url: String, result: List<T>, onReady: (List<T>) -> Unit) {
         try {
             onReady(result)
         } catch (error: Exception) {
-            log("reference handler failed: ${error.javaClass.simpleName}")
+            log("reference handler failed for $url: ${error.message}")
         }
     }
 }

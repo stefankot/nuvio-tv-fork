@@ -2,7 +2,7 @@
 # Test spójności forka. Uruchom z katalogu NuvioFork: bash fork-tools/check.sh
 cd "$(dirname "$0")/.." || exit 2
 . fork-tools/pins.env
-UP=../upstream/reshaped; BASE=df23746dc; fail=0
+UP=../upstream/reshaped; BASE=0badb7ffc; fail=0 # BASE = vendor/nuvio: NuvioTV 1.2.0-beta.4 (26.11)
 bad(){ echo "BŁĄD: $*"; fail=1; }
 # Seria "kicia" (skórka Kicia): jedna łatka na plik, fork-tools/patches/kicia/<ścieżka z _>.patch, nakładana jako ostatnia.
 # unkicia <plik> -> ścieżka do kopii z cofniętą łatką Kicii (albo sam plik, gdy łatki nie ma).
@@ -38,8 +38,11 @@ fi
     for pf in $(ls -r fork-tools/patches/$series/*.patch 2>/dev/null); do patch -R -s "$tmp" < "$pf" >/dev/null 2>&1 || { echo "BŁĄD: łatka nie cofa się: $pf"; fail=1; }; done
     cmp -s "$tmp" "$UP/$f" || { echo "BŁĄD: plik modułu różni się od Reshaped poza łatkami: $f"; fail=1; }; rm -f "$tmp"
   done < fork-tools/module-patched.txt; }
-# (d) limit plików utrzymywanych ręcznie
-n=$(cat fork-tools/hooked-overrides.txt fork-tools/base-hooks.txt; cut -f1 "$PATCHED" 2>/dev/null) ; n=$(echo "$n" | grep -c .); [ "$n" -le 65 ] || bad "za dużo plików z hookami: $n"
+# (d) limit plików bazy z wpięciami (26.11: od aktualizacji do 1.2.0-beta.4 liczone są tylko pliki NuvioTV; łatki plików Reshaped,
+#     np. Live TV w patched-overrides.txt, nie są plikami bazy — jak module-patched od 22.11)
+n=$(cat fork-tools/hooked-overrides.txt fork-tools/base-hooks.txt) ; n=$(echo "$n" | grep -c .); [ "$n" -le 65 ] || bad "za dużo plików z hookami: $n"
+# (d4) pliki bazy 1:1 poza listą: wersje Reshaped plików bazy nie wracają (overrides.txt musi być pusty, ZASADY §2 26.11)
+[ -s fork-tools/overrides.txt ] && bad "overrides.txt nie jest pusty: pliki bazy mają być 1:1 z NuvioTV"
 # (e) zmodyfikowany plik bazy spoza list
 for f in $(git diff --diff-filter=M --name-only $BASE; git diff --name-only --diff-filter=M $BASE HEAD); do
   grep -qxF "$f" fork-tools/overrides.txt fork-tools/hooked-overrides.txt fork-tools/base-hooks.txt || cut -f1 fork-tools/module-patched.txt | grep -qxF "$f" || cut -f1 "$PATCHED" 2>/dev/null | grep -qxF "$f" || bad "zmodyfikowany plik poza listami: $f"; done

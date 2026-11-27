@@ -110,6 +110,7 @@ class PlayerRuntimeController(
     internal val tvRecommendationManager: com.nuvio.tv.core.recommendations.TvRecommendationManager,
     internal val serverPlayback: ServerPlayback,
     internal val serverStreams: ServerStreams,
+    internal val usenetSourceSettings: com.nuvio.tv.core.usenet.UsenetSourceSettings,
     internal val party: com.nuvio.tv.core.party.PartyRepository,
     internal val profileId: Int,
     internal val savedStateHandle: SavedStateHandle,
@@ -179,9 +180,6 @@ class PlayerRuntimeController(
     )
 
     internal val navigationArgs = PlayerNavigationArgs.from(savedStateHandle)
-    internal var autoSourceRecovery: PlayerAutoSourceRecovery? = null
-    internal var sourceRecoveryPickerError: String? = null
-    internal var playerInitializationJob: Job? = null
     internal val initialStreamUrl: String = navigationArgs.streamUrl
     internal val title: String = navigationArgs.title
     internal val streamName: String? = navigationArgs.streamName
@@ -273,7 +271,6 @@ class PlayerRuntimeController(
     internal var autoSelectedSourceUrl: String? = currentStreamUrl.takeIf {
         navigationArgs.autoPlayNav && it.isNotBlank() && !it.startsWith("torrent://")
     }
-    internal var sourceFallbackExhaustedUrl: String? = null
 
     /** The sources the stream screen tried before this one, so the fallback goes on from them. */
     private val sourcesTriedBeforePlayback = SourceFallbackHandoff.take(initialStreamUrl, currentStreamUrl)
@@ -446,37 +443,6 @@ class PlayerRuntimeController(
     @Volatile var exoPlayerView: androidx.media3.ui.PlayerView? = null
     internal var _loadControl: DefaultLoadControl? = null
     internal var playbackSpeedAwareAudioSink: PlaybackSpeedAwareAudioSink? = null
-    // Nuvio RS hook: Arc sound/picture format handling state (see PlayerFormatsHooks.kt).
-    internal var formatsActiveForCurrentPlayback: Boolean = false
-    internal val playbackRecoveryGate = PlaybackRecoveryGate()
-    internal var playbackRecoveryJob: Job? = null
-    internal var formatsRecoveryBudgetUrl: String = ""
-    internal var formatsRecoveryCountForCurrentStream: Int = 0
-    internal var currentAudioPassthroughPolicy: com.nuvio.tv.core.player.AudioPassthroughPolicy? = null
-    internal var surroundResolveInputs: SurroundResolveInputs? = null
-    internal var lastAppliedSurroundResolve: SurroundResolveResult? = null
-    internal var lastAppliedSurroundHdmi: AudioChainProbe.HdmiPlugSnapshot? = null
-    internal val preferFfmpegAudioStreamUrls: MutableSet<String> = mutableSetOf()
-    internal val iecFailureStrikes: MutableMap<String, Int> = mutableMapOf()
-    internal val iecOffStreamUrls: MutableSet<String> = mutableSetOf()
-    internal var lastBitstreamOutputReading: Pair<androidx.media3.common.PlaybackException, BitstreamOutputReading?>? = null
-    internal var knownAudioOutputDeviceIds: Set<Int> = emptySet()
-    internal var passthroughReturnCheckJob: Job? = null
-    internal val passthroughReturnRebuilds: MutableMap<String, Int> = mutableMapOf()
-    internal var busyOutputCheckJob: Job? = null
-    internal var busyOutputCheckStreamUrl: String? = null
-    internal val busyOutputReturnRebuilds: MutableMap<String, Int> = mutableMapOf()
-    internal var tunnelDeadClockSignature: String? = null
-    internal val tunnelingDisabledStreamUrls: MutableSet<String> = mutableSetOf()
-    internal var tunnelStallStrike: PlayerTunnelAvSyncPolicy.StallStrike? = null
-    internal var isTunnelingActiveForCurrentPlayback: Boolean = false
-    internal var tunnelAvSyncWatchdogJob: Job? = null
-    internal var lastOutputChangeForTunnelMs: Long = 0L
-    internal var formatsVideoDecoderName: String? = null
-    internal var currentAudioPathDescription: String? = null
-    internal var isAudioOutputBypassing: Boolean = false
-    internal var losslessAudioDefaultAppliedForStream: Boolean = false
-    internal var persistedAudioPreferenceSeenForStream: Boolean = false
 
     internal var progressJob: Job? = null
     internal var vodTelemetryJob: Job? = null
@@ -521,6 +487,11 @@ class PlayerRuntimeController(
     internal var stillWatchingPromptJob: Job? = null
     internal var startupLoadingReportJob: Job? = null
     internal var sourceStreamsJob: Job? = null
+    internal var streamFallbackSession: com.nuvio.tv.core.player.StreamFallbackSession? = null
+    internal var streamFallbackJob: Job? = null
+    internal var streamFallbackResumePosition: Long? = null
+    internal var streamFallbackStartPaused: Boolean = false
+    internal var streamFallbackError: String? = null
     internal var sourceBadgeJob: Job? = null
     internal var sourceFilterFullList: List<com.nuvio.tv.domain.model.Stream> = emptyList()
     internal var sourceBadgedAddonNames: Set<String> = emptySet()
@@ -555,6 +526,8 @@ class PlayerRuntimeController(
 
     internal var playbackStartedForParentalGuide = false
     internal var hasRenderedFirstFrame = false
+    // Tunneled playback sets hasRenderedFirstFrame on READY before any frame is decoded.
+    internal var tunneledFirstFrameAssumed = false
     // Prevent the previous stream's end from completing the new stream.
     internal var endDetectionArmed = false
     // Ignore EOF until MPV has reported a non-EOF state for this stream.
@@ -741,6 +714,15 @@ class PlayerRuntimeController(
     internal var forceDv7ToHevc: Boolean = false
     internal var startupRetryCount: Int = 0
     internal var parsingErrorProbeAttempted: Boolean = false
+    /** A Blu-ray found behind the current stream after it failed to parse. */
+    internal var currentStreamBluray: BlurayPlaylistResolver.RemoteLayout? = null
+    internal var clipPlaylistProbedUrl: String? = null
+    /** The disc's titles by playlist name, from the clip probe. */
+    internal var discTitlePlaylists: Map<String, BlurayPlaylistResolver.RemoteLayout.Playlist> = emptyMap()
+    internal var discFeatureTitle: String? = null
+    /** Where the feature was left for another title of its disc. */
+    internal var discFeaturePositionMs: Long = 0L
+    internal var discTitleLanguagesJob: Job? = null
     internal var hasRetriedCurrentStreamAfterUnexpectedNpe: Boolean = false
     internal var hasRetriedCurrentStreamAfterMediaPeriodHolderCrash: Boolean = false
     internal var timeoutRecoveryAttempts: Int = 0
@@ -783,10 +765,22 @@ class PlayerRuntimeController(
     internal var currentTraktEpisodeMappingKey: String? = null
     internal var hasSentScrobbleStartForCurrentItem: Boolean = false
     internal var hasRequestedScrobbleStartForCurrentItem: Boolean = false
+
+    /** A start was sent for this item while the playback was already past the completion bar. */
+    internal var hasSentStartAboveCompletionBarForCurrentItem: Boolean = false
     internal var scrobbleStartRequestGeneration: Long = 0L
     internal var playbackPreparationJob: Job? = null
     internal var traktMappingJob: Job? = null
     internal var hasSentCompletionScrobbleForCurrentItem: Boolean = false
+
+    /** A start was sent below the bar for this item, so the account owns its playback. */
+    internal var hasOpenedScrobbleSessionForCurrentItem: Boolean = false
+
+    /** Where the last start of this playback began, for a stop that ends above the bar. */
+    internal var scrobbleStartProgressPercent: Double? = null
+
+    /** Identifies this run of the player, so trackers collapse a completion they already wrote. */
+    internal var scrobblePlaybackId: Long = 0L
 
     internal var requestedUseLibassByUser: Boolean = false
     internal var libassPipelineOverrideForCurrentStream: Boolean? = null
@@ -902,10 +896,10 @@ class PlayerRuntimeController(
     }
 
     fun onCleared() {
-        autoSourceRecovery?.cancel()
-        playerInitializationJob?.cancel()
         playerSession.close()
         stopServerPlayback()
+        cancelStreamFallback()
+        com.nuvio.tv.core.usenet.UsenetSidecar.peek()?.release(currentStreamUrl)
         releasePlayer()
         stopTorrentStream()
         torrentService.shutdown()

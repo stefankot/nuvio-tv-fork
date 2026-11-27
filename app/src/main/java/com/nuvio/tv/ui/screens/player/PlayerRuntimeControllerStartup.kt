@@ -16,7 +16,10 @@ internal fun PlayerRuntimeController.startInitialPlaybackIfNeeded() {
     if (initialPlaybackStarted) return
 
     initialPlaybackStarted = true
-    claimAutoSourceRecovery()
+    streamCacheKey?.let { key ->
+        streamFallbackSession = com.nuvio.tv.core.player.StreamFallbackHandoff.take(key, profileId, initialStreamUrl)
+            ?: com.nuvio.tv.core.player.StreamFallbackHandoff.take(key, profileId, currentStreamUrl)
+    }
 
     val bg = navigationArgs.bingeGroup
     val cid = contentId
@@ -70,14 +73,12 @@ internal fun PlayerRuntimeController.startInitialPlaybackIfNeeded() {
                 throw e
             } catch (e: Exception) {
                 Log.e("PlayerStartup", "Failed to start torrent", e)
-                val message = context.getString(
-                    R.string.player_error_failed_start_torrent,
-                    e.message ?: context.getString(R.string.error_unknown)
-                )
-                if (autoSourceRecovery?.failDefinitively(message) == true) return@launch
                 _uiState.update {
                     it.copy(
-                        error = message,
+                        error = context.getString(
+                            R.string.player_error_failed_start_torrent,
+                            e.message ?: context.getString(R.string.error_unknown)
+                        ),
                         showLoadingOverlay = false
                     )
                 }

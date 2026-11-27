@@ -6,12 +6,16 @@ import com.nuvio.tv.domain.model.Stream
  * Echo -> Reshaped bridges: functions with Echo's signature that call the fork's (Reshaped's) version.
  */
 
-/** Echo: switchToSourceStream(stream, startIntro, loadSavedProgress). Reshaped: switchToSourceStream(stream, resumeSavedProgress). */
+/**
+ * Echo: switchToSourceStream(stream, startIntro, loadSavedProgress). NuvioTV 1.2.0-beta.4 (27.11, wersja Reshaped odpadła):
+ * switchToSourceStream(stream) — sama przenosi bieżącą pozycję filmu, a zapisany postęp czyta tylko bez niej.
+ */
+@Suppress("UNUSED_PARAMETER")
 internal fun PlayerRuntimeController.switchToSourceStream(
     stream: Stream,
     startIntro: Boolean,
     loadSavedProgress: Boolean
-) = switchToSourceStream(stream, resumeSavedProgress = loadSavedProgress)
+) = switchToSourceStream(stream)
 
 /** Echo: how a picked source plays (UP/echo PlayerRuntimeControllerStreams.kt 608-645); Reshaped has no such type. */
 internal class StreamPlayback(

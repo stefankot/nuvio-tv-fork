@@ -42,7 +42,6 @@ internal class AudioSpotSampler(
 
     /** Bytes read over all connections: the budget. */
     private val bytes = AtomicLong()
-    val bytesRead: Long get() = bytes.get()
 
     /** Counts into [bytes] and into [connectionBytes], the bytes of one connection. */
     private fun countingFactory(connectionBytes: AtomicLong) = DataSource.Factory {

@@ -19,8 +19,8 @@ internal fun LazyListScope.skinSettingsItems() {
         NavigationSettingsItem(
             Icons.Default.Palette,
             "Wygląd: $name",
-            "Kliknij, aby zmienić: Nuvio → Netflix → Mój projekt → Kicia → Niunia",
-            onClick = { SkinPreferences.set(context, SkinId.entries[(current.ordinal + 1) % SkinId.entries.size]) }
+            "Kliknij, aby zmienić: Nuvio → Mój projekt → Kicia → Niunia",
+            onClick = { val order = SkinId.entries - SkinId.NETFLIX; SkinPreferences.set(context, order[(order.indexOf(current) + 1) % order.size]) } // Fork 26.11: wygląd Netflix z Reshaped usunięty razem z bazą 1.2.0-beta.4 (pliki bazy 1:1)
         )
     }
 }

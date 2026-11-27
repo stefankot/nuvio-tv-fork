@@ -62,7 +62,6 @@ app/build.gradle.kts	// Fork hook: ai-subtitles klucz	TVDB_API_KEY	ai-subtitles	
 app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt	// Fork hook: test łącza w tle	val shouldAutoSelect	ke-network	test łącza w tle na ekranie źródeł (KeAutoTest)
 app/src/main/java/com/nuvio/tv/ui/reshaped/livetv/LiveTvGuide.kt	ForgeGuideDetail.open(picked, it); return true } // Fork hook	A programme that has ended plays again	tv	OK na programie w przyszłości otwiera stronę programu
 app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	composable("forge_history")	composable(Screen.ExperienceModeSelection.route)	kicia	trasa Historia (menu awatara)
-app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerInitialization.kt	// Fork hook: lektor (ścieżka Arc też)	.setAudioProcessors	lektor	procesor lektora w ścieżce dźwięku Arc (formatsPlan)	.setAudioProcessors(arrayOf(gainAudioProcessor))
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlaybackSpeedAwareAudioSink.kt	// Fork hook: lektor = Dolby	shouldRejectDirectPlayback	lektor	lektor wymusza PCM (mikser działa przy Dolby)	
 app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.kt	// Fork hook: settings-nav	forgeBasicDetour	fork	nawigacja ustawień w 3 trybach (drzewo trybu Zaawansowanego)	
 app/src/main/java/com/nuvio/tv/ui/screens/detail/MetaDetailsScreen.kt	Fork hook: skin (strona filmu/serialu skórki)	MetaDetailsContent(	skin	skin: strona filmu/serialu (Niunia)	
@@ -154,3 +153,22 @@ app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	Fork hook: skin (Z-
 app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	Fork hook: skin (Z-14 Discover)	DiscoverScreen(	skin	skin: Odkrywaj (Discover)	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	Fork hook: echo (okno jakości: po zamknięciu	uiState.showSpeedDialog,	echo	okno jakości w kluczach efektu fokusu	
 app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	Fork hook: echo (okno jakości trzyma fokus	Request focus for key events	echo	okno jakości trzyma fokus (chowanie przycisków nie daje fokusu korzeniowi)	
+app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt	rootComposable(com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE) { // Nuvio RS hook: Live TV	NavHost	reshaped-livetv	trasa ekranu Live TV (Reshaped)	
+app/src/main/java/com/nuvio/tv/MainActivity.kt	// Nuvio RS hook: Live TV menu entry	rootRoutes	reshaped-livetv	pozycja Live TV w menu (Reshaped)	
+app/src/main/java/com/nuvio/tv/MainActivity.kt	// Nuvio RS hook: optional top pill menu replaces the sidebar (Niunia)	if (modernSidebarEnabled)	reshaped-pillnav	menu pigułki u góry (Reshaped; menu Niuni)	
+app/src/main/java/com/nuvio/tv/NuvioApplication.kt	// Nuvio RS hook: sync through the viewer's Google account (Live TV)	PluginRuntimeHooks.onApplicationCreate	reshaped-sync	synchronizacja z kontem Google (Reshaped)	
+app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsCatalog.kt	NUVIO_RESHAPED(SettingsRailGroup.WATCH), // Nuvio RS hook	enum SettingsCategory	reshaped-settings	kategoria ustawień Nuvio Reshaped	
+app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.kt	SettingsCategory.NUVIO_RESHAPED -> NuvioReshapedSettingsContent( // Nuvio RS hook	SettingsCategory	reshaped-settings	strona ustawień Nuvio Reshaped	
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	// Nuvio RS hook: Live TV channel list	panelOrDialogOpen	reshaped-livetv	lista kanałów Live TV w odtwarzaczu	
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt	LiveTvPlayerOverlay(liveTvPlayer, uiState) // Nuvio RS hook: Live TV	DiscTitlesDialog	reshaped-livetv	nakładka Live TV w odtwarzaczu	
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerMediaSourceFactory.kt	// Nuvio RS hook: Live TV retries refusals	createMediaSource	reshaped-livetv	ponowienia odmów serwera IPTV	
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerMediaSourceFactory.kt	// Nuvio RS hook: Live TV is never cached	useVodCache	reshaped-livetv	bez pamięci podręcznej VOD dla Live TV	
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeController.kt	// Nuvio RS hook: Live TV catch-up seeks like a film	isLivePlayback	reshaped-livetv	archiwum przewija się jak film	
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerAfrPreflight.kt	// Nuvio RS hook: Live TV matches from the playing track	runAfrPreflightIfEnabled	reshaped-livetv	bez sondy klatkażu dla Live TV	
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerTracks.kt	// Nuvio RS hook: TS channels carry no frame rate	updateAvailableTracks	reshaped-livetv	klatkaż kanałów TS	
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerInitialization.kt	// Nuvio RS hook: Live TV starts on any I-frame	setTsExtractorFlags	reshaped-livetv	start kanału od dowolnej klatki I	
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerInitialization.kt	// Nuvio RS hook: rejoin the live edge	onPlayerError	reshaped-livetv	powrót do transmisji na żywo	
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerStreams.kt	// Nuvio RS hook: Live TV zaps keep the player	switchToSourceStream	reshaped-livetv	przełączanie kanałów bez nowego odtwarzacza	
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerStreams.kt	// Nuvio RS hook: a channel or catch-up starts a different timeline	switchToSourceStream	reshaped-livetv	kanał bez wznawiania pozycji	
+app/src/main/java/com/nuvio/tv/core/player/StreamAutoPlaySelector.kt	// Fork hook: ranking reguł Regex (Reshaped, kreator źródeł)	REGEX_MATCH	sources	ranking reguł Regex (fork/sources/RankedRegex)	
+app/build.gradle.kts	apply(from = "reshaped.gradle") // Nuvio RS hook: fork build settings	dependencies	reshaped	ustawienia budowania Reshaped/forka	

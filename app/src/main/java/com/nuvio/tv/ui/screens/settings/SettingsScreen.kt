@@ -42,9 +42,9 @@ import androidx.compose.material.icons.outlined.Bedtime
 import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.filled.BugReport
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CloudDownload
+import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.FastForward
 import androidx.compose.material.icons.filled.GridView
@@ -110,6 +110,7 @@ import kotlin.math.roundToInt
 private enum class IntegrationSettingsSection {
     Hub,
     Debrid,
+    Usenet,
     Tmdb,
     MdbList,
     AnimeSkip
@@ -166,7 +167,7 @@ private fun settingsSectionSpec(category: SettingsCategory): SettingsSectionSpec
     SettingsCategory.LAYOUT -> SettingsSectionSpec(category, stringResource(R.string.settings_layout), Icons.Default.GridView, destination = SettingsSectionDestination.Inline)
     SettingsCategory.CONTENT_DISCOVERY -> SettingsSectionSpec(category, stringResource(R.string.settings_content_discovery), Icons.Default.Explore, destination = SettingsSectionDestination.Inline)
     SettingsCategory.PLAYBACK -> SettingsSectionSpec(category, stringResource(R.string.settings_playback), Icons.Rounded.PlayArrow, destination = SettingsSectionDestination.Inline)
-    SettingsCategory.NUVIO_RESHAPED -> SettingsSectionSpec(category, stringResource(R.string.settings_nuvio_reshaped), Icons.Default.AutoAwesome, destination = SettingsSectionDestination.Inline) // Nuvio RS hook
+    SettingsCategory.NUVIO_RESHAPED -> SettingsSectionSpec(category, stringResource(R.string.settings_nuvio_reshaped), Icons.Default.Tune, destination = SettingsSectionDestination.Inline) // Nuvio RS hook
     SettingsCategory.YOUTUBE -> SettingsSectionSpec(category, stringResource(R.string.forge_settings_youtube), Icons.Rounded.PlayArrow, destination = SettingsSectionDestination.Inline) // forge hook: 1Tube
     SettingsCategory.FORGE -> SettingsSectionSpec(category, "Nuvio Forge", Icons.Default.Tune, destination = SettingsSectionDestination.Inline) // forge hook: settings of this fork
     SettingsCategory.INTEGRATION -> SettingsSectionSpec(category, stringResource(R.string.settings_integration), Icons.Default.Link, destination = SettingsSectionDestination.Inline)
@@ -277,6 +278,7 @@ fun SettingsScreen(
     val railContainerFocusRequester = remember { FocusRequester() }
     val integrationHubFocusRequester = remember { FocusRequester() }
     val integrationDebridFocusRequester = remember { FocusRequester() }
+    val integrationUsenetFocusRequester = remember { FocusRequester() }
     val integrationTmdbFocusRequester = remember { FocusRequester() }
     val integrationMdbListFocusRequester = remember { FocusRequester() }
     val integrationAnimeSkipFocusRequester = remember { FocusRequester() }
@@ -734,6 +736,7 @@ fun SettingsScreen(
                                 integrationHubReturnSection = integrationHubReturnSection,
                                 integrationHubFocusRequester = integrationHubFocusRequester,
                                 integrationDebridFocusRequester = integrationDebridFocusRequester,
+                                integrationUsenetFocusRequester = integrationUsenetFocusRequester,
                                 integrationTmdbFocusRequester = integrationTmdbFocusRequester,
                                 integrationMdbListFocusRequester = integrationMdbListFocusRequester,
                                 integrationAnimeSkipFocusRequester = integrationAnimeSkipFocusRequester,
@@ -906,6 +909,7 @@ fun SettingsScreen(
                         integrationHubReturnSection = integrationHubReturnSection,
                         integrationHubFocusRequester = integrationHubFocusRequester,
                         integrationDebridFocusRequester = integrationDebridFocusRequester,
+                        integrationUsenetFocusRequester = integrationUsenetFocusRequester,
                         integrationTmdbFocusRequester = integrationTmdbFocusRequester,
                         integrationMdbListFocusRequester = integrationMdbListFocusRequester,
                         integrationAnimeSkipFocusRequester = integrationAnimeSkipFocusRequester,
@@ -936,6 +940,7 @@ private fun SettingsDetailPane(
     integrationHubReturnSection: IntegrationSettingsSection,
     integrationHubFocusRequester: FocusRequester,
     integrationDebridFocusRequester: FocusRequester,
+    integrationUsenetFocusRequester: FocusRequester,
     integrationTmdbFocusRequester: FocusRequester,
     integrationMdbListFocusRequester: FocusRequester,
     integrationAnimeSkipFocusRequester: FocusRequester,
@@ -1034,6 +1039,7 @@ private fun SettingsDetailPane(
             },
             hubFocusRequester = integrationHubFocusRequester,
             debridFocusRequester = integrationDebridFocusRequester,
+            usenetFocusRequester = integrationUsenetFocusRequester,
             tmdbFocusRequester = integrationTmdbFocusRequester,
             mdbListFocusRequester = integrationMdbListFocusRequester,
             animeSkipFocusRequester = integrationAnimeSkipFocusRequester,
@@ -1163,6 +1169,7 @@ private fun IntegrationSettingsContent(
     initialFocusRequester: FocusRequester?,
     hubFocusRequester: FocusRequester,
     debridFocusRequester: FocusRequester,
+    usenetFocusRequester: FocusRequester,
     tmdbFocusRequester: FocusRequester,
     mdbListFocusRequester: FocusRequester,
     animeSkipFocusRequester: FocusRequester,
@@ -1175,6 +1182,7 @@ private fun IntegrationSettingsContent(
         IntegrationSettingsSection.Hub ->
             initialFocusRequester ?: hubFocusRequester
         IntegrationSettingsSection.Debrid -> debridFocusRequester
+        IntegrationSettingsSection.Usenet -> usenetFocusRequester
         IntegrationSettingsSection.Tmdb -> tmdbFocusRequester
         IntegrationSettingsSection.MdbList -> mdbListFocusRequester
         IntegrationSettingsSection.AnimeSkip -> animeSkipFocusRequester
@@ -1188,6 +1196,7 @@ private fun IntegrationSettingsContent(
         val requester = when (selectedSection) {
             IntegrationSettingsSection.Hub -> hubEntryFocusRequester
             IntegrationSettingsSection.Debrid -> debridFocusRequester
+            IntegrationSettingsSection.Usenet -> usenetFocusRequester
             IntegrationSettingsSection.Tmdb -> tmdbFocusRequester
             IntegrationSettingsSection.MdbList -> mdbListFocusRequester
             IntegrationSettingsSection.AnimeSkip -> animeSkipFocusRequester
@@ -1224,6 +1233,19 @@ private fun IntegrationSettingsContent(
                                     leadingIcon = Icons.Default.CloudDownload,
                                     onClick = { onSelectSection(IntegrationSettingsSection.Debrid) },
                                     modifier = if (hubEntryTargetSection == IntegrationSettingsSection.Debrid) {
+                                        Modifier.focusRequester(hubEntryFocusRequester)
+                                    } else {
+                                        Modifier
+                                    }
+                                )
+                            }
+                            item(key = "integration_hub_usenet") {
+                                SettingsActionRow(
+                                    title = stringResource(R.string.usenet_title),
+                                    subtitle = stringResource(R.string.settings_usenet_subtitle),
+                                    leadingIcon = Icons.Default.Dns,
+                                    onClick = { onSelectSection(IntegrationSettingsSection.Usenet) },
+                                    modifier = if (hubEntryTargetSection == IntegrationSettingsSection.Usenet) {
                                         Modifier.focusRequester(hubEntryFocusRequester)
                                     } else {
                                         Modifier
@@ -1280,6 +1302,10 @@ private fun IntegrationSettingsContent(
             DebridSettingsContent(
                 initialFocusRequester = debridFocusRequester
             )
+        }
+
+        IntegrationSettingsSection.Usenet -> {
+            UsenetSettingsContent(initialFocusRequester = usenetFocusRequester)
         }
 
         IntegrationSettingsSection.Tmdb -> {

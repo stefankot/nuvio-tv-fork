@@ -9,12 +9,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nuvio.tv.R
-import com.nuvio.tv.data.local.PlayerPreference
 import com.nuvio.tv.data.local.PlayerSettings
 import com.nuvio.tv.ui.theme.NuvioTheme
 
@@ -36,23 +34,7 @@ internal fun NuvioReshapedSettingsContent(
                 subtitle = stringResource(R.string.settings_nuvio_reshaped_description),
             )
         }
-        autoSyncSettingsItems(
-            enabled = playerSettings.playerPreference != PlayerPreference.EXTERNAL,
-            firstItemModifier = if (initialFocusRequester != null) {
-                Modifier.focusRequester(initialFocusRequester)
-            } else {
-                Modifier
-            },
-        )
-        autoSyncBubbleSettingsItems(enabled = playerSettings.playerPreference != PlayerPreference.EXTERNAL) // Nuvio RS hook: AutoSync bubble
-        autoSourceRecoverySettingsItems(playerSettings)
-        reshapedFormatsSettingsItems(playerSettings) // Nuvio RS: Arc sound and picture formats
-        seekrKeySettingsItems()
-        seekPreviewSettingsItems()
-        subtitleFontSettingsItems()
-        connectionSpeedSettingsItems()
         pillNavSettingsItems()
-        netflixUiSettingsItems()
         liveTvSettingsItems()
         reshapedSyncSettingsItems()
         keCatalogSettingsItems() // fork hook: KE catalog
@@ -63,6 +45,5 @@ internal fun NuvioReshapedSettingsContent(
         echoPlaybackSettingsItems() // fork hook: echo
         youtubeSettingsItems() // fork hook: Nuvio One YouTube
         remoteButtonsSettingsItems() // fork hook: Arc remote buttons
-        asrModelSettingsItems() // fork hook: multilingual speech model
     }
 }

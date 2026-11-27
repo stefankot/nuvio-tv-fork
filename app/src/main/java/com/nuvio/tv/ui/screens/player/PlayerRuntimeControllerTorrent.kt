@@ -65,11 +65,9 @@ internal fun PlayerRuntimeController.observeTorrentState() {
                 is TorrentState.Streaming -> onTorrentStreaming(torrentState)
                 is TorrentState.Error -> {
                     Log.e(TAG, "Torrent error: ${torrentState.message}")
-                    val message = context.getString(R.string.player_error_torrent, torrentState.message)
-                    if (autoSourceRecovery?.failDefinitively(message) == true) return@collectLatest
                     _uiState.update {
                         it.copy(
-                            error = message,
+                            error = context.getString(R.string.player_error_torrent, torrentState.message),
                             showLoadingOverlay = false,
                             torrentBufferingMessage = null
                         )
@@ -213,14 +211,12 @@ internal fun PlayerRuntimeController.launchTorrentSourceStream(
             throw e
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start torrent stream", e)
-            val message = context.getString(
-                R.string.player_error_failed_start_torrent,
-                e.message ?: context.getString(R.string.error_unknown)
-            )
-            if (autoSourceRecovery?.failDefinitively(message) == true) return@launch
             _uiState.update {
                 it.copy(
-                    error = message,
+                    error = context.getString(
+                        R.string.player_error_failed_start_torrent,
+                        e.message ?: context.getString(R.string.error_unknown)
+                    ),
                     showLoadingOverlay = false,
                     loadingProgress = null
                 )

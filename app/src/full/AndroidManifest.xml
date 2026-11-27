@@ -1,15 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Nuvio RS: settings hand-over from builds made before the rename (same signing key only). Fork: nazwa od applicationId, bo stała nazwa blokowała instalację obok Nuvio Reshaped (INSTALL_FAILED_DUPLICATE_PERMISSION, JMGO 18.11). -->
-    <permission
-        android:name="${applicationId}.permission.MIGRATE"
-        android:protectionLevel="signature" />
-    <uses-permission android:name="${applicationId}.permission.MIGRATE" />
-
+    <!-- Lets the in-app updater install its own updates without a confirmation screen on Android 12+. -->
     <queries>
-        <package android:name="com.nuviodebug.com" />
-        <package android:name="com.nuvioreshaped.tv" />
         <!-- fork launcher: ekran Aplikacje widzi aplikacje TV -->
         <intent>
             <action android:name="android.intent.action.MAIN" />
@@ -24,12 +17,6 @@
     <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
 
     <application>
-        <provider
-            android:name="com.nuvio.tv.reshaped.ReshapedMigrationProvider"
-            android:authorities="${applicationId}.reshaped.migration"
-            android:exported="true"
-            android:permission="${applicationId}.permission.MIGRATE" />
-
         <service
             android:name=".updater.UpdateJobService"
             android:exported="false"

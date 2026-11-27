@@ -127,18 +127,17 @@ class ForgeReadyViewModel @Inject constructor(
         val settings = playerSettings.playerSettings.first()
         // Like the stream screen: Regex mode without a usable pattern opens the source list.
         if (settings.streamAutoPlayMode == com.nuvio.tv.data.local.StreamAutoPlayMode.REGEX_MATCH &&
-            !com.nuvio.tv.core.player.StreamAutoPlayPolicy.isRegexSelectionConfigured(settings.streamAutoPlayRegex, settings.streamAutoPlayRankedRegex)
+            !com.nuvio.tv.core.player.StreamAutoPlayPolicy.isRegexSelectionConfigured(settings.streamAutoPlayRegex)
         ) return ReadyPick.choice(all)
         val installed = installedOrder.toSet()
         val bingeGroup = if (settings.streamAutoPlayPreferBingeGroupForNextEpisode && settings.streamAutoPlayReuseBingeGroup) {
             bingeGroups.get(contentId)
         } else null
         // off the main thread: a viewer's regex over hundreds of sources is not free
-        val chosen = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { StreamAutoPlaySelector.selectAutoPlayStreamAsync(
+        val chosen = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { StreamAutoPlaySelector.selectAutoPlayStream(
             streams = all,
             mode = settings.streamAutoPlayMode,
             regexPattern = settings.streamAutoPlayRegex,
-            rankedRegexPatterns = settings.streamAutoPlayRankedRegex,
             source = settings.streamAutoPlaySource,
             installedAddonNames = installed,
             selectedAddons = settings.streamAutoPlaySelectedAddons,

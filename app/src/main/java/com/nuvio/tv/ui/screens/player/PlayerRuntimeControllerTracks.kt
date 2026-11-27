@@ -1,5 +1,6 @@
 package com.nuvio.tv.ui.screens.player
 
+import com.nuvio.tv.ui.reshaped.livetv.measureLiveTvFrameRate // Nuvio RS hook
 import android.net.Uri
 import android.util.Log
 import androidx.media3.common.C
@@ -23,7 +24,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
 import com.nuvio.tv.ui.util.languageCodeToName
-import com.nuvio.tv.ui.reshaped.livetv.measureLiveTvFrameRate // Nuvio RS hook
 
 @UnstableApi
 internal fun PlayerRuntimeController.updateAvailableTracks(tracks: Tracks) {
@@ -93,9 +93,7 @@ internal fun PlayerRuntimeController.updateAvailableTracks(tracks: Tracks) {
                                 )
                             }
                         }
-                    } else {
-                        measureLiveTvFrameRate() // Nuvio RS hook: TS channels carry no frame rate
-                    }
+                    } else { measureLiveTvFrameRate() } // Nuvio RS hook: TS channels carry no frame rate
                     // Extract video codec, resolution, and bitrate for stream info
                     currentVideoCodec = CustomDefaultTrackNameProvider.resolveCodecName(format.sampleMimeType, format.codecs)
                     currentVideoWidth = format.width.takeIf { it > 0 }
@@ -155,7 +153,8 @@ internal fun PlayerRuntimeController.updateAvailableTracks(tracks: Tracks) {
                             name = format.label ?: format.language ?: context.getString(com.nuvio.tv.R.string.player_track_subtitle_fallback, subtitleTracks.size + 1),
                             language = format.language,
                             trackId = format.id,
-                            codec = CustomDefaultTrackNameProvider.formatNameFromMime(format.sampleMimeType),
+                            codec = CustomDefaultTrackNameProvider.formatNameFromMime(format.sampleMimeType)
+                                ?: CustomDefaultTrackNameProvider.formatNameFromMime(format.codecs),
                             isForced = hasForcedFlag || nameHintForced || isSongsAndSigns,
                             isSelected = isSelected
                         )
@@ -309,7 +308,7 @@ internal fun PlayerRuntimeController.updateAvailableTracks(tracks: Tracks) {
     updateAudioControlAvailability(audioTracks, selectedAudioIndex)
     // Fork hook: sources. TrackScout and ranking prefer Polish in automatic sessions.
     // Once a source is playable, a missing preferred language does not make it fail.
-    if (autoSourceRecovery == null && !com.nuvio.tv.fork.echo.isSourceSwitching(this) && !hasRenderedFirstFrame &&
+    if (!com.nuvio.tv.fork.echo.isSourceSwitching(this) && !hasRenderedFirstFrame &&
         !com.nuvio.tv.fork.dublagem.PolishDubbing.supportsCurrentSource(this) && // Fork hook: Dublagem audio po starcie
         com.nuvio.tv.fork.ForkHooks.wantsNextSourceForAudio(
             context, audioTracks.map { it.language }, sourceFallbackAttempts, streamAutoPlayFallbackMaxSources
@@ -331,13 +330,10 @@ internal fun PlayerRuntimeController.updateAvailableTracks(tracks: Tracks) {
         subtitleTracks = subtitleTracks
     )
     applyPendingAudioLanguage(audioTracks) // fork hook: echo A5
-    applyLosslessAudioDefaultIfUnset(audioTracks) // Nuvio RS hook: Arc formats
     if (currentStreamHasVideoTrack) {
         maybeScheduleFirstFrameWatchdog()
-        maybeScheduleTunnelAvSyncWatchdog() // Nuvio RS hook: Arc formats
     } else {
         cancelFirstFrameWatchdog()
-        cancelTunnelAvSyncWatchdog() // Nuvio RS hook: Arc formats
     }
     tryAutoSelectPreferredSubtitleFromAvailableTracks()
     maybeAdjustLibassPipelineForTracks(tracks)
@@ -1036,7 +1032,6 @@ internal fun PlayerRuntimeController.applyPersistedTrackPreference(
     var updatedAddonSubtitle: com.nuvio.tv.domain.model.Subtitle? = null
 
     pending.audio?.let { audioSelection ->
-        persistedAudioPreferenceSeenForStream = true // Nuvio RS hook: the lossless default never runs over a saved pick
         if (audioTracks.isEmpty()) {
             logSwitchTrace(
                 stage = "restore-audio",

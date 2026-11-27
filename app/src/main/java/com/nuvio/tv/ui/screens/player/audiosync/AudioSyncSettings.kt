@@ -4,46 +4,53 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-internal enum class AudioSamplingMode { FULL, LIMITED, OFF }
+/** How much of the film is read ahead of playback for dialogue samples, on any network. */
+internal enum class AudioSamplingMode {
+    /** Listen during playback only. */
+    OFF,
+
+    /** Fewer spots over one connection, with a small data cap. The most a metered network gets. */
+    LOW,
+
+    /** More spots over several connections, for the fastest sync. */
+    HIGH,
+}
 
 /**
  * Settings of the audio subtitle sync fallback (see AutoSync). Persistence is injected by the
  * platform, so Nuvio's own player settings are left untouched.
  */
 internal object AudioSyncSettings {
-    private val _fallbackEnabled = MutableStateFlow(true)
+    // Declared first: object properties initialize in order.
+    private val DEFAULT_SAMPLING_MODE = AudioSamplingMode.LOW
 
-    /** Sync to the audio when AutoSync keeps a subtitle's original timing. */
+    // Off until the user turns it on: it reads extra data from the stream and runs on-device analysis.
+    private val _fallbackEnabled = MutableStateFlow(false)
+
+    /** Sync to the audio when AutoSync keeps a subtitle's original timing. Off by default. */
     val fallbackEnabled: StateFlow<Boolean> = _fallbackEnabled.asStateFlow()
 
-    private val _samplingOnMobileData = MutableStateFlow(false)
+    // Low by default: one extra connection, since some hosts limit concurrent connections per stream.
+    private val _samplingMode = MutableStateFlow(DEFAULT_SAMPLING_MODE)
 
-    /** Read short parts of the film ahead of playback on metered networks too. */
-    val samplingOnMobileData: StateFlow<Boolean> = _samplingOnMobileData.asStateFlow()
-
-    private val _samplingMode = MutableStateFlow(AudioSamplingMode.FULL)
+    /** Reading short parts of the film ahead of playback; see [AudioSamplingMode]. */
     val samplingMode: StateFlow<AudioSamplingMode> = _samplingMode.asStateFlow()
 
-    private val _showStatistics = MutableStateFlow(false)
-
-    /** Show the live sync statistics panel in the player's top-left corner. Off by default. */
-    val showStatistics: StateFlow<Boolean> = _showStatistics.asStateFlow()
-
     private var save: (key: String, value: Boolean) -> Unit = { _, _ -> }
-    private var saveMode: (String) -> Unit = {}
+    private var saveString: (key: String, value: String) -> Unit = { _, _ -> }
 
     fun installPersistence(
         load: (key: String) -> Boolean?,
         save: (key: String, value: Boolean) -> Unit,
-        mode: String?,
-        saveMode: (String) -> Unit,
+        loadString: (key: String) -> String?,
+        saveString: (key: String, value: String) -> Unit,
     ) {
         this.save = save
-        this.saveMode = saveMode
-        _fallbackEnabled.value = load(FALLBACK_ENABLED) ?: true
-        _samplingOnMobileData.value = load(SAMPLING_ON_MOBILE_DATA) ?: false
-        _showStatistics.value = load(SHOW_STATISTICS) ?: false
-        _samplingMode.value = AudioSamplingMode.entries.firstOrNull { it.name == mode } ?: AudioSamplingMode.FULL
+        this.saveString = saveString
+        _fallbackEnabled.value = load(FALLBACK_ENABLED) ?: false
+        _samplingMode.value = loadString(SAMPLING_MODE)
+            ?.let { stored -> AudioSamplingMode.entries.firstOrNull { it.name == stored } }
+            ?: DEFAULT_SAMPLING_MODE
     }
 
     fun setFallbackEnabled(enabled: Boolean) {
@@ -51,22 +58,11 @@ internal object AudioSyncSettings {
         save(FALLBACK_ENABLED, enabled)
     }
 
-    fun setSamplingOnMobileData(enabled: Boolean) {
-        _samplingOnMobileData.value = enabled
-        save(SAMPLING_ON_MOBILE_DATA, enabled)
-    }
-
     fun setSamplingMode(mode: AudioSamplingMode) {
         _samplingMode.value = mode
-        saveMode(mode.name)
-    }
-
-    fun setShowStatistics(enabled: Boolean) {
-        _showStatistics.value = enabled
-        save(SHOW_STATISTICS, enabled)
+        saveString(SAMPLING_MODE, mode.name)
     }
 
     private const val FALLBACK_ENABLED = "audio_sync_fallback_enabled"
-    private const val SAMPLING_ON_MOBILE_DATA = "audio_sync_sampling_on_mobile_data"
-    private const val SHOW_STATISTICS = "audio_sync_show_statistics"
+    private const val SAMPLING_MODE = "audio_sync_sampling_mode"
 }

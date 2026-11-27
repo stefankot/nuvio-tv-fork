@@ -9,6 +9,10 @@ import androidx.compose.ui.platform.LocalContext
 import com.nuvio.tv.R
 import com.nuvio.tv.LocalRootContentInset
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import com.nuvio.tv.core.player.LocalBackgroundTrailerController
+import com.nuvio.tv.ui.screens.home.HOME_HERO_TRAILER_OWNER
+import com.nuvio.tv.ui.components.BackgroundTrailerLayer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -96,9 +100,14 @@ fun NuvioNavHost(
         val navViewModelStoreOwner = LocalNavViewModelStoreOwner.current
             ?: checkNotNull(LocalViewModelStoreOwner.current)
         CompositionLocalProvider(LocalViewModelStoreOwner provides navViewModelStoreOwner) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                LocalBackgroundTrailerController.current?.let { controller ->
+                    BackgroundTrailerLayer(controller = controller)
+                }
             com.nuvio.tv.fork.ForkHooks.screensWrap { // Fork hook: glass (warstwa szkła na treści ekranów)
-            PlaybackNavHost(navController, startDestination, hideBuiltInHeaders, discoverIsRoot)
+                PlaybackNavHost(navController, startDestination, hideBuiltInHeaders, discoverIsRoot)
             } // Fork hook: glass (koniec warstwy)
+            }
         }
     }
 }
@@ -127,6 +136,14 @@ private fun PlaybackNavHost(
 ) {
     val playbackAvailability = LocalPlaybackAvailability.current
     val context = LocalContext.current
+    val backgroundTrailerController = LocalBackgroundTrailerController.current
+    fun isLeavingFramedHeroTrailer(): Boolean {
+        val controller = backgroundTrailerController ?: return false
+        return controller.activeRequest?.bounds != null &&
+            controller.isRenderingFor(HOME_HERO_TRAILER_OWNER) &&
+            !controller.isPinned(HOME_HERO_TRAILER_OWNER)
+    }
+
     fun isStreamToPlayer(from: String, to: String): Boolean {
         return from.startsWith("stream/") && to.startsWith("player/")
     }
@@ -178,6 +195,8 @@ private fun PlaybackNavHost(
                 ?.toBooleanStrictOrNull() == true
             if (isStreamToPlayer(from, to) && isAutoPlayNav) {
                 ExitTransition.None
+            } else if (isLeavingFramedHeroTrailer()) {
+                fadeOut(animationSpec = tween(NuvioMotion.tokens.durations.medium), targetAlpha = 1f)
             } else {
                 fadeOut(animationSpec = tween(NuvioMotion.tokens.durations.medium))
             }
@@ -689,7 +708,6 @@ private fun PlaybackNavHost(
                                 fileIdx = playbackInfo.fileIdx,
                                 sources = playbackInfo.sources,
                                 contentLanguage = playbackInfo.contentLanguage,
-                                autoSourceRecoveryToken = playbackInfo.autoSourceRecoveryToken,
                                 profileId = playbackInfo.profileId,
                                 audioDelayMs = playbackInfo.audioDelayMs,
                                 audioDelayLanguage = playbackInfo.audioDelayLanguage
@@ -733,7 +751,6 @@ private fun PlaybackNavHost(
                                 fileIdx = playbackInfo.fileIdx,
                                 sources = playbackInfo.sources,
                                 contentLanguage = playbackInfo.contentLanguage,
-                                autoSourceRecoveryToken = playbackInfo.autoSourceRecoveryToken,
                                 profileId = playbackInfo.profileId,
                                 audioDelayMs = playbackInfo.audioDelayMs,
                                 audioDelayLanguage = playbackInfo.audioDelayLanguage,
@@ -886,11 +903,6 @@ private fun PlaybackNavHost(
                     defaultValue = null
                 },
                 navArgument("cloudSessionToken") {
-                    type = NavType.StringType
-                    nullable = true
-                    defaultValue = null
-                },
-                navArgument("autoSourceRecoveryToken") {
                     type = NavType.StringType
                     nullable = true
                     defaultValue = null

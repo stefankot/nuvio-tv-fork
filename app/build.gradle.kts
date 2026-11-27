@@ -83,13 +83,13 @@ val devProperties = Properties().apply {
 }
 
 val enableDoviNative = parseBooleanProperty(
-    resolveProperty(devProperties, localProperties, "DOVI_NATIVE_ENABLED", "true") // Nuvio RS: Arc builds the DV bridge with libdovi by default
+    resolveProperty(devProperties, localProperties, "DOVI_NATIVE_ENABLED")
 )
 val doviExtractorHookReady = parseBooleanProperty(
-    resolveProperty(devProperties, localProperties, "DOVI_EXTRACTOR_HOOK_READY", "true") // Nuvio RS: Arc builds the DV bridge with libdovi by default
+    resolveProperty(devProperties, localProperties, "DOVI_EXTRACTOR_HOOK_READY")
 )
 val doviEnableRealLink = parseBooleanProperty(
-    resolveProperty(devProperties, localProperties, "DOVI_ENABLE_REAL_LINK", "true") // Nuvio RS: Arc builds the DV bridge with libdovi by default
+    resolveProperty(devProperties, localProperties, "DOVI_ENABLE_REAL_LINK")
 )
 val doviStaticLibPath = resolveProperty(devProperties, localProperties, "DOVI_LIBDOVI_STATIC_LIB")
 val doviIncludeDirPath = resolveProperty(devProperties, localProperties, "DOVI_LIBDOVI_INCLUDE_DIR")
@@ -139,8 +139,8 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1080
-        versionName = "1.2.0-beta.3"
+        versionCode = 1083
+        versionName = "1.2.0-beta.4"
 
         buildConfigField("String", "PARENTAL_GUIDE_API_URL", "\"${localProperties.getProperty("PARENTAL_GUIDE_API_URL", "")}\"")
         buildConfigField("String", "INTRODB_API_URL", "\"${localProperties.getProperty("INTRODB_API_URL", "")}\"")
@@ -163,9 +163,6 @@ android {
         buildConfigField("String", "DEVICE_LOGIN_WEB_BASE_URL", "\"${localProperties.getProperty("DEVICE_LOGIN_WEB_BASE_URL", "https://nuvio.tv/link")}\"")
         buildConfigField("boolean", "DOVI_NATIVE_ENABLED", enableDoviNative.toString())
         buildConfigField("boolean", "DOVI_EXTRACTOR_HOOK_READY", doviExtractorHookReady.toString())
-        externalNativeBuild {
-            cmake { arguments("-DDOVI_BUILD_BRIDGE=${if (enableDoviNative) "ON" else "OFF"}") }
-        }
         if (enableDoviNative) {
             externalNativeBuild {
                 cmake {
@@ -215,9 +212,12 @@ android {
         }
     }
 
-    // Preview decoder builds independently of the Dolby Vision playback bridge.
-    externalNativeBuild {
-        cmake { path = file("src/main/cpp/CMakeLists.txt") }
+    if (enableDoviNative) {
+        externalNativeBuild {
+            cmake {
+                path = file("src/main/cpp/CMakeLists.txt")
+            }
+        }
     }
 
     signingConfigs {
@@ -347,12 +347,15 @@ android {
     sourceSets {
         getByName("main") {
             jniLibs.srcDirs("src/main/jniLibs")
+            jniLibs.srcDir(layout.buildDirectory.dir("generated/usenet/jniLibs"))
+            assets.srcDir(rootProject.file("native/usenet/licenses"))
         }
     }
 
     packaging {
         jniLibs {
             useLegacyPackaging = true
+            keepDebugSymbols += "**/libnuvio_usenet.so"
             // Audio Sync uses the JNI API; these unused native APIs duplicate runtime code.
             excludes += listOf("lib/*/libsherpa-onnx-c-api.so", "lib/*/libsherpa-onnx-cxx-api.so")
             // Keep one consistent native set across dependencies.
@@ -483,6 +486,7 @@ val downloadAudioSyncRuntime by tasks.registering {
 }
 
 dependencies {
+    implementation(files(sherpaOnnxAar).builtBy(downloadAudioSyncRuntime))
     implementation(project(":mediaservicecore:youtubeapi")) // Nuvio One hook
     implementation(project(":mediaservicecore:sharedutils"))
     // Isolated ranked-regex matcher: preserves lookarounds while enforcing a read budget on Android.
@@ -523,6 +527,8 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.moshi)
     implementation(libs.okhttp)
+    // Bounded-time matching for native stream profile rules.
+    implementation(libs.re2j)
     implementation(libs.okhttp.logging)
     implementation(libs.moshi)
     ksp(libs.moshi.codegen)
@@ -648,6 +654,7 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.espresso.core)
     testImplementation("junit:junit:4.13.2")
     testImplementation("net.sf.kxml:kxml2:2.3.0")
     testImplementation(kotlin("test"))
@@ -659,18 +666,8 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
 
-apply(from = "reshaped.gradle") // Nuvio RS hook: fork build settings
+extra["usenetSdkDirectory"] = android.sdkDirectory.absolutePath
+extra["usenetNdkVersion"] = android.ndkVersion
+apply(from = rootProject.file("native/usenet/android.gradle.kts"))
 
-// FFmpeg 6.0 fallback ABI pin. Updating this AAR requires reviewing the preview backend headers too.
-val verifyPreviewFfmpegAbi by tasks.registering {
-    val aar = layout.projectDirectory.file("libs/nextlib-mediainfo-local.aar")
-    inputs.file(aar)
-    doLast {
-        val digest = MessageDigest.getInstance("SHA-256")
-            .digest(aar.asFile.readBytes()).joinToString("") { "%02x".format(it) }
-        check(digest == "509e645e0f4232bdd3c6e1b2e4b82c3686140a0355f13656890f3641d8b7fb53") {
-            "Preview FFmpeg ABI changed: review seekpreview native backend and headers before updating the pin."
-        }
-    }
-}
-tasks.named("preBuild").configure { dependsOn(verifyPreviewFfmpegAbi) }
+apply(from = "reshaped.gradle") // Nuvio RS hook: fork build settings

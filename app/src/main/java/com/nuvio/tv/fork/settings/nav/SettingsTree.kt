@@ -18,9 +18,9 @@ sealed interface NavTarget {
 
 /** Grupy pozycji z kategorii Nuvio Reshaped (każda = jedna funkcja `xxxSettingsItems` z `ui/screens/settings`). */
 enum class ItemsGroup {
-    AUTOSYNC, AUTOSYNC_BUBBLE, SOURCE_RECOVERY, FORMATS, SEEKR, SEEK_PREVIEW, SUBTITLE_FONT, CONNECTION_SPEED,
-    PILL_NAV, NETFLIX_UI, LIVE_TV, RESHAPED_SYNC, KE_CATALOG, DEVICE_TEST, FORK_SWITCHES, SKIN, ECHO, YOUTUBE,
-    REMOTE_BUTTONS, ASR,
+    AUTOSYNC,
+    PILL_NAV, LIVE_TV, RESHAPED_SYNC, KE_CATALOG, DEVICE_TEST, FORK_SWITCHES, SKIN, ECHO, YOUTUBE,
+    REMOTE_BUTTONS,
 }
 
 data class NavLeaf(val id: String, val title: String, val description: String, val target: NavTarget)
@@ -50,27 +50,25 @@ object SettingsTree {
             cat("motyw", "Motyw i język", "Kolory, tryb AMOLED, język aplikacji", "APPEARANCE"),
             cat("uklad", "Układ strony głównej", "Rzędy, plakaty, kolejność", "LAYOUT"),
             items("skorka", "Skórka", "Wygląd całej aplikacji", ItemsGroup.SKIN),
-            items("menu", "Menu i styl", "Pasek menu i wygląd jak w Netflix", ItemsGroup.PILL_NAV, ItemsGroup.NETFLIX_UI),
+            items("menu", "Menu i styl", "Pasek menu u góry ekranu", ItemsGroup.PILL_NAV),
             cat("nocny", "Tryb nocny", "Godziny, ciepłe kolory, cichszy dźwięk", "NIGHT_MODE"),
             module("odkrywaj", "Odkrywaj telewizję", "Rzędy z telewizji na ekranie głównym", "discover"),
             module("nastroje", "Na co masz ochotę?", "Propozycje według nastroju", "picks"),
         )),
         NavSection("odtwarzanie", "Odtwarzanie", listOf(
             cat("ogolne", "Odtwarzacz i źródła", "Wybór źródła, języki, następny odcinek", "PLAYBACK"),
-            items("obraz", "Dźwięk i obraz", "Dolby Vision, HDR10, formaty dźwięku", ItemsGroup.FORMATS),
+            cat("obraz", "Dźwięk i obraz", "Dolby Vision, HDR10, formaty dźwięku", "PLAYBACK"),
             items("echo", "Jakość i odtwarzacz Echo", "Szybszy start, menu jakości i języka, polski dźwięk", ItemsGroup.ECHO), // 22.11: Auto jakość wyłączona (DECYZJE)
             module("dobor", "Dobór źródeł", "Polski dźwięk, napisy i jakość przy wyborze", "sources"),
-            items("naprawa", "Gdy film się zatnie", "Automatyczne przejście na inne źródło", ItemsGroup.SOURCE_RECOVERY),
-            items("przewijanie", "Przewijanie", "Podgląd klatek i przeskoki", ItemsGroup.SEEK_PREVIEW, ItemsGroup.SEEKR),
-            items("lacze", "Szybkość internetu", "Dopasowanie jakości do łącza", ItemsGroup.CONNECTION_SPEED),
+            cat("naprawa", "Gdy film się zatnie", "Przejście na następne pasujące źródło", "PLAYBACK"),
             items("pilot", "Przyciski pilota", "Co robi każdy przycisk", ItemsGroup.REMOTE_BUTTONS),
         )),
         NavSection("napisy", "Napisy i lektor", listOf(
-            items("dopasowanie", "Dopasowanie napisów", "Napisy równo z mową", ItemsGroup.AUTOSYNC, ItemsGroup.AUTOSYNC_BUBBLE),
-            items("czcionka", "Wygląd napisów", "Czcionka i rozmiar", ItemsGroup.SUBTITLE_FONT),
+            items("dopasowanie", "Dopasowanie napisów", "Napisy równo z mową", ItemsGroup.AUTOSYNC),
+            cat("czcionka", "Wygląd napisów", "Czcionka i rozmiar", "PLAYBACK"),
             module("ai", "Napisy AI", "Tłumaczenie napisów na polski", "ai_subtitles"),
             module("lektor", "Lektor", "Głos czytający napisy", "lektor"),
-            items("mowa", "Rozpoznawanie mowy", "Model do napisów z dźwięku", ItemsGroup.ASR),
+            cat("mowa", "Rozpoznawanie mowy", "Model do napisów z dźwięku", "PLAYBACK"),
             module("glos", "Sterowanie głosem", "Polecenia mówione do pilota", "voice"),
         )),
         NavSection("tv", "Telewizja", listOf(

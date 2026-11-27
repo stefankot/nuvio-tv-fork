@@ -77,7 +77,7 @@ object FirstRunDefaults {
         val store = EntryPointAccessors.fromApplication(app, com.nuvio.tv.fork.sources.SourceChoice.Deps::class.java).player()
         val s = store.playerSettings.first()
         val backup = org.json.JSONObject().put("mode", s.streamAutoPlayMode.name)
-            .put("rankedRegex", org.json.JSONArray(s.streamAutoPlayRankedRegex)).put("regex", s.streamAutoPlayRegex)
+            .put("rankedRegex", org.json.JSONArray(com.nuvio.tv.fork.sources.RankedRegex.get(app))).put("regex", s.streamAutoPlayRegex)
         ForkFeatures.setStr(app, "fork_autoplay_backup_$pid", backup.toString())
         val presets = com.nuvio.tv.fork.sources.SourceChoice.presets(app)
         val answer = com.nuvio.tv.fork.sources.SourceChoice.answer(app)
@@ -99,7 +99,7 @@ object FirstRunDefaults {
         val flag = "fork_regex_presets_v${ver}_$pid"
         if (ForkFeatures.enabled(app, flag)) return
         val store = EntryPointAccessors.fromApplication(app, com.nuvio.tv.fork.sources.SourceChoice.Deps::class.java).player()
-        val stored = store.playerSettings.first().streamAutoPlayRankedRegex
+        val stored = com.nuvio.tv.fork.sources.RankedRegex.get(app)
         val old = com.nuvio.tv.fork.sources.SourcePresets.parse(app.assets.open(oldAsset).bufferedReader().use { it.readText() })
         val was = old.firstOrNull { it.rules == stored }
         val now = was?.let { w -> com.nuvio.tv.fork.sources.SourceChoice.presets(app).firstOrNull { it.id == w.id } }
@@ -113,8 +113,28 @@ object FirstRunDefaults {
         ForkFeatures.set(app, flag, true)
     }
 
+    /**
+     * 26.11 (baza 1.2.0-beta.4, pliki bazy 1:1): oficjalna kontrola „Regex ustawiony” patrzy tylko na pole „Regex”, a Reshaped
+     * liczył też listę reguł. Raz na profil: gdy profil ma listę reguł, a pole jest puste albo nie działa, pole dostaje sumę
+     * reguł — inaczej automatyczny wybór źródła przestałby działać po aktualizacji.
+     */
+    private suspend fun rankedRegexField(app: Context, pid: Int) {
+        val flag = "fork_ranked_regex_field_v1_$pid"
+        if (ForkFeatures.enabled(app, flag)) return
+        val rules = com.nuvio.tv.fork.sources.RankedRegex.get(app)
+        val store = EntryPointAccessors.fromApplication(app, com.nuvio.tv.fork.sources.SourceChoice.Deps::class.java).player()
+        val regex = store.playerSettings.first().streamAutoPlayRegex
+        if (rules.isNotEmpty() && !com.nuvio.tv.core.player.StreamAutoPlayPolicy.isRegexSelectionConfigured(regex)) {
+            val field = com.nuvio.tv.fork.sources.RankedRegex.officialField(rules)
+            store.setStreamAutoPlayRegex(field)
+            android.util.Log.i("ForkSettings", "reguły Regex: profil $pid, ${rules.size} reguł → pole Regex (${if (field == com.nuvio.tv.fork.sources.RankedRegex.MATCH_ALL) "dopasuj wszystko" else "suma reguł"})")
+        }
+        ForkFeatures.set(app, flag, true)
+    }
+
     suspend fun run(c: Context) {
         val app = c.applicationContext
+        com.nuvio.tv.fork.sources.RankedRegex.start(app) // 26.11: ranking reguł Regex (Reshaped) w pamięci dla wpięcia w StreamAutoPlaySelector
         reshapedOn(app)
         runCatching { polishSubtitles(app) }.logged("ForkSettings", "FirstRunDefaults.kt:84")
         runCatching { frameRateMatching(app) }.logged("ForkSettings", "FirstRunDefaults.kt:85")
@@ -124,6 +144,7 @@ object FirstRunDefaults {
         runCatching { regexAutoplay(app, pid) }.logged("ForkSettings", "FirstRunDefaults: autoplay Regex")
         runCatching { regexPresetsV4(app, pid) }.logged("ForkSettings", "FirstRunDefaults: reguły autoplay v4")
         runCatching { regexPresetsV4(app, pid, 5, "fork/source_presets_v4.json") }.logged("ForkSettings", "FirstRunDefaults: reguły autoplay v5")
+        runCatching { rankedRegexField(app, pid) }.logged("ForkSettings", "FirstRunDefaults: pole Regex z listy reguł")
         val flag = "first_run_done_$pid"
         if (ForkFeatures.enabled(app, flag)) return
         val en = booleanPreferencesKey("tmdb_enabled"); val lang = stringPreferencesKey("tmdb_language")
@@ -136,7 +157,6 @@ object FirstRunDefaults {
         val r = FirstRunPlan.decide(FirstRunPlan.Stored(true, "x", locPrefs.getString("locale_tag", null), ForkFeatures.str(app, LEVEL_KEY).ifEmpty { null },
             autoRecovery = if (recoveryPrefs.contains("enabled")) true else null))
         if (r.autoRecovery == true) {
-            com.nuvio.tv.core.player.recovery.AutoSourceRecoverySettings.setEnabled(app, true)
             val player = EntryPointAccessors.fromApplication(app, com.nuvio.tv.fork.sources.SourceChoice.Deps::class.java).player()
             player.setStreamAutoPlayFallbackOnFailure(true); player.setStreamAutoPlayFallbackMaxSources(3); player.setStreamAutoPlayFallbackStartupTimeoutSeconds(15)
         }

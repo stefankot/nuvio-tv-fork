@@ -52,7 +52,8 @@ class PlaybackSettingsViewModel @Inject constructor(
     private val addonRepository: AddonRepository,
     private val pluginManager: PluginManager,
     private val torrentSettings: TorrentSettings,
-    private val torrentService: TorrentService
+    private val torrentService: TorrentService,
+    private val usenetSourceSettings: com.nuvio.tv.core.usenet.UsenetSourceSettings
 ) : ViewModel() {
 
     val playerSettings: Flow<PlayerSettings> = playerSettingsDataStore.playerSettings
@@ -79,6 +80,9 @@ class PlaybackSettingsViewModel @Inject constructor(
                 }
             }
             .map { it.displayName }
+            // Auto-play counts built-in Usenet among the addons, so it can be allowed like one.
+            .plus(listOfNotNull(com.nuvio.tv.core.usenet.BuiltInUsenetService.GROUP_NAME
+                .takeIf { runCatching { usenetSourceSettings.read().enabled }.getOrDefault(false) }))
             .distinct()
             .sorted()
     }
@@ -461,10 +465,6 @@ class PlaybackSettingsViewModel @Inject constructor(
         playerSettingsDataStore.setParallelNetworkEnabled(enabled)
     }
 
-    suspend fun setEnableHttp2(enabled: Boolean) {
-        playerSettingsDataStore.setEnableHttp2(enabled)
-    }
-
     suspend fun setAllowLargeTargetBuffer(enabled: Boolean) {
         playerSettingsDataStore.setAllowLargeTargetBuffer(enabled)
     }
@@ -551,10 +551,6 @@ class PlaybackSettingsViewModel @Inject constructor(
 
     suspend fun setStreamAutoPlaySelectedPlugins(plugins: Set<String>) {
         playerSettingsDataStore.setStreamAutoPlaySelectedPlugins(plugins)
-    }
-
-    suspend fun setStreamAutoPlayRankedRegex(patterns: List<String>) {
-        playerSettingsDataStore.setStreamAutoPlayRankedRegex(patterns)
     }
 
     suspend fun setStreamAutoPlayRegex(regex: String) {

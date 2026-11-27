@@ -269,6 +269,12 @@ interface TmdbApi {
         @Query("api_key") apiKey: String
     ): Response<TmdbAlternativeTitlesResponse>
 
+    /** A movie's title and year with every other name it goes by, in one request. */
+    @GET("movie/{movie_id}?append_to_response=alternative_titles,translations")
+    suspend fun getMovieNames(
+        @Path("movie_id") movieId: Int,
+        @Query("api_key") apiKey: String
+    ): Response<TmdbMovieNamesResponse>
     /** Fork hook: tv. Szukanie tytułu po nazwie (programy Live TV nie mają identyfikatorów). */
     @GET("search/multi")
     suspend fun searchMulti(
@@ -286,6 +292,30 @@ interface TmdbApi {
         @Query("language") language: String? = null
     ): Response<TmdbTvScheduleResponse>
 }
+
+@JsonClass(generateAdapter = true)
+data class TmdbMovieNamesResponse(
+    @Json(name = "title") val title: String? = null,
+    @Json(name = "original_title") val originalTitle: String? = null,
+    @Json(name = "release_date") val releaseDate: String? = null,
+    @Json(name = "alternative_titles") val alternativeTitles: TmdbAlternativeTitlesResponse? = null,
+    @Json(name = "translations") val translations: TmdbTranslationsResponse? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class TmdbTranslationsResponse(
+    @Json(name = "translations") val translations: List<TmdbTranslation>? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class TmdbTranslation(
+    @Json(name = "data") val data: TmdbTranslationData? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class TmdbTranslationData(
+    @Json(name = "title") val title: String? = null
+)
 
 @JsonClass(generateAdapter = true)
 data class TmdbAlternativeTitlesResponse(
