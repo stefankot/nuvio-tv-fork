@@ -18,6 +18,8 @@ Część jedynego źródła zasad (rdzeń: `ZASADY.md`). Nowe zasady o buildach 
 - Przed buildem: `df -h ~` (ok. 15 GB wolne), zamknij zbędne procesy (emulator — emulator i kompilator NIGDY razem). Pilnuj CPU.
 - Czekanie w tle (`run_in_background`), limit 20 min: `until grep -aqE "BUILD SUCCESSFUL|BUILD FAILED|FAILURE:" /tmp/<nazwa>.log; do sleep 20; done`. Długie czekanie na pierwszym planie — nie.
 - Build > 10 min → sprawdź, czy naprawdę się kompiluje (postęp w logu, CPU); > 20 min → przerwij własny build (22.11, właściciel). Wyjątek: build od zera (po skasowaniu cache), dopóki w logu widać postęp.
+- Stan buildu co minutę (27.11, właściciel: „od 3 godzin ciągle jest Build failed… czekanie na builda, który nic nie robi, bo jest błąd, to bezsensowna strata czasu”): od startu buildu Monitor na logu (`tail -f /tmp/<nazwa>.log | grep --line-buffered -E "^e: |FAILED|What went wrong|Not enough memory|BUILD"`) i co minutę krótki stan (zadanie Gradle, czas, CPU demona). Pierwszy `e:` / `FAILED` / „Not enough memory” = od razu poprawka i nowy build, bez czekania do końca. Testy JVM w tym samym buildzie z `--continue` (APK powstaje mimo czerwonych testów).
+- Pamięć Gradle (27.11): `-Xmx3072m` to za mało na kompilację modułu `app` („Not enough memory”) — build.sh z `"-Dorg.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"` (prz03: APK w 9 min).
 - W czasie builda nie czekaj bezczynnie: pisz dalej w `.stage/`; nie ruszaj plików, które Gradle czyta (`app/`).
 
 ## Po buildzie
