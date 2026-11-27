@@ -1,40 +1,34 @@
-# Przekazanie — przegląd ekranów (27.11, ~16:05)
+# Przekazanie — przegląd ekranów (27.11, ~16:50)
 
 Prompt dla nowego wątku: **„Otwórz `NuvioFork/plan/ux/przeglad-ekranow/PRZEKAZANIE.md` i wykonaj.”**
-Poprzednie przekazanie (14:55): `.stage/prz09/PRZEKAZANIE-1455.md`.
+Poprzednie przekazania: `.stage/prz10/PRZEKAZANIE-1605.md`, `.stage/prz09/PRZEKAZANIE-1455.md`.
 
 ## Zadanie (bez zmian)
-Katalog `/Users/milajovovich/Desktop/nuvio 2/NuvioFork`, gałąź `skin-niunia`. Wykonuj `plan/ux/przeglad-ekranow/PROMPT.md` w pętlach: kod → build (w trakcie buildu kod następnej paczki w `.stage/`) → ręczne testy na JMGO ≥ 10 min → znaczniki w `NOTATKA.md` (`✅ TV <build>` / `❌ TV <build>: …` na końcu nagłówka `## NN`) i nowa sekcja pętli w `WYNIKI.md` (1. zdanie: ile poprawek, ile sprawdzono na TV) → SendUserFile → commit + push. Nie pytaj, nie przerywaj. ❌ wraca na początek następnej pętli, po 2 próbach → `plan/BLOKADY.md`.
+Katalog `/Users/milajovovich/Desktop/nuvio 2/NuvioFork`, gałąź `skin-niunia`. Wykonuj `plan/ux/przeglad-ekranow/PROMPT.md` w pętlach: kod → build (w trakcie buildu kod następnej paczki w `.stage/`, nie w `app/`) → ręczne testy na JMGO ≥ 10 min → znaczniki w `NOTATKA.md` (`✅ TV <build>` / `❌ TV <build>: …` na końcu nagłówka `## …`) i nowa sekcja pętli w `WYNIKI.md` (1. zdanie: ile poprawek, ile sprawdzono na TV) → SendUserFile → commit + push. Nie pytaj, nie przerywaj. ❌ wraca na początek następnej pętli, po 2 próbach → `plan/BLOKADY.md`.
 
-## Build i instalacja (zasady właściciela 27.11 w ZASADY-build.md)
-- `bash fork-tools/build.sh prz0N :app:assembleFullDebug :app:testFullDebugUnitTest --tests 'com.nuvio.tv.fork.tv.*' --continue -PforkAbi=armeabi-v7a "-Dorg.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"` w zakładce terminala; ~10 min. Od startu Monitor: `tail -n0 -F /tmp/<log>.log | sed -l 's/\x1b\[[0-9;]*[A-Za-z]//g' | grep --line-buffered -aE "^e: |FAILED|What went wrong|Not enough memory|BUILD (SUCCESSFUL|FAILED)"` + co minutę `bash .stage/bst.sh <log>`.
-- APK → `.stage/apk/prz0N-v7a.apk`; `adb install -r`, md5 z `pm path` = md5 pliku, `adb shell cmd package compile -m speed -f com.nuviodebug.com` w tle (~7 min, aplikacji wtedy nie uruchamiaj; koniec = brak procesu `dex2oat`, `dumpsys package` → `status=speed`).
-
-## Logi na JMGO (ważne)
-- Bufor logcat pełny przycina logi forka (najbardziej gadatliwa aplikacja) — przed testem `adb logcat -G 32M` (ustawione 27.11, po restarcie JMGO powtórz) i ewentualnie `adb logcat -c`. NIE ustawiaj białej listy logd (`logcat -P '… 10123'`) — wyłączała logi forka.
-- `logcat -T` bywa pusty: czytaj `adb logcat -d | grep -a "ForkFocus: focus=" | tail` albo `.stage/prz07/lg2.sh [wzorzec]` (od znacznika `.stage/prz03/mark`, sortowane po czasie).
-- `fork-tools/test/type.sh` nie działa w oknie „Szukaj w YouTube” (nie odczytuje fokusu) — wpisuj strzałkami albo wybierz wpis z „Ostatnio szukane”.
+## Build i instalacja
+- `bash fork-tools/build.sh prz10 :app:assembleFullDebug :app:testFullDebugUnitTest --tests 'com.nuvio.tv.fork.tv.*' --continue -PforkAbi=armeabi-v7a "-Dorg.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"` w zakładce terminala (`run_in_terminal`); ~8,5 min. Monitor od startu: `tail -n0 -F /tmp/<log>.log | sed -l 's/\x1b\[[0-9;]*[A-Za-z]//g' | grep --line-buffered -aoE "e: file[^ ]*|[A-Za-z:]+ FAILED|What went wrong|Not enough memory|BUILD (SUCCESSFUL|FAILED)"` (UWAGA: `e:` bywa w środku linii za paskiem postępu — nie kotwicz `^e:`). Stan: `bash .stage/bst.sh <log>`. Błędy: `sed 's/\x1b\[[0-9;]*[A-Za-z]//g' /tmp/<log>.log | tr '\r' '\n' | grep -aoE "e: file[^\n]*" | sort -u`.
+- APK → `.stage/apk/prz10-v7a.apk`; instalacja w tle: `bash fork-tools/test/jmgo_instaluj.sh .stage/apk/prz10-v7a.apk > .stage/prz10/inst.log 2>&1` (sprawdza, czy nic nie gra, md5, `compile -m speed`; ~5 min, aplikacji wtedy nie uruchamiaj).
+- Logi testu: `bash .stage/prz10/lg9.sh [ile]` (od znacznika `.stage/prz10/mark` = czas JMGO `HH:MM:SS`; ustaw `adb shell "date '+%H:%M:%S'" > .stage/prz10/mark` przed testem). Klawisze z logiem fokusu: `fork-tools/test/kf.sh`; zrzut: `plan/ux/przeglad-ekranow/zrzut.sh NAZWA`. Bufor logcat 32 MB (`adb logcat -G 32M` po restarcie JMGO).
 
 ## Stan
-- Buildy: prz06 (paczki 1–6), prz07 (paczka 7: podgląd 520×288, napisy wbudowane, „Odkrywaj” przy zegarze, okładki AIOMetadata), prz08 (paczka 8: kafle Live TV przez `NiuniaMediaCard`, dopasowanie nazw AIOMetadata + test JVM, okno „Szukaj w YouTube” trzyma fokus). Na JMGO: prz08 (md5 `5b54f0972a825c59757d70b5daf9cd2f`).
-- W kodzie, niezbudowane: paczka 9 (`9bc44a595`) — pasek podpisu zwykłych kart MediaCard (Oglądaj dalej, odcinki, zwiastuny) na rozmytym dole obrazu (CAŁA APLIKACJA krok 2).
-- Wyniki: `WYNIKI.md` pętle 1–3; znaczniki w `NOTATKA.md`.
-- `.stage/jmgo_zajety.txt` — wpis tego wątku; nadpisz swoim.
+- Na JMGO: **prz09** (paczki 9–12, md5 `b58332ee4ebaaed3a413b634abf86934`), sprawdzony — `WYNIKI.md` pętla 4. JMGO wolny (`.stage/jmgo_zajety.txt`).
+- **W kodzie, NIEZBUDOWANE — paczka 13** (commit „paczka 13”, sprawdzone tylko `check.sh`, kompilacja niesprawdzona):
+  1. `fork/images/AlphaMask.kt` (nowy): przejście ostry obraz → rozmycie wpieczone w kanał alfa małej rozmytej bitmapy (transformacja Coil po `NativeBlur`) zamiast warstwy pozaekranowej z maską `DstIn` na cały ekran. Użyte w: `NiuniaHeroPage.kt` (warstwa zamiast szarego scrimu + statyczne rozmycie z lewej w Szczegółach), `NiuniaOrganisms.kt` (strona odcinka, `NiuniaHeroKind.Immersive`), `nav/NiuniaNav.kt` (pod otwartym menu). Powód: pomiar prz09 — zmiana tytułu na hero Głównej p95 40 ms z rozmyciem, 30 ms bez (`prefs.sh set sp:fork_features niunia_blur_scrims false bool` + `prefs.sh restart`; po pomiarze włącz z powrotem).
+  2. Szczegóły: rozmycie od dołu od 45 % (było 30 % — zmiękczało twarze w środku kadru).
+- Do sprawdzenia po prz10: wygląd bez zmian względem prz09 (zrzuty `p9-*.png` w tym katalogu), log `ForkImages: maska rozmycia w obrazie`, pomiar A/B jak wyżej (cel: z rozmyciem ≈ bez), Szczegóły — dół rozmyty dopiero pod twarzami.
 
-## Najpierw
-1. Na JMGO prz08 (sprawdzony, `WYNIKI.md` pętla 3). Paczka 9 (pasek podpisu kart na rozmyciu) jest w kodzie — to za mało na build: najpierw dopisz kolejne punkty (niżej), potem build prz09 z całością.
-2. Po instalacji prz09 sprawdź: rząd „Oglądaj dalej” na Głównej i karty odcinków/zwiastunów w Szczegółach — podpis na rozmytym dole obrazu, czytelny, przewijanie płynne (budżety JMGO w `plan/DECYZJE.md`, „Wydajność”).
-3. **Właściciel (27.11, ~16:10): „AIOMetadata musi być źle skonfigurowane, sprawdzę to potem”.** Nie zmieniaj źródła okładek ani dopasowania z powodu niskiej liczby trafień (33 %), nie wracaj do TMDB. 22 pkt 2 (puste karty archiwum) czeka na właściciela — NIE do BLOKADY i nie licz tego jako nieudanej próby. Po jego zmianie w konfiguracji wtyczki: wyczyść pamięć okładek na JMGO (`files/fork_tv_covers_aio2.json` — przez ustawienia aplikacji albo odczekaj 3 dni ważności „braków”) i porównaj liczbę trafień w logu `ForkTvCovers`.
+## Dalej (kolejka)
+- **Szare panele** (CAŁA APLIKACJA): panel menu bocznego — `components/NiuniaOrganisms.kt` `NiuniaSidebarPanel` (`forkGlass(Role.Nav, fallback = NiuniaColor.Panel)`): gdy pod spodem jest rozmyta kopia tła (`NiuniaBackdropNow.current != null`), tło panelu półprzezroczyste ciemne zamiast szarego; ramka opisu zaznaczonego odcinka w Szczegółach (szare zaokrąglone pole pod kartą odcinka, zrzut `p9-odcinki.png`) — nie znalazłem jeszcze miejsca w kodzie (`detail/NiuniaDetail.kt` ok. 839–870 to karta bez tła; szukaj komponentu odcinka z opisem 5 linii i datą „11 lis 2026 · 58 min”).
+- Niesprawdzone z prz09: ekran źródeł (`stream/NiuniaStreams.kt`, `NiuniaHeroKind.Blurred`; „Inne źródło” na ekranie wczytywania — film potrafi ruszyć w 1–2 s, naciśnij od razu), okno Niuni (`NiuniaDialog` — okno akcji z „Więcej podobnych” jest z bazy NuvioTV, nie Niuni), kafle archiwum IPTV pod odtwarzaczem (`NiuniaWideTile`, paczka 12; potrzebny kanał z archiwum i okładkami; ▼ w odtwarzaczu Live TV zmienia kanał).
+- 23 pkt 2 „Następne” z Mixu → już w `plan/BLOKADY.md` (zmiana kopii Nuvio One + brak „następnego filmu” YouTube w odtwarzaczu). Nie ruszaj bez decyzji właściciela.
+- **Właściciel (27.11, ~16:10): „AIOMetadata musi być źle skonfigurowane, sprawdzę to potem”.** Nie zmieniaj źródła okładek ani dopasowania (33 % trafień), nie wracaj do TMDB. 22 pkt 2 (puste karty archiwum) czeka na właściciela — nie do BLOKADY. Po jego zmianie: wyczyść `files/fork_tv_covers_aio2.json` i porównaj trafienia w logu `ForkTvCovers`.
+- Dalej niesprawdzone (stare): 06 fokus po dołączeniu polskiej ścieżki, Mix (OK = 1. film), pusta playlista YouTube, stos serialu (10 pkt 1), „Kropka nad i” bez plakatu filmu, napisy wbudowane.
 
-## Dalej (kolejka z NOTATKI)
-- 22 pkt 2: karty „Poprzednie odcinki” IPTV puste, bo AIOMetadata nie zna tytułu (np. „Piotruś Królik”) — czeka na sprawdzenie konfiguracji wtyczki przez właściciela (punkt 3 wyżej).
-- Okładki AIOMetadata: 33 % trafień (TMDB miał 52 %) — według właściciela wtyczka jest źle skonfigurowana; sprawdzi sam (punkt 3 wyżej).
-- 23 pkt 2 Mix „Następne”: wymaga zmiany w `youtube/YouTubeViewModel.kt` (kopia z Nuvio One — `queue` prywatne; Mix to playlista „RD…”: po starcie pierwszego filmu w tle `content.getPlaylist(id)` i podmiana `queue`). Zmiana w kopii z forka — sprawdź ZASADY-kod („Kopie z forków”) i zrób przez adapter/osobny plik, jeśli się da.
-- CAŁA APLIKACJA dalej: szare gradienty hero/szczegółów/paneli → rozmycie (lista plików w NOTATCE, sekcja „CAŁA APLIKACJA”).
-- 23 pkt 1b (podgląd filmu YouTube z dźwiękiem w karcie) — duże; sprawdzić pamięć JMGO.
-- Niesprawdzone: 06 fokus po dołączeniu polskiej ścieżki przy otwartym panelu (Dublagem często nie potwierdza synchronizacji), 23 Mix, pusta playlista YouTube, stos serialu (10 pkt 1), „Kropka nad i” bez plakatu filmu (TVN24 wieczorem), napisy wbudowane (potrzebny film z wbudowanymi polskimi napisami i wybranymi z dodatku — log `ForkSubs: napisy wbudowane:`).
-
-## Pułapki z testów (dalej aktualne)
-- Nakładka odtwarzacza chowa się po ~4 s: sekwencje klawiszy w jednym `adb shell "…"` (▼ pokazuje, ▲ = Dźwięk, ▶▶▶ = Więcej; Więcej: Źródła, Jakość, …). Fokus w odtwarzaczu widać tylko na zrzucie.
-- Live TV: Wstecz z przewodnika przenosi fokus na pigułki, drugie Wstecz z pigułek = Główna. Panel „Kraj i język”: zakładkę zmienia OK. Po teście przywróć „Polska”.
-- Okna nad ekranem (Szukaj w YouTube, panele) — uiautomator nie widzi; fokus z logu `ForkFocus` (okno YouTube: fx2.sh widzi klawisze).
+## Pułapki z testów
+- OK na „Wznów”/„Odtwórz” uruchamia film na profilu właściciela od razu (wczytywanie trwa 1–2 s) — wyjdź Wstecz i wpisz zmianę w WYNIKI.
+- Nakładka odtwarzacza chowa się po ~4 s: klawisze w jednym `adb shell "…"`. W odtwarzaczu Live TV ▼ = następny kanał.
+- `logcat -d | grep ForkFocus` bywa pusty po chwili — `kf.sh` (logcat `-T`) albo `fx2.sh` (uiautomator).
+- Live TV: ◀ z rzędu kart nie otwiera menu; Wstecz z pigułek = Główna; trzeci Wstecz na Głównej otwiera menu.
+- Okna nad ekranem (Szukaj w YouTube, panele) — uiautomator nie widzi; fokus z logu `ForkFocus`.
+- Podgląd YouTube w karcie gra z dźwiękiem — po teście wyjdź z YouTube i sprawdź ciszę: `adb shell dumpsys media.audio_flinger | grep -c '^  Standby: no'` = 0 (kilka sekund po zatrzymaniu).
