@@ -88,7 +88,7 @@ fun NiuniaHeroPage(
     val preblur = remember { com.nuvio.tv.fork.images.NativeBlur.enabled(ctx) }
     val blurred = remember(background, preblur) {
         if (preblur && background != null) coil3.request.ImageRequest.Builder(ctx).data(background)
-            .transformations(com.nuvio.tv.fork.images.NativeBlur(blurPx)).build() else null
+            .transformations(com.nuvio.tv.fork.images.NativeBlur(blurPx, diskKey = background.toString())).build() else null
     }
     BackHandler(enabled = down) {
         Log.i(TAG, "$what: Wstecz → hero")

@@ -700,6 +700,9 @@ private fun Hero(
                     // Z-10: w hero tylko średnia ocen ze wszystkich serwisów (zamiast IMDb i oznaczenia wieku; wiek w „O filmie / O serialu”).
                     com.nuvio.tv.skin.niunia.components.NiuniaRatingAverage(com.nuvio.tv.skin.niunia.components.niuniaScores(meta.imdbRating, uiState.mdbListRatings))
                 }
+                // Przegląd 27.11 (02, właściciel: „po lewej stronie miały być nagrody, a nie aktorzy”): nagrody w lewej kolumnie,
+                // pod oceną; bez nagród nic tu nie ma. Obsada zostaje po prawej.
+                if (awards.isNotEmpty()) com.nuvio.tv.skin.niunia.components.NiuniaAwardsText(awards)
             }
             NiuniaCollection(NiuniaCollectionKind.SplitRow) {
                 Row(horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12), verticalAlignment = Alignment.CenterVertically) {
@@ -728,8 +731,8 @@ private fun Hero(
                     // Z-8: ★ „Oceny odcinków” → tabela sezon × odcinek (tylko serial z ocenami odcinków).
                     if (onRatings != null) NiuniaButton(onClick = onRatings, icon = "star", description = stringResource(R.string.niunia_tv2_ratings_button), onFocus = { if (it) onFocus() }, haze = true)
                 }
-                // Z-13b: gdy tytuł ma nagrody — trzy linie nagród zamiast obsady i paska gal; bez nagród obsada jak dotąd.
-                if (awards.isNotEmpty()) com.nuvio.tv.skin.niunia.components.NiuniaAwardsText(awards) else Credits(meta, series, emptyList(), Modifier)
+                // Z-13b → przegląd 27.11 (02): nagrody przeniesione do lewej kolumny; tu zawsze obsada i twórcy.
+                Credits(meta, series, emptyList(), Modifier)
             }
             if (stills.isNotEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space20)) {
                 stills.forEach { (img, t) -> NiuniaMediaCard(NiuniaCardPreset.StillCard, img, onClick = null, title = t, focusable = false) }

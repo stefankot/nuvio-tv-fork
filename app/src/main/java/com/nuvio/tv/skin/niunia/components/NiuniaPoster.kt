@@ -132,7 +132,7 @@ private fun BoxScope.BlurLayer(art: Any?, radius: Float, from: Float, to: Float)
     val px = with(androidx.compose.ui.platform.LocalDensity.current) { radius.dp.toPx() }
     val pre = androidx.compose.runtime.remember { com.nuvio.tv.fork.images.NativeBlur.enabled(ctx) }
     val model = androidx.compose.runtime.remember(art, pre, px) {
-        if (pre && art is coil3.request.ImageRequest) art.newBuilder(ctx).transformations(com.nuvio.tv.fork.images.NativeBlur(px)).build() else art
+        if (pre && art is coil3.request.ImageRequest) art.newBuilder(ctx).transformations(com.nuvio.tv.fork.images.NativeBlur(px, diskKey = art.data.toString())).build() else art
     }
     if (pre) {
         // E1 (24.11): obraz jest już rozmyty, więc bufor maski obejmuje tylko dolną część (od [from]) zamiast całego

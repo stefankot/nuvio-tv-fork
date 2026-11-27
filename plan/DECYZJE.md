@@ -138,3 +138,5 @@ Nowa decyzja: dopisz na końcu BEZ czytania pliku — `cat >> plan/DECYZJE.md <<
 - 27.11 (test JMGO prz04, ekran 11): przycięcie pola podglądu (`clipToBounds`) rysowało obraz TextureView NAD gradientami — bez przycinania; wideo 588×331 (16:9) w polu 640×360, dolna krawędź w strefie pełnego tła.
 - 27.11 (test JMGO prz04, ekran 10): okładka filmu z TMDB tylko dla programów ≥ 70 min („Kropka nad i” dostawała plakat filmu); krótsze — tylko seriale/programy TV.
 - 27.11 (test JMGO prz04, ekran 21): numer kanału po kluczu źródło|id|adres (w filtrze „Hiszpański” wszystkie kanały miały „42” — wspólne id na liście).
+- 27.11 (przegląd, plakaty pkt b): gotowe rozmycia plakatów i tła hero zapisywane na dysku (`cache/fork_blur`, mały WebP, klucz = adres obrazu + promień + skala, najwyżej ~4000 plików), po restarcie czytane z pliku; klucz `images_preblur_disk`. Oryginał i tak dekoduje Coil — oszczędność to samo liczenie rozmycia.
+- 27.11 (przegląd, ekran 02 pkt 1): nagrody w lewej kolumnie hero pod oceną (gdy tytuł je ma), obsada zawsze po prawej — wariant łatwy do cofnięcia (dwie linie w `NiuniaDetail.kt`); układ do potwierdzenia z projektem właściciela.
