@@ -39,6 +39,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -458,28 +459,51 @@ internal fun NiuniaSubtitlesTab(uiState: PlayerUiState, first: FocusRequester, o
     val ai by com.nuvio.tv.fork.ai.subtitles.AiSubtitles.state.collectAsState()
     val selectedAddon = uiState.selectedAddonSubtitle
     val embedded = uiState.subtitleTracks
-    val addons = remember(uiState.addonSubtitles, uiState.selectedAddonSubtitle) {
-        val top = uiState.addonSubtitles.sortedByDescending { com.nuvio.tv.fork.ai.subtitles.AuxiliaryLanguagePolicy.primaryLanguage(it.lang) == "pl" }.take(6)
-        // Test JMGO build151: wybrany plik spoza pierwszych 6 nie miał wiersza (brak ✓ i fokusu w panelu).
-        val chosen = uiState.selectedAddonSubtitle
-        if (chosen != null && top.none { it.id == chosen.id }) top + chosen else top
-    }
-    val off = selectedAddon == null && embedded.none { it.isSelected || it.index == uiState.selectedSubtitleTrackIndex }
+    // Przegląd 27.11, ekran 04 (DECYZJE 27.11): najpierw napisy w języku preferowanym (wbudowane i z dodatków razem),
+    // pozostałe języki zwinięte w jeden wiersz „Inne języki” (OK rozwija). Lista przewijana — fokus nie wychodzi poza panel.
+    fun addonPl(lang: String?) = com.nuvio.tv.fork.ai.subtitles.AuxiliaryLanguagePolicy.primaryLanguage(lang ?: "") == "pl"
+    val isSel: (com.nuvio.tv.ui.screens.player.TrackInfo) -> Boolean = { it.isSelected || it.index == uiState.selectedSubtitleTrackIndex }
+    val plEmbedded = embedded.filter { com.nuvio.tv.fork.subs.PolishFirst.isPl(it.language) }
+    val otherEmbedded = embedded.filterNot { com.nuvio.tv.fork.subs.PolishFirst.isPl(it.language) }
+    val plAddons = uiState.addonSubtitles.filter { addonPl(it.lang) }
+    val otherAddons = uiState.addonSubtitles.filterNot { addonPl(it.lang) }
+    var othersOpen by remember { mutableStateOf(false) }
+    // Wybrane obce napisy zostają na górze (z ✓), także gdy „Inne języki” są zwinięte.
+    val selOtherEmbedded = otherEmbedded.firstOrNull { isSel(it) && selectedAddon == null }
+    val selOtherAddon = selectedAddon?.takeIf { sel -> otherAddons.any { it.id == sel.id } }
+    val off = selectedAddon == null && embedded.none { isSel(it) }
     val aiPublished = ai?.published == true
-    // Test JMGO build151 (B3-9): gdy żaden wiersz nie dostał [first], fokus zostawał na pasku pod panelem.
-    // Jeden cel fokusu, zawsze istniejący wiersz: AI (pokazane) → bieżące wbudowane → bieżący plik → AI/„Wyłączone” → pierwszy wiersz.
-    val selEmbedded = embedded.firstOrNull { it.isSelected || it.index == uiState.selectedSubtitleTrackIndex }
+    val selEmbedded = embedded.firstOrNull { isSel(it) }
     val focusKey = when {
         aiOn && aiPublished -> "ai"
         selectedAddon == null && selEmbedded != null -> "e${selEmbedded.index}"
-        selectedAddon != null && addons.any { it.id == selectedAddon.id } -> "a${selectedAddon.id}"
+        selectedAddon != null -> "a${selectedAddon.id}"
         aiOn -> "ai"
         off -> "off"
         embedded.isNotEmpty() -> "e${embedded.first().index}"
-        addons.isNotEmpty() -> "a${addons.first().id}"
+        uiState.addonSubtitles.isNotEmpty() -> "a${uiState.addonSubtitles.first().id}"
         else -> "off"
     }
-    LaunchedEffect(embedded.size, addons.size) { Log.i(TAG, "odtwarzacz: napisy — wbudowane=${embedded.size}, z dodatków=${uiState.addonSubtitles.size}, AI=${if (aiPublished) "pokazane" else if (com.nuvio.tv.fork.ai.subtitles.AiSubtitles.running) "w toku" else "nie"}") }
+    LaunchedEffect(embedded.size, uiState.addonSubtitles.size) { Log.i(TAG, "odtwarzacz: napisy — wbudowane=${embedded.size} (pl=${plEmbedded.size}), z dodatków=${uiState.addonSubtitles.size} (pl=${plAddons.size}), AI=${if (aiPublished) "pokazane" else if (com.nuvio.tv.fork.ai.subtitles.AiSubtitles.running) "w toku" else "nie"}") }
+    @Composable fun embeddedRow(t: com.nuvio.tv.ui.screens.player.TrackInfo) {
+        val sel = isSel(t)
+        NiuniaListRow(
+            listOfNotNull(t.name.ifBlank { null } ?: t.language, stringResource(R.string.niunia_ds_subs_embedded)).joinToString(" · "),
+            trailing = if (sel && selectedAddon == null) NiuniaTrailing.Check else NiuniaTrailing.None,
+            focusRequester = if (focusKey == "e${t.index}") first else null,
+            onClick = { onEvent(PlayerEvent.OnSelectSubtitleTrack(t.index)) },
+        )
+    }
+    @Composable fun addonRow(sub: com.nuvio.tv.domain.model.Subtitle) {
+        NiuniaListRow(
+            listOf(niuniaLangName(sub.lang), stringResource(R.string.niunia_ds_subs_file)).joinToString(" · "),
+            supporting = sub.addonName,
+            trailing = if (selectedAddon?.id == sub.id) NiuniaTrailing.Check else NiuniaTrailing.None,
+            focusRequester = if (focusKey == "a${sub.id}") first else null,
+            onClick = { onEvent(PlayerEvent.OnSelectAddonSubtitle(sub)) },
+        )
+    }
+    Column(Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState())) {
     if (aiOn) {
         val running = com.nuvio.tv.fork.ai.subtitles.AiSubtitles.running
         val reason = com.nuvio.tv.fork.ai.subtitles.AiSubtitles.unavailableReason(ctx)
@@ -503,27 +527,21 @@ internal fun NiuniaSubtitlesTab(uiState: PlayerUiState, first: FocusRequester, o
             },
         )
     }
-    embedded.forEach { t ->
-        val sel = t.isSelected || t.index == uiState.selectedSubtitleTrackIndex
-        NiuniaListRow(
-            listOfNotNull(t.name.ifBlank { null } ?: t.language, stringResource(R.string.niunia_ds_subs_embedded)).joinToString(" · "),
-            trailing = if (sel && selectedAddon == null) NiuniaTrailing.Check else NiuniaTrailing.None,
-            focusRequester = if (focusKey == "e${t.index}") first else null,
-            onClick = { onEvent(PlayerEvent.OnSelectSubtitleTrack(t.index)) },
-        )
-    }
-    addons.forEach { sub ->
-        val sel = selectedAddon?.id == sub.id
-        NiuniaListRow(
-            listOf(niuniaLangName(sub.lang), stringResource(R.string.niunia_ds_subs_file)).joinToString(" · "),
-            supporting = sub.addonName,
-            trailing = if (sel) NiuniaTrailing.Check else NiuniaTrailing.None,
-            focusRequester = if (focusKey == "a${sub.id}") first else null,
-            onClick = { onEvent(PlayerEvent.OnSelectAddonSubtitle(sub)) },
-        )
-    }
+    plEmbedded.forEach { embeddedRow(it) }
+    plAddons.forEach { addonRow(it) }
+    if (!othersOpen) { selOtherEmbedded?.let { embeddedRow(it) }; selOtherAddon?.let { addonRow(it) } }
     NiuniaListRow(stringResource(R.string.niunia_ds_subs_off), trailing = if (off && !aiPublished) NiuniaTrailing.Check else NiuniaTrailing.None,
         focusRequester = if (focusKey == "off") first else null, onClick = { onEvent(PlayerEvent.OnDisableSubtitles) })
+    val othersCount = otherEmbedded.size + otherAddons.size
+    if (othersCount > 0) {
+        NiuniaListRow(stringResource(R.string.player_subs_other_languages), value = othersCount.toString(),
+            trailing = NiuniaTrailing.Chevron,
+            onClick = { othersOpen = !othersOpen; Log.i(TAG, "odtwarzacz: napisy — Inne języki ${if (othersOpen) "rozwinięte" else "zwinięte"} ($othersCount)") })
+        if (othersOpen) {
+            otherEmbedded.forEach { embeddedRow(it) }
+            otherAddons.forEach { addonRow(it) }
+        }
+    }
     // Z-22 (P-36): „Opóźnienie napisów −0,5 s”: ◄ ► co 0,1 s (opóźnienie Nuvio), OK = 0.
     if (!off || aiPublished) NiuniaListRow(
         stringResource(R.string.niunia_ke2_sub_delay), value = niuniaDelayLabel(uiState.subtitleDelayMs),
@@ -537,6 +555,7 @@ internal fun NiuniaSubtitlesTab(uiState: PlayerUiState, first: FocusRequester, o
     )
     NiuniaListRow(stringResource(R.string.niunia_ds_subtitles_choose), trailing = NiuniaTrailing.Chevron,
         onClick = more)
+    }
 }
 
 /** Napis w kółku przycisku jakości z grającego strumienia: UHD / HD / SD; null = nieznana. */

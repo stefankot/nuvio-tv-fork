@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="duration_guard_clip">To źródło to tylko %1$d s komunikatu, nie film — włączam następne</string>
+    <string name="duration_guard_wrong">Ten plik ma %1$d min, a film %2$d min — włączam następne źródło</string>
+    <string name="duration_guard_manual_wrong">Uwaga: ten plik ma %1$d min, a film %2$d min — może to inna wersja</string>
+    <string name="duration_guard_limit">Kolejne źródła mają złą długość — gram to, co jest</string>
+    <string name="duration_guard_none">Nie ma innego źródła — gram to, co jest</string>
+</resources>

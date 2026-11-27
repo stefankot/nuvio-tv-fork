@@ -394,6 +394,7 @@ internal object PolishDubbing {
     }
 
     fun onReady(owner: PlayerRuntimeController) {
+        com.nuvio.tv.fork.sources.DurationGuard.onReady(owner) // przegląd 27.11, ekran 03: kontrola długości pliku (to samo wpięcie STATE_READY)
         val session = sessions[owner] ?: return
         if (session.binding == null || !isCurrent(owner, session)) return
         val exo = owner._exoPlayer ?: return

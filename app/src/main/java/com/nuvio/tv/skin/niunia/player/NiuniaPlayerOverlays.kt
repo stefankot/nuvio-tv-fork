@@ -87,6 +87,42 @@ internal fun niuniaPlayerOverlay(kind: String, uiState: PlayerUiState, args: Map
 private fun NiuniaPlayerLoading(uiState: PlayerUiState, onEvent: (PlayerEvent) -> Unit, exit: (() -> Unit)?) {
     val ctx = LocalContext.current
     val first = remember { FocusRequester() }
+    val second = remember { FocusRequester() } // przegląd 27.11, ekran 26: ◀▶/OK/Wstecz należą do nakładki
+    val focusedIndex = remember { intArrayOf(0) }
+    val otherSource = {
+        Log.i(TAG, "odtwarzacz: wczytywanie → Inne źródło")
+        android.widget.Toast.makeText(ctx, com.nuvio.tv.fork.sources.TryAnotherSource.run(), android.widget.Toast.LENGTH_SHORT).show()
+    }
+    val cancel = { Log.i(TAG, "odtwarzacz: wczytywanie → Anuluj"); exit?.invoke(); Unit }
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        NiuniaLoadingKeys.handler = handler@{ e ->
+            val down = e.action == android.view.KeyEvent.ACTION_DOWN
+            when (e.keyCode) {
+                android.view.KeyEvent.KEYCODE_DPAD_LEFT, android.view.KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                    if (down) {
+                        val to = if (e.keyCode == android.view.KeyEvent.KEYCODE_DPAD_LEFT) 0 else 1
+                        if (to != focusedIndex[0]) {
+                            focusedIndex[0] = to
+                            try { (if (to == 0) first else second).requestFocus() } catch (x: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus wczytywania: ${x.javaClass.simpleName}: ${x.message}") }
+                            Log.i(TAG, "odtwarzacz: wczytywanie fokus → ${if (to == 0) "Inne źródło" else "Anuluj"}")
+                        }
+                    }
+                    true
+                }
+                android.view.KeyEvent.KEYCODE_DPAD_UP, android.view.KeyEvent.KEYCODE_DPAD_DOWN -> true
+                android.view.KeyEvent.KEYCODE_DPAD_CENTER, android.view.KeyEvent.KEYCODE_ENTER, android.view.KeyEvent.KEYCODE_NUMPAD_ENTER -> {
+                    if (e.action == android.view.KeyEvent.ACTION_UP) { if (focusedIndex[0] == 0) otherSource() else cancel() }
+                    true
+                }
+                android.view.KeyEvent.KEYCODE_BACK, android.view.KeyEvent.KEYCODE_ESCAPE -> {
+                    if (e.action == android.view.KeyEvent.ACTION_UP) cancel()
+                    true
+                }
+                else -> false
+            }
+        }
+        onDispose { NiuniaLoadingKeys.handler = null }
+    }
     LaunchedEffect(Unit) {
         Log.i(TAG, "odtwarzacz: wczytywanie (ekran Niuni)")
         kotlinx.coroutines.delay(120)
@@ -103,12 +139,12 @@ private fun NiuniaPlayerLoading(uiState: PlayerUiState, onEvent: (PlayerEvent) -
             NiuniaText(if (pct != null) stringResource(R.string.niunia_pl1_buffering_pct, pct) else stringResource(R.string.niunia_pl1_buffering), variant = NiuniaTextVariant.TitleSection, lines = 1)
             uiState.loadingMessage?.takeIf { it.isNotBlank() }?.let { NiuniaText(it, variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 2) }
             uiState.currentStreamName?.takeIf { it.isNotBlank() }?.let { NiuniaText(it.replace('\n', ' '), variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Tertiary, lines = 1) }
+            // Ekran 26 pkt 2: parametry pliku (rozdzielczość, HDR, kodek, bitrate, rozmiar, dźwięk, napisy).
+            val fileLine = remember(uiState.currentStreamName, uiState.currentStreamDescription, uiState.torrentDownloadSpeed) { NiuniaLoadingKeys.fileLine(uiState) }
+            fileLine?.let { NiuniaText(it, variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 2) }
             Row(Modifier.padding(top = NiuniaSpacing.Space12).focusGroup(), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
-                NiuniaButton(onClick = {
-                    Log.i(TAG, "odtwarzacz: wczytywanie → Inne źródło")
-                    android.widget.Toast.makeText(ctx, com.nuvio.tv.fork.sources.TryAnotherSource.run(), android.widget.Toast.LENGTH_SHORT).show()
-                }, label = stringResource(R.string.niunia_pl1_other_source), focusRequester = first)
-                NiuniaButton(onClick = { Log.i(TAG, "odtwarzacz: wczytywanie → Anuluj"); exit?.invoke() }, label = stringResource(R.string.niunia_pl1_cancel))
+                NiuniaButton(onClick = otherSource, label = stringResource(R.string.niunia_pl1_other_source), focusRequester = first)
+                NiuniaButton(onClick = cancel, label = stringResource(R.string.niunia_pl1_cancel), focusRequester = second)
             }
         }
     }

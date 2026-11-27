@@ -10,7 +10,7 @@ object BetaFeatures {
         // Właściciel 22.11: automatyczny wybór źródła tylko natywny (Regex Nuvio) — wyścig i zapasowe źródło Echo wyłączone na stałe.
         raceAutoPlaySources = false,
         sourceFallback = false,
-        sourceSwitchTimeoutSeconds = 8,
+        sourceSwitchTimeoutSeconds = 20, // przegląd 27.11, ekran 05 pkt 3: plik 1080p otwierany w połowie filmu na JMGO nie zdążał w 8 s (6 prób w 63 s)
         // Właściciel 22.11 (aktualizacja bazy): automatyczna zmiana źródła tylko jak w Reshaped — Auto jakość Echo odłączona (wpięcie w PlayerViewModel usunięte).
         autoQuality = false,
         autoQualityHotSwap = false,

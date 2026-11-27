@@ -160,6 +160,27 @@ internal object NiuniaLiveNav {
     /** Z-4: program z archiwum — bez przełącznika kanałów (▲▼ tylko przenosi fokus, ◀ z pierwszego przycisku zostaje). */
     var archiveMode = false
 
+    /** Przegląd 27.11, ekran 22: w archiwum klawisze zmiany kanału nic nie robią (CH±, cyfry). */
+    private val ARCHIVE_NO_ZAP_KEYS = setOf(KeyEvent.KEYCODE_CHANNEL_UP, KeyEvent.KEYCODE_CHANNEL_DOWN, KeyEvent.KEYCODE_PAGE_UP, KeyEvent.KEYCODE_PAGE_DOWN, KeyEvent.KEYCODE_LAST_CHANNEL) +
+        (KeyEvent.KEYCODE_0..KeyEvent.KEYCODE_9).toSet() + (KeyEvent.KEYCODE_NUMPAD_0..KeyEvent.KEYCODE_NUMPAD_9).toSet()
+
+    /**
+     * Przegląd 27.11, ekran 22 (wołane z `ForkHooks.onGlobalKey`, przed Live TV): archiwum przy schowanej nakładce —
+     * ▲▼, CH± i cyfry nie zmieniają kanału (Reshaped przełączał); ▲▼ pokazuje nakładkę z fokusem na pasku przewijania.
+     */
+    fun archiveGlobalKey(e: KeyEvent): Boolean {
+        if (!archiveMode || !NiuniaLive.active()) return false
+        val st = NiuniaLive.state ?: return false
+        if (!st.isCatchup()) return false
+        val upDown = e.keyCode == KeyEvent.KEYCODE_DPAD_UP || e.keyCode == KeyEvent.KEYCODE_DPAD_DOWN
+        if (!(upDown && !st.infoOpen) && e.keyCode !in ARCHIVE_NO_ZAP_KEYS) return false
+        if (e.action == KeyEvent.ACTION_DOWN && e.repeatCount == 0) {
+            Log.i(TAG, "iptv: archiwum — ${if (upDown) "▲▼ pokazuje nakładkę" else "klawisz kanału pominięty"} (bez zmiany kanału)")
+            if (upDown) { level = 0; slot = NiuniaLiveSlot.BAR; st.showInfo() }
+        }
+        return true
+    }
+
     /** Z-21 (P-31): poprzedni kanał (adres na liście) — przycisk „Poprzedni: TVP1” zamiast długiego Wstecz; OK przełącza tam i z powrotem. */
     var lastUrl: String? = null
     var prevUrl by mutableStateOf<String?>(null)
@@ -180,7 +201,8 @@ internal object NiuniaLiveNav {
     }
 
     fun reset(archive: Boolean) {
-        level = 0; slot = if (archive) NiuniaLiveSlot.PAUSE else NiuniaLiveSlot.CHANNEL; rowIndex = 0; section = 0; index = 0
+        // Przegląd 27.11, ekran 22 pkt 3: w archiwum fokus startowy na pasku — ◀▶ od razu przewija nagranie (jak w filmie).
+        level = 0; slot = if (archive) NiuniaLiveSlot.BAR else NiuniaLiveSlot.CHANNEL; rowIndex = 0; section = 0; index = 0
         archiveMode = archive
         if (archive) Log.i(TAG, "archive: channel switch, channel logo and up/down arrows hidden")
     }
@@ -221,6 +243,12 @@ internal object NiuniaLiveNav {
         }
         if (back) return true
         if (event.repeatCount > 0 && ok) return true
+        // Przegląd 27.11, ekran 22: w archiwum ⏪ ⏩ przewijają z każdego miejsca nakładki; CH± i cyfry nic nie zmieniają.
+        if (archiveMode && (code == KeyEvent.KEYCODE_MEDIA_REWIND || code == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD)) {
+            if (event.repeatCount == 0) { Log.i(TAG, "iptv: archiwum — przewijanie ${if (code == KeyEvent.KEYCODE_MEDIA_REWIND) "⏪" else "⏩"}"); state.openScrub(channel, if (code == KeyEvent.KEYCODE_MEDIA_REWIND) -1 else 1, keepInfo = true) }
+            return true
+        }
+        if (archiveMode && code in ARCHIVE_NO_ZAP_KEYS) { Log.i(TAG, "iptv: archiwum — klawisz kanału pominięty"); return true }
         state.showInfo()
         when (level) {
             0 -> controlsKey(state, channel, code, ok, event.repeatCount)
@@ -479,8 +507,9 @@ internal fun NiuniaLivePlayer(
         if (prev != null) add(NiuniaLiveSlot.PREV) // Z-21 (P-31): pierwszy nad paskiem, dopiero po zmianie kanału, nie w archiwum
         if (startOver || archive) add(NiuniaLiveSlot.RESTART)
         if (archive || group || paused) add(NiuniaLiveSlot.PAUSE)
-        // UX JMGO 26.11 (#72, zdjęcie 212): w archiwum nie było jak wrócić do transmisji (tylko ↻ ▶ +) — „Na żywo” jak przy opóźnieniu.
-        if (playState == NiuniaPlayState.DELAY || archive) add(NiuniaLiveSlot.LIVE)
+        // UX JMGO 26.11 (#72) dodało „Na żywo” w archiwum; przegląd 27.11 (właściciel, ekran 22) odwraca: w archiwum bez „Na żywo”,
+        // wyjście tylko Wstecz. „Na żywo” zostaje przy opóźnieniu transmisji.
+        if (playState == NiuniaPlayState.DELAY && !archive) add(NiuniaLiveSlot.LIVE)
         add(NiuniaLiveSlot.FAV)
         if (group) { add(NiuniaLiveSlot.INFO); add(NiuniaLiveSlot.MORE) }
     }
