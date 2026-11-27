@@ -135,3 +135,6 @@ Nowa decyzja: dopisz na końcu BEZ czytania pliku — `cat >> plan/DECYZJE.md <<
 - 27.11 (przegląd, ekran 11): podgląd kanału 640×360 (było 520×288), przycięty do pola; od 80 % wysokości pełne tło — widoczna część nad przewodnikiem kończy się tam, gdzie dawniej.
 - 27.11 (przegląd, plakaty pkt a): ciemny gradient od dołu plakatu wyłączony stałą `POSTER_DARK_BOTTOM` w `NiuniaPoster.kt`; plamy koloru w rogach zostają. Pkt b (rozmycia na dysku) — później.
 - 27.11 (test JVM prz03): `ChannelNames.normalCase` nie zmienia nazw jednowyrazowych ani wyrazów bez samogłosek („TVNHD”, „CNBC” zostają); testy TvCountry/ChannelNames poprawione do zamierzonych zmian z paczki 2 (kolejność trzystopniowa, „TVN Style”).
+- 27.11 (test JMGO prz04, ekran 11): przycięcie pola podglądu (`clipToBounds`) rysowało obraz TextureView NAD gradientami — bez przycinania; wideo 588×331 (16:9) w polu 640×360, dolna krawędź w strefie pełnego tła.
+- 27.11 (test JMGO prz04, ekran 10): okładka filmu z TMDB tylko dla programów ≥ 70 min („Kropka nad i” dostawała plakat filmu); krótsze — tylko seriale/programy TV.
+- 27.11 (test JMGO prz04, ekran 21): numer kanału po kluczu źródło|id|adres (w filtrze „Hiszpański” wszystkie kanały miały „42” — wspólne id na liście).

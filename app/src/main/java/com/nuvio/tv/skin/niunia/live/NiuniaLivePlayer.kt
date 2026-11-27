@@ -724,8 +724,15 @@ private fun LiveRow(row: List<NiuniaLiveTile>, focused: Int, clockMs: Long, stat
                 else -> ctx.getString(R.string.niunia_live_soon)
             }
             val cap = listOfNotNull(episodeText(t.programme.episode), if (t.future) dayLabel(ctx, t.programme.startEpochMs, clockMs).lowercase() + " " + hm(t.programme.startEpochMs) else null).joinToString(" · ").ifEmpty { null }
+            // Przegląd 27.11 (22 pkt 2): bez obrazka z przewodnika — okładka programu z TMDB (TvCovers), zamiast pustej karty.
+            val epgImage = t.programme.image?.takeIf { it.isNotBlank() }
+            val minutes = ((t.programme.stopEpochMs - t.programme.startEpochMs) / 60_000L).toInt().takeIf { it > 0 }
+            val cover by androidx.compose.runtime.produceState(if (epgImage == null) com.nuvio.tv.fork.tv.covers.TvCovers.cached(t.programme.title, minutes) else null, t.programme.title, epgImage) {
+                if (epgImage == null && value == null) value = com.nuvio.tv.fork.tv.covers.TvCovers.cover(ctx, t.programme.title, minutes)
+            }
+            val image = epgImage ?: cover
             NiuniaWideTile(
-                image = t.programme.image?.takeIf { it.isNotBlank() }, caption = if (t.programme.image.isNullOrBlank()) null else cap ?: t.programme.title,
+                image = image, caption = if (image == null) null else cap ?: t.programme.title,
                 focused = i == focused, dot = if (t.live) true else if (t.archive) false else null, badge = badge,
                 // UX JMGO 25.11 (#54): „Nowa TV · 21:00” dwa razy (wczoraj i dziś) — przy innym dniu niż dziś dopisany dzień.
                 fallbackTitle = t.programme.title, fallbackSub = com.nuvio.tv.fork.tv.names.ChannelNames.shown(t.channel.name) + " · " +

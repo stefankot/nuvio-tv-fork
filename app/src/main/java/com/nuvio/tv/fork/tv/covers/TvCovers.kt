@@ -52,20 +52,27 @@ object TvCovers {
         Normalizer.normalize(s.lowercase(), Normalizer.Form.NFD).replace(Regex("""\p{M}+"""), "")
             .replace('ł', 'l').replace(Regex("""[^a-z0-9]+"""), " ").trim()
 
-    /** Okładka z pamięci (bez sieci) — do pierwszego rysowania karty. */
-    fun cached(title: String): String? = searchTitle(title)?.let { mem[norm(it)]?.url?.ifEmpty { null } }
+    /**
+     * Test JMGO prz04: „Kropka nad i” (program TVN24, ~40 min) dostał plakat FILMU o tym tytule — program krótszy niż
+     * [MOVIE_MIN] minut szuka tylko seriali/programów TV (osobny wpis w pamięci: klucz z „|tv”).
+     */
+    private const val MOVIE_MIN = 70
+    private fun keyOf(q: String, minutes: Int?): String = norm(q) + if (minutes != null && minutes < MOVIE_MIN) "|tv" else ""
 
-    suspend fun cover(c: Context, title: String): String? {
+    /** Okładka z pamięci (bez sieci) — do pierwszego rysowania karty. */
+    fun cached(title: String, minutes: Int? = null): String? = searchTitle(title)?.let { mem[keyOf(it, minutes)]?.url?.ifEmpty { null } }
+
+    suspend fun cover(c: Context, title: String, minutes: Int? = null): String? {
         if (!enabled(c)) return null
         val q = searchTitle(title) ?: return null
-        val key = norm(q)
+        val key = keyOf(q, minutes)
         if (key.length < 3) return null
         ensureLoaded(c)
         fresh(key)?.let { return it.url.ifEmpty { null } }
         val lock = locks.getOrPut(key) { kotlinx.coroutines.sync.Mutex() }
         return lock.withLock {
             fresh(key)?.let { return@withLock it.url.ifEmpty { null } }
-            val url = sem.withPermit { withContext(Dispatchers.IO) { fetch(q, key) } }
+            val url = sem.withPermit { withContext(Dispatchers.IO) { fetch(q, norm(q), tvOnly = key.endsWith("|tv")) } }
             if (url != null) { mem[key] = Entry(url, System.currentTimeMillis()); if (url.isEmpty()) misses++ else hits++; save(c) }
             url?.ifEmpty { null }
         }
@@ -78,7 +85,7 @@ object TvCovers {
     }
 
     /** "" = TMDB nie zna tego tytułu (pamiętane); null = błąd sieci (bez pamiętania, następnym razem znów). */
-    private fun fetch(q: String, key: String): String? {
+    private fun fetch(q: String, key: String, tvOnly: Boolean): String? {
         val apiKey = com.nuvio.tv.BuildConfig.TMDB_API_KEY
         if (apiKey.isBlank()) { Log.w(TAG, "brak klucza TMDB — okładki wyłączone"); return "" }
         val u = java.net.URL("https://api.themoviedb.org/3/search/multi?language=pl-PL&include_adult=false&query=" +
@@ -93,7 +100,7 @@ object TvCovers {
             for (i in 0 until results.length()) {
                 val r = results.optJSONObject(i) ?: continue
                 val type = r.optString("media_type")
-                if (type != "tv" && type != "movie") continue
+                if (type != "tv" && (type != "movie" || tvOnly)) continue
                 val names = listOf("title", "name", "original_title", "original_name").map { r.optString(it) }.filter { it.isNotBlank() }
                 if (names.none { norm(it) == key }) continue
                 val path = r.optString("backdrop_path").takeIf { it.startsWith("/") } ?: r.optString("poster_path").takeIf { it.startsWith("/") } ?: continue

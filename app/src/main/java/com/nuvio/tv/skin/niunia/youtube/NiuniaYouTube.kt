@@ -265,11 +265,13 @@ fun NiuniaYouTube(onPlay: (YtPlayable) -> Unit, viewModel: YouTubeViewModel = fo
         }, onClose = { ytSearchOpen = false })
     }
     // Po wyszukaniu fokus na pierwszy wynik, gdy tylko wyniki są.
-    LaunchedEffect(ytSearchFocus, cards.isNotEmpty(), state.loading) {
+    // Test JMGO prz04: `ytSearchFocus = false` przed pętlą zmieniało klucz efektu i anulowało go przy pierwszym delay —
+    // fokus zostawał na szynie („Główna”). Flaga gaszona dopiero po próbie.
+    LaunchedEffect(cards.isNotEmpty(), state.loading) {
         if (!ytSearchFocus || cards.isEmpty() || state.loading) return@LaunchedEffect
-        ytSearchFocus = false
         var ok = false
-        repeat(6) { if (!ok) { kotlinx.coroutines.delay(100); ok = try { firstVideo.requestFocus(); true } catch (e: IllegalStateException) { false } } }
+        repeat(8) { if (!ok) { kotlinx.coroutines.delay(120); ok = try { firstVideo.requestFocus(); true } catch (e: IllegalStateException) { false } } }
+        ytSearchFocus = false
         Log.i(TAG, "youtube szukaj: wyniki ${cards.size} → fokus ${if (ok) "na pierwszy" else "bez zmiany"}")
     }
     menuItem?.let { item -> CardMenu(item, viewModel) { menuItem = null } }

@@ -15,7 +15,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -80,14 +79,15 @@ internal fun NiuniaLivePreviewBox(channel: LiveTvChannel, programme: LiveTvProgr
         kotlinx.coroutines.delay(3_000)
         if (preview.showingVideo) NiuniaLiveStatus.ok(ctx, channel.streamUrl, channel.name)
     }
-    // Przegląd 27.11 (11): większy podgląd (szerszy, 16:9), przycięty do pola — obraz nie wychodzi poza przyciemnienie.
-    Box(modifier.size(640.dp, 360.dp).clipToBounds()) {
+    // Przegląd 27.11 (11): większy podgląd. Test JMGO prz04: przycięcie pola (clipToBounds) rysowało obraz TextureView NAD
+    // gradientami — bez przycinania; samo wideo 588×331 (16:9) kończy się w strefie pełnego tła (od 288 dp), więc nie wystaje.
+    Box(modifier.size(640.dp, 360.dp)) {
         val still = programme?.image?.takeIf { it.isNotBlank() } ?: com.nuvio.tv.skin.kicia.livetv.forgeChannelLogo(channel)
-        if (!showing && still != null) AsyncImage(model = still, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+        if (!showing && still != null) AsyncImage(model = still, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.align(Alignment.TopEnd).size(588.dp, 331.dp))
         AndroidView(
             factory = { c -> TextureView(c).also { preview.attach(it) } },
             onRelease = { preview.detach(it) },
-            modifier = Modifier.fillMaxSize().alpha(if (showing) 1f else 0f), // do pierwszej klatki widać kadr programu
+            modifier = Modifier.align(Alignment.TopEnd).size(588.dp, 331.dp).alpha(if (showing) 1f else 0f), // do pierwszej klatki widać kadr programu
         )
         // Maska z makiety: od lewej przezroczysto → pełno od 45 %, od dołu pełno do 55 % → przezroczysto (tu: tło skórki na wierzchu).
         Box(Modifier.fillMaxSize().background(Brush.horizontalGradient(0f to NiuniaColor.Bg, 0.45f to Color.Transparent)))

@@ -81,8 +81,9 @@ internal fun NiuniaLiveTileCard(
     val logo = forgeChannelLogo(tile.channel) ?: LiveTvRepository.uiState.value.logoFor(tile.channel)
     val epgImage = p?.image?.takeIf { it.isNotBlank() }
     // Przegląd 27.11 (10 pkt 3): bez obrazka z przewodnika — okładka programu z TMDB (ścisła zgodność tytułu), logo dopiero gdy jej brak.
-    val tmdbCover by androidx.compose.runtime.produceState(if (epgImage == null && p != null) com.nuvio.tv.fork.tv.covers.TvCovers.cached(p.title) else null, p?.title, epgImage) {
-        if (epgImage == null && p != null && value == null) value = com.nuvio.tv.fork.tv.covers.TvCovers.cover(ctx, p.title)
+    val minutes = p?.let { ((it.stopEpochMs - it.startEpochMs) / 60_000L).toInt().takeIf { m -> m > 0 } }
+    val tmdbCover by androidx.compose.runtime.produceState(if (epgImage == null && p != null) com.nuvio.tv.fork.tv.covers.TvCovers.cached(p.title, minutes) else null, p?.title, epgImage) {
+        if (epgImage == null && p != null && value == null) value = com.nuvio.tv.fork.tv.covers.TvCovers.cover(ctx, p.title, minutes)
     }
     val image = epgImage ?: tmdbCover
     var focused by remember { mutableStateOf(false) }

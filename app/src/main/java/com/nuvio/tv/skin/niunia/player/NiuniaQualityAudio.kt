@@ -94,8 +94,21 @@ internal fun NiuniaAudioTracksTab(
             Log.i(TAG, "odtwarzacz: Dźwięk — wczytuję źródła dla „Polski”"); onEvent(PlayerEvent.OnReloadSourceStreams)
         }
     }
+    // Test JMGO prz04: Dublagem dołączył polską ścieżkę przy otwartym panelu — lista się przebudowała („Polski z innego wydania”
+    // zniknął) i fokus przepadł (▲▼ nic nie zaznaczały). Wiersze mają stałe klucze, a gdy fokus zniknie — wraca na bieżącą ścieżkę.
+    var focusedRow by remember { mutableStateOf<String?>(null) }
+    val rowsKey = ordered.joinToString(",") { "${it.index}:${isSel(it)}" } + "|$offerPl"
+    LaunchedEffect(rowsKey) {
+        kotlinx.coroutines.delay(150)
+        // Wiersz z fokusem usunięty z listy (np. „Polski z innego wydania”) nie zawsze zgłasza utratę fokusu — sprawdzamy, czy jeszcze jest.
+        val alive = ordered.map { "t${it.index}" } + listOfNotNull("pl".takeIf { offerPl }) + listOf("more", "opts")
+        if (focusedRow != null && focusedRow in alive) return@LaunchedEffect
+        try { first.requestFocus(); Log.i(TAG, "odtwarzacz: Dźwięk — lista ścieżek zmieniona, fokus wraca na bieżącą") }
+        catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: Dźwięk — fokus po zmianie listy: ${e.javaClass.simpleName}: ${e.message}") }
+    }
+    fun track(key: String): (Boolean) -> Unit = { on -> if (on) focusedRow = key else if (focusedRow == key) focusedRow = null }
     Column(Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState())) {
-        ordered.forEach { t ->
+        ordered.forEach { t -> androidx.compose.runtime.key(t.index) {
             val sel = isSel(t)
             val lang = t.language?.takeIf { it.isNotBlank() && !it.equals("und", true) }?.let { niuniaLangName(it) }
             NiuniaListRow(
@@ -103,15 +116,17 @@ internal fun NiuniaAudioTracksTab(
                 supporting = trackDetail(t),
                 trailing = if (sel) NiuniaTrailing.Check else NiuniaTrailing.None,
                 focusRequester = if (t.index == focusIndex) first else null,
+                onFocus = track("t${t.index}"),
                 onClick = {
                     Log.i(TAG, "odtwarzacz: Dźwięk → ścieżka ${t.index} (${t.language})")
                     onEvent(PlayerEvent.OnSelectAudioTrack(t.index))
                 },
             )
-        }
+        } }
         if (offerPl) NiuniaListRow(
             stringResource(R.string.niunia_qa_audio_pl),
             supporting = stringResource(R.string.niunia_qa_audio_pl_other),
+            onFocus = track("pl"),
             onClick = {
                 Log.i(TAG, "odtwarzacz: Dźwięk → Polski z innego wydania (źródeł ${uiState.sourceAllStreams.size})")
                 close()
@@ -121,9 +136,10 @@ internal fun NiuniaAudioTracksTab(
         NiuniaListRow(
             stringResource(R.string.niunia_qa_audio_more), trailing = NiuniaTrailing.Chevron,
             focusRequester = if (focusIndex == null) first else null,
+            onFocus = track("more"),
             onClick = { Log.i(TAG, "odtwarzacz: Dźwięk → Więcej ustawień dźwięku"); close(); onEvent(PlayerEvent.OnShowAudioOverlay) },
         )
-        NiuniaListRow(stringResource(R.string.niunia_ds_more_options), onClick = openMore, trailing = NiuniaTrailing.Chevron)
+        NiuniaListRow(stringResource(R.string.niunia_ds_more_options), onClick = openMore, trailing = NiuniaTrailing.Chevron, onFocus = track("opts"))
     }
 }
 
@@ -145,9 +161,11 @@ internal fun NiuniaQualityPanel(uiState: PlayerUiState, onEvent: (PlayerEvent) -
     val ctx = LocalContext.current
     val info = uiState.streamInfoData
     // Diagnostyka 27.11: currentStreamQuality potrafiło podać 4K dla pliku 1080p — najpierw rozmiar obrazu z dekodera.
-    val current = remember(info?.videoWidth, info?.videoHeight, uiState.currentStreamQuality) {
+    // Test JMGO prz04: bez okna Echo `currentStreamQuality` jest puste, a rozmiar obrazu bywa nieznany — wtedy z nazwy źródła („Comet 1080p”).
+    val current = remember(info?.videoWidth, info?.videoHeight, uiState.currentStreamQuality, uiState.currentStreamName) {
         val w = info?.videoWidth; val h = info?.videoHeight
         (if (w != null && h != null) StreamQuality.fromVideoSize(w, h) else null) ?: uiState.currentStreamQuality
+            ?: com.nuvio.tv.core.streams.StreamQualityParser.parse(uiState.currentStreamName, info?.filename)
     }
     val streams = uiState.sourceAllStreams
     val options = remember(streams, current) { StreamQualityMenu.buildOptions(streams, current) }
@@ -209,7 +227,9 @@ internal fun NiuniaQualityPanel(uiState: PlayerUiState, onEvent: (PlayerEvent) -
             if (list.isEmpty()) NiuniaListRow(stringResource(R.string.niunia_qa_none_q), onClick = null, enabled = false)
             else LazyColumn(Modifier.heightIn(max = 400.dp)) {
                 itemsIndexed(list, key = { i, s -> "${i}_${s.url ?: s.getDisplayName()}" }) { i, s ->
-                    val now = s.url != null && s.url == uiState.currentStreamUrl
+                    // Adres grającego pliku bywa już rozwiązany (inny niż w liście) — wtedy po nazwie i dodatku.
+                    val now = (s.url != null && s.url == uiState.currentStreamUrl) ||
+                        (s.name != null && s.name == uiState.currentStreamName && s.addonName == uiState.currentStreamAddonName)
                     NiuniaListRow(
                         com.nuvio.tv.skin.niunia.stream.niuniaStreamLabel(s, ctx),
                         supporting = com.nuvio.tv.skin.niunia.stream.niuniaStreamSupporting(s).ifEmpty { null },

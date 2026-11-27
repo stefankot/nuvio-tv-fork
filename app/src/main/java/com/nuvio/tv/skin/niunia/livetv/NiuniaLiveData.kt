@@ -379,7 +379,9 @@ internal object NiuniaLiveOrder {
 
     // Przegląd 27.11, ekran 21: numer = miejsce kanału na pełnej liście (najpierw preferowany kraj), klucz = kanał, nie adres
     // strumienia (kanały portalu ze wspólnym adresem miały ten sam numer: „39” ×4). Filtry i Ulubione numerów nie zmieniają.
-    fun numberKey(ch: LiveTvChannel): String = ch.sourceId + "|" + ch.id
+    // Test JMGO prz04: w filtrze „Hiszpański” wszystkie kanały miały „42” — kanały tej listy dzielą `id`, więc klucz to
+    // źródło|id|adres: kanały portalu ze wspólnym adresem różni id, kanały listy ze wspólnym id różni adres.
+    fun numberKey(ch: LiveTvChannel): String = ch.sourceId + "|" + ch.id + "|" + ch.streamUrl
     private fun numbersOf(list: List<LiveTvChannel>): Map<String, Int> =
         HashMap<String, Int>(list.size * 2).also { m -> list.forEachIndexed { i, ch -> m.putIfAbsent(numberKey(ch), i + 1) } }
 
