@@ -14,7 +14,7 @@ Cel: start filmu ma być szybki i przewidywalny. Pierwsza próba ma trafiać w �
 
 - `https://github.com/stefankot/nuvio-tv-fork` (prywatne), gałąź **`claude/paczka-oczywiste`**. To najnowszy stan, zainstalowany na TV jako build162o.
 - Aktywna gałąź równoległego wątku (skórka Niunia): `claude/nuvio-tv-handoff-batch-1-4537d7`. Nie scalaj do `main`, nie rób `push --force`. Pracuj na nowej gałęzi od `claude/paczka-oczywiste`, np. `claude/autoplay-fix`, i otwórz PR do `claude/paczka-oczywiste`.
-- Zasady projektu: `ZASADY.md` (obowiązkowe), mapa dokumentów: `plan/README.md`. Najważniejsze:
+- Zasady projektu: `ZASADY.md` (obowiązkowe), co czytać: tabela w `ZASADY.md` §0. Najważniejsze:
   - kod bazy i kopii z forków zmieniaj minimalnie;
   - nowe rzeczy w osobnych plikach `fork/…`;
   - wpięcia w bazę to jedna instrukcja z komentarzem `// Fork hook: <moduł>` plus wiersz w `fork-tools/hooks.tsv`;

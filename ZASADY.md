@@ -1,85 +1,56 @@
-# ZASADY PRACY (jedyne źródło; aktualne na 19.11.2026)
+# ZASADY PRACY — rdzeń (ładowany zawsze; aktualne na 27.11.2026)
 
-Zasady właściciela dla każdego wątku i agenta. Inne pliki tylko tu odsyłają. Nowa zasada: dopisz TUTAJ (z datą), nigdzie indziej.
-Stare wersje: `plan/archiwum/zasady/` i historia gita.
+Jedyne źródło zasad właściciela = ten plik + trzy pliki warunkowe niżej. Nowa zasada: dopisz z datą tu (jeśli dotyczy każdej pracy) albo do pasującego `ZASADY-*.md` — nigdzie indziej. Stare wersje: `plan/archiwum/zasady/`, historia gita.
+
+## 0. Co czytać i kiedy (oszczędzaj tokeny)
+| Kiedy | Co |
+| --- | --- |
+| „kontynuuj” | `plan/TERAZ.md` — sekcja „NAJPIERW” i kolejka |
+| zanim zmienisz kod w `app/` dotykający plików bazy, wpięć, łatek, kopii z forków, efektów UI, ciężkich obliczeń; aktualizacja bazy | `ZASADY-kod.md` |
+| zanim zbudujesz, skopiujesz lub zainstalujesz APK | `ZASADY-build.md` |
+| zanim zaczniesz testy na JMGO albo emulatorze | `ZASADY-tv.md` (zasady + ściąga poleceń) |
+| decyzja w obszarze zadania | `plan/DECYZJE.md` — TYLKO sekcja obszaru (`grep -n '^## ' plan/DECYZJE.md`, potem `sed -n`) |
+| kolejka pusta / sprawdzenie, czy coś już zablokowane | `plan/BLOKADY.md` |
+| temat zadania | `plan/iptv/`, `plan/autoplay/`, `plan/lektor/` + `plan/LEKTOR_*.md`, `plan/ustawienia/`, `plan/niunia-ke/`, `plan/glass-spis.md`, `plan/TESTY_PLAN.md`, raporty pętli `plan/ux/<temat>/WYNIKI.md`, `plan/raporty/<temat>.md` — tylko pasujący plik |
+| pochodzenie skopiowanego kodu | `UPSTREAM_SOURCES.md` |
+
+Nie czytaj: `plan/archiwum/` (tylko `grep`), `*.log`, `*.txt`, `plan/raporty/wydajnosc-surowe/`, `plan/probki/`, pliki bazy NuvioTV w katalogu głównym (`README.md`, `CONTRIBUTING.md`, `PRIVACY.md`, `ACCESSIBILITY_HANDOVER.md`). Duży plik: najpierw `grep`, potem tylko potrzebny fragment.
+Dopisywanie bez czytania całości: `plan/DECYZJE.md`, `plan/BLOKADY.md`, `plan/DO_SPRAWDZENIA_NA_TV.md` — `cat >> plik <<'EOF'` (wpis na końcu).
 
 ## 1. Sposób pracy
-- „kontynuuj” → otwórz `plan/TERAZ.md`, wykonuj sekcję „NAJPIERW” i kolejkę. Dawne plany są w `plan/archiwum/` (tylko grep).
-- Pracuj autonomicznie, po polsku, krótko. Nie pytaj o potwierdzenie ani o kontynuację, nie kończ tury pytaniem. Przy niejasności wybierz wariant łatwiejszy do cofnięcia i mniej zmieniający rdzeń, zapisz go jednym zdaniem w `plan/DECYZJE.md`.
-- Zadanie nie wychodzi po 2 różnych podejściach albo brakuje czegoś (TV, konto, klucz, plik) → wpis w `plan/BLOKADY.md`, bierz następne.
-- Decyzja naprawdę potrzebna od właściciela → `afplay -v 10 /System/Library/Sounds/Sosumi.aiff`.
-- Właściciel jest nietechniczny: nie każ mu uruchamiać skryptów.
-- Tylko zadanie główne: bez tłumaczeń (wyjątek: usunięcie duplikatów zasobów blokujących build), bez naprawiania i optymalizowania cudzego kodu.
-- Inne wątki pracują równolegle: przed commitem `git log`/`git pull`.
-- Przy ok. 95% kontekstu: zapisz stan, wyniki testów i dokładne następne kroki w `plan/TERAZ.md` (sekcja „NAJPIERW” = gotowy prompt na samo „kontynuuj”), skrypty i notatki w `NuvioFork/` (nie w `/tmp`), commit + push.
+- Autonomicznie, po polsku, krótko. Nie pytaj o potwierdzenie ani o kontynuację, nie kończ tury pytaniem. Przy niejasności wybierz wariant łatwiejszy do cofnięcia i mniej zmieniający rdzeń; jedno zdanie w `plan/DECYZJE.md`.
+- Właściciela pytam tylko o decyzję, której nie rozstrzygają zasady ani DECYZJE; wtedy `afplay -v 10 /System/Library/Sounds/Sosumi.aiff`. Właściciel jest nietechniczny: nie każ mu uruchamiać skryptów.
+- Zadanie nie wychodzi po 2 różnych podejściach albo czegoś brakuje (TV, konto, klucz, plik) → wpis w `plan/BLOKADY.md`, bierz następne.
+- Zadanie jest tym, co napisano. Tylko zadanie główne: bez tłumaczeń (wyjątek: usunięcie duplikatów zasobów blokujących build), bez naprawiania i optymalizowania cudzego kodu. Narzędzia testowe zmieniam tylko, gdy blokują zadanie, najwyżej 30 min, potem BLOKADY.
+- Raport etapu zaczyna się jednym zdaniem: ile realnych poprawek aplikacji powstało i ile sprawdzono na urządzeniu.
+- Każde czekanie w tle: limit ≤ 20 min i warunek sprawdzony najpierw jednym ręcznym poleceniem (na pliku/wyniku, który naprawdę powstaje). Nigdy nie czekaj w ciszy — jedno zdanie, na co czekasz.
+- Inne wątki pracują równolegle: przed commitem `git log`/`git pull`; commituj swoje pliki (po ścieżkach) od razu po poprawce.
+- Ok. 95% kontekstu: zapisz stan w `plan/TERAZ.md` — ZASTĄP sekcję „NAJPIERW” gotowym promptem na samo „kontynuuj” (stan, wyniki testów, dokładne następne kroki; ≤ ok. 4 KB), poprzednią dopisz na koniec `plan/archiwum/TERAZ-historia-<daty>.md`; skrypty i notatki w `NuvioFork/` (nie w `/tmp` — znika po restarcie); commit + push.
+- `cd` zawsze pełną ścieżką `/Users/milajovovich/Desktop/nuvio 2/NuvioFork`.
 
-## 2. Kod i moduły
-- Jak najmniej zmian w kodzie bazy (NuvioTV) i forków (KE, Echo, Reshaped, Arc, One): kopie 1:1 z przypiętym SHA (`UPSTREAM_SOURCES.md`), nowe rzeczy w osobnych plikach/modułach (`fork/…`, adaptery). Nie podmieniaj plików bazy wersją z forka.
-- Pliki bazy NuvioTV (26.11, właściciel: „nie zmieniaj plików bazy, tylko kopiuj je 1:1. masz zakaz ich edycji, chyba że wystąpi krytyczny błąd bez zmiany. ogranicz sobie na początku ilość poprawek”): przy aktualizacji bazy każdy plik NuvioTV = kopia 1:1 z wydania (`vendor/nuvio`); wersje Reshaped plików bazy już nie obowiązują. W pliku bazy wolno tylko: (1) nałożyć istniejące wpięcia i łatki forka (`hooks.tsv`, `fork-tools/patches`), (2) jednoliniowe wpięcia Reshaped, od których zależą IPTV, menu pigułki (Niunia) i strona ustawień Reshaped — najwyżej 50 linii na aktualizację, (3) poprawkę krytycznego błędu (brak kompilacji, awaria, działająca funkcja przestaje działać, a w kodzie forka nie da się tego obejść) — najwyżej 10 linii na aktualizację. Każda linia z (2) i (3) trafia do `plan/DECYZJE.md` z powodem. Nowe funkcje nigdy w plikach bazy, tylko w kodzie forka.
-- Wpięcie w bazę = jedna instrukcja z komentarzem `// Fork hook: <moduł>`, wiersz w `fork-tools/hooks.tsv`, zmiany jako łatki w `fork-tools/patches/<seria>/`. Przed commitem `bash fork-tools/check.sh` (limit plików z wpięciami: 65).
-- Kicia (`~/Desktop/nuvio-tv-kicia`) jest zamrożona: jej kod można dowolnie dopasować.
-- Każda funkcja: osobny moduł, przełącznik we wspólnej kategorii ustawień forka; wyłączona nic nie kosztuje (hook wraca od razu, gdy klucz `ForkFeatures` wyłączony) i nie zmienia zachowania.
+## 2. Kod (szczegóły: `ZASADY-kod.md`)
+- Jak najmniej zmian w bazie (NuvioTV) i forkach (KE, Echo, Reshaped, Arc, One): kopie 1:1 z przypiętym SHA, nowe rzeczy w osobnych plikach (`fork/…`, `skin/…`, adaptery). Pliki bazy = kopie 1:1 z wydania — edycja zakazana poza wyjątkami z `ZASADY-kod.md`. Nowe funkcje nigdy w plikach bazy.
+- Przed commitem zmian w `app/`: `bash fork-tools/check.sh` (limit plików bazy z wpięciami: 65).
+- Każda funkcja: osobny moduł, przełącznik we wspólnej kategorii ustawień forka; wyłączona nic nie kosztuje (hook wraca od razu przy wyłączonym kluczu `ForkFeatures`) i nie zmienia zachowania.
 - Funkcja jest zrobiona dopiero, gdy da się jej użyć w aplikacji (wejście w UI, domyślnie włączona) — nie gdy przechodzą testy.
-- Nowe teksty: `res/values/<moduł>_strings.xml`, bez duplikatów ze `strings.xml`. Teksty dla użytkownika po polsku, proste, bez słów technicznych.
-- Efekty interfejsu (rozmycie itp.) tylko natywnie (RenderEffect API 31+, RuntimeShader API 33+); na starszych (JMGO, Android 11) zwykłe tło z tokenów skórki, bez symulacji.
-  - Wyjątek (22.11, właściciel: „Tak, włącz”): rozmycie OBRAZKÓW (tło hero, plakaty) liczone raz przy wczytaniu i trzymane w pamięci Coil (`fork/images/NativeBlur`) działa też na Androidzie 11 — procesorem, na obrazie pomniejszonym 4×. Rozmycie na żywo w każdej klatce na Androidzie 11 nadal zakazane.
-- Ciężkie obliczenia (indeksy, kategorie, kolejności list, szukanie) — nigdy przy każdym zapytaniu ani na wątku UI: liczone w tle, przyrostowo (tylko nowe/zmienione dane) i zapisane na dysku; po restarcie aplikacji tylko odczyt, pełne przeliczenie tylko przy większej zmianie (22.11, właściciel). Docelowo SQLite (zgoda właściciela 22.11).
-- Wygląd: istniejące komponenty; skórki przez `skin/` (właściciel zrobi własny projekt).
+- Nowe teksty: `res/values/<moduł>_strings.xml`, bez duplikatów ze `strings.xml`; dla użytkownika po polsku, prosto, bez słów technicznych.
 - Zmiana formatu danych użytkownika: zawsze zachowaj stary plik obok.
 
 ## 3. Logi
 - Każdy moduł loguje (`android.util.Log`, tag `Fork<Moduł>`, trafia do `fork/family/FullLog`): ważne czynności, wybory (co i dlaczego), wyniki i KAŻDY błąd (`${e.javaClass.simpleName}: ${e.message}`). Żadnych połkniętych wyjątków (`runCatching{}.getOrNull()`, pusty `catch`) — najpierw `Log.w`/`.logged(...)`.
 - Błąd odczuwalny przez użytkownika („nic się nie dzieje”) także krótko na ekranie (`ForkLog.say`).
-- W logach bez kluczy, haseł, tokenów i tekstu dialogów.
+- W logach bez kluczy, haseł, tokenów, tekstu dialogów i adresów strumieni IPTV (login i hasło dostawcy w ścieżce).
 
-## 4. Buildy
-- Gradle WYŁĄCZNIE `bash fork-tools/build.sh <nazwa-logu> <zadania...>` w `NuvioFork`, w zakładce terminala aplikacji (skrypt daje `--console=rich` i `/tmp/<nazwa>.log`). Bezpośrednie `./gradlew` zakazane.
-- Najwyżej 1 build naraz, 1 w kolejce; nowe zlecenie anuluje czekające (kod 75 = anulowany, nie błąd).
-- Równoległe wątki (26.11, właściciel: „commituj i buildy rób razem z drugim wątkiem”): jeden wspólny build z zacommitowanymi poprawkami wszystkich wątków. Przed buildem napisz do pozostałych wątków (SendMessage), poczekaj, aż zacommitują swoje gotowe poprawki, potem buduj z HEAD; po buildzie podaj im nazwę APK i md5. Każdy commituje swoje pliki od razu po poprawce.
-- Nigdy `./gradlew --stop`, `pkill` demona ani zatrzymywanie cudzego buildu.
-- Build tylko z DUŻEJ paczki poprawek, nigdy dla jednej. Drobne poprawki: commit bez buildu, lista paczki w `plan/TERAZ.md`; testy w tym czasie na ostatnim APK.
-- Jedna architektura: JMGO/Xiaomi `-PforkAbi=armeabi-v7a`, emulator `-PforkAbi=arm64-v8a`.
-- Buildy wykonywane przez Codexa zawsze dają jeden APK ARM32 z `-PforkAbi=armeabi-v7a` (21.11.2026).
-- Przed buildem: `df -h ~` (ok. 15 GB wolne), zamknij zbędne procesy (emulator). Pilnuj CPU.
-- Emulator (GTV) i kompilator NIGDY razem. Build > 10 min → sprawdź, czy naprawdę się kompiluje (postęp w logu, CPU); > 20 min → przerwij własny build (22.11, właściciel).
-- Testy w pętlach (testy ≥ 10 min → build → poprawki → testy): po KAŻDEJ pętli zapisz stan w katalogu raportu (`plan/ux/`) (22.11, właściciel).
-- W czasie builda nie czekaj bezczynnie: pisz dalej w `.stage/` (nie ruszaj plików, które Gradle czyta).
+## 4. Buildy — twarde zakazy (procedura: `ZASADY-build.md`)
+- Gradle WYŁĄCZNIE `bash fork-tools/build.sh <nazwa-logu> <zadania...>` w zakładce terminala aplikacji. Zakazane: `./gradlew`, `./gradlew --stop`, `pkill` demona, zatrzymywanie cudzego buildu. Najwyżej 1 build naraz; build tylko z dużej paczki poprawek, wspólny z innymi wątkami.
+- Emulator i kompilator nigdy razem (8 GB RAM).
 
-## 5. Testy na urządzeniu
-- Ustawienia urządzeń testowych (24.11, właściciel; zasada nadrzędna, zastępuje dawny zakaz „bez trwałych zmian ustawień projektora”): zmieniaj ustawienia JMGO i emulatora tak, żeby praca była wydajna (np. usługa śledzenia perfetto, opcje programisty), bez pytania i bez przywracania; każdą zmianę zapisz jednym zdaniem w `plan/DECYZJE.md`.
-- Tylko fork `com.nuviodebug.com` (nie `com.nuvio.tv`), start: `am start -n com.nuviodebug.com/com.nuvio.tv.launcher.AppIconDefault`. Nie ruszaj cudzych aplikacji i danych.
-- Po instalacji: porównaj md5 (`adb pull`) z plikiem z buildu, potem `cmd package compile -m speed -f com.nuviodebug.com`.
-- JMGO: `adb connect 192.168.31.252:5555` (Android 11, armeabi-v7a, profil właściciela zalogowany). Ostrożnie — ktoś może oglądać.
-  - Czekanie na wolny JMGO (24.11, właściciel: „godzina czekania na nic”): dźwięk ekranu głównego JMGO (`com.jmgo.arwen`) to NIE oglądanie (`jmgo_czekaj_wolny.sh` go pomija). Wystarczy 1 min spoczynku pilota (24.11, właściciel; było 10 min). Czekanie > 10 min → od razu sprawdź, co blokuje (wierzch, odtwarzacz w `dumpsys audio`); gdy na wierzchu jest ekran główny JMGO albo fork, a pilot nieużywany — testuj (`--bez-czekania`). Gdy właściciel mówi, że jest przy TV albo pyta, czemu nic się nie dzieje — testuj od razu. Nigdy nie czekaj w ciszy: jednym zdaniem napisz, na co czekasz.
-- Testy tekstowo (`fork-tools/test/{ui,tap,go,focus}.sh`, uiautomator); zrzuty ekranu tylko wyjątkowo. OK tylko gdy fokus jest na celu, nigdy na ślepo.
-- Emulator tylko na testy, nigdy razem z Gradle (8 GB RAM); po testach `adb emu kill`. Logowanie QR na emulatorze nie działa → „Continue without account”.
-- Czego nie da się sprawdzić bez TV → `plan/DO_SPRAWDZENIA_NA_TV.md`.
+## 5. Urządzenia — twarde zakazy (procedura, ustawienia urządzeń, pętle testów: `ZASADY-tv.md`)
+- Na urządzeniach tylko fork `com.nuviodebug.com` (nie `com.nuvio.tv`); nie ruszaj cudzych aplikacji i danych. JMGO: ktoś może oglądać. OK tylko, gdy fokus jest na celu — nigdy na ślepo.
 
 ## 6. Bezpieczeństwo i git
 - Klucze API tylko w `local.properties` (poza gitem); nigdy ich nie wpisuj na TV, nie commituj, nie wypisuj. Płatne testy dopiero po wpisaniu klucza i zgodzie właściciela.
-- Repo prywatne `stefankot/nuvio-tv-fork`; zmiana widoczności tylko na polecenie właściciela.
+- Repo prywatne `stefankot/nuvio-tv-fork`; zmiana widoczności tylko na polecenie właściciela. Gałąź robocza: `skin-niunia`.
 - Zakazane: `push --force`, `reset --hard` na wypchniętych commitach, scalanie do `main`, usuwanie gałęzi, zmiana podpisu wydań i `applicationId`.
 
-## 7. Stałe decyzje produktowe
-- Napisy wbudowane w plik zawsze przed napisami z dodatków (wybór w odtwarzaczu, źródło AI napisów, ranking).
-- Napisy AI (23.11, właściciel): najpierw automatyczne szukanie napisów (dodatki, AutoSync z Reshaped) próbuje wszystkiego; gdy polskich nie ma albo nie pasują — tłumaczenie AI włącza się samo, z dyskretnym komunikatem w rogu (nie okno na środku), a Wstecz w czasie komunikatu anuluje tłumaczenie.
-- KE: tylko katalogi IPTV, filtry kanałów w EPG, testy łącza i sprzętu. IPTV/EPG z Reshaped.
-- Reshaped: z Dolby Vision i HDR10, bez aktualizatora, bez `epg-header`. Oficjalny odtwarzacz zostaje.
-- Pilot Arc w całej aplikacji (także IPTV). Rozpoznawanie mowy wielojęzyczne (Whisper tiny/base/small do wyboru).
-
-## 8. Środowisko i pułapki
-- `export JAVA_HOME=/opt/homebrew/opt/openjdk@17`; przy `cd` zawsze pełna ścieżka `/Users/milajovovich/Desktop/nuvio 2/NuvioFork`.
-- Mac 8 GB RAM, Gradle `-Xmx3072m`; pakowanie APK czasem pada bez przyczyny — powtórzyć.
-- Upstream tylko do odczytu: `upstream/{nuvio,ke,reshaped,arc,echo,one}`.
-- KSP ukrywa prawdziwe błędy („could not be resolved”): szukaj brakującej klasy w konstruktorze `@Inject`.
-- Reshaped wymaga ffmpeg z `app/libs/*.aar`. Stringi Arc są w osobnych plikach `values/strings_*.xml`.
-- Pliki w `/tmp` mogą zniknąć po restarcie.
-- Perfetto na JMGO: usługa śledzenia włączona 24.11 na polecenie właściciela (`persist.traced.enable=1`); ślad: `perf_jmgo.sh perfetto`, odczyt bez pobierania narzędzi: `fork-tools/uitest/perfetto_plasterki.py <ślad> <pid>`.
-
-## 9. Dyscyplina pracy (24.11.2026, po dniu straconym na narzędzia testowe)
-- **Zadanie jest tym, co napisano.** Narzędzia testowe zmieniam tylko wtedy, gdy blokują zadanie, i najwyżej 30 min; potem wpis w `plan/BLOKADY.md` i dalej do zadania.
-- **Nowe lub zmienione narzędzie testowe najpierw na JEDNEJ ścieżce**, porównane z poprzednim wynikiem tej ścieżki; pełny przebieg dopiero, gdy zgadza się z poprzednim. Poprawiony tester → najpierw ponowna ocena istniejących logów, nowy przebieg tylko gdy się nie da.
-- **Jeden przebieg na jeden build.** Po przebiegu w ciągu 15 min: lista błędów APLIKACJI (z logów, bez błędów testera) → poprawki w kodzie → jeden build → przebieg. Nie wolno puszczać kolejnego przebiegu bez zmiany w `app/`.
-- **Przed buildem i instalacją:** `git diff --stat <commit APK>..HEAD -- app`. Brak zmian = ten sam APK: nie buduję, nie instaluję, wpis w `plan/DECYZJE.md`. Gdy właściciel wyraźnie kazał zbudować — buduję, bez pytania.
-- **Każde czekanie w tle** ma limit czasu (≤ 20 min) i warunek sprawdzony najpierw jednym ręcznym poleceniem (na pliku/wyniku, który naprawdę powstaje — nie na tekście z terminala).
-- **Właściciela pytam tylko o decyzję, której nie rozstrzyga ten plik.** Raport etapu zaczyna się od jednego zdania: ile realnych poprawek aplikacji powstało i ile sprawdzono na urządzeniu.
+Dawne numery (odsyłacze w kodzie i starych plikach): §7 „Stałe decyzje produktowe” → `plan/DECYZJE.md`, pierwsza sekcja; §8 „Środowisko i pułapki” → `ZASADY-build.md`, `ZASADY-kod.md`, `ZASADY-tv.md`; §9 „Dyscyplina pracy” → §1 i `ZASADY-tv.md` / `ZASADY-build.md`; zapis stanu po każdej pętli testów → `ZASADY-tv.md`.

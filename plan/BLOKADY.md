@@ -1,69 +1,35 @@
-# BLOKADY
+# BLOKADY i zaległe (stan 27.11.2026)
 
-Zadania, których nie dało się dokończyć. Przeglądaj na początku każdego bloku.
+Czytaj, gdy kolejka w `plan/TERAZ.md` jest pusta albo zadanie dotyczy tematu z listy. Pełne wpisy do 26.11 (co próbowano, szczegóły): `plan/archiwum/BLOKADY-do-26.11.md` (tylko `grep`).
+Nowy wpis: dopisz na końcu BEZ czytania pliku — `cat >> plan/BLOKADY.md <<'EOF'` z linią `- DD.MM temat: co próbowałem; czego brakuje; co może dać właściciel.` Rozwiązany wpis usuń (jeśli coś postanowiono — jedna linia w `plan/DECYZJE.md`).
 
-Format wpisu:
+## Czeka na właściciela (decyzja, klucz, dane, zgoda)
+- Paczka wektorów i model AI (B06b): sekret `TMDB_API_KEY` w ustawieniach repozytorium GitHub (workflow `fork-vectors.yml`) + decyzja o redystrybucji modelu EmbeddingGemma (licencja Gemma). Aplikacja działa na regułach.
+- DubLift (B11-3): 5 filmów w dwóch wydaniach (polski lektor/dubbing + oryginał; 2 z różnicą 25/23,976 fps, 1 z innym montażem, 1 z 5.1) — `plan/raporty/dublift.md`.
+- Trakt: klucze `TRAKT_CLIENT_ID`/`SECRET` w `local.properties` — do tego czasu testy Trakt pomijane listą wykluczeń.
+- Fanart.tv jako zapas obrazków: klucz fanart.tv w `local.properties` (potem zapas w `fork/images/ForkImageQuality`).
+- Catch-up dłuższy niż 7 dni (np. TV Team 14): sonda `fork/tv/CatchupDepth` zna prawdziwą długość, ale Live TV Reshaped trzyma najwyżej 7 dni (`LiveTvArchive.MAX_DAYS`, `LiveTvEpg catchupPastMs`, `LiveTvCatchupLinks.isPlayableFrom`) — zmiana w Reshaped + więcej miejsca na przewodnik.
+- Lektor na Dysku Google: działa tylko przy zalogowanej synchronizacji Google (zakres drive.file); wspólny folder dla różnych kont = udostępnienie folderu + klucz albo synchronizacja rodzinna. Na JMGO niesprawdzone, czy konto jest zalogowane.
+- Emocje lektora: Gemini TTS Tier 2 (formularz niewysłany) / ElevenLabs / zostaje Chirp. ZONOS3 (lokalny głos, `ai-narrator/`, nieskompilowany).
+- 4K na ekranie 1080p: `KeRanking.tvCap` celowo odsuwa 4K.
+- Kod bazy na wątku głównym: `CollectionsDataStore.parseCollections` (7 %), `UpdateBannerHost` (5 %; aktualizator miał być usunięty).
+- W1 (test/limit łącza KE) nierozpoczęty; przenoszenie czegokolwiek z innych forków tylko po potwierdzeniu.
+- Macrobenchmark na JMGO: cel `com.nuviodebug.com` jest debuggable, wariant bez debug = druga aplikacja na TV — potrzebna zgoda albo urządzenie bez domowników. Zastępczo `fork-tools/uitest/perf_jmgo.sh` i log `ForkFocus`.
+- Serwer logów: wgrać `server/family-sync/panel_api.php` i `panel/app.js` przez DirectAdmin (właściciel musi być zalogowany).
+- Angielska nakładka synchronizacji napisów („Syncing subtitles to audio…”, Reshaped `SubtitleSyncStatusOverlay`): ukryć poza diagnostyką? Prawdopodobnie znika po scaleniu aktualizacji bazy (dymki AutoSync usunięte) — sprawdzić po scaleniu.
+- `fork-tools/check.sh` potrzebuje klonów `../upstream/*` na SHA z `fork-tools/pins.env`; 27.11 jest tylko `upstream/reshaped` (sklonowanie reszty: kilkaset MB miejsca).
+- `.stage/apk/*` starsze niż uxr14 (ok. 2,7 GB) — usunięcie zablokowane uprawnieniami; właściciel może je usunąć.
 
-```
-## YouTube w „Oglądaj dalej” nie odtwarza (21.11, JMGO build157)
-OK na pozycji `youtube:<id>` w „Oglądaj dalej” → baza: „odtwarzanie niedostępne” (żaden dodatek nie obsługuje typu youtube); moduł YouTube nie ma odtwarzania po samym identyfikatorze (`YouTubeViewModel.activate` wymaga `YtItem` z obiektem silnika). Do zrobienia w module YouTube (np. `playById`), potem Niunia/Kicia mogą go wołać.
+## Do zrobienia w innym module / wątku
+- YouTube w „Oglądaj dalej” nie odtwarza (`youtube:<id>` — moduł YouTube nie ma odtwarzania po samym id; potrzebne np. `playById`).
+- Napisy YouTube podwójne (`YouTubeMpdServer`/`YouTubeCaptionTranslation`: każda linia „X\nX”).
+- Lektor w odtwarzaczu Niuni: brak wyboru głosu i „Ekspresyjności” (głos tylko w Ustawienia → Moduły → Lektor; `LektorScript` nie ma poziomu emocji).
+- Wyszukiwarka Niuni: zakładki YouTube i Osoby bez własnych źródeł (tylko wyniki katalogów albo „Brak wyników”).
+- Profile Niuni: długie OK (Edytuj/Usuń) wymaga kolejnych wpięć.
+- `ForkLog.say` przy czynnościach, które „nic nie robią”; szum `ForkTv TvStore.kt JsonDecodingException EOF` (pusty plik = pusta lista, bez logu).
+- Nieśledzone `plan/raporty/jmgo-*.log` — nie commitować bez przejrzenia (mogą zawierać treści odpowiedzi OkHttp).
 
-## Angielska nakładka synchronizacji napisów (21.11, JMGO build159)
-W odtwarzaczu filmu duża nakładka „Syncing subtitles to audio… / Listened 39s ahead / Speech recognition: not used…” po angielsku na środku ekranu (Reshaped `ui/screens/player/audiosync/SubtitleSyncStatusOverlay.kt`, teksty `audio_sync_strings.xml`). Moduł Reshaped, nie skórka; tłumaczenia zakazane bez zgody (ZASADY §1) — do decyzji właściciela (ukryć poza trybem diagnostycznym?).
-
-## Napisy YouTube podwójne (21.11, test JMGO build155)
-Tłumaczone napisy YouTube (Nuvio One + `YouTubeMpdServer`/`YouTubeCaptionTranslation`) pokazują każdą linię dwa razy (tekst wiersza „X\nX”). To moduł YouTube, nie skórka Niunia — zostawione dla wątku YouTube.
-
-## B03-4 (data)
-Co próbowałem: ...
-Czego brakuje: ...
-Co może dostarczyć właściciel: ...
-```
-
-## B03-3/6/7/9 (część UI)
-Co próbowałem: logika i testy JVM gotowe (ChannelFilters, MiniGuideLogic, DelayedPlayback, ForYouRow, ProgramPage, CellMark, PendingPlay). Rysowanie panelu grup, MiniGuide w LiveTvPlayerOverlay, automat „z opóźnieniem” w odtwarzaczu i wiersze modułów w HomeScreen wymagają zmian w dużych plikach Reshaped/rdzenia bez możliwości sprawdzenia wyglądu.
-Czego brakuje: sprawdzenia na telewizorze/emulatorze (po zakończeniu kompilacji), decyzji o wyglądzie (skórka).
-Co może dostarczyć właściciel: opinię po zobaczeniu rzędu „Dla Ciebie” i strony programu.
-
-
-## B04-4 / B04-6 / B04-8 (część w odtwarzaczu i szczegółach)
-Co próbowałem: logika i testy (AudioCheck, SourceLanguage.readyLine, ReadyPick, SubtitleQueue). Podpięcie sprawdzenia ścieżek do mechanizmu odzyskiwania źródeł, linia „Gotowe” w ekranie szczegółów i pozycja „Napisy nie pasują” w menu napisów wymagają zmian w dużych plikach odtwarzacza/szczegółów bez wglądu w wygląd.
-Czego brakuje: weryfikacji na emulatorze i decyzji o wyglądzie linii.
-Co może dostarczyć właściciel: opinię po teście na telewizorze.
-
-## B06b-5 / B06b-2 (paczka wektorów i model)
-Co próbowałem: skrypt `scripts/fork/build_vectors.py` z testem na atrapie API (zielony), workflow `fork-vectors.yml` (poprawny YAML), format paczki i matematyka z testami JVM.
-Czego brakuje: sekretu `TMDB_API_KEY` w repozytorium (bez niego paczka nie powstaje; aplikacja działa na regułach) oraz uruchomienia modelu na urządzeniu (EmbeddingGemma/LiteRT) — wymaga pobrania modelu i sprawdzenia licencji Gemma (`plan/raporty/licencja-modelu.md`).
-Co może dostarczyć właściciel: sekret TMDB w ustawieniach repozytorium; decyzję o redystrybucji modelu.
-
-- B11-3 DubLift: potrzebne od właściciela 5 filmów w dwóch wydaniach (polski lektor/dubbing + oryginał angielski; w tym 2 z różnicą 25/23,976 fps, 1 z innym montażem, 1 z 5.1) do próby dopasowania. Raport: plan/raporty/dublift.md
-
-## B10 (nastroje) — brak klucza TMDB
-Co próbowałem: PicksModule (ekran „Na co masz ochotę?”, 5 nastrojów, discover z TMDB, punktacja regułowa) działa na emulatorze do momentu zapytania; bez klucza wynik „Brak klucza TMDB”.
-Czego brakuje: `TMDB_API_KEY` w `local.properties` (w tej kopii pusty). Bez niego kalendarz Echo i nastroje nie pobiorą danych z TMDB.
-Co może dostarczyć właściciel: darmowy klucz TMDB (v3) w `NuvioFork/local.properties` jako `TMDB_API_KEY=...`.
-
-## Testy Trakt (3) — brak kluczy Trakt
-Co ustaliłem: TraktAuthServiceTest (2) i TraktProgressServiceFailureTest (czasem) padają, bo `TraktAuthService.hasRequiredCredentials()` wymaga `TRAKT_CLIENT_ID` i `TRAKT_CLIENT_SECRET` z `local.properties`, a tu są puste; kod i testy są identyczne w bazie, w Reshaped i w forku, więc to nie błąd forka ani repo, tylko brak sekretów w środowisku.
-Co może dostarczyć właściciel: klucze aplikacji Trakt (client id/secret) w `NuvioFork/local.properties`, albo zgoda, by testy uznać za zależne od środowiska.
-
-## JMGO — brak połączenia ADB
-Co próbowałem: `adb devices` (puste), `adb connect` do 192.168.31.29 i .44 (No route to host).
-Czego brakuje: adres IP projektora JMGO z włączonym debugowaniem sieciowym (port 5555) albo kabel USB.
-Co może dostarczyć właściciel: IP JMGO (Ustawienia → Sieć) i włączenie debugowania USB/sieciowego.
-
-- 2026-11-17 JMGO H931 (192.168.31.252): instalacja forka niemożliwa: `INSTALL_FAILED_DUPLICATE_PERMISSION` (`com.nuvio.reshaped.tv.permission.MIGRATE` należy do zainstalowanej aplikacji `com.nuvioreshaped.tv`). Poprzednia instalacja forka (podpis inny niż mój build, z 16.11) została odinstalowana, bo blokowała aktualizację. Żeby zmierzyć JMGO: właściciel odinstalowuje `com.nuvioreshaped.tv` na JMGO albo zgadza się na wariant builda z inną nazwą uprawnienia. Pomiary idą na Xiaomi.
-- 20.11 Niunia panel lektora w odtwarzaczu (makieta Player): „Głos lektora” i „Ekspresyjność” — brak API (głos tylko w Ustawienia → Moduły → Lektor przez `LektorVoiceChoice.actions()`, poziom emocji nie istnieje w `LektorScript`). Do zrobienia razem z wątkiem lektora.
-- 20.11 Niunia odtwarzacz — Wstecz krok po kroku: ROZWIĄZANE (właściciel: „add the Back hook in PlayerScreen”) — wpięcie `// Fork hook: skin` w `PlayerScreen.handleBackPress` → `skin/niunia/player/NiuniaPlayerBack`, łatka `fork-tools/patches/niunia/04-player-back-skin-hook.patch`.
-- 20.11 Niunia wyszukiwarka (makieta SearchResults): zakładka TV — karta „Szukaj „…” w telewizji” otwiera Live TV → Szukaj z tą frazą (przewodnik jest danymi ekranu Live TV). Zakładki YouTube i Osoby nie mają jeszcze własnych źródeł (wyszukiwanie YouTube, osoby TMDB) — pokazują tylko wyniki katalogów danego typu albo „Brak wyników w tej kategorii”. Ustawienia NOOB: wiersze „Język” i „Napisy AI” z makiety pominięte (brak ekranów w aplikacji).
-
-- 20.11 (Niunia, test JMGO build152): okno „Brak polskich napisów — Włączyć napisy AI?” (tłumaczenie Gemini, płatne) wyskakuje przy KAŻDYM kanale na żywo i archiwum IPTV, fokus domyślnie na „Napisy AI” (jedno OK = płatne tłumaczenie). To moduł AI napisów (inny wątek, `AiAuto.kt`), nie skórka — do decyzji: nie pytać na Live TV albo fokus domyślnie na „Nie”.
-- 20.11 (Niunia): Settings NOOB nie do sprawdzenia na JMGO bez zmiany poziomu ustawień w profilu właściciela → test na emulatorze.
-- 22.11 Z-13 „Nagrody i nominacje” (Niunia) — **źródło nagród do wyboru przez właściciela.** Aplikacja nie ma źródła z galą, kategorią, rokiem i wynikiem: TMDB nie podaje nagród, `Meta.awards` z dodatków (Cinemeta/OMDb) to jedno zdanie po angielsku („Won 1 Oscar. 12 wins & 45 nominations total”) — bez kategorii, więc listy z niego nie da się zrobić. Zrobione: model + interfejs `NiuniaAwardsSource` z pustą implementacją `NoAwardsSource` (`skin/niunia/awards/`): pasek w hero się nie rysuje, lista na dole strony pokazuje „Brak nagród i nominacji”, plakietek na plakatach brak. Możliwe źródła: Wikidata (P166 „otrzymane nagrody”, P1411 „nominacje”; darmowe, bez klucza, niepełne dla seriali), Wikipedia (strony „List of accolades…”, trudne do odczytu), zdanie OMDb tylko dla paska (Oscar + liczba reszty). Po wyborze: jedna klasa źródła + `NiuniaAwardsRepo.source = …`, przełącznik w ustawieniach forka.
-- 22.11 Lektor — pamięć na Dysku Google: działa tylko, gdy TV jest zalogowany w synchronizacji Google (Reshaped, zakres drive.file: aplikacja widzi tylko swoje pliki). Rodzina dzieli nagrania, jeśli jej TV są zalogowane na TO SAMO konto Google co właściciel; TV na innych kontach mają własny folder „Nuvio Lektor”. Wspólny folder dla różnych kont wymagałby udostępnienia folderu + klucza API albo przekazania dostępu przez synchronizację rodzinną — decyzja właściciela. Na JMGO nie sprawdzone, czy konto Google jest zalogowane.
-- 22.11 Catch-up dłuższy niż 7 dni (np. TV Team 14): sonda `fork/tv/CatchupDepth` sprawdza prawdziwą długość archiwum (raz na dobę na źródło, log `ForkCatchup`) i liczy z niej etykietę „Dostępny jeszcze …”. Ale przewodnik i archiwum programów Reshaped trzymają najwyżej 7 dni wstecz (`LiveTvArchive.MAX_DAYS = 7`, `LiveTvEpg catchupPastMs = 7 dni`), a „czy da się odtworzyć” liczy z deklarowanych dni (`LiveTvCatchupLinks.isPlayableFrom`) — programy starsze niż 7 dni w ogóle nie trafiają na listę. Pokazanie 14 dni = zmiana w bazie Reshaped (3 stałe/funkcje, wpięcia) + więcej miejsca na dane przewodnika — do decyzji właściciela.
-- 22.11 Obrazki: Fanart.tv jako zapas wymaga klucza API fanart.tv (aplikacja go nie ma; klucz tylko w local.properties) — dziś zapasem dużego obrazka jest jego pierwotny adres (TMDB/metahub w mniejszym rozmiarze). Po wpisaniu klucza: zapas w `fork/images/ForkImageQuality` (szukanie po id TMDB/IMDb).
-- 24.11 UX JMGO: Macrobenchmark / UI Automator w module `baselineprofile` (`NuvioStartupBenchmark`, `NuvioFrameMetricsBenchmark`, nowe podróże fokusu ROW_MEMORY, MENU_ROUNDTRIP, DETAILS_BACK, LIVE_LIST_HOLD, EPG_GRID w osobnym pliku `ForkFocusJourneys.kt` — pliki bazy modułu bez zmian) **nie do uruchomienia na JMGO**: (1) `withEnglishLocale` przełącza język systemu (`setprop persist.sys.locale`, `settings put system system_locales`) — zakaz zmiany ustawień systemu na projektorze domowników; (2) cel `com.nuviodebug.com` jest `debuggable` (Macrobenchmark odrzuca), a wariant bez debug ma inny pakiet/podpis — instalacja drugiej aplikacji na JMGO zakazana. Pomiary zastępuje `fork-tools/uitest/perf_jmgo.sh` (start, gfxinfo, pamięć, perfetto) i log `ForkFocus`. Odblokowanie: emulator/drugi TV bez domowników albo zgoda właściciela na zmianę języka i instalację wariantu benchmark.
-
-## `fork-tools/check.sh` nie działa: brak klonu `upstream/reshaped` (26.11, wątek VOD)
-- `../upstream/reshaped` (i pozostałe `upstream/*`) nie istnieje w `/Users/milajovovich/Desktop/nuvio 2/`, więc porównania z Reshaped w `check.sh` padają (zgłasza m.in. `SherpaSpeechToText.kt`, `AudioSyncSettingsItems.kt`). Commit 2984fc6cd zrobiony bez pełnego `check.sh`; zmiany VOD nie dotykają plików bazy (licznik wpięć bez zmian: 65). Potrzebne: ponowne sklonowanie upstreamów na SHA z `fork-tools/pins.env` (ok. kilkaset MB; przy 14 GB wolnego — po zgodzie właściciela albo po sprzątnięciu `.stage/apk`).
+## Niesprawdzone na TV / odłożone
+- Niesprawdzone: okno napisów na starcie filmu (lektor auto), Baahubali ▲ (rząd kolekcji), Calendar Wstecz, kafle bez ikonki typu, zmiana ścieżki dźwięku YouTube.
+- Odłożone (Kicia, głębokie zmiany odtwarzacza): nauka `SmartOutcomeStore`, rozgrzewka `ForgeWarmUp`, bufor `PlayerBufferTuning`, ciche P2P, restart w mpv po błędzie kontenera.
+- Stare (17.11, logika + testy JVM są, UI niepodpięte; prawdopodobnie nieaktualne po skórce Niunia): B03 — `ChannelFilters`, `MiniGuideLogic`, `DelayedPlayback`, `ForYouRow`, `ProgramPage`; B04 — `AudioCheck` w odzyskiwaniu źródeł, linia „Gotowe” w szczegółach, „Napisy nie pasują” w menu napisów.
