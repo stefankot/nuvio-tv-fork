@@ -523,6 +523,8 @@ data class DiscTitle(
     val isFeature: Boolean,
     val audioLanguages: List<String> = emptyList(),
     val subtitleLanguages: List<String> = emptyList()
+)
+
 // Fork hook: echo
 data class SourceAudioFilter(
     /** Null: sources whose audio couldn't be read. */

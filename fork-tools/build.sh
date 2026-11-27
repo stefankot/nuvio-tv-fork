@@ -49,7 +49,9 @@ cd "$ROOT" || exit 1
 export JAVA_HOME="${JAVA_HOME:-/opt/homebrew/opt/openjdk@17}"
 # Czas kompilacji dla napisu „built-…” w aplikacji (fork/buildage, tylko debug); plik poza gitem.
 mkdir -p "$ROOT/app/src/main/assets/fork" && date +%s > "$ROOT/app/src/main/assets/fork/build_time.txt"
-./gradlew "$@" --console=rich 2>&1 | tee "$LOG"
+# 27.11: bez pamięci konfiguracji (włączonej w ~/.gradle/gradle.properties) — zadania NuvioTV 1.2.0-beta.4
+# (downloadAudioSyncRuntime, buildUsenet*) padają z nią na „this.this$0 is null”; plików bazy nie zmieniamy.
+./gradlew "$@" --console=rich --no-configuration-cache 2>&1 | tee "$LOG"
 code=${PIPESTATUS[0]}
 say "koniec: kod $code"
 exit "$code"

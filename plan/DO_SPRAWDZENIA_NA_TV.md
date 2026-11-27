@@ -2,6 +2,16 @@
 
 Lista dla właściciela. Wykonawca dopisuje tu wszystko, czego nie da się sprawdzić bez prawdziwego urządzenia. Jedna pozycja = co kliknąć i czego się spodziewać. Właściciel odhacza albo dopisuje „nie działa: ...”.
 
+## Baza NuvioTV 1.2.0-beta.4 (aktualizacja 26.11, build baza1126a)
+
+- [ ] Live TV (Niunia): wejście z menu, kanał gra, zmiana kanału ▲▼ bez czarnej przerwy (odtwarzacz zostaje), przewodnik, archiwum programu sprzed godziny od początku i przewijanie jak film; po pauzie kanał wraca do „na żywo”.
+- [ ] Menu pigułki u góry (Niunia) widoczne na Głównej; ▲ do menu, Wstecz do menu.
+- [ ] Film z „Odtwórz”: automatycznie wybrane źródło zgodne z regułami kreatora (log `ForkRankedRegex wybór:`); gdy źródło nie rusza — samo przechodzi na następne (oficjalne „Fallback to next matching source”).
+- [ ] Napisy z dodatku: oficjalny AutoSync — znaczek stanu synchronizacji przy napisach (zamiast dymków Reshaped); przycisk napisów Kici pokazuje kropki/✓/!.
+- [ ] Ustawienia › Odtwarzanie › Napisy: czcionki napisów (Atkinson domyślnie, Tiresias) i „Import from Phone”.
+- [ ] Dolby Vision / HDR10: film 4K DV gra z obrazem (oficjalna obsługa DV; profil 7 → „Auto”).
+- [ ] Ustawienia (drzewo): „Gdy film się zatnie”, „Dźwięk i obraz”, „Wygląd napisów”, „Rozpoznawanie mowy” otwierają ekrany Nuvio; brak pozycji „Przewijanie” i „Szybkość internetu”.
+
 ## Na start (stan bazy, przed nowymi funkcjami)
 
 - [ ] Aplikacja się uruchamia i pokazuje ekran główny.
