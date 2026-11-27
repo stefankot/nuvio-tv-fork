@@ -34,6 +34,16 @@ Panel: strona aiometadata.elfhosted.com. Jest otwarty i zalogowany w przeglądar
 
 Potem (zrobi to Claude): wyczyścić w aplikacji zapamiętane „brak okładki” (`files/fork_tv_covers_aio2.json`) i porównać liczbę trafień w logu `ForkTvCovers` z obecnymi 33 %.
 
+## Czy po zmianie wtyczka da tylko dane z TMDB?
+
+Przy okładkach programów TV — praktycznie tak. Wtyczka działa w dwóch krokach:
+1. **Znalezienie tytułu po nazwie.** Zawsze w jednym serwisie, tym wybranym w „Search”. Do polskich nazw najlepszy jest TMDB.
+2. **Strona szczegółów tytułu** (opis, obrazy, odcinki, oceny). Tu wtyczka łączy serwisy: opisy seriali bierze z TheTVDB, obrazy z serwisów wybranych w „Art Providers” (np. Fanart.tv), a gdy jednemu czegoś brakuje — sięga do innego.
+
+Okładki programów w aplikacji korzystają dziś tylko z kroku 1, więc z łączenia serwisów nic nie mają. Sprawdzenie: dla „Świat według Kiepskich” i „Kuchenne rewolucje” krok 1 (TheTVDB) daje tylko pionowy plakat, a krok 2 ma już poziomy kadr.
+
+Żeby okładki korzystały z łączenia serwisów, aplikacja musiałaby po znalezieniu tytułu dopytać wtyczkę o szczegóły (drugie zapytanie na każdy tytuł). To zmiana w aplikacji (`TvCovers`), nie w panelu, i decyzja należy do właściciela. Zmiana wyszukiwarki seriali na TMDB i tak jest potrzebna — bez niej wtyczka wielu tytułów w ogóle nie znajdzie.
+
 ## Czy aplikacja dobrze pyta wtyczkę (`TvCovers`)
 
 Tak. Nie znalazłem niczego, co zaniżałoby wyniki:
