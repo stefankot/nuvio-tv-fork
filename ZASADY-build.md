@@ -14,6 +14,7 @@ Część jedynego źródła zasad (rdzeń: `ZASADY.md`). Nowe zasady o buildach 
 - Jedna architektura: JMGO/Xiaomi `-PforkAbi=armeabi-v7a`, emulator `-PforkAbi=arm64-v8a`. Buildy Codexa zawsze jeden APK ARM32 (`armeabi-v7a`).
 - Typowo (~14–16 min): `bash fork-tools/build.sh uxrNN :app:assembleFullDebug :app:testFullDebugUnitTest --tests 'com.nuvio.tv.<pakiet>.*' … -PforkAbi=armeabi-v7a` (testy JVM tylko pakietów, których dotyczy paczka).
 - Środowisko: `export JAVA_HOME=/opt/homebrew/opt/openjdk@17`; Mac 8 GB RAM, Gradle `-Xmx3072m`; pakowanie APK czasem pada bez przyczyny — powtórz.
+- Od aktualizacji bazy 1.2.0-beta.4 (gałąź `aktualizacja-1126`): `build.sh` daje `--no-configuration-cache`, bo `~/.gradle/gradle.properties` ma `configuration-cache=true`, a zadania bazy (`downloadAudioSyncRuntime`, `buildUsenet*`) padają z nią na „this.this$0 is null”. Nie usuwaj tej flagi.
 - Przed buildem: `df -h ~` (ok. 15 GB wolne), zamknij zbędne procesy (emulator — emulator i kompilator NIGDY razem). Pilnuj CPU.
 - Czekanie w tle (`run_in_background`), limit 20 min: `until grep -aqE "BUILD SUCCESSFUL|BUILD FAILED|FAILURE:" /tmp/<nazwa>.log; do sleep 20; done`. Długie czekanie na pierwszym planie — nie.
 - Build > 10 min → sprawdź, czy naprawdę się kompiluje (postęp w logu, CPU); > 20 min → przerwij własny build (22.11, właściciel). Wyjątek: build od zera (po skasowaniu cache), dopóki w logu widać postęp.
