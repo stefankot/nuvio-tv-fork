@@ -145,3 +145,17 @@ Twoje polecenie (16:47): „Rozmycie po lewej na hero na home usuń. Ma być zwy
 ### Zmiany na profilu właściciela (JMGO)
 - „Ciało” S1 E1: wejście w odtwarzanie anulowane na ekranie wczytywania po ~2,5 s (pozycja bez zmian: zostało 38 min).
 - Menu boczne otwierane i zamykane kilka razy; na Głównej przełączone 10 wyróżnionych tytułów.
+
+## Pętla 6 (27.11, 17:40–18:10, buildy prz11 i prz12 = paczki 15–16)
+W tej pętli powstały 2 poprawki aplikacji (15: mały pasek postępu na kartach IPTV, 16: mniejsza łata rozmycia z miękkimi brzegami), a na JMGO sprawdzono 1 z nich (pasek postępu); prz12 z paczką 16 jest zainstalowany, ale projektor zniknął z sieci przed zrzutami.
+
+### Działa na TV
+- **Pasek postępu (Twoja uwaga ~17:20)** — prz11: na kartach „Wznów” w Live TV → „Oglądaj dalej” pasek jest znów mały, przy lewej krawędzi tekstu, nad tekstem — `p11-pasek-postepu.png`.
+- Okładki programów ze szczegółów AIOMetadata (zmiana drugiego wątku, w tym samym buildzie prz11): na kartach widać poziome kadry, np. „Co ludzie powiedzą?”, „Czarna Żmija” — `p11-livetv.png`; raport: `plan/raporty/aiometadata.md`.
+
+### W prz12, do sprawdzenia na TV
+- **Łata rozmycia pod tekstem (Twoja uwaga ~17:50: „wygląda nieprofesjonalnie — sporo większy radius i maska o 20 % mniejsza”)**: maska ma teraz 80 % dawnej wielkości i bardzo miękkie, zaokrąglone brzegi (przejście na 35 % krótszego boku) — zamiast widocznego prostokąta miękka plama. Dotyczy: Szczegóły, strona odcinka, karta tytułu, ekran wczytywania i błędu. Pas pod podpisami kart bez zmian.
+
+### Uwagi
+- Build prz11 za pierwszym razem padł na sprawdzaniu kodu (lint) z braku pamięci — kolejne buildy bez lint (do testowego APK niepotrzebny).
+- JMGO ok. 18:05: chwilę po instalacji prz12 coś grało, potem projektor zniknął z sieci — nie sterowałem nim.
