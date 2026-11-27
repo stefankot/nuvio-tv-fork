@@ -44,7 +44,12 @@ fun NiuniaDialog(title: String, onDismiss: () -> Unit, content: @Composable Colu
     LaunchedEffect(title) { Log.i(TAG, "okno: „$title” otwarte") }
     Dialog(onDismissRequest = { Log.i(TAG, "okno: „$title” zamknięte (Wstecz)"); onDismiss() },
         properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
-        Box(Modifier.fillMaxSize().background(NiuniaColor.Scrim), contentAlignment = Alignment.Center) {
+        // Przegląd 27.11 (CAŁA APLIKACJA): za oknem rozmyta kopia tła bieżącego ekranu (gotowe rozmycie) zamiast samego przyciemnienia.
+        val behind = NiuniaBackdropNow.current
+        Box(Modifier.fillMaxSize().then(if (behind == null) Modifier.background(NiuniaColor.Scrim) else Modifier), contentAlignment = Alignment.Center) {
+            if (behind != null) {
+                if (!niuniaBlurBackdrop(behind, "okno „$title”", dim = androidx.compose.ui.graphics.Color(0x8C000000))) Box(Modifier.fillMaxSize().background(NiuniaColor.Scrim))
+            }
             val shape = RoundedCornerShape(NiuniaRadius.Radius28)
             Column(
                 with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.width(NiuniaSize.DialogW).forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Dialog, shape, fallback = NiuniaColor.Panel, fallbackBorder = NiuniaColor.Fill12) }

@@ -231,7 +231,7 @@ Zrzut: `22-archiwum.png` — „ARCHIWUM 07:00-08:05 · Polsat Cafe”, „Gry m
    Obserwacja: log 18:35:15-18:35:18 — 13 naciśnięć ◀/▶ trafiło w rząd odcinków (poziom 1), nie w pasek; pasek przewijania jest dostępny tylko przez ▲ z przycisków (`:253-259`, slot BAR, gdy kanał ma archiwum) — tego nie widać i nie da się zgadnąć; w logu brak jakiegokolwiek przewinięcia.
    Poprawka: w archiwum ◀/▶ ZAWSZE przewija (przy schowanej nakładce i na przyciskach: ±10 s, przytrzymanie = coraz szybciej, jak w odtwarzaczu filmów); po zaznaczeniu paska — skoki z podglądem godziny; klawisze przewijania pilota (⏪ ⏩) też. Rząd odcinków dopiero ▼. Sprawdzić na JMGO: ◀ cofa, ▶ przesuwa, czas na pasku się zmienia, obraz rusza od nowego miejsca.
 
-## 23 — YouTube (Niunia): strona główna — ✅ TV prz04 pkt 1a (fokus na 1. filmie); Mix niesprawdzony (brak Mixu na ekranie); pusta playlista — poprawka prz03, niesprawdzona
+## 23 — YouTube (Niunia): strona główna — ✅ TV prz04 pkt 1a (fokus na 1. filmie); Mix niesprawdzony (brak Mixu na ekranie); pusta playlista — poprawka prz03, niesprawdzona; pkt 2 „Następne” z Mixu → BLOKADY (zmiana kopii Nuvio One + brak przejścia do następnego filmu YouTube w odtwarzaczu)
 Zrzut: `23-ekran.png` — szyna z lewej (Główna zaznaczona), siatka filmów po 3 (Wiedźmin 4, Wonderboom, „Mermaid Chunky — céilí” z plakietką **Mix**…). Kod: `skin/niunia/youtube/NiuniaYouTube.kt:150-156` (fokus startowy).
 1. **Po wejściu fokus na pierwszym filmie, a ten sam się odtwarza z dźwiękiem.**
    Właściciel: „focus po wejściu w ekran ma być na pierwszym filmie i ten ma się odtwarzać sam z dźwiękiem”.

@@ -101,6 +101,7 @@ fun NiuniaHeroPage(
     val blurScrims = remember { com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctx, "niunia_blur_scrims", true) }
     val scrimBlur = blurScrims && blurred != null && (scrimBlurLeft || scrimBlurBottom != null)
     LaunchedEffect(scrimBlur) { if (scrimBlur) Log.i(TAG, "$what: przyciemnienie hero = rozmyta kopia tła (${if (scrimBlurLeft) "z lewej" else "od dołu ${((scrimBlurBottom ?: 0f) * 100).toInt()} %"}) zamiast szarego") }
+    NiuniaBackdropNowEffect(background)
     BackHandler(enabled = down) {
         Log.i(TAG, "$what: Wstecz → hero")
         try { heroFocus.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "$what: fokus hero: ${e.javaClass.simpleName}: ${e.message}") }

@@ -42,6 +42,8 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.drawWithContent
+import coil3.request.transformations
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -191,10 +193,31 @@ internal fun NiuniaNavBar(
     com.nuvio.tv.fork.glass.ForkGlass.Provide {
     Box(modifier.fillMaxSize()) {
         // Przyciemnienie od lewej, gdy panel jest otwarty (.scrim-side).
-        if (openFraction > 0f) Box(
-            Modifier.fillMaxSize().alpha(openFraction)
-                .background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimSide.brush())
-        )
+        // Przegląd 27.11 (CAŁA APLIKACJA): pod otwartym menu rozmyta kopia tła bieżącego ekranu z lewej (gotowe rozmycie, maska do 45 %)
+        // zamiast przyciemnienia ScrimSide; ekran bez obrazu tła (Live TV, ustawienia) — dawne przyciemnienie.
+        if (openFraction > 0f) {
+            val ctxNav = androidx.compose.ui.platform.LocalContext.current
+            val px = with(androidx.compose.ui.platform.LocalDensity.current) { 60.dp.toPx() }
+            val behind = com.nuvio.tv.skin.niunia.components.NiuniaBackdropNow.current
+            val req = remember(behind) {
+                if (behind == null || !com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctxNav, "niunia_blur_scrims", true) || !com.nuvio.tv.fork.images.NativeBlur.enabled(ctxNav)) null
+                else coil3.request.ImageRequest.Builder(ctxNav).data(behind).transformations(com.nuvio.tv.fork.images.NativeBlur(px, diskKey = behind)).build()
+                    .also { Log.i(TAG, "menu: pod panelem rozmyta kopia tła ekranu zamiast przyciemnienia") }
+            }
+            if (req != null) coil3.compose.AsyncImage(
+                model = req, contentDescription = null, contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(androidx.compose.ui.graphics.Color(0x4D000000), androidx.compose.ui.graphics.BlendMode.SrcAtop),
+                modifier = Modifier.fillMaxSize().graphicsLayer { alpha = openFraction; compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
+                    .drawWithContent {
+                        drawContent()
+                        drawRect(androidx.compose.ui.graphics.Brush.horizontalGradient(0f to androidx.compose.ui.graphics.Color.Black, 0.3f to androidx.compose.ui.graphics.Color.Black, 0.5f to androidx.compose.ui.graphics.Color.Transparent),
+                            blendMode = androidx.compose.ui.graphics.BlendMode.DstIn)
+                    },
+            ) else Box(
+                Modifier.fillMaxSize().alpha(openFraction)
+                    .background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimSide.brush())
+            )
+        }
         // Zwinięta pigułka (NNavigation tab-pill, x 20, y 24): tylko obraz (nie łapie fokusu), znika przy otwartym panelu i przy przewijaniu w dół.
         if (selected != null && pillAlpha > 0f) com.nuvio.tv.skin.niunia.components.NiuniaTabPill(
             label = selected.label, icon = niuniaNavIcon(selected) ?: "home",

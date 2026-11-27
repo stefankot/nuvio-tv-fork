@@ -230,8 +230,8 @@ fun NiuniaMediaCard(
         }
         // Przegląd 27.11 (CAŁA APLIKACJA krok 2): pasek podpisu zwykłych kart na rozmytym dole obrazu (gotowe rozmycie Coil/dysk).
         val ctxBand = androidx.compose.ui.platform.LocalContext.current
-        val bandBlur = captionRich == null && label == null && parts.hasCaptionBand && image is String && !imageFailed &&
-            remember(ctxBand) { com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctxBand, "niunia_blur_captions", true) }
+        val bandBlurOn = remember(ctxBand) { com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctxBand, "niunia_blur_captions", true) }
+        val bandBlur = captionRich == null && label == null && parts.hasCaptionBand && image is String && !imageFailed && bandBlurOn
         if (bandBlur) NiuniaBlurBottom(image as String, from = .55f, to = .8f)
         if (topTag != null) Box(Modifier.padding(start = NiuniaSpacing.Space8, top = NiuniaSpacing.Space8)) { topTag() }
         if (captionRich != null) {

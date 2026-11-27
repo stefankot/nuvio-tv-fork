@@ -138,9 +138,10 @@ private fun Card(
         // przyciemnieniem pod tekst zamiast szarego gradientu do koloru tła. Klucz `niunia_blur_scrims` wraca do gradientu.
         val ctxCard = androidx.compose.ui.platform.LocalContext.current
         val art = item.background ?: item.landscapePoster ?: item.poster
-        val blurBottom = art != null && androidx.compose.runtime.remember(ctxCard) {
+        val blurOn = androidx.compose.runtime.remember(ctxCard) {
             com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctxCard, "niunia_blur_scrims", true) && com.nuvio.tv.fork.images.NativeBlur.enabled(ctxCard)
         }
+        val blurBottom = art != null && blurOn
         if (blurBottom) {
             NiuniaBlurBottom(art!!, radius = 20f, from = .4f, to = .72f)
             Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.45f to Color.Transparent, 1f to Color(0x8C000000))))

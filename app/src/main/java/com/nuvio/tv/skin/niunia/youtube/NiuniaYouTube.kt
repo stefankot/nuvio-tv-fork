@@ -106,6 +106,8 @@ fun NiuniaYouTube(onPlay: (YtPlayable) -> Unit, viewModel: YouTubeViewModel = fo
     val rows = remember(cards, perRow) { cards.chunked(perRow) }
     val listState = rememberLazyListState()
     var menuItem by remember { mutableStateOf<YtItem?>(null) }
+    // Przegląd 27.11, ekran 23 pkt 1b: podgląd z dźwiękiem w zaznaczonej karcie (ustawienie YouTube „podglądy filmów” + klucz forka).
+    val previewOn = remember { com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctx, "niunia_yt_preview", true) && com.nuvio.tv.youtube.YouTubeSettings.videoPreviews(ctx) }
 
     BackHandler(enabled = state.subTitle != null) { Log.i(TAG, "youtube: Wstecz → kanał ${state.tab}"); viewModel.back() }
     val pending by ForgeYouTubeLaunch.pending.collectAsState()
@@ -244,6 +246,7 @@ fun NiuniaYouTube(onPlay: (YtPlayable) -> Unit, viewModel: YouTubeViewModel = fo
                                         focusRequester = if (itemKey == lastVideoKey) lastVideo else if (lastVideoKey == null && ri == 0 && ci == 0) firstVideo else null,
                                         onFocused = { viewModel.prefetch(item); lastVideoKey = itemKey },
                                         onLong = { Log.i(TAG, "youtube: długie OK → okno „${item.title.take(40)}”"); menuItem = item },
+                                        preview = viewModel.takeIf { previewOn && !ytSearchOpen && menuItem == null },
                                     ) {
                                         Log.i(TAG, "youtube: OK → ${item.kind} ${item.videoId ?: item.channelId}")
                                         val mix = item.kind == YtKind.PLAYLIST && item.videoId != null &&
@@ -293,19 +296,28 @@ private fun Modifier.wrapPill(): Modifier = this.zIndex(2f).wrapContentWidth(Ali
 
 /** NMediaCard `YouTubeCard`: obraz 259 × 146 (Shorts: plakat), czas albo „Na żywo”, tytuł 2 linie, „kanał · wyświetlenia”. Fokus: karta z obrazem. */
 @Composable
-private fun YouTubeCard(item: YtItem, shorts: Boolean, resolving: Boolean, focusRequester: FocusRequester?, onFocused: () -> Unit, onLong: () -> Unit, onOk: () -> Unit) {
+private fun YouTubeCard(item: YtItem, shorts: Boolean, resolving: Boolean, focusRequester: FocusRequester?, onFocused: () -> Unit, onLong: () -> Unit, onOk: () -> Unit,
+    preview: YouTubeViewModel? = null) {
     val w: Dp = if (shorts) NiuniaDims.PosterW else NiuniaSize.YoutubeW
     val h: Dp = if (shorts) NiuniaDims.PosterH else NiuniaSize.YoutubeH
     var focused by remember { mutableStateOf(false) }
+    // Przegląd 27.11, ekran 23 pkt 1b: po OK podgląd gaśnie od razu (bez dwóch dźwięków przy wejściu do odtwarzacza).
+    var opened by remember(item.videoId) { mutableStateOf(false) }
     val shape = RoundedCornerShape(NiuniaRadius.Radius16)
     Column(Modifier.width(w)) {
         Box(
             Modifier.size(w, h)
-                .niuniaOk(item.title, focusRequester = focusRequester, onFocus = { focused = it; if (it) onFocused() }, onLongClick = onLong, onClick = onOk)
+                .niuniaOk(item.title, focusRequester = focusRequester, onFocus = { focused = it; if (it) { opened = false; onFocused() } }, onLongClick = onLong, onClick = { opened = true; onOk() })
                 .niuniaFocusLook(NiuniaFocusStyle.Lift, focused, shape)
                 .clip(shape).background(NiuniaColor.Surface),
         ) {
             item.thumbnail?.takeIf { it.isNotBlank() }?.let { url -> AsyncImage(model = url, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()) }
+            // Przegląd 27.11, ekran 23 pkt 1b (właściciel: „ten ma się odtwarzać sam z dźwiękiem”): zaznaczony film po ~1,5 s gra w swojej
+            // karcie z dźwiękiem (podgląd z modułu YouTube Nuvio One: jeden odtwarzacz, zwalniany po zejściu z karty, najwyżej 30 s).
+            if (preview != null && focused && !opened && item.kind == YtKind.VIDEO && !item.isLive && !shorts) {
+                LaunchedEffect(item.videoId) { Log.i(TAG, "youtube: podgląd z dźwiękiem w karcie (${item.videoId})") }
+                com.nuvio.tv.youtube.YouTubeThumbnailPreview(item, preview)
+            }
             when {
                 item.isLive -> NiuniaTag(stringResource(R.string.niunia_ke2_yt_live), NiuniaTagKind.Live, Modifier.align(Alignment.TopStart).padding(NiuniaSpacing.Space8))
                 !item.badge.isNullOrBlank() -> NiuniaTag(item.badge.orEmpty(), NiuniaTagKind.Badge, Modifier.align(Alignment.BottomEnd).padding(NiuniaSpacing.Space8))

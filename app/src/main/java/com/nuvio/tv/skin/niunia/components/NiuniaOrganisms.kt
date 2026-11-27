@@ -33,6 +33,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.drawWithContent
+import coil3.request.transformations
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -140,6 +141,7 @@ fun NiuniaHeroBackdrop(kind: NiuniaHeroKind, image: Any?, modifier: Modifier = M
             coil3.request.ImageRequest.Builder(ctx).data(image).transformations(com.nuvio.tv.fork.images.NativeBlur(with(density) { 60.dp.toPx() }, diskKey = image.toString())).build()
         }
     }
+    if (kind != NiuniaHeroKind.Ambient) NiuniaBackdropNowEffect(image)
     // Szkło (fork/glass): obraz ze scrimem to warstwa tła dla przycisków i paneli na nim.
     Box(with(com.nuvio.tv.fork.glass.ForkGlass) { modifier.fillMaxSize().forkGlassBackdrop() }.background(if (kind == NiuniaHeroKind.Ambient) Color.Transparent else NiuniaColor.Bg)) {
         if (kind == NiuniaHeroKind.Ambient) Box(Modifier.fillMaxSize().background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.AmbientNews.brush()))
