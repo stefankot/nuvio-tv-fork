@@ -229,12 +229,13 @@ internal fun NiuniaWideTile(
         val capPx = remember { androidx.compose.runtime.mutableIntStateOf(0) }
         val capTrim = with(androidx.compose.ui.platform.LocalDensity.current) { 4.dp.roundToPx() }
         if (tileBlur) NiuniaBlurBand(image as String, { (capPx.intValue - capTrim).coerceAtLeast(0) })
-        if (caption != null || (progress != null && progress > 0f)) Row(
+        // Właściciel 27.11 (~17:20): pasek postępu mały (24 dp), z lewej przy linii tekstu, NAD tekstem — nie w jednym wierszu z podpisem.
+        if (caption != null || (progress != null && progress > 0f)) androidx.compose.foundation.layout.Column(
             Modifier.align(Alignment.BottomStart).fillMaxWidth().then(Modifier.onSizeChanged { capPx.intValue = it.height }).background(
                 if (tileBlur) androidx.compose.ui.graphics.Brush.verticalGradient(0f to androidx.compose.ui.graphics.Color.Transparent, 1f to androidx.compose.ui.graphics.Color(0x59000000))
                 else com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimCaption.brush())
                 .padding(start = DsSpacing.Space8, end = DsSpacing.Space8, top = DsSpacing.Space20, bottom = DsSpacing.Space8),
-            horizontalArrangement = Arrangement.spacedBy(DsSpacing.Space8), verticalAlignment = Alignment.CenterVertically,
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             if (progress != null && progress > 0f) NiuniaProgress(progress)
             if (caption != null) Text(caption, style = DsType.Caption, color = DsColor.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)

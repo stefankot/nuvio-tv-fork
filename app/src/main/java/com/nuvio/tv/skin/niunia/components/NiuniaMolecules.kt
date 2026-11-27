@@ -250,7 +250,8 @@ fun NiuniaMediaCard(
                     .padding(start = NiuniaSpacing.Space8, end = NiuniaSpacing.Space8, top = NiuniaSpacing.Space20, bottom = NiuniaSpacing.Space8),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                if (progressBar != null) NiuniaProgress(progressBar, bar = true, fillColor = progressColor)
+                // Właściciel 27.11 (~17:20): pasek mały (24 dp) jak dawniej, wyrównany do lewej krawędzi tekstu, nad tekstem — nie na całą szerokość.
+                if (progressBar != null) NiuniaProgress(progressBar, fillColor = progressColor)
                 Text(captionRich, style = if (blurred) NiuniaType.Caption.copy(shadow = androidx.compose.ui.graphics.Shadow(androidx.compose.ui.graphics.Color(0x99000000), blurRadius = 6f)) else NiuniaType.Caption,
                     color = NiuniaColor.Text, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
