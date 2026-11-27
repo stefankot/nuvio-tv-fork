@@ -89,8 +89,11 @@ fun NiuniaPoster(
         // 22.11: na Androidzie 11 też, gdy rozmycie jest gotowe (liczone raz procesorem, pamięć Coil).
         val preblur = androidx.compose.runtime.remember { com.nuvio.tv.fork.images.NativeBlur.enabled(context) }
         if (Build.VERSION.SDK_INT >= 31 || preblur) {
-            if (!baked) BlurLayer(model, 6f, .66f, .84f)
-            BlurLayer(model, if (baked) 8f else 14f, if (baked) .82f else .78f, if (baked) .97f else .96f)
+            // Przegląd 27.11 (właściciel ~16:47: minimalne powierzchnie rozmycia pod drobnym tekstem): plakat z logo — rozmycie
+            // tylko pod linią gatunków i oceny (od 76 %, pełne od 86 %) zamiast od 66 %; tytuł tekstem i plakat z tytułem bez zmian.
+            val logoFoot = !baked && niuniaPosterFoot(baked, logo) == NiuniaPosterFoot.Logo
+            if (!baked && !logoFoot) BlurLayer(model, 6f, .66f, .84f)
+            BlurLayer(model, if (baked) 8f else 14f, if (baked) .82f else if (logoFoot) .76f else .78f, if (baked) .97f else if (logoFoot) .86f else .96f)
         }
         Tint(colors.dominant, baked)
         if (label != null) {
@@ -134,6 +137,42 @@ internal fun BoxScope.NiuniaBlurBottom(url: String, radius: Float = 14f, from: F
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val req = androidx.compose.runtime.remember(url) { coil3.request.ImageRequest.Builder(ctx).data(url).build() }
     BlurLayer(req, radius, from, to)
+}
+
+/**
+ * Przegląd 27.11 (właściciel ~16:47: „rozmycia przykrywają za dużo powierzchni zdjęć wszędzie — ustaw absolutnie minimalne
+ * powierzchnie niezbędne dla czytelności małych napisów”): rozmyty pas tylko pod podpisem karty. [heightPx] = wysokość pasa
+ * od dołu karty (zmierzona z samego podpisu; czytana w pomiarze, bez ponownej kompozycji), u góry miękkie wejście [feather].
+ * Gotowe rozmycie Coil/dysk jak [NiuniaBlurBottom]; bez gotowego rozmycia (rzadko) — dawny dół od 60 %.
+ */
+@Composable
+internal fun BoxScope.NiuniaBlurBand(url: String, heightPx: () -> Int, feather: Dp = 12.dp, radius: Float = 14f) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val pre = androidx.compose.runtime.remember { com.nuvio.tv.fork.images.NativeBlur.enabled(ctx) }
+    if (!pre) { NiuniaBlurBottom(url, radius, .6f, .78f); return }
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val px = with(density) { radius.dp.toPx() }
+    val fpx = with(density) { feather.toPx() }
+    val model = androidx.compose.runtime.remember(url, px) {
+        coil3.request.ImageRequest.Builder(ctx).data(url).transformations(com.nuvio.tv.fork.images.NativeBlur(px, diskKey = url)).build()
+    }
+    if (!blurBandLogged) { blurBandLogged = true; android.util.Log.i("ForkNiunia", "podpis karty: rozmycie tylko pasem pod tekstem (zamiast dolnej połowy obrazu)") }
+    androidx.compose.ui.layout.Layout(
+        content = { AsyncImage(model = model, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()) },
+        modifier = Modifier.align(Alignment.BottomCenter)
+            .graphicsLayer { clip = true; compositingStrategy = CompositingStrategy.Offscreen }
+            .drawWithContent {
+                if (size.height < 1f) return@drawWithContent
+                drawContent()
+                val k = (fpx / size.height).coerceIn(0f, 1f)
+                drawRect(Brush.verticalGradient(0f to Color.Transparent, k to Color.Black, 1f to Color.Black), blendMode = BlendMode.DstIn)
+            },
+    ) { measurables, c ->
+        val full = c.maxHeight
+        val cut = heightPx().coerceIn(0, full)
+        val image = measurables.first().measure(androidx.compose.ui.unit.Constraints.fixed(c.maxWidth, full))
+        layout(c.maxWidth, cut) { if (cut > 0) image.place(0, cut - full) }
+    }
 }
 
 @Composable
@@ -288,3 +327,4 @@ fun NiuniaMoreCard(
         }
     }
 }
+@Volatile private var blurBandLogged = false

@@ -34,6 +34,8 @@ import com.nuvio.tv.R
 import com.nuvio.tv.domain.model.Stream
 import com.nuvio.tv.skin.niunia.components.NiuniaBlockKind
 import com.nuvio.tv.skin.niunia.components.niuniaBlurBackdrop
+import com.nuvio.tv.skin.niunia.components.niuniaBlurPatch
+import com.nuvio.tv.skin.niunia.components.niuniaBlurPatchesOn
 import com.nuvio.tv.skin.niunia.components.NiuniaButton
 import com.nuvio.tv.skin.niunia.components.NiuniaButtonKind
 import com.nuvio.tv.skin.niunia.components.NiuniaContentBlock
@@ -131,7 +133,11 @@ private fun NiuniaPlayerLoading(uiState: PlayerUiState, onEvent: (PlayerEvent) -
     }
     Box(Modifier.fillMaxSize().zIndex(2f).background(NiuniaColor.Bg)) {
         // Przegląd 27.11 (CAŁA APLIKACJA): tło wczytywania = rozmyty obraz zamiast ostrego pod przyciemnieniem.
-        if (!niuniaBlurBackdrop(uiState.backdrop, "odtwarzacz: wczytywanie")) {
+        // Właściciel ~16:47 („rozmycia przykrywają za dużo powierzchni zdjęć — minimalne powierzchnie pod drobnym tekstem”):
+        // zwykłe zdjęcie, łata rozmycia tylko pod napisami (niżej); dawne tło tylko przy wyłączonym `niunia_blur_scrims`.
+        val plain = uiState.backdrop != null && niuniaBlurPatchesOn()
+        if (plain) AsyncImage(model = uiState.backdrop, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+        else if (!niuniaBlurBackdrop(uiState.backdrop, "odtwarzacz: wczytywanie")) {
         uiState.backdrop?.let { AsyncImage(model = it, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()) }
         Box(Modifier.fillMaxSize().background(NiuniaColor.Scrim))
         }
@@ -140,12 +146,14 @@ private fun NiuniaPlayerLoading(uiState: PlayerUiState, onEvent: (PlayerEvent) -
             else NiuniaText(uiState.contentName ?: uiState.title, variant = NiuniaTextVariant.TitleScreen, lines = 2)
             androidx.compose.material3.CircularProgressIndicator(color = NiuniaColor.White, strokeWidth = 3.dp, modifier = Modifier.padding(top = NiuniaSpacing.Space8).size(32.dp))
             val pct = uiState.loadingProgress?.let { (it * 100).toInt().coerceIn(0, 100) }
+            Column(Modifier.niuniaBlurPatch(uiState.backdrop), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
             NiuniaText(if (pct != null) stringResource(R.string.niunia_pl1_buffering_pct, pct) else stringResource(R.string.niunia_pl1_buffering), variant = NiuniaTextVariant.TitleSection, lines = 1)
             uiState.loadingMessage?.takeIf { it.isNotBlank() }?.let { NiuniaText(it, variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 2) }
             uiState.currentStreamName?.takeIf { it.isNotBlank() }?.let { NiuniaText(it.replace('\n', ' '), variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Tertiary, lines = 1) }
             // Ekran 26 pkt 2: parametry pliku (rozdzielczość, HDR, kodek, bitrate, rozmiar, dźwięk, napisy).
             val fileLine = remember(uiState.currentStreamName, uiState.currentStreamDescription, uiState.torrentDownloadSpeed) { NiuniaLoadingKeys.fileLine(uiState) }
             fileLine?.let { NiuniaText(it, variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 2) }
+            }
             Row(Modifier.padding(top = NiuniaSpacing.Space12).focusGroup(), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
                 NiuniaButton(onClick = otherSource, label = stringResource(R.string.niunia_pl1_other_source), focusRequester = first)
                 NiuniaButton(onClick = cancel, label = stringResource(R.string.niunia_pl1_cancel), focusRequester = second)
@@ -177,15 +185,20 @@ private fun NiuniaPlayerError(uiState: PlayerUiState, message: String, onEvent: 
         try { first.requestFocus() } catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus okna błędu: ${e.javaClass.simpleName}: ${e.message}") }
     }
     Box(Modifier.fillMaxSize().zIndex(3f).background(NiuniaColor.Bg), contentAlignment = Alignment.Center) {
-        if (!niuniaBlurBackdrop(uiState.backdrop, "odtwarzacz: błąd")) {
+        // Właściciel ~16:47: zwykłe zdjęcie, łata rozmycia tylko pod napisami (jak ekran wczytywania).
+        val plain = uiState.backdrop != null && niuniaBlurPatchesOn()
+        if (plain) AsyncImage(model = uiState.backdrop, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+        else if (!niuniaBlurBackdrop(uiState.backdrop, "odtwarzacz: błąd")) {
         uiState.backdrop?.let { AsyncImage(model = it, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()) }
         Box(Modifier.fillMaxSize().background(NiuniaColor.Scrim))
         }
         NiuniaContentBlock(NiuniaBlockKind.Empty) {
+            Column(Modifier.niuniaBlurPatch(uiState.backdrop), verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space8)) {
             NiuniaText(stringResource(R.string.niunia_pl1_err_title), variant = NiuniaTextVariant.TitleSection, lines = 2)
             NiuniaText(niuniaErrorReason(ctx, message), variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 3)
             NiuniaText(listOfNotNull(uiState.currentStreamName?.replace('\n', ' ')?.take(60), message.replace('\n', ' ').take(90)).joinToString(" · "),
                 variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Tertiary, lines = 2)
+            }
             Row(Modifier.padding(top = NiuniaSpacing.Space12).focusGroup(), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12)) {
                 NiuniaButton(onClick = {
                     Log.i(TAG, "odtwarzacz: błąd → Inne źródło")

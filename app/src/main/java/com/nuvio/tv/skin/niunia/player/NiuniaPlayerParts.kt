@@ -1,8 +1,10 @@
 package com.nuvio.tv.skin.niunia.player
 
+import androidx.compose.ui.layout.onSizeChanged
 import com.nuvio.tv.skin.niunia.components.NiuniaFocusStyle
 import com.nuvio.tv.skin.niunia.components.NiuniaMedia
 import com.nuvio.tv.skin.niunia.components.NiuniaBlurBottom
+import com.nuvio.tv.skin.niunia.components.NiuniaBlurBand
 import com.nuvio.tv.skin.niunia.components.NiuniaProgress
 import com.nuvio.tv.skin.niunia.components.NiuniaTag
 import com.nuvio.tv.skin.niunia.components.NiuniaTagKind
@@ -222,9 +224,13 @@ internal fun NiuniaWideTile(
         val ctxTile = androidx.compose.ui.platform.LocalContext.current
         val tileBlurOn = remember(ctxTile) { com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctxTile, "niunia_blur_captions", true) }
         val tileBlur = tileBlurOn && image is String && image.isNotBlank() && (caption != null || (progress != null && progress > 0f))
-        if (tileBlur) NiuniaBlurBottom(image as String, from = .55f, to = .8f)
+        // Przegląd 27.11 (właściciel ~16:47: minimalne powierzchnie rozmycia pod drobnym tekstem): rozmyty pas tylko pod podpisem
+        // (wysokość z pomiaru podpisu bez 20 dp górnego marginesu, pełne rozmycie 4 dp nad tekstem) zamiast dolnych 45 % kafla.
+        val capPx = remember { androidx.compose.runtime.mutableIntStateOf(0) }
+        val capTrim = with(androidx.compose.ui.platform.LocalDensity.current) { 4.dp.roundToPx() }
+        if (tileBlur) NiuniaBlurBand(image as String, { (capPx.intValue - capTrim).coerceAtLeast(0) })
         if (caption != null || (progress != null && progress > 0f)) Row(
-            Modifier.align(Alignment.BottomStart).fillMaxWidth().background(
+            Modifier.align(Alignment.BottomStart).fillMaxWidth().then(Modifier.onSizeChanged { capPx.intValue = it.height }).background(
                 if (tileBlur) androidx.compose.ui.graphics.Brush.verticalGradient(0f to androidx.compose.ui.graphics.Color.Transparent, 1f to androidx.compose.ui.graphics.Color(0x59000000))
                 else com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimCaption.brush())
                 .padding(start = DsSpacing.Space8, end = DsSpacing.Space8, top = DsSpacing.Space20, bottom = DsSpacing.Space8),

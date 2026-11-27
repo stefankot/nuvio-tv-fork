@@ -75,7 +75,10 @@ fun NiuniaEpisodeCard(
             caption = caption, progress = progress, play = play, badge = badge, focusable = false,
             modifier = Modifier.niuniaFocusLook(NiuniaFocusStyle.Lift, focused, shape), description = title,
         )
-        val textBg = if (focused || current) NiuniaColor.Frost else Color.Transparent
+        // Przegląd 27.11 (kolejka „szare panele”, właściciel ~16:47: minimalne powierzchnie pod drobnym tekstem): opis leży na już
+        // rozmytym tle strony pod hero — bez szarego pola pod zaznaczonym odcinkiem; dawne pole przy wyłączonym `niunia_blur_scrims`.
+        val frostOff = niuniaBlurPatchesOn()
+        val textBg = if ((focused || current) && !frostOff) NiuniaColor.Frost else Color.Transparent
         Column(
             Modifier.padding(top = if (focused) NiuniaSpacing.Space16 else NiuniaSpacing.Space8).fillMaxWidth()
                 .clip(RoundedCornerShape(NiuniaRadius.Radius16)).background(textBg)

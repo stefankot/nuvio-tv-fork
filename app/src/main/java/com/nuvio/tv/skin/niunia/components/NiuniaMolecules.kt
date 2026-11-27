@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -207,6 +208,12 @@ fun NiuniaMediaCard(
             )
             .semantics { if (description != null) contentDescription = description },
     ) {
+        // Przegląd 27.11 (właściciel ~16:47: minimalne powierzchnie rozmycia pod drobnym tekstem): rozmyty pas tylko pod podpisem —
+        // wysokość z pomiaru samego podpisu (bez 20 dp górnego marginesu; pełne rozmycie 4 dp nad tekstem, 12 dp miękkiego wejścia).
+        val capPx = remember { androidx.compose.runtime.mutableIntStateOf(0) }
+        val capTrim = with(androidx.compose.ui.platform.LocalDensity.current) { 4.dp.roundToPx() }
+        val capBand = { (capPx.intValue - capTrim).coerceAtLeast(0) }
+        val capMeasure = Modifier.onSizeChanged { capPx.intValue = it.height }
         when {
             parts.shimmer -> NiuniaShimmer()
             parts.fallbackLabel != null -> NiuniaMedia(null, Modifier.fillMaxSize(), fallbackLabel = parts.fallbackLabel)
@@ -214,7 +221,7 @@ fun NiuniaMediaCard(
                 if (image != null && !imageFailed) coil3.compose.AsyncImage(model = image, contentDescription = description, contentScale = androidx.compose.ui.layout.ContentScale.Crop, modifier = Modifier.fillMaxSize(),
                     onError = { st -> imageFailed = true; Log.w(DS_TAG, "NMediaCard: obraz „${description.orEmpty()}”: ${st.result.throwable.javaClass.simpleName}: ${st.result.throwable.message}") })
                 val blurred = blurCaption && image is String && !imageFailed
-                if (blurred) NiuniaBlurBottom(image as String) else if (image == null || imageFailed) fallback()
+                if (blurred) NiuniaBlurBand(image as String, capBand) else if (image == null || imageFailed) fallback()
             }
             image != null -> NiuniaMedia(image, Modifier.fillMaxSize(), fallbackLabel = title ?: caption)
         }
@@ -232,12 +239,12 @@ fun NiuniaMediaCard(
         val ctxBand = androidx.compose.ui.platform.LocalContext.current
         val bandBlurOn = remember(ctxBand) { com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctxBand, "niunia_blur_captions", true) }
         val bandBlur = captionRich == null && label == null && parts.hasCaptionBand && image is String && !imageFailed && bandBlurOn
-        if (bandBlur) NiuniaBlurBottom(image as String, from = .55f, to = .8f)
+        if (bandBlur) NiuniaBlurBand(image as String, capBand)
         if (topTag != null) Box(Modifier.padding(start = NiuniaSpacing.Space8, top = NiuniaSpacing.Space8)) { topTag() }
         if (captionRich != null) {
             val blurred = blurCaption && image is String && !imageFailed
             Column(
-                Modifier.align(Alignment.BottomStart).fillMaxWidth()
+                Modifier.align(Alignment.BottomStart).fillMaxWidth().then(capMeasure)
                     .background(if (blurred) androidx.compose.ui.graphics.Brush.verticalGradient(0f to androidx.compose.ui.graphics.Color.Transparent, 1f to androidx.compose.ui.graphics.Color(0x59000000))
                         else NiuniaGradient.ScrimCaption.brush())
                     .padding(start = NiuniaSpacing.Space8, end = NiuniaSpacing.Space8, top = NiuniaSpacing.Space20, bottom = NiuniaSpacing.Space8),
@@ -250,7 +257,7 @@ fun NiuniaMediaCard(
         } else if (label != null) Text(label, style = NiuniaType.Label, color = NiuniaColor.White, maxLines = 2, overflow = TextOverflow.Ellipsis,
             modifier = Modifier.align(Alignment.BottomStart).padding(NiuniaSpacing.Space12))
         else if (parts.hasCaptionBand) Row(
-            Modifier.align(Alignment.BottomStart).fillMaxWidth().background(
+            Modifier.align(Alignment.BottomStart).fillMaxWidth().then(capMeasure).background(
                 if (bandBlur) androidx.compose.ui.graphics.Brush.verticalGradient(0f to androidx.compose.ui.graphics.Color.Transparent, 1f to androidx.compose.ui.graphics.Color(0x59000000))
                 else NiuniaGradient.ScrimCaption.brush())
                 .padding(start = NiuniaSpacing.Space8, end = NiuniaSpacing.Space8, top = NiuniaSpacing.Space20, bottom = NiuniaSpacing.Space8),

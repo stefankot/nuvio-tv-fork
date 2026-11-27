@@ -130,11 +130,11 @@ fun NiuniaHeroBackdrop(kind: NiuniaHeroKind, image: Any?, modifier: Modifier = M
     val blurOk = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val density = LocalDensity.current
     // Przegląd 27.11 (CAŁA APLIKACJA): gotowa rozmyta kopia tła (liczona raz, pamięć Coil + dysk) zamiast szarych przyciemnień:
-    // Blurred (ekran źródeł) — rozmyty obraz + czarne przyciemnienie jak strona pod hero zamiast szarego ScrimDim;
-    // Immersive (strona odcinka) — rozmycie z lewej (maska do 64 %) zamiast szarego ScrimHero. Klucz `niunia_blur_scrims`.
+    // Blurred (ekran źródeł) — rozmyty obraz + czarne przyciemnienie jak strona pod hero zamiast szarego ScrimDim.
+    // Immersive (strona odcinka) — zwykłe zdjęcie, łata rozmycia pod drobnym tekstem u wołającego. Klucz `niunia_blur_scrims`.
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val staticReq = androidx.compose.runtime.remember(image, kind) {
-        val on = image is String && (kind == NiuniaHeroKind.Blurred || kind == NiuniaHeroKind.Immersive) &&
+        val on = image is String && kind == NiuniaHeroKind.Blurred &&
             com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctx, "niunia_blur_scrims", true) && com.nuvio.tv.fork.images.NativeBlur.enabled(ctx)
         if (!on) null else {
             android.util.Log.i("ForkNiunia", "tło ${kind.name}: rozmyta kopia obrazu zamiast szarego przyciemnienia")
@@ -162,17 +162,11 @@ fun NiuniaHeroBackdrop(kind: NiuniaHeroKind, image: Any?, modifier: Modifier = M
             )
         }
         when {
-            // Paczka 13: maska wpieczona w rozmytą bitmapę (AlphaMask) — bez warstwy pozaekranowej na cały ekran.
-            staticReq != null && kind == NiuniaHeroKind.Immersive -> AsyncImage(
-                model = androidx.compose.runtime.remember(image) { coil3.request.ImageRequest.Builder(ctx).data(image).transformations(
-                    com.nuvio.tv.fork.images.NativeBlur(with(density) { 60.dp.toPx() }, diskKey = image.toString()), com.nuvio.tv.fork.images.AlphaMask(true, 0.32f, 0.64f)).build() },
-                contentDescription = null, contentScale = ContentScale.Crop,
-                colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(Color(0x40000000), androidx.compose.ui.graphics.BlendMode.SrcAtop),
-                modifier = Modifier.fillMaxSize(),
-            )
             staticReq != null && kind == NiuniaHeroKind.Blurred -> Box(Modifier.fillMaxSize().background(Color(0x8C000000)))
         }
-        if (staticReq == null) when (kind) {
+        // Przegląd 27.11 (właściciel ~16:55): strona odcinka = zwykłe zdjęcie; rozmycie tylko łatą pod drobnym tekstem (wołający).
+        val plainImmersive = kind == NiuniaHeroKind.Immersive && niuniaBlurPatchesOn()
+        if (staticReq == null && !plainImmersive) when (kind) {
             NiuniaHeroKind.Immersive -> NiuniaSurface(NiuniaSurfaceKind.ScrimHero, Modifier.fillMaxSize())
             NiuniaHeroKind.Player, NiuniaHeroKind.Ambient -> NiuniaSurface(NiuniaSurfaceKind.ScrimPlayer, Modifier.fillMaxSize())
             NiuniaHeroKind.Blurred -> NiuniaSurface(NiuniaSurfaceKind.ScrimDim, Modifier.fillMaxSize())
@@ -206,11 +200,15 @@ fun NiuniaTabPill(label: String, icon: String, modifier: Modifier = Modifier, fo
 
 /** Panel menu bocznego (`sidebar`): x 20, y 20, szer. 200, promień 28, szkło (bez rozmycia: `panel`), odstęp pozycji 4. */
 @Composable
-fun NiuniaSidebarPanel(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+fun NiuniaSidebarPanel(modifier: Modifier = Modifier, behind: String? = null, content: @Composable ColumnScope.() -> Unit) {
     val shape = RoundedCornerShape(NiuniaRadius.Radius28)
+    // Przegląd 27.11 (właściciel ~16:47: minimalne powierzchnie rozmycia; kolejka „szare panele”): z obrazem tła ekranu pod spodem
+    // ([behind]) panel = rozmyty, przyciemniony wycinek tego obrazu zamiast szarego tła; reszta ekranu bez rozmycia.
+    val patch = behind != null && niuniaBlurPatchesOn()
     Column(
         Modifier.padding(start = NiuniaSpacing.Space20, top = NiuniaSpacing.Space20).then(modifier).width(NiuniaSize.SidebarW)
-            .then(with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Nav, shape, fallback = NiuniaColor.Panel, fallbackBorder = NiuniaColor.Fill12) })
+            .then(if (patch) Modifier.niuniaBlurPatch(behind, tint = Color(0x80000000), shape = shape).border(1.dp, NiuniaColor.Fill12, shape)
+                else with(com.nuvio.tv.fork.glass.ForkGlass) { Modifier.forkGlass(com.nuvio.tv.fork.glass.ForkGlass.Role.Nav, shape, fallback = NiuniaColor.Panel, fallbackBorder = NiuniaColor.Fill12) })
             .padding(horizontal = NiuniaSpacing.Space8, vertical = NiuniaSpacing.Space12),
         verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space4),
         content = content,

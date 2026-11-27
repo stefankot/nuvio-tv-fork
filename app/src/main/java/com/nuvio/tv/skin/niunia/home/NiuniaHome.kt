@@ -408,6 +408,7 @@ fun NiuniaHome(
         return
     }
     Box(Modifier.fillMaxSize()) {
+    val homePlain = com.nuvio.tv.skin.niunia.components.niuniaBlurPatchesOn()
     com.nuvio.tv.skin.niunia.components.NiuniaHeroPage(
         background = hero.background ?: hero.landscapePoster ?: hero.poster,
         heroFocus = heroFocus,
@@ -433,9 +434,9 @@ fun NiuniaHome(
         },
         below = { rows() },
         onDown = { com.nuvio.tv.skin.niunia.nav.NiuniaNavChrome.homeRows.value = it },
-        scrim = { NiuniaSurface(NiuniaSurfaceKind.ScrimHero, Modifier.fillMaxSize()) },
-        // Przegląd 27.11 (CAŁA APLIKACJA): zamiast szarego ScrimHero z lewej — rozmyta kopia tła z lewej (lekko przyciemniona pod tekst).
-        scrimBlurLeft = true, scrimBlurTint = androidx.compose.ui.graphics.Color(0x40000000),
+        // Przegląd 27.11 (właściciel ~16:55: „rozmycie po lewej na hero na home usuń. Ma być zwykłe zdjęcie hero pod spodem bez
+        // żadnych efektów”): bez szarego ScrimHero i bez rozmycia; dawny wygląd tylko przy wyłączonym `niunia_blur_scrims`.
+        scrim = if (homePlain) null else ({ NiuniaSurface(NiuniaSurfaceKind.ScrimHero, Modifier.fillMaxSize()) }),
     )
     pagerOverlay()
     }

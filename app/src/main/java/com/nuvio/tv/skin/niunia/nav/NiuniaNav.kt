@@ -193,28 +193,15 @@ internal fun NiuniaNavBar(
     com.nuvio.tv.fork.glass.ForkGlass.Provide {
     Box(modifier.fillMaxSize()) {
         // Przyciemnienie od lewej, gdy panel jest otwarty (.scrim-side).
-        // Przegląd 27.11 (CAŁA APLIKACJA): pod otwartym menu rozmyta kopia tła bieżącego ekranu z lewej (gotowe rozmycie, maska do 45 %)
-        // zamiast przyciemnienia ScrimSide; ekran bez obrazu tła (Live TV, ustawienia) — dawne przyciemnienie.
-        if (openFraction > 0f) {
-            val ctxNav = androidx.compose.ui.platform.LocalContext.current
-            val px = with(androidx.compose.ui.platform.LocalDensity.current) { 60.dp.toPx() }
-            val behind = com.nuvio.tv.skin.niunia.components.NiuniaBackdropNow.current
-            val req = remember(behind) {
-                if (behind == null || !com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctxNav, "niunia_blur_scrims", true) || !com.nuvio.tv.fork.images.NativeBlur.enabled(ctxNav)) null
-                else coil3.request.ImageRequest.Builder(ctxNav).data(behind).transformations(com.nuvio.tv.fork.images.NativeBlur(px, diskKey = behind),
-                    com.nuvio.tv.fork.images.AlphaMask(true, 0.3f, 0.5f)).build()
-                    .also { Log.i(TAG, "menu: pod panelem rozmyta kopia tła ekranu zamiast przyciemnienia") }
-            }
-            if (req != null) coil3.compose.AsyncImage(
-                model = req, contentDescription = null, contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(androidx.compose.ui.graphics.Color(0x4D000000), androidx.compose.ui.graphics.BlendMode.SrcAtop),
-                // Paczka 13: maska wpieczona w rozmytą bitmapę (AlphaMask) — bez warstwy pozaekranowej.
-                modifier = Modifier.fillMaxSize().graphicsLayer { alpha = openFraction; compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.ModulateAlpha },
-            ) else Box(
-                Modifier.fillMaxSize().alpha(openFraction)
-                    .background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimSide.brush())
-            )
-        }
+        // Przegląd 27.11 (właściciel ~16:47: „rozmycia przykrywają za dużo powierzchni zdjęć — minimalne powierzchnie pod drobnym
+        // tekstem”): z obrazem tła ekranu pod spodem rozmyty jest tylko sam panel (wycinek obrazu w NiuniaSidebarPanel), bez rozmycia
+        // lewej połowy ekranu; ekran bez obrazu tła (Live TV, ustawienia) albo wyłączony klucz `niunia_blur_scrims` — dawne przyciemnienie.
+        val behindNav = com.nuvio.tv.skin.niunia.components.NiuniaBackdropNow.current
+        val panelPatch = behindNav != null && com.nuvio.tv.skin.niunia.components.niuniaBlurPatchesOn()
+        if (openFraction > 0f && !panelPatch) Box(
+            Modifier.fillMaxSize().alpha(openFraction)
+                .background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimSide.brush())
+        )
         // Zwinięta pigułka (NNavigation tab-pill, x 20, y 24): tylko obraz (nie łapie fokusu), znika przy otwartym panelu i przy przewijaniu w dół.
         if (selected != null && pillAlpha > 0f) com.nuvio.tv.skin.niunia.components.NiuniaTabPill(
             label = selected.label, icon = niuniaNavIcon(selected) ?: "home",
@@ -225,7 +212,8 @@ internal fun NiuniaNavBar(
         if (selected?.route != com.nuvio.tv.reshaped.livetv.LIVE_TV_ROUTE && selected?.route != "youtube" && selected?.route != "search") com.nuvio.tv.skin.niunia.components.NiuniaClockCorner() // Szukaj: zegar obok „Odkrywaj” (NiuniaSearch)
         // Panel boczny. Zawsze w drzewie, żeby PillNavScaffold mógł dać fokus pozycji (requesterFor); zamknięty = przezroczysty.
         com.nuvio.tv.skin.niunia.components.NiuniaSidebarPanel(
-            Modifier
+            behind = if (panelPatch) behindNav else null,
+            modifier = Modifier
                 // Test JMGO build152: zamknięty panel leżał w swoim miejscu (przezroczysty), a wybrana pozycja przyjmuje fokus —
                 // ▼ z kafli Live TV i ▲ z pigułek trafiały w nią w środku ekranu. Zamknięty = zaparkowany nad ekranem:
                 // ▲ ze szczytu treści dalej otwiera menu, ze środka ekranu fokus idzie do najbliższego elementu treści.

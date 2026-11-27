@@ -2,6 +2,7 @@
 
 package com.nuvio.tv.skin.niunia.detail
 
+import com.nuvio.tv.skin.niunia.components.niuniaBlurPatch
 import com.nuvio.tv.skin.niunia.components.NiuniaBlockKind
 import com.nuvio.tv.skin.niunia.components.NiuniaButtonKind
 import com.nuvio.tv.skin.niunia.components.NiuniaCastCard
@@ -203,6 +204,7 @@ fun NiuniaDetail(
     Box(Modifier.fillMaxSize().focusProperties { enter = { if (episodeOpen != null) FocusRequester.Cancel else FocusRequester.Default } }.focusGroup()) {
     // Właściciel 20.11: hero poza listą. ▼ z hero: napisy hero wyjeżdżają, tło mocno rozmyte (Android 11: przyciemnione),
     // strona pod hero wjeżdża od dołu — logo programu na środku (przypięte), niżej rzędy wg makiet Episodes i DetailMore.
+    val detailPatches = com.nuvio.tv.skin.niunia.components.niuniaBlurPatchesOn()
     com.nuvio.tv.skin.niunia.components.NiuniaHeroPage(
         background = meta.backdropUrl ?: meta.poster,
         heroFocus = playFocus,
@@ -226,16 +228,14 @@ fun NiuniaDetail(
                 } },
                 onRatings = if (series && uiState.episodeImdbRatings.isNotEmpty()) ({ Log.i(TAG, "szczegóły: hero → Oceny odcinków"); ratingsOpen = true }) else null)
         },
-        detailBlur = true, // Z-2: lewa część obrazu rozmyta na API 31+
+        // Przegląd 27.11 (właściciel ~16:55: rozmycia tylko pod drobnym tekstem): bez rozmycia lewej części i dołu, gdy łaty są włączone.
+        detailBlur = !detailPatches, // Z-2: lewa część obrazu rozmyta na API 31+
         // Z-2: przyciemnienie hero szczegółów — scrim-detail (API 31+) albo scrim-detail-flat (Android 11), dół scrim-detail-bottom; rysuje je tło strony (fork/glass).
         // Przegląd 27.11, ekran 27 (właściciel): szara nakładka od lewej usunięta całkowicie; czytelność tekstu daje rozmyta
         // kopia obrazu pod tekstem (NiuniaHeroPage, także Android 11). Zostaje tylko przejście od dołu w stronę pod hero.
-        scrim = {
+        scrim = if (detailPatches) null else ({
             Box(Modifier.fillMaxSize().background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimDetailBottom.brush()))
-        },
-        // Przegląd 27.11 (CAŁA APLIKACJA): dół hero = rozmyta kopia tła (od 45 %, pełna od 73 %; test prz09: od 30 % zmiękczało twarze w środku kadru) zamiast szarego ScrimDetailBottom;
-        // lekkie przyciemnienie jak strona pod hero, żeby przejście w nią było płynne.
-        scrimBlurBottom = 0.45f, scrimBlurTint = androidx.compose.ui.graphics.Color(0x59000000),
+        }),
         belowFocusRequester = belowFocus,
         belowEnter = if (series && uiState.episodesForSeason.isNotEmpty()) firstEpisode else null,
         below = {
@@ -612,6 +612,8 @@ private fun EpisodePage(meta: Meta, ep: Video, uiState: MetaDetailsUiState, onPl
             NiuniaContentBlock(NiuniaBlockKind.Info) {
                 NiuniaLogo(meta.logo, meta.name, NiuniaLogoSize.Small)
                 NText(ep.title.ifBlank { ctx.getString(R.string.niunia_detail_episode, ep.episode ?: 0) }, variant = NiuniaTextVariant.TitleScreen, lines = 2)
+                // Przegląd 27.11 (właściciel ~16:55): łata rozmycia tylko pod drobnym tekstem (gatunki, opis, data i ocena).
+                Column(Modifier.niuniaBlurPatch(ep.thumbnail ?: meta.backdropUrl ?: meta.poster), verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space8)) {
                 NText(listOfNotNull(ctx.getString(R.string.niunia_player_series), meta.genres.take(2).joinToString(" · ").ifBlank { null }).joinToString(" · "), variant = NiuniaTextVariant.BodySmall, lines = 1)
                 val text = ep.overview?.takeIf { it.isNotBlank() }
                 if (text != null) NText("**S${ep.season}, E${ep.episode} ·** $text", variant = NiuniaTextVariant.BodySmall, tone = NiuniaTone.Secondary, lines = 2)
@@ -619,6 +621,7 @@ private fun EpisodePage(meta: Meta, ep: Video, uiState: MetaDetailsUiState, onPl
                 val epScore = uiState.episodeImdbRatings[(ep.season ?: 0) to (ep.episode ?: 0)]?.takeIf { it > 0.0 }
                     ?.let { listOf(com.nuvio.tv.skin.niunia.components.NiuniaScore("IMDb", it, String.format(java.util.Locale.US, "%.1f", it))) }
                 NiuniaMetaLine(m.meta) { com.nuvio.tv.skin.niunia.components.NiuniaRatingAverage(epScore ?: com.nuvio.tv.skin.niunia.components.niuniaScores(meta.imdbRating, uiState.mdbListRatings)) }
+                }
             }
             NiuniaCollection(NiuniaCollectionKind.Actions) {
                 if (resume) NiuniaButton(onClick = onPlay, label = stringResource(R.string.niunia_detail_resume), icon = "play", labelFirst = true,
@@ -689,6 +692,8 @@ private fun Hero(
             NiuniaContentBlock(NiuniaBlockKind.Info) {
                 if (com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctx, "module_lektor")) NiuniaTag(stringResource(R.string.niunia_ds_watch_lektor), NiuniaTagKind.Chip)
                 NiuniaLogo(meta.logo, meta.name, NiuniaLogoSize.Hero)
+                // Przegląd 27.11 (właściciel ~16:55): rozmycie tylko pod drobnym tekstem — łata pod meta, opisem, datą i nagrodami.
+                Column(Modifier.niuniaBlurPatch(meta.backdropUrl ?: meta.poster), verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space8)) {
                 NText(niuniaDetailMetaLine(ctx, meta, series, uiState.seasons.size), variant = NiuniaTextVariant.BodySmall, lines = 1)
                 val ep = heroVideo?.takeIf { series }
                 // UX JMGO (ręczne testy 24.11): opisy z Wikipedii miały przypisy „Europe.[1]” — usunięte z wyświetlanego tekstu.
@@ -706,6 +711,7 @@ private fun Hero(
                 // Przegląd 27.11 (02, właściciel: „po lewej stronie miały być nagrody, a nie aktorzy”): nagrody w lewej kolumnie,
                 // pod oceną; bez nagród nic tu nie ma. Obsada zostaje po prawej.
                 if (awards.isNotEmpty()) com.nuvio.tv.skin.niunia.components.NiuniaAwardsText(awards)
+                }
             }
             NiuniaCollection(NiuniaCollectionKind.SplitRow) {
                 Row(horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space12), verticalAlignment = Alignment.CenterVertically) {
@@ -735,7 +741,7 @@ private fun Hero(
                     if (onRatings != null) NiuniaButton(onClick = onRatings, icon = "star", description = stringResource(R.string.niunia_tv2_ratings_button), onFocus = { if (it) onFocus() }, haze = true)
                 }
                 // Z-13b → przegląd 27.11 (02): nagrody przeniesione do lewej kolumny; tu zawsze obsada i twórcy.
-                Credits(meta, series, emptyList(), Modifier)
+                Credits(meta, series, emptyList(), Modifier.niuniaBlurPatch(meta.backdropUrl ?: meta.poster))
             }
             if (stills.isNotEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space20)) {
                 stills.forEach { (img, t) -> NiuniaMediaCard(NiuniaCardPreset.StillCard, img, onClick = null, title = t, focusable = false) }
