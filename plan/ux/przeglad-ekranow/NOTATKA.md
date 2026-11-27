@@ -50,7 +50,7 @@ Zrzut: `04-lista.png` — „Ciało” S1:01 (Flix-Streams, 4K HEVC HDR, polski 
    Obserwacja: napisy wbudowane są w kolejności z pliku (pt, ar, bg, cs…; polskie gdzieś w środku/na dole 55 pozycji); pliki z dodatków są wprawdzie „najpierw polskie”, ale stoją dopiero PO wszystkich wbudowanych.
    Poprawka: na górze (pod Napisami AI) wszystkie napisy w języku preferowanym — wbudowane i z dodatków razem; potem pozostałe języki. **Decyzja właściciela (27.11): pozostałe języki zwinięte w jeden wiersz „Inne języki”** (OK rozwija listę pozostałych języków) — lista ma być krótka. Dotyczy napisów wbudowanych i z dodatków.
 
-## 05 — Odtwarzacz: panel „Quality” (jakość) — ✅ TV prz04 pkt 1–2 (panel Niuni po polsku, długie OK = źródła 1080p); poprawka prz05: bieżąca jakość i ✓; pkt 3 niesprawdzony
+## 05 — Odtwarzacz: panel „Quality” (jakość) — ✅ TV prz04 pkt 1–2 (panel Niuni po polsku, długie OK = źródła 1080p); poprawka prz05: bieżąca jakość i ✓; pkt 3 niesprawdzony; ✅ TV prz07: ✓ „Teraz” przy 4K, pkt 3: wybór 1080p = 2 próby w 51 s (pierwsza czekała 40 s na dane), dawniej 6 prób
 Zrzut: `05-jakosc.png` — 4K ✓, 1080p (56 sources), 720p (13), 480p (7, „Angielski, Hindi +4”), 360p (1).
 Kod: okno z forka Echo (teksty `app/src/main/res/values/echo_player_strings.xml:8` `quality_menu_subtitle`; przełączanie `ui/screens/player/PlayerRuntimeControllerSourceSwitch.kt:270-310`).
 1. **Okno jakości ma wyglądać jak cała skórka (Niunia).**
@@ -258,7 +258,7 @@ Zrzut: `25-przegladaj.png` — po prawej od klawiatury: „Odkrywaj: gatunek, ro
    Obserwacja: kafle w rozmiarze plakatów (bez obrazków, ekran 24 pkt 2) zajmują ~200 z 540 wysokości; przez to „Polecane” (jedyne obrazy) widać tylko w 1/3.
    Poprawka: „Przeglądaj” jako jeden rząd przycisków-pigułek (jak kategorie w Live TV: „Filmy”, „Seriale”, „Live TV”, „YouTube”, „Akcja”, „Komedia”…), przewijany ◀▶; zwolnione miejsce dla „Polecanych” (pełne plakaty) i ostatnich wyszukiwań. „Odkrywaj: gatunek, rok, katalog” może być pierwszym przyciskiem tego rzędu.
 
-## 26 — Odtwarzacz: ekran wczytywania (buforowanie przed filmem) — ✅ TV prz04 (◀▶ Inne źródło ↔ Anuluj; linia „1080p • HEVC • 1,5 GB • polski dźwięk”); OK na „Anuluj” niesprawdzone
+## 26 — Odtwarzacz: ekran wczytywania (buforowanie przed filmem) — ✅ TV prz04 (◀▶ Inne źródło ↔ Anuluj; linia „1080p • HEVC • 1,5 GB • polski dźwięk”); OK na „Anuluj” ✅ TV prz07 (powrót na Główną, fokus na tej samej karcie)
 Zrzut: `26-buforowanie.png` — zrobiony już po starcie filmu („The Brutalist” z „Oglądaj dalej”, napisy PL; w rogu znów „Gotowe”). Ekran wczytywania trwał 18:42:16 → 18:42:28 (12 s). Kod: `skin/niunia/player/NiuniaPlayerOverlays.kt:85-112` (`PlayerLoading`: „Buforuję… 42%”, etap, źródło; przyciski „Inne źródło” (fokus) · „Anuluj”).
 1. **Na ekranie buforowania nie działają przyciski.**
    Właściciel: „ekran buforowania przed odtworzeniem filmu: nie działają przyciski”.

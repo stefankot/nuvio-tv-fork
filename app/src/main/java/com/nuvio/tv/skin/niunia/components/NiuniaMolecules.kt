@@ -228,6 +228,11 @@ fun NiuniaMediaCard(
             parts.statusDot?.let { NiuniaDot(it) }
             parts.badge?.let { NiuniaTag(it, if (badgeStrong) NiuniaTagKind.BadgeStrong else NiuniaTagKind.Badge) }
         }
+        // Przegląd 27.11 (CAŁA APLIKACJA krok 2): pasek podpisu zwykłych kart na rozmytym dole obrazu (gotowe rozmycie Coil/dysk).
+        val ctxBand = androidx.compose.ui.platform.LocalContext.current
+        val bandBlur = captionRich == null && label == null && parts.hasCaptionBand && image is String && !imageFailed &&
+            remember(ctxBand) { com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctxBand, "niunia_blur_captions", true) }
+        if (bandBlur) NiuniaBlurBottom(image as String, from = .55f, to = .8f)
         if (topTag != null) Box(Modifier.padding(start = NiuniaSpacing.Space8, top = NiuniaSpacing.Space8)) { topTag() }
         if (captionRich != null) {
             val blurred = blurCaption && image is String && !imageFailed
@@ -245,7 +250,9 @@ fun NiuniaMediaCard(
         } else if (label != null) Text(label, style = NiuniaType.Label, color = NiuniaColor.White, maxLines = 2, overflow = TextOverflow.Ellipsis,
             modifier = Modifier.align(Alignment.BottomStart).padding(NiuniaSpacing.Space12))
         else if (parts.hasCaptionBand) Row(
-            Modifier.align(Alignment.BottomStart).fillMaxWidth().background(NiuniaGradient.ScrimCaption.brush())
+            Modifier.align(Alignment.BottomStart).fillMaxWidth().background(
+                if (bandBlur) androidx.compose.ui.graphics.Brush.verticalGradient(0f to androidx.compose.ui.graphics.Color.Transparent, 1f to androidx.compose.ui.graphics.Color(0x59000000))
+                else NiuniaGradient.ScrimCaption.brush())
                 .padding(start = NiuniaSpacing.Space8, end = NiuniaSpacing.Space8, top = NiuniaSpacing.Space20, bottom = NiuniaSpacing.Space8),
             horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space8), verticalAlignment = Alignment.CenterVertically,
         ) {
