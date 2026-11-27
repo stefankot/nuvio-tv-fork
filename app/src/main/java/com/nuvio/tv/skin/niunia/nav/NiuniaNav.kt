@@ -201,18 +201,15 @@ internal fun NiuniaNavBar(
             val behind = com.nuvio.tv.skin.niunia.components.NiuniaBackdropNow.current
             val req = remember(behind) {
                 if (behind == null || !com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(ctxNav, "niunia_blur_scrims", true) || !com.nuvio.tv.fork.images.NativeBlur.enabled(ctxNav)) null
-                else coil3.request.ImageRequest.Builder(ctxNav).data(behind).transformations(com.nuvio.tv.fork.images.NativeBlur(px, diskKey = behind)).build()
+                else coil3.request.ImageRequest.Builder(ctxNav).data(behind).transformations(com.nuvio.tv.fork.images.NativeBlur(px, diskKey = behind),
+                    com.nuvio.tv.fork.images.AlphaMask(true, 0.3f, 0.5f)).build()
                     .also { Log.i(TAG, "menu: pod panelem rozmyta kopia tła ekranu zamiast przyciemnienia") }
             }
             if (req != null) coil3.compose.AsyncImage(
                 model = req, contentDescription = null, contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                 colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(androidx.compose.ui.graphics.Color(0x4D000000), androidx.compose.ui.graphics.BlendMode.SrcAtop),
-                modifier = Modifier.fillMaxSize().graphicsLayer { alpha = openFraction; compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
-                    .drawWithContent {
-                        drawContent()
-                        drawRect(androidx.compose.ui.graphics.Brush.horizontalGradient(0f to androidx.compose.ui.graphics.Color.Black, 0.3f to androidx.compose.ui.graphics.Color.Black, 0.5f to androidx.compose.ui.graphics.Color.Transparent),
-                            blendMode = androidx.compose.ui.graphics.BlendMode.DstIn)
-                    },
+                // Paczka 13: maska wpieczona w rozmytą bitmapę (AlphaMask) — bez warstwy pozaekranowej.
+                modifier = Modifier.fillMaxSize().graphicsLayer { alpha = openFraction; compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.ModulateAlpha },
             ) else Box(
                 Modifier.fillMaxSize().alpha(openFraction)
                     .background(com.nuvio.tv.skin.niunia.tokens.NiuniaGradient.ScrimSide.brush())

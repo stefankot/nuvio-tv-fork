@@ -162,15 +162,13 @@ fun NiuniaHeroBackdrop(kind: NiuniaHeroKind, image: Any?, modifier: Modifier = M
             )
         }
         when {
+            // Paczka 13: maska wpieczona w rozmytą bitmapę (AlphaMask) — bez warstwy pozaekranowej na cały ekran.
             staticReq != null && kind == NiuniaHeroKind.Immersive -> AsyncImage(
-                model = staticReq, contentDescription = null, contentScale = ContentScale.Crop,
+                model = androidx.compose.runtime.remember(image) { coil3.request.ImageRequest.Builder(ctx).data(image).transformations(
+                    com.nuvio.tv.fork.images.NativeBlur(with(density) { 60.dp.toPx() }, diskKey = image.toString()), com.nuvio.tv.fork.images.AlphaMask(true, 0.32f, 0.64f)).build() },
+                contentDescription = null, contentScale = ContentScale.Crop,
                 colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(Color(0x40000000), androidx.compose.ui.graphics.BlendMode.SrcAtop),
-                modifier = Modifier.fillMaxSize().graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
-                    .drawWithContent {
-                        drawContent()
-                        drawRect(androidx.compose.ui.graphics.Brush.horizontalGradient(0f to Color.Black, 0.32f to Color.Black, 0.64f to Color.Transparent),
-                            blendMode = androidx.compose.ui.graphics.BlendMode.DstIn)
-                    },
+                modifier = Modifier.fillMaxSize(),
             )
             staticReq != null && kind == NiuniaHeroKind.Blurred -> Box(Modifier.fillMaxSize().background(Color(0x8C000000)))
         }
