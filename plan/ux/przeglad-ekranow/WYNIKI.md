@@ -59,3 +59,24 @@ W tej pętli powstało 8 poprawek aplikacji (paczka 7: 4, paczka 8: 4), a na JMG
 ### Zmiany na profilu właściciela (JMGO)
 - Obejrzane fragmenty: „The Social Reckoning” (~7 min w dwóch podejściach, raz z polskim dźwiękiem z innego wydania), „The Brutalist” (~1 min), kanał BBC CBeebies (archiwum, pauza).
 - „Kraj i język” na chwilę „Hiszpański”, przywrócony na „Polska”. Wyszukanie „jazz” z historii YouTube (bez nowych wpisów).
+
+## Pętla 3 (27.11, 15:40–16:05, build prz08; paczka 9 napisana, niezbudowana)
+W tej pętli powstały 4 poprawki aplikacji (paczka 8: 3, paczka 9: 1), a na JMGO sprawdzono 9 punktów (prz07 i prz08) — wszystkie działają.
+
+### Działa na TV
+- **10 pkt 2 — kafle Live TV przez wspólny komponent kart `NiuniaMediaCard`** (prz08): przewodnik, Szukaj Live TV i Odkrywaj wyglądają jak wcześniej (okładka albo logo, podpis w 2 liniach na rozmyciu, pasek postępu, obwódka fokusu). 10 pkt 1: rząd „Seriale” bez strzępów logo pod kartami.
+- **Okładki AIOMetadata**: „Hell's Kitchen” dostaje teraz okładkę SERIALU (wcześniej filmu) — dopasowanie części polskiej nazwy.
+- **Okno „Szukaj w YouTube”** trzyma fokus: ▶ z prawego brzegu i ▲ z górnego rzędu zostają w oknie (prz08).
+- 05 (prz07): ✓ „Teraz” przy bieżącej jakości (4K); pkt 3 — wybór 1080p = 2 próby w 51 s (pierwsza czekała 40 s na dane), dawniej 6 prób w 63 s.
+- 26 (prz07): OK na „Anuluj” na ekranie wczytywania wraca na Główną z fokusem na tej samej karcie.
+
+### Paczka 9 (w kodzie, czeka na build)
+CAŁA APLIKACJA krok 2: pasek podpisu zwykłych kart (Oglądaj dalej, odcinki, zwiastuny) na rozmytym dole obrazu zamiast szarego gradientu (ten sam przełącznik co podpisy Live TV).
+
+### Dalej niesprawdzone / do zrobienia
+- 22 pkt 2 (puste karty archiwum — AIOMetadata nie zna tytułu), 06 (fokus po dołączeniu polskiej ścieżki), 23 Mix (brak Mixu na ekranie), napisy wbudowane (potrzebny film z wbudowanymi polskimi), „Kropka nad i”.
+- 23 pkt 2 Mix „Następne” wymaga zmiany w kopii modułu YouTube z Nuvio One — zapisane w przekazaniu.
+
+### Zmiany na profilu właściciela (JMGO)
+- „The Brutalist”: ~2 min (zmiana jakości 4K → 1080p, źródło przełączone na 1080p), jedno wejście anulowane na ekranie wczytywania.
+- Szukaj Live TV: wpisane „tvn” i wyczyszczone (historia bez zmian).
