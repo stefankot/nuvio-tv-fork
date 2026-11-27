@@ -127,6 +127,8 @@ fun NiuniaPlayerChrome(
     var barFocused by remember { mutableStateOf(false) }
     val firstButton = remember { FocusRequester() }
     var moreOpen by remember { mutableStateOf(false) }
+    // Przegląd 27.11 (05): panel „Jakość” Niuni zamiast okna Echo.
+    var qualityOpen by remember { mutableStateOf(false) }
     var panelOpen by remember { mutableStateOf(false) }
     var panelTab by remember { mutableIntStateOf(-1) }
     val audioButton = remember { FocusRequester() }
@@ -137,7 +139,7 @@ fun NiuniaPlayerChrome(
     // Test VOD JMGO 26.11 (uxr15): „Jakość” z panelu Więcej otwierała okno jakości, ale efekty niżej oddawały fokus przyciskowi
     // Więcej / Dźwięk pod spodem — pilot nie mógł nic wybrać. Gdy z panelu (Więcej, Dźwięk i napisy) otwarto inne okno odtwarzacza, fokus zostaje w nim.
     val otherWindow by androidx.compose.runtime.rememberUpdatedState(uiState.showQualityOverlay || uiState.showSourcesPanel ||
-        uiState.showSpeedDialog || uiState.showEpisodesPanel || uiState.showAudioOverlay || uiState.showSubtitleOverlay)
+        uiState.showSpeedDialog || uiState.showEpisodesPanel || uiState.showAudioOverlay || uiState.showSubtitleOverlay || qualityOpen)
     var panelWasOpen by remember { mutableStateOf(false) }
     LaunchedEffect(panelOpen) {
         if (panelOpen) { panelWasOpen = true; return@LaunchedEffect }
@@ -360,10 +362,10 @@ fun NiuniaPlayerChrome(
                 extras.playTrailer(uiState.contentName ?: uiState.title, uiState.releaseYear, viewModel.controller.contentType ?: if (series) "series" else "movie")
             },
         )
-        BackHandler(enabled = level > 0 && !moreOpen && !panelOpen && !trailerOpen) { go(if (level == 2 && hasRow) 1 else 0) }
+        BackHandler(enabled = level > 0 && !moreOpen && !panelOpen && !trailerOpen && !qualityOpen) { go(if (level == 2 && hasRow) 1 else 0) }
         extrasState.trailer?.let { t -> NiuniaTrailerOverlay(t) { extras.closeTrailer() } }
 
-        SideEffect { ForgeSheetOpen.open = moreOpen || panelOpen || level > 0 || trailerOpen }
+        SideEffect { ForgeSheetOpen.open = moreOpen || panelOpen || level > 0 || trailerOpen || qualityOpen }
         // Wstecz krok po kroku przez wpięcie w PlayerScreen.handleBackPress (makieta Player: panel → odtwarzacz; ▼▼ → ▼ → pasek).
         val hasRowNow by androidx.compose.runtime.rememberUpdatedState(hasRow)
         DisposableEffect(Unit) {
@@ -372,6 +374,7 @@ fun NiuniaPlayerChrome(
             NiuniaPlayerBack.handler = {
                 when {
                     extras.state.value.trailer != null -> { Log.i(TAG, "Wstecz → odtwarzacz (zwiastun zamknięty)"); extras.closeTrailer(); true }
+                    qualityOpen -> { qualityOpen = false; Log.i(TAG, "Wstecz → odtwarzacz (Jakość zamknięta)"); true }
                     moreOpen -> { moreOpen = false; Log.i(TAG, "Wstecz → odtwarzacz (Więcej zamknięte)"); true }
                     panelOpen -> { panelOpen = false; Log.i(TAG, "Wstecz → odtwarzacz (panel zamknięty)"); true }
                     level > 0 -> { val to = if (level == 2 && hasRowNow) 1 else 0; Log.i(TAG, "Wstecz → poziom $to"); go(to); true }
@@ -381,7 +384,7 @@ fun NiuniaPlayerChrome(
             onDispose { NiuniaPlayerBack.handler = null }
         }
         DisposableEffect(Unit) { onDispose { ForgeSheetOpen.open = false } }
-        LaunchedEffect(moreOpen, panelOpen, level) { while (moreOpen || panelOpen || level > 0) { resetHide(); kotlinx.coroutines.delay(2_000) } }
+        LaunchedEffect(moreOpen, panelOpen, level, qualityOpen) { while (moreOpen || panelOpen || level > 0 || qualityOpen) { resetHide(); kotlinx.coroutines.delay(2_000) } }
         AnimatedVisibility(panelOpen, modifier = Modifier.align(Alignment.TopEnd), enter = slideInHorizontally { it }, exit = slideOutHorizontally { it }) {
             BackHandler { panelOpen = false; Log.i(TAG, "Wstecz → odtwarzacz (panel zamknięty)") }
             NiuniaAudioPanel(
@@ -395,7 +398,25 @@ fun NiuniaPlayerChrome(
         }
         AnimatedVisibility(moreOpen, modifier = Modifier.align(Alignment.TopEnd).padding(top = 40.dp), enter = slideInHorizontally { it }, exit = slideOutHorizontally { it }) {
             BackHandler { moreOpen = false }
-            NiuniaMorePanel(series = series, speed = uiState.playbackSpeed, close = { moreOpen = false }, onEvent = onEvent, toast = { msg -> Toast.makeText(context, msg, Toast.LENGTH_SHORT).show() })
+            NiuniaMorePanel(series = series, speed = uiState.playbackSpeed, close = { moreOpen = false }, onEvent = onEvent, toast = { msg -> Toast.makeText(context, msg, Toast.LENGTH_SHORT).show() },
+                openQuality = if (niuniaPanelsOn(context)) ({ qualityOpen = true; Log.i(TAG, "odtwarzacz: Więcej → Jakość (panel Niuni)"); Unit }) else null)
+        }
+        AnimatedVisibility(qualityOpen, modifier = Modifier.align(Alignment.TopEnd), enter = slideInHorizontally { it }, exit = slideOutHorizontally { it }) {
+            BackHandler { qualityOpen = false; Log.i(TAG, "Wstecz → odtwarzacz (Jakość zamknięta)") }
+            NiuniaQualityPanel(uiState, onEvent = { onEvent(it); resetHide() }, close = { qualityOpen = false })
+        }
+        // Po zamknięciu panelu „Jakość” fokus wraca na „Więcej” (chyba że otwarło się inne okno odtwarzacza).
+        var qualityWasOpen by remember { mutableStateOf(false) }
+        LaunchedEffect(qualityOpen) {
+            if (qualityOpen) { qualityWasOpen = true; return@LaunchedEffect }
+            if (!qualityWasOpen) return@LaunchedEffect
+            qualityWasOpen = false
+            for (wait in longArrayOf(120, 450)) {
+                kotlinx.coroutines.delay(wait)
+                if (moreOpen || panelOpen || otherWindow) return@LaunchedEffect
+                try { moreButton.requestFocus(); Log.i(TAG, "odtwarzacz: Jakość zamknięta, fokus → Więcej"); return@LaunchedEffect }
+                catch (e: IllegalStateException) { Log.w(TAG, "odtwarzacz: fokus po Jakości (${wait} ms): ${e.javaClass.simpleName}: ${e.message}") }
+            }
         }
     }
 }
@@ -439,7 +460,8 @@ internal fun NiuniaAudioPanel(uiState: PlayerUiState, initialTab: Int = -1, clos
                 NiuniaListRow(stringResource(R.string.lektor_duck_row), onClick = { m.cycleDuck(ctx); rev++ }, value = rev.let { m.duckLabel(ctx) })
             }
             2 -> NiuniaSubtitlesTab(uiState, first, onEvent, toast, more = { close(); onEvent(PlayerEvent.OnShowSubtitleOverlay) })
-            else -> {
+            // Przegląd 27.11 (06): prosta lista ścieżek, reszta ustawień zwinięta w „Więcej ustawień dźwięku”.
+            else -> if (niuniaPanelsOn(ctx)) NiuniaAudioTracksTab(uiState, first, onEvent, close, openMore) else {
                 NiuniaListRow(stringResource(R.string.niunia_ds_audio_track), onClick = { close(); onEvent(PlayerEvent.OnShowAudioOverlay) }, trailing = NiuniaTrailing.Chevron, focusRequester = first)
                 NiuniaListRow(stringResource(R.string.niunia_ds_more_options), onClick = openMore, trailing = NiuniaTrailing.Chevron)
             }
@@ -571,7 +593,7 @@ internal fun niuniaQualityGlyph(videoHeight: Int?, streamName: String?): String?
 }
 
 @Composable
-internal fun NiuniaMorePanel(series: Boolean, speed: Float, close: () -> Unit, onEvent: (PlayerEvent) -> Unit, toast: (String) -> Unit) {
+internal fun NiuniaMorePanel(series: Boolean, speed: Float, close: () -> Unit, onEvent: (PlayerEvent) -> Unit, toast: (String) -> Unit, openQuality: (() -> Unit)? = null) {
     val ctx = LocalContext.current
     // Test VOD JMGO 26.11 (uxr17): „Jakość” zamykała panel i otwierała okno jakości, ale panel w animacji wyjścia (exit = Cancel)
     // odrzucał jedyną prośbę okna o fokus (po 120 ms) — pilot nic nie wybierał. Po wyborze pozycji panel wypuszcza fokus.
@@ -602,7 +624,7 @@ internal fun NiuniaMorePanel(series: Boolean, speed: Float, close: () -> Unit, o
     ) {
         Text(stringResource(R.string.niunia_player_more), style = NiuniaText.Button.copy(fontSize = 20.sp, lineHeight = 26.sp), color = NiuniaColors.Text, modifier = Modifier.padding(start = 16.dp, bottom = 8.dp))
         PanelRow(stringResource(R.string.niunia_player_sources), focusRequester = first) { close(); onEvent(PlayerEvent.OnShowSourcesPanel) }
-        PanelRow(stringResource(R.string.niunia_player_quality)) { close(); onEvent(PlayerEvent.OnShowQualityOverlay) }
+        PanelRow(stringResource(R.string.niunia_player_quality)) { close(); if (openQuality != null) openQuality() else onEvent(PlayerEvent.OnShowQualityOverlay) }
         PanelRow(stringResource(R.string.niunia_player_try_other)) { close(); toast(com.nuvio.tv.fork.sources.TryAnotherSource.run()) }
         PanelRow(stringResource(R.string.niunia_player_subs_mismatch)) {
             close(); toast(com.nuvio.tv.fork.sources.PlayerBridge.subtitleMismatch() ?: ctx.getString(R.string.niunia_player_no_subs))

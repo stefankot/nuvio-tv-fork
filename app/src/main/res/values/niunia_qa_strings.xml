@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Przegląd ekranów 27.11 (05, 06): panele „Jakość” i „Dźwięk” odtwarzacza Niuni (skin/niunia/player/NiuniaQualityAudio.kt). -->
+<resources>
+    <string name="niunia_qa_quality_title">Jakość</string>
+    <string name="niunia_qa_quality_hint">Przełącza na źródło w tej rozdzielczości i gra od tego samego miejsca. Przytrzymaj OK, aby wybrać źródło.</string>
+    <string name="niunia_qa_pick_title">%1$s — wybierz źródło</string>
+    <string name="niunia_qa_back">Wróć do jakości</string>
+    <string name="niunia_qa_loading">Szukam źródeł…</string>
+    <string name="niunia_qa_none">Brak innych źródeł</string>
+    <string name="niunia_qa_none_q">Brak źródeł w tej jakości</string>
+    <string name="niunia_qa_auto">Automatycznie</string>
+    <string name="niunia_qa_auto_desc">Dopasowuje się do łącza</string>
+    <string name="niunia_qa_playing">Teraz</string>
+    <string name="niunia_qa_sources">Źródła: %1$d</string>
+    <string name="niunia_qa_desc_2160">Ultra HD</string>
+    <string name="niunia_qa_desc_1440">Quad HD</string>
+    <string name="niunia_qa_desc_1080">Full HD</string>
+    <string name="niunia_qa_desc_720">HD</string>
+    <string name="niunia_qa_desc_sd">Zwykła jakość</string>
+    <string name="niunia_qa_desc_low">Niska jakość</string>
+    <string name="niunia_qa_audio_unknown">Nieznany język</string>
+    <string name="niunia_qa_audio_pl">Polski</string>
+    <string name="niunia_qa_audio_pl_other">Z innego wydania tego filmu</string>
+    <string name="niunia_qa_audio_more">Więcej ustawień dźwięku</string>
+    <string name="niunia_qa_kind_lektor">lektor</string>
+    <string name="niunia_qa_kind_dub">dubbing</string>
+    <string name="niunia_qa_kind_comment">komentarz</string>
+</resources>

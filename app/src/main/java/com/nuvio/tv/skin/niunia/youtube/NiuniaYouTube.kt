@@ -137,6 +137,18 @@ fun NiuniaYouTube(onPlay: (YtPlayable) -> Unit, viewModel: YouTubeViewModel = fo
     // Wstecz z odtwarzacza: fokus na tę samą kartę.
     var lastVideoKey by rememberSaveable { mutableStateOf<String?>(null) }
     var ytSearchOpen by remember { mutableStateOf(false) }
+    // Przegląd 27.11 (23): playlista otwarta z karty wróciła pusta → komunikat i powrót do poprzedniej listy (fokus wraca
+    // na kartę, z której weszła), zamiast pustego ekranu i skoku fokusu na szynę. Wyniki szukania zostają (tam „Brak wyników”).
+    var openedFromCard by remember { mutableStateOf(false) }
+    LaunchedEffect(openedFromCard, state.subTitle, state.loading, cards.isEmpty()) {
+        if (!openedFromCard || state.subTitle == null || state.loading) return@LaunchedEffect
+        kotlinx.coroutines.delay(400)
+        openedFromCard = false
+        if (cards.isNotEmpty()) return@LaunchedEffect
+        Log.w(TAG, "youtube: lista „${state.subTitle}” pusta${error?.let { ", błąd: $it" } ?: ""} — wracam do poprzedniej")
+        com.nuvio.tv.fork.ForkLog.say(ctx, TAG, ctx.getString(R.string.niunia_yt_list_empty))
+        if (!viewModel.back()) Log.w(TAG, "youtube: pusta lista — brak poprzedniej strony")
+    }
     var ytSearchFocus by remember { mutableStateOf(false) }
     val lastVideo = remember { FocusRequester() }
     val firstVideo = remember { FocusRequester() }
@@ -237,6 +249,7 @@ fun NiuniaYouTube(onPlay: (YtPlayable) -> Unit, viewModel: YouTubeViewModel = fo
                                         val mix = item.kind == YtKind.PLAYLIST && item.videoId != null &&
                                             (item.source.playlistId?.startsWith("RD") == true || item.badge?.contains("Mix", ignoreCase = true) == true)
                                         if (mix) Log.i(TAG, "youtube: Mix → odtwarzam pierwszy film (${item.videoId})")
+                                        if (!mix && item.kind != YtKind.VIDEO) openedFromCard = true
                                         viewModel.activate(if (mix) item.copy(kind = YtKind.VIDEO) else item, cards, onPlay)
                                     }
                                 }

@@ -299,9 +299,11 @@ fun NiuniaDetail(
                                 com.nuvio.tv.skin.niunia.components.NiuniaRowScroll {
                                     LazyRow(contentPadding = rowPadding(), horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space20)) {
                                         itemsIndexed(trailers) { i, t ->
-                                            NiuniaEpisodeCard(
-                                                image = "https://img.youtube.com/vi/${t.ytId}/hqdefault.jpg", trailer = true, play = true,
-                                                title = t.name?.takeIf { it.isNotBlank() } ?: stringResource(R.string.niunia_ds_trailer_n, i + 1),
+                                            // Przegląd 27.11 (07): sam kadr z ▶, bez podpisu; rozmiar kart poziomych Głównej (LandscapeCard).
+                                            com.nuvio.tv.skin.niunia.components.NiuniaMediaCard(
+                                                preset = com.nuvio.tv.skin.niunia.components.NiuniaCardPreset.LandscapeCard,
+                                                image = "https://img.youtube.com/vi/${t.ytId}/hqdefault.jpg", play = true,
+                                                description = t.name?.takeIf { it.isNotBlank() } ?: stringResource(R.string.niunia_ds_trailer_n, i + 1),
                                                 onFocus = { if (it) focusedRow = 4 },
                                                 onClick = {
                                                     Log.i(TAG, "szczegóły: zwiastun ${i + 1}/${trailers.size}")

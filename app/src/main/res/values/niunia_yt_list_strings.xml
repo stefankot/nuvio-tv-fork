@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Przegląd ekranów 27.11 (23): pusta playlista YouTube (skin/niunia/youtube/NiuniaYouTube.kt). -->
+<resources>
+    <string name="niunia_yt_list_empty">Ta lista jest pusta albo YouTube jej nie udostępnia</string>
+</resources>
