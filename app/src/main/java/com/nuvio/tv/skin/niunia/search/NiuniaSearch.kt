@@ -222,15 +222,6 @@ fun NiuniaSearch(viewModel: SearchViewModel, onNavigateToDetail: (String, String
                 // Prawa kolumna.
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space24)) {
                     if (!searching) {
-                        // Z-19 (P-18): chip „Odkrywaj: gatunek, rok, katalog” nad rzędami → ekran Odkrywaj.
-                        NiuniaButton(onClick = {
-                            Log.i(TAG, "wyszukiwarka: Odkrywaj")
-                            // UX JMGO 24.11 (F5, pętla 0 ścieżka 19): Wstecz z Odkrywaj wraca na ten chip, nie na klawisz „a”.
-                            NiuniaSearchMemory.lastId = com.nuvio.tv.skin.niunia.components.NiuniaFocusKeys.OPENER_DISCOVER; NiuniaSearchMemory.query = state.query
-                            val go = com.nuvio.tv.ui.screens.settings.ForkFeatures.open
-                            if (go != null) go(com.nuvio.tv.ui.navigation.Screen.Discover.route) else Log.w(TAG, "wyszukiwarka: Odkrywaj: brak nawigatora")
-                        }, label = stringResource(R.string.niunia_ke2_discover_chip), icon = "discover", kind = NiuniaButtonKind.Chip,
-                            focusRequester = if (restoreId == com.nuvio.tv.skin.niunia.components.NiuniaFocusKeys.OPENER_DISCOVER) restore else null)
                         Browse(state, ctx, viewModel, open, posterOptions, focusFor)
                     }
                     else Results(state.isSearching || (fix != null && fix?.done != true && results.isEmpty()), state.submittedQuery, results, tab, onTab = { tab = it; Log.i(TAG, "wyszukiwarka: zakładka $it") }, open, posterOptions, focusFor,
@@ -240,6 +231,19 @@ fun NiuniaSearch(viewModel: SearchViewModel, onNavigateToDetail: (String, String
                         onRetry = { Log.i(TAG, "wyszukiwarka: spróbuj ponownie"); viewModel.onEvent(SearchEvent.SubmitSearch) })
                 }
             }
+        }
+        // Przegląd 27.11 (właściciel): „Odkrywaj” u góry obok zegara (zegar Nawigacji pomija ten ekran) — więcej miejsca na rzędy.
+        Row(Modifier.fillMaxWidth().padding(top = NiuniaSize.NavTop, end = NiuniaSpacing.Space40),
+            horizontalArrangement = Arrangement.spacedBy(NiuniaSpacing.Space16, Alignment.End), verticalAlignment = Alignment.CenterVertically) {
+            NiuniaButton(onClick = {
+                Log.i(TAG, "wyszukiwarka: Odkrywaj")
+                // UX JMGO 24.11 (F5, pętla 0 ścieżka 19): Wstecz z Odkrywaj wraca na ten chip, nie na klawisz „a”.
+                NiuniaSearchMemory.lastId = com.nuvio.tv.skin.niunia.components.NiuniaFocusKeys.OPENER_DISCOVER; NiuniaSearchMemory.query = state.query
+                val go = com.nuvio.tv.ui.screens.settings.ForkFeatures.open
+                if (go != null) go(com.nuvio.tv.ui.navigation.Screen.Discover.route) else Log.w(TAG, "wyszukiwarka: Odkrywaj: brak nawigatora")
+            }, label = stringResource(R.string.niunia_tv_discover), icon = "discover", kind = NiuniaButtonKind.Chip,
+                focusRequester = if (restoreId == com.nuvio.tv.skin.niunia.components.NiuniaFocusKeys.OPENER_DISCOVER) restore else null)
+            com.nuvio.tv.skin.niunia.components.NiuniaClock()
         }
     }
     askRemove?.let { q ->
