@@ -2,7 +2,9 @@ package com.nuvio.tv.fork.tv.covers
 
 import android.content.Context
 import android.util.Log
+import com.nuvio.tv.domain.model.supportsExtra
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
@@ -19,6 +21,10 @@ import java.util.concurrent.ConcurrentHashMap
  * `backdrop_path`, inaczej plakat), ścisła zgodność tytułu (jak `TvTmdb`): wiadomości i ogólne tytuły nie dostają cudzej okładki.
  * Wynik (także „brak”) w pamięci i na dysku (`files/fork_tv_covers.json`), najwyżej 2 zapytania naraz, to samo zapytanie raz.
  * Wyłącznik: klucz ForkFeatures `tv_tmdb_covers` (wyłączony = karta jak dawniej: obrazek z przewodnika albo logo).
+ *
+ * 27.11 (właściciel, przegląd): dane z wtyczki AIOMetadata (skonsolidowane z wielu serwisów) — katalog wyszukiwania wtyczki
+ * (najpierw seriale, potem filmy), ta sama ścisła zgodność tytułu. Bez zainstalowanej wtyczki — awaryjnie TMDB jak dawniej.
+ * Nowa pamięć `files/fork_tv_covers_aio.json`; stary plik TMDB zostaje obok nieruszony.
  */
 object TvCovers {
     private const val TAG = "ForkTvCovers"
@@ -34,6 +40,11 @@ object TvCovers {
     @Volatile private var file: File? = null
     @Volatile private var dirty = 0
     private var hits = 0; private var misses = 0; private var errors = 0
+
+    @dagger.hilt.EntryPoint @dagger.hilt.InstallIn(dagger.hilt.components.SingletonComponent::class)
+    interface Deps { fun addons(): com.nuvio.tv.domain.repository.AddonRepository }
+
+    private const val FILE = "fork_tv_covers_aio.json"
 
     fun enabled(c: Context): Boolean = com.nuvio.tv.ui.screens.settings.ForkFeatures.enabled(c, KEY, true)
 
@@ -72,8 +83,8 @@ object TvCovers {
         val lock = locks.getOrPut(key) { kotlinx.coroutines.sync.Mutex() }
         return lock.withLock {
             fresh(key)?.let { return@withLock it.url.ifEmpty { null } }
-            val url = sem.withPermit { withContext(Dispatchers.IO) { fetch(q, norm(q), tvOnly = key.endsWith("|tv")) } }
-            if (url != null) { mem[key] = Entry(url, System.currentTimeMillis()); if (url.isEmpty()) misses++ else hits++; save(c) }
+            val url = sem.withPermit { withContext(Dispatchers.IO) { fetchAio(c, q, norm(q), tvOnly = key.endsWith("|tv")) } }
+            if (url != null) { mem[key] = Entry(url, System.currentTimeMillis()); save(c) }
             url?.ifEmpty { null }
         }
     }
@@ -84,7 +95,74 @@ object TvCovers {
         return e.takeIf { System.currentTimeMillis() - it.at < ttl }
     }
 
-    /** "" = TMDB nie zna tego tytułu (pamiętane); null = błąd sieci (bez pamiętania, następnym razem znów). */
+    /** Wtyczka AIOMetadata z profilu (włączona) albo null. */
+    private suspend fun aioAddon(c: Context): com.nuvio.tv.domain.model.Addon? = try {
+        dagger.hilt.android.EntryPointAccessors.fromApplication(c.applicationContext, Deps::class.java).addons()
+            .getInstalledAddons().first()
+            .firstOrNull { a -> a.isActive && listOf(a.name, a.id, a.displayName).any { it.contains("aiometadata", ignoreCase = true) } }
+    } catch (e: Exception) {
+        if (e is kotlinx.coroutines.CancellationException) throw e
+        Log.w(TAG, "lista wtyczek: ${e.javaClass.simpleName}: ${e.message}"); null
+    }
+
+    /** Katalog wyszukiwania AIOMetadata: seriale (programy TV), potem filmy (gdy program ≥ [MOVIE_MIN] min). */
+    private suspend fun fetchAio(c: Context, q: String, key: String, tvOnly: Boolean): String? {
+        val aio = aioAddon(c)
+        if (aio == null) {
+            if (!aioMissingLogged) { aioMissingLogged = true; Log.w(TAG, "brak włączonej wtyczki AIOMetadata — okładki awaryjnie z TMDB") }
+            return fetch(q, key, tvOnly)
+        }
+        val catalogs = aio.catalogs.filter { cat ->
+            cat.supportsExtra("search") && cat.extra.none { it.isRequired && !it.name.equals("search", true) } &&
+                (cat.apiType == "series" || (cat.apiType == "movie" && !tvOnly))
+        }.sortedBy { if (it.apiType == "series") 0 else 1 }.distinctBy { it.apiType }
+        if (catalogs.isEmpty()) { Log.w(TAG, "AIOMetadata bez katalogu wyszukiwania — okładki awaryjnie z TMDB"); return fetch(q, key, tvOnly) }
+        var failed = false
+        for (cat in catalogs) {
+            when (val r = searchAio(aio.baseUrl, cat.apiType, cat.id, q, key)) {
+                null -> failed = true
+                "" -> Unit
+                else -> {
+                    hits++
+                    Log.i(TAG, "„$q”: okładka ${cat.apiType} z AIOMetadata — razem trafień $hits, brak $misses, błędów $errors")
+                    return r
+                }
+            }
+        }
+        if (failed) return null // błąd sieci: bez pamiętania „brak”
+        misses++
+        Log.i(TAG, "„$q”: AIOMetadata — brak zgodnego tytułu (${catalogs.joinToString("+") { it.apiType }}) — razem trafień $hits, brak $misses, błędów $errors")
+        return ""
+    }
+
+    @Volatile private var aioMissingLogged = false
+
+    /** Jedno zapytanie do katalogu: "" = brak zgodnego tytułu, null = błąd. Adres wtyczki nie trafia do logów (konfiguracja w ścieżce). */
+    private fun searchAio(baseUrl: String, type: String, catalogId: String, q: String, key: String): String? {
+        val base = baseUrl.trimEnd('/')
+        val qs = base.indexOf('?')
+        val path = if (qs >= 0) base.substring(0, qs).trimEnd('/') else base
+        val query = if (qs >= 0) base.substring(qs) else ""
+        fun enc(v: String) = java.net.URLEncoder.encode(v, "UTF-8").replace("+", "%20")
+        val u = java.net.URL("$path/catalog/$type/${enc(catalogId)}/search=${enc(q)}.json$query")
+        val conn = u.openConnection() as java.net.HttpURLConnection
+        return try {
+            conn.connectTimeout = 5_000; conn.readTimeout = 8_000
+            if (conn.responseCode != 200) { errors++; Log.w(TAG, "„$q”: AIOMetadata $type HTTP ${conn.responseCode}"); return null }
+            val metas = JSONObject(conn.inputStream.bufferedReader().use { it.readText() }).optJSONArray("metas") ?: JSONArray()
+            for (i in 0 until metas.length()) {
+                val m = metas.optJSONObject(i) ?: continue
+                if (norm(m.optString("name")) != key) continue
+                val img = listOf("background", "poster").map { m.optString(it) }.firstOrNull { it.startsWith("http") } ?: continue
+                return img
+            }
+            ""
+        } catch (e: Exception) {
+            errors++; Log.w(TAG, "„$q”: AIOMetadata $type: ${e.javaClass.simpleName}"); null
+        } finally { conn.disconnect() }
+    }
+
+    /** Awaryjnie (bez AIOMetadata): "" = TMDB nie zna tego tytułu (pamiętane); null = błąd sieci (bez pamiętania, następnym razem znów). */
     private fun fetch(q: String, key: String, tvOnly: Boolean): String? {
         val apiKey = com.nuvio.tv.BuildConfig.TMDB_API_KEY
         if (apiKey.isBlank()) { Log.w(TAG, "brak klucza TMDB — okładki wyłączone"); return "" }
@@ -108,6 +186,7 @@ object TvCovers {
                 if (pop > bestPop) { best = r.put("_path", path); bestPop = pop }
             }
             val url = best?.optString("_path")?.let { IMG + it } ?: ""
+            if (url.isEmpty()) misses++ else hits++
             Log.i(TAG, "„$q”: ${if (url.isEmpty()) "brak zgodnego tytułu (${results.length()} wyników)" else "okładka ${best?.optString("media_type")}"} — razem trafień $hits, brak $misses, błędów $errors")
             url
         } catch (e: Exception) {
@@ -117,7 +196,7 @@ object TvCovers {
 
     @Synchronized private fun ensureLoaded(c: Context) {
         if (file != null) return
-        val f = File(c.filesDir, "fork_tv_covers.json"); file = f
+        val f = File(c.filesDir, FILE); file = f
         if (!f.exists()) return
         try {
             val o = JSONObject(f.readText())
@@ -130,7 +209,7 @@ object TvCovers {
     @Synchronized private fun save(c: Context) {
         dirty++
         if (dirty != 1 && dirty % 10 != 0) return
-        val f = file ?: File(c.filesDir, "fork_tv_covers.json")
+        val f = file ?: File(c.filesDir, FILE)
         try {
             val o = JSONObject()
             mem.forEach { (k, e) -> o.put(k, JSONArray().put(e.url).put(e.at)) }
